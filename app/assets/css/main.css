@@ -1,1 +1,105 @@
 @import 'tailwindcss';
+
+/* Dark mode via classe .dark (controle manual) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ============================================
+   Design Tokens — Memorai
+   Dark-first, roxo como identidade, cyan pra IA
+   ============================================ */
+
+@theme {
+  /* Primary — Roxo (identidade) */
+  --color-primary-400: #A78BFA;
+  --color-primary-500: #7C3AED;
+  --color-primary-600: #6D28D9;
+  --color-primary-700: #5B21B6;
+  --color-primary-800: #4C1D95;
+  --color-primary-900: #3B0764;
+
+  /* Accent — Cyan/Teal (IA, elementos "smart") */
+  --color-accent-400: #22D3EE;
+  --color-accent-500: #06B6D4;
+  --color-accent-600: #0891B2;
+
+  /* Semânticas */
+  --color-success: #22C55E;
+  --color-danger: #EF4444;
+  --color-warning: #F59E0B;
+  --color-info: #38BDF8;
+
+  /* Fonte */
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+/* ============================================
+   CSS Variables — mudam entre light/dark
+   ============================================ */
+
+:root {
+  /* Light mode (default quando sem .dark) */
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F9FAFB;
+  --bg-tertiary: #F3F4F6;
+  --text-primary: #111827;
+  --text-secondary: #4B5563;
+  --text-muted: #9CA3AF;
+  --border-default: #E5E7EB;
+  --border-strong: #D1D5DB;
+}
+
+.dark {
+  --bg-primary: #0B0F1A;
+  --bg-secondary: #111827;
+  --bg-tertiary: #1F2937;
+  --text-primary: #E5E7EB;
+  --text-secondary: #9CA3AF;
+  --text-muted: #6B7280;
+  --border-default: #1F2937;
+  --border-strong: #374151;
+}
+
+/* ============================================
+   Utilitários base
+   ============================================ */
+
+@utility bg-surface {
+  background-color: var(--bg-primary);
+}
+
+@utility bg-surface-secondary {
+  background-color: var(--bg-secondary);
+}
+
+@utility bg-surface-tertiary {
+  background-color: var(--bg-tertiary);
+}
+
+@utility text-base-primary {
+  color: var(--text-primary);
+}
+
+@utility text-base-secondary {
+  color: var(--text-secondary);
+}
+
+@utility text-base-muted {
+  color: var(--text-muted);
+}
+
+@utility border-base {
+  border-color: var(--border-default);
+}
+
+@utility border-strong {
+  border-color: var(--border-strong);
+}
+
+/* ============================================
+   Base styles
+   ============================================ */
+
+html {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}

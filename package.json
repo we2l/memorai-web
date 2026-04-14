@@ -8,7 +8,9 @@
     "build": "nuxt build",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "keywords": [],
   "author": "",
@@ -22,5 +24,11 @@
     "pinia": "^3.0.4",
     "tailwindcss": "^4.2.2"
   },
-  "private": true
+  "private": true,
+  "devDependencies": {
+    "@nuxt/test-utils": "^4.0.2",
+    "@vue/test-utils": "^2.4.6",
+    "happy-dom": "^20.9.0",
+    "vitest": "^4.1.4"
+  }
 }

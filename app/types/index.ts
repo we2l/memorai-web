@@ -65,3 +65,25 @@ export interface NavItem {
   to: string
   icon: string
 }
+
+export interface Topic {
+  id: string
+  name: string
+  description: string | null
+  parent_id: string | null
+  position: number
+  notes_count: number
+  flashcards_count: number
+  children: Topic[]
+  created_at: string
+  updated_at: string
+}
+
+export interface Note {
+  id: string
+  topic_id: string
+  title: string
+  content: Record<string, any> | null
+  created_at: string
+  updated_at: string
+}

@@ -77,15 +77,22 @@ export const useReviewStore = defineStore('review', {
         // Remove from learning queue if it was there
         this.learningQueue = this.learningQueue.filter(q => q.card.id !== card.id)
 
-        if (updatedCard.is_learning && updatedCard.due) {
-          const dueAt = new Date(updatedCard.due).getTime()
-          this.learningQueue.push({ card: updatedCard, dueAt })
-        }
-
         // Advance main queue index if card was from it
         const wasFromMainQueue = this.cards.some(c => c.id === card.id)
         if (wasFromMainQueue) {
           this.currentIndex++
+        }
+
+        const hasMoreMainCards = this.currentIndex < this.cards.length
+
+        if (updatedCard.is_learning) {
+          if (!hasMoreMainCards && this.learningQueue.length === 0) {
+            // No other cards waiting — show learning card again immediately (learn ahead)
+            this.learningQueue.push({ card: updatedCard, dueAt: Date.now() })
+          } else if (updatedCard.due) {
+            // Other cards in queue — respect the timer
+            this.learningQueue.push({ card: updatedCard, dueAt: new Date(updatedCard.due).getTime() })
+          }
         }
 
         this.flipped = false

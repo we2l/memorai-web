@@ -62,6 +62,9 @@
         </div>
       </div>
 
+      <!-- Study settings -->
+      <DeckSettings :deck="deckStore.current" class="mb-8" />
+
       <!-- Cards list -->
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-headline">Conteúdo do Deck</h2>

@@ -53,5 +53,14 @@ export const useDeckStore = defineStore('deck', {
       this.decks = this.decks.filter(d => d.id !== id)
       if (this.current?.id === id) this.current = null
     },
+
+    async updateSettings(id: string, data: { learning_steps?: number[]; relearning_steps?: number[]; desired_retention?: number }) {
+      const { $api } = useNuxtApp()
+      const res = await $api<any>(`/decks/${id}/settings`, { method: 'PUT', body: data })
+      if (this.current?.id === id) this.current = res.data
+      const idx = this.decks.findIndex(d => d.id === id)
+      if (idx !== -1) this.decks[idx] = res.data
+      return res.data
+    },
   },
 })

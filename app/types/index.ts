@@ -15,6 +15,9 @@ export interface Deck {
   name: string
   description: string | null
   cards_count: number
+  learning_steps: number[]
+  relearning_steps: number[]
+  desired_retention: number
   created_at: string
   updated_at: string
 }
@@ -25,6 +28,14 @@ export interface Flashcard {
   type: string
   front: string
   back: string
+  state: string
+  due: string | null
+  stability: number
+  difficulty: number
+  reps: number
+  lapses: number
+  learning_step_index: number | null
+  is_learning: boolean
   created_at: string
   updated_at: string
 }

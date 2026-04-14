@@ -19,27 +19,20 @@
       <div class="skeleton h-64 w-full max-w-lg rounded-2xl" />
     </div>
 
-    <!-- Finished -->
-    <div v-else-if="review.finished" class="flex-1 flex flex-col items-center justify-center px-4 text-center">
+    <!-- Finished (or waiting for learning cards) -->
+    <div v-else-if="review.finished || (!review.currentCard && review.pendingLearning > 0)" class="flex-1 flex flex-col items-center justify-center px-4 text-center">
       <p class="text-4xl mb-4">🎉</p>
       <h2 class="text-display">Sessão concluída!</h2>
       <p class="text-base-secondary mt-2">
-        Você revisou {{ review.total }} card{{ review.total !== 1 ? 's' : '' }}.
+        Você revisou {{ review.reviewed }} card{{ review.reviewed !== 1 ? 's' : '' }}.
+      </p>
+      <p v-if="review.pendingLearning > 0" class="text-base-muted text-small mt-2">
+        {{ review.pendingLearning }} card{{ review.pendingLearning !== 1 ? 's' : '' }} em aprendizado — {{ review.pendingLearning === 1 ? 'volta' : 'voltam' }} em breve.
       </p>
       <div class="flex gap-3 mt-8">
         <NuxtLink to="/dashboard" class="btn-secondary">Voltar ao dashboard</NuxtLink>
-        <button class="btn-primary" @click="review.fetchSession()">Nova sessão</button>
+        <button class="btn-primary" @click="review.fetchSession(deckId)">Nova sessão</button>
       </div>
-    </div>
-
-    <!-- Waiting for learning cards -->
-    <div v-else-if="!review.currentCard && review.pendingLearning > 0" class="flex-1 flex flex-col items-center justify-center px-4 text-center">
-      <p class="text-2xl mb-4">⏳</p>
-      <h2 class="text-title">Aguardando cards em aprendizado</h2>
-      <p class="text-base-secondary mt-2">
-        {{ review.pendingLearning }} card{{ review.pendingLearning !== 1 ? 's' : '' }} voltando em breve...
-      </p>
-      <p class="text-base-muted text-small mt-1">Próximo em {{ nextLearningIn }}</p>
     </div>
 
     <!-- Review -->
@@ -82,34 +75,12 @@ const review = useReviewStore()
 const deckStore = useDeckStore()
 const route = useRoute()
 const toast = useToast()
-
-// Timer for learning cards
-const nextLearningIn = ref('')
-let timerInterval: ReturnType<typeof setInterval> | null = null
-
-function updateTimer() {
-  if (!review.pendingLearning) {
-    nextLearningIn.value = ''
-    return
-  }
-  const now = Date.now()
-  const nearest = Math.min(...review.learningQueue.map(q => q.dueAt))
-  const diff = Math.max(0, nearest - now)
-  const secs = Math.ceil(diff / 1000)
-  if (secs <= 0) {
-    // Force reactivity — a learning card is due
-    nextLearningIn.value = 'agora!'
-    return
-  }
-  const m = Math.floor(secs / 60)
-  const s = secs % 60
-  nextLearningIn.value = m > 0 ? `${m}min ${s}s` : `${s}s`
-}
+const deckId = route.query.deck_id as string | undefined
 
 async function handleRate(rating: number) {
   try {
     await review.submitReview(rating as 1 | 2 | 3 | 4)
-    if (review.finished) {
+    if (review.finished || (!review.currentCard && review.pendingLearning > 0)) {
       toast.show('Sessão concluída! 🎉', 'success')
     }
   } catch {
@@ -118,14 +89,7 @@ async function handleRate(rating: number) {
 }
 
 onMounted(async () => {
-  const deckId = route.query.deck_id as string | undefined
   if (deckId) await deckStore.fetchDeck(deckId)
   await review.fetchSession(deckId)
-
-  timerInterval = setInterval(updateTimer, 1000)
-})
-
-onUnmounted(() => {
-  if (timerInterval) clearInterval(timerInterval)
 })
 </script>

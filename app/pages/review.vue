@@ -63,9 +63,7 @@
       <FlashcardButtons
         v-if="review.flipped"
         :disabled="review.submitting"
-        :card="review.currentCard"
-        :learning-steps="currentDeckSettings.learningSteps"
-        :relearning-steps="currentDeckSettings.relearningSteps"
+        :intervals="review.currentIntervals"
         @rate="handleRate"
       />
     </div>
@@ -84,11 +82,6 @@ const review = useReviewStore()
 const deckStore = useDeckStore()
 const route = useRoute()
 const toast = useToast()
-
-const currentDeckSettings = computed(() => ({
-  learningSteps: deckStore.current?.learning_steps ?? [1, 10],
-  relearningSteps: deckStore.current?.relearning_steps ?? [10],
-}))
 
 // Timer for learning cards
 const nextLearningIn = ref('')

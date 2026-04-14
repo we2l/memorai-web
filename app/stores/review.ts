@@ -1,10 +1,14 @@
 import { defineStore } from 'pinia'
-import type { Flashcard, ReviewPayload } from '~/types'
+import type { Flashcard } from '~/types'
+
+interface SessionCard extends Flashcard {
+  next_intervals: { again: string; hard: string; good: string; easy: string }
+}
 
 export const useReviewStore = defineStore('review', {
   state: () => ({
-    cards: [] as Flashcard[],
-    learningQueue: [] as { card: Flashcard; dueAt: number }[],
+    cards: [] as SessionCard[],
+    learningQueue: [] as { card: SessionCard; dueAt: number }[],
     currentIndex: 0,
     flipped: false,
     loading: false,
@@ -13,13 +17,14 @@ export const useReviewStore = defineStore('review', {
   }),
 
   getters: {
-    currentCard(state): Flashcard | null {
-      // Check if any learning card is due
+    currentCard(state): SessionCard | null {
       const now = Date.now()
       const dueLearn = state.learningQueue.find(q => q.dueAt <= now)
       if (dueLearn) return dueLearn.card
-
       return state.cards[state.currentIndex] ?? null
+    },
+    currentIntervals(): { again: string; hard: string; good: string; easy: string } {
+      return this.currentCard?.next_intervals ?? { again: '', hard: '', good: '', easy: '' }
     },
     total: (state) => state.cards.length + state.learningQueue.length,
     reviewed: (state) => state.currentIndex,
@@ -61,30 +66,26 @@ export const useReviewStore = defineStore('review', {
         const { $api } = useNuxtApp()
         const res = await $api<any>('/review', {
           method: 'POST',
-          body: { flashcard_id: card.id, rating } as ReviewPayload,
+          body: { flashcard_id: card.id, rating },
         })
 
-        const updatedCard = res.data.flashcard as Flashcard
+        const updatedCard = {
+          ...res.data.flashcard,
+          next_intervals: res.data.next_intervals,
+        } as SessionCard
 
         // Remove from learning queue if it was there
         this.learningQueue = this.learningQueue.filter(q => q.card.id !== card.id)
 
-        // If card is still in learning, add to learning queue with timer
         if (updatedCard.is_learning && updatedCard.due) {
           const dueAt = new Date(updatedCard.due).getTime()
           this.learningQueue.push({ card: updatedCard, dueAt })
         }
 
-        // Only advance index if the card was from the main queue
-        if (!card.is_learning || !this.cards.some(c => c.id === card.id)) {
-          // Card was from learning queue, don't advance
-        } else {
+        // Advance main queue index if card was from it
+        const wasFromMainQueue = this.cards.some(c => c.id === card.id)
+        if (wasFromMainQueue) {
           this.currentIndex++
-        }
-
-        // Advance if current card was from main queue
-        if (this.cards[this.currentIndex - 1]?.id === card.id || (!card.is_learning && this.cards[this.currentIndex]?.id !== card.id)) {
-          // Already advanced or was learning card
         }
 
         this.flipped = false
@@ -95,15 +96,10 @@ export const useReviewStore = defineStore('review', {
     },
 
     checkFinished() {
-      const now = Date.now()
       const hasMainCards = this.currentIndex < this.cards.length
-      const hasDueLearning = this.learningQueue.some(q => q.dueAt <= now)
       const hasPendingLearning = this.learningQueue.length > 0
-
       if (!hasMainCards && !hasPendingLearning) {
         this.finished = true
-      } else if (!hasMainCards && hasPendingLearning && !hasDueLearning) {
-        // All main cards done, waiting for learning cards — don't mark finished
       }
     },
   },

@@ -26,6 +26,13 @@
         <Settings :size="20" :stroke-width="1.5" />
         Configurações
       </NuxtLink>
+      <button
+        @click="handleLogout"
+        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-small text-danger hover:bg-surface-tertiary transition-all duration-150 w-full mt-1"
+      >
+        <LogOut :size="20" :stroke-width="1.5" />
+        Sair
+      </button>
     </div>
   </aside>
 </template>
@@ -37,9 +44,20 @@ import {
   BookOpen,
   BarChart3,
   Settings,
+  LogOut,
 } from 'lucide-vue-next'
 
 const route = useRoute()
+const auth = useAuthStore()
+const { $api } = useNuxtApp()
+
+async function handleLogout() {
+  try {
+    await $api('/logout', { method: 'POST' })
+  } catch {}
+  auth.clearAuth()
+  await navigateTo('/login')
+}
 
 const items = [
   { label: 'Dashboard', to: '/dashboard', icon: 'dashboard' },

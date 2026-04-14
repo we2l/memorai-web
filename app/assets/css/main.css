@@ -503,6 +503,10 @@ html {
   font-family: var(--font-sans);
 }
 
+button {
+  cursor: pointer;
+}
+
 /* Scrollbar sutil */
 ::-webkit-scrollbar {
   width: 6px;

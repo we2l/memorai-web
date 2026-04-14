@@ -39,40 +39,15 @@
         </div>
       </div>
 
-      <!-- Add card modal -->
-      <div v-if="showAdd" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" @click.self="showAdd = false">
-        <div class="card w-full max-w-lg mx-4 p-6" role="dialog" aria-label="Adicionar flashcard">
-          <h2 class="text-headline mb-4">Novo card</h2>
-          <form @submit.prevent="handleAddCard" class="flex flex-col gap-4">
-            <div>
-              <label for="card-front" class="text-label mb-1 block">Frente</label>
-              <textarea id="card-front" v-model="cardForm.front" class="textarea-base" rows="3" placeholder="Digite a pergunta..." />
-            </div>
-            <div>
-              <label for="card-back" class="text-label mb-1 block">Verso</label>
-              <textarea id="card-back" v-model="cardForm.back" class="textarea-base" rows="3" placeholder="Digite a resposta..." />
-            </div>
-            <div class="flex gap-3 justify-end">
-              <button type="button" class="btn-secondary" @click="showAdd = false">Cancelar</button>
-              <button type="submit" class="btn-primary" :disabled="!cardForm.front || !cardForm.back || adding">
-                {{ adding ? 'Salvando...' : 'Salvar' }}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-
-      <!-- Delete confirmation modal -->
-      <div v-if="deleteTarget" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" @click.self="deleteTarget = null">
-        <div class="card w-full max-w-sm mx-4 p-6" role="alertdialog" aria-label="Confirmar remoção">
-          <h2 class="text-headline mb-2">Remover card?</h2>
-          <p class="text-base-secondary text-small mb-6">Essa ação não pode ser desfeita.</p>
-          <div class="flex gap-3 justify-end">
-            <button class="btn-secondary" @click="deleteTarget = null">Cancelar</button>
-            <button class="btn-danger" @click="handleDelete">Remover</button>
-          </div>
-        </div>
-      </div>
+      <!-- Modals -->
+      <FlashcardCreateModal v-model="showAdd" :deck-id="deckId" />
+      <UiConfirmModal
+        v-model="showDelete"
+        title="Remover card?"
+        message="Essa ação não pode ser desfeita."
+        confirm-label="Remover"
+        @confirm="handleDelete"
+      />
 
       <!-- Study settings -->
       <DeckSettings :deck="deckStore.current" class="mb-8" />
@@ -126,41 +101,21 @@ const toast = useToast()
 
 const deckId = route.params.id as string
 const showAdd = ref(false)
-const adding = ref(false)
-const cardForm = reactive({ front: '', back: '' })
-const expandedCards = ref(new Set<string>())
+const showDelete = ref(false)
 const deleteTarget = ref<string | null>(null)
+const expandedCards = ref(new Set<string>())
 
 function toggleCard(id: string) {
-  if (expandedCards.value.has(id)) {
-    expandedCards.value.delete(id)
-  } else {
-    expandedCards.value.add(id)
-  }
+  expandedCards.value.has(id) ? expandedCards.value.delete(id) : expandedCards.value.add(id)
 }
 
 function formatDate(date: string) {
   return new Date(date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
-async function handleAddCard() {
-  adding.value = true
-  try {
-    await flashcardStore.create(deckId, { front: cardForm.front, back: cardForm.back })
-    toast.show('Card criado!', 'success')
-    showAdd.value = false
-    cardForm.front = ''
-    cardForm.back = ''
-    await deckStore.fetchDeck(deckId)
-  } catch {
-    toast.show('Erro ao criar card.', 'error')
-  } finally {
-    adding.value = false
-  }
-}
-
 function confirmDelete(cardId: string) {
   deleteTarget.value = cardId
+  showDelete.value = true
 }
 
 async function handleDelete() {
@@ -172,6 +127,7 @@ async function handleDelete() {
   } catch {
     toast.show('Erro ao remover card.', 'error')
   } finally {
+    showDelete.value = false
     deleteTarget.value = null
   }
 }

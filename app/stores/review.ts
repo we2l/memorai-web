@@ -26,12 +26,11 @@ export const useReviewStore = defineStore('review', {
     currentIntervals(): { again: string; hard: string; good: string; easy: string } {
       return this.currentCard?.next_intervals ?? { again: '', hard: '', good: '', easy: '' }
     },
-    total: (state) => state.cards.length + state.learningQueue.length,
+    total: (state) => state.cards.length,
     reviewed: (state) => state.currentIndex,
     progress(state): number {
-      const total = state.cards.length + state.learningQueue.length
-      if (!total) return 0
-      return Math.round((state.currentIndex / total) * 100)
+      if (!state.cards.length) return 0
+      return Math.round((state.currentIndex / state.cards.length) * 100)
     },
     pendingLearning: (state) => state.learningQueue.length,
   },

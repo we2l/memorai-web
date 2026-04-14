@@ -1,9 +1,14 @@
 import { defineStore } from 'pinia'
-import type { Flashcard, ReviewPayload } from '~/types'
+import type { Flashcard } from '~/types'
+
+interface SessionCard extends Flashcard {
+  next_intervals: { again: string; hard: string; good: string; easy: string }
+}
 
 export const useReviewStore = defineStore('review', {
   state: () => ({
-    cards: [] as Flashcard[],
+    cards: [] as SessionCard[],
+    learningQueue: [] as { card: SessionCard; dueAt: number }[],
     currentIndex: 0,
     flipped: false,
     loading: false,
@@ -12,10 +17,22 @@ export const useReviewStore = defineStore('review', {
   }),
 
   getters: {
-    currentCard: (state) => state.cards[state.currentIndex] ?? null,
+    currentCard(state): SessionCard | null {
+      const now = Date.now()
+      const dueLearn = state.learningQueue.find(q => q.dueAt <= now)
+      if (dueLearn) return dueLearn.card
+      return state.cards[state.currentIndex] ?? null
+    },
+    currentIntervals(): { again: string; hard: string; good: string; easy: string } {
+      return this.currentCard?.next_intervals ?? { again: '', hard: '', good: '', easy: '' }
+    },
     total: (state) => state.cards.length,
     reviewed: (state) => state.currentIndex,
-    progress: (state) => state.cards.length ? Math.round((state.currentIndex / state.cards.length) * 100) : 0,
+    progress(state): number {
+      if (!state.cards.length) return 0
+      return Math.round((state.currentIndex / state.cards.length) * 100)
+    },
+    pendingLearning: (state) => state.learningQueue.length,
   },
 
   actions: {
@@ -24,6 +41,7 @@ export const useReviewStore = defineStore('review', {
       this.finished = false
       this.currentIndex = 0
       this.flipped = false
+      this.learningQueue = []
       try {
         const { $api } = useNuxtApp()
         const query = deckId ? `?deck_id=${deckId}` : ''
@@ -40,21 +58,54 @@ export const useReviewStore = defineStore('review', {
     },
 
     async submitReview(rating: 1 | 2 | 3 | 4) {
-      if (!this.currentCard || this.submitting) return
+      const card = this.currentCard
+      if (!card || this.submitting) return
       this.submitting = true
       try {
         const { $api } = useNuxtApp()
-        await $api('/review', {
+        const res = await $api<any>('/review', {
           method: 'POST',
-          body: { flashcard_id: this.currentCard.id, rating } as ReviewPayload,
+          body: { flashcard_id: card.id, rating },
         })
-        this.flipped = false
-        this.currentIndex++
-        if (this.currentIndex >= this.cards.length) {
-          this.finished = true
+
+        const updatedCard = {
+          ...res.data.flashcard,
+          next_intervals: res.data.next_intervals,
+        } as SessionCard
+
+        // Remove from learning queue if it was there
+        this.learningQueue = this.learningQueue.filter(q => q.card.id !== card.id)
+
+        // Advance main queue index if card was from it
+        const wasFromMainQueue = this.cards.some(c => c.id === card.id)
+        if (wasFromMainQueue) {
+          this.currentIndex++
         }
+
+        const hasMoreMainCards = this.currentIndex < this.cards.length
+
+        if (updatedCard.is_learning) {
+          if (!hasMoreMainCards && this.learningQueue.length === 0) {
+            // No other cards waiting — show learning card again immediately (learn ahead)
+            this.learningQueue.push({ card: updatedCard, dueAt: Date.now() })
+          } else if (updatedCard.due) {
+            // Other cards in queue — respect the timer
+            this.learningQueue.push({ card: updatedCard, dueAt: new Date(updatedCard.due).getTime() })
+          }
+        }
+
+        this.flipped = false
+        this.checkFinished()
       } finally {
         this.submitting = false
+      }
+    },
+
+    checkFinished() {
+      const hasMainCards = this.currentIndex < this.cards.length
+      const hasPendingLearning = this.learningQueue.length > 0
+      if (!hasMainCards && !hasPendingLearning) {
+        this.finished = true
       }
     },
   },

@@ -29,10 +29,7 @@
       <p v-if="review.pendingLearning > 0" class="text-base-muted text-small mt-2">
         {{ review.pendingLearning }} card{{ review.pendingLearning !== 1 ? 's' : '' }} em aprendizado — {{ review.pendingLearning === 1 ? 'volta' : 'voltam' }} em breve.
       </p>
-      <div class="flex gap-3 mt-8">
-        <NuxtLink to="/dashboard" class="btn-secondary">Voltar ao dashboard</NuxtLink>
-        <button class="btn-primary" @click="review.fetchSession(deckId)">Nova sessão</button>
-      </div>
+      <NuxtLink to="/dashboard" class="btn-primary mt-8">Voltar ao dashboard</NuxtLink>
     </div>
 
     <!-- Review -->

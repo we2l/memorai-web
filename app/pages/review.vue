@@ -34,13 +34,13 @@
 
     <!-- Review -->
     <div v-else-if="review.currentCard" class="flex-1 flex flex-col items-center justify-center px-4 gap-8">
-      <FlashcardFlashcardCard
+      <FlashcardCard
         :card="review.currentCard"
         :flipped="review.flipped"
         @flip="review.flip()"
       />
 
-      <FlashcardReviewButtons
+      <ReviewButtons
         v-if="review.flipped"
         :disabled="review.submitting"
         @rate="(r) => review.submitReview(r)"

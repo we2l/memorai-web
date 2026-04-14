@@ -18,7 +18,7 @@
           <p v-if="deckStore.current.description" class="text-base-secondary mt-1">{{ deckStore.current.description }}</p>
         </div>
         <div class="flex gap-3">
-          <NuxtLink to="/review" class="btn-primary">
+          <NuxtLink :to="`/review?deck_id=${deckId}`" class="btn-primary">
             <Play :size="18" /> Revisar este deck
           </NuxtLink>
           <button class="btn-secondary" @click="showAdd = true">
@@ -74,15 +74,22 @@
         </div>
       </div>
 
-      <div v-else-if="flashcardStore.flashcards.length" class="space-y-3">
+      <div v-else-if="flashcardStore.flashcards.length" class="space-y-2">
         <div v-for="card in flashcardStore.flashcards" :key="card.id" class="card group">
-          <p class="text-base-primary font-medium">{{ card.front }}</p>
-          <div class="bg-surface-tertiary rounded-lg p-3 mt-2">
-            <p class="text-base-secondary text-small italic">"{{ card.back }}"</p>
+          <div class="flex items-center justify-between gap-4">
+            <p class="text-base-primary text-small truncate flex-1">{{ card.front }}</p>
+            <div class="flex items-center gap-3 shrink-0">
+              <button class="text-micro text-primary-400 hover:underline" @click="toggleCard(card.id)">
+                {{ expandedCards.has(card.id) ? 'Ocultar' : 'Ver verso' }}
+              </button>
+              <button class="text-micro text-danger" @click="handleDelete(card.id)">Remover</button>
+            </div>
           </div>
-          <div class="flex justify-end gap-2 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button class="text-micro text-danger hover:underline" @click="handleDelete(card.id)">Remover</button>
-          </div>
+          <Transition name="expand">
+            <div v-if="expandedCards.has(card.id)" class="bg-surface-tertiary rounded-lg p-3 mt-2">
+              <p class="text-base-secondary text-small">{{ card.back }}</p>
+            </div>
+          </Transition>
         </div>
       </div>
 
@@ -106,6 +113,15 @@ const deckId = route.params.id as string
 const showAdd = ref(false)
 const adding = ref(false)
 const cardForm = reactive({ front: '', back: '' })
+const expandedCards = ref(new Set<string>())
+
+function toggleCard(id: string) {
+  if (expandedCards.value.has(id)) {
+    expandedCards.value.delete(id)
+  } else {
+    expandedCards.value.add(id)
+  }
+}
 
 function formatDate(date: string) {
   return new Date(date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
@@ -144,3 +160,23 @@ onMounted(async () => {
   ])
 })
 </script>
+
+<style scoped>
+.expand-enter-active,
+.expand-leave-active {
+  transition: all 150ms ease-in-out;
+  overflow: hidden;
+}
+.expand-enter-from,
+.expand-leave-to {
+  opacity: 0;
+  max-height: 0;
+  margin-top: 0;
+  padding: 0;
+}
+.expand-enter-to,
+.expand-leave-from {
+  opacity: 1;
+  max-height: 200px;
+}
+</style>

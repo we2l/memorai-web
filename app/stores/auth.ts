@@ -15,15 +15,17 @@ export const useAuthStore = defineStore('auth', {
     setAuth(user: User, token: string) {
       this.user = user
       this.token = token
-      const cookie = useCookie('auth_token', { maxAge: 60 * 60 * 24 * 30 })
-      cookie.value = token
+      if (import.meta.client) {
+        document.cookie = `auth_token=${token}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax`
+      }
     },
 
     clearAuth() {
       this.user = null
       this.token = null
-      const cookie = useCookie('auth_token')
-      cookie.value = null
+      if (import.meta.client) {
+        document.cookie = 'auth_token=; path=/; max-age=0'
+      }
     },
 
     loadFromCookie() {

@@ -62,6 +62,18 @@
         </div>
       </div>
 
+      <!-- Delete confirmation modal -->
+      <div v-if="deleteTarget" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" @click.self="deleteTarget = null">
+        <div class="card w-full max-w-sm mx-4 p-6" role="alertdialog" aria-label="Confirmar remoção">
+          <h2 class="text-headline mb-2">Remover card?</h2>
+          <p class="text-base-secondary text-small mb-6">Essa ação não pode ser desfeita.</p>
+          <div class="flex gap-3 justify-end">
+            <button class="btn-secondary" @click="deleteTarget = null">Cancelar</button>
+            <button class="btn-danger" @click="handleDelete">Remover</button>
+          </div>
+        </div>
+      </div>
+
       <!-- Study settings -->
       <DeckSettings :deck="deckStore.current" class="mb-8" />
 
@@ -85,7 +97,7 @@
               <button class="text-micro text-primary-400 hover:underline" @click="toggleCard(card.id)">
                 {{ expandedCards.has(card.id) ? 'Ocultar' : 'Ver verso' }}
               </button>
-              <button class="text-micro text-danger" @click="handleDelete(card.id)">Remover</button>
+              <button class="text-micro text-danger" @click="confirmDelete(card.id)">Remover</button>
             </div>
           </div>
           <Transition name="expand">
@@ -117,6 +129,7 @@ const showAdd = ref(false)
 const adding = ref(false)
 const cardForm = reactive({ front: '', back: '' })
 const expandedCards = ref(new Set<string>())
+const deleteTarget = ref<string | null>(null)
 
 function toggleCard(id: string) {
   if (expandedCards.value.has(id)) {
@@ -146,13 +159,20 @@ async function handleAddCard() {
   }
 }
 
-async function handleDelete(cardId: string) {
+function confirmDelete(cardId: string) {
+  deleteTarget.value = cardId
+}
+
+async function handleDelete() {
+  if (!deleteTarget.value) return
   try {
-    await flashcardStore.remove(cardId)
+    await flashcardStore.remove(deleteTarget.value)
     toast.show('Card removido.', 'success')
     await deckStore.fetchDeck(deckId)
   } catch {
     toast.show('Erro ao remover card.', 'error')
+  } finally {
+    deleteTarget.value = null
   }
 }
 

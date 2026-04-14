@@ -24,6 +24,12 @@
           <button class="btn-secondary" @click="showAdd = true">
             <Plus :size="18" /> Adicionar card
           </button>
+          <button class="btn-secondary" @click="showEditDeck = true" aria-label="Editar deck">
+            <Pencil :size="18" />
+          </button>
+          <button class="btn-secondary text-danger" @click="showDeleteDeck = true" aria-label="Deletar deck">
+            <Trash2 :size="18" />
+          </button>
         </div>
       </div>
 
@@ -41,12 +47,21 @@
 
       <!-- Modals -->
       <FlashcardCreateModal v-model="showAdd" :deck-id="deckId" />
+      <FlashcardEditModal v-if="editCard" v-model="showEditCard" :card="editCard" @updated="refreshCards" />
+      <DeckEditModal v-model="showEditDeck" :deck="deckStore.current" @updated="deckStore.fetchDeck(deckId)" />
       <UiConfirmModal
         v-model="showDelete"
         title="Remover card?"
         message="Essa ação não pode ser desfeita."
         confirm-label="Remover"
-        @confirm="handleDelete"
+        @confirm="handleDeleteCard"
+      />
+      <UiConfirmModal
+        v-model="showDeleteDeck"
+        title="Deletar deck?"
+        message="Todos os cards e revisões deste deck serão perdidos permanentemente."
+        confirm-label="Deletar"
+        @confirm="handleDeleteDeck"
       />
 
       <!-- Study settings -->
@@ -72,7 +87,8 @@
               <button class="text-micro text-primary-400 hover:underline" @click="toggleCard(card.id)">
                 {{ expandedCards.has(card.id) ? 'Ocultar' : 'Ver verso' }}
               </button>
-              <button class="text-micro text-danger" @click="confirmDelete(card.id)">Remover</button>
+              <button class="text-micro text-primary-400 hover:underline" @click="openEditCard(card)">Editar</button>
+              <button class="text-micro text-danger" @click="confirmDeleteCard(card.id)">Remover</button>
             </div>
           </div>
           <Transition name="expand">
@@ -92,17 +108,22 @@
 </template>
 
 <script setup lang="ts">
-import { Play, Plus } from 'lucide-vue-next'
+import { Play, Plus, Pencil, Trash2 } from 'lucide-vue-next'
 
 const route = useRoute()
+const router = useRouter()
 const deckStore = useDeckStore()
 const flashcardStore = useFlashcardStore()
 const toast = useToast()
 
 const deckId = route.params.id as string
 const showAdd = ref(false)
+const showEditDeck = ref(false)
+const showDeleteDeck = ref(false)
+const showEditCard = ref(false)
 const showDelete = ref(false)
 const deleteTarget = ref<string | null>(null)
+const editCard = ref<import('~/types').Flashcard | null>(null)
 const expandedCards = ref(new Set<string>())
 
 function toggleCard(id: string) {
@@ -113,12 +134,12 @@ function formatDate(date: string) {
   return new Date(date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
-function confirmDelete(cardId: string) {
+function confirmDeleteCard(cardId: string) {
   deleteTarget.value = cardId
   showDelete.value = true
 }
 
-async function handleDelete() {
+async function handleDeleteCard() {
   if (!deleteTarget.value) return
   try {
     await flashcardStore.remove(deleteTarget.value)
@@ -129,6 +150,27 @@ async function handleDelete() {
   } finally {
     showDelete.value = false
     deleteTarget.value = null
+  }
+}
+
+function openEditCard(card: import('~/types').Flashcard) {
+  editCard.value = card
+  showEditCard.value = true
+}
+
+function refreshCards() {
+  flashcardStore.fetchForDeck(deckId)
+}
+
+async function handleDeleteDeck() {
+  try {
+    await deckStore.deleteDeck(deckId)
+    toast.show('Deck deletado.', 'success')
+    await router.push('/decks')
+  } catch {
+    toast.show('Erro ao deletar deck.', 'error')
+  } finally {
+    showDeleteDeck.value = false
   }
 }
 

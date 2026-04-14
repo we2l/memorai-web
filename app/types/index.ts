@@ -50,6 +50,7 @@ export interface Stats {
   total_decks: number
   due_today: number
   reviewed_today: number
+  cards_reviewed_today: number
   streak: number
   ratings_today: {
     again: number

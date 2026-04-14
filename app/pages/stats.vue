@@ -35,7 +35,7 @@
       <h2 class="text-headline mb-4">Revisões de hoje</h2>
       <div class="card mb-10">
         <div class="flex items-center justify-between mb-4">
-          <p class="text-base-secondary">{{ stats.reviewed_today }} cards revisados</p>
+          <p class="text-base-secondary">{{ stats.reviewed_today }} revisões · {{ stats.cards_reviewed_today }} cards</p>
         </div>
 
         <!-- Rating bars -->

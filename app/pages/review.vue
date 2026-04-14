@@ -40,10 +40,10 @@
         @flip="review.flip()"
       />
 
-      <ReviewButtons
+      <FlashcardButtons
         v-if="review.flipped"
         :disabled="review.submitting"
-        @rate="(r) => review.submitReview(r)"
+        @rate="handleRate"
       />
     </div>
 
@@ -59,6 +59,21 @@
 <script setup lang="ts">
 const review = useReviewStore()
 const route = useRoute()
+const toast = useToast()
+
+async function handleRate(rating: number) {
+  console.log('handleRate called:', rating)
+  try {
+    await review.submitReview(rating as 1 | 2 | 3 | 4)
+    console.log('submitReview done, finished:', review.finished)
+    if (review.finished) {
+      toast.show('Sessão concluída! 🎉', 'success')
+    }
+  } catch (e: any) {
+    console.error('Review error:', e)
+    toast.show('Erro ao enviar revisão.', 'error')
+  }
+}
 
 onMounted(() => {
   const deckId = route.query.deck_id as string | undefined

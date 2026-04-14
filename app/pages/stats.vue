@@ -75,10 +75,10 @@ const ratingBars = computed(() => {
   const r = stats.value.ratings_today
   const total = r.again + r.hard + r.good + r.easy || 1
   return [
-    { label: 'Again', count: r.again, percent: (r.again / total) * 100, barClass: 'bg-danger', textClass: 'text-danger' },
-    { label: 'Hard', count: r.hard, percent: (r.hard / total) * 100, barClass: 'bg-warning', textClass: 'text-warning' },
-    { label: 'Good', count: r.good, percent: (r.good / total) * 100, barClass: 'bg-success', textClass: 'text-success' },
-    { label: 'Easy', count: r.easy, percent: (r.easy / total) * 100, barClass: 'bg-primary-500', textClass: 'text-primary-400' },
+    { label: 'Errei', count: r.again, percent: (r.again / total) * 100, barClass: 'bg-danger', textClass: 'text-danger' },
+    { label: 'Difícil', count: r.hard, percent: (r.hard / total) * 100, barClass: 'bg-warning', textClass: 'text-warning' },
+    { label: 'Bom', count: r.good, percent: (r.good / total) * 100, barClass: 'bg-success', textClass: 'text-success' },
+    { label: 'Fácil', count: r.easy, percent: (r.easy / total) * 100, barClass: 'bg-primary-500', textClass: 'text-primary-400' },
   ]
 })
 

@@ -123,11 +123,19 @@ const progressPercent = computed(() => {
   return Math.round(((stats.value?.reviewed_today ?? 0) / totalDue.value) * 100)
 })
 
-onMounted(async () => {
+async function loadData() {
   const [statsRes] = await Promise.all([
     $api<any>('/stats'),
     deckStore.fetchDecks(),
   ])
   stats.value = statsRes.data
+}
+
+onMounted(loadData)
+
+// Recarregar ao voltar pra página
+const route = useRoute()
+watch(() => route.fullPath, () => {
+  if (route.path === '/dashboard') loadData()
 })
 </script>

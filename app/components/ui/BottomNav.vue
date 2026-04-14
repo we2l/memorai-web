@@ -23,6 +23,7 @@
 import {
   LayoutDashboard,
   Layers,
+  FolderTree,
   BookOpen,
   BarChart3,
 } from 'lucide-vue-next'
@@ -32,6 +33,7 @@ const route = useRoute()
 const items = [
   { label: 'Dashboard', to: '/dashboard', icon: 'dashboard' },
   { label: 'Decks', to: '/decks', icon: 'decks' },
+  { label: 'Tópicos', to: '/topics', icon: 'topics' },
   { label: 'Revisão', to: '/review', icon: 'review' },
   { label: 'Stats', to: '/stats', icon: 'stats' },
 ]
@@ -39,6 +41,7 @@ const items = [
 const iconMap: Record<string, any> = {
   dashboard: LayoutDashboard,
   decks: Layers,
+  topics: FolderTree,
   review: BookOpen,
   stats: BarChart3,
 }

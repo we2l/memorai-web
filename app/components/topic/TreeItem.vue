@@ -15,6 +15,13 @@
       </button>
       <span v-else class="w-5" />
 
+      <!-- Health indicator -->
+      <span
+        v-if="topic.flashcards_count > 0"
+        class="w-2 h-2 rounded-full shrink-0"
+        :class="healthColor"
+      />
+
       <span class="truncate flex-1">{{ topic.name }}</span>
 
       <span class="text-micro text-base-muted shrink-0">
@@ -43,6 +50,7 @@
         :topic="child"
         :depth="depth + 1"
         :selected-id="selectedId"
+        :progress-map="progressMap"
         @select="$emit('select', $event)"
         @edit="$emit('edit', $event)"
         @delete="$emit('delete', $event)"
@@ -56,10 +64,11 @@
 import { ChevronRight, Plus, Pencil, Trash2 } from 'lucide-vue-next'
 import type { Topic } from '~/types'
 
-defineProps<{
+const props = defineProps<{
   topic: Topic
   depth: number
   selectedId?: string | null
+  progressMap?: Record<string, number>
 }>()
 
 defineEmits<{
@@ -70,4 +79,12 @@ defineEmits<{
 }>()
 
 const expanded = ref(true)
+
+const healthColor = computed(() => {
+  const p = props.progressMap?.[props.topic.id]
+  if (p === undefined) return 'bg-[#6B7280]'
+  if (p < 0.3) return 'bg-danger'
+  if (p < 0.7) return 'bg-warning'
+  return 'bg-success'
+})
 </script>

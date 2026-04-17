@@ -157,3 +157,34 @@ export interface ErrorLog {
   note: string | null
   created_at: string
 }
+
+
+export interface UserSettings {
+  daily_new_cards_limit: number | null
+  daily_review_limit: number | null
+  session_time_limit: number | null
+  survival_mode: boolean
+}
+
+export interface BacklogStats {
+  overdue_count: number
+  due_today_count: number
+  new_available_count: number | null
+  estimated_minutes: number
+  reviews_done_today: number
+  new_cards_done_today: number
+  suggest_survival_mode: boolean
+}
+
+export interface ErrorPatterns {
+  patterns: Record<string, number>
+  total_errors: number
+  top_cards: { id: string; front: string; lapses: number }[]
+}
+
+export interface NoteSnippet {
+  note_id: string
+  title: string
+  snippet: string
+  topic_id: string
+}

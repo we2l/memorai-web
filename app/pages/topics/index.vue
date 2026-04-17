@@ -16,6 +16,7 @@
           v-else
           :topics="topicStore.tree"
           :selected-id="selectedTopicId"
+          :progress-map="progressMap"
           @select="selectTopic"
           @edit="openEdit"
           @delete="openDelete"
@@ -106,6 +107,37 @@
 
         <!-- Tab: Errors -->
         <div v-else-if="activeTab === 'errors'" class="flex-1 overflow-y-auto p-4">
+          <!-- Error patterns -->
+          <div v-if="errorPatterns && errorPatterns.total_errors > 0" class="mb-6">
+            <p class="text-label mb-3">Padrões de erro (últimos 30 dias)</p>
+            <div class="space-y-2">
+              <div v-for="(count, reason) in errorPatterns.patterns" :key="reason" class="flex items-center gap-3">
+                <span class="text-base shrink-0">{{ reasonIcon(reason as string) }}</span>
+                <span class="text-small text-base-primary w-24">{{ reasonLabel(reason as string) }}</span>
+                <div class="flex-1 h-2 rounded-full bg-surface-tertiary">
+                  <div class="h-2 rounded-full bg-danger transition-all" :style="{ width: Math.round((count as number / errorPatterns.total_errors) * 100) + '%' }" />
+                </div>
+                <span class="text-micro text-base-muted w-8 text-right">{{ count }}x</span>
+              </div>
+            </div>
+            <div v-if="errorPatterns.top_cards.length" class="mt-4">
+              <p class="text-label mb-2">Cards mais errados</p>
+              <div class="space-y-1">
+                <div v-for="card in errorPatterns.top_cards" :key="card.id" class="flex items-center gap-2 text-small">
+                  <span class="text-danger font-medium">{{ card.lapses }}x</span>
+                  <span class="text-base-secondary truncate">{{ card.front }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Error log list -->
+          <div v-if="topicErrors.length" class="flex items-center justify-between mb-2">
+            <p class="text-label">Histórico de erros</p>
+            <NuxtLink :to="`/review?topic_id=${selectedTopicId}&errors_only=1`" class="btn-primary !py-1 !px-3 !min-h-0 !text-micro">
+              Revisar erros deste tópico
+            </NuxtLink>
+          </div>
           <div v-if="topicErrors.length" class="space-y-2">
             <div v-for="err in topicErrors" :key="err.id" class="card flex items-start gap-3">
               <span class="text-base shrink-0">{{ reasonIcon(err.reason) }}</span>
@@ -116,7 +148,7 @@
               </div>
             </div>
           </div>
-          <div v-else class="flex items-center justify-center h-full text-base-muted text-small">
+          <div v-if="!topicErrors.length && (!errorPatterns || errorPatterns.total_errors === 0)" class="flex items-center justify-center h-full text-base-muted text-small">
             Nenhum erro registrado neste tópico.
           </div>
         </div>
@@ -247,6 +279,7 @@ const selectedText = ref('')
 const topicErrors = ref<any[]>([])
 const topicCards = ref<any[]>([])
 const checklistItems = ref<any[]>([])
+const errorPatterns = ref<any>(null)
 const newChecklistText = ref('')
 const tabs = [
   { id: 'notes' as const, label: 'Notas' },
@@ -323,14 +356,16 @@ function selectTopic(id: string) {
 
 async function loadTopicData(id: string) {
   try {
-    const [errRes, detailRes, checkRes] = await Promise.all([
+    const [errRes, detailRes, checkRes, patternsRes] = await Promise.all([
       $api<any>(`/topics/${id}/error-logs`),
       $api<any>(`/topics/${id}/details`),
       $api<any>(`/topics/${id}/checklist`),
+      $api<any>(`/topics/${id}/error-patterns`),
     ])
     topicErrors.value = errRes.data
     topicCards.value = detailRes.data.flashcards
     checklistItems.value = checkRes.data
+    errorPatterns.value = patternsRes.data
   } catch {}
 }
 
@@ -367,6 +402,11 @@ async function deleteChecklistItem(id: string) {
 function reasonIcon(reason: string): string {
   const map: Record<string, string> = { confused: '🔄', didnt_know: '❓', forgot: '🧠', silly_mistake: '😅' }
   return map[reason] ?? '❌'
+}
+
+function reasonLabel(reason: string): string {
+  const map: Record<string, string> = { confused: 'Confundi', didnt_know: 'Não sabia', forgot: 'Esqueci', silly_mistake: 'Erro bobo' }
+  return map[reason] ?? reason
 }
 
 function cardStateLabel(state: string): string {
@@ -448,8 +488,16 @@ function formatDate(date: string) {
   return new Date(date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
 }
 
+const progressMap = ref<Record<string, number>>({})
+
 onMounted(async () => {
   await topicStore.fetchTree()
+  try {
+    const res = await $api<any>('/topics/progress')
+    for (const tp of res.data) {
+      progressMap.value[tp.id] = tp.progress
+    }
+  } catch {}
   const route = useRoute()
   if (route.query.topic) {
     selectTopic(route.query.topic as string)

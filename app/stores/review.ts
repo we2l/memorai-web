@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { Flashcard } from '~/types'
+import type { Flashcard, WeakConnection } from '~/types'
 
 interface SessionCard extends Flashcard {
   next_intervals: { again: string; hard: string; good: string; easy: string }
@@ -14,10 +14,15 @@ export const useReviewStore = defineStore('review', {
     loading: false,
     submitting: false,
     finished: false,
+    weakSuggestion: null as WeakConnection[] | null,
+    lastReviewId: null as string | null,
+    showErrorDiary: false,
+    _tick: 0,
   }),
 
   getters: {
     currentCard(state): SessionCard | null {
+      const _tick = state._tick // reactive dependency
       const now = Date.now()
       const dueLearn = state.learningQueue.find(q => q.dueAt <= now)
       if (dueLearn) return dueLearn.card
@@ -36,15 +41,21 @@ export const useReviewStore = defineStore('review', {
   },
 
   actions: {
-    async fetchSession(deckId?: string) {
+    async fetchSession(deckId?: string, topicId?: string, errorsOnly?: boolean) {
       this.loading = true
       this.finished = false
       this.currentIndex = 0
       this.flipped = false
       this.learningQueue = []
+      this.weakSuggestion = null
+      this.showErrorDiary = false
       try {
         const { $api } = useNuxtApp()
-        const query = deckId ? `?deck_id=${deckId}` : ''
+        const params = new URLSearchParams()
+        if (deckId) params.set('deck_id', deckId)
+        if (topicId) params.set('topic_id', topicId)
+        if (errorsOnly) params.set('errors_only', '1')
+        const query = params.toString() ? `?${params}` : ''
         const res = await $api<any>(`/review/session${query}`)
         this.cards = res.data
         if (!this.cards.length) this.finished = true
@@ -68,29 +79,38 @@ export const useReviewStore = defineStore('review', {
           body: { flashcard_id: card.id, rating },
         })
 
+        // Weak connection suggestion on Again
+        this.weakSuggestion = res.data.weak_connections ?? null
+
+        // Show error diary on Again
+        this.lastReviewId = res.data.review?.id ?? null
+        this.showErrorDiary = rating === 1 && !!this.lastReviewId
+
         const updatedCard = {
           ...res.data.flashcard,
           next_intervals: res.data.next_intervals,
         } as SessionCard
 
         // Remove from learning queue if it was there
+        const wasFromLearningQueue = this.learningQueue.some(q => q.card.id === card.id)
         this.learningQueue = this.learningQueue.filter(q => q.card.id !== card.id)
 
-        // Advance main queue index if card was from it
-        const wasFromMainQueue = this.cards.some(c => c.id === card.id)
-        if (wasFromMainQueue) {
+        // Advance main queue index only if card came from main queue (not learning)
+        if (!wasFromLearningQueue) {
           this.currentIndex++
         }
 
         const hasMoreMainCards = this.currentIndex < this.cards.length
 
         if (updatedCard.is_learning) {
-          if (!hasMoreMainCards && this.learningQueue.length === 0) {
-            // No other cards waiting — show learning card again immediately (learn ahead)
-            this.learningQueue.push({ card: updatedCard, dueAt: Date.now() })
-          } else if (updatedCard.due) {
-            // Other cards in queue — respect the timer
-            this.learningQueue.push({ card: updatedCard, dueAt: new Date(updatedCard.due).getTime() })
+          const dueAt = updatedCard.due ? new Date(updatedCard.due).getTime() : Date.now() + 60000
+          this.learningQueue.push({ card: updatedCard, dueAt })
+        }
+
+        // Learn ahead: if no more main cards, show all learning cards immediately
+        if (!hasMoreMainCards) {
+          for (const item of this.learningQueue) {
+            item.dueAt = Date.now()
           }
         }
 

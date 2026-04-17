@@ -2,7 +2,7 @@
   <div class="min-h-screen flex flex-col bg-surface">
     <!-- Top bar -->
     <div class="flex items-center justify-between px-4 py-3 border-b border-base">
-      <NuxtLink to="/dashboard" class="text-small text-base-muted hover:text-primary-400">
+      <NuxtLink to="/dashboard" class="text-small text-base-muted hover:text-accent-primary">
         ← Voltar
       </NuxtLink>
       <div class="flex items-center gap-2 text-small text-base-secondary">
@@ -19,8 +19,8 @@
       <div class="skeleton h-64 w-full max-w-lg rounded-2xl" />
     </div>
 
-    <!-- Finished (or waiting for learning cards) -->
-    <div v-else-if="review.finished || (!review.currentCard && review.pendingLearning > 0)" class="flex-1 flex flex-col items-center justify-center px-4 text-center">
+    <!-- Finished -->
+    <div v-else-if="review.finished && !review.showErrorDiary" class="flex-1 flex flex-col items-center justify-center px-4 text-center">
       <p class="text-4xl mb-4">🎉</p>
       <h2 class="text-display">Sessão concluída!</h2>
       <p class="text-base-secondary mt-2">
@@ -30,6 +30,16 @@
         {{ review.pendingLearning }} card{{ review.pendingLearning !== 1 ? 's' : '' }} em aprendizado — {{ review.pendingLearning === 1 ? 'volta' : 'voltam' }} em breve.
       </p>
       <NuxtLink to="/dashboard" class="btn-primary mt-8">Voltar ao dashboard</NuxtLink>
+    </div>
+
+    <!-- Waiting for learning cards -->
+    <div v-else-if="!review.currentCard && review.pendingLearning > 0 && !review.showErrorDiary" class="flex-1 flex flex-col items-center justify-center px-4 text-center">
+      <p class="text-4xl mb-4">⏳</p>
+      <h2 class="text-display">Aguardando...</h2>
+      <p class="text-base-muted text-small mt-2">
+        {{ review.pendingLearning }} card{{ review.pendingLearning !== 1 ? 's' : '' }} em aprendizado — {{ review.pendingLearning === 1 ? 'volta' : 'voltam' }} em breve.
+      </p>
+      <NuxtLink to="/dashboard" class="btn-secondary mt-8">Voltar ao dashboard</NuxtLink>
     </div>
 
     <!-- Review -->
@@ -56,13 +66,36 @@
         :intervals="review.currentIntervals"
         @rate="handleRate"
       />
+
+      <!-- Weak connection suggestion -->
+      <div v-if="review.weakSuggestion?.length && !review.showErrorDiary" class="w-full max-w-lg px-4">
+        <div class="card border border-warning/30 text-center">
+          <p class="text-small text-base-secondary mb-2">Tópico conectado também está fraco:</p>
+          <div v-for="w in review.weakSuggestion" :key="w.id" class="flex items-center justify-center gap-2 text-small">
+            <span class="text-warning">⚠</span>
+            <span class="text-base-primary font-medium">{{ w.name }}</span>
+            <span class="text-base-muted">({{ Math.round(w.progress * 100) }}%)</span>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- No cards -->
-    <div v-else class="flex-1 flex flex-col items-center justify-center px-4 text-center">
+    <div v-else-if="!review.showErrorDiary" class="flex-1 flex flex-col items-center justify-center px-4 text-center">
       <p class="text-base-secondary text-title">Nenhum card para revisar agora.</p>
       <p class="text-base-muted text-small mt-1">Volte mais tarde ou crie novos cards.</p>
       <NuxtLink to="/dashboard" class="btn-primary mt-6">Voltar ao dashboard</NuxtLink>
+    </div>
+
+    <!-- Error diary (outside card flow so it persists after card advances) -->
+    <div v-if="review.showErrorDiary" class="flex-1 flex flex-col items-center justify-center px-4">
+      <FlashcardErrorDiary
+        :visible="true"
+        :flashcard-id="lastErrorCardId"
+        :review-id="review.lastReviewId ?? ''"
+        @saved="review.showErrorDiary = false"
+        @skipped="review.showErrorDiary = false"
+      />
     </div>
   </div>
 </template>
@@ -72,12 +105,16 @@ const review = useReviewStore()
 const deckStore = useDeckStore()
 const route = useRoute()
 const toast = useToast()
-const deckId = route.query.deck_id as string | undefined
+const lastErrorCardId = ref('')
 
 async function handleRate(rating: number) {
+  const cardId = review.currentCard?.id ?? ''
   try {
     await review.submitReview(rating as 1 | 2 | 3 | 4)
-    if (review.finished || (!review.currentCard && review.pendingLearning > 0)) {
+    if (rating === 1) {
+      lastErrorCardId.value = cardId
+    }
+    if (!review.showErrorDiary && (review.finished || (!review.currentCard && review.pendingLearning > 0))) {
       toast.show('Sessão concluída! 🎉', 'success')
     }
   } catch {
@@ -85,8 +122,28 @@ async function handleRate(rating: number) {
   }
 }
 
-onMounted(async () => {
+async function loadSession() {
+  const deckId = route.query.deck_id as string | undefined
+  const topicId = route.query.topic_id as string | undefined
+  const errorsOnly = route.query.errors_only === '1'
   if (deckId) await deckStore.fetchDeck(deckId)
-  await review.fetchSession(deckId)
+  await review.fetchSession(deckId, topicId, errorsOnly)
+}
+
+onMounted(loadSession)
+
+// Tick every 5s to re-evaluate learning queue due times
+let tickInterval: ReturnType<typeof setInterval> | null = null
+onMounted(() => {
+  tickInterval = setInterval(() => {
+    if (review.learningQueue.length > 0) review._tick++
+  }, 5000)
+})
+onUnmounted(() => {
+  if (tickInterval) clearInterval(tickInterval)
+})
+
+watch(() => route.query, (newQ, oldQ) => {
+  if (JSON.stringify(newQ) !== JSON.stringify(oldQ)) loadSession()
 })
 </script>

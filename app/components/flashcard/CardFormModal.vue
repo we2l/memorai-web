@@ -1,0 +1,318 @@
+<template>
+  <UiModal v-model="open" size="lg" :aria-label="isEdit ? 'Editar flashcard' : 'Adicionar flashcard'">
+    <div class="flex gap-6 min-h-[480px]">
+      <!-- Form -->
+      <div class="flex-1 flex flex-col min-w-0">
+        <h2 class="text-headline mb-5">{{ isEdit ? 'Editar card' : 'Novo card' }}</h2>
+        <form @submit.prevent="submit" class="flex flex-col gap-4 flex-1">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-label mb-1 block">Deck</label>
+              <UiSelect
+                v-model="form.deck_id"
+                :options="deckOptions"
+                placeholder="Selecione um deck"
+              />
+            </div>
+            <div>
+              <label class="text-label mb-1 block">Tópico (opcional)</label>
+              <UiSelect
+                v-model="form.topic_id"
+                :options="topicOptions"
+                placeholder="Nenhum"
+              />
+            </div>
+          </div>
+
+          <div class="flex-1 flex flex-col">
+            <label class="text-label mb-1 block">Frente</label>
+            <UiRichInput
+              v-model="form.front"
+              v-model:audio-blob="form.frontAudioBlob"
+              :existing-audio-url="form.existingFrontAudioUrl"
+              placeholder="Digite a pergunta..."
+              :min-height="80"
+              :max-height="160"
+              @focus="previewSide = 'front'"
+            />
+          </div>
+
+          <div class="flex-1 flex flex-col">
+            <label class="text-label mb-1 block">Verso</label>
+            <UiRichInput
+              v-model="form.back"
+              v-model:audio-blob="form.backAudioBlob"
+              :existing-audio-url="form.existingBackAudioUrl"
+              placeholder="Digite a resposta..."
+              :min-height="80"
+              :max-height="160"
+              @focus="previewSide = 'back'"
+            />
+          </div>
+
+          <div>
+            <label class="text-label mb-1 block">Tags</label>
+            <UiTagInput v-model="form.tags" placeholder="#difícil, #pegadinha, #prova2024..." />
+          </div>
+
+          <div class="flex gap-2 justify-end pt-2">
+            <button type="button" class="btn-secondary !py-1.5 !px-3 !min-h-0 !text-small" @click="open = false">Cancelar</button>
+            <button
+              v-if="!isEdit"
+              type="button"
+              class="btn-secondary !py-1.5 !px-3 !min-h-0 !text-small"
+              :disabled="!form.front || !form.back || !form.deck_id || saving"
+              @click="submitAndContinue"
+            >
+              {{ saving ? 'Salvando...' : 'Salvar e criar outro' }}
+            </button>
+            <button type="submit" class="btn-primary !py-1.5 !px-3 !min-h-0 !text-small" :disabled="!form.front || !form.back || !form.deck_id || saving">
+              {{ saving ? 'Salvando...' : 'Salvar' }}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Preview -->
+      <div class="hidden md:flex flex-col items-center w-72 shrink-0 pt-10">
+        <p class="text-label mb-3">Preview</p>
+        <div class="w-full card-scene">
+          <div class="card-inner" :class="previewSide === 'back' && 'flipped'">
+            <div class="card-face card-front" @click="flipPreview">
+              <div class="card-body">
+                <p class="text-micro text-base-muted mb-2 uppercase tracking-wider">{{ selectedDeckName || 'Deck' }}</p>
+                <div class="text-base-primary leading-relaxed break-words preview-content" v-html="frontPreview" />
+              </div>
+            </div>
+            <div class="card-face card-back" @click="flipPreview">
+              <div class="card-body">
+                <p class="text-micro text-base-muted mb-2 uppercase tracking-wider">Resposta</p>
+                <div class="text-base-primary leading-relaxed break-words preview-content" v-html="backPreview" />
+              </div>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="text-micro text-base-muted mt-3 cursor-pointer hover:text-accent-primary transition-colors" @click="flipPreview">
+          Clique pra virar
+        </button>
+      </div>
+    </div>
+  </UiModal>
+</template>
+
+<script setup lang="ts">
+import type { Flashcard, Topic } from '~/types'
+
+const props = defineProps<{
+  deckId?: string
+  topicId?: string
+  card?: Flashcard | null
+}>()
+const emit = defineEmits<{
+  (e: 'created'): void
+  (e: 'updated'): void
+}>()
+const open = defineModel<boolean>({ required: true })
+
+const isEdit = computed(() => !!props.card)
+
+const flashcardStore = useFlashcardStore()
+const deckStore = useDeckStore()
+const toast = useToast()
+const { $api } = useNuxtApp()
+
+const saving = ref(false)
+const previewSide = ref<'front' | 'back'>('front')
+const topics = ref<Topic[]>([])
+
+function flipPreview() {
+  previewSide.value = previewSide.value === 'front' ? 'back' : 'front'
+}
+
+const form = reactive({
+  deck_id: '',
+  front: '',
+  back: '',
+  topic_id: '',
+  tags: [] as string[],
+  frontAudioBlob: null as Blob | null,
+  backAudioBlob: null as Blob | null,
+  existingFrontAudioUrl: null as string | null,
+  existingBackAudioUrl: null as string | null,
+})
+
+function populateForm() {
+  if (props.card) {
+    form.deck_id = props.card.deck_id
+    form.front = props.card.front
+    form.back = props.card.back
+    form.topic_id = props.card.topic_id ?? ''
+    form.tags = props.card.tags ?? []
+    form.existingFrontAudioUrl = props.card.front_audio_url ?? null
+    form.existingBackAudioUrl = props.card.back_audio_url ?? null
+  } else {
+    form.deck_id = props.deckId ?? deckStore.decks[0]?.id ?? ''
+    form.front = ''
+    form.back = ''
+    form.topic_id = props.topicId ?? ''
+    form.tags = []
+    form.existingFrontAudioUrl = null
+    form.existingBackAudioUrl = null
+  }
+  form.frontAudioBlob = null
+  form.backAudioBlob = null
+  previewSide.value = 'front'
+}
+
+// Populate immediately on mount (handles v-if creation)
+onMounted(() => {
+  populateForm()
+  if (!topics.value.length) loadTopics()
+  if (!deckStore.decks.length) deckStore.fetchDecks()
+})
+
+const deckOptions = computed(() =>
+  deckStore.decks.map(d => ({ value: d.id, label: d.name })),
+)
+
+const topicOptions = computed(() => [
+  { value: '', label: 'Nenhum' },
+  ...topics.value.map(t => ({ value: t.id, label: t.name })),
+])
+
+const selectedDeckName = computed(() =>
+  deckStore.decks.find(d => d.id === form.deck_id)?.name ?? '',
+)
+
+const isEmpty = (html: string) => !html || html === '<p></p>'
+
+const frontPreview = computed(() =>
+  isEmpty(form.front) ? '<span style="opacity:0.4">Sua pergunta aqui...</span>' : form.front,
+)
+
+const backPreview = computed(() =>
+  isEmpty(form.back) ? '<span style="opacity:0.4">Sua resposta aqui...</span>' : form.back,
+)
+
+async function loadTopics() {
+  try {
+    const res = await $api<any>('/topics')
+    topics.value = flattenTopics(res.data)
+  } catch {}
+}
+
+function flattenTopics(tree: Topic[], result: Topic[] = []): Topic[] {
+  for (const t of tree) {
+    result.push(t)
+    if (t.children?.length) flattenTopics(t.children, result)
+  }
+  return result
+}
+
+async function uploadAudio(blob: Blob): Promise<string> {
+  const formData = new FormData()
+  formData.append('audio', blob, 'recording.webm')
+  const res = await $api<any>('/audio/upload', { method: 'POST', body: formData })
+  return res.data.url
+}
+
+async function submit() {
+  await doSubmit(true)
+}
+
+async function submitAndContinue() {
+  await doSubmit(false)
+}
+
+async function doSubmit(closeAfter: boolean) {
+  saving.value = true
+  try {
+    let front_audio_url: string | undefined
+    let back_audio_url: string | undefined
+
+    if (form.frontAudioBlob) front_audio_url = await uploadAudio(form.frontAudioBlob)
+    if (form.backAudioBlob) back_audio_url = await uploadAudio(form.backAudioBlob)
+
+    if (isEdit.value && props.card) {
+      await flashcardStore.update(props.card.id, {
+        front: form.front,
+        back: form.back,
+        topic_id: form.topic_id || undefined,
+        tags: form.tags.length ? form.tags : undefined,
+        front_audio_url,
+        back_audio_url,
+      })
+      toast.show('Card atualizado!', 'success')
+      emit('updated')
+      open.value = false
+    } else {
+      await flashcardStore.create(form.deck_id, {
+        front: form.front,
+        back: form.back,
+        topic_id: form.topic_id || undefined,
+        tags: form.tags.length ? form.tags : undefined,
+        front_audio_url,
+        back_audio_url,
+      })
+      toast.show('Card criado!', 'success')
+      emit('created')
+      if (closeAfter) {
+        open.value = false
+      } else {
+        form.front = ''
+        form.back = ''
+        form.tags = []
+        form.frontAudioBlob = null
+        form.backAudioBlob = null
+        form.existingFrontAudioUrl = null
+        form.existingBackAudioUrl = null
+        previewSide.value = 'front'
+      }
+    }
+  } catch {
+    toast.show(isEdit.value ? 'Erro ao atualizar card.' : 'Erro ao criar card.', 'error')
+  } finally {
+    saving.value = false
+  }
+}
+
+watch(open, (val) => {
+  if (val) populateForm()
+})
+</script>
+
+<style scoped>
+.card-scene { perspective: 800px; }
+.card-inner {
+  position: relative;
+  width: 100%;
+  height: 280px;
+  transition: transform 0.5s ease;
+  transform-style: preserve-3d;
+}
+.card-inner.flipped { transform: rotateY(180deg); }
+.card-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 1rem;
+  overflow: hidden;
+  cursor: pointer;
+}
+.card-back { transform: rotateY(180deg); }
+.card-body {
+  height: 100%;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-strong);
+  border-radius: 1rem;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+}
+.preview-content p { margin: 0.25em 0; }
+</style>

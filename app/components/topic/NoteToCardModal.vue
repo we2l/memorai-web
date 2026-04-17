@@ -11,11 +11,12 @@
         <textarea id="card-back" v-model="form.back" class="textarea-base" rows="3" placeholder="Resposta..." />
       </div>
       <div>
-        <label for="card-deck" class="text-label mb-1 block">Deck</label>
-        <select id="card-deck" v-model="form.deck_id" class="input-base w-full">
-          <option value="" disabled>Selecione um deck</option>
-          <option v-for="deck in deckStore.decks" :key="deck.id" :value="deck.id">{{ deck.name }}</option>
-        </select>
+        <label class="text-label mb-1 block">Deck</label>
+        <UiSelect
+          v-model="form.deck_id"
+          :options="deckOptions"
+          placeholder="Selecione um deck"
+        />
       </div>
       <div class="flex gap-3 justify-end">
         <button type="button" class="btn-secondary" @click="open = false">Cancelar</button>
@@ -37,6 +38,10 @@ const deckStore = useDeckStore()
 const toast = useToast()
 const saving = ref(false)
 const form = reactive({ front: '', back: '', deck_id: '' })
+
+const deckOptions = computed(() =>
+  deckStore.decks.map(d => ({ value: d.id, label: d.name })),
+)
 
 watch(() => props.selectedText, (text) => {
   if (text) form.front = text

@@ -32,11 +32,12 @@ export const useNoteStore = defineStore('note', {
       this.saving = true
       try {
         const { $api } = useNuxtApp()
-        const res = await $api<any>(`/notes/${id}`, { method: 'PUT', body: data })
+        await $api<any>(`/notes/${id}`, { method: 'PUT', body: data })
+        // Update local list without overwriting editor state via current
         const idx = this.notes.findIndex(n => n.id === id)
-        if (idx !== -1) this.notes[idx] = res.data
-        if (this.current?.id === id) this.current = res.data
-        return res.data
+        if (idx !== -1) {
+          this.notes[idx] = { ...this.notes[idx], ...data }
+        }
       } finally {
         this.saving = false
       }

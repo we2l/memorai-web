@@ -2,7 +2,7 @@
   <div class="border border-base rounded-lg overflow-hidden">
     <!-- Toolbar -->
     <div v-if="editor" class="flex flex-wrap gap-1 p-2 border-b border-base bg-surface-secondary">
-      <button v-for="btn in toolbar" :key="btn.label" class="p-1.5 rounded text-small transition-colors" :class="btn.active?.() ? 'bg-primary-500/20 text-primary-400' : 'text-base-muted hover:bg-surface-tertiary'" :title="btn.label" @click="btn.action">
+      <button v-for="btn in toolbar" :key="btn.label" class="p-1.5 rounded text-small transition-colors" :class="btn.active?.() ? 'bg-accent-primary-subtle text-accent-primary' : 'text-base-muted hover:bg-surface-tertiary'" :title="btn.label" @click="btn.action">
         <component :is="btn.icon" :size="16" />
       </button>
     </div>
@@ -17,7 +17,8 @@ import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
-import { Bold, Italic, Underline as UnderlineIcon, Heading1, Heading2, Heading3, List, ListOrdered, Quote } from 'lucide-vue-next'
+import { Callout } from '~/extensions/callout'
+import { Bold, Italic, Underline as UnderlineIcon, Heading1, Heading2, Heading3, List, ListOrdered, Quote, AlertTriangle, Lightbulb, ShieldAlert } from 'lucide-vue-next'
 
 const props = defineProps<{
   modelValue?: Record<string, any> | null
@@ -32,6 +33,7 @@ const editor = useEditor({
   extensions: [
     StarterKit,
     Underline,
+    Callout,
     Placeholder.configure({ placeholder: 'Comece a escrever...' }),
   ],
   onUpdate: ({ editor }) => {
@@ -61,6 +63,9 @@ const toolbar = computed(() => {
     { label: 'Lista', icon: List, active: () => e.isActive('bulletList'), action: () => e.chain().focus().toggleBulletList().run() },
     { label: 'Lista numerada', icon: ListOrdered, active: () => e.isActive('orderedList'), action: () => e.chain().focus().toggleOrderedList().run() },
     { label: 'Citação', icon: Quote, active: () => e.isActive('blockquote'), action: () => e.chain().focus().toggleBlockquote().run() },
+    { label: '❌ Erro', icon: AlertTriangle, active: () => e.isActive('callout', { type: 'error' }), action: () => e.isActive('callout') ? e.chain().focus().unsetCallout().run() : e.chain().focus().setCallout('error').run() },
+    { label: '💡 Insight', icon: Lightbulb, active: () => e.isActive('callout', { type: 'insight' }), action: () => e.isActive('callout') ? e.chain().focus().unsetCallout().run() : e.chain().focus().setCallout('insight').run() },
+    { label: '⚠ Pegadinha', icon: ShieldAlert, active: () => e.isActive('callout', { type: 'gotcha' }), action: () => e.isActive('callout') ? e.chain().focus().unsetCallout().run() : e.chain().focus().setCallout('gotcha').run() },
   ]
 })
 
@@ -80,6 +85,10 @@ onBeforeUnmount(() => {
 .prose-editor .tiptap ul { list-style: disc; padding-left: 1.5em; }
 .prose-editor .tiptap ol { list-style: decimal; padding-left: 1.5em; }
 .prose-editor .tiptap blockquote { border-left: 3px solid var(--color-primary-500); padding-left: 1em; opacity: 0.8; }
+.prose-editor .tiptap .callout { border-radius: 0.5rem; padding: 0.75rem 1rem; margin: 0.5em 0; }
+.prose-editor .tiptap .callout[data-callout-type="error"] { background: rgba(239, 68, 68, 0.1); border-left: 3px solid #EF4444; }
+.prose-editor .tiptap .callout[data-callout-type="insight"] { background: rgba(34, 197, 94, 0.1); border-left: 3px solid #22C55E; }
+.prose-editor .tiptap .callout[data-callout-type="gotcha"] { background: rgba(245, 158, 11, 0.1); border-left: 3px solid #F59E0B; }
 .prose-editor .tiptap p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
   float: left;

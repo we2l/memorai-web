@@ -2,7 +2,7 @@
   <div>
     <button
       class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left text-small transition-colors group"
-      :class="topic.id === selectedId ? 'bg-primary-500/15 text-primary-400' : 'text-base-secondary hover:bg-surface-tertiary'"
+      :class="topic.id === selectedId ? 'bg-accent-primary-subtle text-accent-primary' : 'text-base-secondary hover:bg-surface-tertiary'"
       :style="{ paddingLeft: `${depth * 16 + 12}px` }"
       @click="$emit('select', topic.id)"
     >

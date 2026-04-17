@@ -10,18 +10,18 @@
    ============================================ */
 
 @theme {
-  /* Primary — Roxo (identidade) */
-  --color-primary-400: #A78BFA;
-  --color-primary-500: #7C3AED;
-  --color-primary-600: #6D28D9;
-  --color-primary-700: #5B21B6;
-  --color-primary-800: #4C1D95;
-  --color-primary-900: #3B0764;
+  /* Primary — Purple Seduction (identidade) */
+  --color-primary-400: #DDAAFF;
+  --color-primary-500: #522A6F;
+  --color-primary-600: #3E1F54;
+  --color-primary-700: #2E1740;
+  --color-primary-800: #1F0F2B;
+  --color-primary-900: #100818;
 
-  /* Accent — Cyan (IA, elementos "smart") */
-  --color-accent-400: #22D3EE;
-  --color-accent-500: #06B6D4;
-  --color-accent-600: #0891B2;
+  /* Accent — Solarized (atenção, destaques) */
+  --color-accent-400: #FBCF4F;
+  --color-accent-500: #E5B83A;
+  --color-accent-600: #C99E2E;
 
   /* Semânticas */
   --color-success: #22C55E;
@@ -46,25 +46,57 @@
    ============================================ */
 
 :root {
-  --bg-primary: #FFFFFF;
-  --bg-secondary: #F9FAFB;
-  --bg-tertiary: #F3F4F6;
-  --text-primary: #111827;
-  --text-secondary: #4B5563;
-  --text-muted: #9CA3AF;
-  --border-default: #E5E7EB;
-  --border-strong: #D1D5DB;
+  --bg-primary: #F8F9FA;
+  --bg-secondary: #F0F1F3;
+  --bg-tertiary: #E8E9EB;
+  --text-primary: #222023;
+  --text-secondary: #4A4548;
+  --text-muted: #8A7F76;
+  --border-default: #E0E1E3;
+  --border-strong: #D0D1D3;
+
+  /* Accent semântico — muda entre light/dark */
+  --color-accent-primary: #522A6F;
+  --color-accent-primary-hover: #3E1F54;
+  --color-accent-primary-subtle: rgba(82, 42, 111, 0.12);
+
+  /* Badge colors — contraste adequado no light */
+  --badge-primary-bg: rgba(82, 42, 111, 0.12);
+  --badge-primary-text: #522A6F;
+  --badge-accent-bg: rgba(196, 155, 20, 0.12);
+  --badge-accent-text: #8B6914;
+  --badge-success-bg: rgba(22, 163, 74, 0.12);
+  --badge-success-text: #15803D;
+  --badge-danger-bg: rgba(220, 38, 38, 0.12);
+  --badge-danger-text: #DC2626;
+  --badge-warning-bg: rgba(217, 119, 6, 0.12);
+  --badge-warning-text: #B45309;
 }
 
 .dark {
-  --bg-primary: #0B0F1A;
-  --bg-secondary: #111827;
-  --bg-tertiary: #1F2937;
-  --text-primary: #E5E7EB;
-  --text-secondary: #9CA3AF;
-  --text-muted: #6B7280;
-  --border-default: #1F2937;
-  --border-strong: #374151;
+  --bg-primary: #222023;
+  --bg-secondary: #2A282C;
+  --bg-tertiary: #353337;
+  --text-primary: #FAEADD;
+  --text-secondary: #C4B8AD;
+  --text-muted: #8A7F76;
+  --border-default: #353337;
+  --border-strong: #454247;
+
+  --color-accent-primary: #DDAAFF;
+  --color-accent-primary-hover: #C88AEE;
+  --color-accent-primary-subtle: rgba(221, 170, 255, 0.12);
+
+  --badge-primary-bg: rgba(82, 42, 111, 0.15);
+  --badge-primary-text: #DDAAFF;
+  --badge-accent-bg: rgba(251, 207, 79, 0.15);
+  --badge-accent-text: #FBCF4F;
+  --badge-success-bg: rgba(34, 197, 94, 0.15);
+  --badge-success-text: #22C55E;
+  --badge-danger-bg: rgba(239, 68, 68, 0.15);
+  --badge-danger-text: #EF4444;
+  --badge-warning-bg: rgba(245, 158, 11, 0.15);
+  --badge-warning-text: #F59E0B;
 }
 
 /* ============================================
@@ -95,6 +127,14 @@
   color: var(--text-muted);
 }
 
+@utility text-accent-primary {
+  color: var(--color-accent-primary);
+}
+
+@utility bg-accent-primary-subtle {
+  background-color: var(--color-accent-primary-subtle);
+}
+
 @utility border-base {
   border-color: var(--border-default);
 }
@@ -109,8 +149,8 @@
 
 /* Botão primary */
 @utility btn-primary {
-  background-color: #7C3AED;
-  color: #FFFFFF;
+  background-color: #522A6F;
+  color: #FAEADD;
   font-weight: 500;
   font-size: 0.875rem;
   padding: 0.625rem 1.25rem;
@@ -123,7 +163,7 @@
   justify-content: center;
   gap: 0.5rem;
   &:hover {
-    background-color: #6D28D9;
+    background-color: #3E1F54;
   }
   &:active {
     transform: scale(0.95);
@@ -132,8 +172,8 @@
 
 /* Botão IA (cyan) */
 @utility btn-accent {
-  background-color: #06B6D4;
-  color: #FFFFFF;
+  background-color: #FBCF4F;
+  color: #222023;
   font-weight: 500;
   font-size: 0.875rem;
   padding: 0.625rem 1.25rem;
@@ -146,7 +186,7 @@
   justify-content: center;
   gap: 0.5rem;
   &:hover {
-    background-color: #0891B2;
+    background-color: #E5B83A;
   }
   &:active {
     transform: scale(0.95);
@@ -240,8 +280,8 @@
     color: var(--text-muted);
   }
   &:focus {
-    border-color: #7C3AED;
-    box-shadow: 0 0 0 1px #7C3AED;
+    border-color: #522A6F;
+    box-shadow: 0 0 0 1px #522A6F;
   }
 }
 
@@ -261,8 +301,8 @@
     color: var(--text-muted);
   }
   &:focus {
-    border-color: #7C3AED;
-    box-shadow: 0 0 0 1px #7C3AED;
+    border-color: #522A6F;
+    box-shadow: 0 0 0 1px #522A6F;
   }
 }
 
@@ -277,28 +317,28 @@
 }
 
 @utility badge-primary {
-  background-color: rgba(124, 58, 237, 0.15);
-  color: #A78BFA;
+  background-color: var(--badge-primary-bg);
+  color: var(--badge-primary-text);
 }
 
 @utility badge-accent {
-  background-color: rgba(6, 182, 212, 0.15);
-  color: #22D3EE;
+  background-color: var(--badge-accent-bg);
+  color: var(--badge-accent-text);
 }
 
 @utility badge-success {
-  background-color: rgba(34, 197, 94, 0.15);
-  color: #22C55E;
+  background-color: var(--badge-success-bg);
+  color: var(--badge-success-text);
 }
 
 @utility badge-danger {
-  background-color: rgba(239, 68, 68, 0.15);
-  color: #EF4444;
+  background-color: var(--badge-danger-bg);
+  color: var(--badge-danger-text);
 }
 
 @utility badge-warning {
-  background-color: rgba(245, 158, 11, 0.15);
-  color: #F59E0B;
+  background-color: var(--badge-warning-bg);
+  color: var(--badge-warning-text);
 }
 
 @utility badge-muted {
@@ -308,11 +348,11 @@
 
 /* Glow sutil roxo (para CTAs importantes) */
 @utility glow-primary {
-  box-shadow: 0 0 20px rgba(124, 58, 237, 0.15);
+  box-shadow: 0 0 20px rgba(82, 42, 111, 0.15);
 }
 
 @utility glow-accent {
-  box-shadow: 0 0 20px rgba(6, 182, 212, 0.15);
+  box-shadow: 0 0 20px rgba(251, 207, 79, 0.15);
 }
 
 /* ============================================
@@ -449,8 +489,8 @@
 }
 
 @utility btn-easy {
-  background-color: rgba(124, 58, 237, 0.15);
-  color: #A78BFA;
+  background-color: var(--color-accent-primary-subtle);
+  color: var(--color-accent-primary);
   font-weight: 500;
   font-size: 0.875rem;
   padding: 0.75rem 1rem;
@@ -465,7 +505,7 @@
   justify-content: center;
   gap: 0.25rem;
   &:hover {
-    background-color: rgba(124, 58, 237, 0.25);
+    background-color: rgba(82, 42, 111, 0.35);
   }
   &:active {
     transform: scale(0.95);
@@ -527,6 +567,6 @@ button {
 
 /* Selection */
 ::selection {
-  background-color: rgba(124, 58, 237, 0.3);
+  background-color: rgba(82, 42, 111, 0.3);
   color: #FFFFFF;
 }

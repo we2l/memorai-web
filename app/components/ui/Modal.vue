@@ -5,7 +5,6 @@
         v-if="modelValue"
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
         @click.self="close"
-        @keydown.escape="close"
       >
         <div
           class="card w-full mx-4 p-6"
@@ -43,6 +42,22 @@ const sizeClass = computed(() => ({
 function close() {
   emit('update:modelValue', false)
 }
+
+function onKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape' && props.modelValue) close()
+}
+
+watch(() => props.modelValue, (val) => {
+  if (val) {
+    document.addEventListener('keydown', onKeydown)
+  } else {
+    document.removeEventListener('keydown', onKeydown)
+  }
+})
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', onKeydown)
+})
 </script>
 
 <style scoped>

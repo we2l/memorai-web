@@ -12,9 +12,10 @@
           class="bg-surface-secondary rounded-2xl p-8 min-h-[250px] flex flex-col items-center justify-center text-center"
         >
           <p v-if="!flipped" class="text-label mb-3">{{ deckName }}</p>
-          <p class="text-xl font-medium text-base-primary leading-relaxed">
-            {{ flipped ? card.back : card.front }}
-          </p>
+          <div class="text-xl font-medium text-base-primary leading-relaxed card-content" v-html="flipped ? card.back : card.front" />
+          <div v-if="currentAudio" class="mt-4 w-full max-w-xs" @click.stop>
+            <UiAudioPlayer :src="currentAudio" />
+          </div>
         </div>
       </Transition>
     </div>
@@ -28,7 +29,7 @@
 <script setup lang="ts">
 import type { Flashcard } from '~/types'
 
-defineProps<{
+const props = defineProps<{
   card: Flashcard
   flipped: boolean
   deckName?: string
@@ -37,6 +38,10 @@ defineProps<{
 defineEmits<{
   flip: []
 }>()
+
+const currentAudio = computed(() =>
+  props.flipped ? props.card.back_audio_url : props.card.front_audio_url,
+)
 </script>
 
 <style scoped>
@@ -52,4 +57,6 @@ defineEmits<{
   opacity: 0;
   transform: rotateX(-10deg);
 }
+
+.card-content p { margin: 0.25em 0; display: inline; }
 </style>

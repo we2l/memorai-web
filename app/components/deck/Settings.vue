@@ -57,7 +57,7 @@
         <!-- Desired retention -->
         <div>
           <label for="retention" class="text-label mb-1 block">
-            Retenção desejada: <strong class="text-primary-400">{{ Math.round(retention * 100) }}%</strong>
+            Retenção desejada: <strong class="text-accent-primary">{{ Math.round(retention * 100) }}%</strong>
           </label>
           <input
             id="retention"

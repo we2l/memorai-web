@@ -1,6 +1,6 @@
 <template>
   <aside class="hidden lg:flex flex-col bg-surface-secondary h-screen fixed left-0 top-0 w-[220px] p-4">
-    <NuxtLink to="/dashboard" class="text-display text-primary-400 mb-8">
+    <NuxtLink to="/dashboard" class="text-display text-accent-primary mb-8">
       Memorai
     </NuxtLink>
 
@@ -10,7 +10,7 @@
         :key="item.to"
         :to="item.to"
         class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-small text-base-secondary transition-all duration-150"
-        :class="isActive(item.to) ? 'bg-primary-500/10 text-primary-400 font-medium' : 'hover:bg-surface-tertiary'"
+        :class="isActive(item.to) ? 'bg-accent-primary-subtle text-accent-primary font-medium' : 'hover:bg-surface-tertiary'"
         :aria-current="isActive(item.to) ? 'page' : undefined"
       >
         <component :is="getIcon(item.icon)" :size="20" :stroke-width="1.5" />
@@ -44,6 +44,7 @@ import {
   BookOpen,
   BarChart3,
   FolderTree,
+  Network,
   Settings,
   LogOut,
 } from 'lucide-vue-next'
@@ -64,6 +65,7 @@ const items = [
   { label: 'Dashboard', to: '/dashboard', icon: 'dashboard' },
   { label: 'Decks', to: '/decks', icon: 'decks' },
   { label: 'Tópicos', to: '/topics', icon: 'topics' },
+  { label: 'Grafo', to: '/graph', icon: 'graph' },
   { label: 'Revisão', to: '/review', icon: 'review' },
   { label: 'Estatísticas', to: '/stats', icon: 'stats' },
 ]
@@ -72,6 +74,7 @@ const iconMap: Record<string, any> = {
   dashboard: LayoutDashboard,
   decks: Layers,
   topics: FolderTree,
+  graph: Network,
   review: BookOpen,
   stats: BarChart3,
 }

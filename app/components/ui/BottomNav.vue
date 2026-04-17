@@ -9,7 +9,7 @@
         :key="item.to"
         :to="item.to"
         class="flex flex-col items-center gap-0.5 px-3 py-1.5 text-micro transition-all duration-150"
-        :class="isActive(item.to) ? 'text-primary-400' : 'text-base-muted'"
+        :class="isActive(item.to) ? 'text-accent-primary' : 'text-base-muted'"
         :aria-current="isActive(item.to) ? 'page' : undefined"
       >
         <component :is="getIcon(item.icon)" :size="22" :stroke-width="1.5" />
@@ -24,6 +24,7 @@ import {
   LayoutDashboard,
   Layers,
   FolderTree,
+  Network,
   BookOpen,
   BarChart3,
 } from 'lucide-vue-next'
@@ -33,7 +34,7 @@ const route = useRoute()
 const items = [
   { label: 'Dashboard', to: '/dashboard', icon: 'dashboard' },
   { label: 'Decks', to: '/decks', icon: 'decks' },
-  { label: 'Tópicos', to: '/topics', icon: 'topics' },
+  { label: 'Grafo', to: '/graph', icon: 'graph' },
   { label: 'Revisão', to: '/review', icon: 'review' },
   { label: 'Stats', to: '/stats', icon: 'stats' },
 ]
@@ -41,7 +42,7 @@ const items = [
 const iconMap: Record<string, any> = {
   dashboard: LayoutDashboard,
   decks: Layers,
-  topics: FolderTree,
+  graph: Network,
   review: BookOpen,
   stats: BarChart3,
 }

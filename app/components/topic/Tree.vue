@@ -6,6 +6,7 @@
       :topic="topic"
       :depth="0"
       :selected-id="selectedId"
+      :progress-map="progressMap"
       @select="$emit('select', $event)"
       @edit="$emit('edit', $event)"
       @delete="$emit('delete', $event)"
@@ -23,6 +24,7 @@ import type { Topic } from '~/types'
 defineProps<{
   topics: Topic[]
   selectedId?: string | null
+  progressMap?: Record<string, number>
 }>()
 
 defineEmits<{

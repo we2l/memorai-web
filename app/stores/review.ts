@@ -15,6 +15,7 @@ export const useReviewStore = defineStore('review', {
     submitting: false,
     finished: false,
     weakSuggestion: null as WeakConnection[] | null,
+    noteSnippet: null as { note_id: string; title: string; snippet: string; topic_id: string } | null,
     lastReviewId: null as string | null,
     showErrorDiary: false,
     _tick: 0,
@@ -48,6 +49,7 @@ export const useReviewStore = defineStore('review', {
       this.flipped = false
       this.learningQueue = []
       this.weakSuggestion = null
+      this.noteSnippet = null
       this.showErrorDiary = false
       try {
         const { $api } = useNuxtApp()
@@ -81,6 +83,7 @@ export const useReviewStore = defineStore('review', {
 
         // Weak connection suggestion on Again
         this.weakSuggestion = res.data.weak_connections ?? null
+        this.noteSnippet = res.data.note_snippet ?? null
 
         // Show error diary on Again
         this.lastReviewId = res.data.review?.id ?? null

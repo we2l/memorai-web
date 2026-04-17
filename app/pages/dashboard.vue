@@ -6,6 +6,46 @@
     </h1>
     <p class="text-base-secondary mt-1">Vamos manter seu ritmo hoje.</p>
 
+    <!-- Retention suggestion banner -->
+    <div v-if="retentionSuggestion?.has_suggestion" class="mt-4 p-4 rounded-xl bg-warning/10 border border-warning/30 flex items-start gap-3">
+      <TrendingDown :size="20" class="text-warning shrink-0 mt-0.5" />
+      <div class="flex-1">
+        <p class="text-small text-base-primary">Muitas reviews acumulando? Reduzir retenção de {{ Math.round(retentionSuggestion.current_retention * 100) }}% pra {{ Math.round(retentionSuggestion.suggested_retention * 100) }}% eliminaria ~{{ retentionSuggestion.cards_eliminated }} cards hoje.</p>
+        <div class="flex gap-2 mt-2">
+          <button class="btn-primary !py-1 !px-3 !min-h-0 !text-micro" @click="applyRetention">Ajustar</button>
+          <button class="btn-secondary !py-1 !px-3 !min-h-0 !text-micro" @click="dismissRetention">Ignorar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Survival mode suggestion -->
+    <div v-if="backlog?.suggest_survival_mode" class="mt-4 p-4 rounded-xl bg-danger/10 border border-danger/30 flex items-center gap-3">
+      <ShieldAlert :size="20" class="text-danger shrink-0" />
+      <div class="flex-1">
+        <p class="text-small text-base-primary">Backlog grande ({{ backlog.overdue_count }} cards)? Ative o Modo Sobrevivência — só os 20 mais urgentes.</p>
+      </div>
+      <button class="btn-primary !py-1 !px-3 !min-h-0 !text-micro" @click="toggleSurvivalMode(true)">Ativar</button>
+    </div>
+
+    <!-- Backlog bar -->
+    <div v-if="backlog && backlog.overdue_count > 0" class="card mt-6 flex items-center gap-4">
+      <div class="flex-1">
+        <div class="flex items-center justify-between mb-1">
+          <p class="text-small text-base-primary font-medium">Dívida de revisão</p>
+          <span class="text-micro text-base-muted">~{{ backlog.estimated_minutes }} min para zerar</span>
+        </div>
+        <div class="h-2 rounded-full bg-surface-tertiary">
+          <div
+            class="h-2 rounded-full transition-all"
+            :class="backlog.overdue_count > 50 ? 'bg-danger' : backlog.overdue_count > 10 ? 'bg-warning' : 'bg-success'"
+            :style="{ width: Math.min(100, backlog.overdue_count) + '%' }"
+          />
+        </div>
+        <p class="text-micro text-base-muted mt-1">{{ backlog.overdue_count }} cards atrasados · {{ backlog.reviews_done_today }} reviews hoje</p>
+      </div>
+      <NuxtLink to="/review" class="btn-primary !py-1.5 !px-3 !min-h-0 !text-small shrink-0">Revisar backlog</NuxtLink>
+    </div>
+
     <!-- Progress + Streak -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
       <!-- Progress card -->
@@ -127,14 +167,16 @@
 </template>
 
 <script setup lang="ts">
-import { Play, Plus, Upload, AlertCircle } from 'lucide-vue-next'
-import type { Stats, TopicProgress } from '~/types'
+import { Play, Plus, Upload, AlertCircle, ShieldAlert, TrendingDown } from 'lucide-vue-next'
+import type { Stats, TopicProgress, BacklogStats } from '~/types'
 
 const auth = useAuthStore()
 const deckStore = useDeckStore()
 
 const stats = ref<Stats | null>(null)
 const topicProgress = ref<TopicProgress[]>([])
+const backlog = ref<BacklogStats | null>(null)
+const retentionSuggestion = ref<any>(null)
 const { $api } = useNuxtApp()
 
 const greeting = computed(() => {
@@ -154,13 +196,40 @@ const progressPercent = computed(() => {
 })
 
 async function loadData() {
-  const [statsRes, , progressRes] = await Promise.all([
+  const [statsRes, , progressRes, backlogRes, retRes] = await Promise.all([
     $api<any>('/stats'),
     deckStore.fetchDecks(),
     $api<any>('/topics/progress'),
+    $api<any>('/review/backlog-stats'),
+    $api<any>('/review/retention-suggestion').catch(() => ({ data: { has_suggestion: false } })),
   ])
   stats.value = statsRes.data
   topicProgress.value = progressRes.data
+  backlog.value = backlogRes.data
+  retentionSuggestion.value = retRes.data
+}
+
+async function toggleSurvivalMode(enabled: boolean) {
+  try {
+    await $api('/review/survival-mode', { method: 'POST', body: { enabled } })
+    await loadData()
+  } catch {}
+}
+
+async function applyRetention() {
+  if (!retentionSuggestion.value?.suggested_retention) return
+  try {
+    await $api('/review/apply-retention', {
+      method: 'POST',
+      body: { desired_retention: retentionSuggestion.value.suggested_retention },
+    })
+    retentionSuggestion.value = { has_suggestion: false }
+    await loadData()
+  } catch {}
+}
+
+function dismissRetention() {
+  retentionSuggestion.value = { has_suggestion: false }
 }
 
 onMounted(loadData)

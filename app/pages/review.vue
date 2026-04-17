@@ -5,7 +5,10 @@
       <NuxtLink to="/dashboard" class="text-small text-base-muted hover:text-accent-primary">
         ← Voltar
       </NuxtLink>
-      <div class="flex items-center gap-2 text-small text-base-secondary">
+      <div class="flex items-center gap-3 text-small text-base-secondary">
+        <span v-if="sessionTimer > 0" class="text-micro font-mono" :class="sessionTimer <= 60 ? 'text-danger' : 'text-base-muted'">
+          ⏱ {{ formatTimer(sessionTimer) }}
+        </span>
         <span>{{ review.reviewed }} / {{ review.total }}</span>
         <div class="w-32 h-1.5 rounded-full bg-surface-tertiary">
           <div class="h-1.5 rounded-full bg-primary-500 transition-all duration-300" :style="{ width: review.progress + '%' }" />
@@ -96,6 +99,17 @@
         @saved="review.showErrorDiary = false"
         @skipped="review.showErrorDiary = false"
       />
+      <!-- Note snippet (reverse linking) -->
+      <div v-if="review.noteSnippet" class="mt-4 w-full max-w-md p-3 rounded-lg bg-accent-primary-subtle border border-accent-primary/20">
+        <p class="text-micro text-accent-primary font-medium mb-1">📝 Da sua nota: {{ review.noteSnippet.title }}</p>
+        <p class="text-small text-base-secondary">{{ review.noteSnippet.snippet }}</p>
+        <NuxtLink
+          :to="`/topics?topic=${review.noteSnippet.topic_id}&note=${review.noteSnippet.note_id}`"
+          class="text-micro text-accent-primary hover:underline mt-1 inline-block"
+        >
+          Ver nota completa →
+        </NuxtLink>
+      </div>
     </div>
   </div>
 </template>
@@ -128,6 +142,35 @@ async function loadSession() {
   const errorsOnly = route.query.errors_only === '1'
   if (deckId) await deckStore.fetchDeck(deckId)
   await review.fetchSession(deckId, topicId, errorsOnly)
+  await loadSessionTimer()
+}
+
+// Session timer
+const sessionTimer = ref(0)
+let timerInterval: ReturnType<typeof setInterval> | null = null
+const showTimeUp = ref(false)
+
+async function loadSessionTimer() {
+  try {
+    const { $api } = useNuxtApp()
+    const res = await $api<any>('/settings')
+    const limit = res.data.session_time_limit
+    if (limit) {
+      sessionTimer.value = limit * 60
+      timerInterval = setInterval(() => {
+        if (sessionTimer.value > 0) {
+          sessionTimer.value--
+          if (sessionTimer.value === 0) showTimeUp.value = true
+        }
+      }, 1000)
+    }
+  } catch {}
+}
+
+function formatTimer(seconds: number): string {
+  const m = Math.floor(seconds / 60)
+  const s = seconds % 60
+  return `${m}:${s.toString().padStart(2, '0')}`
 }
 
 onMounted(loadSession)
@@ -141,6 +184,7 @@ onMounted(() => {
 })
 onUnmounted(() => {
   if (tickInterval) clearInterval(tickInterval)
+  if (timerInterval) clearInterval(timerInterval)
 })
 
 watch(() => route.query, (newQ, oldQ) => {

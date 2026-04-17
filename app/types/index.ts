@@ -25,9 +25,14 @@ export interface Deck {
 export interface Flashcard {
   id: string
   deck_id: string
+  topic_id?: string | null
+  source_note_id?: string | null
+  tags: string[]
   type: string
   front: string
+  front_audio_url: string | null
   back: string
+  back_audio_url: string | null
   state: string
   due: string | null
   stability: number
@@ -86,4 +91,69 @@ export interface Note {
   content: Record<string, any> | null
   created_at: string
   updated_at: string
+}
+
+export interface GraphNode {
+  id: string
+  name: string
+  parent_id: string | null
+  notes_count: number
+  flashcards_count: number
+  review_count: number
+  progress: number
+}
+
+export interface GraphEdge {
+  id?: string
+  source: string
+  target: string
+  type: 'hierarchy' | 'connection'
+  label?: string | null
+}
+
+export interface GraphData {
+  nodes: GraphNode[]
+  edges: GraphEdge[]
+}
+
+export interface TopicConnection {
+  id: string
+  source_topic_id: string
+  target_topic_id: string
+  label: string | null
+}
+
+export interface TopicDetails {
+  id: string
+  name: string
+  progress: number
+  flashcards_count: number
+  notes_count: number
+  review_count: number
+  flashcards: { id: string; front: string; state: string; due: string | null }[]
+  notes: { id: string; title: string }[]
+  goal: { target_date: string; cards_per_day: number; remaining: number; days_left: number } | null
+}
+
+export interface TopicProgress {
+  id: string
+  name: string
+  flashcards_count: number
+  review_count: number
+  progress: number
+}
+
+export interface WeakConnection {
+  id: string
+  name: string
+  progress: number
+}
+
+export interface ErrorLog {
+  id: string
+  flashcard_id: string
+  review_id: string
+  reason: 'confused' | 'didnt_know' | 'forgot' | 'silly_mistake'
+  note: string | null
+  created_at: string
 }

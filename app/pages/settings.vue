@@ -16,7 +16,7 @@
         </div>
         <div>
           <p class="text-label">Plano</p>
-          <span class="inline-block px-3 py-1 rounded-full text-micro font-medium bg-primary-500/20 text-primary-400">
+          <span class="inline-block px-3 py-1 rounded-full text-micro font-medium bg-accent-primary-subtle text-accent-primary">
             {{ auth.user?.plan ?? 'free' }}
           </span>
         </div>
@@ -34,14 +34,14 @@
         <div class="flex gap-2">
           <button
             class="px-4 py-2 rounded-lg text-small transition-colors"
-            :class="colorMode.value === 'dark' ? 'bg-primary-500/20 text-primary-400' : 'bg-surface-tertiary text-base-muted'"
+            :class="colorMode.value === 'dark' ? 'bg-accent-primary-subtle text-accent-primary' : 'bg-surface-tertiary text-base-muted'"
             @click="setMode('dark')"
           >
             <Moon :size="16" class="inline mr-1" /> Escuro
           </button>
           <button
             class="px-4 py-2 rounded-lg text-small transition-colors"
-            :class="colorMode.value === 'light' ? 'bg-primary-500/20 text-primary-400' : 'bg-surface-tertiary text-base-muted'"
+            :class="colorMode.value === 'light' ? 'bg-accent-primary-subtle text-accent-primary' : 'bg-surface-tertiary text-base-muted'"
             @click="setMode('light')"
           >
             <Sun :size="16" class="inline mr-1" /> Claro

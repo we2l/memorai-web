@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1 class="text-display text-primary-400 text-center mb-2">Memorai</h1>
+    <h1 class="text-display text-accent-primary text-center mb-2">Memorai</h1>
     <p class="text-base-muted text-center mb-8">Faça login para continuar</p>
 
     <form @submit.prevent="handleLogin" class="flex flex-col gap-4">
@@ -41,7 +41,7 @@
 
     <p class="text-base-muted text-small text-center mt-6">
       Não tem conta?
-      <NuxtLink to="/register" class="text-primary-400 hover:underline">Criar conta</NuxtLink>
+      <NuxtLink to="/register" class="text-accent-primary hover:underline">Criar conta</NuxtLink>
     </p>
   </div>
 </template>

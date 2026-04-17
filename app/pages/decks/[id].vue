@@ -13,7 +13,7 @@
       <!-- Header -->
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <NuxtLink to="/decks" class="text-small text-base-muted hover:text-primary-400 mb-2 inline-block">← Voltar</NuxtLink>
+          <NuxtLink to="/decks" class="text-small text-base-muted hover:text-accent-primary mb-2 inline-block">← Voltar</NuxtLink>
           <h1 class="text-display">{{ deckStore.current.name }}</h1>
           <p v-if="deckStore.current.description" class="text-base-secondary mt-1">{{ deckStore.current.description }}</p>
         </div>
@@ -46,8 +46,8 @@
       </div>
 
       <!-- Modals -->
-      <FlashcardCreateModal v-model="showAdd" :deck-id="deckId" />
-      <FlashcardEditModal v-if="editCard" v-model="showEditCard" :card="editCard" @updated="refreshCards" />
+      <FlashcardCardFormModal v-model="showAdd" :deck-id="deckId" @created="refreshCards" />
+      <FlashcardCardFormModal v-if="editCard" v-model="showEditCard" :deck-id="deckId" :card="editCard" @updated="refreshCards" />
       <DeckEditModal v-model="showEditDeck" :deck="deckStore.current" @updated="deckStore.fetchDeck(deckId)" />
       <UiConfirmModal
         v-model="showDelete"
@@ -82,18 +82,18 @@
       <div v-else-if="flashcardStore.flashcards.length" class="space-y-2">
         <div v-for="card in flashcardStore.flashcards" :key="card.id" class="card group">
           <div class="flex items-center justify-between gap-4">
-            <p class="text-base-primary text-small truncate flex-1">{{ card.front }}</p>
+            <div class="text-base-primary text-small truncate flex-1">{{ stripHtml(card.front) }}</div>
             <div class="flex items-center gap-3 shrink-0">
-              <button class="text-micro text-primary-400 hover:underline" @click="toggleCard(card.id)">
+              <button class="text-micro text-accent-primary hover:underline" @click="toggleCard(card.id)">
                 {{ expandedCards.has(card.id) ? 'Ocultar' : 'Ver verso' }}
               </button>
-              <button class="text-micro text-primary-400 hover:underline" @click="openEditCard(card)">Editar</button>
+              <button class="text-micro text-accent-primary hover:underline" @click="openEditCard(card)">Editar</button>
               <button class="text-micro text-danger" @click="confirmDeleteCard(card.id)">Remover</button>
             </div>
           </div>
           <Transition name="expand">
             <div v-if="expandedCards.has(card.id)" class="bg-surface-tertiary rounded-lg p-3 mt-2">
-              <p class="text-base-secondary text-small">{{ card.back }}</p>
+              <div class="text-base-secondary text-small card-content" v-html="card.back" />
             </div>
           </Transition>
         </div>
@@ -117,6 +117,11 @@ const flashcardStore = useFlashcardStore()
 const toast = useToast()
 
 const deckId = route.params.id as string
+
+function stripHtml(html: string): string {
+  return html?.replace(/<[^>]*>/g, '') ?? ''
+}
+
 const showAdd = ref(false)
 const showEditDeck = ref(false)
 const showDeleteDeck = ref(false)

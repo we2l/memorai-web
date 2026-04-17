@@ -23,7 +23,7 @@
         </div>
         <div class="card text-center py-6">
           <p class="text-label">Pendentes hoje</p>
-          <p class="text-3xl font-bold text-primary-400 mt-2">{{ stats.due_today }}</p>
+          <p class="text-3xl font-bold text-accent-primary mt-2">{{ stats.due_today }}</p>
         </div>
         <div class="card text-center py-6">
           <p class="text-label">Streak</p>
@@ -78,7 +78,7 @@ const ratingBars = computed(() => {
     { label: 'Errei', count: r.again, percent: (r.again / total) * 100, barClass: 'bg-danger', textClass: 'text-danger' },
     { label: 'Difícil', count: r.hard, percent: (r.hard / total) * 100, barClass: 'bg-warning', textClass: 'text-warning' },
     { label: 'Bom', count: r.good, percent: (r.good / total) * 100, barClass: 'bg-success', textClass: 'text-success' },
-    { label: 'Fácil', count: r.easy, percent: (r.easy / total) * 100, barClass: 'bg-primary-500', textClass: 'text-primary-400' },
+    { label: 'Fácil', count: r.easy, percent: (r.easy / total) * 100, barClass: 'bg-primary-500', textClass: 'text-accent-primary' },
   ]
 })
 

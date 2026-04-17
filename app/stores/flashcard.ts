@@ -19,14 +19,14 @@ export const useFlashcardStore = defineStore('flashcard', {
       }
     },
 
-    async create(deckId: string, data: { front: string; back: string }) {
+    async create(deckId: string, data: { front: string; back: string; topic_id?: string; tags?: string[]; front_audio_url?: string; back_audio_url?: string }) {
       const { $api } = useNuxtApp()
       const res = await $api<any>(`/decks/${deckId}/flashcards`, { method: 'POST', body: data })
       this.flashcards.unshift(res.data)
       return res.data
     },
 
-    async update(id: string, data: { front?: string; back?: string }) {
+    async update(id: string, data: { front?: string; back?: string; topic_id?: string; tags?: string[]; front_audio_url?: string | null; back_audio_url?: string | null }) {
       const { $api } = useNuxtApp()
       const res = await $api<any>(`/flashcards/${id}`, { method: 'PUT', body: data })
       const idx = this.flashcards.findIndex(f => f.id === id)

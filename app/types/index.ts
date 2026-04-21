@@ -216,3 +216,16 @@ export interface AnkiImportStatus {
   stats?: { decks_created: number; cards_created: number; topics_created: number; media_extracted: number }
   error?: string
 }
+
+export interface FeatureData {
+  used: number
+  limit: number | null
+  remaining: number | null
+}
+
+export interface FeatureUsageData {
+  plan: string
+  period_start: string
+  period_end: string
+  features: Record<string, FeatureData>
+}

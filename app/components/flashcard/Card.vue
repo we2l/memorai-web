@@ -18,14 +18,18 @@
         <div
           class="text-xl leading-relaxed max-w-md card-content"
           :class="flipped ? 'mb-6 font-medium text-base-primary' : 'font-display text-[1.35rem] text-base-primary'"
-          v-html="card.front"
+          v-html="displayFront"
         />
 
         <!-- Divider + Answer (expand reveal) -->
         <Transition name="answer-expand">
           <div v-if="flipped" class="w-full max-w-md">
-            <div class="w-12 h-px bg-base-muted/30 mx-auto mb-6" />
-            <div class="text-lg text-[#E5DED1] leading-relaxed card-content" v-html="card.back" />
+            <div class="flex items-center gap-3 mb-6">
+              <div class="flex-1 h-px bg-white/10" />
+              <span class="text-[10px] uppercase tracking-widest text-base-muted/50">Resposta</span>
+              <div class="flex-1 h-px bg-white/10" />
+            </div>
+            <div class="text-lg text-[#E5DED1] leading-relaxed card-content" v-html="displayBack" />
             <div v-if="currentAudio" class="mt-4 w-full max-w-xs mx-auto" @click.stop>
               <UiAudioPlayer :src="currentAudio" />
             </div>
@@ -51,10 +55,30 @@ const props = defineProps<{
 
 defineEmits<{ flip: [] }>()
 
+const { renderQuestion, renderAnswer } = useCloze()
+const config = useRuntimeConfig()
+const apiOrigin = config.public.apiBase.replace('/api', '')
+
+function resolveMedia(html: string): string {
+  return html.replace(/src="\/storage\//g, `src="${apiOrigin}/storage/`)
+}
+
 const feedbackClass = computed(() => {
   if (props.feedback === 'success') return 'feedback-success'
   if (props.feedback === 'error') return 'feedback-error'
   return ''
+})
+
+const isCloze = computed(() => props.card.type === 'cloze')
+
+const displayFront = computed(() => {
+  const html = isCloze.value ? renderQuestion(props.card.front, props.card.cloze_index ?? undefined) : props.card.front
+  return resolveMedia(html)
+})
+
+const displayBack = computed(() => {
+  const html = isCloze.value ? renderAnswer(props.card.front, props.card.cloze_index ?? undefined) : props.card.back
+  return resolveMedia(html)
 })
 
 const currentAudio = computed(() =>
@@ -137,4 +161,6 @@ const currentAudio = computed(() =>
 }
 
 .card-content p { margin: 0.25em 0; display: inline; }
+:deep(.card-content a) { pointer-events: none; color: inherit; text-decoration: none; }
+:deep(.card-content img) { max-width: 100%; height: auto; border-radius: 0.5rem; margin: 0.5rem 0; }
 </style>

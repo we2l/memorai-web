@@ -1,5 +1,5 @@
 <template>
-  <div class="review-bg h-[calc(100vh-56px)] flex flex-col overflow-hidden">
+  <div class="review-bg h-[calc(100vh-56px)] flex flex-col overflow-y-auto">
     <!-- Top bar — minimal -->
     <div class="flex items-center justify-between px-4 py-3">
       <NuxtLink to="/dashboard" class="text-small text-base-muted opacity-60 hover:opacity-100 hover:text-accent-primary transition-opacity">
@@ -33,8 +33,15 @@
     </Transition>
 
     <!-- Loading -->
-    <div v-if="review.loading" class="flex-1 flex items-center justify-center">
-      <div class="skeleton h-64 w-full max-w-lg rounded-2xl" />
+    <div v-if="review.loading" class="flex-1 flex flex-col items-center justify-center px-4 gap-6">
+      <div class="w-full max-w-2xl">
+        <div class="review-card rounded-2xl px-12 py-12 min-h-[360px] flex flex-col items-center justify-center gap-4">
+          <div class="skeleton h-4 w-24 rounded" />
+          <div class="skeleton h-6 w-64 rounded mt-4" />
+          <div class="skeleton h-4 w-48 rounded" />
+        </div>
+      </div>
+      <p class="text-small text-base-muted animate-pulse">Carregando sessão...</p>
     </div>
 
     <!-- Finished -->
@@ -61,7 +68,7 @@
     </div>
 
     <!-- Review -->
-    <div v-else-if="review.currentCard" class="flex-1 flex flex-col items-center justify-center px-4 gap-10">
+    <div v-else-if="review.currentCard" class="flex-1 flex flex-col items-center justify-center px-4 pt-6 gap-10">
       <!-- State badge -->
       <div v-if="review.currentCard.is_learning || review.currentCard.state === 'new'" class="flex items-center gap-2">
         <span
@@ -85,6 +92,7 @@
 
       <FlashcardButtons
         v-if="review.flipped"
+        class="sticky bottom-4 z-10"
         :disabled="review.submitting"
         :intervals="review.currentIntervals"
         @rate="handleRate"

@@ -29,6 +29,7 @@ export interface Flashcard {
   source_note_id?: string | null
   tags: string[]
   type: string
+  cloze_index?: number | null
   front: string
   front_audio_url: string | null
   back: string
@@ -187,4 +188,30 @@ export interface NoteSnippet {
   title: string
   snippet: string
   topic_id: string
+}
+
+// Anki Import
+export interface AnkiImportDeckPreview {
+  name: string
+  cards_count: number
+  conflict: boolean
+}
+
+export interface AnkiImportPreview {
+  decks: AnkiImportDeckPreview[]
+  total_notes: number
+  total_cards: number
+  tags: string[]
+  media_count: number
+  note_types: { Basic: number; Cloze: number; Other: number }
+}
+
+export interface AnkiImportStatus {
+  status: 'pending' | 'previewing' | 'confirmed' | 'processing' | 'completed' | 'failed'
+  current_step?: string
+  total_cards?: number
+  imported_cards?: number
+  progress_percent?: number
+  stats?: { decks_created: number; cards_created: number; topics_created: number; media_extracted: number }
+  error?: string
 }

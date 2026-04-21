@@ -643,3 +643,19 @@ button {
   background-color: rgba(217, 119, 6, 0.3);
   color: #E9E4D9;
 }
+
+/* Cloze deletion styles */
+.cloze-blank {
+  display: inline;
+  padding: 0.1em 0.6em;
+  border-radius: 0.25rem;
+  background: rgba(217, 119, 6, 0.15);
+  border-bottom: 2px solid rgba(217, 119, 6, 0.4);
+  color: rgba(217, 119, 6, 0.7);
+  font-style: italic;
+}
+
+.cloze-answer {
+  color: #D97706;
+  font-weight: 600;
+}

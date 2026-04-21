@@ -1,5 +1,5 @@
 <template>
-  <div class="p-6 max-w-2xl mx-auto">
+  <div class="p-6 max-w-5xl mx-auto">
     <h1 class="text-display mb-8">Configurações</h1>
 
     <!-- Perfil -->
@@ -51,40 +51,55 @@
     </section>
 
     <!-- Sessão de Estudo -->
-    <section class="card p-5 mb-6">
-      <h2 class="text-headline mb-1">Sessão de Estudo</h2>
-      <p class="text-micro text-base-muted mb-4">Controle a carga diária de revisão para evitar sobrecarga.</p>
+    <section class="card p-6 md:p-8 mb-6">
+      <h2 class="text-headline mb-2">Sessão de Estudo</h2>
+      <p class="text-small text-base-muted mb-8">Configure quanto você quer estudar por dia. O app nunca descarta cards — o que não couber hoje aparece amanhã.</p>
 
-      <div class="space-y-4">
-        <div>
-          <div class="flex items-center justify-between mb-1">
-            <label class="text-label">Novos cards por dia</label>
-            <label class="flex items-center gap-1.5 text-micro text-base-muted cursor-pointer">
-              <input type="checkbox" :checked="settings.daily_new_cards_limit === null" @change="settings.daily_new_cards_limit = ($event.target as HTMLInputElement).checked ? null : 20" class="accent-[#522A6F]" />
+      <div class="space-y-8">
+        <div class="card p-5">
+          <div class="flex items-center justify-between mb-3">
+            <label class="text-title">Novos cards por dia</label>
+            <label class="flex items-center gap-2 text-small text-base-muted cursor-pointer">
+              <input type="checkbox" :checked="settings.daily_new_cards_limit === null" @change="settings.daily_new_cards_limit = ($event.target as HTMLInputElement).checked ? null : 20" class="accent-[#D97706]" />
               Ilimitado
             </label>
           </div>
-          <input v-if="settings.daily_new_cards_limit !== null" v-model.number="settings.daily_new_cards_limit" type="number" min="1" max="999" class="input-base w-32" />
-          <p class="text-micro text-base-muted mt-1">Cada novo card gera ~7-10 revisões no mês seguinte.</p>
+          <input v-if="settings.daily_new_cards_limit !== null" v-model.number="settings.daily_new_cards_limit" type="number" min="1" max="999" class="input-base w-32 mb-4" />
+          <div class="text-small text-base-muted leading-relaxed space-y-2">
+            <p>Controla quantos cards <strong class="text-base-secondary">que você nunca estudou</strong> vão aparecer por dia. Se você colocar 5, o app vai te mostrar no máximo 5 cards totalmente novos — o resto fica guardado pra depois.</p>
+            <p class="text-warning">⚠️ Cada card novo gera cerca de 7 revisões nas semanas seguintes. Se colocar 20 novos/dia, em um mês você terá ~150 revisões diárias.</p>
+            <p>💡 Recomendado: comece com <strong class="text-base-secondary">5</strong> e aumente conforme se sentir confortável.</p>
+          </div>
         </div>
 
-        <div>
-          <div class="flex items-center justify-between mb-1">
-            <label class="text-label">Máximo de revisões por dia</label>
-            <label class="flex items-center gap-1.5 text-micro text-base-muted cursor-pointer">
-              <input type="checkbox" :checked="settings.daily_review_limit === null" @change="settings.daily_review_limit = ($event.target as HTMLInputElement).checked ? null : 100" class="accent-[#522A6F]" />
+        <div class="card p-5">
+          <div class="flex items-center justify-between mb-3">
+            <label class="text-title">Máximo de revisões por dia</label>
+            <label class="flex items-center gap-2 text-small text-base-muted cursor-pointer">
+              <input type="checkbox" :checked="settings.daily_review_limit === null" @change="settings.daily_review_limit = ($event.target as HTMLInputElement).checked ? null : 100" class="accent-[#D97706]" />
               Ilimitado
             </label>
           </div>
-          <input v-if="settings.daily_review_limit !== null" v-model.number="settings.daily_review_limit" type="number" min="1" max="9999" class="input-base w-32" />
+          <input v-if="settings.daily_review_limit !== null" v-model.number="settings.daily_review_limit" type="number" min="1" max="9999" class="input-base w-32 mb-4" />
+          <div class="text-small text-base-muted leading-relaxed space-y-2">
+            <p>O <strong class="text-base-secondary">total de cards</strong> que você vai estudar no dia — inclui novos e revisões de cards antigos.</p>
+            <p>Exemplo: se você colocar 30, o app vai te mostrar no máximo 30 cards por dia, mesmo que tenha 100 pendentes. Os que sobrarem aparecem nos dias seguintes.</p>
+            <p>💡 Pouco tempo? Coloque <strong class="text-base-secondary">20–30</strong> (~10 min de estudo). Quer estudar bastante? Deixe ilimitado.</p>
+          </div>
         </div>
 
-        <div>
-          <label class="text-label mb-1 block">Limite de tempo por sessão</label>
-          <UiSelect v-model="sessionTimeStr" :options="timeOptions" placeholder="Sem limite" />
+        <div class="card p-5">
+          <label class="text-title mb-3 block">Limite de tempo por sessão</label>
+          <div class="mb-4">
+            <UiSelect v-model="sessionTimeStr" :options="timeOptions" placeholder="Sem limite" />
+          </div>
+          <div class="text-small text-base-muted leading-relaxed space-y-2">
+            <p>Define um cronômetro para sua sessão de estudo. Quando o tempo acabar, o app te avisa — mas não interrompe no meio de um card. Você escolhe se quer continuar ou parar.</p>
+            <p>💡 Útil pra quem estuda no ônibus, no intervalo do trabalho, ou quer sessões curtas e focadas.</p>
+          </div>
         </div>
 
-        <button class="btn-primary !py-1.5 !px-4 !min-h-0 !text-small" :disabled="savingSettings" @click="saveSettings">
+        <button class="btn-primary" :disabled="savingSettings" @click="saveSettings">
           {{ savingSettings ? 'Salvando...' : 'Salvar configurações' }}
         </button>
       </div>

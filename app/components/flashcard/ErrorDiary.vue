@@ -2,7 +2,8 @@
   <Transition name="slide-up">
     <div v-if="visible" class="w-full max-w-lg mx-auto">
       <div class="card border border-warning/30 p-4">
-        <p class="text-small text-base-primary font-medium mb-3">Por que você errou?</p>
+        <p class="text-small text-base-primary font-medium mb-1">Por que você errou?</p>
+        <p class="text-micro text-base-muted mb-3">Selecione um motivo para salvar.</p>
 
         <div class="flex flex-wrap gap-2 mb-3">
           <button

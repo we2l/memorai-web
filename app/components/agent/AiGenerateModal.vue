@@ -1,5 +1,5 @@
 <template>
-  <UiModal v-model="modelValue" size="lg" aria-label="Gerar cards com IA">
+  <UiModal :model-value="modelValue" size="lg" aria-label="Gerar cards com IA" @update:model-value="$emit('update:modelValue', $event)">
     <div v-if="!generatedCards.length">
       <h2 class="text-heading mb-4">Gerar cards com IA</h2>
 

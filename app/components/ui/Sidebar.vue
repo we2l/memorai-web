@@ -9,8 +9,8 @@
         v-for="item in items"
         :key="item.to"
         :to="item.to"
-        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-small text-base-secondary transition-all duration-150"
-        :class="isActive(item.to) ? 'bg-accent-primary-subtle text-accent-primary font-medium' : 'hover:bg-surface-tertiary'"
+        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-small transition-all duration-150"
+        :class="isActive(item.to) ? 'bg-[rgba(217,119,6,0.12)] text-accent-primary font-medium shadow-[inset_2px_0_0_#D97706]' : 'text-base-muted opacity-70 hover:opacity-100 hover:text-base-secondary hover:bg-surface-tertiary'"
         :aria-current="isActive(item.to) ? 'page' : undefined"
       >
         <component :is="getIcon(item.icon)" :size="20" :stroke-width="1.5" />

@@ -22,10 +22,10 @@ function nodeRadius(d: D3Node): number {
 }
 
 function nodeColor(d: D3Node): string {
-  if (d.flashcards_count === 0) return '#6B7280' // gray
-  if (d.progress < 0.3) return '#EF4444' // red
-  if (d.progress < 0.7) return '#F59E0B' // amber
-  return '#22C55E' // green
+  if (d.flashcards_count === 0) return '#706B64' // warm muted
+  if (d.progress < 0.3) return '#EF4444' // red danger
+  if (d.progress < 0.7) return '#D97706' // amber active
+  return '#22C55E' // green mastered
 }
 
 function hasWeakConnection(nodeId: string, d3Nodes: D3Node[], d3Links: D3Link[]): boolean {

@@ -32,17 +32,20 @@ export const useReviewStore = defineStore('review', {
     currentIntervals(): { again: string; hard: string; good: string; easy: string } {
       return this.currentCard?.next_intervals ?? { again: '', hard: '', good: '', easy: '' }
     },
-    total: (state) => state.cards.length,
+    total(state): number {
+      return state.cards.length + state.learningQueue.length
+    },
     reviewed: (state) => state.currentIndex,
     progress(state): number {
-      if (!state.cards.length) return 0
-      return Math.round((state.currentIndex / state.cards.length) * 100)
+      const t = state.cards.length + state.learningQueue.length
+      if (!t) return 0
+      return Math.min(100, Math.round((state.currentIndex / t) * 100))
     },
     pendingLearning: (state) => state.learningQueue.length,
   },
 
   actions: {
-    async fetchSession(deckId?: string, topicId?: string, errorsOnly?: boolean) {
+    async fetchSession(deckId?: string, topicId?: string, errorsOnly?: boolean, backlog?: boolean) {
       this.loading = true
       this.finished = false
       this.currentIndex = 0
@@ -57,10 +60,25 @@ export const useReviewStore = defineStore('review', {
         if (deckId) params.set('deck_id', deckId)
         if (topicId) params.set('topic_id', topicId)
         if (errorsOnly) params.set('errors_only', '1')
+        if (backlog) params.set('backlog', '1')
         const query = params.toString() ? `?${params}` : ''
         const res = await $api<any>(`/review/session${query}`)
-        this.cards = res.data
-        if (!this.cards.length) this.finished = true
+        const allCards = res.data as SessionCard[]
+        const now = Date.now()
+
+        // Separate learning/relearning cards with future due into learningQueue
+        this.cards = []
+        for (const card of allCards) {
+          const isLearning = card.state === 'learning' || card.state === 'relearning'
+          const dueFuture = card.due && new Date(card.due).getTime() > now
+          if (isLearning && dueFuture) {
+            this.learningQueue.push({ card, dueAt: new Date(card.due!).getTime() })
+          } else {
+            this.cards.push(card)
+          }
+        }
+
+        if (!this.cards.length && !this.learningQueue.length) this.finished = true
       } finally {
         this.loading = false
       }
@@ -112,9 +130,10 @@ export const useReviewStore = defineStore('review', {
 
         // Learn ahead: if no more main cards, show all learning cards immediately
         if (!hasMoreMainCards) {
-          for (const item of this.learningQueue) {
-            item.dueAt = Date.now()
-          }
+          this.learningQueue = this.learningQueue.map(item => ({
+            ...item,
+            dueAt: Date.now(),
+          }))
         }
 
         this.flipped = false

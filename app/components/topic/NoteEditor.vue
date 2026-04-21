@@ -17,8 +17,9 @@ import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
+import Image from '@tiptap/extension-image'
 import { Callout } from '~/extensions/callout'
-import { Bold, Italic, Underline as UnderlineIcon, Heading1, Heading2, Heading3, List, ListOrdered, Quote, AlertTriangle, Lightbulb, ShieldAlert } from 'lucide-vue-next'
+import { Bold, Italic, Underline as UnderlineIcon, Heading1, Heading2, Heading3, List, ListOrdered, Quote, AlertTriangle, Lightbulb, ShieldAlert, ImagePlus } from 'lucide-vue-next'
 
 const props = defineProps<{
   modelValue?: Record<string, any> | null
@@ -34,6 +35,7 @@ const editor = useEditor({
     StarterKit,
     Underline,
     Callout,
+    Image.configure({ inline: false, allowBase64: false }),
     Placeholder.configure({ placeholder: 'Comece a escrever...' }),
   ],
   onUpdate: ({ editor }) => {
@@ -63,13 +65,43 @@ const toolbar = computed(() => {
     { label: 'Lista', icon: List, active: () => e.isActive('bulletList'), action: () => e.chain().focus().toggleBulletList().run() },
     { label: 'Lista numerada', icon: ListOrdered, active: () => e.isActive('orderedList'), action: () => e.chain().focus().toggleOrderedList().run() },
     { label: 'Citação', icon: Quote, active: () => e.isActive('blockquote'), action: () => e.chain().focus().toggleBlockquote().run() },
+    { label: 'Imagem', icon: ImagePlus, active: () => false, action: () => triggerImageUpload() },
     { label: '❌ Erro', icon: AlertTriangle, active: () => e.isActive('callout', { type: 'error' }), action: () => e.isActive('callout') ? e.chain().focus().unsetCallout().run() : e.chain().focus().setCallout('error').run() },
     { label: '💡 Insight', icon: Lightbulb, active: () => e.isActive('callout', { type: 'insight' }), action: () => e.isActive('callout') ? e.chain().focus().unsetCallout().run() : e.chain().focus().setCallout('insight').run() },
     { label: '⚠ Pegadinha', icon: ShieldAlert, active: () => e.isActive('callout', { type: 'gotcha' }), action: () => e.isActive('callout') ? e.chain().focus().unsetCallout().run() : e.chain().focus().setCallout('gotcha').run() },
   ]
 })
 
+// Image upload
+const imageInput = ref<HTMLInputElement | null>(null)
+const { uploadImage } = useImageUpload()
+
+function triggerImageUpload() {
+  if (!imageInput.value) {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = 'image/jpeg,image/png,image/webp,image/gif'
+    input.style.display = 'none'
+    input.addEventListener('change', handleImageSelect)
+    document.body.appendChild(input)
+    imageInput.value = input
+  }
+  imageInput.value.value = ''
+  imageInput.value.click()
+}
+
+async function handleImageSelect(event: Event) {
+  const file = (event.target as HTMLInputElement).files?.[0]
+  if (!file || !editor.value) return
+
+  const url = await uploadImage(file)
+  if (url) {
+    editor.value.chain().focus().setImage({ src: url }).run()
+  }
+}
+
 onBeforeUnmount(() => {
+  if (imageInput.value) imageInput.value.remove()
   editor.value?.destroy()
 })
 </script>
@@ -95,5 +127,10 @@ onBeforeUnmount(() => {
   pointer-events: none;
   height: 0;
   opacity: 0.4;
+}
+.prose-editor .tiptap img {
+  max-width: 100%;
+  border-radius: 0.5rem;
+  margin: 0.5em 0;
 }
 </style>

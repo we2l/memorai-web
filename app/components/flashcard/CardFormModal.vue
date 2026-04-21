@@ -33,11 +33,12 @@
               placeholder="Digite a pergunta..."
               :min-height="80"
               :max-height="160"
+              enable-cloze
               @focus="previewSide = 'front'"
             />
           </div>
 
-          <div class="flex-1 flex flex-col">
+          <div v-if="!hasCloze" class="flex-1 flex flex-col">
             <label class="text-label mb-1 block">Verso</label>
             <UiRichInput
               v-model="form.back"
@@ -48,6 +49,9 @@
               :max-height="160"
               @focus="previewSide = 'back'"
             />
+          </div>
+          <div v-else class="flex-1 flex items-center justify-center rounded-lg border border-dashed border-base bg-surface-tertiary/50 px-4 py-6">
+            <p class="text-small text-base-muted text-center">O verso é gerado automaticamente pelas lacunas.</p>
           </div>
 
           <div>
@@ -61,12 +65,12 @@
               v-if="!isEdit"
               type="button"
               class="btn-secondary !py-1.5 !px-3 !min-h-0 !text-small"
-              :disabled="!form.front || !form.back || !form.deck_id || saving"
+              :disabled="!canSubmit"
               @click="submitAndContinue"
             >
               {{ saving ? 'Salvando...' : 'Salvar e criar outro' }}
             </button>
-            <button type="submit" class="btn-primary !py-1.5 !px-3 !min-h-0 !text-small" :disabled="!form.front || !form.back || !form.deck_id || saving">
+            <button type="submit" class="btn-primary !py-1.5 !px-3 !min-h-0 !text-small" :disabled="!canSubmit">
               {{ saving ? 'Salvando...' : 'Salvar' }}
             </button>
           </div>
@@ -76,6 +80,19 @@
       <!-- Preview -->
       <div class="hidden md:flex flex-col items-center w-72 shrink-0 pt-10">
         <p class="text-label mb-3">Preview</p>
+        <!-- Cloze index selector -->
+        <div v-if="hasCloze && clozeIndices.length > 1" class="flex gap-1 mb-3">
+          <button
+            v-for="idx in clozeIndices"
+            :key="idx"
+            type="button"
+            class="px-2 py-0.5 rounded text-micro font-medium transition-colors"
+            :class="previewClozeIndex === idx ? 'bg-accent-primary text-white' : 'bg-surface-tertiary text-base-muted hover:text-base-primary'"
+            @click="previewClozeIndex = idx"
+          >
+            c{{ idx }}
+          </button>
+        </div>
         <div class="w-full card-scene">
           <div class="card-inner" :class="previewSide === 'back' && 'flipped'">
             <div class="card-face card-front" @click="flipPreview">
@@ -186,13 +203,38 @@ const selectedDeckName = computed(() =>
 
 const isEmpty = (html: string) => !html || html === '<p></p>'
 
-const frontPreview = computed(() =>
-  isEmpty(form.front) ? '<span style="opacity:0.4">Sua pergunta aqui...</span>' : form.front,
-)
+const hasCloze = computed(() => /\{\{c\d+::/.test(form.front))
 
-const backPreview = computed(() =>
-  isEmpty(form.back) ? '<span style="opacity:0.4">Sua resposta aqui...</span>' : form.back,
-)
+const clozeIndices = computed(() => {
+  const matches = form.front.matchAll(/\{\{c(\d+)::/g)
+  const indices = [...new Set([...matches].map(m => parseInt(m[1])))]
+  return indices.sort((a, b) => a - b)
+})
+
+const previewClozeIndex = ref(1)
+
+watch(clozeIndices, (indices) => {
+  if (indices.length && !indices.includes(previewClozeIndex.value)) {
+    previewClozeIndex.value = indices[0]
+  }
+})
+
+const canSubmit = computed(() => {
+  if (!form.front || !form.deck_id || saving.value) return false
+  return hasCloze.value || !!form.back
+})
+
+const { renderQuestion, renderAnswer } = useCloze()
+
+const frontPreview = computed(() => {
+  if (isEmpty(form.front)) return '<span style="opacity:0.4">Sua pergunta aqui...</span>'
+  return hasCloze.value ? renderQuestion(form.front, previewClozeIndex.value) : form.front
+})
+
+const backPreview = computed(() => {
+  if (hasCloze.value) return renderAnswer(form.front, previewClozeIndex.value)
+  return isEmpty(form.back) ? '<span style="opacity:0.4">Sua resposta aqui...</span>' : form.back
+})
 
 async function loadTopics() {
   try {

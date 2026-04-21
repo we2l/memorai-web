@@ -46,7 +46,9 @@ import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
-import { Bold, Italic, Underline as UnderlineIcon, List, ListOrdered, Mic } from 'lucide-vue-next'
+import Image from '@tiptap/extension-image'
+import { ClozeMarker, markToCloze, clozeToMark, getNextClozeIndex } from '~/extensions/cloze-marker'
+import { Bold, Italic, Underline as UnderlineIcon, List, ListOrdered, Mic, ImagePlus, Brackets } from 'lucide-vue-next'
 
 const props = withDefaults(defineProps<{
   modelValue?: string
@@ -55,6 +57,8 @@ const props = withDefaults(defineProps<{
   placeholder?: string
   minHeight?: number
   maxHeight?: number
+  enableImage?: boolean
+  enableCloze?: boolean
 }>(), {
   modelValue: '',
   audioBlob: null,
@@ -62,6 +66,8 @@ const props = withDefaults(defineProps<{
   placeholder: '',
   minHeight: 80,
   maxHeight: 200,
+  enableImage: true,
+  enableCloze: false,
 })
 
 const emit = defineEmits<{
@@ -70,8 +76,18 @@ const emit = defineEmits<{
   (e: 'focus'): void
 }>()
 
+// Convert cloze syntax to marks for editor display
+function toEditorContent(val: string): string {
+  return props.enableCloze ? clozeToMark(val) : val
+}
+
+// Convert marks back to cloze syntax for storage
+function toStorageContent(html: string): string {
+  return props.enableCloze ? markToCloze(html) : html
+}
+
 const editor = useEditor({
-  content: props.modelValue,
+  content: toEditorContent(props.modelValue),
   extensions: [
     StarterKit.configure({
       heading: false,
@@ -81,9 +97,11 @@ const editor = useEditor({
     }),
     Underline.configure({}),
     Placeholder.configure({ placeholder: props.placeholder }),
+    ...(props.enableImage ? [Image.configure({ inline: false, allowBase64: false })] : []),
+    ...(props.enableCloze ? [ClozeMarker] : []),
   ],
   onUpdate: ({ editor }) => {
-    emit('update:modelValue', editor.getHTML())
+    emit('update:modelValue', toStorageContent(editor.getHTML()))
   },
   onFocus: () => {
     emit('focus')
@@ -92,22 +110,87 @@ const editor = useEditor({
 
 watch(() => props.modelValue, (val) => {
   if (!editor.value) return
-  if (editor.value.getHTML() !== val) {
-    editor.value.commands.setContent(val || '')
+  const editorContent = toStorageContent(editor.value.getHTML())
+  if (editorContent !== val) {
+    editor.value.commands.setContent(toEditorContent(val || ''))
   }
 })
+
+function insertCloze(event?: MouseEvent) {
+  if (!editor.value) return
+  const { from, to } = editor.value.state.selection
+  if (from === to) return // No selection
+
+  const html = editor.value.getHTML()
+  const useLastIndex = event?.shiftKey
+  const nextIndex = useLastIndex
+    ? Math.max(1, getNextClozeIndex(html) - 1)
+    : getNextClozeIndex(html)
+
+  editor.value.chain().focus().setCloze(nextIndex).run()
+}
 
 const toolbar = computed(() => {
   if (!editor.value) return []
   const e = editor.value
-  return [
+  const items = [
     { label: 'Negrito', icon: Bold, active: () => e.isActive('bold'), action: () => e.chain().focus().toggleBold().run() },
     { label: 'Itálico', icon: Italic, active: () => e.isActive('italic'), action: () => e.chain().focus().toggleItalic().run() },
     { label: 'Sublinhado', icon: UnderlineIcon, active: () => e.isActive('underline'), action: () => e.chain().focus().toggleUnderline().run() },
     { label: 'Lista', icon: List, active: () => e.isActive('bulletList'), action: () => e.chain().focus().toggleBulletList().run() },
     { label: 'Lista numerada', icon: ListOrdered, active: () => e.isActive('orderedList'), action: () => e.chain().focus().toggleOrderedList().run() },
   ]
+  if (props.enableImage) {
+    items.push({ label: 'Imagem', icon: ImagePlus, active: () => false, action: () => triggerImageUpload() })
+  }
+  if (props.enableCloze) {
+    items.push({ label: 'Lacuna (Ctrl+Shift+C)', icon: Brackets, active: () => e.isActive('clozeMarker'), action: (event: MouseEvent) => insertCloze(event) })
+  }
+  return items
 })
+
+// Image upload
+const imageInput = ref<HTMLInputElement | null>(null)
+const { uploadImage } = useImageUpload()
+
+function triggerImageUpload() {
+  if (!imageInput.value) {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = 'image/jpeg,image/png,image/webp,image/gif'
+    input.style.display = 'none'
+    input.addEventListener('change', handleImageSelect)
+    document.body.appendChild(input)
+    imageInput.value = input
+  }
+  imageInput.value.value = ''
+  imageInput.value.click()
+}
+
+async function handleImageSelect(event: Event) {
+  const file = (event.target as HTMLInputElement).files?.[0]
+  if (!file || !editor.value) return
+
+  const url = await uploadImage(file)
+  if (url) {
+    editor.value.chain().focus().setImage({ src: url }).run()
+  }
+}
+
+// Keyboard shortcut for cloze
+onMounted(() => {
+  if (props.enableCloze) {
+    document.addEventListener('keydown', handleClozeShortcut)
+  }
+})
+
+function handleClozeShortcut(e: KeyboardEvent) {
+  if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'c') {
+    if (!editor.value?.isFocused) return
+    e.preventDefault()
+    insertCloze()
+  }
+}
 
 // Audio recording — stores blob locally, upload happens on card save
 const recording = ref(false)
@@ -176,6 +259,8 @@ onBeforeUnmount(() => {
   mediaRecorder?.stop()
   if (timerInterval) clearInterval(timerInterval)
   if (localAudioUrl.value) URL.revokeObjectURL(localAudioUrl.value)
+  if (imageInput.value) imageInput.value.remove()
+  if (props.enableCloze) document.removeEventListener('keydown', handleClozeShortcut)
   editor.value?.destroy()
 })
 </script>
@@ -195,5 +280,25 @@ onBeforeUnmount(() => {
   pointer-events: none;
   height: 0;
   color: var(--text-muted);
+}
+.rich-input .tiptap img {
+  max-width: 100%;
+  border-radius: 0.5rem;
+  margin: 0.5em 0;
+}
+.rich-input .tiptap .cloze-chip {
+  background: var(--color-primary-100, rgba(59, 130, 246, 0.15));
+  border-radius: 4px;
+  padding: 1px 4px;
+  border: 1px solid var(--color-primary-300, rgba(59, 130, 246, 0.3));
+  position: relative;
+}
+.rich-input .tiptap .cloze-chip::after {
+  content: attr(data-cloze-index);
+  font-size: 0.6em;
+  font-weight: 700;
+  color: var(--color-primary-600, #2563eb);
+  vertical-align: super;
+  margin-left: 2px;
 }
 </style>

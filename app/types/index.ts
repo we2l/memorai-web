@@ -30,6 +30,7 @@ export interface Flashcard {
   tags: string[]
   type: string
   cloze_index?: number | null
+  cloze_group_id?: string | null
   front: string
   front_audio_url: string | null
   back: string

@@ -80,20 +80,40 @@
       </div>
 
       <div v-else-if="flashcardStore.flashcards.length" class="space-y-2">
-        <div v-for="card in flashcardStore.flashcards" :key="card.id" class="card group">
+        <div v-for="item in groupedCards" :key="item.id" class="card group">
           <div class="flex items-center justify-between gap-4">
-            <div class="text-base-primary text-small truncate flex-1">{{ stripHtml(card.front) }}</div>
+            <div class="flex items-center gap-2 text-base-primary text-small truncate flex-1">
+              <span class="truncate">{{ stripHtml(item.front) }}</span>
+              <span v-if="item.clozeCount > 1" class="shrink-0 text-micro bg-accent-primary-subtle text-accent-primary px-1.5 py-0.5 rounded-full font-medium">
+                {{ item.clozeCount }} lacunas
+              </span>
+              <span v-else-if="item.type === 'cloze'" class="shrink-0 text-micro bg-accent-primary-subtle text-accent-primary px-1.5 py-0.5 rounded-full font-medium">
+                lacuna
+              </span>
+            </div>
             <div class="flex items-center gap-3 shrink-0">
-              <button class="text-micro text-accent-primary hover:underline" @click="toggleCard(card.id)">
-                {{ expandedCards.has(card.id) ? 'Ocultar' : 'Ver verso' }}
+              <button v-if="item.type !== 'cloze'" class="text-micro text-accent-primary hover:underline" @click="toggleCard(item.id)">
+                {{ expandedCards.has(item.id) ? 'Ocultar' : 'Ver verso' }}
               </button>
-              <button class="text-micro text-accent-primary hover:underline" @click="openEditCard(card)">Editar</button>
-              <button class="text-micro text-danger" @click="confirmDeleteCard(card.id)">Remover</button>
+              <button v-else class="text-micro text-accent-primary hover:underline" @click="toggleCard(item.id)">
+                {{ expandedCards.has(item.id) ? 'Ocultar' : 'Ver lacunas' }}
+              </button>
+              <button class="text-micro text-accent-primary hover:underline" @click="openEditCard(item.card)">Editar</button>
+              <button class="text-micro text-danger" @click="confirmDeleteCard(item.card.id)">Remover</button>
             </div>
           </div>
           <Transition name="expand">
-            <div v-if="expandedCards.has(card.id)" class="bg-surface-tertiary rounded-lg p-3 mt-2">
-              <div class="text-base-secondary text-small card-content" v-html="card.back" />
+            <div v-if="expandedCards.has(item.id)" class="bg-surface-tertiary rounded-lg p-3 mt-2">
+              <!-- Basic card: show back -->
+              <div v-if="item.type !== 'cloze'" class="text-base-secondary text-small card-content" v-html="item.card.back" />
+              <!-- Cloze group: show individual cards -->
+              <div v-else class="space-y-2">
+                <div v-for="sibling in item.siblings" :key="sibling.id" class="flex items-center gap-3 text-small">
+                  <span class="shrink-0 text-micro font-bold text-accent-primary">c{{ sibling.cloze_index }}</span>
+                  <span class="text-base-secondary">{{ clozePreview(sibling) }}</span>
+                  <span class="ml-auto text-micro text-base-muted">{{ sibling.state }}</span>
+                </div>
+              </div>
             </div>
           </Transition>
         </div>
@@ -119,7 +139,57 @@ const toast = useToast()
 const deckId = route.params.id as string
 
 function stripHtml(html: string): string {
-  return html?.replace(/<[^>]*>/g, '') ?? ''
+  return html?.replace(/<[^>]*>/g, '').replace(/\{\{c\d+::.*?(?:::.*?)?\}\}/g, '___') ?? ''
+}
+
+interface GroupedCard {
+  id: string
+  front: string
+  type: string
+  card: import('~/types').Flashcard
+  clozeCount: number
+  siblings: import('~/types').Flashcard[]
+}
+
+const groupedCards = computed<GroupedCard[]>(() => {
+  const cards = flashcardStore.flashcards
+  const seen = new Set<string>()
+  const result: GroupedCard[] = []
+
+  for (const card of cards) {
+    if (card.cloze_group_id) {
+      if (seen.has(card.cloze_group_id)) continue
+      seen.add(card.cloze_group_id)
+      const siblings = cards
+        .filter(c => c.cloze_group_id === card.cloze_group_id)
+        .sort((a, b) => (a.cloze_index ?? 0) - (b.cloze_index ?? 0))
+      result.push({
+        id: card.cloze_group_id,
+        front: card.front,
+        type: 'cloze',
+        card: siblings[0],
+        clozeCount: siblings.length,
+        siblings,
+      })
+    } else {
+      result.push({
+        id: card.id,
+        front: card.front,
+        type: card.type,
+        card,
+        clozeCount: card.type === 'cloze' ? 1 : 0,
+        siblings: [],
+      })
+    }
+  }
+  return result
+})
+
+function clozePreview(card: import('~/types').Flashcard): string {
+  const text = stripHtml(card.front)
+  // Show which word this cloze tests
+  const match = card.front.match(new RegExp(`\\{\\{c${card.cloze_index}::(.*?)(?:::.*?)?\\}\\}`))
+  return match ? match[1] : text
 }
 
 const showAdd = ref(false)

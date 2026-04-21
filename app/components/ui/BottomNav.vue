@@ -26,7 +26,7 @@ import {
   FolderTree,
   Network,
   BookOpen,
-  BarChart3,
+  MessageCircle,
 } from 'lucide-vue-next'
 
 const route = useRoute()
@@ -36,7 +36,7 @@ const items = [
   { label: 'Decks', to: '/decks', icon: 'decks' },
   { label: 'Grafo', to: '/graph', icon: 'graph' },
   { label: 'Revisão', to: '/review', icon: 'review' },
-  { label: 'Stats', to: '/stats', icon: 'stats' },
+  { label: 'Dúvidas', to: '/chat', icon: 'chat' },
 ]
 
 const iconMap: Record<string, any> = {
@@ -44,7 +44,7 @@ const iconMap: Record<string, any> = {
   decks: Layers,
   graph: Network,
   review: BookOpen,
-  stats: BarChart3,
+  chat: MessageCircle,
 }
 
 function getIcon(name: string) {

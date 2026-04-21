@@ -229,3 +229,50 @@ export interface FeatureUsageData {
   period_end: string
   features: Record<string, FeatureData>
 }
+
+// Documents (PDF)
+export interface Document {
+  id: string
+  original_name: string
+  file_size: number
+  pages_count: number | null
+  status: 'pending' | 'processing' | 'completed' | 'failed'
+  topic_id: string | null
+  chunks_count?: number
+  created_at: string
+}
+
+// AI Cards
+export interface AiGeneratedCard {
+  front: string
+  back: string
+  source_reference?: string
+}
+
+export interface AiGenerateResult {
+  cards: AiGeneratedCard[]
+  source: 'free' | 'notes' | 'pdf'
+}
+
+// Chat
+export interface Conversation {
+  id: string
+  title: string
+  messages_count: number
+  updated_at: string
+}
+
+export interface ChatMessage {
+  id: string
+  role: 'user' | 'assistant'
+  content: string
+  created_at: string
+}
+
+export interface ChatResponse {
+  conversation_id: string
+  message: {
+    role: 'assistant'
+    content: string
+  }
+}

@@ -24,6 +24,9 @@
           <button class="btn-secondary" @click="showAdd = true">
             <Plus :size="18" /> Adicionar card
           </button>
+          <button class="btn-secondary" @click="showAiGenerate = true">
+            <Sparkles :size="18" /> Gerar com IA
+          </button>
           <button class="btn-secondary" @click="showEditDeck = true" aria-label="Editar deck">
             <Pencil :size="18" />
           </button>
@@ -47,6 +50,7 @@
 
       <!-- Modals -->
       <FlashcardCardFormModal v-model="showAdd" :deck-id="deckId" @created="refreshCards" />
+      <AgentAiGenerateModal v-model="showAiGenerate" :deck-id="deckId" @created="refreshCards" />
       <FlashcardCardFormModal v-if="editCard" v-model="showEditCard" :deck-id="deckId" :card="editCard" @updated="refreshCards" />
       <DeckEditModal v-model="showEditDeck" :deck="deckStore.current" @updated="deckStore.fetchDeck(deckId)" />
       <UiConfirmModal
@@ -128,7 +132,7 @@
 </template>
 
 <script setup lang="ts">
-import { Play, Plus, Pencil, Trash2 } from 'lucide-vue-next'
+import { Play, Plus, Pencil, Trash2, Sparkles } from 'lucide-vue-next'
 
 const route = useRoute()
 const router = useRouter()
@@ -193,6 +197,7 @@ function clozePreview(card: import('~/types').Flashcard): string {
 }
 
 const showAdd = ref(false)
+const showAiGenerate = ref(false)
 const showEditDeck = ref(false)
 const showDeleteDeck = ref(false)
 const showEditCard = ref(false)

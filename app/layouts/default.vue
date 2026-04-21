@@ -23,6 +23,12 @@
       :type="toast.state.type"
       :visible="toast.state.visible"
     />
+
+    <UiUpgradeModal
+      v-model="showUpgrade"
+      :feature="upgradeFeature"
+      :plan-required="upgradePlan"
+    />
   </div>
 </template>
 
@@ -31,4 +37,16 @@ import { Sun, Moon } from 'lucide-vue-next'
 
 const toast = useToast()
 const { colorMode, toggle } = useColorMode()
+
+const showUpgrade = ref(false)
+const upgradeFeature = ref('')
+const upgradePlan = ref('pro')
+
+onMounted(() => {
+  window.addEventListener('feature-limit-reached', ((e: CustomEvent) => {
+    upgradeFeature.value = e.detail?.feature || ''
+    upgradePlan.value = e.detail?.planRequired || 'pro'
+    showUpgrade.value = true
+  }) as EventListener)
+})
 </script>

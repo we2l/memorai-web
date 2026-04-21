@@ -33,6 +33,12 @@ export default defineNuxtPlugin(() => {
       if (response.status === 401 && import.meta.client) {
         await navigateTo('/login')
       }
+      if (response.status === 402 && import.meta.client) {
+        const data = response._data
+        window.dispatchEvent(new CustomEvent('feature-limit-reached', {
+          detail: { feature: data?.feature, planRequired: data?.plan_required },
+        }))
+      }
     },
   })
 

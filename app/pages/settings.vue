@@ -23,6 +23,35 @@
       </div>
     </section>
 
+    <!-- Uso de IA -->
+    <section class="card p-5 mb-6">
+      <h2 class="text-headline mb-4">Uso de IA este mês</h2>
+      <div v-if="featureUsage.loading.value" class="space-y-3">
+        <div v-for="i in 4" :key="i" class="skeleton h-10 w-full" />
+      </div>
+      <div v-else-if="featureUsage.usage.value" class="space-y-4">
+        <p class="text-micro text-base-muted">
+          Período: {{ formatDate(featureUsage.usage.value.period_start) }} — {{ formatDate(featureUsage.usage.value.period_end) }}
+        </p>
+        <div v-for="(data, key) in featureUsage.usage.value.features" :key="key" class="flex items-center gap-4">
+          <p class="text-small text-base-primary w-28 shrink-0">{{ settingsFeatureLabels[key as string] }}</p>
+          <div class="flex-1">
+            <div v-if="data.limit !== null" class="h-2 rounded-full bg-surface-tertiary overflow-hidden">
+              <div
+                class="h-2 rounded-full transition-all"
+                :class="data.remaining === 0 ? 'bg-danger' : 'bg-accent-primary'"
+                :style="{ width: Math.min(100, (data.used / Math.max(1, data.limit)) * 100) + '%' }"
+              />
+            </div>
+            <div v-else class="text-micro text-success">∞ ilimitado</div>
+          </div>
+          <p class="text-micro text-base-muted w-20 text-right shrink-0">
+            {{ data.limit !== null ? `${data.used}/${data.limit}` : `${data.used} usados` }}
+          </p>
+        </div>
+      </div>
+    </section>
+
     <!-- Aparência -->
     <section class="card p-5 mb-6">
       <h2 class="text-headline mb-4">Aparência</h2>
@@ -120,7 +149,19 @@ import { Moon, Sun, LogOut } from 'lucide-vue-next'
 import type { UserSettings } from '~/types'
 
 const auth = useAuthStore()
+const featureUsage = useFeatureUsage()
 const { colorMode, set } = useColorMode()
+
+const settingsFeatureLabels: Record<string, string> = {
+  cards_ai: 'Cards IA',
+  pdf_upload: 'Uploads PDF',
+  agent_chat: 'Tirar dúvidas',
+  podcast: 'Podcasts',
+}
+
+function formatDate(d: string) {
+  return new Date(d + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
+}
 const toast = useToast()
 const { $api } = useNuxtApp()
 
@@ -182,6 +223,7 @@ async function handleLogout() {
 
 onMounted(async () => {
   await loadSettings()
+  featureUsage.fetchUsage()
   if (!auth.user && auth.token) {
     try {
       const { $api } = useNuxtApp()

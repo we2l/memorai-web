@@ -91,6 +91,24 @@
       </div>
     </div>
 
+    <!-- AI Usage -->
+    <div v-if="featureUsage.usage.value && hasLimitedFeatures" class="mt-8">
+      <p class="text-label mb-3">Uso de IA este mês</p>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div v-for="(data, key) in limitedFeatures" :key="key" class="card py-3 px-4">
+          <p class="text-micro text-base-muted mb-1">{{ featureLabels[key] }}</p>
+          <p class="text-title text-base-primary">{{ data.used }}/{{ data.limit }}</p>
+          <div class="h-1.5 rounded-full bg-surface-tertiary mt-2 overflow-hidden">
+            <div
+              class="h-1.5 rounded-full transition-all"
+              :class="data.remaining === 0 ? 'bg-danger' : data.used / data.limit > 0.8 ? 'bg-warning' : 'bg-accent-primary'"
+              :style="{ width: Math.min(100, (data.used / data.limit) * 100) + '%' }"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Quick actions -->
     <p class="text-label mt-12 mb-4">Ações rápidas</p>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -184,6 +202,27 @@ import type { Stats, TopicProgress, BacklogStats } from '~/types'
 
 const auth = useAuthStore()
 const deckStore = useDeckStore()
+const featureUsage = useFeatureUsage()
+
+const featureLabels: Record<string, string> = {
+  cards_ai: 'Cards IA',
+  pdf_upload: 'Uploads PDF',
+  agent_chat: 'Tirar dúvidas',
+  podcast: 'Podcasts',
+}
+
+const limitedFeatures = computed(() => {
+  if (!featureUsage.usage.value) return {}
+  const result: Record<string, any> = {}
+  for (const [key, data] of Object.entries(featureUsage.usage.value.features)) {
+    if (data.limit !== null && data.limit > 0) {
+      result[key] = data
+    }
+  }
+  return result
+})
+
+const hasLimitedFeatures = computed(() => Object.keys(limitedFeatures.value).length > 0)
 
 const stats = ref<Stats | null>(null)
 const topicProgress = ref<TopicProgress[]>([])
@@ -222,6 +261,7 @@ async function loadData() {
   backlog.value = backlogRes.data
   retentionSuggestion.value = retRes.data
   survivalActive.value = settingsRes.data.survival_mode ?? false
+  featureUsage.fetchUsage()
 }
 
 async function toggleSurvivalMode(enabled: boolean) {

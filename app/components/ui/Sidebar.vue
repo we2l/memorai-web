@@ -48,6 +48,8 @@ import {
   Settings,
   LogOut,
   Upload,
+  FileText,
+  MessageCircle,
 } from 'lucide-vue-next'
 
 const route = useRoute()
@@ -69,6 +71,8 @@ const items = [
   { label: 'Grafo', to: '/graph', icon: 'graph' },
   { label: 'Revisão', to: '/review', icon: 'review' },
   { label: 'Estatísticas', to: '/stats', icon: 'stats' },
+  { label: 'Meus PDFs', to: '/documents', icon: 'documents' },
+  { label: 'Tirar dúvidas', to: '/chat', icon: 'chat' },
   { label: 'Importar', to: '/import', icon: 'import' },
 ]
 
@@ -79,6 +83,8 @@ const iconMap: Record<string, any> = {
   graph: Network,
   review: BookOpen,
   stats: BarChart3,
+  documents: FileText,
+  chat: MessageCircle,
   import: Upload,
 }
 

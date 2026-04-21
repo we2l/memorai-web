@@ -106,6 +106,9 @@
       <button class="btn-accent justify-center" disabled title="Em breve">
         <Upload :size="18" /> Subir PDF
       </button>
+      <NuxtLink to="/import" class="btn-accent justify-center">
+        <Upload :size="18" /> Importar Anki
+      </NuxtLink>
     </div>
 
     <!-- Decks -->

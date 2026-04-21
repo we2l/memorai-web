@@ -47,6 +47,7 @@ import {
   Network,
   Settings,
   LogOut,
+  Upload,
 } from 'lucide-vue-next'
 
 const route = useRoute()
@@ -68,6 +69,7 @@ const items = [
   { label: 'Grafo', to: '/graph', icon: 'graph' },
   { label: 'Revisão', to: '/review', icon: 'review' },
   { label: 'Estatísticas', to: '/stats', icon: 'stats' },
+  { label: 'Importar', to: '/import', icon: 'import' },
 ]
 
 const iconMap: Record<string, any> = {
@@ -77,6 +79,7 @@ const iconMap: Record<string, any> = {
   graph: Network,
   review: BookOpen,
   stats: BarChart3,
+  import: Upload,
 }
 
 function getIcon(name: string) {

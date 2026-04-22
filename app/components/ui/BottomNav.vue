@@ -21,30 +21,26 @@
 
 <script setup lang="ts">
 import {
-  LayoutDashboard,
-  Layers,
-  FolderTree,
-  Network,
+  Home,
   BookOpen,
-  MessageCircle,
+  RotateCcw,
+  BarChart3,
 } from 'lucide-vue-next'
 
 const route = useRoute()
 
 const items = [
-  { label: 'Dashboard', to: '/dashboard', icon: 'dashboard' },
-  { label: 'Decks', to: '/decks', icon: 'decks' },
-  { label: 'Grafo', to: '/graph', icon: 'graph' },
+  { label: 'Hoje', to: '/today', icon: 'home' },
+  { label: 'Tópicos', to: '/topics', icon: 'topics' },
   { label: 'Revisão', to: '/review', icon: 'review' },
-  { label: 'Dúvidas', to: '/chat', icon: 'chat' },
+  { label: 'Progresso', to: '/progress', icon: 'progress' },
 ]
 
 const iconMap: Record<string, any> = {
-  dashboard: LayoutDashboard,
-  decks: Layers,
-  graph: Network,
-  review: BookOpen,
-  chat: MessageCircle,
+  home: Home,
+  topics: BookOpen,
+  review: RotateCcw,
+  progress: BarChart3,
 }
 
 function getIcon(name: string) {

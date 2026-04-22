@@ -4,9 +4,14 @@
     <aside class="w-72 border-r border-base flex flex-col shrink-0">
       <div class="flex items-center justify-between p-4 border-b border-base">
         <h2 class="text-label">Tópicos</h2>
-        <button class="btn-secondary !p-1.5" title="Novo tópico" @click="openCreate(null)">
-          <Plus :size="16" />
-        </button>
+        <div class="flex items-center gap-1">
+          <button class="btn-secondary !p-1.5" title="Ver mapa" @click="showGraph = true">
+            <Network :size="16" />
+          </button>
+          <button class="btn-secondary !p-1.5" title="Novo tópico" @click="openCreate(null)">
+            <Plus :size="16" />
+          </button>
+        </div>
       </div>
       <div class="flex-1 overflow-y-auto p-2">
         <div v-if="topicStore.loading" class="space-y-2 p-2">
@@ -25,91 +30,150 @@
       </div>
     </aside>
 
-    <!-- Main: Notes -->
-    <main class="flex-1 flex flex-col overflow-hidden">
+    <!-- Main: Topic Hub -->
+    <main class="flex-1 flex flex-col overflow-y-auto">
       <template v-if="selectedTopicId">
         <!-- Topic header -->
-        <div class="flex items-center justify-between p-4 border-b border-base">
-          <h2 class="text-headline truncate">{{ selectedTopicName }}</h2>
-          <div class="flex items-center gap-2">
-            <NuxtLink :to="`/review?topic_id=${selectedTopicId}`" class="btn-primary text-micro">
-              <BookOpen :size="14" /> Revisar
+        <div ref="headerRef" class="p-4 border-b border-base">
+          <div class="flex items-center justify-between mb-2">
+            <h2 class="text-headline truncate">{{ selectedTopicName }}</h2>
+            <NuxtLink :to="`/review?topic_id=${selectedTopicId}`" class="btn-primary text-micro shrink-0">
+              <RotateCcw :size="14" /> Revisar tópico
             </NuxtLink>
-            <button v-if="activeTab === 'notes'" class="btn-primary text-micro" @click="createNote">
+          </div>
+          <div v-if="topicProgress > 0" class="flex items-center gap-2">
+            <div class="flex-1 h-2 rounded-full bg-surface-tertiary">
+              <div
+                class="h-2 rounded-full transition-all"
+                :class="topicProgress < 0.3 ? 'bg-danger' : topicProgress < 0.7 ? 'bg-warning' : 'bg-success'"
+                :style="{ width: Math.round(topicProgress * 100) + '%' }"
+              />
+            </div>
+            <span class="text-micro text-base-muted">{{ Math.round(topicProgress * 100) }}%</span>
+          </div>
+        </div>
+
+        <!-- Sticky header (appears on scroll) -->
+        <div
+          v-if="showStickyHeader"
+          class="sticky top-0 z-10 px-4 py-2.5 border-b border-base bg-overlay flex items-center justify-between"
+        >
+          <div class="flex items-center gap-3 min-w-0">
+            <span class="text-small font-medium text-base-primary truncate">{{ selectedTopicName }}</span>
+            <span v-if="topicProgress > 0" class="text-micro text-base-muted">{{ Math.round(topicProgress * 100) }}%</span>
+          </div>
+          <NuxtLink :to="`/review?topic_id=${selectedTopicId}`" class="btn-primary !py-1 !px-2.5 !min-h-0 text-micro shrink-0">
+            Revisar
+          </NuxtLink>
+        </div>
+
+        <!-- Sections by use -->
+
+        <!-- 🧠 APRENDER -->
+        <UiCollapsibleSection id="learn" title="🧠 APRENDER" :count="noteStore.notes.length" :default-open="true">
+          <template #actions>
+            <button class="btn-secondary !py-1 !px-2.5 !min-h-0 text-micro" @click="createNote">
               <FilePlus :size="14" /> Nova nota
             </button>
+          </template>
+
+          <!-- Notes list + editor -->
+          <div v-if="noteStore.notes.length" class="space-y-1 mb-3">
+            <button
+              v-for="note in noteStore.notes"
+              :key="note.id"
+              class="w-full text-left px-3 py-2 rounded-lg text-small transition-colors"
+              :class="noteStore.current?.id === note.id ? 'bg-accent-primary-subtle text-accent-primary' : 'text-base-secondary hover:bg-surface-tertiary'"
+              @click="selectNote(note)"
+            >
+              <p class="truncate font-medium">{{ note.title }}</p>
+              <p class="text-micro text-base-muted">{{ formatDate(note.updated_at) }}</p>
+            </button>
           </div>
-        </div>
-
-        <!-- Tabs -->
-        <div class="flex border-b border-base px-4">
-          <button
-            v-for="tab in tabs"
-            :key="tab.id"
-            class="px-4 py-2.5 text-small transition-colors border-b-2 -mb-px"
-            :class="activeTab === tab.id ? 'border-accent-primary text-accent-primary font-medium' : 'border-transparent text-base-muted hover:text-base-secondary'"
-            @click="activeTab = tab.id"
-          >
-            {{ tab.label }}
-          </button>
-        </div>
-
-        <!-- Tab: Notes -->
-        <div v-if="activeTab === 'notes'" class="flex flex-1 overflow-hidden">
-          <!-- Notes list -->
-          <div class="w-64 border-r border-base overflow-y-auto shrink-0">
-            <div v-if="noteStore.loading" class="space-y-2 p-3">
-              <div v-for="i in 3" :key="i" class="skeleton h-12 rounded" />
-            </div>
-            <div v-else-if="noteStore.notes.length" class="p-2 space-y-1">
-              <button
-                v-for="note in noteStore.notes"
-                :key="note.id"
-                class="w-full text-left px-3 py-2 rounded-lg text-small transition-colors group"
-                :class="noteStore.current?.id === note.id ? 'bg-accent-primary-subtle text-accent-primary' : 'text-base-secondary hover:bg-surface-tertiary'"
-                @click="selectNote(note)"
-              >
-                <p class="truncate font-medium">{{ note.title }}</p>
-                <p class="text-micro text-base-muted">{{ formatDate(note.updated_at) }}</p>
-              </button>
-            </div>
-            <div v-else class="p-4 text-small text-base-muted text-center">
-              Nenhuma nota.
-            </div>
+          <div v-else class="text-small text-base-muted">
+            Adicione suas anotações ou suba um PDF.
           </div>
 
-          <!-- Editor -->
-          <div v-if="noteStore.current" class="flex-1 flex flex-col overflow-hidden p-4">
+          <!-- Editor inline -->
+          <div v-if="noteStore.current" class="mt-3 border border-base rounded-lg p-3">
             <input
               v-model="noteTitle"
-              class="text-title bg-transparent border-b border-dashed border-base outline-none mb-4 text-base-primary pb-1 hover:border-accent-primary focus:border-accent-primary transition-colors"
+              class="text-title bg-transparent border-b border-dashed border-base outline-none mb-3 text-base-primary pb-1 w-full hover:border-accent-primary focus:border-accent-primary transition-colors"
               placeholder="Título da nota"
               @blur="saveTitle"
             />
-            <div class="flex-1 overflow-y-auto">
+            <div class="max-h-[400px] overflow-y-auto">
               <TopicNoteEditor v-model="noteContent" @update:model-value="debouncedSave" />
             </div>
             <div class="flex items-center justify-between mt-3 pt-3 border-t border-base">
               <div class="flex items-center gap-2">
-                <button class="btn-secondary" @click="openNoteToCard">
-                  <Zap :size="16" /> Criar card
+                <button class="btn-secondary !py-1 !px-2.5 !min-h-0 text-micro" @click="openNoteToCard">
+                  <Zap :size="14" /> Criar card
                 </button>
-                <span v-if="noteStore.saving" class="text-micro text-base-muted">Salvando...</span>
-                <span v-else class="text-micro text-base-muted">Salvo</span>
+                <span class="text-micro text-base-muted">{{ noteStore.saving ? 'Salvando...' : 'Salvo' }}</span>
               </div>
-              <button class="text-small text-danger hover:underline font-medium" @click="deleteNote">Excluir nota</button>
+              <button class="text-micro text-danger hover:underline" @click="deleteNote">Excluir</button>
             </div>
           </div>
-          <div v-else class="flex-1 flex items-center justify-center text-base-muted text-small">
-            Selecione ou crie uma nota.
-          </div>
-        </div>
 
-        <!-- Tab: Errors -->
-        <div v-else-if="activeTab === 'errors'" class="flex-1 overflow-y-auto p-4">
+          <!-- Material (PDFs) -->
+          <div class="mt-4 pt-3 border-t border-base">
+            <p class="text-micro text-base-muted mb-2">📄 Material</p>
+            <TopicDocumentsInline
+              v-if="selectedTopicId"
+              ref="docsInlineRef"
+              :topic-id="selectedTopicId"
+              @generate-from-pdf="(docId: string) => handleAiGenerate('pdf', 5)"
+            />
+          </div>
+        </UiCollapsibleSection>
+        <UiCollapsibleSection id="memorize" title="🔁 MEMORIZAR" :count="topicCards.length" :default-open="true">
+          <template #actions>
+            <AgentAiGenerateInline
+              :topic-id="selectedTopicId!"
+              :has-notes="noteStore.notes.length > 0"
+              :has-documents="docsInlineRef?.documents?.length > 0"
+              @generate="handleAiGenerate"
+            />
+            <button class="btn-secondary !py-1 !px-2.5 !min-h-0 text-micro" @click="openNoteToCard">
+              <Plus :size="14" /> Criar
+            </button>
+          </template>
+
+          <div v-if="topicCards.length" class="space-y-1">
+            <div v-for="card in topicCards" :key="card.id" class="flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-surface-tertiary transition-colors">
+              <span
+                class="w-2 h-2 rounded-full shrink-0"
+                :class="card.state === 'review' ? 'bg-success' : card.state === 'new' ? 'bg-[#6B7280]' : 'bg-warning'"
+              />
+              <div class="text-small text-base-primary truncate flex-1 card-front-preview" v-html="card.front" />
+              <span class="text-micro text-base-muted shrink-0">{{ cardStateLabel(card.state) }}</span>
+            </div>
+          </div>
+          <div v-else class="text-small text-base-muted">
+            Gere cards com IA a partir do seu material.
+          </div>
+        </UiCollapsibleSection>
+
+        <!-- ❌ ERROS -->
+        <UiCollapsibleSection
+          id="errors"
+          title="❌ ERROS"
+          :count="errorPatterns?.total_errors ?? 0"
+          :health-dot="(errorPatterns?.total_errors ?? 0) > 5"
+        >
+          <template #actions>
+            <NuxtLink
+              v-if="topicErrors.length"
+              :to="`/review?topic_id=${selectedTopicId}&errors_only=1`"
+              class="btn-secondary !py-1 !px-2.5 !min-h-0 text-micro"
+            >
+              Revisar erros
+            </NuxtLink>
+          </template>
+
           <!-- Error patterns -->
-          <div v-if="errorPatterns && errorPatterns.total_errors > 0" class="mb-6">
-            <p class="text-label mb-3">Padrões de erro (últimos 30 dias)</p>
+          <div v-if="errorPatterns && errorPatterns.total_errors > 0" class="mb-4">
             <div class="space-y-2">
               <div v-for="(count, reason) in errorPatterns.patterns" :key="reason" class="flex items-center gap-3">
                 <span class="text-base shrink-0">{{ reasonIcon(reason as string) }}</span>
@@ -120,8 +184,8 @@
                 <span class="text-micro text-base-muted w-8 text-right">{{ count }}x</span>
               </div>
             </div>
-            <div v-if="errorPatterns.top_cards.length" class="mt-4">
-              <p class="text-label mb-2">Cards mais errados</p>
+            <div v-if="errorPatterns.top_cards.length" class="mt-3">
+              <p class="text-micro text-base-muted mb-1">Cards mais errados</p>
               <div class="space-y-1">
                 <div v-for="card in errorPatterns.top_cards" :key="card.id" class="flex items-center gap-2 text-small">
                   <span class="text-danger font-medium">{{ card.lapses }}x</span>
@@ -131,13 +195,7 @@
             </div>
           </div>
 
-          <!-- Error log list -->
-          <div v-if="topicErrors.length" class="flex items-center justify-between mb-2">
-            <p class="text-label">Histórico de erros</p>
-            <NuxtLink :to="`/review?topic_id=${selectedTopicId}&errors_only=1`" class="btn-primary !py-1 !px-3 !min-h-0 !text-micro">
-              Revisar erros deste tópico
-            </NuxtLink>
-          </div>
+          <!-- Error log -->
           <div v-if="topicErrors.length" class="space-y-2">
             <div v-for="err in topicErrors" :key="err.id" class="card flex items-start gap-3">
               <span class="text-base shrink-0">{{ reasonIcon(err.reason) }}</span>
@@ -148,31 +206,18 @@
               </div>
             </div>
           </div>
-          <div v-if="!topicErrors.length && (!errorPatterns || errorPatterns.total_errors === 0)" class="flex items-center justify-center h-full text-base-muted text-small">
+          <div v-if="!topicErrors.length && (!errorPatterns || errorPatterns.total_errors === 0)" class="text-small text-base-muted">
             Nenhum erro registrado neste tópico.
           </div>
-        </div>
+        </UiCollapsibleSection>
 
-        <!-- Tab: Cards -->
-        <div v-else-if="activeTab === 'cards'" class="flex-1 overflow-y-auto p-4">
-          <div v-if="topicCards.length" class="space-y-2">
-            <div v-for="card in topicCards" :key="card.id" class="card flex items-center gap-3">
-              <span
-                class="w-2.5 h-2.5 rounded-full shrink-0"
-                :class="card.state === 'review' ? 'bg-success' : card.state === 'new' ? 'bg-[#6B7280]' : 'bg-warning'"
-              />
-              <div class="text-small text-base-primary truncate flex-1 card-front-preview" v-html="card.front" />
-              <span class="text-micro text-base-muted shrink-0">{{ cardStateLabel(card.state) }}</span>
-            </div>
-          </div>
-          <div v-else class="flex items-center justify-center h-full text-base-muted text-small">
-            Nenhum card vinculado a este tópico.
-          </div>
-        </div>
-
-        <!-- Tab: Checklist -->
-        <div v-else-if="activeTab === 'checklist'" class="flex-1 overflow-y-auto p-4">
-          <div class="space-y-2 mb-4">
+        <!-- ✅ CHECKLIST -->
+        <UiCollapsibleSection
+          id="checklist"
+          title="✅ CHECKLIST"
+          :count="checklistItems.length ? `${checklistItems.filter(i => i.completed).length}/${checklistItems.length}` : undefined"
+        >
+          <div class="space-y-2 mb-3">
             <div
               v-for="item in checklistItems"
               :key="item.id"
@@ -205,19 +250,16 @@
             <input
               v-model="newChecklistText"
               class="input-base text-small flex-1"
-              placeholder="Adicionar item... ex: Entendi conceito X"
+              placeholder="Adicionar item..."
             />
-            <button type="submit" class="btn-primary text-micro" :disabled="!newChecklistText.trim()">Adicionar</button>
+            <button type="submit" class="btn-primary !py-1 !px-2.5 !min-h-0 text-micro" :disabled="!newChecklistText.trim()">Adicionar</button>
           </form>
-          <div v-if="checklistItems.length" class="mt-4 text-micro text-base-muted">
-            {{ checklistItems.filter(i => i.completed).length }}/{{ checklistItems.length }} concluídos
-          </div>
-        </div>
+        </UiCollapsibleSection>
 
       </template>
 
       <div v-else class="flex-1 flex items-center justify-center text-base-muted text-small">
-        Selecione um tópico para ver suas notas.
+        Selecione um tópico para começar.
       </div>
     </main>
 
@@ -259,11 +301,13 @@
       :selected-text="selectedText"
       @created="onCardCreated"
     />
+
+    <TopicGraphOverlay v-model="showGraph" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { Plus, FilePlus, Zap, BookOpen } from 'lucide-vue-next'
+import { Plus, FilePlus, Zap, RotateCcw, Network } from 'lucide-vue-next'
 import type { Topic, Note } from '~/types'
 
 const topicStore = useTopicStore()
@@ -272,7 +316,6 @@ const toast = useToast()
 const { $api } = useNuxtApp()
 
 const selectedTopicId = ref<string | null>(null)
-const activeTab = ref<'notes' | 'errors' | 'cards' | 'checklist'>('notes')
 const noteTitle = ref('')
 const noteContent = ref<Record<string, any> | null>(null)
 const selectedText = ref('')
@@ -281,18 +324,14 @@ const topicCards = ref<any[]>([])
 const checklistItems = ref<any[]>([])
 const errorPatterns = ref<any>(null)
 const newChecklistText = ref('')
-const tabs = [
-  { id: 'notes' as const, label: 'Notas' },
-  { id: 'errors' as const, label: 'Erros' },
-  { id: 'cards' as const, label: 'Cards' },
-  { id: 'checklist' as const, label: 'Checklist' },
-]
 
 // Topic modals
 const showCreateTopic = ref(false)
 const showEditTopic = ref(false)
 const showDeleteTopic = ref(false)
 const showNoteToCard = ref(false)
+const showGraph = ref(false)
+const docsInlineRef = ref<any>(null)
 const newTopicName = ref('')
 const editTopicName = ref('')
 const createParentId = ref<string | null>(null)
@@ -310,6 +349,13 @@ const selectedTopicName = computed(() => {
   }
   return selectedTopicId.value ? find(topicStore.tree, selectedTopicId.value) ?? '' : ''
 })
+
+const topicProgress = computed(() => {
+  return selectedTopicId.value ? (progressMap.value[selectedTopicId.value] ?? 0) : 0
+})
+
+const headerRef = ref<HTMLElement>()
+const showStickyHeader = ref(false)
 
 let saveTimeout: ReturnType<typeof setTimeout> | null = null
 let pendingSaveNoteId: string | null = null
@@ -348,7 +394,6 @@ function saveTitle() {
 function selectTopic(id: string) {
   flushPendingSave()
   selectedTopicId.value = id
-  activeTab.value = 'notes'
   noteStore.current = null
   noteStore.fetchForTopic(id)
   loadTopicData(id)
@@ -480,6 +525,27 @@ function openNoteToCard() {
   showNoteToCard.value = true
 }
 
+async function handleAiGenerate(source: string, quantity: number) {
+  if (!selectedTopicId.value) return
+  toast.show(`Gerando ${quantity} cards...`, 'success')
+  // Delegates to existing AI generation endpoint — cards appear after reload
+  try {
+    await $api('/flashcards/generate', {
+      method: 'POST',
+      body: {
+        topic_id: selectedTopicId.value,
+        source,
+        quantity,
+        note_id: source === 'notes' ? noteStore.current?.id : undefined,
+      },
+    })
+    toast.show('Cards gerados! Atualizando...', 'success')
+    await loadTopicData(selectedTopicId.value)
+  } catch {
+    toast.show('Erro ao gerar cards.', 'error')
+  }
+}
+
 async function onCardCreated() {
   await topicStore.fetchTree()
 }
@@ -499,6 +565,9 @@ onMounted(async () => {
     }
   } catch {}
   const route = useRoute()
+  if (route.query.view === 'graph') {
+    showGraph.value = true
+  }
   if (route.query.topic) {
     selectTopic(route.query.topic as string)
     if (route.query.note) {
@@ -513,5 +582,13 @@ onMounted(async () => {
       }, { immediate: true })
     }
   }
+
+  // Sticky header observer
+  const observer = new IntersectionObserver(
+    ([entry]) => { showStickyHeader.value = !entry.isIntersecting },
+    { threshold: 0 }
+  )
+  watch(headerRef, (el) => { if (el) observer.observe(el) }, { immediate: true })
+  onUnmounted(() => observer.disconnect())
 })
 </script>

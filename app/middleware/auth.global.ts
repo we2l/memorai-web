@@ -5,4 +5,12 @@ export default defineNuxtRouteMiddleware((to) => {
   if (!token && !publicRoutes.includes(to.path)) {
     return navigateTo('/login')
   }
+
+  // Redirect to onboarding if not completed
+  if (token && to.path !== '/onboarding') {
+    const auth = useAuthStore()
+    if (auth.user && auth.user.onboarding_completed === false) {
+      return navigateTo('/onboarding')
+    }
+  }
 })

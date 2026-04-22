@@ -1,5 +1,14 @@
 import type { Conversation, ChatMessage, ChatResponse } from '~/types'
 
+interface ChatContext {
+  topicId?: string
+  topicName?: string
+  cardId?: string
+  cardFront?: string
+  documentId?: string
+  source?: 'review_error' | 'pdf_summary' | 'note_help' | 'manual'
+}
+
 export const useChatStore = defineStore('chat', {
   state: () => ({
     conversations: [] as Conversation[],
@@ -7,9 +16,24 @@ export const useChatStore = defineStore('chat', {
     messages: [] as ChatMessage[],
     loading: false,
     sending: false,
+    isOpen: false,
+    currentContext: {} as ChatContext,
   }),
 
   actions: {
+    open(context?: ChatContext) {
+      this.currentContext = context ?? {}
+      this.isOpen = true
+    },
+
+    close() {
+      this.isOpen = false
+    },
+
+    toggle() {
+      this.isOpen ? this.close() : this.open()
+    },
+
     async fetchConversations() {
       const { $api } = useNuxtApp()
       try {
@@ -34,7 +58,6 @@ export const useChatStore = defineStore('chat', {
       const { $api } = useNuxtApp()
       this.sending = true
 
-      // Optimistic: add user message
       this.messages.push({
         id: `temp-${Date.now()}`,
         role: 'user',
@@ -43,12 +66,17 @@ export const useChatStore = defineStore('chat', {
       })
 
       try {
+        const body: Record<string, any> = {
+          conversation_id: this.currentId,
+          message,
+        }
+        if (this.currentContext.topicId) body.topic_id = this.currentContext.topicId
+        if (this.currentContext.cardId) body.card_id = this.currentContext.cardId
+        if (this.currentContext.documentId) body.document_id = this.currentContext.documentId
+
         const res = await $api<{ data: ChatResponse }>('/chat', {
           method: 'POST',
-          body: {
-            conversation_id: this.currentId,
-            message,
-          },
+          body,
         })
 
         this.currentId = res.data.conversation_id
@@ -62,7 +90,6 @@ export const useChatStore = defineStore('chat', {
 
         await this.fetchConversations()
       } catch (e: any) {
-        // Remove optimistic message on error
         this.messages.pop()
         throw e
       } finally {

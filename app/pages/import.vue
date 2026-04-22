@@ -138,7 +138,7 @@
           <p class="text-micro text-base-muted">Media</p>
         </div>
       </div>
-      <NuxtLink to="/decks" class="btn-primary">Ver decks</NuxtLink>
+      <NuxtLink to="/topics" class="btn-primary">Ver tópicos</NuxtLink>
     </div>
 
     <!-- Failed -->

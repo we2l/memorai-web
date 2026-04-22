@@ -96,7 +96,7 @@ async function handleRegister() {
       body: { ...form, device_name: 'web' },
     })
     auth.setAuth(res.data.user, res.data.token)
-    await navigateTo('/dashboard')
+    await navigateTo('/today')
   } catch (e: any) {
     const data = e.data
     if (data?.errors) {

@@ -1,3 +1,3 @@
 <script setup lang="ts">
-navigateTo('/dashboard')
+navigateTo('/today')
 </script>

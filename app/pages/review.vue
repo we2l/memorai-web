@@ -2,7 +2,7 @@
   <div class="review-bg h-[calc(100vh-56px)] flex flex-col overflow-y-auto">
     <!-- Top bar — minimal -->
     <div class="flex items-center justify-between px-4 py-3">
-      <NuxtLink to="/dashboard" class="text-small text-base-muted opacity-60 hover:opacity-100 hover:text-accent-primary transition-opacity">
+      <NuxtLink to="/today" class="text-small text-base-muted opacity-60 hover:opacity-100 hover:text-accent-primary transition-opacity">
         ← Voltar
       </NuxtLink>
       <div class="flex items-center gap-3 text-small text-base-muted">
@@ -54,7 +54,7 @@
       <p v-if="review.pendingLearning > 0" class="text-base-muted text-small mt-2">
         {{ review.pendingLearning }} card{{ review.pendingLearning !== 1 ? 's' : '' }} em aprendizado — {{ review.pendingLearning === 1 ? 'volta' : 'voltam' }} em breve.
       </p>
-      <NuxtLink to="/dashboard" class="btn-primary mt-8">Voltar ao dashboard</NuxtLink>
+      <NuxtLink to="/today" class="btn-primary mt-8">Voltar</NuxtLink>
     </div>
 
     <!-- Waiting for learning cards -->
@@ -64,7 +64,7 @@
       <p class="text-base-muted text-small mt-2">
         {{ review.pendingLearning }} card{{ review.pendingLearning !== 1 ? 's' : '' }} em aprendizado — {{ review.pendingLearning === 1 ? 'volta' : 'voltam' }} em breve.
       </p>
-      <NuxtLink to="/dashboard" class="btn-secondary mt-8">Voltar ao dashboard</NuxtLink>
+      <NuxtLink to="/today" class="btn-secondary mt-8">Voltar</NuxtLink>
     </div>
 
     <!-- Review -->
@@ -115,7 +115,7 @@
     <div v-else-if="!review.showErrorDiary" class="flex-1 flex flex-col items-center justify-center px-4 text-center">
       <p class="text-base-secondary text-title">Nenhum card para revisar agora.</p>
       <p class="text-base-muted text-small mt-1">Volte mais tarde ou crie novos cards.</p>
-      <NuxtLink to="/dashboard" class="btn-primary mt-6">Voltar ao dashboard</NuxtLink>
+      <NuxtLink to="/today" class="btn-primary mt-6">Voltar</NuxtLink>
     </div>
 
     <!-- Error diary -->
@@ -148,7 +148,7 @@
           Você revisou <span class="text-accent-primary font-medium">{{ review.reviewed }}</span> card{{ review.reviewed !== 1 ? 's' : '' }}.
         </p>
         <div class="flex gap-3 mt-6 justify-center">
-          <NuxtLink to="/dashboard" class="btn-secondary">Encerrar</NuxtLink>
+          <NuxtLink to="/today" class="btn-secondary">Encerrar</NuxtLink>
           <button class="btn-primary" @click="continueAfterTimer">Continuar</button>
         </div>
       </div>

@@ -239,6 +239,7 @@ export interface Document {
   status: 'pending' | 'processing' | 'completed' | 'failed'
   topic_id: string | null
   chunks_count?: number
+  total_chunks?: number | null
   created_at: string
 }
 

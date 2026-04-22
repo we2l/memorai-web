@@ -29,9 +29,12 @@
 
     <!-- Upload progress -->
     <div v-if="uploading" class="card p-4 mb-6">
-      <p class="text-small text-base-muted mb-2">Enviando {{ uploadName }}...</p>
+      <div class="flex justify-between mb-2">
+        <p class="text-small text-base-muted">Enviando {{ uploadName }}...</p>
+        <span class="text-small text-base-primary font-medium">{{ uploadProgress }}%</span>
+      </div>
       <div class="w-full bg-surface-tertiary rounded-full h-2">
-        <div class="bg-accent-primary h-2 rounded-full transition-all" style="width: 100%" />
+        <div class="bg-accent-primary h-2 rounded-full transition-all duration-300" :style="{ width: uploadProgress + '%' }" />
       </div>
     </div>
 
@@ -56,8 +59,16 @@
             :class="statusClass(doc.status)"
           >
             {{ statusLabel(doc.status) }}
+            <template v-if="doc.status === 'processing' && doc.total_chunks">
+              {{ Math.round(((doc.chunks_count || 0) / doc.total_chunks) * 100) }}%
+            </template>
           </span>
-          <button class="text-danger hover:text-danger/80" aria-label="Deletar documento" @click="deleteDoc(doc.id)">
+          <button
+            class="text-danger hover:text-danger/80 disabled:opacity-30 disabled:cursor-not-allowed"
+            aria-label="Deletar documento"
+            :disabled="doc.status === 'pending' || doc.status === 'processing'"
+            @click="confirmDeleteDoc(doc.id)"
+          >
             <Trash2 :size="18" />
           </button>
         </div>
@@ -69,6 +80,13 @@
       <p class="text-base-secondary">Nenhum PDF enviado ainda</p>
       <p class="text-small text-base-muted mt-1">Envie apostilas e provas para gerar cards com IA</p>
     </div>
+    <UiConfirmModal
+      v-model="showDeleteDoc"
+      title="Excluir documento?"
+      message="O documento e todos os trechos processados serão removidos. Essa ação não pode ser desfeita."
+      confirm-label="Excluir"
+      @confirm="handleDeleteDoc"
+    />
   </div>
 </template>
 
@@ -76,7 +94,7 @@
 import { Upload, Trash2, FileText } from 'lucide-vue-next'
 import type { Document } from '~/types'
 
-definePageMeta({ middleware: 'auth' })
+
 
 const { $api } = useNuxtApp()
 
@@ -86,6 +104,26 @@ const uploading = ref(false)
 const uploadName = ref('')
 const dragOver = ref(false)
 const fileInput = ref<HTMLInputElement>()
+const showDeleteDoc = ref(false)
+const deleteDocId = ref<string | null>(null)
+
+function confirmDeleteDoc(id: string) {
+  deleteDocId.value = id
+  showDeleteDoc.value = true
+}
+
+async function handleDeleteDoc() {
+  if (!deleteDocId.value) return
+  try {
+    await $api(`/documents/${deleteDocId.value}`, { method: 'DELETE' })
+    documents.value = documents.value.filter(d => d.id !== deleteDocId.value)
+    useToast().show('Documento removido')
+  } catch {
+    useToast().show('Erro ao remover documento', 'error')
+  }
+  deleteDocId.value = null
+  showDeleteDoc.value = false
+}
 
 async function fetchDocuments() {
   loading.value = true
@@ -97,29 +135,64 @@ async function fetchDocuments() {
   }
 }
 
+const uploadProgress = ref(0)
+
 async function uploadFile(file: File) {
   if (file.size > 50 * 1024 * 1024) {
-    useToast().error('Arquivo deve ter no máximo 50MB')
+    useToast().show('Arquivo deve ter no máximo 50MB', 'error')
     return
   }
   if (!file.name.endsWith('.pdf')) {
-    useToast().error('Apenas arquivos PDF são aceitos')
+    useToast().show('Apenas arquivos PDF são aceitos', 'error')
     return
   }
 
   uploading.value = true
   uploadName.value = file.name
+  uploadProgress.value = 0
+
   try {
-    const formData = new FormData()
-    formData.append('file', file)
-    await $api('/documents', { method: 'POST', body: formData })
-    useToast().success('PDF enviado! Processamento iniciado.')
+    const config = useRuntimeConfig()
+    const token = useCookie('auth_token').value
+
+    await new Promise<void>((resolve, reject) => {
+      const xhr = new XMLHttpRequest()
+      const formData = new FormData()
+      formData.append('file', file)
+
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) {
+          uploadProgress.value = Math.round((e.loaded / e.total) * 100)
+        }
+      }
+      xhr.onload = () => {
+        if (xhr.status < 400) {
+          resolve()
+        } else {
+          try {
+            const data = JSON.parse(xhr.responseText)
+            reject(new Error(data.message || 'Erro ao enviar PDF'))
+          } catch {
+            reject(new Error('Erro ao enviar PDF'))
+          }
+        }
+      }
+      xhr.onerror = () => reject(new Error('Erro de rede'))
+      xhr.open('POST', `${config.public.apiBase}/documents`)
+      xhr.setRequestHeader('Accept', 'application/json')
+      if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`)
+      xhr.send(formData)
+    })
+
+    useToast().show('PDF enviado! Processamento iniciado.')
     await fetchDocuments()
+    startPolling()
   } catch (e: any) {
-    useToast().error(e?.data?.message || 'Erro ao enviar PDF')
+    useToast().show(e?.message || 'Erro ao enviar PDF', 'error')
   } finally {
     uploading.value = false
     uploadName.value = ''
+    uploadProgress.value = 0
   }
 }
 
@@ -132,16 +205,6 @@ function onDrop(e: DragEvent) {
   dragOver.value = false
   const file = e.dataTransfer?.files?.[0]
   if (file) uploadFile(file)
-}
-
-async function deleteDoc(id: string) {
-  try {
-    await $api(`/documents/${id}`, { method: 'DELETE' })
-    documents.value = documents.value.filter(d => d.id !== id)
-    useToast().success('Documento removido')
-  } catch {
-    useToast().error('Erro ao remover documento')
-  }
 }
 
 function formatSize(bytes: number): string {
@@ -163,5 +226,36 @@ function statusClass(s: string) {
   }[s] || ''
 }
 
+const hasProcessing = computed(() =>
+  documents.value.some(d => d.status === 'pending' || d.status === 'processing'),
+)
+
+let pollTimer: ReturnType<typeof setInterval> | null = null
+
+function startPolling() {
+  stopPolling()
+  pollTimer = setInterval(async () => {
+    if (hasProcessing.value) {
+      const res = await $api<{ data: Document[] }>('/documents').catch(() => null)
+      if (res) documents.value = res.data
+    } else {
+      stopPolling()
+    }
+  }, 5000)
+}
+
+function stopPolling() {
+  if (pollTimer) {
+    clearInterval(pollTimer)
+    pollTimer = null
+  }
+}
+
+watch(hasProcessing, (val) => {
+  if (val) startPolling()
+  else stopPolling()
+})
+
 onMounted(fetchDocuments)
+onUnmounted(stopPolling)
 </script>

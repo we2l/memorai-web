@@ -1,5 +1,5 @@
 <template>
-  <div class="flex h-[calc(100vh-64px)] lg:h-screen">
+  <div class="flex fixed inset-0 lg:left-[220px] top-0 bottom-0 z-10 bg-surface">
     <!-- Sidebar conversas -->
     <aside class="w-64 bg-surface-secondary border-r border-base flex-shrink-0 flex flex-col hidden md:flex">
       <div class="p-4">
@@ -11,7 +11,7 @@
         <div
           v-for="conv in chat.conversations"
           :key="conv.id"
-          class="flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer mb-1 transition-colors"
+          class="group flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer mb-1 transition-colors"
           :class="chat.currentId === conv.id ? 'bg-accent-primary/10 text-accent-primary' : 'text-base-muted hover:bg-surface-tertiary'"
           @click="chat.loadConversation(conv.id)"
         >
@@ -19,7 +19,7 @@
           <button
             class="text-base-muted hover:text-danger ml-2 opacity-0 group-hover:opacity-100"
             aria-label="Deletar conversa"
-            @click.stop="chat.deleteConversation(conv.id)"
+            @click.stop="confirmDeleteConv(conv.id)"
           >
             <Trash2 :size="14" />
           </button>
@@ -58,7 +58,8 @@
               ? 'bg-accent-primary text-white rounded-br-md'
               : 'bg-surface-tertiary text-base-primary rounded-bl-md'"
           >
-            <div class="text-small whitespace-pre-wrap" v-html="msg.role === 'assistant' ? renderMarkdown(msg.content) : msg.content" />
+            <div class="text-small prose-chat" v-if="msg.role === 'assistant'" v-html="renderMarkdown(msg.content)" />
+            <div class="text-small whitespace-pre-wrap" v-else>{{ msg.content }}</div>
           </div>
         </div>
 
@@ -77,7 +78,7 @@
             id="chat-input"
             v-model="message"
             type="text"
-            class="input flex-1"
+            class="input-base flex-1"
             placeholder="Digite sua dúvida..."
             maxlength="2000"
             :disabled="chat.sending"
@@ -88,24 +89,43 @@
         </form>
       </div>
     </div>
+    <UiConfirmModal
+      v-model="showDeleteConv"
+      title="Excluir conversa?"
+      message="Essa ação não pode ser desfeita."
+      confirm-label="Excluir"
+      @confirm="handleDeleteConv"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { Plus, Trash2, Send, MessageCircle } from 'lucide-vue-next'
+import { marked } from 'marked'
 
-definePageMeta({ middleware: 'auth', layout: 'default' })
+
 
 const chat = useChatStore()
 const message = ref('')
 const messagesContainer = ref<HTMLElement>()
+const showDeleteConv = ref(false)
+const deleteConvId = ref<string | null>(null)
+
+function confirmDeleteConv(id: string) {
+  deleteConvId.value = id
+  showDeleteConv.value = true
+}
+
+async function handleDeleteConv() {
+  if (deleteConvId.value) {
+    await chat.deleteConversation(deleteConvId.value)
+    deleteConvId.value = null
+  }
+  showDeleteConv.value = false
+}
 
 function renderMarkdown(text: string): string {
-  return text
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    .replace(/`(.*?)`/g, '<code class="bg-surface-secondary px-1 rounded">$1</code>')
-    .replace(/\n/g, '<br>')
+  return marked.parse(text, { breaks: true }) as string
 }
 
 async function send() {
@@ -118,7 +138,7 @@ async function send() {
       messagesContainer.value?.scrollTo({ top: messagesContainer.value.scrollHeight, behavior: 'smooth' })
     })
   } catch (e: any) {
-    useToast().error(e?.data?.message || 'Erro ao enviar mensagem')
+    useToast().show(e?.data?.message || 'Erro ao enviar mensagem', 'error')
   }
 }
 
@@ -133,3 +153,47 @@ onMounted(() => {
   chat.fetchConversations()
 })
 </script>
+
+<style scoped>
+.prose-chat {
+  line-height: 1.6;
+}
+.prose-chat :deep(h1),
+.prose-chat :deep(h2),
+.prose-chat :deep(h3) {
+  font-weight: 600;
+  margin: 1rem 0 0.25rem;
+  line-height: 1.4;
+}
+.prose-chat :deep(h3) { font-size: 0.9rem; }
+.prose-chat :deep(ul),
+.prose-chat :deep(ol) {
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+.prose-chat :deep(li) {
+  margin: 0.2rem 0;
+}
+.prose-chat :deep(li > ul),
+.prose-chat :deep(li > ol) {
+  margin: 0.15rem 0;
+}
+.prose-chat :deep(strong) {
+  font-weight: 600;
+}
+.prose-chat :deep(code) {
+  background: var(--bg-secondary, rgba(0,0,0,0.05));
+  padding: 0.1rem 0.3rem;
+  border-radius: 0.25rem;
+  font-size: 0.85em;
+}
+.prose-chat :deep(p) {
+  margin: 0.5rem 0;
+}
+.prose-chat :deep(p:first-child) {
+  margin-top: 0;
+}
+.prose-chat :deep(p:last-child) {
+  margin-bottom: 0;
+}
+</style>

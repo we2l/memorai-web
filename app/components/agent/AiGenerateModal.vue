@@ -1,5 +1,5 @@
 <template>
-  <UiModal :model-value="modelValue" size="lg" aria-label="Gerar cards com IA" @update:model-value="$emit('update:modelValue', $event)">
+  <UiModal v-model="open" size="lg" aria-label="Gerar cards com IA">
     <div v-if="!generatedCards.length">
       <h2 class="text-heading mb-4">Gerar cards com IA</h2>
 
@@ -25,7 +25,7 @@
           id="ai-prompt"
           v-model="prompt"
           type="text"
-          class="input w-full"
+          class="input-base w-full"
           placeholder="Ex: Direito Constitucional — Art. 5º"
           maxlength="500"
         />
@@ -34,7 +34,7 @@
       <!-- Notes -->
       <div v-if="source === 'notes'">
         <label for="ai-topic" class="text-label mb-1 block">Tópico</label>
-        <select id="ai-topic" v-model="topicId" class="input w-full">
+        <select id="ai-topic" v-model="topicId" class="input-base w-full">
           <option value="">Selecione um tópico</option>
           <option v-for="t in topics" :key="t.id" :value="t.id">{{ t.name }}</option>
         </select>
@@ -43,7 +43,7 @@
       <!-- PDF -->
       <div v-if="source === 'pdf'">
         <label for="ai-doc" class="text-label mb-1 block">Documento</label>
-        <select id="ai-doc" v-model="documentId" class="input w-full">
+        <select id="ai-doc" v-model="documentId" class="input-base w-full">
           <option value="">Selecione um PDF</option>
           <option v-for="d in documents" :key="d.id" :value="d.id">{{ d.original_name }}</option>
         </select>
@@ -57,7 +57,7 @@
 
       <!-- Actions -->
       <div class="flex justify-end gap-3 mt-6">
-        <button class="btn-secondary" @click="$emit('update:modelValue', false)">Cancelar</button>
+        <button class="btn-secondary" @click="open = false">Cancelar</button>
         <button class="btn-primary" :disabled="loading || !canGenerate" @click="generate">
           <span v-if="loading" class="animate-spin mr-2">⏳</span>
           {{ loading ? 'Gerando...' : 'Gerar cards' }}
@@ -70,9 +70,10 @@
       v-else
       :cards="generatedCards"
       :deck-id="deckId"
-      @accepted="onAccepted"
+      :close-modal="onAccepted"
       @back="generatedCards = []"
     />
+    
   </UiModal>
 </template>
 
@@ -80,13 +81,11 @@
 import type { AiGeneratedCard, Document, Topic } from '~/types'
 
 const props = defineProps<{
-  modelValue: boolean
   deckId: string
-  topics?: Topic[]
-  documents?: Document[]
 }>()
 
-defineEmits<{ (e: 'update:modelValue', v: boolean): void; (e: 'created'): void }>()
+const open = defineModel<boolean>({ required: true })
+const emit = defineEmits<{ (e: 'created'): void }>()
 
 const { $api } = useNuxtApp()
 
@@ -97,6 +96,19 @@ const documentId = ref('')
 const count = ref(5)
 const loading = ref(false)
 const generatedCards = ref<AiGeneratedCard[]>([])
+const topics = ref<Topic[]>([])
+const documents = ref<Document[]>([])
+
+watch(open, async (val) => {
+  if (val) {
+    const [topicsRes, docsRes] = await Promise.all([
+      $api<{ data: Topic[] }>('/topics').catch(() => ({ data: [] })),
+      $api<{ data: Document[] }>('/documents').catch(() => ({ data: [] })),
+    ])
+    topics.value = topicsRes.data
+    documents.value = docsRes.data.filter((d: Document) => d.status === 'completed')
+  }
+})
 
 const tabs = [
   { label: 'Tema livre', value: 'free' as const },
@@ -129,15 +141,17 @@ async function generate() {
     })
     generatedCards.value = res.data.cards
   } catch (e: any) {
-    useToast().error(e?.data?.message || 'Erro ao gerar cards')
+    useToast().show(e?.data?.message || 'Erro ao gerar cards', 'error')
   } finally {
     loading.value = false
   }
 }
 
 function onAccepted() {
-  generatedCards.value = []
-  // @ts-expect-error emit from parent
-  props.modelValue && (props as any).onCreated?.()
+  open.value = false
+  emit('created')
+  nextTick(() => {
+    generatedCards.value = []
+  })
 }
 </script>

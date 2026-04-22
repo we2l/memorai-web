@@ -124,6 +124,8 @@ const props = defineProps<{
   deckId?: string
   topicId?: string
   card?: Flashcard | null
+  initialFront?: string
+  initialBack?: string
 }>()
 const emit = defineEmits<{
   (e: 'created'): void
@@ -169,8 +171,8 @@ function populateForm() {
     form.existingBackAudioUrl = props.card.back_audio_url ?? null
   } else {
     form.deck_id = props.deckId ?? deckStore.decks[0]?.id ?? ''
-    form.front = ''
-    form.back = ''
+    form.front = props.initialFront ?? ''
+    form.back = props.initialBack ?? ''
     form.topic_id = props.topicId ?? ''
     form.tags = []
     form.existingFrontAudioUrl = null

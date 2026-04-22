@@ -540,9 +540,9 @@ async function handleAiGenerate(source: string, quantity: number, documentId?: s
     return
   }
 
-  toast.show(`Gerando ${quantity} cards...`, 'success')
+  toast.show('Gerando cards com IA...', 'success')
   try {
-    await $api('/ai/generate-cards', {
+    const res = await $api<any>('/ai/generate-cards', {
       method: 'POST',
       body: {
         topic_id: selectedTopicId.value,
@@ -550,10 +550,10 @@ async function handleAiGenerate(source: string, quantity: number, documentId?: s
         source,
         count: quantity,
         document_id: documentId,
-        note_id: source === 'notes' ? noteStore.current?.id : undefined,
       },
     })
-    toast.show('Cards gerados! Atualizando...', 'success')
+    const count = res.data?.cards?.length ?? 0
+    toast.show(count > 0 ? `${count} cards gerados!` : 'Nenhum card gerado.', count > 0 ? 'success' : 'error')
     await loadTopicData(selectedTopicId.value)
   } catch {
     toast.show('Erro ao gerar cards.', 'error')

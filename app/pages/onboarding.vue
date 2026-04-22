@@ -123,12 +123,12 @@ async function generateFromText() {
   generating.value = true
 
   try {
-    const res = await $api<any>('/flashcards/generate', {
+    const res = await $api<any>('/ai/generate-cards', {
       method: 'POST',
       body: {
         source: mode.value === 'free' ? 'free' : 'text',
         prompt: textInput.value,
-        quantity: 5,
+        count: 5,
       },
     })
     generatedCount.value = res.data?.cards_count ?? 5

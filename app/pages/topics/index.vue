@@ -530,12 +530,12 @@ async function handleAiGenerate(source: string, quantity: number) {
   toast.show(`Gerando ${quantity} cards...`, 'success')
   // Delegates to existing AI generation endpoint — cards appear after reload
   try {
-    await $api('/flashcards/generate', {
+    await $api('/ai/generate-cards', {
       method: 'POST',
       body: {
         topic_id: selectedTopicId.value,
         source,
-        quantity,
+        count: quantity,
         note_id: source === 'notes' ? noteStore.current?.id : undefined,
       },
     })

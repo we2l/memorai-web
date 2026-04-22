@@ -140,6 +140,28 @@
             </button>
           </template>
 
+          <!-- AI generated cards pending acceptance -->
+          <div v-if="generatedCards.length" class="mb-4">
+            <div class="flex items-center justify-between mb-2">
+              <p class="text-micro text-accent-primary font-medium">✨ {{ generatedCards.length }} cards gerados pela IA</p>
+              <button class="btn-primary !py-1 !px-2.5 !min-h-0 text-micro" @click="acceptAllCards">
+                Aceitar todos
+              </button>
+            </div>
+            <div class="space-y-2">
+              <div v-for="(card, i) in generatedCards" :key="i" class="card flex items-start gap-3">
+                <div class="flex-1 min-w-0">
+                  <p class="text-small text-base-primary" v-html="card.front" />
+                  <p class="text-micro text-base-muted mt-1" v-html="card.back" />
+                </div>
+                <div class="flex gap-1 shrink-0">
+                  <button class="text-success hover:bg-success/10 p-1 rounded" title="Aceitar" @click="acceptCard(i)">✓</button>
+                  <button class="text-danger hover:bg-danger/10 p-1 rounded" title="Descartar" @click="generatedCards.splice(i, 1)">✕</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div v-if="topicCards.length" class="space-y-1">
             <div v-for="card in topicCards" :key="card.id" class="flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-surface-tertiary transition-colors">
               <span
@@ -324,6 +346,8 @@ const topicCards = ref<any[]>([])
 const checklistItems = ref<any[]>([])
 const errorPatterns = ref<any>(null)
 const newChecklistText = ref('')
+const generatedCards = ref<any[]>([])
+const generatingDeckId = ref<string>('')
 
 // Topic modals
 const showCreateTopic = ref(false)
@@ -552,11 +576,54 @@ async function handleAiGenerate(source: string, quantity: number, documentId?: s
         document_id: documentId,
       },
     })
-    const count = res.data?.cards?.length ?? 0
-    toast.show(count > 0 ? `${count} cards gerados!` : 'Nenhum card gerado.', count > 0 ? 'success' : 'error')
-    await loadTopicData(selectedTopicId.value)
+    const cards = res.data?.cards ?? []
+    if (cards.length) {
+      generatedCards.value = cards
+      generatingDeckId.value = deckId
+      toast.show(`${cards.length} cards gerados! Revise e aceite.`, 'success')
+    } else {
+      toast.show('Nenhum card gerado.', 'error')
+    }
   } catch {
     toast.show('Erro ao gerar cards.', 'error')
+  }
+}
+
+async function acceptCard(index: number) {
+  const card = generatedCards.value[index]
+  if (!card || !generatingDeckId.value) return
+  try {
+    await $api('/ai/accept-cards', {
+      method: 'POST',
+      body: {
+        deck_id: generatingDeckId.value,
+        cards: [card],
+      },
+    })
+    generatedCards.value.splice(index, 1)
+    toast.show('Card aceito!', 'success')
+    if (selectedTopicId.value) await loadTopicData(selectedTopicId.value)
+  } catch {
+    toast.show('Erro ao aceitar card.', 'error')
+  }
+}
+
+async function acceptAllCards() {
+  if (!generatedCards.value.length || !generatingDeckId.value) return
+  try {
+    await $api('/ai/accept-cards', {
+      method: 'POST',
+      body: {
+        deck_id: generatingDeckId.value,
+        cards: generatedCards.value,
+      },
+    })
+    const count = generatedCards.value.length
+    generatedCards.value = []
+    toast.show(`${count} cards aceitos!`, 'success')
+    if (selectedTopicId.value) await loadTopicData(selectedTopicId.value)
+  } catch {
+    toast.show('Erro ao aceitar cards.', 'error')
   }
 }
 

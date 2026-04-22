@@ -49,6 +49,7 @@
   --bg-primary: #F5F2ED;
   --bg-secondary: #ECEAE4;
   --bg-tertiary: #E0DDD6;
+  --bg-overlay: rgba(236, 234, 228, 0.85);
   --text-primary: #1A1918;
   --text-secondary: #4D4A46;
   --text-muted: #8A8680;
@@ -75,6 +76,7 @@
   --bg-primary: #0F0F0F;
   --bg-secondary: #1A1A1A;
   --bg-tertiary: #242424;
+  --bg-overlay: rgba(26, 26, 26, 0.85);
   --text-primary: #E9E4D9;
   --text-secondary: #ADA89E;
   --text-muted: #706B64;
@@ -111,6 +113,11 @@
 
 @utility bg-surface-tertiary {
   background-color: var(--bg-tertiary);
+}
+
+@utility bg-overlay {
+  background-color: var(--bg-overlay, var(--bg-secondary));
+  backdrop-filter: blur(12px);
 }
 
 @utility text-base-primary {

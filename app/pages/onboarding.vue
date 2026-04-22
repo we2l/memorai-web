@@ -104,12 +104,62 @@ async function handlePdf(e: Event) {
   toast.show('Processando PDF...', 'success')
 
   try {
+    // 1. Create a deck + topic from filename
+    const topicName = file.name.replace(/\.pdf$/i, '')
+    const deckRes = await $api<any>('/decks', { method: 'POST', body: { name: topicName } })
+    const deckId = deckRes.data.id
+    const topicRes = await $api<any>('/topics', { method: 'POST', body: { name: topicName } })
+    const topicId = topicRes.data.id
+
+    // 2. Upload PDF linked to topic
+    const config = useRuntimeConfig()
+    const token = useCookie('auth_token').value
     const formData = new FormData()
     formData.append('file', file)
-    formData.append('auto_generate', '1')
-    formData.append('quantity', '5')
-    await $api('/documents', { method: 'POST', body: formData })
-    generatedCount.value = 5
+    formData.append('topic_id', topicId)
+
+    const docRes: any = await new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest()
+      xhr.onload = () => xhr.status < 400 ? resolve(JSON.parse(xhr.responseText)) : reject()
+      xhr.onerror = () => reject()
+      xhr.open('POST', `${config.public.apiBase}/documents`)
+      xhr.setRequestHeader('Accept', 'application/json')
+      if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`)
+      xhr.send(formData)
+    })
+
+    // 3. Wait for processing (poll)
+    toast.show('Processando conteúdo...', 'success')
+    const docId = docRes.data.id
+    let ready = false
+    for (let i = 0; i < 30; i++) {
+      await new Promise(r => setTimeout(r, 3000))
+      const status = await $api<any>(`/documents/${docId}`)
+      if (status.data.status === 'completed') { ready = true; break }
+      if (status.data.status === 'failed') break
+    }
+
+    if (!ready) {
+      toast.show('PDF ainda processando. Gere cards depois no tópico.', 'error')
+      step.value = 2
+      generatedCount.value = 0
+      return
+    }
+
+    // 4. Generate cards from PDF
+    toast.show('Gerando cards com IA...', 'success')
+    const genRes = await $api<any>('/ai/generate-cards', {
+      method: 'POST',
+      body: { source: 'pdf', deck_id: deckId, document_id: docId, topic_id: topicId, count: 5 },
+    })
+
+    // 5. Accept all generated cards
+    const cards = genRes.data?.cards ?? []
+    if (cards.length) {
+      await $api('/ai/accept-cards', { method: 'POST', body: { deck_id: deckId, cards } })
+    }
+
+    generatedCount.value = cards.length || 5
     step.value = 2
   } catch {
     toast.show('Erro ao processar PDF.', 'error')
@@ -123,15 +173,32 @@ async function generateFromText() {
   generating.value = true
 
   try {
+    // 1. Create deck + topic
+    const name = mode.value === 'free' ? textInput.value.slice(0, 50) : 'Meu estudo'
+    const deckRes = await $api<any>('/decks', { method: 'POST', body: { name } })
+    const deckId = deckRes.data.id
+    const topicRes = await $api<any>('/topics', { method: 'POST', body: { name } })
+    const topicId = topicRes.data.id
+
+    // 2. Generate cards
     const res = await $api<any>('/ai/generate-cards', {
       method: 'POST',
       body: {
-        source: mode.value === 'free' ? 'free' : 'text',
+        source: mode.value === 'free' ? 'free' : 'notes',
         prompt: textInput.value,
+        deck_id: deckId,
+        topic_id: topicId,
         count: 5,
       },
     })
-    generatedCount.value = res.data?.cards_count ?? 5
+
+    // 3. Accept all
+    const cards = res.data?.cards ?? []
+    if (cards.length) {
+      await $api('/ai/accept-cards', { method: 'POST', body: { deck_id: deckId, cards } })
+    }
+
+    generatedCount.value = cards.length || 5
     step.value = 2
   } catch {
     toast.show('Erro ao gerar cards.', 'error')

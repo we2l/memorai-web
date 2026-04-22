@@ -147,9 +147,9 @@
     <div class="mt-8">
       <UiActivationChecklist
         :has-topics="topicProgress.length > 0"
-        :has-material="true"
+        :has-material="(stats?.total_decks ?? 0) > 0"
         :has-cards="(stats?.total_cards ?? 0) > 0"
-        :has-reviewed="(stats?.reviewed_today ?? 0) > 0 || (stats?.streak ?? 0) > 0"
+        :has-reviewed="(stats?.cards_reviewed_today ?? 0) > 0 || (stats?.streak ?? 0) > 0"
         :streak="stats?.streak ?? 0"
       />
     </div>

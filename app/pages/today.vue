@@ -144,13 +144,15 @@
     </div>
 
     <!-- Activation checklist -->
-    <div class="mt-8">
+    <div v-if="stats" class="mt-8">
+      <!-- debug -->
+      <p class="text-micro text-danger mb-2">DEBUG: cards={{ stats.total_cards }} decks={{ stats.total_decks }} topics={{ topicProgress.length }} reviewed={{ stats.cards_reviewed_today }} streak={{ stats.streak }}</p>
       <UiActivationChecklist
         :has-topics="topicProgress.length > 0"
-        :has-material="(stats?.total_decks ?? 0) > 0"
-        :has-cards="(stats?.total_cards ?? 0) > 0"
-        :has-reviewed="(stats?.cards_reviewed_today ?? 0) > 0 || (stats?.streak ?? 0) > 0"
-        :streak="stats?.streak ?? 0"
+        :has-material="(stats.total_decks ?? 0) > 0"
+        :has-cards="(stats.total_cards ?? 0) > 0"
+        :has-reviewed="(stats.cards_reviewed_today ?? 0) > 0 || (stats.streak ?? 0) > 0"
+        :streak="stats.streak ?? 0"
       />
     </div>
 

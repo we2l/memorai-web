@@ -48,6 +48,20 @@
           </div>
         </div>
 
+        <!-- Sticky header (appears on scroll) -->
+        <div
+          v-if="showStickyHeader"
+          class="sticky top-0 z-10 px-4 py-2.5 border-b border-base bg-overlay flex items-center justify-between"
+        >
+          <div class="flex items-center gap-3 min-w-0">
+            <span class="text-small font-medium text-base-primary truncate">{{ selectedTopicName }}</span>
+            <span v-if="topicProgress > 0" class="text-micro text-base-muted">{{ Math.round(topicProgress * 100) }}%</span>
+          </div>
+          <NuxtLink :to="`/review?topic_id=${selectedTopicId}`" class="btn-primary !py-1 !px-2.5 !min-h-0 text-micro shrink-0">
+            Revisar
+          </NuxtLink>
+        </div>
+
         <!-- Sections by use -->
 
         <!-- 🧠 APRENDER -->
@@ -101,6 +115,12 @@
         <!-- 🔁 MEMORIZAR -->
         <UiCollapsibleSection id="memorize" title="🔁 MEMORIZAR" :count="topicCards.length" :default-open="true">
           <template #actions>
+            <AgentAiGenerateInline
+              :topic-id="selectedTopicId!"
+              :has-notes="noteStore.notes.length > 0"
+              :has-documents="false"
+              @generate="handleAiGenerate"
+            />
             <button class="btn-secondary !py-1 !px-2.5 !min-h-0 text-micro" @click="openNoteToCard">
               <Plus :size="14" /> Criar
             </button>
@@ -317,6 +337,7 @@ const topicProgress = computed(() => {
 })
 
 const headerRef = ref<HTMLElement>()
+const showStickyHeader = ref(false)
 
 let saveTimeout: ReturnType<typeof setTimeout> | null = null
 let pendingSaveNoteId: string | null = null
@@ -486,6 +507,27 @@ function openNoteToCard() {
   showNoteToCard.value = true
 }
 
+async function handleAiGenerate(source: string, quantity: number) {
+  if (!selectedTopicId.value) return
+  toast.show(`Gerando ${quantity} cards...`, 'success')
+  // Delegates to existing AI generation endpoint — cards appear after reload
+  try {
+    await $api('/flashcards/generate', {
+      method: 'POST',
+      body: {
+        topic_id: selectedTopicId.value,
+        source,
+        quantity,
+        note_id: source === 'notes' ? noteStore.current?.id : undefined,
+      },
+    })
+    toast.show('Cards gerados! Atualizando...', 'success')
+    await loadTopicData(selectedTopicId.value)
+  } catch {
+    toast.show('Erro ao gerar cards.', 'error')
+  }
+}
+
 async function onCardCreated() {
   await topicStore.fetchTree()
 }
@@ -519,5 +561,13 @@ onMounted(async () => {
       }, { immediate: true })
     }
   }
+
+  // Sticky header observer
+  const observer = new IntersectionObserver(
+    ([entry]) => { showStickyHeader.value = !entry.isIntersecting },
+    { threshold: 0 }
+  )
+  watch(headerRef, (el) => { if (el) observer.observe(el) }, { immediate: true })
+  onUnmounted(() => observer.disconnect())
 })
 </script>

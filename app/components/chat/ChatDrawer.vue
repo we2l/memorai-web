@@ -76,6 +76,18 @@
             />
           </div>
 
+          <!-- Follow-up chips after last assistant message -->
+          <div v-if="chat.messages.length && chat.messages[chat.messages.length - 1]?.role === 'assistant' && !chat.sending" class="flex flex-wrap gap-1.5">
+            <button
+              v-for="chip in followUpChips"
+              :key="chip"
+              class="px-2.5 py-1 rounded-full text-micro bg-accent-primary-subtle text-accent-primary hover:bg-accent-primary hover:text-white transition-colors"
+              @click="sendChip(chip)"
+            >
+              {{ chip }}
+            </button>
+          </div>
+
           <div v-if="chat.sending" class="flex justify-start">
             <div class="bg-surface-tertiary rounded-2xl rounded-bl-md px-3.5 py-2.5">
               <span class="text-base-muted text-small animate-pulse">Pensando...</span>
@@ -122,6 +134,18 @@ const contextLabel = computed(() => {
   if (chat.currentContext.cardFront) return 'Sobre este card'
   return 'Chat geral'
 })
+
+const followUpChips = computed(() => {
+  if (chat.currentContext.source === 'review_error') {
+    return ['Criar card de reforço', 'Explicar como mnemônico', 'Quais exceções?']
+  }
+  return ['Criar card sobre isso', 'Explicar de outro jeito', 'Aprofundar']
+})
+
+function sendChip(text: string) {
+  message.value = text
+  handleSend()
+}
 
 async function handleSend() {
   if (!message.value.trim() || chat.sending) return

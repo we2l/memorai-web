@@ -138,6 +138,15 @@
           Ver nota completa →
         </NuxtLink>
       </div>
+
+      <!-- Chat trigger after error -->
+      <button
+        v-if="review.showErrorDiary || review.noteSnippet"
+        class="mt-3 btn-secondary !py-1.5 !px-3 !min-h-0 text-small"
+        @click="openChatForError"
+      >
+        ✨ Entender isso
+      </button>
     </div>
     <!-- Timer expired modal -->
     <UiModal v-model="showTimerModal" size="sm" aria-label="Tempo esgotado">
@@ -159,6 +168,7 @@
 <script setup lang="ts">
 const review = useReviewStore()
 const deckStore = useDeckStore()
+const chat = useChatStore()
 const route = useRoute()
 const toast = useToast()
 const lastErrorCardId = ref('')
@@ -248,6 +258,17 @@ watch(sessionTimer, (val, oldVal) => {
 
 function continueAfterTimer() {
   showTimerModal.value = false
+}
+
+function openChatForError() {
+  const card = review.currentCard
+  if (!card) return
+  chat.open({
+    cardId: card.id,
+    cardFront: card.front,
+    topicId: card.topic_id,
+    source: 'review_error',
+  })
 }
 
 function formatTimer(seconds: number): string {

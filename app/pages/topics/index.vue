@@ -123,7 +123,7 @@
               v-if="selectedTopicId"
               ref="docsInlineRef"
               :topic-id="selectedTopicId"
-              @generate-from-pdf="(docId: string) => handleAiGenerate('pdf', 5)"
+              @generate-from-pdf="(docId: string) => handleAiGenerate('pdf', 5, docId)"
             />
           </div>
         </UiCollapsibleSection>
@@ -525,17 +525,31 @@ function openNoteToCard() {
   showNoteToCard.value = true
 }
 
-async function handleAiGenerate(source: string, quantity: number) {
+async function handleAiGenerate(source: string, quantity: number, documentId?: string) {
   if (!selectedTopicId.value) return
+
+  // Need a deck_id — use the deck of existing cards in this topic, or first deck
+  let deckId = topicCards.value[0]?.deck_id
+  if (!deckId) {
+    const deckStore = useDeckStore()
+    if (!deckStore.decks.length) await deckStore.fetchDecks()
+    deckId = deckStore.decks[0]?.id
+  }
+  if (!deckId) {
+    toast.show('Crie um deck antes de gerar cards.', 'error')
+    return
+  }
+
   toast.show(`Gerando ${quantity} cards...`, 'success')
-  // Delegates to existing AI generation endpoint — cards appear after reload
   try {
     await $api('/ai/generate-cards', {
       method: 'POST',
       body: {
         topic_id: selectedTopicId.value,
+        deck_id: deckId,
         source,
         count: quantity,
+        document_id: documentId,
         note_id: source === 'notes' ? noteStore.current?.id : undefined,
       },
     })

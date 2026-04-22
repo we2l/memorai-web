@@ -1,6 +1,6 @@
 <template>
   <aside class="hidden lg:flex flex-col bg-surface-secondary h-screen fixed left-0 top-0 w-[220px] p-4">
-    <NuxtLink to="/dashboard" class="text-display text-accent-primary mb-8">
+    <NuxtLink to="/today" class="text-display text-accent-primary mb-8">
       Memorai
     </NuxtLink>
 
@@ -39,17 +39,12 @@
 
 <script setup lang="ts">
 import {
-  LayoutDashboard,
-  Layers,
+  Home,
   BookOpen,
+  RotateCcw,
   BarChart3,
-  FolderTree,
-  Network,
   Settings,
   LogOut,
-  Upload,
-  FileText,
-  MessageCircle,
 } from 'lucide-vue-next'
 
 const route = useRoute()
@@ -65,27 +60,17 @@ async function handleLogout() {
 }
 
 const items = [
-  { label: 'Dashboard', to: '/dashboard', icon: 'dashboard' },
-  { label: 'Decks', to: '/decks', icon: 'decks' },
+  { label: 'Hoje', to: '/today', icon: 'home' },
   { label: 'Tópicos', to: '/topics', icon: 'topics' },
-  { label: 'Grafo', to: '/graph', icon: 'graph' },
   { label: 'Revisão', to: '/review', icon: 'review' },
-  { label: 'Estatísticas', to: '/stats', icon: 'stats' },
-  { label: 'Meus PDFs', to: '/documents', icon: 'documents' },
-  { label: 'Tirar dúvidas', to: '/chat', icon: 'chat' },
-  { label: 'Importar', to: '/import', icon: 'import' },
+  { label: 'Progresso', to: '/progress', icon: 'progress' },
 ]
 
 const iconMap: Record<string, any> = {
-  dashboard: LayoutDashboard,
-  decks: Layers,
-  topics: FolderTree,
-  graph: Network,
-  review: BookOpen,
-  stats: BarChart3,
-  documents: FileText,
-  chat: MessageCircle,
-  import: Upload,
+  home: Home,
+  topics: BookOpen,
+  review: RotateCcw,
+  progress: BarChart3,
 }
 
 function getIcon(name: string) {

@@ -8,9 +8,22 @@
           <button class="btn-secondary !p-1.5" title="Ver mapa" @click="showGraph = true">
             <Network :size="16" />
           </button>
-          <button class="btn-secondary !p-1.5" title="Novo tópico" @click="openCreate(null)">
-            <Plus :size="16" />
-          </button>
+          <div class="relative">
+            <button class="btn-secondary !p-1.5" title="Adicionar" @click="showAddMenu = !showAddMenu">
+              <Plus :size="16" />
+            </button>
+            <div v-if="showAddMenu" class="absolute right-0 top-full mt-1 w-44 bg-surface-secondary border border-base rounded-lg shadow-lg py-1 z-20">
+              <button class="w-full text-left px-3 py-2 text-small hover:bg-surface-tertiary transition-colors" @click="showAddMenu = false; openCreate(null)">
+                📝 Novo tópico
+              </button>
+              <NuxtLink to="/import" class="block px-3 py-2 text-small hover:bg-surface-tertiary transition-colors" @click="showAddMenu = false">
+                📦 Importar Anki
+              </NuxtLink>
+              <button class="w-full text-left px-3 py-2 text-small hover:bg-surface-tertiary transition-colors" @click="showAddMenu = false; triggerPdfUpload()">
+                📄 Upload PDF
+              </button>
+            </div>
+          </div>
         </div>
       </div>
       <div class="flex-1 overflow-y-auto p-2">
@@ -50,6 +63,16 @@
               />
             </div>
             <span class="text-micro text-base-muted">{{ Math.round(topicProgress * 100) }}%</span>
+          </div>
+          <div v-if="subTopics.length" class="flex flex-wrap gap-1.5 mt-2">
+            <button
+              v-for="sub in subTopics"
+              :key="sub.id"
+              class="text-micro px-2 py-0.5 rounded-full bg-surface-tertiary text-base-muted hover:text-accent-primary hover:bg-accent-primary-subtle transition-colors"
+              @click="selectTopic(sub.id)"
+            >
+              {{ sub.name }}
+            </button>
           </div>
         </div>
 
@@ -109,6 +132,9 @@
               <div class="flex items-center gap-2">
                 <button class="btn-secondary !py-1 !px-2.5 !min-h-0 text-micro" @click="openNoteToCard">
                   <Zap :size="14" /> Criar card
+                </button>
+                <button class="text-micro text-accent-primary hover:underline" @click="openChatForNote">
+                  ✨ Melhorar
                 </button>
                 <span class="text-micro text-base-muted">{{ noteStore.saving ? 'Salvando...' : 'Salvo' }}</span>
               </div>
@@ -285,6 +311,13 @@
       </div>
     </main>
 
+    <!-- Mobile: sticky bottom review button -->
+    <div v-if="selectedTopicId" class="lg:hidden fixed bottom-16 left-0 right-0 p-3 bg-overlay border-t border-base z-30">
+      <NuxtLink :to="`/review?topic_id=${selectedTopicId}`" class="btn-primary w-full justify-center">
+        Revisar tópico
+      </NuxtLink>
+    </div>
+
     <!-- Modals -->
     <UiModal v-model="showCreateTopic" size="sm" aria-label="Criar tópico">
       <h2 class="text-headline mb-4">{{ createParentId ? 'Novo sub-tópico' : 'Novo tópico' }}</h2>
@@ -355,6 +388,7 @@ const showEditTopic = ref(false)
 const showDeleteTopic = ref(false)
 const showNoteToCard = ref(false)
 const showGraph = ref(false)
+const showAddMenu = ref(false)
 const docsInlineRef = ref<any>(null)
 const newTopicName = ref('')
 const editTopicName = ref('')
@@ -376,6 +410,19 @@ const selectedTopicName = computed(() => {
 
 const topicProgress = computed(() => {
   return selectedTopicId.value ? (progressMap.value[selectedTopicId.value] ?? 0) : 0
+})
+
+const subTopics = computed(() => {
+  if (!selectedTopicId.value) return []
+  function findChildren(topics: Topic[], parentId: string): Topic[] {
+    for (const t of topics) {
+      if (t.id === parentId) return t.children ?? []
+      const found = findChildren(t.children ?? [], parentId)
+      if (found.length) return found
+    }
+    return []
+  }
+  return findChildren(topicStore.tree, selectedTopicId.value)
 })
 
 const headerRef = ref<HTMLElement>()
@@ -508,6 +555,23 @@ function openCreate(parentId: string | null) {
   createParentId.value = parentId
   newTopicName.value = ''
   showCreateTopic.value = true
+}
+
+function openChatForNote() {
+  const chat = useChatStore()
+  chat.open({ topicId: selectedTopicId.value ?? undefined, source: 'note_help' })
+}
+
+function triggerPdfUpload() {
+  // If a topic is selected, the DocumentsInline handles it
+  // Otherwise, create a topic first
+  if (!selectedTopicId.value) {
+    toast.show('Selecione um tópico primeiro.', 'error')
+    return
+  }
+  // Trigger click on the file input inside DocumentsInline
+  const input = docsInlineRef.value?.$el?.querySelector('input[type="file"]')
+  if (input) input.click()
 }
 
 function openEdit(topic: Topic) {

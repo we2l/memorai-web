@@ -25,6 +25,13 @@
         >
           ✨ Gerar cards
         </button>
+        <button
+          v-if="doc.status === 'completed'"
+          class="text-micro text-accent-primary hover:underline shrink-0 ml-1"
+          @click="openChatForPdf(doc.id)"
+        >
+          ✨ Resumir
+        </button>
       </div>
     </div>
 
@@ -56,6 +63,11 @@ const uploadProgress = ref(0)
 
 function statusLabel(s: string) {
   return { pending: 'Aguardando...', processing: 'Processando...', completed: '✅ Pronto', failed: '❌ Erro' }[s] || s
+}
+
+function openChatForPdf(docId: string) {
+  const chat = useChatStore()
+  chat.open({ topicId: props.topicId, documentId: docId, source: 'pdf_summary' })
 }
 
 async function fetchDocuments() {

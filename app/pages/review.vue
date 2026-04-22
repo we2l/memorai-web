@@ -54,7 +54,21 @@
       <p v-if="review.pendingLearning > 0" class="text-base-muted text-small mt-2">
         {{ review.pendingLearning }} card{{ review.pendingLearning !== 1 ? 's' : '' }} em aprendizado — {{ review.pendingLearning === 1 ? 'volta' : 'voltam' }} em breve.
       </p>
-      <NuxtLink to="/today" class="btn-primary mt-8">Voltar</NuxtLink>
+
+      <!-- Post-session suggestion -->
+      <div v-if="topErrorTopic" class="mt-6 card border border-warning/30 max-w-sm">
+        <p class="text-small text-base-primary">Você errou {{ topErrorTopic.count }}x em "{{ topErrorTopic.name }}".</p>
+        <div class="flex gap-2 mt-3 justify-center">
+          <NuxtLink :to="`/review?topic_id=${topErrorTopic.id}&errors_only=1`" class="btn-primary !py-1.5 !px-3 !min-h-0 text-small">
+            Reforçar
+          </NuxtLink>
+          <NuxtLink to="/today" class="btn-secondary !py-1.5 !px-3 !min-h-0 text-small">
+            Depois
+          </NuxtLink>
+        </div>
+      </div>
+
+      <NuxtLink v-else to="/today" class="btn-primary mt-8">Voltar</NuxtLink>
     </div>
 
     <!-- Waiting for learning cards -->
@@ -176,7 +190,14 @@ const cardFeedback = ref<'success' | 'error' | null>(null)
 const correctStreak = ref(0)
 const rewardMessage = ref('')
 const progressPulse = ref(false)
+const errorsByTopic = ref<Record<string, { name: string; count: number; id: string }>>({})
 let rewardTimeout: ReturnType<typeof setTimeout> | null = null
+
+const topErrorTopic = computed(() => {
+  const entries = Object.values(errorsByTopic.value).filter(e => e.count >= 2)
+  if (!entries.length) return null
+  return entries.sort((a, b) => b.count - a.count)[0]
+})
 
 async function handleRate(rating: number) {
   const cardId = review.currentCard?.id ?? ''
@@ -194,6 +215,15 @@ async function handleRate(rating: number) {
     else if (correctStreak.value > 0 && correctStreak.value % 10 === 0) showReward(`🔥 ${correctStreak.value} seguidos!`)
   } else {
     correctStreak.value = 0
+    // Track errors by topic for post-session suggestion
+    const card = review.currentCard
+    if (card?.topic_id) {
+      const key = card.topic_id
+      if (!errorsByTopic.value[key]) {
+        errorsByTopic.value[key] = { id: card.topic_id, name: card.topic_name ?? 'Tópico', count: 0 }
+      }
+      errorsByTopic.value[key].count++
+    }
   }
 
   // Progress pulse

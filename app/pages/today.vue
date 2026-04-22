@@ -143,6 +143,17 @@
       </div>
     </div>
 
+    <!-- Activation checklist -->
+    <div class="mt-8">
+      <UiActivationChecklist
+        :has-topics="topicProgress.length > 0"
+        :has-material="true"
+        :has-cards="(stats?.total_cards ?? 0) > 0"
+        :has-reviewed="(stats?.reviewed_today ?? 0) > 0 || (stats?.streak ?? 0) > 0"
+        :streak="stats?.streak ?? 0"
+      />
+    </div>
+
     <!-- AI Usage -->
     <div v-if="featureUsage.usage.value && hasLimitedFeatures" class="mt-8">
       <p class="text-label mb-3">Uso de IA este mês</p>

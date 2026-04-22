@@ -30,6 +30,13 @@
           <div class="flex items-center gap-2">
             <button
               class="p-1.5 rounded-lg text-base-muted hover:text-base-secondary hover:bg-surface-tertiary transition-colors"
+              title="Histórico"
+              @click="showHistory = !showHistory"
+            >
+              <Clock :size="16" />
+            </button>
+            <button
+              class="p-1.5 rounded-lg text-base-muted hover:text-base-secondary hover:bg-surface-tertiary transition-colors"
               title="Nova conversa"
               @click="chat.newConversation()"
             >
@@ -43,6 +50,20 @@
               <X :size="16" />
             </button>
           </div>
+        </div>
+
+        <!-- Conversation history -->
+        <div v-if="showHistory" class="border-b border-base max-h-48 overflow-y-auto">
+          <button
+            v-for="conv in chat.conversations"
+            :key="conv.id"
+            class="w-full text-left px-4 py-2 text-small hover:bg-surface-tertiary transition-colors truncate"
+            :class="chat.currentId === conv.id && 'text-accent-primary bg-accent-primary-subtle'"
+            @click="chat.loadConversation(conv.id); showHistory = false"
+          >
+            {{ conv.title }}
+          </button>
+          <p v-if="!chat.conversations.length" class="px-4 py-3 text-micro text-base-muted">Nenhuma conversa ainda</p>
         </div>
 
         <!-- Card anexado (quando vem de erro na revisão) -->
@@ -121,10 +142,11 @@
 </template>
 
 <script setup lang="ts">
-import { X, Plus, Send, MessageCircle } from 'lucide-vue-next'
+import { X, Plus, Send, MessageCircle, Clock } from 'lucide-vue-next'
 
 const chat = useChatStore()
 const message = ref('')
+const showHistory = ref(false)
 const messagesRef = ref<HTMLElement>()
 const inputRef = ref<HTMLInputElement>()
 const drawerRef = ref<HTMLElement>()
@@ -166,9 +188,18 @@ function scrollToBottom() {
   }
 }
 
-// Focus input when drawer opens
+// Auto-detect context from route when opening manually (no explicit context)
+const route = useRoute()
 watch(() => chat.isOpen, async (open) => {
   if (open) {
+    // If opened without explicit context (manual/Ctrl+K), infer from route
+    if (!chat.currentContext.source) {
+      const topicMatch = route.path.match(/\/topics/)
+      const topicId = route.query.topic as string | undefined
+      if (topicId) {
+        chat.currentContext = { topicId, source: 'manual' }
+      }
+    }
     if (!chat.conversations.length) await chat.fetchConversations()
     await nextTick()
     inputRef.value?.focus()

@@ -661,7 +661,7 @@ async function acceptCard(index: number) {
       method: 'POST',
       body: {
         deck_id: generatingDeckId.value,
-        cards: [card],
+        cards: [{ ...card, topic_id: selectedTopicId.value }],
       },
     })
     generatedCards.value.splice(index, 1)
@@ -679,7 +679,7 @@ async function acceptAllCards() {
       method: 'POST',
       body: {
         deck_id: generatingDeckId.value,
-        cards: generatedCards.value,
+        cards: generatedCards.value.map(c => ({ ...c, topic_id: selectedTopicId.value })),
       },
     })
     const count = generatedCards.value.length

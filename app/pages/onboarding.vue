@@ -192,7 +192,7 @@ async function handlePdf(e: Event) {
 
     const cards = genRes.data?.cards ?? []
     if (cards.length) {
-      await $api('/ai/accept-cards', { method: 'POST', body: { deck_id: deckId, cards } })
+      await $api('/ai/accept-cards', { method: 'POST', body: { deck_id: deckId, cards: cards.map((c: any) => ({ ...c, topic_id: topicId })) } })
     }
     generatedCount.value = cards.length
     step.value = 2
@@ -227,7 +227,7 @@ async function generateFromText() {
 
     const cards = res.data?.cards ?? []
     if (cards.length) {
-      await $api('/ai/accept-cards', { method: 'POST', body: { deck_id: deckId, cards } })
+      await $api('/ai/accept-cards', { method: 'POST', body: { deck_id: deckId, cards: cards.map((c: any) => ({ ...c, topic_id: topicId })) } })
     }
     generatedCount.value = cards.length
     step.value = 2

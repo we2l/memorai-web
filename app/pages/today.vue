@@ -77,6 +77,33 @@
       <NuxtLink to="/topics" class="btn-primary mt-4 inline-flex">Ir pra Tópicos</NuxtLink>
     </div>
 
+    <!-- Seu ritmo + Ações rápidas -->
+    <div v-if="stats" class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+      <div class="card md:col-span-2">
+        <div class="flex items-center justify-between mb-3">
+          <p class="text-small font-medium text-base-primary">Seu ritmo hoje</p>
+          <span class="text-micro text-base-muted">
+            {{ stats.reviews_done ?? 0 }}/{{ stats.reviews_limit ?? '∞' }} reviews · {{ stats.new_done ?? 0 }}/{{ stats.new_limit ?? '∞' }} novos
+          </span>
+        </div>
+        <div class="h-2 rounded-full bg-surface-tertiary overflow-hidden">
+          <div class="h-2 rounded-full bg-success transition-all duration-500 glow-success" :style="{ width: progressPercent + '%' }" />
+        </div>
+        <div class="flex justify-between text-micro text-base-muted mt-2">
+          <span>Faltam: {{ stats.due_today ?? 0 }}</span>
+          <span>Revisados: {{ stats.reviewed_today ?? 0 }}</span>
+        </div>
+      </div>
+      <div class="flex flex-col gap-2">
+        <NuxtLink to="/review?errors_only=1" class="btn-secondary justify-center text-micro flex-1">
+          Revisar só erros
+        </NuxtLink>
+        <NuxtLink to="/import" class="btn-accent justify-center text-micro flex-1">
+          Importar Anki
+        </NuxtLink>
+      </div>
+    </div>
+
     <!-- Pra hoje (max 3 actions) -->
     <div v-if="pendingActions.length" class="mt-8">
       <p class="text-label mb-3">Pra hoje</p>

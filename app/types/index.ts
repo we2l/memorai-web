@@ -3,6 +3,7 @@ export interface User {
   name: string
   email: string
   plan: string
+  onboarding_completed: boolean
 }
 
 export interface ApiResponse<T> {

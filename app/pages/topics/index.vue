@@ -115,15 +115,24 @@
               <button class="text-micro text-danger hover:underline" @click="deleteNote">Excluir</button>
             </div>
           </div>
-        </UiCollapsibleSection>
 
-        <!-- 🔁 MEMORIZAR -->
+          <!-- Material (PDFs) -->
+          <div class="mt-4 pt-3 border-t border-base">
+            <p class="text-micro text-base-muted mb-2">📄 Material</p>
+            <TopicDocumentsInline
+              v-if="selectedTopicId"
+              ref="docsInlineRef"
+              :topic-id="selectedTopicId"
+              @generate-from-pdf="(docId: string) => handleAiGenerate('pdf', 5)"
+            />
+          </div>
+        </UiCollapsibleSection>
         <UiCollapsibleSection id="memorize" title="🔁 MEMORIZAR" :count="topicCards.length" :default-open="true">
           <template #actions>
             <AgentAiGenerateInline
               :topic-id="selectedTopicId!"
               :has-notes="noteStore.notes.length > 0"
-              :has-documents="false"
+              :has-documents="docsInlineRef?.documents?.length > 0"
               @generate="handleAiGenerate"
             />
             <button class="btn-secondary !py-1 !px-2.5 !min-h-0 text-micro" @click="openNoteToCard">
@@ -322,6 +331,7 @@ const showEditTopic = ref(false)
 const showDeleteTopic = ref(false)
 const showNoteToCard = ref(false)
 const showGraph = ref(false)
+const docsInlineRef = ref<any>(null)
 const newTopicName = ref('')
 const editTopicName = ref('')
 const createParentId = ref<string | null>(null)

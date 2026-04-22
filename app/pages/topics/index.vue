@@ -4,9 +4,14 @@
     <aside class="w-72 border-r border-base flex flex-col shrink-0">
       <div class="flex items-center justify-between p-4 border-b border-base">
         <h2 class="text-label">Tópicos</h2>
-        <button class="btn-secondary !p-1.5" title="Novo tópico" @click="openCreate(null)">
-          <Plus :size="16" />
-        </button>
+        <div class="flex items-center gap-1">
+          <button class="btn-secondary !p-1.5" title="Ver mapa" @click="showGraph = true">
+            <Network :size="16" />
+          </button>
+          <button class="btn-secondary !p-1.5" title="Novo tópico" @click="openCreate(null)">
+            <Plus :size="16" />
+          </button>
+        </div>
       </div>
       <div class="flex-1 overflow-y-auto p-2">
         <div v-if="topicStore.loading" class="space-y-2 p-2">
@@ -287,11 +292,13 @@
       :selected-text="selectedText"
       @created="onCardCreated"
     />
+
+    <TopicGraphOverlay v-model="showGraph" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { Plus, FilePlus, Zap, RotateCcw } from 'lucide-vue-next'
+import { Plus, FilePlus, Zap, RotateCcw, Network } from 'lucide-vue-next'
 import type { Topic, Note } from '~/types'
 
 const topicStore = useTopicStore()
@@ -314,6 +321,7 @@ const showCreateTopic = ref(false)
 const showEditTopic = ref(false)
 const showDeleteTopic = ref(false)
 const showNoteToCard = ref(false)
+const showGraph = ref(false)
 const newTopicName = ref('')
 const editTopicName = ref('')
 const createParentId = ref<string | null>(null)
@@ -547,6 +555,9 @@ onMounted(async () => {
     }
   } catch {}
   const route = useRoute()
+  if (route.query.view === 'graph') {
+    showGraph.value = true
+  }
   if (route.query.topic) {
     selectTopic(route.query.topic as string)
     if (route.query.note) {

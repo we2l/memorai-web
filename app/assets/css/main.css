@@ -73,10 +73,10 @@
 }
 
 .dark {
-  --bg-primary: #0F0F0F;
-  --bg-secondary: #1A1A1A;
-  --bg-tertiary: #242424;
-  --bg-overlay: rgba(26, 26, 26, 0.85);
+  --bg-primary: #0C0B0A;
+  --bg-secondary: #161412;
+  --bg-tertiary: #1E1B18;
+  --bg-overlay: rgba(30, 27, 24, 0.85);
   --text-primary: #E9E4D9;
   --text-secondary: #ADA89E;
   --text-muted: #706B64;
@@ -272,7 +272,7 @@
 }
 
 :where(.dark) .card {
-  background: linear-gradient(180deg, #141414, #111111);
+  background: linear-gradient(180deg, #161412, #131110);
 }
 
 /* Card destaque (dívida de revisão, alertas) */
@@ -306,7 +306,7 @@
 }
 
 :where(.dark) .card-interactive {
-  background: linear-gradient(180deg, #141414, #111111);
+  background: linear-gradient(180deg, #161412, #131110);
 }
 
 /* Input — focus terracotta */
@@ -467,7 +467,7 @@
    ============================================ */
 
 @utility btn-again {
-  background-color: #1A1716;
+  background-color: #161412;
   color: #BC4749;
   font-weight: 500;
   font-size: 0.875rem;
@@ -485,7 +485,7 @@
   gap: 0.25rem;
   &:hover {
     border-color: rgba(188, 71, 73, 0.3);
-    background-color: #1E1A18;
+    background-color: #1E1B18;
     box-shadow: 0 0 12px rgba(188, 71, 73, 0.1);
   }
   &:active {
@@ -494,7 +494,7 @@
 }
 
 @utility btn-hard {
-  background-color: #1A1716;
+  background-color: #161412;
   color: #B4833D;
   font-weight: 500;
   font-size: 0.875rem;
@@ -512,7 +512,7 @@
   gap: 0.25rem;
   &:hover {
     border-color: rgba(180, 131, 61, 0.3);
-    background-color: #1E1A18;
+    background-color: #1E1B18;
     box-shadow: 0 0 12px rgba(180, 131, 61, 0.1);
   }
   &:active {
@@ -521,7 +521,7 @@
 }
 
 @utility btn-good {
-  background-color: #1A1716;
+  background-color: #161412;
   color: #6A994E;
   font-weight: 500;
   font-size: 0.875rem;
@@ -540,7 +540,7 @@
   box-shadow: 0 0 16px rgba(106, 153, 78, 0.1);
   &:hover {
     border-color: rgba(106, 153, 78, 0.4);
-    background-color: #1E1A18;
+    background-color: #1E1B18;
     box-shadow: 0 0 24px rgba(106, 153, 78, 0.18);
   }
   &:active {
@@ -549,7 +549,7 @@
 }
 
 @utility btn-easy {
-  background-color: #1A1716;
+  background-color: #161412;
   color: #D67D55;
   font-weight: 500;
   font-size: 0.875rem;
@@ -567,7 +567,7 @@
   gap: 0.25rem;
   &:hover {
     border-color: rgba(214, 125, 85, 0.3);
-    background-color: #1E1A18;
+    background-color: #1E1B18;
     box-shadow: 0 0 12px rgba(214, 125, 85, 0.1);
   }
   &:active {
@@ -608,7 +608,7 @@ html {
 
 .dark html,
 html:where(.dark) {
-  background: radial-gradient(circle at top, #1a120f 0%, #0b0b0b 60%);
+  background: radial-gradient(circle at top, #16120f 0%, #0C0B0A 60%);
   min-height: 100vh;
 }
 

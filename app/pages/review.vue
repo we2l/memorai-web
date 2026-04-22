@@ -113,9 +113,9 @@
 
     <!-- No cards -->
     <div v-else-if="!review.showErrorDiary" class="flex-1 flex flex-col items-center justify-center px-4 text-center">
-      <p class="text-base-secondary text-title">Nenhum card para revisar agora.</p>
-      <p class="text-base-muted text-small mt-1">Volte mais tarde ou crie novos cards.</p>
-      <NuxtLink to="/today" class="btn-primary mt-6">Voltar</NuxtLink>
+      <p class="text-base-secondary text-title">Tudo em dia! 🎉 Que tal gerar novos cards?</p>
+      <p class="text-base-muted text-small mt-1">Suba um PDF ou peça pra IA gerar.</p>
+      <NuxtLink to="/topics" class="btn-primary mt-6">Ir pra Tópicos</NuxtLink>
     </div>
 
     <!-- Error diary -->

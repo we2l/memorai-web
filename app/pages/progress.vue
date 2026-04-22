@@ -56,8 +56,8 @@
 
       <!-- Empty state -->
       <div v-if="!stats.reviewed_today && !stats.total_cards" class="card text-center py-10">
-        <p class="text-base-secondary">Comece criando decks e flashcards para ver suas estatísticas.</p>
-        <NuxtLink to="/topics" class="btn-primary mt-4 inline-flex">Criar primeiro tópico</NuxtLink>
+        <p class="text-base-secondary">Revise seus primeiros cards pra ver seu progresso aqui.</p>
+        <NuxtLink to="/review" class="btn-primary mt-4 inline-flex">Começar revisão</NuxtLink>
       </div>
     </template>
   </div>

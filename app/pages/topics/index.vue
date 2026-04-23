@@ -215,24 +215,71 @@
             </div>
           </div>
 
-          <div v-if="topicCards.length" class="space-y-1">
-            <div v-for="card in topicCards" :key="card.id" class="flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-surface-tertiary transition-colors group">
-              <span
-                class="w-2 h-2 rounded-full shrink-0"
-                :class="card.state === 'review' ? 'bg-success' : card.state === 'new' ? 'bg-[#6B7280]' : 'bg-warning'"
+          <div v-if="topicCards.length" class="space-y-3">
+            <!-- Search + filter bar -->
+            <div v-if="topicCards.length > 5" class="flex items-center gap-2 p-2 rounded-lg bg-surface-tertiary">
+              <Search :size="14" class="text-base-muted shrink-0" />
+              <input
+                v-model="cardSearch"
+                class="bg-transparent text-small text-base-primary outline-none flex-1 placeholder:text-base-muted"
+                placeholder="Buscar card..."
+                @keydown.stop
               />
-              <div class="text-small text-base-primary truncate flex-1 card-front-preview" v-html="card.front" />
-              <span class="text-micro text-base-muted shrink-0">{{ cardStateLabel(card.state) }}</span>
-              <button
-                class="text-base-muted hover:text-danger opacity-0 group-hover:opacity-100 transition-opacity p-0.5"
-                title="Excluir card"
-                @click="confirmDeleteCard(card.id)"
-              >
-                <Trash2 :size="14" />
-              </button>
+              <select v-model="cardFilter" class="bg-transparent text-small text-base-muted outline-none cursor-pointer" @keydown.stop>
+                <option value="">Todos</option>
+                <option value="new">Novos</option>
+                <option value="learning">Aprendendo</option>
+                <option value="review">Dominados</option>
+              </select>
+            </div>
+
+            <!-- Card list -->
+            <div class="space-y-1.5">
+              <div v-for="card in paginatedCards" :key="card.id" class="flex items-start gap-3 px-3 py-2 rounded-lg bg-surface-tertiary/50 hover:bg-surface-tertiary transition-colors group">
+                <span
+                  class="w-2 h-2 rounded-full shrink-0 mt-1.5"
+                  :class="card.state === 'review' ? 'bg-success' : card.state === 'new' ? 'bg-[#6B7280]' : 'bg-warning'"
+                />
+                <div class="flex-1 min-w-0">
+                  <div
+                    class="text-small text-base-primary card-front-preview"
+                    :class="!expandedCards[card.id] && 'line-clamp-2'"
+                    v-html="card.front"
+                  />
+                  <button
+                    v-if="isLongCard(card.front)"
+                    class="text-micro text-accent-primary hover:underline mt-0.5"
+                    @click="expandedCards[card.id] = !expandedCards[card.id]"
+                  >
+                    {{ expandedCards[card.id] ? 'Ocultar' : 'Ver mais' }}
+                  </button>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                  <span class="text-micro text-base-muted">{{ cardStateLabel(card.state) }}</span>
+                  <button
+                    class="text-base-muted hover:text-danger opacity-0 group-hover:opacity-100 transition-opacity p-0.5"
+                    title="Excluir card"
+                    @click="confirmDeleteCard(card.id)"
+                  >
+                    <Trash2 :size="14" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pagination -->
+            <div v-if="filteredCards.length > cardsPerPage" class="flex items-center justify-between p-2 rounded-lg bg-surface-tertiary">
+              <span class="text-small text-base-muted">
+                {{ (cardPage - 1) * cardsPerPage + 1 }}–{{ Math.min(cardPage * cardsPerPage, filteredCards.length) }} de {{ filteredCards.length }}
+              </span>
+              <div class="flex items-center gap-2">
+                <button class="btn-secondary !py-1 !px-3 !min-h-0 text-small" :disabled="cardPage <= 1" @click="cardPage--">← Anterior</button>
+                <span class="text-small text-base-muted">{{ cardPage }}/{{ totalCardPages }}</span>
+                <button class="btn-secondary !py-1 !px-3 !min-h-0 text-small" :disabled="cardPage >= totalCardPages" @click="cardPage++">Próximo →</button>
+              </div>
             </div>
           </div>
-          <div v-else class="text-small text-base-muted">
+          <div v-if="!topicCards.length" class="text-small text-base-muted">
             Gere cards com IA a partir do seu material.
           </div>
         </UiCollapsibleSection>
@@ -411,7 +458,7 @@
 </template>
 
 <script setup lang="ts">
-import { Plus, FilePlus, Zap, RotateCcw, Network, Trash2 } from 'lucide-vue-next'
+import { Plus, FilePlus, Zap, RotateCcw, Network, Trash2, Search } from 'lucide-vue-next'
 import type { Topic, Note } from '~/types'
 
 const topicStore = useTopicStore()
@@ -441,6 +488,37 @@ const showAddMenu = ref(false)
 const showCardForm = ref(false)
 const cardFormInitialFront = ref('')
 const docsInlineRef = ref<any>(null)
+const cardSearch = ref('')
+const cardFilter = ref('')
+const cardPage = ref(1)
+const cardsPerPage = 10
+const expandedCards = ref<Record<string, boolean>>({})
+
+function isLongCard(html: string): boolean {
+  const text = html?.replace(/<[^>]*>/g, '') ?? ''
+  return text.length > 100
+}
+
+const filteredCards = computed(() => {
+  let cards = topicCards.value
+  if (cardSearch.value.trim()) {
+    const q = cardSearch.value.toLowerCase()
+    cards = cards.filter(c => c.front?.toLowerCase().includes(q))
+  }
+  if (cardFilter.value) {
+    cards = cards.filter(c => c.state === cardFilter.value)
+  }
+  return cards
+})
+
+const totalCardPages = computed(() => Math.ceil(filteredCards.value.length / cardsPerPage))
+
+watch([cardSearch, cardFilter], () => { cardPage.value = 1 })
+
+const paginatedCards = computed(() => {
+  const start = (cardPage.value - 1) * cardsPerPage
+  return filteredCards.value.slice(start, start + cardsPerPage)
+})
 const newTopicName = ref('')
 const editTopicName = ref('')
 const createParentId = ref<string | null>(null)
@@ -526,6 +604,9 @@ function saveTitle() {
 function selectTopic(id: string) {
   flushPendingSave()
   selectedTopicId.value = id
+  cardSearch.value = ''
+  cardFilter.value = ''
+  cardPage.value = 1
   noteStore.current = null
   noteStore.fetchForTopic(id)
   loadTopicData(id)
@@ -751,7 +832,7 @@ function openNoteToCard() {
   }
 }
 
-async function handleAiGenerate(source: string, quantity: number, documentId?: string) {
+async function handleAiGenerate(source: string, quantity: number, documentIdOrPrompt?: string) {
   if (!selectedTopicId.value) return
 
   // Need a deck_id — use the deck of existing cards in this topic, or first deck
@@ -775,7 +856,8 @@ async function handleAiGenerate(source: string, quantity: number, documentId?: s
         deck_id: deckId,
         source,
         count: quantity,
-        document_id: documentId,
+        document_id: source === 'pdf' ? documentIdOrPrompt : undefined,
+        prompt: source === 'free' ? documentIdOrPrompt : undefined,
       },
     })
     const cards = res.data?.cards ?? []

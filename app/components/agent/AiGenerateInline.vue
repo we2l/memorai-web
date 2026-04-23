@@ -8,7 +8,7 @@
     <Transition name="fade">
       <div
         v-if="showPopover"
-        class="absolute top-full left-0 mt-2 w-64 bg-overlay border border-base rounded-lg p-3 shadow-lg z-20"
+        class="absolute right-0 top-full mt-2 w-64 bg-overlay border border-base rounded-lg p-3 shadow-lg z-20"
       >
         <p class="text-micro text-base-muted mb-2">De onde?</p>
         <div class="space-y-1.5 mb-3">
@@ -42,9 +42,17 @@
             <option v-for="n in 10" :key="n" :value="n">{{ n }}</option>
           </select>
         </div>
+        <div v-if="selectedSource === 'free'" class="mb-3">
+          <input
+            v-model="freePrompt"
+            class="input-base w-full !text-small"
+            placeholder="Ex: Direito Constitucional — Art. 5º"
+            @keydown.stop
+          />
+        </div>
         <div class="flex gap-2">
           <button class="btn-secondary !py-1 !px-2.5 !min-h-0 text-micro flex-1" @click="showPopover = false">Cancelar</button>
-          <button class="btn-primary !py-1 !px-2.5 !min-h-0 text-micro flex-1" :disabled="!selectedSource" @click="generate">Gerar</button>
+          <button class="btn-primary !py-1 !px-2.5 !min-h-0 text-micro flex-1" :disabled="!canGenerate" @click="generate">Gerar</button>
         </div>
       </div>
     </Transition>
@@ -61,12 +69,19 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  generate: [source: string, quantity: number]
+  generate: [source: string, quantity: number, prompt?: string]
 }>()
 
 const showPopover = ref(false)
 const selectedSource = ref<string>('')
 const quantity = ref(5)
+const freePrompt = ref('')
+
+const canGenerate = computed(() => {
+  if (!selectedSource.value) return false
+  if (selectedSource.value === 'free' && !freePrompt.value.trim()) return false
+  return true
+})
 
 function handleClick() {
   // Inference: if only one source, skip popover
@@ -85,6 +100,6 @@ function handleClick() {
 
 function generate() {
   showPopover.value = false
-  emit('generate', selectedSource.value, quantity.value)
+  emit('generate', selectedSource.value, quantity.value, freePrompt.value)
 }
 </script>

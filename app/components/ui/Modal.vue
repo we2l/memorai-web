@@ -7,7 +7,7 @@
         @click.self="close"
       >
         <div
-          class="card w-full mx-4 p-6"
+          class="card w-full mx-4 p-6 max-h-[90vh] overflow-y-auto"
           :class="sizeClass"
           :role="role"
           :aria-label="ariaLabel"
@@ -22,7 +22,7 @@
 <script setup lang="ts">
 const props = withDefaults(defineProps<{
   modelValue: boolean
-  size?: 'sm' | 'md' | 'lg'
+  size?: 'sm' | 'md' | 'lg' | 'xl'
   role?: string
   ariaLabel?: string
 }>(), {
@@ -37,6 +37,7 @@ const sizeClass = computed(() => ({
   sm: 'max-w-sm',
   md: 'max-w-lg',
   lg: 'max-w-2xl',
+  xl: 'max-w-4xl',
 }[props.size]))
 
 function close() {

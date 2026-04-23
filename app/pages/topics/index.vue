@@ -125,12 +125,13 @@
               placeholder="Título da nota"
               @blur="saveTitle"
             />
-            <div class="max-h-[400px] overflow-y-auto">
+            <div class="max-h-[400px] overflow-y-auto relative">
               <TopicNoteEditor v-model="noteContent" @update:model-value="debouncedSave" />
+              <UiSelectionToolbar @create-card="openNoteToCard" @ask-ai="askAiAboutSelection" />
             </div>
             <div class="flex items-center justify-between mt-3 pt-3 border-t border-base">
               <div class="flex items-center gap-2">
-                <button class="btn-secondary !py-1 !px-2.5 !min-h-0 text-micro" @click="openNoteToCard">
+                <button class="btn-secondary !py-1 !px-2.5 !min-h-0 text-micro" @click="openNoteToCard" title="Selecione um trecho da nota antes, ou crie do zero">
                   <Zap :size="14" /> Criar card
                 </button>
                 <button class="text-micro text-accent-primary hover:underline" @click="openChatForNote">
@@ -150,6 +151,7 @@
               ref="docsInlineRef"
               :topic-id="selectedTopicId"
               @generate-from-pdf="(docId: string) => handleAiGenerate('pdf', 5, docId)"
+              @chat-about-pdf="openChatForPdf"
             />
           </div>
         </UiCollapsibleSection>
@@ -161,10 +163,35 @@
               :has-documents="docsInlineRef?.documents?.length > 0"
               @generate="handleAiGenerate"
             />
-            <button class="btn-secondary !py-1 !px-2.5 !min-h-0 text-micro" @click="openNoteToCard">
-              <Plus :size="14" /> Criar
-            </button>
           </template>
+
+          <!-- Progress + weak cards CTA -->
+          <div v-if="topicCards.length" class="mb-3 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-24 h-2 rounded-full bg-surface-tertiary">
+                <div
+                  class="h-2 rounded-full transition-all"
+                  :class="memorizeProgress < 30 ? 'bg-danger' : memorizeProgress < 70 ? 'bg-warning' : 'bg-success'"
+                  :style="{ width: memorizeProgress + '%' }"
+                />
+              </div>
+              <span class="text-micro text-base-muted">{{ memorizeProgress }}% dominado</span>
+            </div>
+            <NuxtLink
+              v-if="weakCardsCount > 0"
+              :to="`/review?topic_id=${selectedTopicId}&errors_only=1`"
+              class="text-micro text-accent-primary hover:underline"
+            >
+              {{ weakCardsCount }} cards fracos → Revisar
+            </NuxtLink>
+          </div>
+
+          <!-- Create card button -->
+          <div class="mb-3">
+            <button class="btn-secondary !py-1 !px-2.5 !min-h-0 text-micro" @click="showCardForm = true">
+              <Plus :size="14" /> Criar card manualmente
+            </button>
+          </div>
 
           <!-- AI generated cards pending acceptance -->
           <div v-if="generatedCards.length" class="mb-4">
@@ -189,13 +216,20 @@
           </div>
 
           <div v-if="topicCards.length" class="space-y-1">
-            <div v-for="card in topicCards" :key="card.id" class="flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-surface-tertiary transition-colors">
+            <div v-for="card in topicCards" :key="card.id" class="flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-surface-tertiary transition-colors group">
               <span
                 class="w-2 h-2 rounded-full shrink-0"
                 :class="card.state === 'review' ? 'bg-success' : card.state === 'new' ? 'bg-[#6B7280]' : 'bg-warning'"
               />
               <div class="text-small text-base-primary truncate flex-1 card-front-preview" v-html="card.front" />
               <span class="text-micro text-base-muted shrink-0">{{ cardStateLabel(card.state) }}</span>
+              <button
+                class="text-base-muted hover:text-danger opacity-0 group-hover:opacity-100 transition-opacity p-0.5"
+                title="Excluir card"
+                @click="confirmDeleteCard(card.id)"
+              >
+                <Trash2 :size="14" />
+              </button>
             </div>
           </div>
           <div v-else class="text-small text-base-muted">
@@ -357,12 +391,27 @@
       @created="onCardCreated"
     />
 
+    <UiConfirmModal
+      v-model="showDeleteCard"
+      title="Excluir card?"
+      message="O card será removido permanentemente."
+      confirm-label="Excluir"
+      @confirm="handleDeleteCard"
+    />
+
+    <FlashcardCardFormModal
+      v-model="showCardForm"
+      :topic-id="selectedTopicId ?? undefined"
+      :initial-front="cardFormInitialFront"
+      @created="onCardCreated"
+    />
+
     <TopicGraphOverlay v-model="showGraph" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { Plus, FilePlus, Zap, RotateCcw, Network } from 'lucide-vue-next'
+import { Plus, FilePlus, Zap, RotateCcw, Network, Trash2 } from 'lucide-vue-next'
 import type { Topic, Note } from '~/types'
 
 const topicStore = useTopicStore()
@@ -389,6 +438,8 @@ const showDeleteTopic = ref(false)
 const showNoteToCard = ref(false)
 const showGraph = ref(false)
 const showAddMenu = ref(false)
+const showCardForm = ref(false)
+const cardFormInitialFront = ref('')
 const docsInlineRef = ref<any>(null)
 const newTopicName = ref('')
 const editTopicName = ref('')
@@ -410,6 +461,16 @@ const selectedTopicName = computed(() => {
 
 const topicProgress = computed(() => {
   return selectedTopicId.value ? (progressMap.value[selectedTopicId.value] ?? 0) : 0
+})
+
+const memorizeProgress = computed(() => {
+  if (!topicCards.value.length) return 0
+  const mastered = topicCards.value.filter(c => c.state === 'review').length
+  return Math.round((mastered / topicCards.value.length) * 100)
+})
+
+const weakCardsCount = computed(() => {
+  return topicCards.value.filter(c => c.state !== 'review' && c.state !== 'new').length
 })
 
 const subTopics = computed(() => {
@@ -530,6 +591,31 @@ function cardStateLabel(state: string): string {
   return map[state] ?? state
 }
 
+async function deleteCard(cardId: string) {
+  try {
+    await $api(`/flashcards/${cardId}`, { method: 'DELETE' })
+    topicCards.value = topicCards.value.filter(c => c.id !== cardId)
+    toast.show('Card excluído.', 'success')
+  } catch {
+    toast.show('Erro ao excluir card.', 'error')
+  }
+}
+
+const showDeleteCard = ref(false)
+const deleteCardId = ref<string | null>(null)
+
+function confirmDeleteCard(id: string) {
+  deleteCardId.value = id
+  showDeleteCard.value = true
+}
+
+async function handleDeleteCard() {
+  if (!deleteCardId.value) return
+  await deleteCard(deleteCardId.value)
+  deleteCardId.value = null
+  showDeleteCard.value = false
+}
+
 function selectNote(note: Note) {
   flushPendingSave()
   noteStore.current = note
@@ -559,7 +645,33 @@ function openCreate(parentId: string | null) {
 
 function openChatForNote() {
   const chat = useChatStore()
+  const note = noteStore.current
+  chat.newConversation()
   chat.open({ topicId: selectedTopicId.value ?? undefined, source: 'note_help' })
+  if (note) {
+    const title = note.title || 'minha nota'
+    nextTick(() => {
+      chat.sendMessage(`Me ajuda a melhorar essa nota "${title}"`)
+    })
+  }
+}
+
+function askAiAboutSelection() {
+  const sel = window.getSelection()?.toString().trim()
+  if (!sel) return
+  const chat = useChatStore()
+  chat.newConversation()
+  chat.open({ topicId: selectedTopicId.value ?? undefined, source: 'note_help' })
+  nextTick(() => {
+    chat.sendMessage(`Me explica isso: "${sel}"`)
+  })
+}
+
+function openChatForPdf(docId: string) {
+  const chat = useChatStore()
+  console.log('openChatForPdf', docId, 'isOpen before:', chat.isOpen)
+  chat.open({ topicId: selectedTopicId.value ?? undefined, documentId: docId, source: 'pdf_summary' })
+  console.log('isOpen after:', chat.isOpen)
 }
 
 function triggerPdfUpload() {
@@ -606,11 +718,37 @@ async function handleDeleteTopic() {
   toast.show('Tópico deletado.', 'success')
 }
 
+function extractTextFromTiptap(doc: any): string {
+  if (!doc) return ''
+  if (typeof doc === 'string') return doc
+  let text = ''
+  if (doc.text) text += doc.text
+  if (doc.content) {
+    for (const node of doc.content) {
+      text += extractTextFromTiptap(node)
+      if (node.type === 'paragraph' || node.type === 'heading') text += '\n'
+    }
+  }
+  return text.trim()
+}
+
+function getEditorHtml(): string {
+  // Get HTML from the Tiptap editor DOM
+  const el = document.querySelector('.ProseMirror')
+  return el?.innerHTML ?? ''
+}
+
 function openNoteToCard() {
   if (import.meta.client) {
-    selectedText.value = window.getSelection()?.toString() ?? ''
+    const current = window.getSelection()?.toString()?.trim() ?? ''
+    if (current) {
+      selectedText.value = current
+      showNoteToCard.value = true
+    } else {
+      cardFormInitialFront.value = getEditorHtml()
+      showCardForm.value = true
+    }
   }
-  showNoteToCard.value = true
 }
 
 async function handleAiGenerate(source: string, quantity: number, documentId?: string) {

@@ -1,10 +1,14 @@
 <template>
   <div class="border-b border-base">
-    <button
-      class="flex items-center justify-between w-full px-4 py-3 text-left group"
+    <div
+      class="flex items-center justify-between w-full px-4 py-3 text-left group cursor-pointer"
+      role="button"
+      tabindex="0"
       :aria-expanded="isOpen"
       :aria-controls="`section-${id}`"
       @click="toggle"
+      @keydown.enter="toggle"
+      @keydown.space.prevent="toggle"
     >
       <div class="flex items-center gap-2">
         <ChevronRight
@@ -22,7 +26,7 @@
       <div class="flex items-center gap-2" @click.stop>
         <slot name="actions" />
       </div>
-    </button>
+    </div>
     <div
       :id="`section-${id}`"
       class="grid transition-[grid-template-rows] duration-150"

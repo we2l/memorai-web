@@ -28,7 +28,7 @@
         <button
           v-if="doc.status === 'completed'"
           class="text-micro text-accent-primary hover:underline shrink-0 ml-1"
-          @click="openChatForPdf(doc.id)"
+          @click="$emit('chatAboutPdf', doc.id)"
         >
           ✨ Resumir
         </button>
@@ -52,7 +52,7 @@ import { Upload } from 'lucide-vue-next'
 import type { Document } from '~/types'
 
 const props = defineProps<{ topicId: string }>()
-defineEmits<{ generateFromPdf: [documentId: string] }>()
+defineEmits<{ generateFromPdf: [documentId: string]; chatAboutPdf: [documentId: string] }>()
 
 const { $api } = useNuxtApp()
 const toast = useToast()
@@ -63,11 +63,6 @@ const uploadProgress = ref(0)
 
 function statusLabel(s: string) {
   return { pending: 'Aguardando...', processing: 'Processando...', completed: '✅ Pronto', failed: '❌ Erro' }[s] || s
-}
-
-function openChatForPdf(docId: string) {
-  const chat = useChatStore()
-  chat.open({ topicId: props.topicId, documentId: docId, source: 'pdf_summary' })
 }
 
 async function fetchDocuments() {

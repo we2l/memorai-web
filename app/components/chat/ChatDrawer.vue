@@ -92,8 +92,8 @@
               class="max-w-[85%] rounded-2xl px-3.5 py-2.5 text-small"
               :class="msg.role === 'user'
                 ? 'bg-accent-primary text-white rounded-br-md'
-                : 'bg-surface-tertiary text-base-primary rounded-bl-md'"
-              v-html="msg.content"
+                : 'bg-surface-tertiary text-base-primary rounded-bl-md prose-chat'"
+              v-html="msg.role === 'assistant' ? marked.parse(msg.content) : msg.content"
             />
           </div>
 
@@ -143,6 +143,9 @@
 
 <script setup lang="ts">
 import { X, Plus, Send, MessageCircle, Clock } from 'lucide-vue-next'
+import { marked } from 'marked'
+
+marked.setOptions({ breaks: true })
 
 const chat = useChatStore()
 const message = ref('')
@@ -159,9 +162,9 @@ const contextLabel = computed(() => {
 
 const followUpChips = computed(() => {
   if (chat.currentContext.source === 'review_error') {
-    return ['Criar card de reforço', 'Explicar como mnemônico', 'Quais exceções?']
+    return ['Sugerir cards de reforço', 'Explicar de outro jeito', 'Dar um exemplo']
   }
-  return ['Criar card sobre isso', 'Explicar de outro jeito', 'Aprofundar']
+  return ['Sugerir cards sobre isso', 'Explicar de outro jeito', 'Aprofundar']
 })
 
 function sendChip(text: string) {
@@ -242,4 +245,11 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
 .fade-leave-to {
   opacity: 0;
 }
+
+.prose-chat :deep(p) { margin: 0.25em 0; }
+.prose-chat :deep(strong) { font-weight: 600; }
+.prose-chat :deep(ul), .prose-chat :deep(ol) { padding-left: 1.2em; margin: 0.25em 0; }
+.prose-chat :deep(li) { margin: 0.1em 0; }
+.prose-chat :deep(code) { background: rgba(255,255,255,0.1); padding: 0.1em 0.3em; border-radius: 3px; font-size: 0.85em; }
+.prose-chat :deep(pre) { background: rgba(0,0,0,0.2); padding: 0.5em; border-radius: 6px; overflow-x: auto; margin: 0.5em 0; }
 </style>

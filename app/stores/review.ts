@@ -19,6 +19,7 @@ export const useReviewStore = defineStore('review', {
     lastReviewId: null as string | null,
     showErrorDiary: false,
     _tick: 0,
+    _pendingAdvance: null as (() => void) | null,
   }),
 
   getters: {
@@ -116,28 +117,36 @@ export const useReviewStore = defineStore('review', {
         const wasFromLearningQueue = this.learningQueue.some(q => q.card.id === card.id)
         this.learningQueue = this.learningQueue.filter(q => q.card.id !== card.id)
 
-        // Advance main queue index only if card came from main queue (not learning)
-        if (!wasFromLearningQueue) {
-          this.currentIndex++
+        // Build advance function
+        const doAdvance = () => {
+          if (!wasFromLearningQueue) {
+            this.currentIndex++
+          }
+
+          const hasMoreMainCards = this.currentIndex < this.cards.length
+
+          if (updatedCard.is_learning) {
+            const dueAt = updatedCard.due ? new Date(updatedCard.due).getTime() : Date.now() + 60000
+            this.learningQueue.push({ card: updatedCard, dueAt })
+          }
+
+          if (!hasMoreMainCards) {
+            this.learningQueue = this.learningQueue.map(item => ({
+              ...item,
+              dueAt: Date.now(),
+            }))
+          }
+
+          this.flipped = false
+          this.checkFinished()
         }
 
-        const hasMoreMainCards = this.currentIndex < this.cards.length
-
-        if (updatedCard.is_learning) {
-          const dueAt = updatedCard.due ? new Date(updatedCard.due).getTime() : Date.now() + 60000
-          this.learningQueue.push({ card: updatedCard, dueAt })
+        // If error diary shown, delay advance until dismissed
+        if (this.showErrorDiary) {
+          this._pendingAdvance = doAdvance
+        } else {
+          doAdvance()
         }
-
-        // Learn ahead: if no more main cards, show all learning cards immediately
-        if (!hasMoreMainCards) {
-          this.learningQueue = this.learningQueue.map(item => ({
-            ...item,
-            dueAt: Date.now(),
-          }))
-        }
-
-        this.flipped = false
-        this.checkFinished()
       } finally {
         this.submitting = false
       }

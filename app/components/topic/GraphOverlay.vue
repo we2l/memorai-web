@@ -36,8 +36,20 @@
             v-model="searchQuery"
             class="input-base w-full !text-small shadow-lg"
             placeholder="Buscar tópico..."
-            @input="handleSearch"
           />
+          <div v-if="searchQuery.trim() && searchResults.length" class="mt-1 bg-surface-secondary border border-base rounded-lg shadow-lg max-h-48 overflow-y-auto">
+            <button
+              v-for="node in searchResults"
+              :key="node.id"
+              class="w-full text-left px-3 py-2 text-small hover:bg-surface-tertiary transition-colors truncate"
+              @click="selectSearchResult(node.id)"
+            >
+              {{ node.name }}
+            </button>
+          </div>
+          <div v-else-if="searchQuery.trim().length >= 2 && !searchResults.length" class="mt-1 bg-surface-secondary border border-base rounded-lg shadow-lg px-3 py-2">
+            <p class="text-micro text-base-muted">Nenhum tópico encontrado</p>
+          </div>
         </div>
 
         <!-- Connect mode banner -->
@@ -172,9 +184,18 @@ function recenter() {
 }
 
 function handleSearch() {
-  if (!searchQuery.value.trim()) return
-  const node = graphStore.data?.nodes.find(n => n.name.toLowerCase().includes(searchQuery.value.toLowerCase()))
-  if (node) graphStore.fetchNodeDetails(node.id)
+  // replaced by computed searchResults
+}
+
+const searchResults = computed(() => {
+  const q = searchQuery.value.trim().toLowerCase()
+  if (q.length < 2) return []
+  return (graphStore.data?.nodes ?? []).filter(n => n.name.toLowerCase().includes(q))
+})
+
+function selectSearchResult(id: string) {
+  graphStore.fetchNodeDetails(id)
+  searchQuery.value = ''
 }
 
 function startConnectMode() { connectMode.value = true; connectSource.value = null; connectTarget.value = null }

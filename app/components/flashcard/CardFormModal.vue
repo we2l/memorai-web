@@ -1,5 +1,5 @@
 <template>
-  <UiModal v-model="open" size="lg" :aria-label="isEdit ? 'Editar flashcard' : 'Adicionar flashcard'">
+  <UiModal v-model="open" size="xl" :aria-label="isEdit ? 'Editar flashcard' : 'Adicionar flashcard'">
     <div class="flex gap-6 min-h-[480px]">
       <!-- Form -->
       <div class="flex-1 flex flex-col min-w-0">
@@ -78,7 +78,7 @@
       </div>
 
       <!-- Preview -->
-      <div class="hidden md:flex flex-col items-center w-72 shrink-0 pt-10">
+      <div class="hidden md:flex flex-col items-center w-80 shrink-0 pt-10">
         <p class="text-label mb-3">Preview</p>
         <!-- Cloze index selector -->
         <div v-if="hasCloze && clozeIndices.length > 1" class="flex gap-1 mb-3">
@@ -98,13 +98,13 @@
             <div class="card-face card-front" @click="flipPreview">
               <div class="card-body">
                 <p class="text-micro text-base-muted mb-2 uppercase tracking-wider">{{ selectedDeckName || 'Deck' }}</p>
-                <div class="text-base-primary leading-relaxed break-words preview-content" v-html="frontPreview" />
+                <div class="text-base-primary leading-relaxed break-words preview-content max-h-[250px] overflow-y-auto" v-html="frontPreview" />
               </div>
             </div>
             <div class="card-face card-back" @click="flipPreview">
               <div class="card-body">
                 <p class="text-micro text-base-muted mb-2 uppercase tracking-wider">Resposta</p>
-                <div class="text-base-primary leading-relaxed break-words preview-content" v-html="backPreview" />
+                <div class="text-base-primary leading-relaxed break-words preview-content max-h-[250px] overflow-y-auto" v-html="backPreview" />
               </div>
             </div>
           </div>

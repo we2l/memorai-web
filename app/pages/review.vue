@@ -59,7 +59,7 @@
       <div v-if="topErrorTopic" class="mt-6 card border border-warning/30 max-w-sm">
         <p class="text-small text-base-primary">Você errou {{ topErrorTopic.count }}x em "{{ topErrorTopic.name }}".</p>
         <div class="flex gap-2 mt-3 justify-center">
-          <NuxtLink :to="`/review?topic_id=${topErrorTopic.id}&errors_only=1`" class="btn-primary !py-1.5 !px-3 !min-h-0 text-small">
+          <NuxtLink :to="`/review?topic_id=${topErrorTopic.id}&errors_only=1&t=${Date.now()}`" class="btn-primary !py-1.5 !px-3 !min-h-0 text-small">
             Reforçar
           </NuxtLink>
           <NuxtLink to="/today" class="btn-secondary !py-1.5 !px-3 !min-h-0 text-small">
@@ -138,8 +138,8 @@
         :visible="true"
         :flashcard-id="lastErrorCardId"
         :review-id="review.lastReviewId ?? ''"
-        @saved="review.showErrorDiary = false"
-        @skipped="review.showErrorDiary = false"
+        @saved="dismissErrorDiary"
+        @skipped="dismissErrorDiary"
       />
       <!-- Note snippet (reverse linking) -->
       <div v-if="review.noteSnippet" class="mt-4 w-full max-w-md p-3 rounded-lg bg-accent-primary-subtle border border-accent-primary/20">
@@ -186,6 +186,7 @@ const chat = useChatStore()
 const route = useRoute()
 const toast = useToast()
 const lastErrorCardId = ref('')
+const lastErrorCard = ref<any>(null)
 const cardFeedback = ref<'success' | 'error' | null>(null)
 const correctStreak = ref(0)
 const rewardMessage = ref('')
@@ -201,6 +202,7 @@ const topErrorTopic = computed(() => {
 
 async function handleRate(rating: number) {
   const cardId = review.currentCard?.id ?? ''
+  const cardSnapshot = review.currentCard ? { ...review.currentCard } : null
 
   // Micro feedback
   cardFeedback.value = rating >= 3 ? 'success' : 'error'
@@ -236,8 +238,9 @@ async function handleRate(rating: number) {
 
   try {
     await review.submitReview(rating as 1 | 2 | 3 | 4)
-    if (rating === 1) {
+    if (rating <= 2) {
       lastErrorCardId.value = cardId
+      lastErrorCard.value = cardSnapshot
     }
     if (!review.showErrorDiary && (review.finished || (!review.currentCard && review.pendingLearning > 0))) {
       toast.show('Sessão concluída! 🎉', 'success')
@@ -248,6 +251,7 @@ async function handleRate(rating: number) {
 }
 
 async function loadSession() {
+  errorsByTopic.value = {}
   const deckId = route.query.deck_id as string | undefined
   const topicId = route.query.topic_id as string | undefined
   const errorsOnly = route.query.errors_only === '1'
@@ -290,15 +294,31 @@ function continueAfterTimer() {
   showTimerModal.value = false
 }
 
+function dismissErrorDiary() {
+  review.showErrorDiary = false
+  if (review._pendingAdvance) {
+    review._pendingAdvance()
+    review._pendingAdvance = null
+  }
+}
+
 function openChatForError() {
-  const card = review.currentCard
+  const card = lastErrorCard.value
   if (!card) return
+  chat.newConversation()
   chat.open({
     cardId: card.id,
     cardFront: card.front,
     topicId: card.topic_id,
     source: 'review_error',
   })
+  nextTick(() => {
+    chat.sendMessage(`Me explica esse card que errei: "${stripHtml(card.front)}"`)
+  })
+}
+
+function stripHtml(html: string): string {
+  return html?.replace(/<[^>]*>/g, '').trim() ?? ''
 }
 
 function formatTimer(seconds: number): string {

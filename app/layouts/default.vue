@@ -24,8 +24,8 @@
       :visible="toast.state.visible"
     />
 
-    <ChatChatDrawer />
-    <ChatChatFab />
+    <ChatDrawer />
+    <ChatFab />
 
     <UiUpgradeModal
       v-model="showUpgrade"

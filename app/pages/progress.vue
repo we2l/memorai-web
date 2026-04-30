@@ -1,5 +1,5 @@
 <template>
-  <div class="p-6 max-w-5xl mx-auto">
+  <div class="p-4 sm:p-6 pb-20 lg:pb-6 max-w-5xl mx-auto">
     <h1 class="text-display mb-8">Progresso</h1>
 
     <!-- Loading -->

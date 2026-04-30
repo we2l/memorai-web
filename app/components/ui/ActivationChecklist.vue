@@ -28,7 +28,7 @@ const props = defineProps<{
 }>()
 
 const items = computed(() => [
-  { key: 'topic', label: 'Criar um tópico', done: props.hasTopics },
+  { key: 'topic', label: 'Criar um caderno', done: props.hasTopics },
   { key: 'material', label: 'Adicionar material (nota ou PDF)', done: props.hasMaterial },
   { key: 'cards', label: 'Gerar ou criar cards', done: props.hasCards },
   { key: 'review', label: 'Fazer primeira revisão', done: props.hasReviewed },

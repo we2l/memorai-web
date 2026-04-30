@@ -29,21 +29,21 @@
           </div>
           <div class="flex items-center gap-2">
             <button
-              class="p-1.5 rounded-lg text-base-muted hover:text-base-secondary hover:bg-surface-tertiary transition-colors"
+              class="p-2.5 rounded-lg text-base-muted hover:text-base-secondary hover:bg-surface-tertiary transition-colors"
               title="Histórico"
               @click="showHistory = !showHistory"
             >
               <Clock :size="16" />
             </button>
             <button
-              class="p-1.5 rounded-lg text-base-muted hover:text-base-secondary hover:bg-surface-tertiary transition-colors"
+              class="p-2.5 rounded-lg text-base-muted hover:text-base-secondary hover:bg-surface-tertiary transition-colors"
               title="Nova conversa"
               @click="chat.newConversation()"
             >
               <Plus :size="16" />
             </button>
             <button
-              class="p-1.5 rounded-lg text-base-muted hover:text-base-secondary hover:bg-surface-tertiary transition-colors"
+              class="p-2.5 rounded-lg text-base-muted hover:text-base-secondary hover:bg-surface-tertiary transition-colors"
               aria-label="Fechar chat"
               @click="chat.close()"
             >
@@ -102,7 +102,7 @@
             <button
               v-for="chip in followUpChips"
               :key="chip"
-              class="px-2.5 py-1 rounded-full text-micro bg-accent-primary-subtle text-accent-primary hover:bg-accent-primary hover:text-white transition-colors"
+              class="px-3 py-2 rounded-full text-small bg-accent-primary-subtle text-accent-primary hover:bg-accent-primary hover:text-white transition-colors"
               @click="sendChip(chip)"
             >
               {{ chip }}

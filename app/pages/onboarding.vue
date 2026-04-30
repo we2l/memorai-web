@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-surface flex items-center justify-center p-6">
+  <div class="min-h-screen bg-surface flex items-center justify-center p-4 sm:p-6">
     <div class="w-full max-w-md">
       <!-- Progress dots -->
       <div class="flex justify-center gap-2 mb-8">
@@ -40,7 +40,7 @@
             <span class="text-2xl">✏️</span>
             <div class="text-left">
               <p class="text-small font-medium text-base-primary">Criar do zero</p>
-              <p class="text-micro text-base-muted">Criar tópico e cards manualmente</p>
+              <p class="text-micro text-base-muted">Criar caderno e cards manualmente</p>
             </div>
           </button>
         </div>
@@ -96,14 +96,18 @@
 
       <!-- Step 2: Ready -->
       <div v-else class="text-center">
-        <p class="text-4xl mb-4">✨</p>
-        <h1 class="text-display mb-2">{{ resultMessage }}</h1>
-        <p class="text-base-muted text-small mb-6">Comece a revisar e o Memorai adapta ao seu ritmo.</p>
+        <p class="text-4xl mb-4">{{ pdfProcessing ? '⏳' : '✨' }}</p>
+        <h1 class="text-display mb-2">{{ pdfProcessing ? 'Seu caderno foi criado!' : resultMessage }}</h1>
+        <p v-if="pdfProcessing" class="text-base-muted text-small mb-6">O PDF está sendo processado em segundo plano. Você pode explorar o app enquanto isso.</p>
+        <p v-else class="text-base-muted text-small mb-6">Comece a revisar e o Memorai adapta ao seu ritmo.</p>
 
-        <NuxtLink to="/review" class="btn-primary glow-primary w-full justify-center" @click="completeOnboarding">
-          Começar revisão →
-        </NuxtLink>
-        <button class="btn-secondary w-full mt-3 justify-center" @click="goToToday">
+        <button class="btn-primary glow-primary w-full justify-center" @click="finishAndGo('/review')">
+          {{ pdfProcessing ? 'Explorar o app →' : 'Começar revisão →' }}
+        </button>
+        <button v-if="createdTopicId" class="btn-secondary w-full mt-3 justify-center" @click="finishAndGo(`/topics?topic=${createdTopicId}`)">
+          Ver caderno
+        </button>
+        <button v-else class="btn-secondary w-full mt-3 justify-center" @click="finishAndGo('/today')">
           Explorar primeiro
         </button>
       </div>
@@ -130,10 +134,14 @@ const manualBack = ref('')
 const generating = ref(false)
 const generatedCount = ref(0)
 const loadingMessage = ref('Processando...')
+const createdTopicId = ref('')
+const createdTopicName = ref('')
+const pdfProcessing = ref(false)
 
 const resultMessage = computed(() => {
-  if (path.value === 'manual') return 'Seu primeiro card está pronto!'
-  return `Seus ${generatedCount.value} cards estão prontos!`
+  const name = createdTopicName.value
+  if (path.value === 'manual') return `Seu primeiro card está pronto${name ? ` em ${name}` : ''}!`
+  return `Seus ${generatedCount.value} cards estão prontos${name ? ` em ${name}` : ''}!`
 })
 
 async function handlePdf(e: Event) {
@@ -145,10 +153,15 @@ async function handlePdf(e: Event) {
 
   try {
     const topicName = file.name.replace(/\.pdf$/i, '')
-    const deckRes = await $api<any>('/decks', { method: 'POST', body: { name: topicName } })
-    const deckId = deckRes.data.id
     const topicRes = await $api<any>('/topics', { method: 'POST', body: { name: topicName } })
     const topicId = topicRes.data.id
+    createdTopicId.value = topicId
+    createdTopicName.value = topicName
+
+    // Resolve deck from topic
+    const deckStore = useDeckStore()
+    if (!deckStore.decks.length) await deckStore.fetchDecks()
+    const deckId = deckStore.decks[0]?.id
 
     const config = useRuntimeConfig()
     const token = useCookie('auth_token').value
@@ -167,35 +180,35 @@ async function handlePdf(e: Event) {
       xhr.send(formData)
     })
 
-    loadingMessage.value = 'Processando conteúdo...'
+    // Go to step 2 immediately — processing happens in background
+    generatedCount.value = 0
+    pdfProcessing.value = true
+    step.value = 2
+
+    // Background: poll for processing, then generate cards
     const docId = docRes.data.id
     let ready = false
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 60; i++) {
       await new Promise(r => setTimeout(r, 3000))
       const status = await $api<any>(`/documents/${docId}`)
       if (status.data.status === 'completed') { ready = true; break }
       if (status.data.status === 'failed') break
     }
 
-    if (!ready) {
-      toast.show('PDF ainda processando. Gere cards depois no tópico.', 'error')
-      generatedCount.value = 0
-      step.value = 2
-      return
+    if (ready) {
+      try {
+        const genRes = await $api<any>('/ai/generate-cards', {
+          method: 'POST',
+          body: { source: 'pdf', document_id: docId, topic_id: topicId, count: 5 },
+        })
+        const cards = genRes.data?.cards ?? []
+        if (cards.length) {
+          await $api('/ai/accept-cards', { method: 'POST', body: { cards: cards.map((c: any) => ({ ...c, topic_id: topicId })) } })
+        }
+        generatedCount.value = cards.length
+      } catch {}
     }
-
-    loadingMessage.value = 'Gerando cards com IA...'
-    const genRes = await $api<any>('/ai/generate-cards', {
-      method: 'POST',
-      body: { source: 'pdf', deck_id: deckId, document_id: docId, topic_id: topicId, count: 5 },
-    })
-
-    const cards = genRes.data?.cards ?? []
-    if (cards.length) {
-      await $api('/ai/accept-cards', { method: 'POST', body: { deck_id: deckId, cards: cards.map((c: any) => ({ ...c, topic_id: topicId })) } })
-    }
-    generatedCount.value = cards.length
-    step.value = 2
+    pdfProcessing.value = false
   } catch {
     toast.show('Erro ao processar PDF.', 'error')
   } finally {
@@ -209,10 +222,14 @@ async function generateFromText() {
 
   try {
     const name = materialMode.value === 'free' ? textInput.value.slice(0, 50) : 'Meu estudo'
-    const deckRes = await $api<any>('/decks', { method: 'POST', body: { name } })
-    const deckId = deckRes.data.id
     const topicRes = await $api<any>('/topics', { method: 'POST', body: { name } })
     const topicId = topicRes.data.id
+    createdTopicId.value = topicId
+    createdTopicName.value = name
+
+    const deckStore = useDeckStore()
+    if (!deckStore.decks.length) await deckStore.fetchDecks()
+    const deckId = deckStore.decks[0]?.id
 
     const res = await $api<any>('/ai/generate-cards', {
       method: 'POST',
@@ -243,13 +260,14 @@ async function createManualCard() {
   generating.value = true
 
   try {
-    const deckRes = await $api<any>('/decks', { method: 'POST', body: { name: 'Meu estudo' } })
-    const deckId = deckRes.data.id
-    await $api<any>('/topics', { method: 'POST', body: { name: 'Meu estudo' } })
+    const topicRes = await $api<any>('/topics', { method: 'POST', body: { name: 'Meu estudo' } })
+    const topicId = topicRes.data.id
+    createdTopicId.value = topicId
+    createdTopicName.value = 'Meu estudo'
 
     await $api('/flashcards', {
       method: 'POST',
-      body: { deck_id: deckId, front: manualFront.value, back: manualBack.value },
+      body: { topic_id: topicId, front: manualFront.value, back: manualBack.value },
     })
     generatedCount.value = 1
     step.value = 2
@@ -265,6 +283,11 @@ async function completeOnboarding() {
     await $api('/onboarding/complete', { method: 'POST' })
     if (auth.user) auth.user.onboarding_completed = true
   } catch {}
+}
+
+async function finishAndGo(path: string) {
+  await completeOnboarding()
+  await navigateTo(path)
 }
 
 async function goToToday() {

@@ -26,7 +26,7 @@
         />
 
         <div class="flex gap-2 justify-end mt-3">
-          <button type="button" class="btn-secondary text-micro" @click="skip">Pular</button>
+          <button type="button" class="btn-secondary text-small" @click="skip">Pular</button>
           <button
             type="button"
             class="btn-primary text-micro"

@@ -4,7 +4,7 @@
     <Transition name="card-slide" mode="out-in">
       <div
         :key="card.id"
-        class="review-card relative rounded-2xl px-12 py-12 min-h-[360px] flex flex-col items-center justify-center text-center"
+        class="review-card relative rounded-2xl px-5 sm:px-12 py-8 sm:py-12 min-h-[280px] sm:min-h-[360px] flex flex-col items-center justify-center text-center"
         :class="[feedbackClass, { 'cursor-pointer select-none': !flipped }]"
         style="z-index: 1;"
         @click="!flipped && $emit('flip')"
@@ -12,7 +12,7 @@
         :aria-label="flipped ? 'Verso do card' : 'Toque para ver a resposta'"
       >
         <!-- Deck label -->
-        <p class="text-[11px] uppercase tracking-[0.08em] text-base-muted opacity-50 mb-4">{{ deckName }}</p>
+        <p class="text-micro uppercase tracking-[0.08em] text-base-muted opacity-50 mb-4">{{ deckName }}</p>
 
         <!-- Question (always visible) -->
         <div
@@ -26,7 +26,7 @@
           <div v-if="flipped" class="w-full max-w-md">
             <div class="flex items-center gap-3 mb-6">
               <div class="flex-1 h-px bg-white/10" />
-              <span class="text-[10px] uppercase tracking-widest text-base-muted/50">Resposta</span>
+              <span class="text-micro uppercase tracking-widest text-base-muted/50">Resposta</span>
               <div class="flex-1 h-px bg-white/10" />
             </div>
             <div class="text-lg text-[#E5DED1] leading-relaxed card-content" v-html="displayBack" />

@@ -1,14 +1,16 @@
 <template>
   <div>
     <button
-      class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left text-small transition-colors group"
+      class="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-left text-body transition-colors"
       :class="topic.id === selectedId ? 'bg-accent-primary-subtle text-accent-primary' : 'text-base-secondary hover:bg-surface-tertiary'"
       :style="{ paddingLeft: `${depth * 16 + 12}px` }"
       @click="$emit('select', topic.id)"
+      @mouseenter="isHovered = true"
+      @mouseleave="isHovered = false"
     >
       <button
         v-if="topic.children?.length"
-        class="shrink-0 p-0.5 rounded hover:bg-surface-tertiary"
+        class="shrink-0 p-1.5 rounded hover:bg-surface-tertiary"
         @click.stop="expanded = !expanded"
       >
         <ChevronRight :size="14" class="transition-transform" :class="{ 'rotate-90': expanded }" />
@@ -22,22 +24,22 @@
         :class="healthColor"
       />
 
-      <span class="truncate flex-1">{{ topic.name }}</span>
+      <span class="truncate flex-1" :title="topic.name">{{ topic.name }}</span>
 
-      <span class="text-micro text-base-muted shrink-0">
-        {{ topic.notes_count ?? 0 }}n · {{ topic.flashcards_count ?? 0 }}c
+      <span v-if="(topic.flashcards_count || topic.notes_count) && !showActions" class="text-small text-base-muted shrink-0">
+        {{ topic.flashcards_count ?? 0 }}
       </span>
 
-      <!-- Actions (visible on hover) -->
-      <span class="hidden group-hover:flex items-center gap-1 shrink-0" @click.stop>
-        <button class="p-1 rounded hover:bg-surface-tertiary" title="Adicionar sub-tópico" @click="$emit('add-child', topic.id)">
-          <Plus :size="12" />
+      <!-- Actions (visible on hover/selected) -->
+      <span v-if="showActions" class="flex items-center gap-0.5 shrink-0" @click.stop>
+        <button class="p-2 rounded hover:bg-surface-tertiary" title="Adicionar sub-tópico" @click="$emit('add-child', topic.id)">
+          <Plus :size="14" />
         </button>
-        <button class="p-1 rounded hover:bg-surface-tertiary" title="Editar" @click="$emit('edit', topic)">
-          <Pencil :size="12" />
+        <button class="p-2 rounded hover:bg-surface-tertiary" title="Editar" @click="$emit('edit', topic)">
+          <Pencil :size="14" />
         </button>
-        <button class="p-1 rounded hover:bg-surface-tertiary text-danger" title="Deletar" @click="$emit('delete', topic)">
-          <Trash2 :size="12" />
+        <button class="p-2 rounded hover:bg-surface-tertiary text-danger" title="Deletar" @click="$emit('delete', topic)">
+          <Trash2 :size="14" />
         </button>
       </span>
     </button>
@@ -79,6 +81,8 @@ defineEmits<{
 }>()
 
 const expanded = ref(true)
+const isHovered = ref(false)
+const showActions = computed(() => isHovered.value || props.topic.id === props.selectedId)
 
 const healthColor = computed(() => {
   const p = props.progressMap?.[props.topic.id]

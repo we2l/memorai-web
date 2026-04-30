@@ -1,5 +1,5 @@
 <template>
-  <div class="p-6 max-w-5xl mx-auto">
+  <div class="p-4 sm:p-6 pb-20 lg:pb-6 max-w-5xl mx-auto">
     <h1 class="text-display mb-8">Configurações</h1>
 
     <!-- Perfil -->
@@ -85,7 +85,7 @@
       <p class="text-small text-base-muted mb-8">Configure quanto você quer estudar por dia. O app nunca descarta cards — o que não couber hoje aparece amanhã.</p>
 
       <div class="space-y-8">
-        <div class="card p-5">
+        <div class="card p-3 sm:p-5">
           <div class="flex items-center justify-between mb-3">
             <label class="text-title">Novos cards por dia</label>
             <label class="flex items-center gap-2 text-small text-base-muted cursor-pointer">
@@ -101,7 +101,7 @@
           </div>
         </div>
 
-        <div class="card p-5">
+        <div class="card p-3 sm:p-5">
           <div class="flex items-center justify-between mb-3">
             <label class="text-title">Máximo de revisões por dia</label>
             <label class="flex items-center gap-2 text-small text-base-muted cursor-pointer">
@@ -117,7 +117,7 @@
           </div>
         </div>
 
-        <div class="card p-5">
+        <div class="card p-3 sm:p-5">
           <label class="text-title mb-3 block">Limite de tempo por sessão</label>
           <div class="mb-4">
             <UiSelect v-model="sessionTimeStr" :options="timeOptions" placeholder="Sem limite" />
@@ -135,7 +135,7 @@
     </section>
 
     <!-- Conta -->
-    <section class="card p-5">
+    <section class="card p-3 sm:p-5">
       <h2 class="text-headline mb-4">Conta</h2>
       <button class="btn-secondary text-danger" @click="handleLogout">
         <LogOut :size="16" /> Sair da conta

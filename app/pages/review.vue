@@ -6,12 +6,12 @@
         ← Voltar
       </NuxtLink>
       <div class="flex items-center gap-3 text-small text-base-muted">
-        <span v-if="isSurvivalMode" class="px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wide font-medium bg-warning/15 text-warning">Sobrevivência</span>
+        <span v-if="isSurvivalMode" class="px-2 py-0.5 rounded-full text-micro uppercase tracking-wide font-medium bg-warning/15 text-warning">Sobrevivência</span>
         <span v-if="sessionTimer > 0" class="font-mono" :class="sessionTimer <= 60 ? 'text-danger' : ''" aria-live="polite" :aria-label="`${formatTimer(sessionTimer)} restantes`">
           {{ formatTimer(sessionTimer) }}
         </span>
         <span class="font-medium text-base-primary">{{ review.reviewed }} <span class="opacity-40">/ {{ review.total }}</span></span>
-        <span class="text-micro opacity-50">{{ progressLabel }}</span>
+        <span class="text-micro opacity-50">{{ reviewMood }}</span>
       </div>
       <div class="w-12" />
     </div>
@@ -46,10 +46,13 @@
 
     <!-- Finished -->
     <div v-else-if="review.finished && !review.showErrorDiary" class="flex-1 flex flex-col items-center justify-center px-4 text-center">
-      <p class="text-5xl mb-6">🎉</p>
-      <h2 class="text-display">Sessão concluída!</h2>
-      <p class="text-base-muted mt-3">
-        Você revisou <span class="text-accent-primary font-medium">{{ review.reviewed }}</span> card{{ review.reviewed !== 1 ? 's' : '' }}.
+      <p class="text-5xl mb-6">🔥</p>
+      <h2 class="text-display">Missão de hoje concluída!</h2>
+      <p class="text-body text-base-muted mt-3">
+        Você reforçou <span class="text-accent-primary font-medium">{{ review.reviewed }}</span> conceito{{ review.reviewed !== 1 ? 's' : '' }}
+      </p>
+      <p v-if="correctStreak > 3" class="text-small text-success mt-2">
+        {{ correctStreak }} acertos seguidos — seu cérebro agradece 🧠
       </p>
       <p v-if="review.pendingLearning > 0" class="text-base-muted text-small mt-2">
         {{ review.pendingLearning }} card{{ review.pendingLearning !== 1 ? 's' : '' }} em aprendizado — {{ review.pendingLearning === 1 ? 'volta' : 'voltam' }} em breve.
@@ -59,10 +62,10 @@
       <div v-if="topErrorTopic" class="mt-6 card border border-warning/30 max-w-sm">
         <p class="text-small text-base-primary">Você errou {{ topErrorTopic.count }}x em "{{ topErrorTopic.name }}".</p>
         <div class="flex gap-2 mt-3 justify-center">
-          <NuxtLink :to="`/review?topic_id=${topErrorTopic.id}&errors_only=1&t=${Date.now()}`" class="btn-primary !py-1.5 !px-3 !min-h-0 text-small">
+          <NuxtLink :to="`/review?topic_id=${topErrorTopic.id}&errors_only=1&t=${Date.now()}`" class="btn-primary !py-1.5 !px-3 !min-h-[2.75rem] text-small">
             Reforçar
           </NuxtLink>
-          <NuxtLink to="/today" class="btn-secondary !py-1.5 !px-3 !min-h-0 text-small">
+          <NuxtLink to="/today" class="btn-secondary !py-1.5 !px-3 !min-h-[2.75rem] text-small">
             Depois
           </NuxtLink>
         </div>
@@ -86,7 +89,7 @@
       <!-- State badge -->
       <div v-if="review.currentCard.is_learning || review.currentCard.state === 'new'" class="flex items-center gap-2">
         <span
-          class="px-3 py-1 rounded-full text-[11px] tracking-wide uppercase font-medium"
+          class="px-3 py-1 rounded-full text-micro tracking-wide uppercase font-medium"
           :class="{
             'bg-orange-500/15 text-orange-400': review.currentCard.state === 'relearning',
             'bg-blue-500/15 text-blue-400': review.currentCard.state === 'learning',
@@ -129,7 +132,7 @@
     <div v-else-if="!review.showErrorDiary" class="flex-1 flex flex-col items-center justify-center px-4 text-center">
       <p class="text-base-secondary text-title">Tudo em dia! 🎉 Que tal gerar novos cards?</p>
       <p class="text-base-muted text-small mt-1">Suba um PDF ou peça pra IA gerar.</p>
-      <NuxtLink to="/topics" class="btn-primary mt-6">Ir pra Tópicos</NuxtLink>
+      <NuxtLink to="/topics" class="btn-primary mt-6">Ir pra Cadernos</NuxtLink>
     </div>
 
     <!-- Error diary -->
@@ -154,13 +157,22 @@
       </div>
 
       <!-- Chat trigger after error -->
-      <button
-        v-if="review.showErrorDiary || review.noteSnippet"
-        class="mt-3 btn-secondary !py-1.5 !px-3 !min-h-0 text-small"
-        @click="openChatForError"
-      >
-        ✨ Entender isso
-      </button>
+      <div class="flex gap-2 mt-3">
+        <button
+          v-if="review.showErrorDiary || review.noteSnippet"
+          class="btn-secondary !py-1.5 !px-3 !min-h-[2.75rem] text-small"
+          @click="openChatForError"
+        >
+          ✨ Entender isso
+        </button>
+        <NuxtLink
+          v-if="review.currentCard?.topic_id && review.currentCard?.source_note_id"
+          :to="`/topics?topic=${review.currentCard.topic_id}&note=${review.currentCard.source_note_id}`"
+          class="btn-secondary !py-1.5 !px-3 !min-h-[2.75rem] text-small"
+        >
+          📝 Ver no conteúdo
+        </NuxtLink>
+      </div>
     </div>
     <!-- Timer expired modal -->
     <UiModal v-model="showTimerModal" size="sm" aria-label="Tempo esgotado">
@@ -207,14 +219,18 @@ async function handleRate(rating: number) {
   // Micro feedback
   cardFeedback.value = rating >= 3 ? 'success' : 'error'
 
+  // Micro reaction
+  if (rating === 4) showReward('Fácil demais — esse você dominou 🔥')
+  else if (rating === 3) showReward('Boa — conceito reforçado 👏')
+  else if (rating === 2) showReward('Quase — vai fixar na próxima')
+  else if (rating === 1) showReward('Normal — você vai fixar isso agora')
+
   // Track streak
   if (rating >= 3) {
     correctStreak.value++
-    // Micro reward at milestones
-    if (correctStreak.value === 3) showReward('🔥 3 seguidos!')
-    else if (correctStreak.value === 5) showReward('⚡ 5 seguidos — bom ritmo!')
-    else if (correctStreak.value === 10) showReward('🧠 10 seguidos — você tá voando!')
-    else if (correctStreak.value > 0 && correctStreak.value % 10 === 0) showReward(`🔥 ${correctStreak.value} seguidos!`)
+    if (correctStreak.value === 5) showReward('⚡ 5 seguidos — você está no ritmo!')
+    else if (correctStreak.value === 10) showReward('🧠 10 seguidos — seu cérebro tá voando!')
+    else if (correctStreak.value > 10 && correctStreak.value % 10 === 0) showReward(`🔥 ${correctStreak.value} seguidos!`)
   } else {
     correctStreak.value = 0
     // Track errors by topic for post-session suggestion
@@ -340,6 +356,15 @@ const progressLabel = computed(() => {
   if (pct < 70) return 'no ritmo'
   if (pct < 100) return 'quase lá'
   return 'concluído'
+})
+
+const reviewMood = computed(() => {
+  const pct = review.progress
+  if (pct === 0) return ''
+  if (pct < 30) return 'aquecendo 🧠'
+  if (pct < 70) return 'no ritmo 🔥'
+  if (pct < 100) return 'quase lá ⚡'
+  return 'concluído ✨'
 })
 
 onMounted(loadSession)

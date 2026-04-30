@@ -61,7 +61,7 @@ async function handleLogout() {
 
 const items = [
   { label: 'Hoje', to: '/today', icon: 'home' },
-  { label: 'Tópicos', to: '/topics', icon: 'topics' },
+  { label: 'Cadernos', to: '/topics', icon: 'topics' },
   { label: 'Revisão', to: '/review', icon: 'review' },
   { label: 'Progresso', to: '/progress', icon: 'progress' },
 ]

@@ -1,7 +1,7 @@
 <template>
   <div class="relative inline-block">
-    <button class="btn-secondary !py-1 !px-2.5 !min-h-0 text-micro" @click="handleClick">
-      <Sparkles :size="14" /> Gerar com IA
+    <button class="btn-primary !py-2 !px-3.5 !min-h-[2.75rem] text-small" @click="handleClick">
+      <Sparkles :size="16" /> Gerar com IA
     </button>
 
     <!-- Popover (only when ambiguous) -->
@@ -14,23 +14,23 @@
         <div class="space-y-1.5 mb-3">
           <button
             v-if="hasNotes"
-            class="w-full text-left px-3 py-2 rounded-lg text-small hover:bg-surface-tertiary transition-colors"
-            :class="selectedSource === 'notes' && 'bg-accent-primary-subtle text-accent-primary'"
+            class="w-full text-left px-3 py-2 rounded-lg text-small transition-colors"
+            :class="selectedSource === 'notes' ? 'bg-accent-primary-subtle text-accent-primary' : 'text-base-secondary hover:bg-surface-tertiary'"
             @click="selectedSource = 'notes'"
           >
             📝 Das notas
           </button>
           <button
             v-if="hasDocuments"
-            class="w-full text-left px-3 py-2 rounded-lg text-small hover:bg-surface-tertiary transition-colors"
-            :class="selectedSource === 'pdf' && 'bg-accent-primary-subtle text-accent-primary'"
+            class="w-full text-left px-3 py-2 rounded-lg text-small transition-colors"
+            :class="selectedSource === 'pdf' ? 'bg-accent-primary-subtle text-accent-primary' : 'text-base-secondary hover:bg-surface-tertiary'"
             @click="selectedSource = 'pdf'"
           >
             📄 Do PDF
           </button>
           <button
-            class="w-full text-left px-3 py-2 rounded-lg text-small hover:bg-surface-tertiary transition-colors"
-            :class="selectedSource === 'free' && 'bg-accent-primary-subtle text-accent-primary'"
+            class="w-full text-left px-3 py-2 rounded-lg text-small transition-colors"
+            :class="selectedSource === 'free' ? 'bg-accent-primary-subtle text-accent-primary' : 'text-base-secondary hover:bg-surface-tertiary'"
             @click="selectedSource = 'free'"
           >
             ✏️ Tema livre
@@ -38,9 +38,11 @@
         </div>
         <div class="flex items-center gap-2 mb-3">
           <label class="text-micro text-base-muted">Quantidade:</label>
-          <select v-model.number="quantity" class="input-base !py-1 !min-h-0 text-micro w-16">
-            <option v-for="n in 10" :key="n" :value="n">{{ n }}</option>
-          </select>
+          <div class="flex items-center gap-1">
+            <button class="w-7 h-7 rounded-md bg-surface-tertiary text-base-muted hover:text-base-primary text-small flex items-center justify-center" @click="quantity = Math.max(1, quantity - 1)">−</button>
+            <span class="w-6 text-center text-small text-base-primary">{{ quantity }}</span>
+            <button class="w-7 h-7 rounded-md bg-surface-tertiary text-base-muted hover:text-base-primary text-small flex items-center justify-center" @click="quantity = Math.min(10, quantity + 1)">+</button>
+          </div>
         </div>
         <div v-if="selectedSource === 'free'" class="mb-3">
           <input
@@ -51,8 +53,8 @@
           />
         </div>
         <div class="flex gap-2">
-          <button class="btn-secondary !py-1 !px-2.5 !min-h-0 text-micro flex-1" @click="showPopover = false">Cancelar</button>
-          <button class="btn-primary !py-1 !px-2.5 !min-h-0 text-micro flex-1" :disabled="!canGenerate" @click="generate">Gerar</button>
+          <button class="btn-secondary !py-1 !px-2.5 !min-h-[2.75rem] text-small flex-1" @click="showPopover = false">Cancelar</button>
+          <button class="btn-primary !py-1 !px-2.5 !min-h-[2.75rem] text-small flex-1" :disabled="!canGenerate" @click="generate">Gerar</button>
         </div>
       </div>
     </Transition>
@@ -84,16 +86,7 @@ const canGenerate = computed(() => {
 })
 
 function handleClick() {
-  // Inference: if only one source, skip popover
-  if (props.hasNotes && !props.hasDocuments) {
-    emit('generate', 'notes', quantity.value)
-    return
-  }
-  if (props.hasDocuments && !props.hasNotes) {
-    emit('generate', 'pdf', quantity.value)
-    return
-  }
-  // Ambiguous or no material: show popover
+  // Always show popover so user can see/adjust quantity
   selectedSource.value = props.hasNotes ? 'notes' : props.hasDocuments ? 'pdf' : 'free'
   showPopover.value = true
 }

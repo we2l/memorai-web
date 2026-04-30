@@ -1,14 +1,14 @@
 <template>
-  <div class="border border-base rounded-lg overflow-hidden">
+  <div class="border border-base rounded-lg overflow-hidden flex flex-col h-full">
     <!-- Toolbar -->
-    <div v-if="editor" class="flex flex-wrap gap-1 p-2 border-b border-base bg-surface-secondary">
+    <div v-if="editor" class="flex flex-wrap gap-1 p-2 border-b border-base bg-surface-secondary shrink-0">
       <button v-for="btn in toolbar" :key="btn.label" class="p-1.5 rounded text-small transition-colors" :class="btn.active?.() ? 'bg-accent-primary-subtle text-accent-primary' : 'text-base-muted hover:bg-surface-tertiary'" :title="btn.label" @click="btn.action">
         <component :is="btn.icon" :size="16" />
       </button>
     </div>
 
     <!-- Editor -->
-    <EditorContent :editor="editor" class="prose-editor p-4 min-h-[200px] max-h-[60vh] overflow-y-auto text-base-primary" />
+    <EditorContent :editor="editor" class="prose-editor p-4 flex-1 overflow-y-auto text-base-primary" />
   </div>
 </template>
 

@@ -1,0 +1,161 @@
+<template>
+  <div class="flex h-full">
+    <!-- Left: material list -->
+    <div class="w-full lg:w-[35%] lg:border-r border-base flex flex-col" :class="activeNote && 'max-lg:hidden'">
+      <div class="p-4">
+        <!-- Quick input -->
+        <form class="flex gap-2 mb-4" @submit.prevent="handleQuickInput">
+          <input
+            v-model="quickText"
+            class="input-base flex-1 !text-small"
+            placeholder="Cole seu material de estudo aqui..."
+            @keydown.stop
+          />
+          <button type="submit" class="btn-primary !py-2 !px-3.5 !min-h-[2.75rem] text-small shrink-0" :disabled="!quickText.trim()">
+            Adicionar
+          </button>
+        </form>
+
+        <!-- Generate suggestion banner -->
+        <div v-if="suggestGenerate" class="mb-4 px-4 py-3 rounded-xl bg-accent-primary-subtle border border-accent-primary/15 flex items-center justify-between gap-3">
+          <p class="text-small text-accent-primary">Material salvo. Gerar cards com IA?</p>
+          <div class="flex gap-2">
+            <button class="btn-primary !py-1.5 !px-3 !min-h-0 text-small" @click="$emit('generate-from-note'); suggestGenerate = false">Gerar</button>
+            <button class="btn-secondary !py-1.5 !px-3 !min-h-0 text-small" @click="suggestGenerate = false">Depois</button>
+          </div>
+        </div>
+
+        <!-- Material list -->
+        <div v-if="notes.length || hasDocuments" class="space-y-1.5">
+          <button
+            v-for="note in notes"
+            :key="note.id"
+            class="w-full text-left px-3 py-2.5 rounded-lg transition-colors flex items-center gap-3"
+            :class="activeNote?.id === note.id ? 'bg-accent-primary-subtle text-accent-primary' : 'hover:bg-surface-tertiary text-base-secondary'"
+            @click="$emit('open-note', note)"
+          >
+            <FileText :size="16" class="shrink-0 opacity-60" />
+            <div class="flex-1 min-w-0">
+              <p class="text-body font-medium truncate">{{ note.title }}</p>
+              <div class="flex items-center gap-2 text-small text-base-muted">
+                <span>{{ formatDate(note.updated_at) }}</span>
+                <span v-if="cardsFromNote(note.id) > 0" class="text-accent-primary">· {{ cardsFromNote(note.id) }} cards</span>
+              </div>
+            </div>
+          </button>
+
+          <!-- PDFs -->
+          <slot name="documents" />
+        </div>
+        <div v-else class="text-center py-8">
+          <p class="text-headline text-base-primary mb-2">Transforme seu material em memória</p>
+          <p class="text-small text-base-muted mb-4">Cole um resumo, anotação de aula ou suba um PDF. A IA transforma em flashcards.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: editor (desktop split, mobile fullscreen) -->
+    <div v-if="activeNote" class="flex-1 flex flex-col min-w-0">
+      <!-- Header -->
+      <div class="flex items-center justify-between px-4 py-2.5 border-b border-base">
+        <div class="flex items-center gap-2">
+          <button class="btn-secondary !p-1.5 !min-h-[2.75rem] lg:hidden" @click="$emit('close-editor')">
+            <ArrowLeft :size="16" />
+          </button>
+          <button
+            class="btn-secondary !py-1.5 !px-3 !min-h-[2.75rem] text-small flex items-center gap-1.5"
+            @click="readMode = !readMode"
+          >
+            <component :is="readMode ? Pencil : BookOpen" :size="14" />
+            {{ readMode ? 'Editar' : 'Modo leitura' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="flex-1 overflow-y-auto p-4 flex flex-col">
+        <template v-if="readMode">
+          <h1 class="text-title text-base-primary mb-4">{{ noteTitle }}</h1>
+          <div class="prose-memorai">
+            <slot name="read-content" />
+          </div>
+        </template>
+        <template v-else>
+          <input
+            :value="noteTitle"
+            class="text-title bg-transparent border-b border-dashed border-base outline-none text-base-primary pb-1 w-full hover:border-accent-primary focus:border-accent-primary transition-colors mb-4 shrink-0"
+            placeholder="Título do material"
+            @input="$emit('update:noteTitle', ($event.target as HTMLInputElement).value)"
+            @blur="$emit('save-title')"
+          />
+          <div class="relative flex-1">
+            <slot name="editor" />
+          </div>
+        </template>
+      </div>
+
+      <!-- Footer (only in edit mode) -->
+      <div v-if="!readMode" class="flex items-center justify-between px-4 py-3 border-t border-base">
+        <div class="flex items-center gap-2 flex-wrap">
+          <button class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small" @click="$emit('generate-from-note')">
+            <Zap :size="14" /> Gerar cards
+          </button>
+          <button class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small" @click="$emit('improve-note')">
+            ✨ Melhorar
+          </button>
+          <button class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small text-danger" @click="$emit('delete-note')">
+            <Trash2 :size="14" /> Excluir
+          </button>
+        </div>
+        <span class="text-micro text-base-muted">{{ saving ? 'Salvando...' : 'Salvo' }}</span>
+      </div>
+    </div>
+
+    <!-- No note selected (desktop only) -->
+    <div v-else class="hidden lg:flex flex-1 items-center justify-center text-base-muted text-small">
+      Selecione um material pra editar
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { FileText, Zap, ArrowLeft, Trash2, Pencil, BookOpen } from 'lucide-vue-next'
+import type { Note } from '~/types'
+
+const props = defineProps<{
+  notes: Note[]
+  activeNote: Note | null
+  noteTitle: string
+  saving: boolean
+  hasDocuments: boolean
+  cardsFromNote: (noteId: string) => number
+}>()
+
+const emit = defineEmits<{
+  (e: 'open-note', note: Note): void
+  (e: 'close-editor'): void
+  (e: 'quick-add', text: string): void
+  (e: 'generate-from-note'): void
+  (e: 'improve-note'): void
+  (e: 'delete-note'): void
+  (e: 'save-title'): void
+  (e: 'update:noteTitle', value: string): void
+}>()
+
+const quickText = ref('')
+const suggestGenerate = ref(false)
+const readMode = ref(false)
+
+// Reset read mode when switching notes
+watch(() => props.activeNote?.id, () => { readMode.value = false })
+
+function handleQuickInput() {
+  if (!quickText.value.trim()) return
+  emit('quick-add', quickText.value.trim())
+  quickText.value = ''
+  suggestGenerate.value = true
+}
+
+function formatDate(date: string) {
+  return new Date(date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
+}
+</script>

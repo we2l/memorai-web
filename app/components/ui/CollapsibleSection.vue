@@ -1,7 +1,7 @@
 <template>
-  <div class="border-b border-base">
+  <div class="border-b border-base last:border-b-0">
     <div
-      class="flex items-center justify-between w-full px-4 py-3 text-left group cursor-pointer"
+      class="flex flex-wrap items-center justify-between gap-2 w-full px-4 py-4 text-left group cursor-pointer"
       role="button"
       tabindex="0"
       :aria-expanded="isOpen"
@@ -16,14 +16,21 @@
           class="text-base-muted transition-transform duration-150"
           :class="isOpen && 'rotate-90'"
         />
-        <span class="text-label">{{ title }}</span>
-        <span v-if="count !== undefined" class="text-micro text-base-muted">({{ count }})</span>
+        <component :is="icon" v-if="icon" :size="16" class="text-base-muted shrink-0" />
+        <span class="text-body font-semibold text-base-primary">{{ title }}</span>
+        <span v-if="count !== undefined" class="text-body text-base-muted">({{ count }})</span>
+        <span v-if="tooltip" class="relative group/tip">
+          <Info :size="14" class="text-base-muted cursor-help" />
+          <span class="absolute left-6 top-1/2 -translate-y-1/2 z-30 w-60 px-3 py-2.5 rounded-xl bg-surface-secondary border border-base text-small text-base-secondary leading-relaxed opacity-0 pointer-events-none group-hover/tip:opacity-100 group-hover/tip:pointer-events-auto transition-opacity duration-150" style="box-shadow: 0 8px 32px rgba(0,0,0,0.4);">
+            {{ tooltip }}
+          </span>
+        </span>
         <span
           v-if="healthDot"
           class="w-2 h-2 rounded-full bg-accent-primary animate-pulse"
         />
       </div>
-      <div class="flex items-center gap-2" @click.stop>
+      <div v-if="isOpen" class="flex items-center gap-2" @click.stop>
         <slot name="actions" />
       </div>
     </div>
@@ -42,14 +49,16 @@
 </template>
 
 <script setup lang="ts">
-import { ChevronRight } from 'lucide-vue-next'
+import { ChevronRight, Info } from 'lucide-vue-next'
 
 const props = defineProps<{
   id: string
   title: string
-  count?: number
+  icon?: any
+  count?: number | string
   defaultOpen?: boolean
   healthDot?: boolean
+  tooltip?: string
 }>()
 
 const STORAGE_KEY = 'memorai-sections'

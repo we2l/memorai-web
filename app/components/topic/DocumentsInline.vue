@@ -1,49 +1,49 @@
 <template>
   <div>
-    <!-- Documents list -->
-    <div v-if="documents.length" class="space-y-2 mb-3">
-      <div v-for="doc in documents" :key="doc.id" class="flex items-center justify-between px-3 py-2 rounded-lg bg-surface-tertiary">
-        <div class="min-w-0 flex-1">
-          <p class="text-small text-base-primary truncate">📄 {{ doc.original_name }}</p>
-          <div class="flex gap-2 mt-0.5">
-            <span
-              class="text-micro"
-              :class="doc.status === 'completed' ? 'text-success' : doc.status === 'failed' ? 'text-danger' : 'text-base-muted'"
-            >
-              {{ statusLabel(doc.status) }}
-              <template v-if="doc.status === 'processing' && doc.total_chunks">
-                {{ Math.round(((doc.chunks_count || 0) / doc.total_chunks) * 100) }}%
-              </template>
-            </span>
-            <span v-if="doc.chunks_count" class="text-micro text-base-muted">{{ doc.chunks_count }} trechos</span>
-          </div>
-        </div>
-        <button
-          v-if="doc.status === 'completed'"
-          class="btn-secondary !py-1 !px-2 !min-h-0 text-micro shrink-0 ml-2"
-          @click="$emit('generateFromPdf', doc.id)"
-        >
-          ✨ Gerar cards
-        </button>
-        <button
-          v-if="doc.status === 'completed'"
-          class="text-micro text-accent-primary hover:underline shrink-0 ml-1"
-          @click="$emit('chatAboutPdf', doc.id)"
-        >
-          ✨ Resumir
-        </button>
-      </div>
-    </div>
-
-    <!-- Upload area -->
+    <!-- Upload area (prominent) -->
     <label
-      class="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-dashed border-base cursor-pointer hover:border-accent-primary transition-colors"
-      :class="uploading && 'opacity-50 pointer-events-none'"
+      class="flex items-center gap-3 px-4 py-3.5 rounded-xl border-2 border-dashed cursor-pointer transition-all"
+      :class="uploading ? 'opacity-50 pointer-events-none border-base' : 'border-accent-primary/30 hover:border-accent-primary hover:bg-accent-primary-subtle'"
     >
-      <Upload :size="16" class="text-base-muted shrink-0" />
-      <span class="text-small text-base-muted">{{ uploading ? `Enviando ${uploadProgress}%...` : 'Upload PDF' }}</span>
+      <Upload :size="20" class="text-accent-primary shrink-0" />
+      <div>
+        <p class="text-small text-base-primary">{{ uploading ? `Enviando ${uploadProgress}%...` : 'Adicionar material' }}</p>
+        <p v-if="!uploading" class="text-small text-base-muted">A IA transforma em flashcards automaticamente</p>
+      </div>
       <input type="file" accept=".pdf" class="hidden" @change="onFileSelect" />
     </label>
+
+    <!-- Documents list -->
+    <div v-if="documents.length" class="space-y-2 mt-3">
+      <div v-for="doc in documents" :key="doc.id" class="rounded-lg bg-surface-tertiary overflow-hidden">
+        <div class="flex items-center justify-between px-4 py-3">
+          <div class="min-w-0 flex-1">
+            <p class="text-body text-base-primary truncate font-medium">📄 {{ doc.original_name }}</p>
+            <div class="flex items-center gap-2 mt-1">
+              <span
+                class="text-small"
+                :class="doc.status === 'completed' ? 'text-success' : doc.status === 'failed' ? 'text-danger' : 'text-accent-primary'"
+              >
+                {{ statusLabel(doc.status) }}
+                <template v-if="doc.status === 'processing' && doc.total_chunks">
+                  · {{ Math.round(((doc.chunks_count || 0) / doc.total_chunks) * 100) }}%
+                </template>
+              </span>
+              <span v-if="doc.status === 'completed' && doc.chunks_count" class="text-small text-base-muted">· {{ doc.chunks_count }} trechos extraídos</span>
+            </div>
+          </div>
+        </div>
+        <!-- Actions for completed docs -->
+        <div v-if="doc.status === 'completed'" class="flex gap-2 px-4 pb-3">
+          <button class="btn-primary !py-2 !px-3.5 !min-h-[2.75rem] text-small flex-1" @click="$emit('generateFromPdf', doc.id)">
+            ✨ Gerar cards deste PDF
+          </button>
+          <button class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small" @click="$emit('chatAboutPdf', doc.id)">
+            Resumir
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -62,7 +62,7 @@ const uploading = ref(false)
 const uploadProgress = ref(0)
 
 function statusLabel(s: string) {
-  return { pending: 'Aguardando...', processing: 'Processando...', completed: '✅ Pronto', failed: '❌ Erro' }[s] || s
+  return { pending: '⏳ Aguardando...', processing: '⚙️ Processando...', completed: '✅ Pronto', failed: '❌ Erro' }[s] || s
 }
 
 async function fetchDocuments() {

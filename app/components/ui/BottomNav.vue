@@ -8,7 +8,7 @@
         v-for="item in items"
         :key="item.to"
         :to="item.to"
-        class="flex flex-col items-center gap-0.5 px-3 py-1.5 text-micro transition-all duration-150"
+        class="flex flex-col items-center gap-0.5 px-3 py-1.5 text-small transition-all duration-150"
         :class="isActive(item.to) ? 'text-accent-primary' : 'text-base-muted'"
         :aria-current="isActive(item.to) ? 'page' : undefined"
       >
@@ -31,7 +31,7 @@ const route = useRoute()
 
 const items = [
   { label: 'Hoje', to: '/today', icon: 'home' },
-  { label: 'Tópicos', to: '/topics', icon: 'topics' },
+  { label: 'Cadernos', to: '/topics', icon: 'topics' },
   { label: 'Revisão', to: '/review', icon: 'review' },
   { label: 'Progresso', to: '/progress', icon: 'progress' },
 ]

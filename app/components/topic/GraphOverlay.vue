@@ -10,18 +10,23 @@
         @keydown.escape="close"
       >
         <!-- Header -->
-        <div class="flex items-center justify-between px-4 py-3 border-b border-base shrink-0">
-          <h2 class="text-title">Mapa de Conhecimento</h2>
+        <div class="flex flex-wrap items-center justify-between gap-2 px-3 sm:px-4 py-3 border-b border-base shrink-0">
+          <div class="flex items-center gap-2">
+            <button class="btn-secondary !py-1.5 !px-3 !min-h-[2.75rem] text-small" @click="close">
+              ← Voltar
+            </button>
+          </div>
+          <h2 class="text-small sm:text-title font-medium order-first sm:order-none flex-1 text-center">Mapa<span class="hidden sm:inline"> de Conhecimento</span></h2>
           <div class="flex items-center gap-2">
             <button
               v-if="!connectMode"
-              class="btn-secondary text-micro"
+              class="btn-secondary !py-1.5 !px-3 !min-h-[2.75rem] text-small"
               :disabled="!graphStore.data?.nodes.length"
               @click="startConnectMode"
             >
               <Link2 :size="16" /> Conectar
             </button>
-            <button v-else class="btn-danger text-micro" @click="cancelConnectMode">
+            <button v-else class="btn-danger !py-1.5 !px-3 !min-h-[2.75rem] text-small" @click="cancelConnectMode">
               <X :size="16" /> Cancelar
             </button>
             <button class="p-2 rounded-lg text-base-muted hover:text-base-secondary hover:bg-surface-tertiary" aria-label="Fechar mapa" @click="close">
@@ -31,11 +36,11 @@
         </div>
 
         <!-- Search bar -->
-        <div class="absolute top-16 left-1/2 -translate-x-1/2 z-10 w-72">
+        <div class="absolute top-16 left-3 right-3 sm:left-1/2 sm:-translate-x-1/2 sm:right-auto z-10 sm:w-72">
           <input
             v-model="searchQuery"
             class="input-base w-full !text-small shadow-lg"
-            placeholder="Buscar tópico..."
+            placeholder="Buscar no mapa..."
           />
           <div v-if="searchQuery.trim() && searchResults.length" class="mt-1 bg-surface-secondary border border-base rounded-lg shadow-lg max-h-48 overflow-y-auto">
             <button
@@ -67,12 +72,12 @@
             <p class="text-title text-base-secondary">Nenhum tópico ainda</p>
             <p class="text-small text-base-muted mt-1">Crie tópicos para ver seu mapa.</p>
           </div>
-          <div v-else ref="containerRef" class="flex-1 relative overflow-hidden" />
+          <div v-else ref="containerRef" class="flex-1 relative overflow-hidden min-h-[300px]" />
 
           <!-- Node detail panel -->
           <aside
             v-if="graphStore.selectedNode"
-            class="w-80 border-l border-base bg-surface-secondary flex flex-col overflow-y-auto shrink-0"
+            class="max-sm:absolute max-sm:inset-0 max-sm:z-20 sm:w-80 border-l border-base bg-surface-secondary flex flex-col overflow-y-auto shrink-0"
           >
             <div class="p-4 border-b border-base">
               <div class="flex items-center justify-between mb-2">
@@ -118,7 +123,7 @@
         </button>
 
         <!-- Legend -->
-        <div v-if="graphStore.data?.nodes.length" class="absolute bottom-4 left-4 flex flex-wrap items-center gap-3 px-3 py-2 rounded-lg bg-surface-secondary/90 backdrop-blur text-micro text-base-muted border border-base">
+        <div v-if="graphStore.data?.nodes.length" class="absolute bottom-20 lg:bottom-4 left-3 right-3 sm:left-4 sm:right-auto flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2 rounded-lg bg-surface-secondary/90 backdrop-blur text-small text-base-muted border border-base">
           <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-[#6B7280] inline-block" /> Sem cards</span>
           <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-danger inline-block" /> &lt; 30%</span>
           <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-warning inline-block" /> 30-70%</span>

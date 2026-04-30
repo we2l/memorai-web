@@ -3,10 +3,10 @@
     <UiSidebar />
     <UiBottomNav />
 
-    <main class="lg:ml-[220px] pb-20 lg:pb-0">
-      <div class="flex justify-center px-6 pt-4">
+    <main class="lg:ml-[220px] pb-20 lg:pb-0 relative">
+      <div class="absolute left-1/2 -translate-x-1/2 top-3 z-10">
         <button
-          class="p-2 rounded-lg text-base-secondary hover:text-accent-primary hover:bg-surface-tertiary transition-colors"
+          class="p-2 rounded-lg text-base-muted hover:text-accent-primary hover:bg-surface-tertiary/50 transition-colors"
           :title="colorMode === 'dark' ? 'Modo claro' : 'Modo escuro'"
           aria-label="Alternar tema"
           @click="toggle"
@@ -26,6 +26,7 @@
 
     <ChatDrawer />
     <ChatFab />
+    <UiQuickCapture />
 
     <UiUpgradeModal
       v-model="showUpgrade"

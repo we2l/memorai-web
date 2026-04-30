@@ -1,17 +1,17 @@
 <template>
-  <div class="p-6 max-w-5xl mx-auto">
+  <div class="p-4 sm:p-6 pb-20 lg:pb-6 max-w-5xl mx-auto">
     <!-- Greeting + Streak -->
-    <div class="flex items-center justify-between">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
       <div>
         <h1 class="text-display">
           {{ greeting }}, <span class="text-accent-primary opacity-85">{{ auth.user?.name?.split(' ')[0] ?? 'estudante' }}</span>
         </h1>
         <p class="text-base-muted mt-1">Vamos manter seu ritmo hoje.</p>
       </div>
-      <div class="flex items-center gap-2 shrink-0">
+      <div class="flex items-center gap-2 shrink-0 sm:shrink-0 justify-center sm:justify-start">
         <span class="text-[2rem] font-semibold text-accent-primary leading-none">{{ stats?.streak ?? 0 }}</span>
         <div class="flex flex-col items-start">
-          <span class="text-micro text-base-muted">dias 🔥</span>
+          <span class="text-small text-base-muted">dias 🔥</span>
           <UiSparkline v-if="sparklineData.length" :data="sparklineData" :width="60" :height="18" />
         </div>
       </div>
@@ -23,8 +23,8 @@
       <div class="flex-1">
         <p class="text-small text-base-primary">Muitas reviews acumulando? Reduzir retenção de {{ Math.round(retentionSuggestion.current_retention * 100) }}% pra {{ Math.round(retentionSuggestion.suggested_retention * 100) }}% eliminaria ~{{ retentionSuggestion.cards_eliminated }} cards hoje.</p>
         <div class="flex gap-2 mt-2">
-          <button class="btn-primary !py-1 !px-3 !min-h-0 !text-micro" @click="applyRetention">Ajustar</button>
-          <button class="btn-secondary !py-1 !px-3 !min-h-0 !text-micro" @click="dismissRetention">Ignorar</button>
+          <button class="btn-primary !py-1 !px-3 !min-h-[2.75rem] !text-small" @click="applyRetention">Ajustar</button>
+          <button class="btn-secondary !py-1 !px-3 !min-h-[2.75rem] !text-small" @click="dismissRetention">Ignorar</button>
         </div>
       </div>
     </div>
@@ -33,18 +33,18 @@
     <div v-if="survivalActive" class="mt-4 p-4 rounded-xl bg-warning/10 border border-warning/30 flex items-center gap-3">
       <ShieldAlert :size="20" class="text-warning shrink-0" />
       <p class="text-small text-base-primary flex-1">🆘 Modo Sobrevivência ativo — apenas os 20 cards mais urgentes.</p>
-      <button class="btn-secondary !py-1 !px-3 !min-h-0 !text-micro" @click="toggleSurvivalMode(false)">Desativar</button>
+      <button class="btn-secondary !py-1 !px-3 !min-h-[2.75rem] !text-small" @click="toggleSurvivalMode(false)">Desativar</button>
     </div>
     <div v-else-if="backlog?.suggest_survival_mode" class="mt-4 p-4 rounded-xl bg-danger/10 border border-danger/30 flex items-center gap-3">
       <ShieldAlert :size="20" class="text-danger shrink-0" />
       <p class="text-small text-base-primary flex-1">Backlog grande ({{ backlog.overdue_count }} cards)? Ative o Modo Sobrevivência.</p>
-      <button class="btn-primary !py-1 !px-3 !min-h-0 !text-micro" @click="toggleSurvivalMode(true)">Ativar</button>
+      <button class="btn-primary !py-1 !px-3 !min-h-[2.75rem] !text-small" @click="toggleSurvivalMode(true)">Ativar</button>
     </div>
 
     <!-- CTA Hero -->
     <div v-if="(stats?.due_today ?? 0) > 0 || (backlog?.overdue_count ?? 0) > 0" class="card-warm mt-6 py-5 px-5" style="background: linear-gradient(90deg, rgba(217,119,6,0.06), transparent);">
       <div class="flex items-center justify-between mb-2">
-        <p class="text-title text-base-primary">🎯 {{ totalCards }} cards para revisar</p>
+        <p class="text-title text-base-primary">🎯 {{ totalCards }} cards para revisar<span v-if="mainTopicName" class="text-base-muted font-normal"> · {{ mainTopicName }}</span></p>
         <span class="text-small text-base-muted">~{{ backlog?.estimated_minutes ?? Math.ceil(totalCards * 0.25) }} min</span>
       </div>
       <div class="h-3 rounded-full bg-surface-tertiary overflow-hidden mb-3">
@@ -65,7 +65,7 @@
       <p class="text-title text-base-secondary mb-2">Comece a estudar!</p>
       <p class="text-small text-base-muted mb-4">Crie seu primeiro card em 30 segundos ou suba um PDF.</p>
       <div class="flex gap-3 justify-center">
-        <NuxtLink to="/topics" class="btn-primary">Criar tópico</NuxtLink>
+        <NuxtLink to="/topics" class="btn-primary">Criar caderno</NuxtLink>
         <NuxtLink to="/import" class="btn-secondary">Importar Anki</NuxtLink>
       </div>
     </div>
@@ -74,7 +74,7 @@
     <div v-else class="card mt-6 text-center py-8">
       <p class="text-title text-base-secondary">Tudo em dia! 🎉</p>
       <p class="text-small text-base-muted mt-1">Que tal gerar novos cards?</p>
-      <NuxtLink to="/topics" class="btn-primary mt-4 inline-flex">Ir pra Tópicos</NuxtLink>
+      <NuxtLink to="/topics" class="btn-primary mt-4 inline-flex">Ir pra Cadernos</NuxtLink>
     </div>
 
     <!-- Seu ritmo + Ações rápidas -->
@@ -95,10 +95,10 @@
         </div>
       </div>
       <div class="flex flex-col gap-2">
-        <NuxtLink to="/review?errors_only=1" class="btn-secondary justify-center text-micro flex-1">
+        <NuxtLink to="/review?errors_only=1" class="btn-secondary justify-center text-small flex-1">
           Revisar só erros
         </NuxtLink>
-        <NuxtLink to="/import" class="btn-accent justify-center text-micro flex-1">
+        <NuxtLink to="/import" class="btn-accent justify-center text-small flex-1">
           Importar Anki
         </NuxtLink>
       </div>
@@ -110,7 +110,7 @@
       <div class="space-y-2">
         <div v-for="action in pendingActions" :key="action.label" class="flex items-center justify-between px-4 py-3 rounded-lg bg-surface-secondary">
           <span class="text-small text-base-primary">{{ action.label }}</span>
-          <NuxtLink :to="action.url" class="btn-secondary !py-1 !px-3 !min-h-0 text-micro shrink-0">
+          <NuxtLink :to="action.url" class="btn-secondary !py-1 !px-3 !min-h-[2.75rem] text-small shrink-0">
             {{ action.action_label }}
           </NuxtLink>
         </div>
@@ -158,7 +158,7 @@
     <!-- AI Usage -->
     <div v-if="featureUsage.usage.value && hasLimitedFeatures" class="mt-8">
       <p class="text-label mb-3">Uso de IA este mês</p>
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <div v-for="(data, key) in limitedFeatures" :key="key" class="card py-3 px-4">
           <p class="text-micro text-base-muted mb-1">{{ featureLabels[key] }}</p>
           <p class="text-title text-base-primary">{{ data.used }}/{{ data.limit }}</p>
@@ -219,6 +219,11 @@ const greeting = computed(() => {
 })
 
 const totalCards = computed(() => (stats.value?.due_today ?? 0) + (backlog.value?.overdue_count ?? 0))
+
+const mainTopicName = computed(() => {
+  if (!topicProgress.value.length) return ''
+  return topicProgress.value[0]?.name ?? ''
+})
 
 const totalDue = computed(() =>
   (stats.value?.due_today ?? 0) + (stats.value?.reviewed_today ?? 0)

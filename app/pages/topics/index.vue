@@ -146,20 +146,30 @@
           <UiHubTabs
             v-model="activeTab"
             :tabs="[
-              { key: 'notes', label: 'Notas', count: noteStore.notes.length },
+              { key: 'notes', label: 'Material', count: noteStore.notes.length },
               { key: 'cards', label: 'Cards', count: topicCards.length },
             ]"
             :storage-key="`memorai-hub-tab-${selectedTopicId}`"
           />
         </div>
 
-        <!-- Tab: Notas -->
+        <!-- Tab: Material -->
         <TopicHubNotesTab
           v-if="activeTab === 'notes'"
           :notes="noteStore.notes"
+          :active-note="editingNote"
+          :note-title="noteTitle"
+          :saving="noteStore.saving"
+          :has-documents="!!docsInlineRef?.documents?.length"
           :cards-from-note="cardsFromNote"
-          @create-note="createNote"
-          @open-note="openNoteModal"
+          @open-note="openNoteEditor"
+          @close-editor="editingNote = null; noteStore.current = null"
+          @quick-add="handleQuickAdd"
+          @generate-from-note="generateFromCurrentNote"
+          @improve-note="openChatForNote"
+          @delete-note="showDeleteNote = true"
+          @save-title="saveTitle"
+          @update:note-title="noteTitle = $event"
         >
           <template #documents>
             <TopicDocumentsInline
@@ -169,6 +179,10 @@
               @generate-from-pdf="(docId: string) => handleAiGenerate('pdf', 5, docId)"
               @chat-about-pdf="openChatForPdf"
             />
+          </template>
+          <template #editor>
+            <TopicNoteEditor v-model="noteContent" @update:model-value="debouncedSave" />
+            <UiSelectionToolbar @create-card="openNoteToCard" @ask-ai="askAiAboutSelection" />
           </template>
         </TopicHubNotesTab>
 
@@ -292,46 +306,14 @@
 
     <!-- Edit AI generated card (in-place, no save) -->
 
-    <!-- Note editor modal (fullscreen) -->
-    <UiModal v-model="showNoteModal" size="xl" aria-label="Editar nota">
-      <div v-if="editingNote" class="flex flex-col gap-4">
-        <div class="flex items-center justify-between">
-          <h2 class="text-headline">Editar nota</h2>
-          <button class="p-1 rounded-lg text-base-muted hover:text-base-primary" @click="showNoteModal = false">
-            <X :size="20" />
-          </button>
-        </div>
-        <input
-          v-model="noteTitle"
-          class="text-title bg-transparent border-b border-dashed border-base outline-none text-base-primary pb-1 w-full hover:border-accent-primary focus:border-accent-primary transition-colors"
-          placeholder="Título da nota"
-          @blur="saveTitle"
-        />
-        <div class="max-h-[60vh] overflow-y-auto relative">
-          <TopicNoteEditor v-model="noteContent" @update:model-value="debouncedSave" />
-          <UiSelectionToolbar @create-card="openNoteToCard" @ask-ai="askAiAboutSelection" />
-        </div>
-        <div class="flex items-center justify-between pt-3 border-t border-base">
-          <div class="flex items-center gap-2 flex-wrap">
-            <button class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small" @click="generateFromCurrentNote">
-              <Zap :size="14" /> Gerar cards
-            </button>
-            <button class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small" @click="openChatForNote">
-              ✨ Melhorar nota
-            </button>
-            <span class="text-micro text-base-muted">{{ noteStore.saving ? 'Salvando...' : 'Salvo' }}</span>
-          </div>
-          <button class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small text-danger" @click="showDeleteNote = true">Excluir</button>
-        </div>
-      </div>
-    </UiModal>
+    <!-- Note editor modal removed — now using split-view in HubNotesTab -->
 
     <TopicGraphOverlay v-model="showGraph" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { Plus, Zap, Network, Trash2, PanelLeftClose, PanelLeftOpen, X } from 'lucide-vue-next'
+import { Plus, Network, Trash2, PanelLeftClose, PanelLeftOpen, X } from 'lucide-vue-next'
 import type { Topic, Note } from '~/types'
 
 const topicStore = useTopicStore()
@@ -365,7 +347,6 @@ const cardFormInitialBack = ref('')
 const editingGeneratedCardIndex = ref<number | null>(null)
 const docsInlineRef = ref<any>(null)
 const activeTab = ref('notes')
-const showNoteModal = ref(false)
 const editingNote = ref<Note | null>(null)
 
 const newTopicName = ref('')
@@ -531,10 +512,26 @@ function openNoteModal(note: Note) {
   showNoteModal.value = true
 }
 
+function openNoteEditor(note: Note) {
+  selectNote(note)
+  editingNote.value = note
+}
+
+async function handleQuickAdd(text: string) {
+  if (!selectedTopicId.value) return
+  const title = text.substring(0, 50).split('\n')[0] || 'Material'
+  const note = await noteStore.create(selectedTopicId.value, {
+    title,
+    content: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text }] }] },
+  })
+  openNoteEditor(note)
+  await topicStore.fetchTree()
+}
+
 async function createNote() {
   if (!selectedTopicId.value) return
-  const note = await noteStore.create(selectedTopicId.value, { title: 'Nova nota' })
-  openNoteModal(note)
+  const note = await noteStore.create(selectedTopicId.value, { title: 'Novo material' })
+  openNoteEditor(note)
   await topicStore.fetchTree()
 }
 

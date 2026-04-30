@@ -1,55 +1,139 @@
 <template>
-  <div class="px-4 pt-4 pb-4">
-    <div class="flex items-center gap-2 mb-4">
-      <button class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small" @click="$emit('create-note')">
-        <FilePlus :size="14" /> Nova nota
-      </button>
-    </div>
+  <div class="flex h-full">
+    <!-- Left: material list -->
+    <div class="w-full lg:w-[35%] lg:border-r border-base flex flex-col" :class="activeNote && 'max-lg:hidden'">
+      <div class="p-4">
+        <!-- Quick input -->
+        <form class="flex gap-2 mb-4" @submit.prevent="handleQuickInput">
+          <input
+            v-model="quickText"
+            class="input-base flex-1 !text-small"
+            placeholder="Cole seu material de estudo aqui..."
+            @keydown.stop
+          />
+          <button type="submit" class="btn-primary !py-2 !px-3.5 !min-h-[2.75rem] text-small shrink-0" :disabled="!quickText.trim()">
+            Adicionar
+          </button>
+        </form>
 
-    <div v-if="notes.length" class="space-y-2">
-      <button
-        v-for="note in notes"
-        :key="note.id"
-        class="w-full text-left px-4 py-3 rounded-xl bg-surface-tertiary/50 hover:bg-surface-tertiary transition-colors flex items-center gap-3 group"
-        @click="$emit('open-note', note)"
-      >
-        <FilePlus :size="18" class="text-base-muted shrink-0" />
-        <div class="flex-1 min-w-0">
-          <p class="text-body font-medium text-base-primary truncate">{{ note.title }}</p>
-          <div class="flex items-center gap-2 text-small text-base-muted">
-            <span>{{ formatDate(note.updated_at) }}</span>
-            <span v-if="cardsFromNote(note.id) > 0" class="text-accent-primary">· {{ cardsFromNote(note.id) }} cards</span>
+        <!-- Generate suggestion banner -->
+        <div v-if="suggestGenerate" class="mb-4 px-4 py-3 rounded-xl bg-accent-primary-subtle border border-accent-primary/15 flex items-center justify-between gap-3">
+          <p class="text-small text-accent-primary">Material salvo. Gerar cards com IA?</p>
+          <div class="flex gap-2">
+            <button class="btn-primary !py-1.5 !px-3 !min-h-0 text-small" @click="$emit('generate-from-note'); suggestGenerate = false">Gerar</button>
+            <button class="btn-secondary !py-1.5 !px-3 !min-h-0 text-small" @click="suggestGenerate = false">Depois</button>
           </div>
         </div>
-        <ChevronRight :size="16" class="text-base-muted shrink-0" />
-      </button>
-    </div>
-    <div v-else class="text-center py-8">
-      <p class="text-body text-base-muted mb-3">Adicione notas ou suba um PDF pra começar</p>
-      <button class="btn-primary !py-2 !px-4 !min-h-[2.75rem] text-small" @click="$emit('create-note')">Criar primeira nota</button>
+
+        <!-- Material list -->
+        <div v-if="notes.length || hasDocuments" class="space-y-1.5">
+          <button
+            v-for="note in notes"
+            :key="note.id"
+            class="w-full text-left px-3 py-2.5 rounded-lg transition-colors flex items-center gap-3"
+            :class="activeNote?.id === note.id ? 'bg-accent-primary-subtle text-accent-primary' : 'hover:bg-surface-tertiary text-base-secondary'"
+            @click="$emit('open-note', note)"
+          >
+            <FileText :size="16" class="shrink-0 opacity-60" />
+            <div class="flex-1 min-w-0">
+              <p class="text-body font-medium truncate">{{ note.title }}</p>
+              <div class="flex items-center gap-2 text-small text-base-muted">
+                <span>{{ formatDate(note.updated_at) }}</span>
+                <span v-if="cardsFromNote(note.id) > 0" class="text-accent-primary">· {{ cardsFromNote(note.id) }} cards</span>
+              </div>
+            </div>
+          </button>
+
+          <!-- PDFs -->
+          <slot name="documents" />
+        </div>
+        <div v-else class="text-center py-8">
+          <p class="text-headline text-base-primary mb-2">Transforme seu material em memória</p>
+          <p class="text-small text-base-muted mb-4">Cole um resumo, anotação de aula ou suba um PDF. A IA transforma em flashcards.</p>
+        </div>
+      </div>
     </div>
 
-    <!-- PDFs -->
-    <div class="mt-4 pt-4 border-t border-base">
-      <p class="text-small font-medium text-base-secondary mb-2">Material</p>
-      <slot name="documents" />
+    <!-- Right: editor (desktop split, mobile fullscreen) -->
+    <div v-if="activeNote" class="flex-1 flex flex-col min-w-0">
+      <!-- Mobile back button -->
+      <div class="lg:hidden flex items-center gap-2 px-4 py-3 border-b border-base">
+        <button class="btn-secondary !p-1.5 !min-h-[2.75rem]" @click="$emit('close-editor')">
+          <ArrowLeft :size="16" />
+        </button>
+        <span class="text-body font-medium text-base-primary truncate">{{ activeNote.title }}</span>
+      </div>
+
+      <div class="flex-1 overflow-y-auto p-4">
+        <input
+          :value="noteTitle"
+          class="text-title bg-transparent border-b border-dashed border-base outline-none text-base-primary pb-1 w-full hover:border-accent-primary focus:border-accent-primary transition-colors mb-4"
+          placeholder="Título do material"
+          @input="$emit('update:noteTitle', ($event.target as HTMLInputElement).value)"
+          @blur="$emit('save-title')"
+        />
+        <div class="relative">
+          <slot name="editor" />
+        </div>
+      </div>
+
+      <!-- Editor footer -->
+      <div class="flex items-center justify-between px-4 py-3 border-t border-base">
+        <div class="flex items-center gap-2 flex-wrap">
+          <button class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small" @click="$emit('generate-from-note')">
+            <Zap :size="14" /> Gerar cards
+          </button>
+          <button class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small" @click="$emit('improve-note')">
+            ✨ Melhorar
+          </button>
+          <span class="text-micro text-base-muted">{{ saving ? 'Salvando...' : 'Salvo' }}</span>
+        </div>
+        <button class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small text-danger" @click="$emit('delete-note')">
+          Excluir
+        </button>
+      </div>
+    </div>
+
+    <!-- No note selected (desktop only) -->
+    <div v-else class="hidden lg:flex flex-1 items-center justify-center text-base-muted text-small">
+      Selecione um material pra editar
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { FilePlus, ChevronRight } from 'lucide-vue-next'
+import { FileText, Zap, ArrowLeft } from 'lucide-vue-next'
 import type { Note } from '~/types'
 
-defineProps<{
+const props = defineProps<{
   notes: Note[]
+  activeNote: Note | null
+  noteTitle: string
+  saving: boolean
+  hasDocuments: boolean
   cardsFromNote: (noteId: string) => number
 }>()
 
-defineEmits<{
-  (e: 'create-note'): void
+const emit = defineEmits<{
   (e: 'open-note', note: Note): void
+  (e: 'close-editor'): void
+  (e: 'quick-add', text: string): void
+  (e: 'generate-from-note'): void
+  (e: 'improve-note'): void
+  (e: 'delete-note'): void
+  (e: 'save-title'): void
+  (e: 'update:noteTitle', value: string): void
 }>()
+
+const quickText = ref('')
+const suggestGenerate = ref(false)
+
+function handleQuickInput() {
+  if (!quickText.value.trim()) return
+  emit('quick-add', quickText.value.trim())
+  quickText.value = ''
+  suggestGenerate.value = true
+}
 
 function formatDate(date: string) {
   return new Date(date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })

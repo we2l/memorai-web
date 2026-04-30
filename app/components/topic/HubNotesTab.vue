@@ -56,29 +56,45 @@
 
     <!-- Right: editor (desktop split, mobile fullscreen) -->
     <div v-if="activeNote" class="flex-1 flex flex-col min-w-0">
-      <!-- Mobile back button -->
-      <div class="lg:hidden flex items-center gap-2 px-4 py-3 border-b border-base">
-        <button class="btn-secondary !p-1.5 !min-h-[2.75rem]" @click="$emit('close-editor')">
-          <ArrowLeft :size="16" />
-        </button>
-        <span class="text-body font-medium text-base-primary truncate">{{ activeNote.title }}</span>
-      </div>
-
-      <div class="flex-1 overflow-y-auto p-4">
-        <input
-          :value="noteTitle"
-          class="text-title bg-transparent border-b border-dashed border-base outline-none text-base-primary pb-1 w-full hover:border-accent-primary focus:border-accent-primary transition-colors mb-4"
-          placeholder="Título do material"
-          @input="$emit('update:noteTitle', ($event.target as HTMLInputElement).value)"
-          @blur="$emit('save-title')"
-        />
-        <div class="relative">
-          <slot name="editor" />
+      <!-- Header -->
+      <div class="flex items-center justify-between px-4 py-2.5 border-b border-base">
+        <div class="flex items-center gap-2">
+          <button class="btn-secondary !p-1.5 !min-h-[2.75rem] lg:hidden" @click="$emit('close-editor')">
+            <ArrowLeft :size="16" />
+          </button>
+          <button
+            class="btn-secondary !py-1.5 !px-3 !min-h-[2.75rem] text-small flex items-center gap-1.5"
+            @click="readMode = !readMode"
+          >
+            <component :is="readMode ? Pencil : BookOpen" :size="14" />
+            {{ readMode ? 'Editar' : 'Modo leitura' }}
+          </button>
         </div>
       </div>
 
-      <!-- Editor footer -->
-      <div class="flex items-center justify-between px-4 py-3 border-t border-base">
+      <div class="flex-1 overflow-y-auto p-4 flex flex-col">
+        <template v-if="readMode">
+          <h1 class="text-title text-base-primary mb-4">{{ noteTitle }}</h1>
+          <div class="prose-memorai">
+            <slot name="read-content" />
+          </div>
+        </template>
+        <template v-else>
+          <input
+            :value="noteTitle"
+            class="text-title bg-transparent border-b border-dashed border-base outline-none text-base-primary pb-1 w-full hover:border-accent-primary focus:border-accent-primary transition-colors mb-4 shrink-0"
+            placeholder="Título do material"
+            @input="$emit('update:noteTitle', ($event.target as HTMLInputElement).value)"
+            @blur="$emit('save-title')"
+          />
+          <div class="relative flex-1">
+            <slot name="editor" />
+          </div>
+        </template>
+      </div>
+
+      <!-- Footer (only in edit mode) -->
+      <div v-if="!readMode" class="flex items-center justify-between px-4 py-3 border-t border-base">
         <div class="flex items-center gap-2 flex-wrap">
           <button class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small" @click="$emit('generate-from-note')">
             <Zap :size="14" /> Gerar cards
@@ -86,11 +102,11 @@
           <button class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small" @click="$emit('improve-note')">
             ✨ Melhorar
           </button>
-          <span class="text-micro text-base-muted">{{ saving ? 'Salvando...' : 'Salvo' }}</span>
+          <button class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small text-danger" @click="$emit('delete-note')">
+            <Trash2 :size="14" /> Excluir
+          </button>
         </div>
-        <button class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small text-danger" @click="$emit('delete-note')">
-          Excluir
-        </button>
+        <span class="text-micro text-base-muted">{{ saving ? 'Salvando...' : 'Salvo' }}</span>
       </div>
     </div>
 
@@ -102,7 +118,7 @@
 </template>
 
 <script setup lang="ts">
-import { FileText, Zap, ArrowLeft } from 'lucide-vue-next'
+import { FileText, Zap, ArrowLeft, Trash2, Pencil, BookOpen } from 'lucide-vue-next'
 import type { Note } from '~/types'
 
 const props = defineProps<{
@@ -127,6 +143,10 @@ const emit = defineEmits<{
 
 const quickText = ref('')
 const suggestGenerate = ref(false)
+const readMode = ref(false)
+
+// Reset read mode when switching notes
+watch(() => props.activeNote?.id, () => { readMode.value = false })
 
 function handleQuickInput() {
   if (!quickText.value.trim()) return

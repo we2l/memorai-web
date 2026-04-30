@@ -49,33 +49,55 @@
       <div
         v-for="card in displayed"
         :key="card.id"
-        class="flex items-center gap-3 px-4 py-3 rounded-xl bg-surface-tertiary/50 hover:bg-surface-tertiary transition-colors group"
+        class="p-4 rounded-xl bg-surface-secondary transition-colors"
       >
-        <span
-          class="w-2 h-2 rounded-full shrink-0"
-          :class="card.state === 'review' ? 'bg-success' : card.state === 'new' ? 'bg-[#6B7280]' : 'bg-warning'"
-        />
-        <div class="flex-1 min-w-0">
-          <div class="text-body text-base-primary line-clamp-2 card-front-preview" v-html="card.front" />
-          <span v-if="card.source_note_id" class="text-micro text-base-muted">{{ noteNameById(card.source_note_id) }}</span>
+        <div class="flex gap-4 items-start">
+          <div
+            class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 text-small font-medium"
+            :class="{
+              'bg-success/15 text-success': card.state === 'review',
+              'bg-warning/15 text-warning': card.state === 'learning' || card.state === 'relearning',
+              'bg-surface-tertiary text-base-muted': card.state === 'new',
+            }"
+          >
+            {{ stateIcon(card.state) }}
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="text-body text-base-primary line-clamp-2 card-front-preview" v-html="card.front" />
+            <p class="text-small text-base-muted mt-0.5">
+              {{ stateLabel(card.state) }}
+              <span v-if="card.source_note_id"> · {{ noteNameById(card.source_note_id) }}</span>
+            </p>
+            <!-- Verso (expandable) -->
+            <div v-if="expandedCardId === card.id" class="mt-2 pt-2 border-t border-base">
+              <p class="text-micro text-base-muted mb-1">Verso</p>
+              <div class="text-small text-base-secondary card-front-preview" v-html="card.back" />
+            </div>
+          </div>
+          <div class="flex items-center gap-1 shrink-0">
+            <button
+              class="p-1.5 rounded text-base-muted hover:text-accent-primary transition-colors"
+              :title="expandedCardId === card.id ? 'Ocultar verso' : 'Ver verso'"
+              @click="expandedCardId = expandedCardId === card.id ? null : card.id"
+            >
+              <component :is="expandedCardId === card.id ? ChevronUp : ChevronDown" :size="16" />
+            </button>
+            <button
+              class="p-1.5 rounded text-base-muted hover:text-accent-primary transition-colors"
+              title="Editar card"
+              @click="$emit('edit-card', card)"
+            >
+              <Pencil :size="16" />
+            </button>
+            <button
+              class="p-1.5 rounded text-base-muted hover:text-danger transition-colors"
+              title="Excluir card"
+              @click="$emit('delete-card', card.id)"
+            >
+              <Trash2 :size="16" />
+            </button>
+          </div>
         </div>
-        <span
-          class="text-micro px-2 py-0.5 rounded-full font-medium shrink-0"
-          :class="{
-            'bg-success/15 text-success': card.state === 'review',
-            'bg-warning/15 text-warning': card.state === 'learning' || card.state === 'relearning',
-            'bg-[#6B7280]/15 text-[#9CA3AF]': card.state === 'new',
-          }"
-        >
-          {{ stateLabel(card.state) }}
-        </span>
-        <button
-          class="text-base-muted hover:text-danger p-1 rounded transition-colors opacity-0 group-hover:opacity-100"
-          title="Excluir card"
-          @click="$emit('delete-card', card.id)"
-        >
-          <Trash2 :size="14" />
-        </button>
       </div>
 
       <button
@@ -94,7 +116,7 @@
 </template>
 
 <script setup lang="ts">
-import { Plus, Search, Trash2 } from 'lucide-vue-next'
+import { Plus, Search, Trash2, Pencil, ChevronDown, ChevronUp } from 'lucide-vue-next'
 
 const props = defineProps<{
   topicId: string
@@ -108,6 +130,7 @@ const props = defineProps<{
 defineEmits<{
   (e: 'create-card'): void
   (e: 'delete-card', id: string): void
+  (e: 'edit-card', card: any): void
   (e: 'accept-card', index: number): void
   (e: 'accept-all-cards'): void
   (e: 'edit-generated', index: number): void
@@ -116,6 +139,7 @@ defineEmits<{
 
 const search = ref('')
 const visibleCount = ref(20)
+const expandedCardId = ref<string | null>(null)
 
 watch(search, () => { visibleCount.value = 20 })
 
@@ -135,6 +159,11 @@ function reasonLabel(reason: string): string {
 function stateLabel(state: string): string {
   const map: Record<string, string> = { review: 'Dominado', learning: 'Aprendendo', relearning: 'Reaprendendo', new: 'Novo' }
   return map[state] ?? state
+}
+
+function stateIcon(state: string): string {
+  const map: Record<string, string> = { review: '✓', learning: '◐', relearning: '↻', new: '○' }
+  return map[state] ?? '?'
 }
 
 // Reset on topic change

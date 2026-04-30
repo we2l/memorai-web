@@ -184,6 +184,9 @@
             <TopicNoteEditor v-model="noteContent" @update:model-value="debouncedSave" />
             <UiSelectionToolbar @create-card="openNoteToCard" @ask-ai="askAiAboutSelection" />
           </template>
+          <template #read-content>
+            <div class="text-body text-base-primary leading-relaxed card-front-preview" v-html="noteContentHtml" />
+          </template>
         </TopicHubNotesTab>
 
         <!-- Tab: Cards -->
@@ -197,6 +200,7 @@
           :note-name-by-id="noteNameById"
           @create-card="openCreateCard"
           @delete-card="confirmDeleteCard"
+          @edit-card="openEditCard"
           @accept-card="acceptCard"
           @accept-all-cards="acceptAllCards"
           @edit-generated="editGeneratedCard"
@@ -297,10 +301,12 @@
     <FlashcardCardFormModal
       v-model="showCardForm"
       :topic-id="selectedTopicId ?? undefined"
+      :card="editingCard"
       :initial-front="cardFormInitialFront"
       :initial-back="cardFormInitialBack"
       :local-only="editingGeneratedCardIndex !== null"
       @created="onCardCreated"
+      @updated="onCardCreated"
       @local-save="onLocalSaveGenerated"
     />
 
@@ -345,6 +351,7 @@ const showCardForm = ref(false)
 const cardFormInitialFront = ref('')
 const cardFormInitialBack = ref('')
 const editingGeneratedCardIndex = ref<number | null>(null)
+const editingCard = ref<any>(null)
 const docsInlineRef = ref<any>(null)
 const activeTab = ref('notes')
 const editingNote = ref<Note | null>(null)
@@ -382,6 +389,27 @@ const newCardsCount = computed(() => {
 })
 
 const pendingCount = computed(() => dueCardsCount.value + newCardsCount.value)
+
+const noteContentHtml = computed(() => {
+  if (!noteContent.value) return ''
+  return extractHtmlFromTiptap(noteContent.value)
+})
+
+function extractHtmlFromTiptap(doc: any): string {
+  if (!doc) return ''
+  if (typeof doc === 'string') return doc
+  let html = ''
+  if (doc.text) html += doc.text
+  if (doc.content) {
+    for (const node of doc.content) {
+      if (node.type === 'paragraph') html += '<p>' + extractHtmlFromTiptap(node) + '</p>'
+      else if (node.type === 'heading') html += `<h${node.attrs?.level ?? 2}>` + extractHtmlFromTiptap(node) + `</h${node.attrs?.level ?? 2}>`
+      else if (node.type === 'image') html += `<img src="${node.attrs?.src}" />`
+      else html += extractHtmlFromTiptap(node)
+    }
+  }
+  return html
+}
 
 function cardsFromNote(noteId: string): number {
   return topicCards.value.filter(c => c.source_note_id === noteId).length
@@ -739,6 +767,13 @@ function editGeneratedCard(index: number) {
 function openCreateCard() {
   cardFormInitialFront.value = ''
   cardFormInitialBack.value = ''
+  editingGeneratedCardIndex.value = null
+  editingCard.value = null
+  showCardForm.value = true
+}
+
+function openEditCard(card: any) {
+  editingCard.value = card
   editingGeneratedCardIndex.value = null
   showCardForm.value = true
 }

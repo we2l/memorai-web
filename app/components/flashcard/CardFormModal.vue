@@ -5,23 +5,13 @@
       <div class="flex-1 flex flex-col min-w-0">
         <h2 class="text-headline mb-5">{{ isEdit ? 'Editar card' : 'Novo card' }}</h2>
         <form @submit.prevent="submit" class="flex flex-col gap-4 flex-1">
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="text-label mb-1 block">Deck</label>
-              <UiSelect
-                v-model="form.deck_id"
-                :options="deckOptions"
-                placeholder="Selecione um deck"
-              />
-            </div>
-            <div>
-              <label class="text-label mb-1 block">Tópico (opcional)</label>
-              <UiSelect
-                v-model="form.topic_id"
-                :options="topicOptions"
-                placeholder="Nenhum"
-              />
-            </div>
+          <div v-if="!props.topicId">
+            <label class="text-label mb-1 block">Caderno</label>
+            <UiSelect
+              v-model="form.topic_id"
+              :options="topicOptions"
+              placeholder="Selecione um caderno"
+            />
           </div>
 
           <div class="flex-1 flex flex-col">
@@ -60,17 +50,17 @@
           </div>
 
           <div class="flex gap-2 justify-end pt-2">
-            <button type="button" class="btn-secondary !py-1.5 !px-3 !min-h-0 !text-small" @click="open = false">Cancelar</button>
+            <button type="button" class="btn-secondary !py-1.5 !px-3 !min-h-[2.75rem] !text-small" @click="open = false">Cancelar</button>
             <button
               v-if="!isEdit"
               type="button"
-              class="btn-secondary !py-1.5 !px-3 !min-h-0 !text-small"
+              class="btn-secondary !py-1.5 !px-3 !min-h-[2.75rem] !text-small"
               :disabled="!canSubmit"
               @click="submitAndContinue"
             >
               {{ saving ? 'Salvando...' : 'Salvar e criar outro' }}
             </button>
-            <button type="submit" class="btn-primary !py-1.5 !px-3 !min-h-0 !text-small" :disabled="!canSubmit">
+            <button type="submit" class="btn-primary !py-1.5 !px-3 !min-h-[2.75rem] !text-small" :disabled="!canSubmit">
               {{ saving ? 'Salvando...' : 'Salvar' }}
             </button>
           </div>
@@ -97,7 +87,7 @@
           <div class="card-inner" :class="previewSide === 'back' && 'flipped'">
             <div class="card-face card-front" @click="flipPreview">
               <div class="card-body">
-                <p class="text-micro text-base-muted mb-2 uppercase tracking-wider">{{ selectedDeckName || 'Deck' }}</p>
+                <p class="text-micro text-base-muted mb-2 uppercase tracking-wider">{{ selectedTopicName || 'Caderno' }}</p>
                 <div class="text-base-primary leading-relaxed break-words preview-content max-h-[250px] overflow-y-auto" v-html="frontPreview" />
               </div>
             </div>
@@ -126,10 +116,12 @@ const props = defineProps<{
   card?: Flashcard | null
   initialFront?: string
   initialBack?: string
+  localOnly?: boolean
 }>()
 const emit = defineEmits<{
   (e: 'created'): void
   (e: 'updated'): void
+  (e: 'local-save', card: { front: string; back: string; tags: string[]; frontAudioBlob: Blob | null; backAudioBlob: Blob | null }): void
 }>()
 const open = defineModel<boolean>({ required: true })
 
@@ -149,7 +141,6 @@ function flipPreview() {
 }
 
 const form = reactive({
-  deck_id: '',
   front: '',
   back: '',
   topic_id: '',
@@ -162,7 +153,6 @@ const form = reactive({
 
 function populateForm() {
   if (props.card) {
-    form.deck_id = props.card.deck_id
     form.front = props.card.front
     form.back = props.card.back
     form.topic_id = props.card.topic_id ?? ''
@@ -170,7 +160,6 @@ function populateForm() {
     form.existingFrontAudioUrl = props.card.front_audio_url ?? null
     form.existingBackAudioUrl = props.card.back_audio_url ?? null
   } else {
-    form.deck_id = props.deckId ?? deckStore.decks[0]?.id ?? ''
     form.front = props.initialFront ?? ''
     form.back = props.initialBack ?? ''
     form.topic_id = props.topicId ?? ''
@@ -187,20 +176,14 @@ function populateForm() {
 onMounted(() => {
   populateForm()
   if (!topics.value.length) loadTopics()
-  if (!deckStore.decks.length) deckStore.fetchDecks()
 })
 
-const deckOptions = computed(() =>
-  deckStore.decks.map(d => ({ value: d.id, label: d.name })),
+const topicOptions = computed(() =>
+  topics.value.filter(t => !t.parent_id).map(t => ({ value: t.id, label: t.name })),
 )
 
-const topicOptions = computed(() => [
-  { value: '', label: 'Nenhum' },
-  ...topics.value.map(t => ({ value: t.id, label: t.name })),
-])
-
-const selectedDeckName = computed(() =>
-  deckStore.decks.find(d => d.id === form.deck_id)?.name ?? '',
+const selectedTopicName = computed(() =>
+  topics.value.find(t => t.id === form.topic_id)?.name ?? '',
 )
 
 const isEmpty = (html: string) => !html || html === '<p></p>'
@@ -222,7 +205,7 @@ watch(clozeIndices, (indices) => {
 })
 
 const canSubmit = computed(() => {
-  if (!form.front || !form.deck_id || saving.value) return false
+  if (!form.front || !form.topic_id || saving.value) return false
   return hasCloze.value || !!form.back
 })
 
@@ -269,6 +252,17 @@ async function submitAndContinue() {
 }
 
 async function doSubmit(closeAfter: boolean) {
+  if (props.localOnly) {
+    emit('local-save', {
+      front: form.front,
+      back: form.back,
+      tags: [...form.tags],
+      frontAudioBlob: form.frontAudioBlob,
+      backAudioBlob: form.backAudioBlob,
+    })
+    if (closeAfter) open.value = false
+    return
+  }
   saving.value = true
   try {
     let front_audio_url: string | undefined
@@ -281,7 +275,7 @@ async function doSubmit(closeAfter: boolean) {
       await flashcardStore.update(props.card.id, {
         front: form.front,
         back: form.back,
-        topic_id: form.topic_id || undefined,
+        topic_id: form.topic_id,
         tags: form.tags.length ? form.tags : undefined,
         front_audio_url,
         back_audio_url,
@@ -290,13 +284,16 @@ async function doSubmit(closeAfter: boolean) {
       emit('updated')
       open.value = false
     } else {
-      await flashcardStore.create(form.deck_id, {
-        front: form.front,
-        back: form.back,
-        topic_id: form.topic_id || undefined,
-        tags: form.tags.length ? form.tags : undefined,
-        front_audio_url,
-        back_audio_url,
+      await $api('/flashcards', {
+        method: 'POST',
+        body: {
+          front: form.front,
+          back: form.back,
+          topic_id: form.topic_id,
+          tags: form.tags.length ? form.tags : undefined,
+          front_audio_url,
+          back_audio_url,
+        },
       })
       toast.show('Card criado!', 'success')
       emit('created')

@@ -104,14 +104,15 @@
 
         <!-- Bottom actions -->
         <div class="flex gap-3 px-6 py-4 border-t border-base shrink-0">
-          <a
+          <button
             v-if="player.currentPodcast.audio_url"
-            :href="`${apiBase}/podcasts/${player.currentPodcast.id}/download`"
             class="btn-secondary flex-none !py-2.5"
             aria-label="Baixar"
+            :disabled="downloading"
+            @click="downloadPodcast"
           >
             <Download :size="16" />
-          </a>
+          </button>
           <NuxtLink
             v-if="linkedCards.length && player.currentPodcast.topic_id"
             :to="`/review?topic_id=${player.currentPodcast.topic_id}&errors_only=1`"
@@ -137,7 +138,30 @@ function onKeydown(e: KeyboardEvent) {
 
 onMounted(() => document.addEventListener('keydown', onKeydown))
 onUnmounted(() => document.removeEventListener('keydown', onKeydown))
-const { public: { apiBase } } = useRuntimeConfig()
+const downloading = ref(false)
+
+async function downloadPodcast() {
+  const podcast = player.currentPodcast
+  if (!podcast || downloading.value) return
+  downloading.value = true
+  try {
+    const { $api } = useNuxtApp()
+    const blob = await $api<Blob>(`/podcasts/${podcast.id}/download`, {
+      responseType: 'blob',
+      headers: { Accept: 'application/octet-stream' },
+    })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${podcast.title || 'podcast'}.wav`
+    a.click()
+    URL.revokeObjectURL(url)
+  } catch {
+    // silent fail
+  } finally {
+    downloading.value = false
+  }
+}
 
 interface LinkedCard {
   id: string

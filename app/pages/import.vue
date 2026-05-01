@@ -59,7 +59,7 @@
           </div>
           <div class="bg-surface-tertiary rounded-lg p-3 text-center">
             <p class="text-title text-accent-primary">{{ store.preview.tags.length }}</p>
-            <p class="text-micro text-base-muted">Tags → Tópicos</p>
+            <p class="text-micro text-base-muted">Tags → Cadernos</p>
           </div>
           <div class="bg-surface-tertiary rounded-lg p-3 text-center">
             <p class="text-title text-accent-primary">{{ store.preview.media_count }}</p>
@@ -131,14 +131,14 @@
         </div>
         <div class="bg-surface-tertiary rounded-lg p-3">
           <p class="text-title text-accent-primary">{{ store.status.stats?.topics_created }}</p>
-          <p class="text-micro text-base-muted">Tópicos</p>
+          <p class="text-micro text-base-muted">Cadernos</p>
         </div>
         <div class="bg-surface-tertiary rounded-lg p-3">
           <p class="text-title text-accent-primary">{{ store.status.stats?.media_extracted }}</p>
           <p class="text-micro text-base-muted">Media</p>
         </div>
       </div>
-      <NuxtLink to="/topics" class="btn-primary">Ver tópicos</NuxtLink>
+      <NuxtLink to="/topics" class="btn-primary">Ver cadernos</NuxtLink>
     </div>
 
     <!-- Failed -->
@@ -168,7 +168,7 @@ const stepLabel = computed(() => {
   const step = store.status?.current_step
   const map: Record<string, string> = {
     creating_decks: 'Criando decks...',
-    creating_topics: 'Criando tópicos...',
+    creating_topics: 'Criando cadernos...',
     importing_cards: 'Importando cards...',
     extracting_media: 'Extraindo media...',
   }

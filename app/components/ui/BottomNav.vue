@@ -25,6 +25,7 @@ import {
   BookOpen,
   RotateCcw,
   BarChart3,
+  Headphones,
 } from 'lucide-vue-next'
 
 const route = useRoute()
@@ -33,6 +34,7 @@ const items = [
   { label: 'Hoje', to: '/today', icon: 'home' },
   { label: 'Cadernos', to: '/topics', icon: 'topics' },
   { label: 'Revisão', to: '/review', icon: 'review' },
+  { label: 'Podcasts', to: '/podcasts', icon: 'podcasts' },
   { label: 'Progresso', to: '/progress', icon: 'progress' },
 ]
 
@@ -40,6 +42,7 @@ const iconMap: Record<string, any> = {
   home: Home,
   topics: BookOpen,
   review: RotateCcw,
+  podcasts: Headphones,
   progress: BarChart3,
 }
 

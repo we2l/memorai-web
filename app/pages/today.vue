@@ -56,7 +56,10 @@
       </div>
       <div class="flex items-center justify-between">
         <span class="text-micro text-base-muted">{{ stats?.reviewed_today ?? 0 }} revisados hoje</span>
-        <NuxtLink to="/review" class="btn-primary glow-primary">Começar revisão</NuxtLink>
+        <div class="flex items-center gap-2">
+          <NuxtLink to="/review?mode=blitz" class="btn-secondary !py-2 !px-3 !min-h-[2.75rem] text-small">⚡ Rápida</NuxtLink>
+          <NuxtLink to="/review" class="btn-primary glow-primary">Começar revisão</NuxtLink>
+        </div>
       </div>
     </div>
 

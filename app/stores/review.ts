@@ -18,6 +18,7 @@ export const useReviewStore = defineStore('review', {
     noteSnippet: null as { note_id: string; title: string; snippet: string; topic_id: string } | null,
     lastReviewId: null as string | null,
     showErrorDiary: false,
+    hints: [] as { type: string; text: string }[],
     _tick: 0,
     _pendingAdvance: null as (() => void) | null,
   }),
@@ -46,7 +47,7 @@ export const useReviewStore = defineStore('review', {
   },
 
   actions: {
-    async fetchSession(deckId?: string, topicId?: string, errorsOnly?: boolean, backlog?: boolean) {
+    async fetchSession(deckId?: string, topicId?: string, errorsOnly?: boolean, backlog?: boolean, mode?: string) {
       this.loading = true
       this.finished = false
       this.currentIndex = 0
@@ -54,6 +55,7 @@ export const useReviewStore = defineStore('review', {
       this.learningQueue = []
       this.weakSuggestion = null
       this.noteSnippet = null
+      this.hints = []
       this.showErrorDiary = false
       try {
         const { $api } = useNuxtApp()
@@ -62,6 +64,7 @@ export const useReviewStore = defineStore('review', {
         if (topicId) params.set('topic_id', topicId)
         if (errorsOnly) params.set('errors_only', '1')
         if (backlog) params.set('backlog', '1')
+        if (mode) params.set('mode', mode)
         const query = params.toString() ? `?${params}` : ''
         const res = await $api<any>(`/review/session${query}`)
         const allCards = res.data as SessionCard[]
@@ -103,6 +106,15 @@ export const useReviewStore = defineStore('review', {
         // Weak connection suggestion on Again
         this.weakSuggestion = res.data.weak_connections ?? null
         this.noteSnippet = res.data.note_snippet ?? null
+
+        // Fetch hints on Again/Hard
+        this.hints = []
+        if (rating <= 2 && card.source_note_id) {
+          try {
+            const hintsRes = await $api<any>(`/flashcards/${card.id}/hints`)
+            this.hints = hintsRes.data ?? []
+          } catch {}
+        }
 
         // Show error diary on Again
         this.lastReviewId = res.data.review?.id ?? null

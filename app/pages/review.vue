@@ -7,6 +7,7 @@
       </NuxtLink>
       <div class="flex items-center gap-3 text-small text-base-muted">
         <span v-if="isSurvivalMode" class="px-2 py-0.5 rounded-full text-micro uppercase tracking-wide font-medium bg-warning/15 text-warning">Sobrevivência</span>
+        <span v-if="isBlitz" class="px-2 py-0.5 rounded-full text-micro uppercase tracking-wide font-medium bg-accent-primary/15 text-accent-primary">⚡ Relâmpago</span>
         <span v-if="sessionTimer > 0" class="font-mono" :class="sessionTimer <= 60 ? 'text-danger' : ''" aria-live="polite" :aria-label="`${formatTimer(sessionTimer)} restantes`">
           {{ formatTimer(sessionTimer) }}
         </span>
@@ -156,6 +157,23 @@
         </NuxtLink>
       </div>
 
+      <!-- Hints from callout blocks -->
+      <div v-if="review.hints.length" class="mt-3 w-full max-w-md space-y-2">
+        <template v-for="(hint, i) in visibleHints" :key="i">
+          <div class="p-3 rounded-lg bg-surface-secondary border border-base-muted/10 flex items-start gap-2">
+            <span class="shrink-0">{{ hintIcon(hint.type) }}</span>
+            <p class="text-small text-base-secondary">{{ hint.text }}</p>
+          </div>
+        </template>
+        <button
+          v-if="review.hints.length > 2 && !showAllHints"
+          class="text-micro text-accent-primary hover:underline"
+          @click="showAllHints = true"
+        >
+          Ver mais {{ review.hints.length - 2 }} dica{{ review.hints.length - 2 !== 1 ? 's' : '' }}
+        </button>
+      </div>
+
       <!-- Chat trigger after error -->
       <div class="flex gap-2 mt-3">
         <button
@@ -177,14 +195,14 @@
     <!-- Timer expired modal -->
     <UiModal v-model="showTimerModal" size="sm" aria-label="Tempo esgotado">
       <div class="text-center">
-        <p class="text-4xl mb-4">⏰</p>
-        <h2 class="text-title font-serif">Tempo esgotado!</h2>
+        <p class="text-4xl mb-4">{{ isBlitz ? '⚡' : '⏰' }}</p>
+        <h2 class="text-title font-serif">{{ isBlitz ? 'Revisão rápida concluída!' : 'Tempo esgotado!' }}</h2>
         <p class="text-base-muted text-small mt-2">
-          Você revisou <span class="text-accent-primary font-medium">{{ review.reviewed }}</span> card{{ review.reviewed !== 1 ? 's' : '' }}.
+          Você revisou <span class="text-accent-primary font-medium">{{ review.reviewed }}</span> card{{ review.reviewed !== 1 ? 's' : '' }}{{ isBlitz ? ' em 5 min' : '' }}.
         </p>
         <div class="flex gap-3 mt-6 justify-center">
           <NuxtLink to="/today" class="btn-secondary">Encerrar</NuxtLink>
-          <button class="btn-primary" @click="continueAfterTimer">Continuar</button>
+          <button class="btn-primary" @click="continueAfterTimer">{{ isBlitz ? 'Mais 5 min' : 'Continuar' }}</button>
         </div>
       </div>
     </UiModal>
@@ -204,7 +222,18 @@ const correctStreak = ref(0)
 const rewardMessage = ref('')
 const progressPulse = ref(false)
 const errorsByTopic = ref<Record<string, { name: string; count: number; id: string }>>({})
+const showAllHints = ref(false)
 let rewardTimeout: ReturnType<typeof setTimeout> | null = null
+
+const visibleHints = computed(() =>
+  showAllHints.value ? review.hints : review.hints.slice(0, 2),
+)
+
+function hintIcon(type: string): string {
+  if (type === 'error') return '❌'
+  if (type === 'gotcha') return '⚠️'
+  return '💡'
+}
 
 const topErrorTopic = computed(() => {
   const entries = Object.values(errorsByTopic.value).filter(e => e.count >= 2)
@@ -215,6 +244,7 @@ const topErrorTopic = computed(() => {
 async function handleRate(rating: number) {
   const cardId = review.currentCard?.id ?? ''
   const cardSnapshot = review.currentCard ? { ...review.currentCard } : null
+  showAllHints.value = false
 
   // Micro feedback
   cardFeedback.value = rating >= 3 ? 'success' : 'error'
@@ -272,15 +302,27 @@ async function loadSession() {
   const topicId = route.query.topic_id as string | undefined
   const errorsOnly = route.query.errors_only === '1'
   const backlog = route.query.backlog === '1'
+  const mode = route.query.mode as string | undefined
   if (deckId) await deckStore.fetchDeck(deckId)
-  await review.fetchSession(deckId, topicId, errorsOnly, backlog)
-  await loadSessionTimer()
+  await review.fetchSession(deckId, topicId, errorsOnly, backlog, mode)
+
+  // Blitz mode: fixed 5 min timer, ignore settings timer
+  isBlitz.value = mode === 'blitz'
+  if (isBlitz.value) {
+    sessionTimer.value = 300
+    timerInterval = setInterval(() => {
+      if (sessionTimer.value > 0) sessionTimer.value--
+    }, 1000)
+  } else {
+    await loadSessionTimer()
+  }
 }
 
 // Session timer & survival mode
 const sessionTimer = ref(0)
 const showTimerModal = ref(false)
 const isSurvivalMode = ref(false)
+const isBlitz = ref(false)
 let timerInterval: ReturnType<typeof setInterval> | null = null
 
 async function loadSessionTimer() {
@@ -308,6 +350,12 @@ watch(sessionTimer, (val, oldVal) => {
 
 function continueAfterTimer() {
   showTimerModal.value = false
+  if (isBlitz.value) {
+    sessionTimer.value = 300
+    timerInterval = setInterval(() => {
+      if (sessionTimer.value > 0) sessionTimer.value--
+    }, 1000)
+  }
 }
 
 function dismissErrorDiary() {

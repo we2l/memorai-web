@@ -125,9 +125,12 @@
             <p class="text-headline text-base-primary">{{ pendingCount }} card{{ pendingCount !== 1 ? 's' : '' }} pendente{{ pendingCount !== 1 ? 's' : '' }}</p>
             <p class="text-small text-base-muted mt-1">Continue seu progresso de hoje</p>
           </div>
-          <NuxtLink :to="`/review?topic_id=${selectedTopicId}`" class="btn-primary !py-3 !px-6 shrink-0">
-            Revisar agora
-          </NuxtLink>
+          <div class="flex items-center gap-2 shrink-0">
+            <NuxtLink :to="`/review?mode=blitz&topic_id=${selectedTopicId}`" class="btn-secondary !py-3 !px-4 text-small">⚡ Rápida</NuxtLink>
+            <NuxtLink :to="`/review?topic_id=${selectedTopicId}`" class="btn-primary !py-3 !px-6">
+              Revisar agora
+            </NuxtLink>
+          </div>
         </div>
 
         <!-- Sticky header (appears on scroll) -->
@@ -237,8 +240,11 @@
     </main>
 
     <!-- Mobile: sticky bottom review button -->
-    <div v-if="selectedTopicId && dueCardsCount > 0" class="lg:hidden fixed bottom-16 left-0 right-0 p-3 bg-overlay border-t border-base z-30">
-      <NuxtLink :to="`/review?topic_id=${selectedTopicId}`" class="btn-primary w-full justify-center">
+    <div v-if="selectedTopicId && dueCardsCount > 0" class="lg:hidden fixed bottom-16 left-0 right-0 p-3 bg-overlay border-t border-base z-30 flex gap-2">
+      <NuxtLink :to="`/review?mode=blitz&topic_id=${selectedTopicId}`" class="btn-secondary flex-none justify-center !py-2.5 !px-3">
+        ⚡ Rápida
+      </NuxtLink>
+      <NuxtLink :to="`/review?topic_id=${selectedTopicId}`" class="btn-primary flex-1 justify-center">
         Revisar {{ dueCardsCount }} card{{ dueCardsCount !== 1 ? 's' : '' }}
       </NuxtLink>
     </div>

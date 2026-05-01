@@ -291,3 +291,13 @@ export interface Podcast {
   source_data?: { topic_names?: string[]; card_count?: number; error_count?: number } | null
   created_at: string
 }
+
+
+export type PodcastDuration = 'short' | 'medium' | 'long'
+export type PodcastTone = 'formal' | 'conversational' | 'motivational' | 'didactic'
+export type PodcastFormat = 'expository' | 'debate'
+
+export interface PodcastSpeakerConfig {
+  host1: { name: string; voice: string }
+  host2?: { name: string; voice: string }
+}

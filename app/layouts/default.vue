@@ -28,6 +28,9 @@
     <ChatFab />
     <UiQuickCapture />
 
+    <PodcastMiniplayer />
+    <PodcastExpandedPlayer />
+
     <UiUpgradeModal
       v-model="showUpgrade"
       :feature="upgradeFeature"

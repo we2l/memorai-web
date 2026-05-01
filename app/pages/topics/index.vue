@@ -130,6 +130,27 @@
           </NuxtLink>
         </div>
 
+        <!-- Podcast generate button -->
+        <div v-if="selectedTopicId" class="mx-4 mb-3">
+          <button class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-surface-secondary border border-base hover:border-accent-primary/30 transition-colors text-left" @click="showPodcastSheet = true">
+            <span class="text-xl">🎙️</span>
+            <div class="flex-1">
+              <p class="text-small text-base-primary">Gerar podcast deste caderno</p>
+              <p class="text-micro text-base-muted">Ouça seus pontos fracos</p>
+            </div>
+            <span class="text-base-muted text-small">→</span>
+          </button>
+        </div>
+
+        <PodcastGenerateSheet
+          v-if="selectedTopicId"
+          v-model="showPodcastSheet"
+          :topic-id="selectedTopicId"
+          :topic-name="selectedTopicName ?? ''"
+          :weak-cards-count="topicCards.filter(c => c.lapses > 0).length"
+          @generated="onPodcastGenerated"
+        />
+
         <!-- Sticky header (appears on scroll) -->
         <div
           v-if="showStickyHeader"
@@ -347,6 +368,12 @@ const showDeleteTopic = ref(false)
 const showNoteToCard = ref(false)
 const showGraph = ref(false)
 const showAddMenu = ref(false)
+const showPodcastSheet = ref(false)
+
+function onPodcastGenerated() {
+  const podcastStore = usePodcastStore()
+  podcastStore.startPolling()
+}
 const showCardForm = ref(false)
 const cardFormInitialFront = ref('')
 const cardFormInitialBack = ref('')

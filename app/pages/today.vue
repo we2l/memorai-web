@@ -110,7 +110,7 @@
         <span class="text-3xl">🎧</span>
         <div class="flex-1">
           <p class="text-small font-medium text-base-primary">Ouça seus pontos fracos</p>
-          <p class="text-micro text-base-muted">Gere um podcast personalizado de revisão</p>
+          <p class="text-micro text-base-muted">Gere um podcast dentro de um caderno</p>
         </div>
         <span class="text-accent-primary text-small">→</span>
       </NuxtLink>

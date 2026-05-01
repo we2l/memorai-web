@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { Podcast } from '~/types'
+import type { Podcast, PodcastDuration, PodcastTone, PodcastFormat, PodcastSpeakerConfig } from '~/types'
 
 export const usePodcastStore = defineStore('podcast', {
   state: () => ({
@@ -12,7 +12,6 @@ export const usePodcastStore = defineStore('podcast', {
     hasPending: (state) => state.podcasts.some(p =>
       ['pending', 'generating_script', 'generating_audio'].includes(p.status),
     ),
-    latestReady: (state) => state.podcasts.find(p => p.status === 'ready'),
   },
 
   actions: {
@@ -27,13 +26,19 @@ export const usePodcastStore = defineStore('podcast', {
       }
     },
 
-    async generate() {
+    async generate(config: {
+      topic_id: string
+      duration?: PodcastDuration
+      tone?: PodcastTone
+      format?: PodcastFormat
+      speaker_config?: PodcastSpeakerConfig
+    }) {
       this.generating = true
       try {
         const { $api } = useNuxtApp()
-        const res = await $api<any>('/podcasts', { method: 'POST' })
+        const res = await $api<any>('/podcasts', { method: 'POST', body: config })
         this.podcasts.unshift(res.data)
-        return res.data
+        return res.data as Podcast
       } finally {
         this.generating = false
       }

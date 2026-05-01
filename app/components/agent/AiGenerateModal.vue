@@ -33,9 +33,9 @@
 
       <!-- Notes -->
       <div v-if="source === 'notes'">
-        <label for="ai-topic" class="text-label mb-1 block">Tópico</label>
+        <label for="ai-topic" class="text-label mb-1 block">Caderno</label>
         <select id="ai-topic" v-model="topicId" class="input-base w-full">
-          <option value="">Selecione um tópico</option>
+          <option value="">Selecione um caderno</option>
           <option v-for="t in topics" :key="t.id" :value="t.id">{{ t.name }}</option>
         </select>
       </div>

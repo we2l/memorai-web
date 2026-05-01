@@ -53,13 +53,13 @@
             </button>
           </div>
           <div v-else-if="searchQuery.trim().length >= 2 && !searchResults.length" class="mt-1 bg-surface-secondary border border-base rounded-lg shadow-lg px-3 py-2">
-            <p class="text-micro text-base-muted">Nenhum tópico encontrado</p>
+            <p class="text-micro text-base-muted">Nenhum caderno encontrado</p>
           </div>
         </div>
 
         <!-- Connect mode banner -->
         <div v-if="connectMode" class="px-4 py-2 bg-accent-primary-subtle text-accent-primary text-small text-center shrink-0">
-          {{ connectSource ? 'Clique no segundo tópico para conectar' : 'Clique no primeiro tópico' }}
+          {{ connectSource ? 'Clique no segundo caderno para conectar' : 'Clique no primeiro caderno' }}
           <span v-if="connectSource" class="font-medium"> — {{ connectSourceName }}</span>
         </div>
 
@@ -69,8 +69,8 @@
             <div class="skeleton h-64 w-64 rounded-full" />
           </div>
           <div v-else-if="!graphStore.data?.nodes.length" class="flex-1 flex flex-col items-center justify-center">
-            <p class="text-title text-base-secondary">Nenhum tópico ainda</p>
-            <p class="text-small text-base-muted mt-1">Crie tópicos para ver seu mapa.</p>
+            <p class="text-title text-base-secondary">Nenhum caderno ainda</p>
+            <p class="text-small text-base-muted mt-1">Crie cadernos para ver seu mapa.</p>
           </div>
           <div v-else ref="containerRef" class="flex-1 relative overflow-hidden min-h-[300px]" />
 
@@ -103,10 +103,10 @@
             </div>
             <div class="p-4 flex flex-col gap-2">
               <NuxtLink :to="`/review?topic_id=${graphStore.selectedNode.id}`" class="btn-primary text-small justify-center">
-                Revisar tópico
+                Revisar caderno
               </NuxtLink>
               <NuxtLink :to="`/topics?topic=${graphStore.selectedNode.id}`" class="btn-secondary text-small justify-center" @click="close">
-                Ver tópico
+                Ver caderno
               </NuxtLink>
             </div>
           </aside>
@@ -132,7 +132,7 @@
 
         <!-- Connect label modal -->
         <UiModal v-model="showLabelModal" size="sm">
-          <h2 class="text-headline mb-4">Conectar tópicos</h2>
+          <h2 class="text-headline mb-4">Conectar cadernos</h2>
           <p class="text-small text-base-secondary mb-3">{{ connectSourceName }} ↔ {{ connectTargetName }}</p>
           <input v-model="connectLabel" class="input-base" placeholder="Label (opcional)" @keydown.enter="confirmConnection" />
           <div class="flex gap-3 justify-end mt-4">

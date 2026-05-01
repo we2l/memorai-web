@@ -56,10 +56,7 @@
       </div>
       <div class="flex items-center justify-between">
         <span class="text-micro text-base-muted">{{ stats?.reviewed_today ?? 0 }} revisados hoje</span>
-        <div class="flex items-center gap-2">
-          <NuxtLink to="/review?mode=blitz" class="btn-secondary !py-2 !px-3 !min-h-[2.75rem] text-small">⚡ Rápida</NuxtLink>
-          <NuxtLink to="/review" class="btn-primary glow-primary">Começar revisão</NuxtLink>
-        </div>
+        <NuxtLink to="/review" class="btn-primary glow-primary">Começar revisão</NuxtLink>
       </div>
     </div>
 
@@ -113,7 +110,7 @@
         <span class="text-3xl">🎧</span>
         <div class="flex-1">
           <p class="text-small font-medium text-base-primary">Ouça seus pontos fracos</p>
-          <p class="text-micro text-base-muted">Gere um podcast personalizado de revisão</p>
+          <p class="text-micro text-base-muted">Gere um podcast dentro de um caderno</p>
         </div>
         <span class="text-accent-primary text-small">→</span>
       </NuxtLink>

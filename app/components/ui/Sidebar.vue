@@ -42,8 +42,8 @@ import {
   Home,
   BookOpen,
   RotateCcw,
-  BarChart3,
   Headphones,
+  BarChart3,
   Settings,
   LogOut,
 } from 'lucide-vue-next'

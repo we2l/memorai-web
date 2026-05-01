@@ -49,7 +49,9 @@
       <div
         v-for="card in displayed"
         :key="card.id"
+        :id="`card-${card.id}`"
         class="p-4 rounded-xl bg-surface-secondary transition-colors"
+        :class="highlightId === card.id ? 'ring-2 ring-accent-primary' : ''"
       >
         <div class="flex gap-4 items-start">
           <div
@@ -125,6 +127,7 @@ const props = defineProps<{
   aiGenerating: boolean
   errorPatterns: any
   noteNameById: (id: string) => string
+  highlightId?: string
 }>()
 
 defineEmits<{

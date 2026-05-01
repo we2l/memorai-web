@@ -120,7 +120,7 @@
         </div>
 
         <!-- HERO — simple: pending cards + review button -->
-        <div v-if="pendingCount > 0" class="mx-4 mt-5 mb-3 px-6 py-5 rounded-2xl border border-accent-primary/20 bg-surface-secondary flex items-center justify-between gap-4">
+        <div v-if="pendingCount > 0" class="mx-4 mt-5 mb-3 px-6 py-5 rounded-2xl bg-surface-secondary flex items-center justify-between gap-4">
           <div>
             <p class="text-headline text-base-primary">{{ pendingCount }} card{{ pendingCount !== 1 ? 's' : '' }} pendente{{ pendingCount !== 1 ? 's' : '' }}</p>
             <p class="text-small text-base-muted mt-1">Continue seu progresso de hoje</p>
@@ -132,6 +132,27 @@
             </NuxtLink>
           </div>
         </div>
+
+        <!-- Podcast generate button -->
+        <div v-if="selectedTopicId" class="mx-4 mb-3">
+          <button class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-surface-secondary border border-base hover:border-accent-primary/30 transition-colors text-left" @click="showPodcastSheet = true">
+            <span class="text-xl">🎙️</span>
+            <div class="flex-1">
+              <p class="text-small text-base-primary">Gerar podcast deste caderno</p>
+              <p class="text-micro text-base-muted">Ouça seus pontos fracos</p>
+            </div>
+            <span class="text-base-muted text-small">→</span>
+          </button>
+        </div>
+
+        <PodcastGenerateSheet
+          v-if="selectedTopicId"
+          v-model="showPodcastSheet"
+          :topic-id="selectedTopicId"
+          :topic-name="selectedTopicName ?? ''"
+          :weak-cards-count="topicCards.filter(c => c.lapses > 0).length"
+          @generated="onPodcastGenerated"
+        />
 
         <!-- Sticky header (appears on scroll) -->
         <div
@@ -201,6 +222,7 @@
           :ai-generating="aiGenerating"
           :error-patterns="errorPatterns"
           :note-name-by-id="noteNameById"
+          :highlight-id="highlightCardId"
           @create-card="openCreateCard"
           @delete-card="confirmDeleteCard"
           @edit-card="openEditCard"
@@ -331,6 +353,7 @@ import type { Topic, Note } from '~/types'
 const topicStore = useTopicStore()
 const noteStore = useNoteStore()
 const toast = useToast()
+const route = useRoute()
 const { $api } = useNuxtApp()
 
 const selectedTopicId = ref<string | null>(null)
@@ -353,6 +376,13 @@ const showDeleteTopic = ref(false)
 const showNoteToCard = ref(false)
 const showGraph = ref(false)
 const showAddMenu = ref(false)
+const showPodcastSheet = ref(false)
+const highlightCardId = ref('')
+
+function onPodcastGenerated() {
+  const podcastStore = usePodcastStore()
+  podcastStore.startPolling()
+}
 const showCardForm = ref(false)
 const cardFormInitialFront = ref('')
 const cardFormInitialBack = ref('')
@@ -499,10 +529,26 @@ async function loadTopicData(id: string) {
     const hasDue = topicCards.value.some(c => c.due && new Date(c.due) <= new Date())
     const hasNew = topicCards.value.some(c => c.state === 'new')
     const stored = localStorage.getItem(`memorai-hub-tab-${id}`)
-    if (stored) {
+
+    // Query param override (from podcast player link)
+    if (route.query.tab === 'cards') {
+      activeTab.value = 'cards'
+    } else if (stored) {
       activeTab.value = stored
     } else {
       activeTab.value = (hasDue || hasNew) ? 'cards' : 'notes'
+    }
+
+    // Highlight card from query param
+    if (route.query.highlight) {
+      activeTab.value = 'cards'
+      highlightCardId.value = route.query.highlight as string
+      // Wait for tab + card list to render
+      setTimeout(() => {
+        const el = document.getElementById(`card-${highlightCardId.value}`)
+        el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        setTimeout(() => { highlightCardId.value = '' }, 3000)
+      }, 300)
     }
   } catch {}
 }
@@ -839,7 +885,6 @@ onMounted(async () => {
       progressMap.value[tp.id] = tp.progress
     }
   } catch {}
-  const route = useRoute()
   if (route.query.view === 'graph') {
     showGraph.value = true
   }

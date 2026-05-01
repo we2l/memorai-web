@@ -13,7 +13,7 @@
       @add-child="$emit('add-child', $event)"
     />
     <div v-if="!topics.length" class="text-small text-base-muted px-3 py-4">
-      Nenhum tópico criado.
+      Nenhum caderno criado.
     </div>
   </div>
 </template>

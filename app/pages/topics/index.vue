@@ -274,8 +274,8 @@
 
     <UiConfirmModal
       v-model="showDeleteTopic"
-      title="Deletar tópico?"
-      message="Tópicos e notas serão deletados. Cards vinculados serão removidos."
+      title="Deletar?"
+      message="Conteúdo e notas serão deletados. Cards vinculados serão removidos."
       confirm-label="Deletar"
       @confirm="handleDeleteTopic"
     />
@@ -656,7 +656,7 @@ async function handleEditTopic() {
   if (!editTopicId.value) return
   await topicStore.update(editTopicId.value, { name: editTopicName.value })
   showEditTopic.value = false
-  toast.show('Tópico atualizado!', 'success')
+  toast.show('Salvo!', 'success')
 }
 
 async function handleDeleteTopic() {
@@ -664,7 +664,7 @@ async function handleDeleteTopic() {
   await topicStore.remove(deleteTopicId.value)
   if (selectedTopicId.value === deleteTopicId.value) selectedTopicId.value = null
   showDeleteTopic.value = false
-  toast.show('Tópico deletado.', 'success')
+  toast.show('Deletado.', 'success')
 }
 
 function extractTextFromTiptap(doc: any): string {

@@ -32,7 +32,7 @@
 
       <!-- Actions (visible on hover/selected) -->
       <span v-if="showActions" class="flex items-center gap-0.5 shrink-0" @click.stop>
-        <button class="p-2 rounded hover:bg-surface-tertiary" title="Adicionar sub-tópico" @click="$emit('add-child', topic.id)">
+        <button class="p-2 rounded hover:bg-surface-tertiary" title="Adicionar tópico" @click="$emit('add-child', topic.id)">
           <Plus :size="14" />
         </button>
         <button class="p-2 rounded hover:bg-surface-tertiary" title="Editar" @click="$emit('edit', topic)">

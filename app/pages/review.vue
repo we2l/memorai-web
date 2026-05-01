@@ -119,7 +119,7 @@
       <!-- Weak connection suggestion -->
       <div v-if="review.weakSuggestion?.length && !review.showErrorDiary" class="w-full max-w-lg px-4">
         <div class="card border border-warning/30 text-center">
-          <p class="text-small text-base-muted mb-2">Tópico conectado também está fraco:</p>
+          <p class="text-small text-base-muted mb-2">Caderno conectado também está fraco:</p>
           <div v-for="w in review.weakSuggestion" :key="w.id" class="flex items-center justify-center gap-2 text-small">
             <span class="text-warning">⚠</span>
             <span class="text-base-primary font-medium">{{ w.name }}</span>
@@ -268,7 +268,7 @@ async function handleRate(rating: number) {
     if (card?.topic_id) {
       const key = card.topic_id
       if (!errorsByTopic.value[key]) {
-        errorsByTopic.value[key] = { id: card.topic_id, name: card.topic_name ?? 'Tópico', count: 0 }
+        errorsByTopic.value[key] = { id: card.topic_id, name: card.topic_name ?? 'Caderno', count: 0 }
       }
       errorsByTopic.value[key].count++
     }

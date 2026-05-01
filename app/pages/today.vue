@@ -107,6 +107,18 @@
       </div>
     </div>
 
+    <!-- Podcast card -->
+    <div v-if="auth.user?.plan !== 'free' && (stats?.reviewed_today ?? 0) > 0" class="mt-6">
+      <NuxtLink to="/podcasts" class="card flex items-center gap-4 hover:border-accent-primary/30 transition-colors">
+        <span class="text-3xl">🎧</span>
+        <div class="flex-1">
+          <p class="text-small font-medium text-base-primary">Ouça seus pontos fracos</p>
+          <p class="text-micro text-base-muted">Gere um podcast personalizado de revisão</p>
+        </div>
+        <span class="text-accent-primary text-small">→</span>
+      </NuxtLink>
+    </div>
+
     <!-- Pra hoje (max 3 actions) -->
     <div v-if="pendingActions.length" class="mt-8">
       <p class="text-label mb-3">Pra hoje</p>

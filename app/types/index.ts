@@ -278,3 +278,16 @@ export interface ChatResponse {
     content: string
   }
 }
+
+
+// Podcast
+export interface Podcast {
+  id: string
+  title: string
+  status: 'pending' | 'generating_script' | 'generating_audio' | 'ready' | 'failed'
+  script?: string
+  audio_url?: string | null
+  duration_seconds?: number | null
+  source_data?: { topic_names?: string[]; card_count?: number; error_count?: number } | null
+  created_at: string
+}

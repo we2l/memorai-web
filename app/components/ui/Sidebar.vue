@@ -19,6 +19,7 @@
     </nav>
 
     <div class="border-t border-base pt-4 mt-4">
+      <UiPlanBadge :plan="auth.user?.plan" />
       <NuxtLink
         to="/settings"
         class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-small text-base-muted hover:bg-surface-tertiary transition-all duration-150"

@@ -16,9 +16,9 @@
         </div>
         <div>
           <p class="text-label">Plano</p>
-          <span class="inline-block px-3 py-1 rounded-full text-micro font-medium bg-accent-primary-subtle text-accent-primary">
-            {{ auth.user?.plan ?? 'free' }}
-          </span>
+          <div class="flex items-center gap-3 mt-1">
+            <UiPlanBadge :plan="auth.user?.plan" />
+          </div>
         </div>
       </div>
     </section>

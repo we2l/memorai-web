@@ -1,5 +1,6 @@
 <template>
   <div class="min-h-screen bg-surface">
+    <UiPaymentBanner />
     <UiSidebar />
     <UiBottomNav />
 
@@ -57,7 +58,11 @@ const showUpgrade = ref(false)
 const upgradeFeature = ref('')
 const upgradePlan = ref('pro')
 
+const subscription = useSubscriptionStore()
+
 onMounted(() => {
+  subscription.fetchStatus().catch(() => {})
+
   window.addEventListener('feature-limit-reached', ((e: CustomEvent) => {
     upgradeFeature.value = e.detail?.feature || ''
     upgradePlan.value = e.detail?.planRequired || 'pro'

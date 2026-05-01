@@ -9,7 +9,7 @@
       <p class="text-base-muted text-micro mb-6">{{ upgradeMessage }}</p>
       <div class="flex gap-3 justify-center">
         <button class="btn-secondary" @click="open = false">Depois</button>
-        <button class="btn-primary" @click="open = false">
+        <button class="btn-primary" @click="goToPlans">
           Ver planos
         </button>
       </div>
@@ -29,6 +29,11 @@ const props = withDefaults(defineProps<{
 })
 
 const open = defineModel<boolean>({ required: true })
+
+async function goToPlans() {
+  open.value = false
+  await navigateTo('/plans')
+}
 
 const featureLabels: Record<string, string> = {
   cards_ai: 'cards com IA',

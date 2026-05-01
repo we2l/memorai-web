@@ -3,6 +3,7 @@ export interface User {
   name: string
   email: string
   plan: string
+  subscription_status?: string | null
   onboarding_completed: boolean
 }
 
@@ -300,4 +301,11 @@ export type PodcastFormat = 'expository' | 'debate'
 export interface PodcastSpeakerConfig {
   host1: { name: string; voice: string }
   host2?: { name: string; voice: string }
+}
+
+export interface SubscriptionInfo {
+  plan: string
+  subscription_status: string | null
+  subscription_ends_at: string | null
+  has_subscription: boolean
 }

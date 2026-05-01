@@ -3,7 +3,7 @@
     <UiSidebar />
     <UiBottomNav />
 
-    <main class="lg:ml-[220px] pb-20 lg:pb-0 relative">
+    <main class="lg:ml-[220px] relative" :class="mainPadding">
       <div class="absolute left-1/2 -translate-x-1/2 top-3 z-10">
         <button
           class="p-2 rounded-lg text-base-muted hover:text-accent-primary hover:bg-surface-tertiary/50 transition-colors"
@@ -44,6 +44,14 @@ import { Sun, Moon } from 'lucide-vue-next'
 
 const toast = useToast()
 const { colorMode, toggle } = useColorMode()
+
+const player = usePlayerStore()
+const hasMiniplayer = computed(() => !!player.currentPodcast)
+// pb-20 = bottom nav (mobile), +16 = miniplayer extra space
+const mainPadding = computed(() => {
+  if (hasMiniplayer.value) return 'pb-36 lg:pb-20'
+  return 'pb-20 lg:pb-0'
+})
 
 const showUpgrade = ref(false)
 const upgradeFeature = ref('')

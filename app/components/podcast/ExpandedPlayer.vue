@@ -4,25 +4,29 @@
       <div v-if="player.expanded && player.currentPodcast" class="fixed inset-0 z-50 bg-surface flex flex-col">
         <!-- Header -->
         <div class="flex items-center justify-between px-4 py-3">
-          <button class="p-2 text-base-muted" aria-label="Minimizar" @click="player.collapse()">
-            <ChevronDown :size="22" />
-          </button>
+          <div class="w-10" />
           <div class="text-center">
             <p class="text-micro text-base-muted uppercase tracking-wide">Tocando de</p>
             <p class="text-small text-base-primary font-medium">{{ player.currentPodcast.topic_name ?? '' }}</p>
           </div>
-          <div class="w-10" />
+          <button class="p-2 text-base-muted hover:text-base-primary rounded-lg hover:bg-surface-tertiary transition-colors" aria-label="Fechar" @click="player.collapse()">
+            <X :size="20" />
+          </button>
         </div>
 
-        <!-- Art -->
-        <div class="flex-1 flex flex-col items-center justify-center px-6 gap-6 overflow-hidden">
-          <div class="w-48 h-48 rounded-2xl bg-surface-secondary border border-base flex items-center justify-center">
-            <Headphones :size="64" class="text-accent-primary opacity-40" />
+        <!-- Content (scrollable) -->
+        <div class="flex-1 flex flex-col items-center justify-center px-6 gap-5 overflow-y-auto">
+          <!-- Art -->
+          <div class="w-40 h-40 rounded-2xl bg-surface-secondary border border-base flex items-center justify-center shrink-0">
+            <Headphones :size="56" class="text-accent-primary opacity-40" />
           </div>
 
           <div class="text-center w-full">
             <h2 class="text-title font-serif text-base-primary">{{ player.currentPodcast.title }}</h2>
-            <p class="text-small text-base-muted mt-1">{{ formatDate(player.currentPodcast.created_at) }}</p>
+            <p class="text-small text-base-muted mt-1">
+              {{ formatDate(player.currentPodcast.created_at) }}
+              <span v-if="player.currentPodcast.format"> · {{ player.currentPodcast.format === 'debate' ? 'Debate' : 'Expositivo' }}</span>
+            </p>
           </div>
 
           <!-- Seekbar -->
@@ -74,18 +78,24 @@
           </div>
 
           <!-- Cards carousel -->
-          <div v-if="cardIds.length" class="w-full max-w-md">
-            <p class="text-micro text-accent-primary uppercase tracking-wide mb-2">Flashcards vinculados · {{ cardIds.length }} cartões</p>
+          <div v-if="linkedCards.length" class="w-full max-w-md pb-4">
+            <p class="text-micro text-accent-primary uppercase tracking-wide mb-2">Flashcards vinculados · {{ linkedCards.length }} cartões</p>
             <div class="flex gap-3 overflow-x-auto pb-2 -mx-2 px-2 snap-x">
               <div
-                v-for="cardId in cardIds"
-                :key="cardId"
-                class="shrink-0 w-56 p-3 rounded-xl bg-surface-secondary border border-base snap-start"
+                v-for="card in linkedCards"
+                :key="card.id"
+                class="shrink-0 w-64 p-4 rounded-xl bg-surface-secondary border border-base snap-start"
               >
-                <p class="text-small text-base-primary line-clamp-3">{{ cardId }}</p>
-                <div class="flex gap-2 mt-2">
-                  <NuxtLink :to="`/topics?note_card=${cardId}`" class="text-micro text-accent-primary hover:underline">Ver Nota</NuxtLink>
-                  <NuxtLink :to="`/review?card_id=${cardId}`" class="text-micro text-accent-primary hover:underline">Revisar</NuxtLink>
+                <p class="text-small text-base-primary line-clamp-3 card-front-preview" v-html="card.front" />
+                <div class="flex gap-3 mt-3">
+                  <NuxtLink
+                    v-if="card.topic_id"
+                    :to="`/topics?topic=${card.topic_id}&tab=cards&highlight=${card.id}`"
+                    class="text-micro text-accent-primary hover:underline"
+                    @click="player.collapse()"
+                  >
+                    Ver card no caderno
+                  </NuxtLink>
                 </div>
               </div>
             </div>
@@ -93,22 +103,22 @@
         </div>
 
         <!-- Bottom actions -->
-        <div class="flex gap-3 px-6 py-4 border-t border-base">
+        <div class="flex gap-3 px-6 py-4 border-t border-base shrink-0">
           <a
             v-if="player.currentPodcast.audio_url"
             :href="`${apiBase}/podcasts/${player.currentPodcast.id}/download`"
             class="btn-secondary flex-none !py-2.5"
-            download
+            aria-label="Baixar"
           >
             <Download :size="16" />
           </a>
           <NuxtLink
-            v-if="cardIds.length"
-            :to="`/review?card_ids=${cardIds.join(',')}`"
+            v-if="linkedCards.length && player.currentPodcast.topic_id"
+            :to="`/review?topic_id=${player.currentPodcast.topic_id}&errors_only=1`"
             class="btn-primary flex-1 justify-center"
             @click="player.collapse()"
           >
-            Revisar todos os cartões
+            Revisar cartões deste caderno
           </NuxtLink>
         </div>
       </div>
@@ -117,12 +127,48 @@
 </template>
 
 <script setup lang="ts">
-import { ChevronDown, Headphones, Play, Pause, RotateCcw, RotateCw, Download } from 'lucide-vue-next'
+import { Headphones, Play, Pause, RotateCcw, RotateCw, Download, X } from 'lucide-vue-next'
 
 const player = usePlayerStore()
+
+function onKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape' && player.expanded) player.collapse()
+}
+
+onMounted(() => document.addEventListener('keydown', onKeydown))
+onUnmounted(() => document.removeEventListener('keydown', onKeydown))
 const { public: { apiBase } } = useRuntimeConfig()
 
-const cardIds = computed(() => player.currentPodcast?.card_ids ?? [])
+interface LinkedCard {
+  id: string
+  front: string
+  topic_id?: string
+}
+
+const linkedCards = ref<LinkedCard[]>([])
+
+watch(() => player.currentPodcast?.id, async (id) => {
+  linkedCards.value = []
+  if (!id) return
+  const cardIds = player.currentPodcast?.card_ids
+  if (!cardIds?.length) return
+
+  try {
+    const { $api } = useNuxtApp()
+    // Fetch each card's basic info
+    const cards = await Promise.all(
+      cardIds.slice(0, 10).map(async (cardId: string) => {
+        try {
+          const res = await $api<any>(`/flashcards/${cardId}`)
+          return { id: res.data.id, front: res.data.front, topic_id: res.data.topic_id }
+        } catch {
+          return null
+        }
+      }),
+    )
+    linkedCards.value = cards.filter(Boolean) as LinkedCard[]
+  } catch {}
+}, { immediate: true })
 
 function onSeek(e: Event) {
   player.seek(Number((e.target as HTMLInputElement).value))

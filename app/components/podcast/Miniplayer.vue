@@ -26,12 +26,15 @@
       <button class="p-1.5 text-base-muted hover:text-base-primary" aria-label="Expandir player" @click="player.expand()">
         <ChevronUp :size="18" />
       </button>
+      <button class="p-1.5 text-base-muted hover:text-danger" aria-label="Fechar player" @click="player.stop()">
+        <X :size="16" />
+      </button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { Headphones, Play, Pause, ChevronUp } from 'lucide-vue-next'
+import { Headphones, Play, Pause, ChevronUp, X } from 'lucide-vue-next'
 
 const player = usePlayerStore()
 const isMobile = ref(false)

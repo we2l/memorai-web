@@ -3,6 +3,15 @@
     <h2 class="text-headline font-serif mb-1">Gerar Podcast</h2>
     <p class="text-small text-base-muted mb-5">Personalize sua revisão de áudio</p>
 
+    <!-- Topic selector (only when no topicId prop) -->
+    <div v-if="!topicId" class="mb-5">
+      <p class="text-small font-medium text-base-primary mb-2">Caderno</p>
+      <select v-model="selectedTopicId" class="input-base w-full" required>
+        <option value="" disabled>Selecione um caderno</option>
+        <option v-for="t in topics" :key="t.id" :value="t.id">{{ t.name }}</option>
+      </select>
+    </div>
+
     <!-- Duration -->
     <div class="grid grid-cols-3 gap-3 mb-5">
       <button
@@ -66,19 +75,25 @@
 
       <!-- Speakers -->
       <div>
-        <p class="text-small font-medium text-base-primary mb-2">{{ format === 'debate' ? 'Narradores' : 'Narrador' }}</p>
+        <p class="text-small font-medium text-base-primary mb-2">{{ format === 'debate' ? 'Vozes' : 'Narrador' }}</p>
         <div class="space-y-3">
-          <div class="flex gap-3 items-center">
-            <input v-model="host1Name" type="text" class="input-base flex-1" placeholder="Nome" :disabled="isFree" />
-            <select v-model="host1Voice" class="input-base w-32" :disabled="isFree">
-              <option v-for="v in voices" :key="v.id" :value="v.id">{{ v.label }}</option>
-            </select>
+          <div>
+            <label class="text-micro text-base-muted mb-1 block">{{ format === 'debate' ? 'Mentor' : 'Narrador' }}</label>
+            <div class="flex gap-3 items-center">
+              <input v-model="host1Name" type="text" class="input-base flex-1" placeholder="Nome" :disabled="isFree" />
+              <select v-model="host1Voice" class="input-base w-32" :disabled="isFree">
+                <option v-for="v in voices" :key="v.id" :value="v.id">{{ v.label }}</option>
+              </select>
+            </div>
           </div>
-          <div v-if="format === 'debate'" class="flex gap-3 items-center">
-            <input v-model="host2Name" type="text" class="input-base flex-1" placeholder="Nome" :disabled="isFree" />
-            <select v-model="host2Voice" class="input-base w-32" :disabled="isFree">
-              <option v-for="v in voices" :key="v.id" :value="v.id">{{ v.label }}</option>
-            </select>
+          <div v-if="format === 'debate'">
+            <label class="text-micro text-base-muted mb-1 block">Estudante</label>
+            <div class="flex gap-3 items-center">
+              <input v-model="host2Name" type="text" class="input-base flex-1" placeholder="Nome" :disabled="isFree" />
+              <select v-model="host2Voice" class="input-base w-32" :disabled="isFree">
+                <option v-for="v in voices" :key="v.id" :value="v.id">{{ v.label }}</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>
@@ -87,7 +102,7 @@
     <!-- Generate button -->
     <button
       class="btn-primary w-full mt-6"
-      :disabled="generating"
+      :disabled="generating || (!topicId && !selectedTopicId)"
       @click="handleGenerate"
     >
       <Loader2 v-if="generating" :size="16" class="animate-spin" />
@@ -102,8 +117,8 @@ import { User, Users, ChevronDown, Loader2 } from 'lucide-vue-next'
 import type { PodcastDuration, PodcastTone, PodcastFormat } from '~/types'
 
 const props = defineProps<{
-  topicId: string
-  topicName: string
+  topicId?: string
+  topicName?: string
   weakCardsCount?: number
   usage?: { used: number; limit: number } | null
 }>()
@@ -121,6 +136,20 @@ const isFree = computed(() => auth.user?.plan === 'free')
 const generating = computed(() => podcastStore.generating)
 const usageText = computed(() => props.usage ? `${props.usage.used}/${props.usage.limit} este mês` : null)
 
+// Topic selector for library mode
+const selectedTopicId = ref('')
+const topics = ref<{ id: string; name: string }[]>([])
+
+watch(model, async (val) => {
+  if (val && !props.topicId && !topics.value.length) {
+    try {
+      const { $api } = useNuxtApp()
+      const res = await $api<any>('/topics')
+      topics.value = (res.data ?? []).filter((t: any) => !t.parent_id)
+    } catch {}
+  }
+})
+
 const duration = ref<PodcastDuration>('medium')
 const tone = ref<PodcastTone>('conversational')
 const format = ref<PodcastFormat>('expository')
@@ -137,9 +166,7 @@ const recommended = computed<PodcastDuration>(() => {
   return 'long'
 })
 
-// Set default to recommended
 watchEffect(() => { if (!isFree.value) duration.value = recommended.value })
-// Free forced to short
 watchEffect(() => { if (isFree.value) duration.value = 'short' })
 
 const durations = [
@@ -170,9 +197,14 @@ const voices = [
 ]
 
 async function handleGenerate() {
+  const topicIdToUse = props.topicId || selectedTopicId.value
+  if (!topicIdToUse) {
+    toast.show('Selecione um caderno.', 'error')
+    return
+  }
   try {
-    const config: any = {
-      topic_id: props.topicId,
+    await podcastStore.generate({
+      topic_id: topicIdToUse,
       duration: duration.value,
       tone: tone.value,
       format: format.value,
@@ -180,8 +212,7 @@ async function handleGenerate() {
         host1: { name: host1Name.value, voice: host1Voice.value },
         ...(format.value === 'debate' ? { host2: { name: host2Name.value, voice: host2Voice.value } } : {}),
       },
-    }
-    await podcastStore.generate(config)
+    })
     toast.show('Podcast sendo gerado! Aguarde...', 'success')
     model.value = false
     emit('generated')

@@ -3,6 +3,7 @@ export interface User {
   name: string
   email: string
   plan: string
+  subscription_status?: string | null
   onboarding_completed: boolean
 }
 
@@ -237,10 +238,11 @@ export interface Document {
   original_name: string
   file_size: number
   pages_count: number | null
-  status: 'pending' | 'processing' | 'completed' | 'failed'
+  status: 'uploaded' | 'pending' | 'processing' | 'completed' | 'failed'
   topic_id: string | null
   chunks_count?: number
   total_chunks?: number | null
+  has_generated_note?: boolean
   created_at: string
 }
 
@@ -300,4 +302,11 @@ export type PodcastFormat = 'expository' | 'debate'
 export interface PodcastSpeakerConfig {
   host1: { name: string; voice: string }
   host2?: { name: string; voice: string }
+}
+
+export interface SubscriptionInfo {
+  plan: string
+  subscription_status: string | null
+  subscription_ends_at: string | null
+  has_subscription: boolean
 }

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <!-- Upload area (prominent) -->
+    <!-- Upload area -->
     <label
       class="flex items-center gap-3 px-4 py-3.5 rounded-xl border-2 border-dashed cursor-pointer transition-all"
       :class="uploading ? 'opacity-50 pointer-events-none border-base' : 'border-accent-primary/30 hover:border-accent-primary hover:bg-accent-primary-subtle'"
@@ -8,7 +8,7 @@
       <Upload :size="20" class="text-accent-primary shrink-0" />
       <div>
         <p class="text-small text-base-primary">{{ uploading ? `Enviando ${uploadProgress}%...` : 'Adicionar material' }}</p>
-        <p v-if="!uploading" class="text-small text-base-muted">A IA transforma em flashcards automaticamente</p>
+        <p v-if="!uploading" class="text-small text-base-muted">PDF como referência — grátis e ilimitado</p>
       </div>
       <input type="file" accept=".pdf" class="hidden" @change="onFileSelect" />
     </label>
@@ -16,34 +16,48 @@
     <!-- Documents list -->
     <div v-if="documents.length" class="space-y-2 mt-3">
       <div v-for="doc in documents" :key="doc.id" class="rounded-lg bg-surface-tertiary overflow-hidden">
-        <div class="flex items-center justify-between px-4 py-3">
+        <button class="flex items-center justify-between px-4 py-3 w-full text-left hover:bg-surface-tertiary/80 transition-colors" @click="openViewer(doc)">
           <div class="min-w-0 flex-1">
             <p class="text-body text-base-primary truncate font-medium">📄 {{ doc.original_name }}</p>
             <div class="flex items-center gap-2 mt-1">
-              <span
-                class="text-small"
-                :class="doc.status === 'completed' ? 'text-success' : doc.status === 'failed' ? 'text-danger' : 'text-accent-primary'"
-              >
-                {{ statusLabel(doc.status) }}
-                <template v-if="doc.status === 'processing' && doc.total_chunks">
-                  · {{ Math.round(((doc.chunks_count || 0) / doc.total_chunks) * 100) }}%
-                </template>
-              </span>
-              <span v-if="doc.status === 'completed' && doc.chunks_count" class="text-small text-base-muted">· {{ doc.chunks_count }} trechos extraídos</span>
+              <span v-if="doc.pages_count" class="text-micro text-base-muted">{{ doc.pages_count }} páginas</span>
+              <span v-if="doc.status === 'processing'" class="text-micro text-accent-primary">⚙️ Processando...</span>
+              <span v-if="doc.has_generated_note" class="text-micro text-success">✅ Nota gerada</span>
             </div>
           </div>
-        </div>
-        <!-- Actions for completed docs -->
-        <div v-if="doc.status === 'completed'" class="flex gap-2 px-4 pb-3">
-          <button class="btn-primary !py-2 !px-3.5 !min-h-[2.75rem] text-small flex-1" @click="$emit('generateFromPdf', doc.id)">
-            ✨ Gerar cards deste PDF
+        </button>
+
+        <!-- Actions -->
+        <div class="flex gap-2 px-4 pb-3">
+          <button
+            class="btn-primary !py-2 !px-3.5 !min-h-[2.75rem] text-small flex-1"
+            :disabled="doc.status === 'processing' || (doc.pages_count && doc.pages_count > 100)"
+            :title="doc.pages_count && doc.pages_count > 100 ? 'Máximo 100 páginas' : ''"
+            @click="openGenerateNote(doc)"
+          >
+            ✨ Criar material de estudo
           </button>
-          <button class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small" @click="$emit('chatAboutPdf', doc.id)">
-            Resumir
+          <button class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small" @click="$emit('generateFromPdf', doc.id)">
+            🃏 Cards
           </button>
         </div>
       </div>
     </div>
+
+    <!-- PDF Viewer -->
+    <TopicPdfViewer
+      v-model="showViewer"
+      :url="viewerUrl"
+      :filename="viewerFilename"
+      :topic-id="topicId"
+    />
+
+    <!-- Generate Note Sheet -->
+    <TopicGenerateNoteSheet
+      v-model="showGenerateNote"
+      :document="selectedDoc"
+      @generated="onNoteGenerated"
+    />
   </div>
 </template>
 
@@ -52,7 +66,7 @@ import { Upload } from 'lucide-vue-next'
 import type { Document } from '~/types'
 
 const props = defineProps<{ topicId: string }>()
-defineEmits<{ generateFromPdf: [documentId: string]; chatAboutPdf: [documentId: string] }>()
+defineEmits<{ generateFromPdf: [documentId: string] }>()
 
 const { $api } = useNuxtApp()
 const toast = useToast()
@@ -61,8 +75,31 @@ const documents = ref<Document[]>([])
 const uploading = ref(false)
 const uploadProgress = ref(0)
 
-function statusLabel(s: string) {
-  return { pending: '⏳ Aguardando...', processing: '⚙️ Processando...', completed: '✅ Pronto', failed: '❌ Erro' }[s] || s
+// Viewer state
+const showViewer = ref(false)
+const viewerUrl = ref('')
+const viewerFilename = ref('')
+
+// Generate note state
+const showGenerateNote = ref(false)
+const selectedDoc = ref<Document | null>(null)
+
+function openViewer(doc: Document) {
+  const config = useRuntimeConfig()
+  const auth = useAuthStore()
+  viewerUrl.value = `${config.public.apiBase}/documents/${doc.id}/file?token=${auth.token}`
+  viewerFilename.value = doc.original_name
+  showViewer.value = true
+}
+
+function openGenerateNote(doc: Document) {
+  selectedDoc.value = doc
+  showGenerateNote.value = true
+}
+
+function onNoteGenerated() {
+  startPolling()
+  fetchDocuments()
 }
 
 async function fetchDocuments() {
@@ -102,9 +139,8 @@ async function onFileSelect(e: Event) {
       xhr.send(formData)
     })
 
-    toast.show('PDF enviado! Processamento iniciado.')
+    toast.show('PDF enviado!')
     await fetchDocuments()
-    startPolling()
   } catch (e: any) {
     toast.show(e?.message || 'Erro ao enviar', 'error')
   } finally {
@@ -113,14 +149,15 @@ async function onFileSelect(e: Event) {
   }
 }
 
-const hasProcessing = computed(() => documents.value.some(d => d.status === 'pending' || d.status === 'processing'))
+// Polling for processing status
+const hasProcessing = computed(() => documents.value.some(d => d.status === 'processing'))
 let pollTimer: ReturnType<typeof setInterval> | null = null
 
 function startPolling() {
   if (pollTimer) clearInterval(pollTimer)
   pollTimer = setInterval(async () => {
-    if (hasProcessing.value) await fetchDocuments()
-    else { clearInterval(pollTimer!); pollTimer = null }
+    await fetchDocuments()
+    if (!hasProcessing.value) { clearInterval(pollTimer!); pollTimer = null }
   }, 5000)
 }
 

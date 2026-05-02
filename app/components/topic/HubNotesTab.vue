@@ -36,7 +36,10 @@
           >
             <FileText :size="16" class="shrink-0 opacity-60" />
             <div class="flex-1 min-w-0">
-              <p class="text-body font-medium truncate">{{ note.title }}</p>
+              <p class="text-body font-medium truncate">
+                {{ note.title }}
+                <span v-if="note.source_document_id" class="text-micro font-semibold text-accent-primary ml-1">✨ IA</span>
+              </p>
               <div class="flex items-center gap-2 text-small text-base-muted">
                 <span>{{ formatDate(note.updated_at) }}</span>
                 <span v-if="cardsFromNote(note.id) > 0" class="text-accent-primary">· {{ cardsFromNote(note.id) }} cards</span>

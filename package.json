@@ -29,6 +29,7 @@
     "lucide-vue-next": "^1.0.0",
     "marked": "^18.0.2",
     "nuxt": "^4.4.2",
+    "pdfjs-dist": "^4.9.155",
     "pinia": "^3.0.4",
     "tailwindcss": "^4.2.2"
   },

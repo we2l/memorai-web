@@ -18,7 +18,7 @@ const props = withDefaults(defineProps<{
 })
 
 const label = computed(() => {
-  const labels: Record<string, string> = { free: 'Grátis', pro: 'Pro', premium: 'Premium' }
+  const labels: Record<string, string> = { free: 'Grátis', pro: 'Pro' }
   return labels[props.plan] || 'Grátis'
 })
 
@@ -26,7 +26,6 @@ const badgeClass = computed(() => {
   const classes: Record<string, string> = {
     free: 'bg-surface-tertiary text-base-muted',
     pro: 'bg-amber-500/15 text-amber-600',
-    premium: 'bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-orange-600',
   }
   return classes[props.plan] || classes.free
 })

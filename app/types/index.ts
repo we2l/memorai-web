@@ -238,10 +238,11 @@ export interface Document {
   original_name: string
   file_size: number
   pages_count: number | null
-  status: 'pending' | 'processing' | 'completed' | 'failed'
+  status: 'uploaded' | 'pending' | 'processing' | 'completed' | 'failed'
   topic_id: string | null
   chunks_count?: number
   total_chunks?: number | null
+  has_generated_note?: boolean
   created_at: string
 }
 

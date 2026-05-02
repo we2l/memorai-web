@@ -154,9 +154,9 @@ const { colorMode, set } = useColorMode()
 
 const settingsFeatureLabels: Record<string, string> = {
   cards_ai: 'Cards IA',
-  pdf_upload: 'Uploads PDF',
   agent_chat: 'Tirar dúvidas',
   podcast: 'Podcasts',
+  pdf_to_note: 'Material de estudo (PDF)',
 }
 
 function formatDate(d: string) {

@@ -86,9 +86,8 @@ const selectedDoc = ref<Document | null>(null)
 
 function openViewer(doc: Document) {
   const config = useRuntimeConfig()
-  const token = useCookie('auth_token').value
-  // Build URL to stream PDF from API
-  viewerUrl.value = `${config.public.apiBase}/documents/${doc.id}/file?token=${token}`
+  const auth = useAuthStore()
+  viewerUrl.value = `${config.public.apiBase}/documents/${doc.id}/file?token=${auth.token}`
   viewerFilename.value = doc.original_name
   showViewer.value = true
 }

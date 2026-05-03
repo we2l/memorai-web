@@ -44,18 +44,22 @@
         </div>
 
         <!-- Collapsible actions -->
-        <div v-if="expandedDoc === doc.id" class="flex gap-2 px-4 pb-3">
-          <button
-            class="btn-primary !py-2 !px-3.5 !min-h-[2.75rem] text-small flex-1"
-            :disabled="doc.status === 'processing' || (doc.pages_count && doc.pages_count > 100)"
-            :title="doc.pages_count && doc.pages_count > 100 ? 'Máximo 100 páginas' : ''"
-            @click="openGenerateNote(doc)"
-          >
-            ✨ Criar material de estudo
-          </button>
-          <button class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small" @click="openGenerateCards(doc)">
-            🃏 Cards
-          </button>
+        <div v-if="expandedDoc === doc.id" class="px-4 pb-3">
+          <p v-if="doc.pages_count && doc.pages_count > 100" class="text-micro text-amber-400 mb-2">
+            ⚠️ PDF com {{ doc.pages_count }} páginas — máximo 100 para processar com IA
+          </p>
+          <div class="flex gap-2">
+            <button
+              class="btn-primary !py-2 !px-3.5 !min-h-[2.75rem] text-small flex-1"
+              :disabled="doc.status === 'processing' || (doc.pages_count && doc.pages_count > 100)"
+              @click="openGenerateNote(doc)"
+            >
+              ✨ Criar material de estudo
+            </button>
+            <button class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small" @click="openGenerateCards(doc)">
+              🃏 Cards
+            </button>
+          </div>
         </div>
       </div>
     </div>

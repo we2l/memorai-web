@@ -16,19 +16,29 @@
     <!-- Documents list -->
     <div v-if="documents.length" class="space-y-2 mt-3">
       <div v-for="doc in documents" :key="doc.id" class="rounded-lg bg-surface-tertiary overflow-hidden">
-        <button class="flex items-center justify-between px-4 py-3 w-full text-left hover:bg-surface-tertiary/80 transition-colors" @click="openViewer(doc)">
+        <!-- Clickable header -->
+        <button
+          class="flex items-center justify-between px-4 py-3 w-full text-left group transition-colors hover:bg-white/5"
+          @click="openViewer(doc)"
+        >
           <div class="min-w-0 flex-1">
-            <p class="text-body text-base-primary truncate font-medium">📄 {{ doc.original_name }}</p>
+            <p class="text-body text-accent-primary truncate font-medium group-hover:underline">📄 {{ doc.original_name }}</p>
             <div class="flex items-center gap-2 mt-1">
               <span v-if="doc.pages_count" class="text-micro text-base-muted">{{ doc.pages_count }} páginas</span>
               <span v-if="doc.status === 'processing'" class="text-micro text-accent-primary">⚙️ Processando...</span>
               <span v-if="doc.has_generated_note" class="text-micro text-success">✅ Nota gerada</span>
             </div>
           </div>
+          <ChevronDown
+            :size="16"
+            class="text-base-muted shrink-0 ml-2 transition-transform"
+            :class="expandedDoc === doc.id ? 'rotate-180' : ''"
+            @click.stop="expandedDoc = expandedDoc === doc.id ? null : doc.id"
+          />
         </button>
 
-        <!-- Actions -->
-        <div class="flex gap-2 px-4 pb-3">
+        <!-- Collapsible actions -->
+        <div v-if="expandedDoc === doc.id" class="flex gap-2 px-4 pb-3">
           <button
             class="btn-primary !py-2 !px-3.5 !min-h-[2.75rem] text-small flex-1"
             :disabled="doc.status === 'processing' || (doc.pages_count && doc.pages_count > 100)"
@@ -37,7 +47,7 @@
           >
             ✨ Criar material de estudo
           </button>
-          <button class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small" @click="$emit('generateFromPdf', doc.id)">
+          <button class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small" @click="openGenerateCards(doc)">
             🃏 Cards
           </button>
         </div>
@@ -52,21 +62,31 @@
       :topic-id="topicId"
     />
 
-    <!-- Generate Note Sheet -->
+    <!-- Generate Note Sheet (already has credit confirmation) -->
     <TopicGenerateNoteSheet
       v-model="showGenerateNote"
       :document="selectedDoc"
       @generated="onNoteGenerated"
     />
+
+    <!-- Confirm cards generation (consumes credits) -->
+    <UiConfirmModal
+      v-model="showConfirmCards"
+      title="Gerar cards com IA"
+      :message="`Isso consome créditos de geração de cards IA. Deseja gerar cards a partir de &quot;${selectedDoc?.original_name}&quot;?`"
+      confirm-label="Gerar cards"
+      variant="primary"
+      @confirm="confirmGenerateCards"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { Upload } from 'lucide-vue-next'
+import { Upload, ChevronDown } from 'lucide-vue-next'
 import type { Document } from '~/types'
 
 const props = defineProps<{ topicId: string }>()
-defineEmits<{ generateFromPdf: [documentId: string] }>()
+const emit = defineEmits<{ generateFromPdf: [documentId: string] }>()
 
 const { $api } = useNuxtApp()
 const toast = useToast()
@@ -74,6 +94,7 @@ const toast = useToast()
 const documents = ref<Document[]>([])
 const uploading = ref(false)
 const uploadProgress = ref(0)
+const expandedDoc = ref<string | null>(null)
 
 // Viewer state
 const showViewer = ref(false)
@@ -84,17 +105,45 @@ const viewerFilename = ref('')
 const showGenerateNote = ref(false)
 const selectedDoc = ref<Document | null>(null)
 
-function openViewer(doc: Document) {
+// Generate cards confirmation
+const showConfirmCards = ref(false)
+
+async function resolveViewerUrl(doc: Document): Promise<string> {
   const config = useRuntimeConfig()
   const auth = useAuthStore()
-  viewerUrl.value = `${config.public.apiBase}/documents/${doc.id}/file?token=${auth.token}`
+  try {
+    const res = await $api<{ url: string }>(`/documents/${doc.id}/file`, {
+      params: { token: auth.token },
+    })
+    // If backend returns JSON with signed URL
+    if (res.url) return res.url
+  } catch {}
+  // Fallback: direct endpoint (local dev)
+  const config2 = useRuntimeConfig()
+  return `${config2.public.apiBase}/documents/${doc.id}/file?token=${auth.token}`
+}
+
+async function openViewer(doc: Document) {
   viewerFilename.value = doc.original_name
+  viewerUrl.value = await resolveViewerUrl(doc)
   showViewer.value = true
 }
 
 function openGenerateNote(doc: Document) {
   selectedDoc.value = doc
   showGenerateNote.value = true
+}
+
+function openGenerateCards(doc: Document) {
+  selectedDoc.value = doc
+  showConfirmCards.value = true
+}
+
+function confirmGenerateCards() {
+  if (selectedDoc.value) {
+    emit('generateFromPdf', selectedDoc.value.id)
+  }
+  showConfirmCards.value = false
 }
 
 function onNoteGenerated() {

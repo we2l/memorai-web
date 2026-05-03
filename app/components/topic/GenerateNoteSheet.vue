@@ -16,7 +16,7 @@
       </p>
 
       <p class="text-micro text-base-muted mb-5">
-        Usa 1 de {{ limit ?? '?' }} processamentos este mês
+        {{ used }}/{{ limit ?? '∞' }} processamentos usados este mês
       </p>
 
       <div class="flex gap-3 justify-end">
@@ -40,12 +40,15 @@ const { $api } = useNuxtApp()
 const toast = useToast()
 const generating = ref(false)
 const limit = ref<number | null>(null)
+const used = ref(0)
 
 watch(open, async (val) => {
   if (!val) return
   try {
-    const res = await $api<{ features: Record<string, { limit: number | null }> }>('/usage')
-    limit.value = res.features?.pdf_to_note?.limit ?? null
+    const res = await $api<{ data: { features: Record<string, { limit: number | null; used: number; remaining: number | null }> } }>('/usage')
+    const feature = res.data?.features?.pdf_to_note
+    limit.value = feature?.limit ?? null
+    used.value = feature?.used ?? 0
   } catch {}
 })
 

@@ -1,5 +1,5 @@
 <template>
-  <UiModal v-model="open" size="lg" aria-label="Visualizar PDF">
+  <UiModal v-model="open" size="xl" aria-label="Visualizar PDF">
     <div class="flex flex-col" style="height: 80vh;">
       <!-- Header -->
       <div class="flex items-center justify-between px-4 py-3 border-b border-base shrink-0">

@@ -17,25 +17,31 @@
     <div v-if="documents.length" class="space-y-2 mt-3">
       <div v-for="doc in documents" :key="doc.id" class="rounded-lg bg-surface-tertiary overflow-hidden">
         <!-- Clickable header -->
-        <button
-          class="flex items-center justify-between px-4 py-3 w-full text-left group transition-colors hover:bg-white/5"
-          @click="openViewer(doc)"
-        >
-          <div class="min-w-0 flex-1">
+        <!-- Row: click name = open PDF, click chevron = toggle actions -->
+        <div class="flex items-center px-4 py-3">
+          <button
+            class="min-w-0 flex-1 text-left group"
+            @click="openViewer(doc)"
+          >
             <p class="text-body text-accent-primary truncate font-medium group-hover:underline">📄 {{ doc.original_name }}</p>
             <div class="flex items-center gap-2 mt-1">
               <span v-if="doc.pages_count" class="text-micro text-base-muted">{{ doc.pages_count }} páginas</span>
               <span v-if="doc.status === 'processing'" class="text-micro text-accent-primary">⚙️ Processando...</span>
               <span v-if="doc.has_generated_note" class="text-micro text-success">✅ Nota gerada</span>
             </div>
-          </div>
-          <ChevronDown
-            :size="16"
-            class="text-base-muted shrink-0 ml-2 transition-transform"
-            :class="expandedDoc === doc.id ? 'rotate-180' : ''"
-            @click.stop="expandedDoc = expandedDoc === doc.id ? null : doc.id"
-          />
-        </button>
+          </button>
+          <button
+            class="p-2 -mr-2 rounded-lg hover:bg-white/10 transition-colors"
+            aria-label="Ações do documento"
+            @click="expandedDoc = expandedDoc === doc.id ? null : doc.id"
+          >
+            <ChevronDown
+              :size="16"
+              class="text-base-muted transition-transform"
+              :class="expandedDoc === doc.id ? 'rotate-180' : ''"
+            />
+          </button>
+        </div>
 
         <!-- Collapsible actions -->
         <div v-if="expandedDoc === doc.id" class="flex gap-2 px-4 pb-3">

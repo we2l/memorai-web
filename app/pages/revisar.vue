@@ -2,7 +2,7 @@
   <div class="review-bg h-[calc(100vh-56px)] flex flex-col overflow-y-auto">
     <!-- Top bar — minimal -->
     <div class="flex items-center justify-between px-4 py-3">
-      <NuxtLink to="/today" class="text-small text-base-muted opacity-60 hover:opacity-100 hover:text-accent-primary transition-opacity">
+      <NuxtLink to="/hoje" class="text-small text-base-muted opacity-60 hover:opacity-100 hover:text-accent-primary transition-opacity">
         ← Voltar
       </NuxtLink>
       <div class="flex items-center gap-3 text-small text-base-muted">
@@ -18,7 +18,7 @@
     </div>
 
     <!-- Progress bar — thin, with pulse on update -->
-    <div class="w-full h-[3px] bg-[rgba(255,255,255,0.06)]">
+    <div class="w-full h-[3px] bg-black/5 dark:bg-[rgba(255,255,255,0.06)]">
       <div
         class="h-[3px] transition-all duration-500 ease-out"
         :class="progressPulse ? 'progress-pulse' : ''"
@@ -63,16 +63,16 @@
       <div v-if="topErrorTopic" class="mt-6 card border border-warning/30 max-w-sm">
         <p class="text-small text-base-primary">Você errou {{ topErrorTopic.count }}x em "{{ topErrorTopic.name }}".</p>
         <div class="flex gap-2 mt-3 justify-center">
-          <NuxtLink :to="`/review?topic_id=${topErrorTopic.id}&errors_only=1&t=${Date.now()}`" class="btn-primary !py-1.5 !px-3 !min-h-[2.75rem] text-small">
+          <NuxtLink :to="`/revisar?topic_id=${topErrorTopic.id}&errors_only=1&t=${Date.now()}`" class="btn-primary !py-1.5 !px-3 !min-h-[2.75rem] text-small">
             Reforçar
           </NuxtLink>
-          <NuxtLink to="/today" class="btn-secondary !py-1.5 !px-3 !min-h-[2.75rem] text-small">
+          <NuxtLink to="/hoje" class="btn-secondary !py-1.5 !px-3 !min-h-[2.75rem] text-small">
             Depois
           </NuxtLink>
         </div>
       </div>
 
-      <NuxtLink v-else to="/today" class="btn-primary mt-8">Voltar</NuxtLink>
+      <NuxtLink v-else to="/hoje" class="btn-primary mt-8">Voltar</NuxtLink>
     </div>
 
     <!-- Waiting for learning cards -->
@@ -82,7 +82,7 @@
       <p class="text-base-muted text-small mt-2">
         {{ review.pendingLearning }} card{{ review.pendingLearning !== 1 ? 's' : '' }} em aprendizado — {{ review.pendingLearning === 1 ? 'volta' : 'voltam' }} em breve.
       </p>
-      <NuxtLink to="/today" class="btn-secondary mt-8">Voltar</NuxtLink>
+      <NuxtLink to="/hoje" class="btn-secondary mt-8">Voltar</NuxtLink>
     </div>
 
     <!-- Review -->
@@ -133,7 +133,7 @@
     <div v-else-if="!review.showErrorDiary" class="flex-1 flex flex-col items-center justify-center px-4 text-center">
       <p class="text-base-secondary text-title">Tudo em dia! 🎉 Que tal gerar novos cards?</p>
       <p class="text-base-muted text-small mt-1">Suba um PDF ou peça pra IA gerar.</p>
-      <NuxtLink to="/topics" class="btn-primary mt-6">Ir pra Cadernos</NuxtLink>
+      <NuxtLink to="/cadernos" class="btn-primary mt-6">Ir pra Cadernos</NuxtLink>
     </div>
 
     <!-- Error diary -->
@@ -150,7 +150,7 @@
         <p class="text-micro text-accent-primary font-medium mb-1">📝 Da sua nota: {{ review.noteSnippet.title }}</p>
         <p class="text-small text-base-secondary">{{ review.noteSnippet.snippet }}</p>
         <NuxtLink
-          :to="`/topics?topic=${review.noteSnippet.topic_id}&note=${review.noteSnippet.note_id}`"
+          :to="`/cadernos?topic=${review.noteSnippet.topic_id}&note=${review.noteSnippet.note_id}`"
           class="text-micro text-accent-primary hover:underline mt-1 inline-block"
         >
           Ver nota completa →
@@ -185,7 +185,7 @@
         </button>
         <NuxtLink
           v-if="review.currentCard?.topic_id && review.currentCard?.source_note_id"
-          :to="`/topics?topic=${review.currentCard.topic_id}&note=${review.currentCard.source_note_id}`"
+          :to="`/cadernos?topic=${review.currentCard.topic_id}&note=${review.currentCard.source_note_id}`"
           class="btn-secondary !py-1.5 !px-3 !min-h-[2.75rem] text-small"
         >
           📝 Ver no conteúdo
@@ -201,7 +201,7 @@
           Você revisou <span class="text-accent-primary font-medium">{{ review.reviewed }}</span> card{{ review.reviewed !== 1 ? 's' : '' }}{{ isBlitz ? ' em 5 min' : '' }}.
         </p>
         <div class="flex gap-3 mt-6 justify-center">
-          <NuxtLink to="/today" class="btn-secondary">Encerrar</NuxtLink>
+          <NuxtLink to="/hoje" class="btn-secondary">Encerrar</NuxtLink>
           <button class="btn-primary" @click="continueAfterTimer">{{ isBlitz ? 'Mais 5 min' : 'Continuar' }}</button>
         </div>
       </div>
@@ -437,8 +437,12 @@ watch(() => route.query, (newQ, oldQ) => {
 
 <style scoped>
 .review-bg {
-  background: radial-gradient(ellipse at 50% 45%, #1E1814 0%, #110F0D 40%, #0A0908 70%);
+  background: #FAFAFA;
   color: var(--text-primary);
+}
+
+:where(.dark) .review-bg {
+  background: radial-gradient(ellipse at 50% 45%, #1E1814 0%, #110F0D 40%, #0A0908 70%);
 }
 
 .progress-pulse {

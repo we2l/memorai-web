@@ -1,10 +1,13 @@
 <template>
   <div class="flex h-full">
     <!-- Left: material list -->
-    <div class="w-full lg:w-[35%] lg:border-r border-base flex flex-col" :class="activeNote && 'max-lg:hidden'">
+    <div
+      class="w-full lg:w-[35%] lg:border-r border-base flex flex-col transition-all duration-300 ease-in-out"
+      :class="[activeNote && 'max-lg:hidden', activeNote && readMode && 'lg:!w-0 lg:overflow-hidden lg:!border-0 lg:!p-0']"
+    >
       <div class="p-4">
         <!-- Quick input -->
-        <form class="flex gap-2 mb-4" @submit.prevent="handleQuickInput">
+        <form class="flex gap-2 mb-4" data-tour="quick-input" @submit.prevent="handleQuickInput">
           <input
             v-model="quickText"
             class="input-base flex-1 !text-small"
@@ -20,7 +23,7 @@
         <div v-if="suggestGenerate" class="mb-4 px-4 py-3 rounded-xl bg-accent-primary-subtle border border-accent-primary/15 flex items-center justify-between gap-3">
           <p class="text-small text-accent-primary">Material salvo. Gerar cards com IA?</p>
           <div class="flex gap-2">
-            <button class="btn-primary !py-1.5 !px-3 !min-h-0 text-small" @click="$emit('generate-from-note'); suggestGenerate = false">Gerar</button>
+            <button class="btn-primary !py-1.5 !px-3 !min-h-0 text-small" @click="$emit('generate-from-note', 5); suggestGenerate = false">Gerar</button>
             <button class="btn-secondary !py-1.5 !px-3 !min-h-0 text-small" @click="suggestGenerate = false">Depois</button>
           </div>
         </div>
@@ -50,9 +53,17 @@
           <!-- PDFs -->
           <slot name="documents" />
         </div>
-        <div v-else class="text-center py-8">
-          <p class="text-headline text-base-primary mb-2">Transforme seu material em memória</p>
-          <p class="text-small text-base-muted mb-4">Cole um resumo, anotação de aula ou suba um PDF. A IA transforma em flashcards.</p>
+        <div v-else class="py-6">
+          <div class="text-center mb-4">
+            <p class="text-headline text-base-primary mb-2">Pare de esquecer o que estuda</p>
+            <p class="text-small text-base-muted">Cole um texto, suba um PDF — a IA transforma em flashcards em segundos.</p>
+          </div>
+          <div class="space-y-2">
+            <slot name="documents" />
+            <button class="btn-secondary w-full !py-3 text-small" @click="$emit('create-note')">
+              <FileText :size="16" /> Criar nota manualmente
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -72,6 +83,42 @@
             <component :is="readMode ? Pencil : BookOpen" :size="14" />
             {{ readMode ? 'Editar' : 'Modo leitura' }}
           </button>
+        </div>
+        <div v-if="!readMode" class="flex items-center gap-2">
+          <button class="btn-secondary !py-1.5 !px-3 !min-h-[2.75rem] text-small" @click="showGeneratePanel = !showGeneratePanel">
+            <Zap :size="14" /> Gerar cards
+          </button>
+          <button class="btn-secondary !py-1.5 !px-3 !min-h-[2.75rem] text-small" @click="$emit('improve-note')">
+            ✨ Melhorar
+          </button>
+        </div>
+      </div>
+
+      <!-- Generate cards selector -->
+      <div v-if="showGeneratePanel && !readMode" class="px-4 py-3 bg-surface-secondary/50 border-b border-base">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="text-small text-base-primary">Quantos cards?</span>
+          <button
+            v-for="n in [3, 5, 10]"
+            :key="n"
+            class="px-3 py-1.5 rounded-lg text-small font-medium transition-colors"
+            :class="generateCount === n ? 'bg-accent-primary text-surface' : 'bg-surface-tertiary text-base-secondary hover:bg-surface-tertiary/80'"
+            @click="generateCount = n"
+          >
+            {{ n }}
+          </button>
+        </div>
+        <div class="flex items-center justify-between">
+          <span v-if="cardsAiRemaining !== null" class="text-micro text-base-muted">
+            Restam {{ cardsAiRemaining }}/{{ cardsAiLimit }} este mês
+          </span>
+          <span v-else class="text-micro text-base-muted">Ilimitado</span>
+          <div class="flex gap-2">
+            <button class="btn-secondary !py-1.5 !px-3 !min-h-0 text-small" @click="showGeneratePanel = false">Cancelar</button>
+            <button class="btn-primary !py-1.5 !px-3 !min-h-0 text-small" @click="$emit('generate-from-note', generateCount); showGeneratePanel = false">
+              <Zap :size="12" /> Gerar {{ generateCount }}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -98,17 +145,9 @@
 
       <!-- Footer (only in edit mode) -->
       <div v-if="!readMode" class="flex items-center justify-between px-4 py-3 border-t border-base">
-        <div class="flex items-center gap-2 flex-wrap">
-          <button class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small" @click="$emit('generate-from-note')">
-            <Zap :size="14" /> Gerar cards
-          </button>
-          <button class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small" @click="$emit('improve-note')">
-            ✨ Melhorar
-          </button>
-          <button class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small text-danger" @click="$emit('delete-note')">
-            <Trash2 :size="14" /> Excluir
-          </button>
-        </div>
+        <button class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small text-danger" @click="$emit('delete-note')">
+          <Trash2 :size="14" /> Excluir
+        </button>
         <span class="text-micro text-base-muted">{{ saving ? 'Salvando...' : 'Salvo' }}</span>
       </div>
     </div>
@@ -131,25 +170,31 @@ const props = defineProps<{
   saving: boolean
   hasDocuments: boolean
   cardsFromNote: (noteId: string) => number
+  cardsAiRemaining: number | null
+  cardsAiLimit: number | null
 }>()
 
 const emit = defineEmits<{
   (e: 'open-note', note: Note): void
   (e: 'close-editor'): void
   (e: 'quick-add', text: string): void
-  (e: 'generate-from-note'): void
+  (e: 'create-note'): void
+  (e: 'generate-from-note', count: number): void
   (e: 'improve-note'): void
   (e: 'delete-note'): void
   (e: 'save-title'): void
   (e: 'update:noteTitle', value: string): void
 }>()
 
+const showGeneratePanel = ref(false)
+const generateCount = ref(5)
+
 const quickText = ref('')
 const suggestGenerate = ref(false)
-const readMode = ref(false)
+const readMode = ref(true)
 
-// Reset read mode when switching notes
-watch(() => props.activeNote?.id, () => { readMode.value = false })
+// Reset to read mode when switching notes
+watch(() => props.activeNote?.id, () => { readMode.value = true })
 
 function handleQuickInput() {
   if (!quickText.value.trim()) return

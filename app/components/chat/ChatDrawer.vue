@@ -197,7 +197,7 @@ watch(() => chat.isOpen, async (open) => {
   if (open) {
     // If opened without explicit context (manual/Ctrl+K), infer from route
     if (!chat.currentContext.source) {
-      const topicMatch = route.path.match(/\/topics/)
+      const topicMatch = route.path.match(/\/cadernos/)
       const topicId = route.query.topic as string | undefined
       if (topicId) {
         chat.currentContext = { topicId, source: 'manual' }

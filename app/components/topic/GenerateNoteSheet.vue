@@ -1,7 +1,7 @@
 <template>
-  <UiModal v-model="open" size="sm" aria-label="Criar material de estudo">
+  <UiModal v-model="open" size="sm" aria-label="Gerar resumo com IA">
     <div class="py-2">
-      <h2 class="text-headline mb-3">Criar material de estudo</h2>
+      <h2 class="text-headline mb-3">Gerar resumo com IA</h2>
 
       <div class="flex items-center gap-3 p-3 rounded-lg bg-surface-tertiary mb-4">
         <span class="text-2xl">📄</span>
@@ -12,17 +12,18 @@
       </div>
 
       <p class="text-small text-base-secondary mb-4">
-        A IA vai analisar o PDF e criar uma nota com resumo dos pontos-chave, pegadinhas e conceitos importantes.
+        A IA vai ler o PDF e extrair conceitos, pegadinhas e pontos-chave em uma nota estruturada.
+        <span class="block mt-2 text-base-muted">⏱ Leva cerca de 2 minutos. Pode sair da tela.</span>
       </p>
 
       <p class="text-micro text-base-muted mb-5">
-        {{ used }}/{{ limit ?? '∞' }} processamentos usados este mês
+        {{ used }}/{{ limit ?? '∞' }} créditos usados este mês
       </p>
 
       <div class="flex gap-3 justify-end">
         <button class="btn-secondary" @click="open = false">Cancelar</button>
         <button class="btn-primary" :disabled="generating" @click="generate">
-          {{ generating ? 'Gerando...' : 'Criar ✨' }}
+          {{ generating ? 'Processando...' : '✨ Gerar resumo' }}
         </button>
       </div>
     </div>
@@ -57,7 +58,7 @@ async function generate() {
   generating.value = true
   try {
     await $api(`/documents/${props.document.id}/generate-note`, { method: 'POST' })
-    toast.show('Processamento iniciado! A nota aparecerá em breve.')
+    toast.show('Processamento iniciado! A nota aparecerá em 1-3 minutos.')
     open.value = false
     emit('generated')
   } catch (e: any) {

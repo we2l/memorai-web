@@ -243,6 +243,14 @@ export interface Document {
   chunks_count?: number
   total_chunks?: number | null
   has_generated_note?: boolean
+  note_generation_status?: 'generating' | 'completed' | 'failed' | null
+  note_stats?: {
+    note_id: string
+    sections: number
+    gotchas: number
+    insights: number
+    errors: number
+  } | null
   created_at: string
 }
 

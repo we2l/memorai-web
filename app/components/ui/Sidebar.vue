@@ -1,10 +1,10 @@
 <template>
   <aside class="hidden lg:flex flex-col bg-surface-secondary h-screen fixed left-0 top-0 w-[220px] p-4">
-    <NuxtLink to="/today" class="text-display text-accent-primary mb-8">
-      Memorai
+    <NuxtLink to="/hoje" class="mb-8 group">
+      <UiLogo :icon-size="28" text-class="text-xl font-semibold text-white dark:text-white text-slate-800" />
     </NuxtLink>
 
-    <nav class="flex flex-col gap-1 flex-1" aria-label="Navegação principal">
+    <nav class="flex flex-col gap-1 flex-1" aria-label="Navegação principal" data-tour="sidebar-notebooks">
       <NuxtLink
         v-for="item in items"
         :key="item.to"
@@ -12,6 +12,7 @@
         class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-small transition-all duration-150"
         :class="isActive(item.to) ? 'bg-[rgba(217,119,6,0.12)] text-accent-primary font-medium shadow-[inset_2px_0_0_#D97706]' : 'text-base-muted opacity-70 hover:opacity-100 hover:text-base-secondary hover:bg-surface-tertiary'"
         :aria-current="isActive(item.to) ? 'page' : undefined"
+        :data-tour="item.to === '/revisar' ? 'review-link' : undefined"
       >
         <component :is="getIcon(item.icon)" :size="20" :stroke-width="1.5" />
         {{ item.label }}
@@ -21,7 +22,7 @@
     <div class="border-t border-base pt-4 mt-4">
       <UiPlanBadge :plan="auth.user?.plan" />
       <NuxtLink
-        to="/settings"
+        to="/configuracoes"
         class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-small text-base-muted hover:bg-surface-tertiary transition-all duration-150"
       >
         <Settings :size="20" :stroke-width="1.5" />
@@ -58,15 +59,15 @@ async function handleLogout() {
     await $api('/logout', { method: 'POST' })
   } catch {}
   auth.clearAuth()
-  await navigateTo('/login')
+  await navigateTo('/entrar')
 }
 
 const items = [
-  { label: 'Hoje', to: '/today', icon: 'home' },
-  { label: 'Cadernos', to: '/topics', icon: 'topics' },
-  { label: 'Revisão', to: '/review', icon: 'review' },
+  { label: 'Hoje', to: '/hoje', icon: 'home' },
+  { label: 'Cadernos', to: '/cadernos', icon: 'topics' },
+  { label: 'Revisão', to: '/revisar', icon: 'review' },
   { label: 'Podcasts', to: '/podcasts', icon: 'podcasts' },
-  { label: 'Progresso', to: '/progress', icon: 'progress' },
+  { label: 'Progresso', to: '/progresso', icon: 'progress' },
 ]
 
 const iconMap: Record<string, any> = {

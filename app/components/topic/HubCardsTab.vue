@@ -19,7 +19,7 @@
         </span>
       </div>
       <NuxtLink
-        :to="`/review?topic_id=${topicId}&errors_only=1`"
+        :to="`/revisar?topic_id=${topicId}&errors_only=1`"
         class="text-small text-accent-primary hover:underline shrink-0"
       >
         Reforçar

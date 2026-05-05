@@ -7,60 +7,91 @@
     >
       <Upload :size="20" class="text-accent-primary shrink-0" />
       <div>
-        <p class="text-small text-base-primary">{{ uploading ? `Enviando ${uploadProgress}%...` : 'Adicionar material' }}</p>
-        <p v-if="!uploading" class="text-small text-base-muted">PDF como referência — grátis e ilimitado</p>
+        <p class="text-small text-base-primary">{{ uploading ? `Enviando ${uploadProgress}%...` : 'Subir PDF' }}</p>
+        <p v-if="!uploading" class="text-small text-base-muted">A IA transforma em resumo + flashcards</p>
       </div>
       <input type="file" accept=".pdf" class="hidden" @change="onFileSelect" />
     </label>
 
     <!-- Documents list -->
-    <div v-if="documents.length" class="space-y-2 mt-3">
-      <div v-for="doc in documents" :key="doc.id" class="rounded-lg bg-surface-tertiary overflow-hidden">
-        <!-- Clickable header -->
-        <!-- Row: click name = open PDF, click chevron = toggle actions -->
-        <div class="flex items-center px-4 py-3">
+    <!-- Documents list -->
+    <div v-if="documents.length" class="space-y-3 mt-3">
+      <div v-for="doc in documents" :key="doc.id" class="rounded-xl bg-surface-secondary/60 border border-accent-primary/10 p-4">
+        <!-- File info -->
+        <button class="flex items-center gap-2 group w-full text-left" @click="openViewer(doc)">
+          <FileText :size="16" class="text-accent-primary shrink-0" />
+          <p class="text-body text-accent-primary truncate font-medium group-hover:underline">{{ doc.original_name }}</p>
+          <span v-if="doc.pages_count" class="text-micro text-base-muted shrink-0">{{ doc.pages_count }} pág</span>
+        </button>
+
+        <!-- Status: Generating -->
+        <div v-if="doc.note_generation_status === 'generating'" class="mt-3 flex items-center gap-2 text-small text-accent-primary">
+          <Loader2 :size="14" class="animate-spin" />
+          <span>A IA está lendo {{ doc.pages_count || '' }} páginas... Pode sair, avisamos quando estiver pronto.</span>
+        </div>
+
+        <!-- Status: Failed -->
+        <div v-else-if="doc.note_generation_status === 'failed'" class="mt-3 flex items-center gap-2 text-small text-danger">
+          <XCircle :size="14" />
+          <span>Falhou ao gerar.</span>
+          <button class="text-accent-primary hover:underline" @click="openGenerateNote(doc)">Tentar novamente</button>
+        </div>
+
+        <!-- Status: Ready -->
+        <div v-else-if="doc.has_generated_note" class="mt-3">
+          <div class="flex items-center gap-2 mb-2">
+            <CheckCircle :size="14" class="text-success shrink-0" />
+            <span class="text-small text-success">Resumo pronto</span>
+          </div>
           <button
-            class="min-w-0 flex-1 text-left group"
-            @click="openViewer(doc)"
+            class="btn-primary !py-2 !px-4 !min-h-[2.75rem] text-small w-full justify-center"
+            @click="openGenerateCards(doc)"
           >
-            <p class="text-body text-accent-primary truncate font-medium group-hover:underline">📄 {{ doc.original_name }}</p>
-            <div class="flex items-center gap-2 mt-1">
-              <span v-if="doc.pages_count" class="text-micro text-base-muted">{{ doc.pages_count }} páginas</span>
-              <span v-if="doc.status === 'processing'" class="text-micro text-accent-primary">⚙️ Processando...</span>
-              <span v-if="doc.has_generated_note" class="text-micro text-success">✅ Nota gerada</span>
-            </div>
-          </button>
-          <button
-            class="p-2 -mr-2 rounded-lg hover:bg-white/10 transition-colors"
-            aria-label="Ações do documento"
-            @click="expandedDoc = expandedDoc === doc.id ? null : doc.id"
-          >
-            <ChevronDown
-              :size="16"
-              class="text-base-muted transition-transform"
-              :class="expandedDoc === doc.id ? 'rotate-180' : ''"
-            />
+            <Sparkles :size="14" /> Gerar cards a partir do resumo
           </button>
         </div>
 
-        <!-- Collapsible actions -->
-        <div v-if="expandedDoc === doc.id" class="px-4 pb-3">
-          <p v-if="doc.pages_count && doc.pages_count > 100" class="text-micro text-amber-400 mb-2">
-            ⚠️ PDF com {{ doc.pages_count }} páginas — máximo 100 para processar com IA
-          </p>
-          <div class="flex gap-2">
-            <button
-              class="btn-primary !py-2 !px-3.5 !min-h-[2.75rem] text-small flex-1"
-              :disabled="doc.status === 'processing' || (doc.pages_count && doc.pages_count > 100)"
-              @click="openGenerateNote(doc)"
-            >
-              ✨ Criar material de estudo
-            </button>
-            <button class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small" @click="openGenerateCards(doc)">
-              🃏 Cards
-            </button>
-          </div>
+        <!-- Status: Processing embeddings -->
+        <div v-else-if="doc.status === 'processing'" class="mt-3 flex items-center gap-2 text-small text-base-muted">
+          <Loader2 :size="14" class="animate-spin text-accent-primary" />
+          <span>Processando...</span>
         </div>
+
+        <!-- CTA: Generate note (visible directly, no collapse needed) -->
+        <div v-else class="mt-3">
+          <button
+            class="btn-primary !py-2 !px-4 !min-h-[2.75rem] text-small w-full justify-center"
+            :disabled="doc.pages_count && doc.pages_count > 100"
+            @click="openGenerateNote(doc)"
+          >
+            <Sparkles :size="14" /> Gerar resumo com IA
+          </button>
+          <p class="text-micro text-base-muted text-center mt-1.5">Extrai conceitos, pegadinhas e pontos-chave</p>
+          <p v-if="doc.pages_count && doc.pages_count > 100" class="text-micro text-amber-400 text-center mt-1">
+            ⚠️ Máximo 100 páginas para processar com IA
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Success banner after note generation -->
+    <div v-if="completedDoc" class="mt-3 p-4 rounded-xl bg-accent-primary-subtle">
+      <div class="flex items-center gap-2 mb-2">
+        <CheckCircle :size="18" class="text-success" />
+        <p class="text-body font-semibold text-base-primary">Resumo pronto!</p>
+      </div>
+      <p v-if="completedDoc.note_stats" class="text-small text-base-secondary mb-3">
+        {{ completedDoc.note_stats.sections }} seções
+        <span v-if="completedDoc.note_stats.gotchas"> · {{ completedDoc.note_stats.gotchas }} pegadinhas</span>
+        <span v-if="completedDoc.note_stats.insights"> · {{ completedDoc.note_stats.insights }} dicas</span>
+      </p>
+      <div class="flex gap-2">
+        <button class="btn-primary !py-2 !px-4 !min-h-[2.75rem] text-small" @click="handleGenerateCards">
+          <Sparkles :size="14" /> Gerar cards agora
+        </button>
+        <button class="btn-secondary !py-2 !px-3 !min-h-[2.75rem] text-small" @click="completedDoc = null">
+          Depois
+        </button>
       </div>
     </div>
 
@@ -72,14 +103,14 @@
       :topic-id="topicId"
     />
 
-    <!-- Generate Note Sheet (already has credit confirmation) -->
+    <!-- Generate Note Sheet -->
     <TopicGenerateNoteSheet
       v-model="showGenerateNote"
       :document="selectedDoc"
       @generated="onNoteGenerated"
     />
 
-    <!-- Confirm cards generation (consumes credits) -->
+    <!-- Confirm cards generation -->
     <UiConfirmModal
       v-model="showConfirmCards"
       title="Gerar cards com IA"
@@ -92,11 +123,15 @@
 </template>
 
 <script setup lang="ts">
-import { Upload, ChevronDown } from 'lucide-vue-next'
+import { Upload, ChevronDown, FileText, Loader2, CheckCircle, XCircle, Sparkles, Layers } from 'lucide-vue-next'
 import type { Document } from '~/types'
 
 const props = defineProps<{ topicId: string }>()
-const emit = defineEmits<{ generateFromPdf: [documentId: string] }>()
+const emit = defineEmits<{
+  generateFromPdf: [documentId: string]
+  noteReady: []
+  generateCards: [noteId: string]
+}>()
 
 const { $api } = useNuxtApp()
 const toast = useToast()
@@ -105,6 +140,7 @@ const documents = ref<Document[]>([])
 const uploading = ref(false)
 const uploadProgress = ref(0)
 const expandedDoc = ref<string | null>(null)
+const completedDoc = ref<Document | null>(null)
 
 // Viewer state
 const showViewer = ref(false)
@@ -119,18 +155,16 @@ const selectedDoc = ref<Document | null>(null)
 const showConfirmCards = ref(false)
 
 async function resolveViewerUrl(doc: Document): Promise<string> {
-  const config = useRuntimeConfig()
   const auth = useAuthStore()
   try {
     const res = await $api<{ url: string }>(`/documents/${doc.id}/file`, {
       params: { token: auth.token },
     })
-    // If backend returns JSON with signed URL
     if (res.url) return res.url
   } catch {}
-  // Fallback: direct endpoint (local dev)
-  const config2 = useRuntimeConfig()
-  return `${config2.public.apiBase}/documents/${doc.id}/file?token=${auth.token}`
+  const config = useRuntimeConfig()
+  const auth2 = useAuthStore()
+  return `${config.public.apiBase}/documents/${doc.id}/file?token=${auth2.token}`
 }
 
 async function openViewer(doc: Document) {
@@ -159,6 +193,13 @@ function confirmGenerateCards() {
 function onNoteGenerated() {
   startPolling()
   fetchDocuments()
+}
+
+function handleGenerateCards() {
+  if (completedDoc.value?.note_stats?.note_id) {
+    emit('generateCards', completedDoc.value.note_stats.note_id)
+  }
+  completedDoc.value = null
 }
 
 async function fetchDocuments() {
@@ -208,18 +249,53 @@ async function onFileSelect(e: Event) {
   }
 }
 
-// Polling for processing status
-const hasProcessing = computed(() => documents.value.some(d => d.status === 'processing'))
+// Polling: check for generating notes + processing documents
+const needsPolling = computed(() =>
+  documents.value.some(d => d.note_generation_status === 'generating' || d.status === 'processing'),
+)
 let pollTimer: ReturnType<typeof setInterval> | null = null
+let pollStartedAt: number | null = null
+const POLL_TIMEOUT = 10 * 60 * 1000 // 10 minutes
 
 function startPolling() {
-  if (pollTimer) clearInterval(pollTimer)
+  if (pollTimer) return
+  pollStartedAt = Date.now()
   pollTimer = setInterval(async () => {
+    // Timeout protection: stop polling but don't mark as failed
+    if (pollStartedAt && Date.now() - pollStartedAt > POLL_TIMEOUT) {
+      toast.show('Processamento em andamento. Atualize a página para verificar.', 'success')
+      clearInterval(pollTimer!)
+      pollTimer = null
+      pollStartedAt = null
+      return
+    }
+
+    const prevGenerating = documents.value.filter(d => d.note_generation_status === 'generating').map(d => d.id)
     await fetchDocuments()
-    if (!hasProcessing.value) { clearInterval(pollTimer!); pollTimer = null }
-  }, 5000)
+
+    // Check if any note just finished generating
+    for (const id of prevGenerating) {
+      const doc = documents.value.find(d => d.id === id)
+      if (doc && doc.note_generation_status !== 'generating') {
+        if (doc.note_generation_status === 'completed') {
+          toast.show('Material de estudo gerado! 🎉')
+          completedDoc.value = doc
+          emit('noteReady')
+        } else if (doc.note_generation_status === 'failed') {
+          toast.show('Falha ao gerar nota. Tente novamente.', 'error')
+        }
+      }
+    }
+
+    if (!needsPolling.value) {
+      clearInterval(pollTimer!)
+      pollTimer = null
+      pollStartedAt = null
+    }
+  }, 4000)
 }
 
+watch(needsPolling, (val) => { if (val) startPolling() })
 watch(() => props.topicId, () => { if (props.topicId) fetchDocuments() }, { immediate: true })
 onUnmounted(() => { if (pollTimer) clearInterval(pollTimer) })
 

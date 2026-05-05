@@ -114,13 +114,16 @@ onBeforeUnmount(() => {
 .prose-editor .tiptap h1 { font-size: 1.5em; font-weight: 700; margin: 0.75em 0 0.25em; }
 .prose-editor .tiptap h2 { font-size: 1.25em; font-weight: 600; margin: 0.75em 0 0.25em; }
 .prose-editor .tiptap h3 { font-size: 1.1em; font-weight: 600; margin: 0.5em 0 0.25em; }
-.prose-editor .tiptap ul { list-style: disc; padding-left: 1.5em; }
-.prose-editor .tiptap ol { list-style: decimal; padding-left: 1.5em; }
+.prose-editor .tiptap ul { list-style: disc; padding-left: 1.5em; margin: 0.5em 0; }
+.prose-editor .tiptap ol { list-style: decimal; padding-left: 1.5em; margin: 0.5em 0; }
+.prose-editor .tiptap li { margin-bottom: 0.15em; }
+.prose-editor .tiptap li p { margin: 0; }
 .prose-editor .tiptap blockquote { border-left: 3px solid var(--color-primary-500); padding-left: 1em; opacity: 0.8; }
 .prose-editor .tiptap .callout { border-radius: 0.5rem; padding: 0.75rem 1rem; margin: 0.5em 0; }
 .prose-editor .tiptap .callout[data-callout-type="error"] { background: rgba(239, 68, 68, 0.1); border-left: 3px solid #EF4444; }
 .prose-editor .tiptap .callout[data-callout-type="insight"] { background: rgba(34, 197, 94, 0.1); border-left: 3px solid #22C55E; }
 .prose-editor .tiptap .callout[data-callout-type="gotcha"] { background: rgba(245, 158, 11, 0.1); border-left: 3px solid #F59E0B; }
+.prose-editor .tiptap .callout[data-callout-type="info"] { background: rgba(56, 189, 248, 0.08); border-left: 3px solid #38BDF8; }
 .prose-editor .tiptap p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
   float: left;

@@ -218,7 +218,7 @@ async function handleLogout() {
   }
   auth.clearAuth()
   toast.show('Até logo!', 'success')
-  await navigateTo('/login')
+  await navigateTo('/entrar')
 }
 
 onMounted(async () => {

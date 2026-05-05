@@ -62,7 +62,7 @@
           :disabled="loading"
           @click="subscribe('pro')"
         >
-          Assinar Pro
+          {{ loading && !loadingAddon ? 'Abrindo checkout...' : 'Assinar Pro' }}
         </button>
 
         <ul class="space-y-3 text-small">
@@ -101,7 +101,8 @@
             <p class="text-small font-medium text-base-primary">🎧 +5 Podcasts</p>
             <p class="text-micro text-base-muted">Mais revisão passiva</p>
           </div>
-          <span class="text-small font-semibold text-accent-primary">R$9,90</span>
+          <span v-if="loadingAddon === 'podcast_pack'" class="text-small text-base-muted animate-pulse">Abrindo...</span>
+          <span v-else class="text-small font-semibold text-accent-primary">R$9,90</span>
         </button>
         <button
           class="card p-4 flex items-center justify-between hover:border-accent-primary/30 transition-colors text-left"
@@ -112,7 +113,8 @@
             <p class="text-small font-medium text-base-primary">📄 +10 Uploads PDF</p>
             <p class="text-micro text-base-muted">Mais material pra IA</p>
           </div>
-          <span class="text-small font-semibold text-accent-primary">R$4,90</span>
+          <span v-if="loadingAddon === 'pdf_pack'" class="text-small text-base-muted animate-pulse">Abrindo...</span>
+          <span v-else class="text-small font-semibold text-accent-primary">R$4,90</span>
         </button>
       </div>
     </div>
@@ -128,6 +130,7 @@ const auth = useAuthStore()
 const subscription = useSubscriptionStore()
 
 const loading = ref(false)
+const loadingAddon = ref<string | null>(null)
 const currentPlan = computed(() => auth.user?.plan || 'free')
 
 async function subscribe(planKey: string) {
@@ -143,12 +146,14 @@ async function subscribe(planKey: string) {
 
 async function buyAddon(addon: string) {
   loading.value = true
+  loadingAddon.value = addon
   try {
     await subscription.checkoutAddon(addon)
-  } catch {
-    toast.show('Erro ao iniciar checkout.', 'error')
+  } catch (e: any) {
+    toast.show(e?.data?.message || 'Erro ao processar pagamento. Tente novamente.', 'error')
   } finally {
     loading.value = false
+    loadingAddon.value = null
   }
 }
 

@@ -32,7 +32,7 @@ const open = defineModel<boolean>({ required: true })
 
 async function goToPlans() {
   open.value = false
-  await navigateTo('/plans')
+  await navigateTo('/planos')
 }
 
 const featureLabels: Record<string, string> = {

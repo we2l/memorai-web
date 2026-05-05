@@ -1,6 +1,6 @@
 <template>
   <!-- Loading -->
-  <div v-if="loading" class="mb-4 px-4 py-4 rounded-xl bg-accent-primary-subtle border border-accent-primary/15 flex items-center gap-3">
+  <div v-if="loading" class="mb-4 px-4 py-4 rounded-xl bg-accent-primary-subtle flex items-center gap-3">
     <div class="w-5 h-5 border-2 border-accent-primary border-t-transparent rounded-full animate-spin shrink-0" />
     <p class="text-small text-accent-primary">Gerando cards com IA...</p>
   </div>
@@ -14,7 +14,7 @@
       </button>
     </div>
     <div class="space-y-2">
-      <div v-for="(card, i) in cards" :key="i" class="px-4 py-3 rounded-xl bg-surface-tertiary/50 border border-base">
+      <div v-for="(card, i) in cards" :key="i" class="px-4 py-3 rounded-xl bg-surface-tertiary/50">
         <div>
           <p class="text-micro text-base-muted mb-0.5">Frente</p>
           <div class="text-body text-base-primary line-clamp-2 card-front-preview" v-html="stripMedia(card.front)" />

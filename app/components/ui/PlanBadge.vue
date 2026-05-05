@@ -1,5 +1,5 @@
 <template>
-  <NuxtLink to="/plans" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-surface-tertiary transition-colors">
+  <NuxtLink to="/planos" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-surface-tertiary transition-colors">
     <span
       class="inline-block px-2.5 py-0.5 rounded-full text-micro font-semibold"
       :class="badgeClass"

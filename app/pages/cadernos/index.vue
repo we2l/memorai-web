@@ -22,18 +22,33 @@
           </div>
         </div>
         <div class="flex items-center gap-2">
-          <button class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small flex-1 justify-center" @click="showGraph = true">
+          <button
+            v-if="(topicStore.tree?.length ?? 0) >= 5"
+            class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small flex-1 justify-center"
+            @click="showGraph = true"
+          >
             <Network :size="16" /> Mapa
           </button>
+          <div v-else class="relative flex-1 group">
+            <button
+              class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small w-full justify-center opacity-50 cursor-not-allowed"
+              disabled
+            >
+              <Network :size="16" /> Mapa
+            </button>
+            <span class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 rounded-lg bg-surface-secondary border border-base shadow-lg text-micro text-base-muted whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+              Disponível com 5+ cadernos ({{ topicStore.tree?.length ?? 0 }}/5)
+            </span>
+          </div>
           <div class="relative flex-1">
-            <button class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small w-full justify-center" @click="showAddMenu = !showAddMenu">
+            <button class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small w-full justify-center" data-tour="create-notebook" @click="showAddMenu = !showAddMenu">
               <Plus :size="16" /> Novo
             </button>
             <div v-if="showAddMenu" class="absolute right-0 top-full mt-1 w-44 bg-surface-secondary border border-base rounded-lg shadow-lg py-1 z-20">
               <button class="w-full text-left px-3 py-2 text-small hover:bg-surface-tertiary transition-colors" @click="showAddMenu = false; openCreate(null)">
                 Novo caderno
               </button>
-              <NuxtLink to="/import" class="block px-3 py-2 text-small hover:bg-surface-tertiary transition-colors" @click="showAddMenu = false">
+              <NuxtLink to="/importar" class="block px-3 py-2 text-small hover:bg-surface-tertiary transition-colors" @click="showAddMenu = false">
                 Importar Anki
               </NuxtLink>
               <button class="w-full text-left px-3 py-2 text-small hover:bg-surface-tertiary transition-colors" @click="showAddMenu = false; triggerPdfUpload()">
@@ -126,8 +141,8 @@
             <p class="text-small text-base-muted mt-1">Continue seu progresso de hoje</p>
           </div>
           <div class="flex items-center gap-2 shrink-0">
-            <NuxtLink :to="`/review?mode=blitz&topic_id=${selectedTopicId}`" class="btn-secondary !py-3 !px-4 text-small">⚡ Rápida</NuxtLink>
-            <NuxtLink :to="`/review?topic_id=${selectedTopicId}`" class="btn-primary !py-3 !px-6">
+            <NuxtLink :to="`/revisar?mode=blitz&topic_id=${selectedTopicId}`" class="btn-secondary !py-3 !px-4 text-small">⚡ Rápida</NuxtLink>
+            <NuxtLink :to="`/revisar?topic_id=${selectedTopicId}`" class="btn-primary !py-3 !px-6">
               Revisar agora
             </NuxtLink>
           </div>
@@ -160,7 +175,7 @@
           class="sticky top-0 z-10 px-4 py-2.5 border-b border-base bg-overlay flex items-center justify-between"
         >
           <span class="text-small font-medium text-base-primary truncate">{{ selectedTopicName }}</span>
-          <NuxtLink v-if="dueCardsCount > 0" :to="`/review?topic_id=${selectedTopicId}`" class="btn-primary !py-2 !px-3.5 !min-h-[2.75rem] text-small shrink-0">
+          <NuxtLink v-if="dueCardsCount > 0" :to="`/revisar?topic_id=${selectedTopicId}`" class="btn-primary !py-2 !px-3.5 !min-h-[2.75rem] text-small shrink-0">
             Revisar {{ dueCardsCount }}
           </NuxtLink>
         </div>
@@ -186,9 +201,12 @@
           :saving="noteStore.saving"
           :has-documents="!!docsInlineRef?.documents?.length"
           :cards-from-note="cardsFromNote"
+          :cards-ai-remaining="cardsAiRemaining"
+          :cards-ai-limit="cardsAiLimit"
           @open-note="openNoteEditor"
           @close-editor="editingNote = null; noteStore.current = null"
           @quick-add="handleQuickAdd"
+          @create-note="createNote"
           @generate-from-note="generateFromCurrentNote"
           @improve-note="openChatForNote"
           @delete-note="showDeleteNote = true"
@@ -201,7 +219,8 @@
               ref="docsInlineRef"
               :topic-id="selectedTopicId"
               @generate-from-pdf="(docId: string) => handleAiGenerate('pdf', 5, docId)"
-              @chat-about-pdf="openChatForPdf"
+              @note-ready="noteStore.fetchForTopic(selectedTopicId!)"
+              @generate-cards="(noteId: string) => handleAiGenerate('notes', 5)"
             />
           </template>
           <template #editor>
@@ -209,7 +228,7 @@
             <UiSelectionToolbar @create-card="openNoteToCard" @ask-ai="askAiAboutSelection" />
           </template>
           <template #read-content>
-            <div class="text-body text-base-primary leading-relaxed card-front-preview" v-html="noteContentHtml" />
+            <div class="prose-memorai" v-html="noteContentHtml" />
           </template>
         </TopicHubNotesTab>
 
@@ -263,10 +282,10 @@
 
     <!-- Mobile: sticky bottom review button -->
     <div v-if="selectedTopicId && dueCardsCount > 0" class="lg:hidden fixed bottom-16 left-0 right-0 p-3 bg-overlay border-t border-base z-30 flex gap-2">
-      <NuxtLink :to="`/review?mode=blitz&topic_id=${selectedTopicId}`" class="btn-secondary flex-none justify-center !py-2.5 !px-3">
+      <NuxtLink :to="`/revisar?mode=blitz&topic_id=${selectedTopicId}`" class="btn-secondary flex-none justify-center !py-2.5 !px-3">
         ⚡ Rápida
       </NuxtLink>
-      <NuxtLink :to="`/review?topic_id=${selectedTopicId}`" class="btn-primary flex-1 justify-center">
+      <NuxtLink :to="`/revisar?topic_id=${selectedTopicId}`" class="btn-primary flex-1 justify-center">
         Revisar {{ dueCardsCount }} card{{ dueCardsCount !== 1 ? 's' : '' }}
       </NuxtLink>
     </div>
@@ -355,6 +374,7 @@ const noteStore = useNoteStore()
 const toast = useToast()
 const route = useRoute()
 const { $api } = useNuxtApp()
+const featureUsage = useFeatureUsage()
 
 const selectedTopicId = ref<string | null>(null)
 const sidebarCollapsed = ref(false)
@@ -398,6 +418,9 @@ const createParentId = ref<string | null>(null)
 const editTopicId = ref<string | null>(null)
 const deleteTopicId = ref<string | null>(null)
 
+const cardsAiRemaining = computed(() => featureUsage.remaining('cards_ai'))
+const cardsAiLimit = computed(() => featureUsage.usage.value?.features?.cards_ai?.limit ?? null)
+
 const selectedTopicName = computed(() => {
   function find(topics: Topic[], id: string): string | null {
     for (const t of topics) {
@@ -434,17 +457,64 @@ const noteContentHtml = computed(() => {
 function extractHtmlFromTiptap(doc: any): string {
   if (!doc) return ''
   if (typeof doc === 'string') return doc
-  let html = ''
-  if (doc.text) html += doc.text
-  if (doc.content) {
-    for (const node of doc.content) {
-      if (node.type === 'paragraph') html += '<p>' + extractHtmlFromTiptap(node) + '</p>'
-      else if (node.type === 'heading') html += `<h${node.attrs?.level ?? 2}>` + extractHtmlFromTiptap(node) + `</h${node.attrs?.level ?? 2}>`
-      else if (node.type === 'image') html += `<img src="${node.attrs?.src}" />`
-      else html += extractHtmlFromTiptap(node)
-    }
+
+  if (doc.type === 'doc' && doc.content) {
+    return doc.content.map((n: any) => renderNode(n)).join('')
   }
-  return html
+
+  return renderNode(doc)
+}
+
+function renderNode(node: any): string {
+  if (!node) return ''
+
+  switch (node.type) {
+    case 'heading': {
+      const level = node.attrs?.level ?? 2
+      return `<h${level}>${renderChildren(node)}</h${level}>`
+    }
+    case 'paragraph':
+      return `<p>${renderChildren(node)}</p>`
+    case 'bulletList':
+      return `<ul>${renderChildren(node)}</ul>`
+    case 'orderedList':
+      return `<ol>${renderChildren(node)}</ol>`
+    case 'listItem':
+      return `<li>${renderChildren(node)}</li>`
+    case 'callout': {
+      const calloutType = node.attrs?.type || 'info'
+      return `<div class="callout callout-${calloutType}">${renderChildren(node)}</div>`
+    }
+    case 'blockquote':
+      return `<blockquote>${renderChildren(node)}</blockquote>`
+    case 'image':
+      return `<img src="${node.attrs?.src}" alt="${node.attrs?.alt || ''}" />`
+    case 'text': {
+      let text = escapeHtml(node.text || '')
+      if (node.marks) {
+        for (const mark of node.marks) {
+          if (mark.type === 'bold') text = `<strong>${text}</strong>`
+          else if (mark.type === 'italic') text = `<em>${text}</em>`
+          else if (mark.type === 'code') text = `<code>${text}</code>`
+        }
+      }
+      return text
+    }
+    default:
+      return renderChildren(node)
+  }
+}
+
+function renderChildren(node: any): string {
+  if (!node.content) return node.text ? escapeHtml(node.text) : ''
+  return node.content.map((child: any) => renderNode(child)).join('')
+}
+
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
 }
 
 function cardsFromNote(noteId: string): number {
@@ -509,7 +579,12 @@ function selectTopic(id: string) {
   flushPendingSave()
   selectedTopicId.value = id
   noteStore.current = null
-  noteStore.fetchForTopic(id)
+  noteStore.fetchForTopic(id).then(() => {
+    // Auto-select first note if available
+    if (noteStore.notes.length && !noteStore.current) {
+      selectNote(noteStore.notes[0])
+    }
+  })
   loadTopicData(id)
   if (window.innerWidth < 1024) sidebarOpen.value = false
 }
@@ -584,12 +659,6 @@ function selectNote(note: Note) {
   noteStore.current = note
   noteTitle.value = note.title
   noteContent.value = note.content
-}
-
-function openNoteModal(note: Note) {
-  selectNote(note)
-  editingNote.value = note
-  showNoteModal.value = true
 }
 
 function openNoteEditor(note: Note) {
@@ -762,6 +831,7 @@ async function handleAiGenerate(source: string, quantity: number, documentIdOrPr
 
   activeTab.value = 'cards'
   aiGenerating.value = true
+  toast.show('Gerando cards com IA...', 'success')
   try {
     const res = await $api<any>('/ai/generate-cards', {
       method: 'POST',
@@ -781,8 +851,9 @@ async function handleAiGenerate(source: string, quantity: number, documentIdOrPr
     } else {
       toast.show('Nenhum card gerado.', 'error')
     }
-  } catch {
-    toast.show('Erro ao gerar cards.', 'error')
+  } catch (e: any) {
+    const msg = e.data?.message || 'Erro ao gerar cards.'
+    toast.show(msg, 'error')
   } finally {
     aiGenerating.value = false
   }
@@ -830,9 +901,12 @@ function openEditCard(card: any) {
   showCardForm.value = true
 }
 
-function generateFromCurrentNote() {
-  showNoteModal.value = false
-  handleAiGenerate('notes', 5)
+function generateFromCurrentNote(count: number = 5) {
+  if (!selectedTopicId.value) {
+    toast.show('Selecione um caderno primeiro.', 'error')
+    return
+  }
+  handleAiGenerate('notes', count)
 }
 
 async function acceptAllCards() {
@@ -879,6 +953,7 @@ const progressMap = ref<Record<string, number>>({})
 
 onMounted(async () => {
   await topicStore.fetchTree()
+  featureUsage.fetchUsage()
   try {
     const res = await $api<any>('/topics/progress')
     for (const tp of res.data) {
@@ -901,6 +976,9 @@ onMounted(async () => {
         }
       }, { immediate: true })
     }
+  } else if (topicStore.tree.length) {
+    // Auto-select first topic
+    selectTopic(topicStore.tree[0].id)
   }
 
   // Sticky header observer

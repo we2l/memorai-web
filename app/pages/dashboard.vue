@@ -1,3 +1,3 @@
 <script setup lang="ts">
-navigateTo('/today', { redirectCode: 301 })
+navigateTo('/hoje', { redirectCode: 301 })
 </script>

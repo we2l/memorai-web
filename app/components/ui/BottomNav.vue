@@ -31,11 +31,11 @@ import {
 const route = useRoute()
 
 const items = [
-  { label: 'Hoje', to: '/today', icon: 'home' },
-  { label: 'Cadernos', to: '/topics', icon: 'topics' },
-  { label: 'Revisão', to: '/review', icon: 'review' },
+  { label: 'Hoje', to: '/hoje', icon: 'home' },
+  { label: 'Cadernos', to: '/cadernos', icon: 'topics' },
+  { label: 'Revisão', to: '/revisar', icon: 'review' },
   { label: 'Podcasts', to: '/podcasts', icon: 'podcasts' },
-  { label: 'Progresso', to: '/progress', icon: 'progress' },
+  { label: 'Progresso', to: '/progresso', icon: 'progress' },
 ]
 
 const iconMap: Record<string, any> = {

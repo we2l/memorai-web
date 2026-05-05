@@ -48,7 +48,7 @@
           <input
             v-model="freePrompt"
             class="input-base w-full !text-small"
-            placeholder="Ex: Direito Constitucional — Art. 5º"
+            placeholder="Ex: Fotossíntese, Guerra Fria, Regra de três"
             @keydown.stop
           />
         </div>

@@ -90,7 +90,7 @@
                 <div class="flex gap-3 mt-3">
                   <NuxtLink
                     v-if="card.topic_id"
-                    :to="`/topics?topic=${card.topic_id}&tab=cards&highlight=${card.id}`"
+                    :to="`/cadernos?topic=${card.topic_id}&tab=cards&highlight=${card.id}`"
                     class="text-micro text-accent-primary hover:underline"
                     @click="player.collapse()"
                   >
@@ -115,7 +115,7 @@
           </button>
           <NuxtLink
             v-if="linkedCards.length && player.currentPodcast.topic_id"
-            :to="`/review?topic_id=${player.currentPodcast.topic_id}&errors_only=1`"
+            :to="`/revisar?topic_id=${player.currentPodcast.topic_id}&errors_only=1`"
             class="btn-primary flex-1 justify-center"
             @click="player.collapse()"
           >

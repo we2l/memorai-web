@@ -3,5 +3,5 @@
 </template>
 
 <script setup lang="ts">
-navigateTo('/topics', { redirectCode: 301 })
+navigateTo('/cadernos', { redirectCode: 301 })
 </script>

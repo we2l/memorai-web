@@ -26,7 +26,7 @@
           v-model="prompt"
           type="text"
           class="input-base w-full"
-          placeholder="Ex: Direito Constitucional — Art. 5º"
+          placeholder="Ex: Fotossíntese, Guerra Fria, Regra de três"
           maxlength="500"
         />
       </div>

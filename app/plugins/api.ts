@@ -31,7 +31,7 @@ export default defineNuxtPlugin(() => {
     },
     async onResponseError({ response }) {
       if (response.status === 401 && import.meta.client) {
-        await navigateTo('/login')
+        await navigateTo('/entrar')
       }
       if (response.status === 402 && import.meta.client) {
         const data = response._data

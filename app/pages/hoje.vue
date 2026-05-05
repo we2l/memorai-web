@@ -56,17 +56,17 @@
       </div>
       <div class="flex items-center justify-between">
         <span class="text-micro text-base-muted">{{ stats?.reviewed_today ?? 0 }} revisados hoje</span>
-        <NuxtLink to="/review" class="btn-primary glow-primary">Começar revisão</NuxtLink>
+        <NuxtLink to="/revisar" class="btn-primary glow-primary">Começar revisão</NuxtLink>
       </div>
     </div>
 
     <!-- Empty state: no cards at all -->
     <div v-else-if="!stats?.total_cards" class="card mt-6 text-center py-10">
-      <p class="text-title text-base-secondary mb-2">Comece a estudar!</p>
-      <p class="text-small text-base-muted mb-4">Crie seu primeiro card em 30 segundos ou suba um PDF.</p>
+      <p class="text-title text-base-secondary mb-2">Pare de esquecer o que estuda</p>
+      <p class="text-small text-base-muted mb-4">Crie um caderno, cole seu material e a IA gera flashcards em segundos.</p>
       <div class="flex gap-3 justify-center">
-        <NuxtLink to="/topics" class="btn-primary">Criar caderno</NuxtLink>
-        <NuxtLink to="/import" class="btn-secondary">Importar Anki</NuxtLink>
+        <NuxtLink to="/cadernos" class="btn-primary">Criar caderno</NuxtLink>
+        <NuxtLink to="/importar" class="btn-secondary">Importar Anki</NuxtLink>
       </div>
     </div>
 
@@ -74,7 +74,7 @@
     <div v-else class="card mt-6 text-center py-8">
       <p class="text-title text-base-secondary">Tudo em dia! 🎉</p>
       <p class="text-small text-base-muted mt-1">Que tal gerar novos cards?</p>
-      <NuxtLink to="/topics" class="btn-primary mt-4 inline-flex">Ir pra Cadernos</NuxtLink>
+      <NuxtLink to="/cadernos" class="btn-primary mt-4 inline-flex">Ir pra Cadernos</NuxtLink>
     </div>
 
     <!-- Seu ritmo + Ações rápidas -->
@@ -95,10 +95,10 @@
         </div>
       </div>
       <div class="flex flex-col gap-2">
-        <NuxtLink to="/review?errors_only=1" class="btn-secondary justify-center text-small flex-1">
+        <NuxtLink to="/revisar?errors_only=1" class="btn-secondary justify-center text-small flex-1">
           Revisar só erros
         </NuxtLink>
-        <NuxtLink to="/import" class="btn-accent justify-center text-small flex-1">
+        <NuxtLink to="/importar" class="btn-accent justify-center text-small flex-1">
           Importar Anki
         </NuxtLink>
       </div>
@@ -136,7 +136,7 @@
         <NuxtLink
           v-for="tp in topicProgress.slice(0, 4)"
           :key="tp.id"
-          :to="`/topics?topic=${tp.id}`"
+          :to="`/cadernos?topic=${tp.id}`"
           class="card-interactive"
         >
           <p class="text-small font-medium text-base-primary truncate">{{ tp.name }}</p>
@@ -198,6 +198,7 @@ const { $api } = useNuxtApp()
 const featureLabels: Record<string, string> = {
   cards_ai: 'Cards IA',
   pdf_upload: 'Uploads PDF',
+  pdf_to_note: 'PDF → Nota IA',
   agent_chat: 'Tirar dúvidas',
   podcast: 'Podcasts',
 }

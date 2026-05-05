@@ -1,3 +1,3 @@
 <script setup lang="ts">
-navigateTo('/progress', { redirectCode: 301 })
+navigateTo('/progresso', { redirectCode: 301 })
 </script>

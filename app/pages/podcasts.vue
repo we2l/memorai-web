@@ -24,7 +24,7 @@
       </div>
       <p class="text-title text-base-secondary">Nenhum podcast ainda</p>
       <p class="text-small text-base-muted mt-1 max-w-xs mx-auto">Gere seu primeiro podcast dentro de um caderno e ouça seus pontos fracos!</p>
-      <NuxtLink to="/topics" class="btn-primary mt-5 inline-flex">Ir pra Cadernos</NuxtLink>
+      <NuxtLink to="/cadernos" class="btn-primary mt-5 inline-flex">Ir pra Cadernos</NuxtLink>
     </div>
 
     <!-- Podcast list grouped by topic -->

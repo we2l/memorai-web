@@ -25,11 +25,11 @@
         <Transition name="answer-expand">
           <div v-if="flipped" class="w-full max-w-md">
             <div class="flex items-center gap-3 mb-6">
-              <div class="flex-1 h-px bg-white/10" />
+              <div class="flex-1 h-px bg-black/10 dark:bg-white/10" />
               <span class="text-micro uppercase tracking-widest text-base-muted/50">Resposta</span>
-              <div class="flex-1 h-px bg-white/10" />
+              <div class="flex-1 h-px bg-black/10 dark:bg-white/10" />
             </div>
-            <div class="text-lg text-[#E5DED1] leading-relaxed card-content" v-html="displayBack" />
+            <div class="text-lg text-base-primary leading-relaxed card-content" v-html="displayBack" />
             <div v-if="currentAudio" class="mt-4 w-full max-w-xs mx-auto" @click.stop>
               <UiAudioPlayer :src="currentAudio" />
             </div>
@@ -88,19 +88,21 @@ const currentAudio = computed(() =>
 
 <style scoped>
 .review-card {
-  background: rgba(22, 20, 18, 0.8);
+  background: #FFFFFF;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(217, 119, 6, 0.12);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.03),
-    0 20px 60px rgba(0, 0, 0, 0.5),
-    0 0 30px rgba(217, 119, 6, 0.05);
+  border: 1px solid #EAEAEA;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
   transition: box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
 :where(.dark) .review-card {
   background: rgba(16, 14, 12, 0.85);
+  border-color: rgba(217, 119, 6, 0.12);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    0 20px 60px rgba(0, 0, 0, 0.5),
+    0 0 30px rgba(217, 119, 6, 0.05);
 }
 
 /* Micro feedback — green glow on success */

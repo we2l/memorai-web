@@ -17,15 +17,17 @@
       <button
         v-for="d in durations"
         :key="d.value"
-        class="p-4 rounded-xl border text-left transition-all"
-        :class="duration === d.value ? 'border-accent-primary bg-accent-primary-subtle' : 'border-base bg-surface-secondary hover:border-base-muted'"
-        :disabled="isFree && d.value !== 'short'"
-        @click="duration = d.value"
+        class="p-4 rounded-xl border text-left transition-all relative"
+        :class="[
+          duration === d.value ? 'border-accent-primary bg-accent-primary-subtle' : 'border-base bg-surface-secondary hover:border-base-muted',
+          isFree && d.value !== 'short' ? 'opacity-60' : '',
+        ]"
+        @click="isFree && d.value !== 'short' ? openUpgrade() : (duration = d.value)"
       >
         <p class="text-small font-medium text-base-primary">{{ d.label }}</p>
         <p class="text-micro text-base-muted">{{ d.time }}</p>
         <p v-if="d.value === recommended" class="text-micro text-accent-primary mt-1">✨ Recomendado</p>
-        <span v-if="isFree && d.value !== 'short'" class="text-micro text-accent-primary">Pro</span>
+        <span v-if="isFree && d.value !== 'short'" class="text-micro text-accent-primary">🔒 Pro</span>
       </button>
     </div>
 
@@ -44,12 +46,14 @@
             v-for="t in tones"
             :key="t.value"
             class="px-3 py-1.5 rounded-full text-small border transition-all"
-            :class="tone === t.value ? 'border-accent-primary bg-accent-primary-subtle text-accent-primary' : 'border-base text-base-muted hover:border-base-muted'"
-            :disabled="isFree && t.value !== 'conversational'"
-            @click="tone = t.value"
+            :class="[
+              tone === t.value ? 'border-accent-primary bg-accent-primary-subtle text-accent-primary' : 'border-base text-base-muted hover:border-base-muted',
+              isFree && t.value !== 'conversational' ? 'opacity-60' : '',
+            ]"
+            @click="isFree && t.value !== 'conversational' ? openUpgrade() : (tone = t.value)"
           >
             {{ t.label }}
-            <span v-if="isFree && t.value !== 'conversational'" class="text-micro ml-1">Pro</span>
+            <span v-if="isFree && t.value !== 'conversational'" class="text-micro ml-1">🔒</span>
           </button>
         </div>
       </div>
@@ -61,14 +65,16 @@
           <button
             v-for="f in formats"
             :key="f.value"
-            class="p-3 rounded-xl border text-center transition-all"
-            :class="format === f.value ? 'border-accent-primary bg-accent-primary-subtle' : 'border-base bg-surface-secondary hover:border-base-muted'"
-            :disabled="isFree && f.value !== 'expository'"
-            @click="format = f.value"
+            class="p-3 rounded-xl border text-center transition-all relative"
+            :class="[
+              format === f.value ? 'border-accent-primary bg-accent-primary-subtle' : 'border-base bg-surface-secondary hover:border-base-muted',
+              isFree && f.value !== 'expository' ? 'opacity-60' : '',
+            ]"
+            @click="isFree && f.value !== 'expository' ? openUpgrade() : (format = f.value)"
           >
             <component :is="f.icon" :size="24" class="mx-auto mb-1" :class="format === f.value ? 'text-accent-primary' : 'text-base-muted'" />
             <p class="text-small" :class="format === f.value ? 'text-accent-primary' : 'text-base-muted'">{{ f.label }}</p>
-            <span v-if="isFree && f.value !== 'expository'" class="text-micro text-accent-primary">Pro</span>
+            <span v-if="isFree && f.value !== 'expository'" class="text-micro text-accent-primary">🔒 Pro</span>
           </button>
         </div>
       </div>
@@ -76,12 +82,12 @@
       <!-- Speakers -->
       <div>
         <p class="text-small font-medium text-base-primary mb-2">{{ format === 'debate' ? 'Vozes' : 'Narrador' }}</p>
-        <div class="space-y-3">
+        <div class="space-y-3" :class="isFree ? 'opacity-60' : ''">
           <div>
             <label class="text-micro text-base-muted mb-1 block">{{ format === 'debate' ? 'Mentor' : 'Narrador' }}</label>
             <div class="flex gap-3 items-center">
-              <input v-model="host1Name" type="text" class="input-base flex-1" placeholder="Nome" :disabled="isFree" />
-              <select v-model="host1Voice" class="input-base w-32" :disabled="isFree">
+              <input v-model="host1Name" type="text" class="input-base flex-1" placeholder="Nome" :disabled="isFree" @click="isFree && openUpgrade()" />
+              <select v-model="host1Voice" class="input-base w-32" :disabled="isFree" @click="isFree && openUpgrade()">
                 <option v-for="v in voices" :key="v.id" :value="v.id">{{ v.label }}</option>
               </select>
             </div>
@@ -89,12 +95,13 @@
           <div v-if="format === 'debate'">
             <label class="text-micro text-base-muted mb-1 block">Estudante</label>
             <div class="flex gap-3 items-center">
-              <input v-model="host2Name" type="text" class="input-base flex-1" placeholder="Nome" :disabled="isFree" />
-              <select v-model="host2Voice" class="input-base w-32" :disabled="isFree">
+              <input v-model="host2Name" type="text" class="input-base flex-1" placeholder="Nome" :disabled="isFree" @click="isFree && openUpgrade()" />
+              <select v-model="host2Voice" class="input-base w-32" :disabled="isFree" @click="isFree && openUpgrade()">
                 <option v-for="v in voices" :key="v.id" :value="v.id">{{ v.label }}</option>
               </select>
             </div>
           </div>
+          <p v-if="isFree" class="text-micro text-accent-primary">🔒 Personalização de voz disponível no Pro</p>
         </div>
       </div>
     </div>
@@ -135,6 +142,12 @@ const toast = useToast()
 const isFree = computed(() => auth.user?.plan === 'free')
 const generating = computed(() => podcastStore.generating)
 const usageText = computed(() => props.usage ? `${props.usage.used}/${props.usage.limit} este mês` : null)
+
+function openUpgrade() {
+  window.dispatchEvent(new CustomEvent('feature-limit-reached', {
+    detail: { feature: 'Podcasts personalizados — duração, tom, formato debate e 6 vozes diferentes', planRequired: 'pro' },
+  }))
+}
 
 // Topic selector for library mode
 const selectedTopicId = ref('')

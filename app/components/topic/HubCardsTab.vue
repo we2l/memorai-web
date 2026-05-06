@@ -31,7 +31,31 @@
       <button class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small" @click="$emit('create-card')">
         <Plus :size="14" /> Criar card
       </button>
+      <button
+        v-if="canUseOcr"
+        class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small"
+        :disabled="ocrLoading"
+        @click="triggerOcr"
+      >
+        <Camera :size="14" />
+        <span v-if="ocrLoading">Analisando...</span>
+        <span v-else>Foto → Cards</span>
+      </button>
+      <input
+        ref="ocrInput"
+        type="file"
+        accept="image/*"
+        capture="environment"
+        class="hidden"
+        @change="handleOcrFile"
+      />
       <slot name="ai-generate" />
+    </div>
+
+    <!-- OCR loading -->
+    <div v-if="ocrLoading" class="mb-4 px-4 py-4 rounded-xl bg-accent-primary-subtle flex items-center gap-3">
+      <div class="w-5 h-5 border-2 border-accent-primary border-t-transparent rounded-full animate-spin shrink-0" />
+      <p class="text-small text-accent-primary">Analisando imagem...</p>
     </div>
 
     <!-- Card list -->
@@ -118,7 +142,7 @@
 </template>
 
 <script setup lang="ts">
-import { Plus, Search, Trash2, Pencil, ChevronDown, ChevronUp } from 'lucide-vue-next'
+import { Plus, Search, Trash2, Pencil, ChevronDown, ChevronUp, Camera } from 'lucide-vue-next'
 
 const props = defineProps<{
   topicId: string
@@ -128,9 +152,10 @@ const props = defineProps<{
   errorPatterns: any
   noteNameById: (id: string) => string
   highlightId?: string
+  canUseOcr?: boolean
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
   (e: 'create-card'): void
   (e: 'delete-card', id: string): void
   (e: 'edit-card', card: any): void
@@ -138,6 +163,7 @@ defineEmits<{
   (e: 'accept-all-cards'): void
   (e: 'edit-generated', index: number): void
   (e: 'discard-generated', index: number): void
+  (e: 'ocr-cards', cards: any[]): void
 }>()
 
 const search = ref('')
@@ -174,4 +200,56 @@ watch(() => props.topicId, () => {
   search.value = ''
   visibleCount.value = 20
 })
+
+// OCR
+const { $api } = useNuxtApp()
+const toast = useToast()
+const ocrInput = ref<HTMLInputElement | null>(null)
+const ocrLoading = ref(false)
+
+function triggerOcr() {
+  ocrInput.value?.click()
+}
+
+async function handleOcrFile(e: Event) {
+  const file = (e.target as HTMLInputElement).files?.[0]
+  if (!file) return
+
+  ocrLoading.value = true
+  try {
+    const formData = new FormData()
+    formData.append('image', file)
+    formData.append('topic_id', props.topicId)
+    formData.append('count', '5')
+
+    const res = await $api<any>('/flashcards/from-image', { method: 'POST', body: formData })
+    const jobId = res.data.id
+
+    // Poll for result
+    const cards = await pollOcrStatus(jobId)
+    if (cards) {
+      emit('ocr-cards', cards)
+    }
+  } catch (err: any) {
+    const msg = err?.data?.message || 'Erro ao processar imagem.'
+    toast.show(msg, 'error')
+  } finally {
+    ocrLoading.value = false
+    if (ocrInput.value) ocrInput.value.value = ''
+  }
+}
+
+async function pollOcrStatus(jobId: string): Promise<any[] | null> {
+  for (let i = 0; i < 30; i++) {
+    await new Promise(r => setTimeout(r, 2000))
+    const res = await $api<any>(`/flashcards/from-image/${jobId}/status`)
+    if (res.data.status === 'done') return res.data.cards
+    if (res.data.status === 'failed') {
+      toast.show('Falha ao gerar cards da imagem.', 'error')
+      return null
+    }
+  }
+  toast.show('Tempo esgotado. Tente novamente.', 'error')
+  return null
+}
 </script>

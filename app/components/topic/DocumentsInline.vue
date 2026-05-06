@@ -13,6 +13,20 @@
       <input type="file" accept=".pdf" class="hidden" @change="onFileSelect" />
     </label>
 
+    <!-- Paywall banner -->
+    <button
+      v-if="showPaywall"
+      class="w-full mt-3 px-4 py-3 rounded-xl bg-accent-primary-subtle border border-accent-primary/20 flex items-center gap-3 text-left hover:bg-accent-primary/10 transition-colors"
+      @click="openUpgrade"
+    >
+      <span class="text-body">✨</span>
+      <div class="flex-1">
+        <p class="text-small font-medium text-accent-primary">Deixar a IA criar os cards</p>
+        <p class="text-micro text-base-muted">Sua cota de IA acabou este mês</p>
+      </div>
+      <span class="text-small text-accent-primary font-medium shrink-0">Desbloquear Pro →</span>
+    </button>
+
     <!-- Documents list -->
     <!-- Documents list -->
     <div v-if="documents.length" class="space-y-3 mt-3">
@@ -49,6 +63,30 @@
           >
             <Sparkles :size="14" /> Gerar cards a partir do resumo
           </button>
+          <button
+            v-if="!doc.topic_tree_generated && doc.study_structure_status !== 'generating' && doc.study_structure_status !== 'failed'"
+            class="btn-secondary !py-2 !px-4 !min-h-[2.75rem] text-small w-full justify-center mt-2"
+            :disabled="studyStructureLoading"
+            @click="generateStudyStructure(doc)"
+          >
+            <Layers :size="14" />
+            <span v-if="studyStructureLoading">Criando estrutura...</span>
+            <span v-else>📋 Criar estrutura de estudo</span>
+          </button>
+          <div v-else-if="doc.study_structure_status === 'generating'" class="mt-2 flex items-center gap-2 text-small text-accent-primary">
+            <Loader2 :size="14" class="animate-spin" />
+            <span>Organizando seus cadernos com IA...</span>
+          </div>
+          <div v-else-if="doc.study_structure_status === 'failed'" class="mt-2 flex items-center gap-2 text-small text-danger">
+            <XCircle :size="14" />
+            <span>Falhou ao criar estrutura.</span>
+            <button class="text-accent-primary hover:underline ml-1" @click="generateStudyStructure(doc)">Tentar novamente</button>
+          </div>
+          <div v-else-if="doc.topic_tree_generated" class="mt-2 flex items-center gap-2 text-small text-success">
+            <CheckCircle :size="14" />
+            <span>Estrutura de estudo criada</span>
+            <NuxtLink to="/cadernos" class="text-accent-primary hover:underline ml-auto text-micro">Ver cadernos →</NuxtLink>
+          </div>
         </div>
 
         <!-- Status: Processing embeddings -->
@@ -131,10 +169,23 @@ const emit = defineEmits<{
   generateFromPdf: [documentId: string]
   noteReady: []
   generateCards: [noteId: string]
+  structureReady: []
 }>()
 
 const { $api } = useNuxtApp()
 const toast = useToast()
+const auth = useAuthStore()
+const featureUsage = useFeatureUsage()
+
+const showPaywall = computed(() =>
+  auth.user?.plan === 'free' && featureUsage.remaining('cards_ai') === 0,
+)
+
+function openUpgrade() {
+  window.dispatchEvent(new CustomEvent('feature-limit-reached', {
+    detail: { feature: 'Geração de cards com IA', planRequired: 'pro' },
+  }))
+}
 
 const documents = ref<Document[]>([])
 const uploading = ref(false)
@@ -153,6 +204,24 @@ const selectedDoc = ref<Document | null>(null)
 
 // Generate cards confirmation
 const showConfirmCards = ref(false)
+
+// Study structure
+const studyStructureLoading = ref(false)
+
+async function generateStudyStructure(doc: Document) {
+  studyStructureLoading.value = true
+  try {
+    await $api('/topics/from-document', { method: 'POST', body: { document_id: doc.id } })
+    toast.show('Estrutura sendo criada com IA...')
+    doc.study_structure_status = 'generating'
+    startPolling()
+  } catch (e: any) {
+    const msg = e?.data?.message || 'Erro ao criar estrutura.'
+    toast.show(msg, 'error')
+  } finally {
+    studyStructureLoading.value = false
+  }
+}
 
 async function resolveViewerUrl(doc: Document): Promise<string> {
   const auth = useAuthStore()
@@ -251,7 +320,7 @@ async function onFileSelect(e: Event) {
 
 // Polling: check for generating notes + processing documents
 const needsPolling = computed(() =>
-  documents.value.some(d => d.note_generation_status === 'generating' || d.status === 'processing'),
+  documents.value.some(d => d.note_generation_status === 'generating' || d.status === 'processing' || d.study_structure_status === 'generating'),
 )
 let pollTimer: ReturnType<typeof setInterval> | null = null
 let pollStartedAt: number | null = null
@@ -271,6 +340,7 @@ function startPolling() {
     }
 
     const prevGenerating = documents.value.filter(d => d.note_generation_status === 'generating').map(d => d.id)
+    const prevStructure = documents.value.filter(d => d.study_structure_status === 'generating').map(d => d.id)
     await fetchDocuments()
 
     // Check if any note just finished generating
@@ -283,6 +353,19 @@ function startPolling() {
           emit('noteReady')
         } else if (doc.note_generation_status === 'failed') {
           toast.show('Falha ao gerar nota. Tente novamente.', 'error')
+        }
+      }
+    }
+
+    // Check if study structure finished
+    for (const id of prevStructure) {
+      const doc = documents.value.find(d => d.id === id)
+      if (doc && doc.study_structure_status !== 'generating') {
+        if (doc.study_structure_status === 'completed') {
+          toast.show('Estrutura de estudo criada! Seus cadernos foram organizados. 📚')
+          emit('structureReady')
+        } else if (doc.study_structure_status === 'failed') {
+          toast.show('Falha ao criar estrutura. Tente novamente.', 'error')
         }
       }
     }

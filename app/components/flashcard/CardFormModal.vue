@@ -4,6 +4,17 @@
       <!-- Form -->
       <div class="flex-1 flex flex-col min-w-0">
         <h2 class="text-headline mb-5">{{ isEdit ? 'Editar card' : 'Novo card' }}</h2>
+
+        <!-- Paywall hint -->
+        <button
+          v-if="showAiHint"
+          class="w-full mb-4 px-3 py-2.5 rounded-lg bg-accent-primary-subtle/50 flex items-center gap-2 text-left hover:bg-accent-primary-subtle transition-colors"
+          @click="openUpgrade"
+        >
+          <span class="text-small">💡</span>
+          <p class="text-small text-accent-primary flex-1">A IA pode criar cards automaticamente</p>
+          <span class="text-micro text-accent-primary font-medium">Pro →</span>
+        </button>
         <form @submit.prevent="submit" class="flex flex-col gap-4 flex-1">
           <div v-if="!props.topicId">
             <label class="text-label mb-1 block">Caderno</label>
@@ -126,6 +137,18 @@ const emit = defineEmits<{
 const open = defineModel<boolean>({ required: true })
 
 const isEdit = computed(() => !!props.card)
+
+const auth = useAuthStore()
+const featureUsage = useFeatureUsage()
+const showAiHint = computed(() =>
+  !isEdit.value && auth.user?.plan === 'free' && featureUsage.remaining('cards_ai') === 0,
+)
+
+function openUpgrade() {
+  window.dispatchEvent(new CustomEvent('feature-limit-reached', {
+    detail: { feature: 'Geração de cards com IA', planRequired: 'pro' },
+  }))
+}
 
 const flashcardStore = useFlashcardStore()
 const deckStore = useDeckStore()

@@ -13,6 +13,20 @@
       <input type="file" accept=".pdf" class="hidden" @change="onFileSelect" />
     </label>
 
+    <!-- Paywall banner -->
+    <button
+      v-if="showPaywall"
+      class="w-full mt-3 px-4 py-3 rounded-xl bg-accent-primary-subtle border border-accent-primary/20 flex items-center gap-3 text-left hover:bg-accent-primary/10 transition-colors"
+      @click="openUpgrade"
+    >
+      <span class="text-body">✨</span>
+      <div class="flex-1">
+        <p class="text-small font-medium text-accent-primary">Deixar a IA criar os cards</p>
+        <p class="text-micro text-base-muted">Sua cota de IA acabou este mês</p>
+      </div>
+      <span class="text-small text-accent-primary font-medium shrink-0">Desbloquear Pro →</span>
+    </button>
+
     <!-- Documents list -->
     <!-- Documents list -->
     <div v-if="documents.length" class="space-y-3 mt-3">
@@ -145,6 +159,18 @@ const emit = defineEmits<{
 
 const { $api } = useNuxtApp()
 const toast = useToast()
+const auth = useAuthStore()
+const featureUsage = useFeatureUsage()
+
+const showPaywall = computed(() =>
+  auth.user?.plan === 'free' && featureUsage.remaining('cards_ai') === 0,
+)
+
+function openUpgrade() {
+  window.dispatchEvent(new CustomEvent('feature-limit-reached', {
+    detail: { feature: 'Geração de cards com IA', planRequired: 'pro' },
+  }))
+}
 
 const documents = ref<Document[]>([])
 const uploading = ref(false)

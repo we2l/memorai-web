@@ -49,6 +49,16 @@
           >
             <Sparkles :size="14" /> Gerar cards a partir do resumo
           </button>
+          <button
+            v-if="!doc.topic_tree_generated"
+            class="btn-secondary !py-2 !px-4 !min-h-[2.75rem] text-small w-full justify-center mt-2"
+            :disabled="studyStructureLoading"
+            @click="generateStudyStructure(doc)"
+          >
+            <Layers :size="14" />
+            <span v-if="studyStructureLoading">Criando estrutura...</span>
+            <span v-else>📋 Criar estrutura de estudo</span>
+          </button>
         </div>
 
         <!-- Status: Processing embeddings -->
@@ -153,6 +163,23 @@ const selectedDoc = ref<Document | null>(null)
 
 // Generate cards confirmation
 const showConfirmCards = ref(false)
+
+// Study structure
+const studyStructureLoading = ref(false)
+
+async function generateStudyStructure(doc: Document) {
+  studyStructureLoading.value = true
+  try {
+    await $api('/topics/from-document', { method: 'POST', body: { document_id: doc.id } })
+    toast.show('Estrutura de estudo sendo criada!')
+    doc.topic_tree_generated = true
+  } catch (e: any) {
+    const msg = e?.data?.message || 'Erro ao criar estrutura.'
+    toast.show(msg, 'error')
+  } finally {
+    studyStructureLoading.value = false
+  }
+}
 
 async function resolveViewerUrl(doc: Document): Promise<string> {
   const auth = useAuthStore()

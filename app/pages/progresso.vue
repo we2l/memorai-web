@@ -101,10 +101,10 @@
               </div>
             </div>
             <NuxtLink
-              :to="`/revisar?topic_id=${topic.id}`"
+              :to="`/cadernos?topic=${topic.id}`"
               class="btn-secondary !py-1.5 !px-3 !min-h-0 text-micro shrink-0"
             >
-              Revisar
+              Ver caderno
             </NuxtLink>
           </div>
         </div>

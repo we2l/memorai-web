@@ -5,7 +5,7 @@
     <UiBottomNav />
 
     <main class="lg:ml-[220px] relative" :class="mainPadding">
-      <div class="absolute left-1/2 -translate-x-1/2 top-3 z-10">
+      <div class="absolute top-3 z-10" :class="showThemeToggle === 'side' ? 'right-3' : 'left-1/2 -translate-x-1/2'">
         <button
           class="p-2 rounded-lg text-base-muted hover:text-accent-primary hover:bg-surface-tertiary/50 transition-colors"
           :title="colorMode === 'dark' ? 'Modo claro' : 'Modo escuro'"
@@ -45,6 +45,13 @@ import { Sun, Moon } from 'lucide-vue-next'
 
 const toast = useToast()
 const { colorMode, toggle } = useColorMode()
+const route = useRoute()
+
+const showThemeToggle = computed(() => {
+  const path = route.path
+  if (path === '/revisar' || path === '/grafo') return 'side'
+  return 'center'
+})
 
 const player = usePlayerStore()
 const hasMiniplayer = computed(() => !!player.currentPodcast)

@@ -119,8 +119,8 @@
             <li>✓ Flashcards + FSRS ilimitados</li>
             <li>✓ Notas, cadernos, grafo</li>
             <li>✓ Importar Anki</li>
-            <li>✓ 20 cards IA/mês</li>
-            <li>✓ 1 podcast/mês</li>
+            <li>✓ Gerar 20 cards/mês</li>
+            <li>✓ 1 revisão em áudio/mês</li>
           </ul>
           <NuxtLink to="/criar-conta" class="btn-secondary w-full justify-center">Começar grátis</NuxtLink>
         </div>
@@ -132,10 +132,10 @@
           <p class="text-micro text-base-muted mb-4">Menos que um lanche por mês pra nunca mais esquecer</p>
           <ul class="space-y-2 text-small text-base-secondary mb-6">
             <li>✓ Tudo do Grátis</li>
-            <li>✓ Cards IA ilimitados</li>
-            <li>✓ 10 notas IA do PDF/mês</li>
-            <li>✓ Chat IA ilimitado</li>
-            <li>✓ 5 podcasts/mês</li>
+            <li>✓ Gerar cards <strong>ilimitado</strong></li>
+            <li>✓ 15 processamentos de PDF/mês</li>
+            <li>✓ Tira-dúvidas <strong>ilimitado</strong></li>
+            <li>✓ 5 revisões em áudio/mês</li>
           </ul>
           <NuxtLink to="/criar-conta" class="btn-primary w-full justify-center">Quero memorizar de verdade</NuxtLink>
         </div>

@@ -28,9 +28,10 @@
           <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> Notas, cadernos e grafo</li>
           <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> Importar Anki</li>
           <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> Upload de PDFs ilimitado</li>
-          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> 20 cards com IA/mês</li>
-          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> 10 perguntas ao agente/mês</li>
-          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> 1 nota de PDF com IA/mês</li>
+          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> Gerar 20 cards/mês</li>
+          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> 10 tira-dúvidas/mês</li>
+          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> 2 processamentos de PDF/mês</li>
+          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> 1 revisão em áudio/mês</li>
         </ul>
       </div>
 
@@ -67,11 +68,10 @@
 
         <ul class="space-y-3 text-small">
           <li class="flex gap-2.5 font-medium text-base-primary"><Zap :size="16" class="text-accent-primary shrink-0 mt-0.5" /> Tudo do Grátis, mais:</li>
-          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> Cards com IA <strong>ilimitados</strong></li>
-          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> Agente IA <strong>ilimitado</strong></li>
-          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> 20 uploads PDF/mês</li>
-          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> 10 notas de PDF com IA/mês</li>
-          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> 5 podcasts/mês</li>
+          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> Gerar cards <strong>ilimitado</strong></li>
+          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> Tira-dúvidas <strong>ilimitado</strong></li>
+          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> 15 processamentos de PDF/mês</li>
+          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> 5 revisões em áudio/mês</li>
         </ul>
       </div>
     </div>
@@ -98,8 +98,8 @@
           @click="buyAddon('podcast_pack')"
         >
           <div>
-            <p class="text-small font-medium text-base-primary">🎧 +5 Podcasts</p>
-            <p class="text-micro text-base-muted">Mais revisão passiva</p>
+            <p class="text-small font-medium text-base-primary">🎧 +5 Revisões em áudio</p>
+            <p class="text-micro text-base-muted">Ouça seus pontos fracos no ônibus</p>
           </div>
           <span v-if="loadingAddon === 'podcast_pack'" class="text-small text-base-muted animate-pulse">Abrindo...</span>
           <span v-else class="text-small font-semibold text-accent-primary">R$9,90</span>
@@ -110,8 +110,8 @@
           @click="buyAddon('pdf_pack')"
         >
           <div>
-            <p class="text-small font-medium text-base-primary">📄 +10 Uploads PDF</p>
-            <p class="text-micro text-base-muted">Mais material pra IA</p>
+            <p class="text-small font-medium text-base-primary">📄 +10 Processamentos de PDF</p>
+            <p class="text-micro text-base-muted">Resuma ou organize mais material</p>
           </div>
           <span v-if="loadingAddon === 'pdf_pack'" class="text-small text-base-muted animate-pulse">Abrindo...</span>
           <span v-else class="text-small font-semibold text-accent-primary">R$4,90</span>

@@ -10,6 +10,8 @@ export const useReviewStore = defineStore('review', {
     cards: [] as SessionCard[],
     learningQueue: [] as { card: SessionCard; dueAt: number }[],
     currentIndex: 0,
+    totalReviewed: 0,
+    initialTotal: 0,
     flipped: false,
     loading: false,
     submitting: false,
@@ -27,9 +29,15 @@ export const useReviewStore = defineStore('review', {
     currentCard(state): SessionCard | null {
       const _tick = state._tick // reactive dependency
       const now = Date.now()
+      // Show due learning cards first
       const dueLearn = state.learningQueue.find(q => q.dueAt <= now)
       if (dueLearn) return dueLearn.card
-      return state.cards[state.currentIndex] ?? null
+      // Show main cards
+      const mainCard = state.cards[state.currentIndex] ?? null
+      if (mainCard) return mainCard
+      // No main cards left — show next learning card regardless of timer (learn ahead)
+      if (state.learningQueue.length) return state.learningQueue[0].card
+      return null
     },
     currentIntervals(): { again: string; hard: string; good: string; easy: string } {
       return this.currentCard?.next_intervals ?? { again: '', hard: '', good: '', easy: '' }
@@ -39,11 +47,17 @@ export const useReviewStore = defineStore('review', {
     },
     reviewed: (state) => state.currentIndex,
     progress(state): number {
-      const t = state.cards.length + state.learningQueue.length
-      if (!t) return 0
-      return Math.min(100, Math.round((state.currentIndex / t) * 100))
+      const _tick = state._tick // force reactivity
+      const total = state.cards.length + state.learningQueue.length
+      const left = (state.cards.length - state.currentIndex) + state.learningQueue.length
+      if (!total) return 0
+      return Math.min(100, Math.round(((total - left) / total) * 100))
     },
     pendingLearning: (state) => state.learningQueue.length,
+    remaining(state): number {
+      const _tick = state._tick // force reactivity
+      return (state.cards.length - state.currentIndex) + state.learningQueue.length
+    },
   },
 
   actions: {
@@ -51,6 +65,7 @@ export const useReviewStore = defineStore('review', {
       this.loading = true
       this.finished = false
       this.currentIndex = 0
+      this.totalReviewed = 0
       this.flipped = false
       this.learningQueue = []
       this.weakSuggestion = null
@@ -83,6 +98,7 @@ export const useReviewStore = defineStore('review', {
         }
 
         if (!this.cards.length && !this.learningQueue.length) this.finished = true
+        this.initialTotal = this.cards.length
       } finally {
         this.loading = false
       }
@@ -133,6 +149,7 @@ export const useReviewStore = defineStore('review', {
         const doAdvance = () => {
           if (!wasFromLearningQueue) {
             this.currentIndex++
+            this.totalReviewed++
           }
 
           const hasMoreMainCards = this.currentIndex < this.cards.length
@@ -150,6 +167,7 @@ export const useReviewStore = defineStore('review', {
           }
 
           this.flipped = false
+          this._tick++
           this.checkFinished()
         }
 

@@ -33,7 +33,7 @@
         <p class="text-micro text-base-muted">
           Período: {{ formatDate(featureUsage.usage.value.period_start) }} — {{ formatDate(featureUsage.usage.value.period_end) }}
         </p>
-        <div v-for="(data, key) in featureUsage.usage.value.features" :key="key" class="flex items-center gap-4">
+        <div v-for="(data, key) in settingsFeatures" :key="key" class="flex items-center gap-4">
           <p class="text-small text-base-primary w-28 shrink-0">{{ settingsFeatureLabels[key as string] }}</p>
           <div class="flex-1">
             <div v-if="data.limit !== null" class="h-2 rounded-full bg-surface-tertiary overflow-hidden">
@@ -79,8 +79,8 @@
       </div>
     </section>
 
-    <!-- Sessão de Estudo -->
-    <section class="card p-6 md:p-8 mb-6">
+    <!-- Sessão de Estudo (hidden for launch — too complex for new users) -->
+    <section v-if="false" class="card p-6 md:p-8 mb-6">
       <h2 class="text-headline mb-2">Sessão de Estudo</h2>
       <p class="text-small text-base-muted mb-8">Configure quanto você quer estudar por dia. O app nunca descarta cards — o que não couber hoje aparece amanhã.</p>
 
@@ -153,11 +153,16 @@ const featureUsage = useFeatureUsage()
 const { colorMode, set } = useColorMode()
 
 const settingsFeatureLabels: Record<string, string> = {
-  cards_ai: 'Cards IA',
-  agent_chat: 'Tirar dúvidas',
-  podcast: 'Podcasts',
-  pdf_to_note: 'Material de estudo (PDF)',
+  cards_ai: 'Gerar cards',
+  agent_chat: 'Tira-dúvidas',
+  podcast: 'Revisão em áudio',
+  pdf_to_note: 'Processar PDF',
 }
+
+const settingsFeatures = computed(() => {
+  if (!featureUsage.usage.value) return {}
+  return featureUsage.usage.value.features
+})
 
 function formatDate(d: string) {
   return new Date(d + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })

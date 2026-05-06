@@ -1,34 +1,32 @@
 <template>
-  <UiModal v-model="model" :size="'lg'" aria-label="Gerar Podcast">
+  <UiModal v-model="model" :size="'lg'" aria-label="Gerar Podcast" no-overflow>
     <h2 class="text-headline font-serif mb-1">Gerar Podcast</h2>
     <p class="text-small text-base-muted mb-5">Personalize sua revisão de áudio</p>
 
     <!-- Topic selector (only when no topicId prop) -->
     <div v-if="!topicId" class="mb-5">
-      <p class="text-small font-medium text-base-primary mb-2">Caderno</p>
-      <select v-model="selectedTopicId" class="input-base w-full" required>
-        <option value="" disabled>Selecione um caderno</option>
-        <option v-for="t in topics" :key="t.id" :value="t.id">{{ t.name }}</option>
-      </select>
+      <p class="text-small font-medium text-base-primary mb-2">Caderno <span class="text-danger">*</span></p>
+      <UiSelect v-model="selectedTopicId" :options="topicOptions" placeholder="Selecione um caderno" />
+      <p v-if="!selectedTopicId" class="text-micro text-base-muted mt-1">Escolha o caderno que será revisado no áudio</p>
     </div>
 
     <!-- Duration -->
     <div class="grid grid-cols-3 gap-3 mb-5">
-      <button
-        v-for="d in durations"
-        :key="d.value"
-        class="p-4 rounded-xl border text-left transition-all relative"
-        :class="[
-          duration === d.value ? 'border-accent-primary bg-accent-primary-subtle' : 'border-base bg-surface-secondary hover:border-base-muted',
-          isFree && d.value !== 'short' ? 'opacity-60' : '',
-        ]"
-        @click="isFree && d.value !== 'short' ? openUpgrade() : (duration = d.value)"
-      >
-        <p class="text-small font-medium text-base-primary">{{ d.label }}</p>
-        <p class="text-micro text-base-muted">{{ d.time }}</p>
-        <p v-if="d.value === recommended" class="text-micro text-accent-primary mt-1">✨ Recomendado</p>
-        <span v-if="isFree && d.value !== 'short'" class="text-micro text-accent-primary">🔒 Pro</span>
-      </button>
+      <UiTooltip v-for="d in durations" :key="d.value" :text="durationTooltip(d.value)">
+        <button
+          class="p-4 rounded-xl border text-center transition-all relative w-full"
+          :class="[
+            duration === d.value ? 'border-accent-primary bg-accent-primary-subtle' : 'border-base bg-surface-secondary hover:border-base-muted',
+            isFree && d.value !== 'short' ? 'opacity-60' : '',
+          ]"
+          @click="isFree && d.value !== 'short' ? openUpgrade() : (duration = d.value)"
+        >
+          <p class="text-small font-medium text-base-primary">{{ d.label }}</p>
+          <p class="text-micro text-base-muted">{{ d.time }}</p>
+          <p class="text-micro mt-1" :class="d.value === recommended ? 'text-accent-primary' : 'invisible'">✨ Recomendado</p>
+          <span v-if="isFree && d.value !== 'short'" class="text-micro text-accent-primary">🔒 Pro</span>
+        </button>
+      </UiTooltip>
     </div>
 
     <!-- Customize toggle -->
@@ -87,18 +85,14 @@
             <label class="text-micro text-base-muted mb-1 block">{{ format === 'debate' ? 'Mentor' : 'Narrador' }}</label>
             <div class="flex gap-3 items-center">
               <input v-model="host1Name" type="text" class="input-base flex-1" placeholder="Nome" :disabled="isFree" @click="isFree && openUpgrade()" />
-              <select v-model="host1Voice" class="input-base w-32" :disabled="isFree" @click="isFree && openUpgrade()">
-                <option v-for="v in voices" :key="v.id" :value="v.id">{{ v.label }}</option>
-              </select>
+              <UiSelect v-model="host1Voice" :options="voiceOptions" :disabled="isFree" @click="isFree && openUpgrade()" />
             </div>
           </div>
           <div v-if="format === 'debate'">
             <label class="text-micro text-base-muted mb-1 block">Estudante</label>
             <div class="flex gap-3 items-center">
               <input v-model="host2Name" type="text" class="input-base flex-1" placeholder="Nome" :disabled="isFree" @click="isFree && openUpgrade()" />
-              <select v-model="host2Voice" class="input-base w-32" :disabled="isFree" @click="isFree && openUpgrade()">
-                <option v-for="v in voices" :key="v.id" :value="v.id">{{ v.label }}</option>
-              </select>
+              <UiSelect v-model="host2Voice" :options="voiceOptions" :disabled="isFree" @click="isFree && openUpgrade()" />
             </div>
           </div>
           <p v-if="isFree" class="text-micro text-accent-primary">🔒 Personalização de voz disponível no Pro</p>
@@ -152,7 +146,7 @@ function openUpgrade() {
 // Topic selector for library mode
 const selectedTopicId = ref('')
 const topics = ref<{ id: string; name: string }[]>([])
-
+const topicOptions = computed(() => topics.value.map(t => ({ value: t.id, label: t.name })))
 watch(model, async (val) => {
   if (val && !props.topicId && !topics.value.length) {
     try {
@@ -171,9 +165,21 @@ const host1Voice = ref('Kore')
 const host2Name = ref('Lucas')
 const host2Voice = ref('Puck')
 const showAdvanced = ref(false)
+const fetchedWeakCount = ref(0)
+
+watch(selectedTopicId, async (id) => {
+  if (!id) return
+  try {
+    const { $api } = useNuxtApp()
+    const res = await $api<any>(`/topics/${id}/details`)
+    fetchedWeakCount.value = (res.data?.flashcards ?? []).filter((c: any) => c.lapses > 0).length
+  } catch {
+    fetchedWeakCount.value = 0
+  }
+})
 
 const recommended = computed<PodcastDuration>(() => {
-  const count = props.weakCardsCount ?? 0
+  const count = props.weakCardsCount ?? fetchedWeakCount.value
   if (count <= 5) return 'short'
   if (count <= 15) return 'medium'
   return 'long'
@@ -208,6 +214,19 @@ const voices = [
   { id: 'Charon', label: 'Charon · Informativo' },
   { id: 'Orus', label: 'Orus · Firme' },
 ]
+const voiceOptions = voices.map(v => ({ value: v.id, label: v.label }))
+
+function durationTooltip(value: string): string {
+  const count = props.weakCardsCount ?? fetchedWeakCount.value
+  if (value === recommended.value) {
+    if (count <= 5) return `Recomendado: você tem poucos pontos fracos (${count})`
+    if (count <= 15) return `Recomendado: ${count} pontos fracos cabem bem nessa duração`
+    return `Recomendado: ${count} pontos fracos precisam de mais tempo`
+  }
+  if (value === 'short') return count > 5 ? 'Curto demais pra cobrir todos os seus pontos fracos' : 'Bom pra revisão rápida no ônibus'
+  if (value === 'medium') return count <= 5 ? 'Mais longo que o necessário pra poucos pontos fracos' : 'Equilíbrio entre profundidade e tempo'
+  return count <= 15 ? 'Mais longo que o necessário — pode ficar repetitivo' : 'Ideal pra muitos pontos fracos'
+}
 
 async function handleGenerate() {
   const topicIdToUse = props.topicId || selectedTopicId.value

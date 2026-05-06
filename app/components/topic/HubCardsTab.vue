@@ -28,19 +28,22 @@
 
     <!-- Actions -->
     <div class="flex items-center gap-2 mb-4">
-      <button class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small" @click="$emit('create-card')">
-        <Plus :size="14" /> Criar card
-      </button>
-      <button
-        v-if="canUseOcr"
-        class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small"
-        :disabled="ocrLoading"
-        @click="triggerOcr"
-      >
-        <Camera :size="14" />
-        <span v-if="ocrLoading">Analisando...</span>
-        <span v-else>Foto → Cards</span>
-      </button>
+      <UiTooltip text="Criar um flashcard manualmente (frente e verso)">
+        <button class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small" @click="$emit('create-card')">
+          <Plus :size="14" /> Criar card
+        </button>
+      </UiTooltip>
+      <UiTooltip v-if="canUseOcr" text="Tire foto de uma página e a IA cria cards automaticamente">
+        <button
+          class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small"
+          :disabled="ocrLoading"
+          @click="triggerOcr"
+        >
+          <Camera :size="14" />
+          <span v-if="ocrLoading">Analisando...</span>
+          <span v-else>Foto da matéria</span>
+        </button>
+      </UiTooltip>
       <input
         ref="ocrInput"
         type="file"

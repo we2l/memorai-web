@@ -36,10 +36,12 @@ async function goToPlans() {
 }
 
 const featureLabels: Record<string, string> = {
-  cards_ai: 'cards com IA',
+  cards_ai: 'gerar cards',
   pdf_upload: 'PDFs',
-  agent_chat: 'dúvidas com IA',
-  podcast: 'podcasts',
+  pdf_to_note: 'resumos inteligentes',
+  study_structure: 'montar cadernos',
+  agent_chat: 'tira-dúvidas',
+  podcast: 'revisões em áudio',
 }
 
 const planLabels: Record<string, string> = {

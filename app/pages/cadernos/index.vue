@@ -780,19 +780,20 @@ async function handleStructurePdf(e: Event) {
     const poll = setInterval(async () => {
       try {
         const res = await $api<any>(`/documents/${documentId}`)
-        if (res.data.study_structure_status === 'completed') {
+        const status = res.data.study_structure_status
+        if (status === 'completed') {
           clearInterval(poll)
           structureGenerating.value = false
           toast.show('Cadernos criados com sucesso! 📚')
           topicStore.fetchTree()
-        } else if (res.data.study_structure_status === 'failed') {
+        } else if (status === 'failed') {
           clearInterval(poll)
           structureGenerating.value = false
           toast.show('Falha ao criar estrutura. Tente novamente.', 'error')
         }
+        // else: still generating, keep polling
       } catch {
-        clearInterval(poll)
-        structureGenerating.value = false
+        // Network error — keep polling, don't stop
       }
     }, 4000)
 

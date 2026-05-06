@@ -242,6 +242,7 @@
           :error-patterns="errorPatterns"
           :note-name-by-id="noteNameById"
           :highlight-id="highlightCardId"
+          :can-use-ocr="featureUsage.canUse('cards_ai')"
           @create-card="openCreateCard"
           @delete-card="confirmDeleteCard"
           @edit-card="openEditCard"
@@ -249,6 +250,7 @@
           @accept-all-cards="acceptAllCards"
           @edit-generated="editGeneratedCard"
           @discard-generated="(i: number) => generatedCards.splice(i, 1)"
+          @ocr-cards="handleOcrCards"
         >
           <template #ai-generate>
             <AgentAiGenerateInline
@@ -857,6 +859,13 @@ async function handleAiGenerate(source: string, quantity: number, documentIdOrPr
   } finally {
     aiGenerating.value = false
   }
+}
+
+function handleOcrCards(cards: any[]) {
+  generatedCards.value = cards.map(c => ({ front: c.front, back: c.back }))
+  generatingDeckId.value = topicCards.value[0]?.deck_id || null
+  activeTab.value = 'cards'
+  toast.show(`${cards.length} cards gerados da imagem!`, 'success')
 }
 
 async function acceptCard(index: number) {

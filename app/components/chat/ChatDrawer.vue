@@ -72,7 +72,7 @@
           class="mx-4 mt-3 p-3 rounded-lg bg-surface-tertiary border border-base text-small"
         >
           <p class="text-micro text-base-muted mb-1">Card errado:</p>
-          <p class="text-base-primary" v-html="chat.currentContext.cardFront" />
+          <p class="text-base-primary" v-html="sanitize(chat.currentContext.cardFront)" />
         </div>
 
         <!-- Messages -->
@@ -93,7 +93,7 @@
               :class="msg.role === 'user'
                 ? 'bg-accent-primary text-white rounded-br-md'
                 : 'bg-surface-tertiary text-base-primary rounded-bl-md prose-chat'"
-              v-html="msg.role === 'assistant' ? marked.parse(msg.content) : msg.content"
+              v-html="msg.role === 'assistant' ? sanitize(marked.parse(msg.content) as string) : sanitize(msg.content)"
             />
           </div>
 
@@ -146,6 +146,8 @@ import { X, Plus, Send, MessageCircle, Clock, GraduationCap } from 'lucide-vue-n
 import { marked } from 'marked'
 
 marked.setOptions({ breaks: true })
+
+const { sanitize } = useSanitize()
 
 const chat = useChatStore()
 const message = ref('')

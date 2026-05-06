@@ -86,7 +86,7 @@
                 :key="card.id"
                 class="shrink-0 w-64 p-4 rounded-xl bg-surface-secondary border border-base snap-start"
               >
-                <p class="text-small text-base-primary line-clamp-3 card-front-preview" v-html="card.front" />
+                <p class="text-small text-base-primary line-clamp-3 card-front-preview" v-html="sanitize(card.front)" />
                 <div class="flex gap-3 mt-3">
                   <NuxtLink
                     v-if="card.topic_id"
@@ -130,6 +130,7 @@
 <script setup lang="ts">
 import { Headphones, Play, Pause, RotateCcw, RotateCw, Download, X } from 'lucide-vue-next'
 
+const { sanitize } = useSanitize()
 const player = usePlayerStore()
 
 function onKeydown(e: KeyboardEvent) {

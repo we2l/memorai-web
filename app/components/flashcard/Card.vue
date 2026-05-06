@@ -56,6 +56,7 @@ const props = defineProps<{
 defineEmits<{ flip: [] }>()
 
 const { renderQuestion, renderAnswer } = useCloze()
+const { sanitize } = useSanitize()
 const config = useRuntimeConfig()
 const apiOrigin = config.public.apiBase.replace('/api', '')
 
@@ -73,12 +74,12 @@ const isCloze = computed(() => props.card.type === 'cloze')
 
 const displayFront = computed(() => {
   const html = isCloze.value ? renderQuestion(props.card.front, props.card.cloze_index ?? undefined) : props.card.front
-  return resolveMedia(html)
+  return sanitize(resolveMedia(html))
 })
 
 const displayBack = computed(() => {
   const html = isCloze.value ? renderAnswer(props.card.front, props.card.cloze_index ?? undefined) : props.card.back
-  return resolveMedia(html)
+  return sanitize(resolveMedia(html))
 })
 
 const currentAudio = computed(() =>

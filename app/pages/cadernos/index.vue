@@ -221,6 +221,7 @@
               @generate-from-pdf="(docId: string) => handleAiGenerate('pdf', 5, docId)"
               @note-ready="noteStore.fetchForTopic(selectedTopicId!)"
               @generate-cards="(noteId: string) => handleAiGenerate('notes', 5)"
+              @structure-ready="topicStore.fetchTree()"
             />
           </template>
           <template #editor>

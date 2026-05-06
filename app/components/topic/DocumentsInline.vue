@@ -64,7 +64,7 @@
             <Sparkles :size="14" /> Gerar cards a partir do resumo
           </button>
           <button
-            v-if="!doc.topic_tree_generated && doc.study_structure_status !== 'generating'"
+            v-if="!doc.topic_tree_generated && doc.study_structure_status !== 'generating' && doc.study_structure_status !== 'failed'"
             class="btn-secondary !py-2 !px-4 !min-h-[2.75rem] text-small w-full justify-center mt-2"
             :disabled="studyStructureLoading"
             @click="generateStudyStructure(doc)"
@@ -80,7 +80,12 @@
           <div v-else-if="doc.study_structure_status === 'failed'" class="mt-2 flex items-center gap-2 text-small text-danger">
             <XCircle :size="14" />
             <span>Falhou ao criar estrutura.</span>
-            <button class="text-accent-primary hover:underline" @click="generateStudyStructure(doc)">Tentar novamente</button>
+            <button class="text-accent-primary hover:underline ml-1" @click="generateStudyStructure(doc)">Tentar novamente</button>
+          </div>
+          <div v-else-if="doc.topic_tree_generated" class="mt-2 flex items-center gap-2 text-small text-success">
+            <CheckCircle :size="14" />
+            <span>Estrutura de estudo criada</span>
+            <NuxtLink to="/cadernos" class="text-accent-primary hover:underline ml-auto text-micro">Ver cadernos →</NuxtLink>
           </div>
         </div>
 
@@ -164,6 +169,7 @@ const emit = defineEmits<{
   generateFromPdf: [documentId: string]
   noteReady: []
   generateCards: [noteId: string]
+  structureReady: []
 }>()
 
 const { $api } = useNuxtApp()
@@ -357,6 +363,7 @@ function startPolling() {
       if (doc && doc.study_structure_status !== 'generating') {
         if (doc.study_structure_status === 'completed') {
           toast.show('Estrutura de estudo criada! Seus cadernos foram organizados. 📚')
+          emit('structureReady')
         } else if (doc.study_structure_status === 'failed') {
           toast.show('Falha ao criar estrutura. Tente novamente.', 'error')
         }

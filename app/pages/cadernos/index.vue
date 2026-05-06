@@ -481,9 +481,11 @@ const newCardsCount = computed(() => {
 
 const pendingCount = computed(() => dueCardsCount.value + newCardsCount.value)
 
+const { sanitize } = useSanitize()
+
 const noteContentHtml = computed(() => {
   if (!noteContent.value) return ''
-  return extractHtmlFromTiptap(noteContent.value)
+  return sanitize(extractHtmlFromTiptap(noteContent.value))
 })
 
 function extractHtmlFromTiptap(doc: any): string {

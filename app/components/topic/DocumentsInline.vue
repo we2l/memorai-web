@@ -64,7 +64,7 @@
             <Sparkles :size="14" /> Gerar cards a partir do resumo
           </button>
           <button
-            v-if="!doc.topic_tree_generated"
+            v-if="!doc.topic_tree_generated && doc.study_structure_status !== 'generating'"
             class="btn-secondary !py-2 !px-4 !min-h-[2.75rem] text-small w-full justify-center mt-2"
             :disabled="studyStructureLoading"
             @click="generateStudyStructure(doc)"
@@ -73,6 +73,15 @@
             <span v-if="studyStructureLoading">Criando estrutura...</span>
             <span v-else>📋 Criar estrutura de estudo</span>
           </button>
+          <div v-else-if="doc.study_structure_status === 'generating'" class="mt-2 flex items-center gap-2 text-small text-accent-primary">
+            <Loader2 :size="14" class="animate-spin" />
+            <span>Organizando seus cadernos com IA...</span>
+          </div>
+          <div v-else-if="doc.study_structure_status === 'failed'" class="mt-2 flex items-center gap-2 text-small text-danger">
+            <XCircle :size="14" />
+            <span>Falhou ao criar estrutura.</span>
+            <button class="text-accent-primary hover:underline" @click="generateStudyStructure(doc)">Tentar novamente</button>
+          </div>
         </div>
 
         <!-- Status: Processing embeddings -->
@@ -197,8 +206,9 @@ async function generateStudyStructure(doc: Document) {
   studyStructureLoading.value = true
   try {
     await $api('/topics/from-document', { method: 'POST', body: { document_id: doc.id } })
-    toast.show('Estrutura de estudo sendo criada!')
-    doc.topic_tree_generated = true
+    toast.show('Estrutura sendo criada com IA...')
+    doc.study_structure_status = 'generating'
+    startPolling()
   } catch (e: any) {
     const msg = e?.data?.message || 'Erro ao criar estrutura.'
     toast.show(msg, 'error')
@@ -304,7 +314,7 @@ async function onFileSelect(e: Event) {
 
 // Polling: check for generating notes + processing documents
 const needsPolling = computed(() =>
-  documents.value.some(d => d.note_generation_status === 'generating' || d.status === 'processing'),
+  documents.value.some(d => d.note_generation_status === 'generating' || d.status === 'processing' || d.study_structure_status === 'generating'),
 )
 let pollTimer: ReturnType<typeof setInterval> | null = null
 let pollStartedAt: number | null = null
@@ -324,6 +334,7 @@ function startPolling() {
     }
 
     const prevGenerating = documents.value.filter(d => d.note_generation_status === 'generating').map(d => d.id)
+    const prevStructure = documents.value.filter(d => d.study_structure_status === 'generating').map(d => d.id)
     await fetchDocuments()
 
     // Check if any note just finished generating
@@ -336,6 +347,18 @@ function startPolling() {
           emit('noteReady')
         } else if (doc.note_generation_status === 'failed') {
           toast.show('Falha ao gerar nota. Tente novamente.', 'error')
+        }
+      }
+    }
+
+    // Check if study structure finished
+    for (const id of prevStructure) {
+      const doc = documents.value.find(d => d.id === id)
+      if (doc && doc.study_structure_status !== 'generating') {
+        if (doc.study_structure_status === 'completed') {
+          toast.show('Estrutura de estudo criada! Seus cadernos foram organizados. 📚')
+        } else if (doc.study_structure_status === 'failed') {
+          toast.show('Falha ao criar estrutura. Tente novamente.', 'error')
         }
       }
     }

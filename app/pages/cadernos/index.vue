@@ -918,9 +918,18 @@ async function handleAiGenerate(source: string, quantity: number, documentIdOrPr
   }
 }
 
-function handleOcrCards(cards: any[]) {
+async function handleOcrCards(cards: any[]) {
   generatedCards.value = cards.map(c => ({ front: c.front, back: c.back }))
-  generatingDeckId.value = topicCards.value[0]?.deck_id || null
+
+  // Ensure we have a deck to accept cards into
+  let deckId = topicCards.value[0]?.deck_id
+  if (!deckId) {
+    const deckStore = useDeckStore()
+    if (!deckStore.decks.length) await deckStore.fetchDecks()
+    deckId = deckStore.decks[0]?.id
+  }
+  generatingDeckId.value = deckId || null
+
   activeTab.value = 'cards'
   toast.show(`${cards.length} cards gerados da imagem!`, 'success')
 }

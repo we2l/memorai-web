@@ -401,6 +401,26 @@ const generatedCards = ref<any[]>([])
 const generatingDeckId = ref<string>('')
 const aiGenerating = ref(false)
 
+// Auto-accept generated cards if user leaves
+function autoAcceptPendingCards() {
+  if (generatedCards.value.length && generatingDeckId.value) {
+    // Fire-and-forget — navigator.sendBeacon doesn't work with JSON easily, use fetch keepalive
+    const { $api } = useNuxtApp()
+    $api('/ai/accept-cards', {
+      method: 'POST',
+      body: {
+        deck_id: generatingDeckId.value,
+        cards: generatedCards.value.map(c => ({ ...c, topic_id: selectedTopicId.value })),
+      },
+    }).catch(() => {})
+    generatedCards.value = []
+  }
+}
+
+onBeforeRouteLeave(() => { autoAcceptPendingCards() })
+onMounted(() => { window.addEventListener('beforeunload', autoAcceptPendingCards) })
+onUnmounted(() => { window.removeEventListener('beforeunload', autoAcceptPendingCards) })
+
 // Topic modals
 const showCreateTopic = ref(false)
 const showEditTopic = ref(false)

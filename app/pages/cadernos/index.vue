@@ -60,6 +60,13 @@
         </div>
         <input ref="structureFileInput" type="file" accept=".pdf" class="hidden" @change="handleStructurePdf" />
       </div>
+
+      <!-- Structure generating banner -->
+      <div v-if="structureGenerating" class="mx-3 mb-2 px-3 py-2.5 rounded-lg bg-accent-primary-subtle flex items-center gap-2">
+        <div class="w-4 h-4 border-2 border-accent-primary border-t-transparent rounded-full animate-spin shrink-0" />
+        <p class="text-micro text-accent-primary">Lendo o PDF e organizando cadernos...</p>
+      </div>
+
       <div class="flex-1 overflow-y-auto p-2">
         <div v-if="topicStore.loading" class="space-y-2 p-2">
           <div v-for="i in 4" :key="i" class="skeleton h-8 rounded" />
@@ -741,6 +748,7 @@ function openChatForPdf(docId: string) {
 }
 
 const structureFileInput = ref<HTMLInputElement | null>(null)
+const structureGenerating = ref(false)
 
 function triggerStructureUpload() {
   structureFileInput.value?.click()
@@ -766,7 +774,7 @@ async function handleStructurePdf(e: Event) {
 
     // Trigger structure generation
     await $api('/topics/from-document', { method: 'POST', body: { document_id: documentId } })
-    toast.show('A IA está organizando seus cadernos... ⏳')
+    structureGenerating.value = true
 
     // Poll for completion
     const poll = setInterval(async () => {
@@ -774,17 +782,22 @@ async function handleStructurePdf(e: Event) {
         const res = await $api<any>(`/documents/${documentId}`)
         if (res.data.study_structure_status === 'completed') {
           clearInterval(poll)
+          structureGenerating.value = false
           toast.show('Cadernos criados com sucesso! 📚')
           topicStore.fetchTree()
         } else if (res.data.study_structure_status === 'failed') {
           clearInterval(poll)
+          structureGenerating.value = false
           toast.show('Falha ao criar estrutura. Tente novamente.', 'error')
         }
-      } catch { clearInterval(poll) }
+      } catch {
+        clearInterval(poll)
+        structureGenerating.value = false
+      }
     }, 4000)
 
     // Timeout after 5 min
-    setTimeout(() => clearInterval(poll), 300000)
+    setTimeout(() => { clearInterval(poll); structureGenerating.value = false }, 300000)
   } catch (e: any) {
     toast.show(e?.data?.message || 'Erro ao enviar PDF.', 'error')
   } finally {

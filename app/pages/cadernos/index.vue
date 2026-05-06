@@ -44,19 +44,21 @@
             <button class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small w-full justify-center" data-tour="create-notebook" @click="showAddMenu = !showAddMenu">
               <Plus :size="16" /> Novo
             </button>
-            <div v-if="showAddMenu" class="absolute right-0 top-full mt-1 w-44 bg-surface-secondary border border-base rounded-lg shadow-lg py-1 z-20">
+            <div v-if="showAddMenu" class="absolute right-0 top-full mt-1 w-52 bg-surface-secondary border border-base rounded-lg shadow-lg py-1 z-20">
               <button class="w-full text-left px-3 py-2 text-small hover:bg-surface-tertiary transition-colors" @click="showAddMenu = false; openCreate(null)">
                 Novo caderno
               </button>
               <NuxtLink to="/importar" class="block px-3 py-2 text-small hover:bg-surface-tertiary transition-colors" @click="showAddMenu = false">
                 Importar Anki
               </NuxtLink>
-              <button class="w-full text-left px-3 py-2 text-small hover:bg-surface-tertiary transition-colors" @click="showAddMenu = false; triggerPdfUpload()">
-                Upload PDF
+              <button class="w-full text-left px-3 py-2 text-small hover:bg-surface-tertiary transition-colors" @click="showAddMenu = false; triggerStructureUpload()">
+                <span class="block">PDF → Cadernos com IA</span>
+                <span class="block text-micro text-base-muted">Sobe um PDF e a IA organiza em cadernos</span>
               </button>
             </div>
           </div>
         </div>
+        <input ref="structureFileInput" type="file" accept=".pdf" class="hidden" @change="handleStructurePdf" />
       </div>
       <div class="flex-1 overflow-y-auto p-2">
         <div v-if="topicStore.loading" class="space-y-2 p-2">
@@ -738,16 +740,56 @@ function openChatForPdf(docId: string) {
   })
 }
 
-function triggerPdfUpload() {
-  // If a topic is selected, the DocumentsInline handles it
-  // Otherwise, create a topic first
-  if (!selectedTopicId.value) {
-    toast.show('Selecione um caderno primeiro.', 'error')
-    return
+const structureFileInput = ref<HTMLInputElement | null>(null)
+
+function triggerStructureUpload() {
+  structureFileInput.value?.click()
+}
+
+async function handleStructurePdf(e: Event) {
+  const file = (e.target as HTMLInputElement).files?.[0]
+  if (!file) return
+  if (!file.name.endsWith('.pdf')) { toast.show('Apenas PDF.', 'error'); return }
+  if (file.size > 50 * 1024 * 1024) { toast.show('Máximo 50MB.', 'error'); return }
+
+  toast.show('Enviando PDF...')
+  try {
+    const config = useRuntimeConfig()
+    const auth = useAuthStore()
+
+    // Upload without topic_id
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const uploadRes = await $api<any>('/documents', { method: 'POST', body: formData })
+    const documentId = uploadRes.data.id
+
+    // Trigger structure generation
+    await $api('/topics/from-document', { method: 'POST', body: { document_id: documentId } })
+    toast.show('A IA está organizando seus cadernos... ⏳')
+
+    // Poll for completion
+    const poll = setInterval(async () => {
+      try {
+        const res = await $api<any>(`/documents/${documentId}`)
+        if (res.data.study_structure_status === 'completed') {
+          clearInterval(poll)
+          toast.show('Cadernos criados com sucesso! 📚')
+          topicStore.fetchTree()
+        } else if (res.data.study_structure_status === 'failed') {
+          clearInterval(poll)
+          toast.show('Falha ao criar estrutura. Tente novamente.', 'error')
+        }
+      } catch { clearInterval(poll) }
+    }, 4000)
+
+    // Timeout after 5 min
+    setTimeout(() => clearInterval(poll), 300000)
+  } catch (e: any) {
+    toast.show(e?.data?.message || 'Erro ao enviar PDF.', 'error')
+  } finally {
+    if (structureFileInput.value) structureFileInput.value.value = ''
   }
-  // Trigger click on the file input inside DocumentsInline
-  const input = docsInlineRef.value?.$el?.querySelector('input[type="file"]')
-  if (input) input.click()
 }
 
 const editTopicIsRoot = ref(false)

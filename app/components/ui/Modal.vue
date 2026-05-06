@@ -7,8 +7,8 @@
         @click.self="close"
       >
         <div
-          class="card w-full mx-4 p-6 max-h-[90vh] overflow-y-auto relative"
-          :class="sizeClass"
+          class="card w-full mx-4 p-6 max-h-[90vh] relative"
+          :class="[sizeClass, noOverflow ? 'overflow-visible' : 'overflow-y-auto']"
           :role="role"
           :aria-label="ariaLabel"
         >
@@ -32,10 +32,12 @@ const props = withDefaults(defineProps<{
   size?: 'sm' | 'md' | 'lg' | 'xl'
   role?: string
   ariaLabel?: string
+  noOverflow?: boolean
 }>(), {
   size: 'md',
   role: 'dialog',
   ariaLabel: undefined,
+  noOverflow: false,
 })
 
 const emit = defineEmits<{ (e: 'update:modelValue', value: boolean): void }>()

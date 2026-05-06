@@ -15,7 +15,7 @@
     <Teleport to="body">
       <Transition name="fade">
         <div v-if="isOpen" class="fixed inset-0 z-50 flex items-start justify-center pt-[20vh]" @click.self="close">
-          <div class="w-full max-w-lg mx-4 rounded-2xl bg-surface-secondary border border-base shadow-2xl overflow-hidden" style="box-shadow: 0 16px 64px rgba(0,0,0,0.5);">
+          <div class="w-full max-w-lg mx-4 rounded-2xl bg-surface-secondary border border-base shadow-2xl" style="box-shadow: 0 16px 64px rgba(0,0,0,0.5);">
             <div class="p-5">
               <div class="flex items-center justify-between mb-3">
                 <p class="text-body font-medium text-base-primary">Anotação rápida</p>
@@ -32,10 +32,12 @@
                 @keydown.ctrl.enter="save"
               />
               <div class="flex items-center justify-between mt-3">
-                <select v-model="selectedTopicId" class="input-base !py-2 text-small flex-1 sm:w-48 sm:flex-none">
-                  <option value="">Escolher caderno...</option>
-                  <option v-for="t in rootTopics" :key="t.id" :value="t.id">{{ t.name }}</option>
-                </select>
+                <UiSelect
+                  v-model="selectedTopicId"
+                  :options="topicOptions"
+                  placeholder="Escolher caderno..."
+                  class="flex-1 sm:w-48 sm:flex-none"
+                />
                 <div class="flex items-center gap-2">
                   <span class="text-micro text-base-muted">Ctrl+Enter</span>
                   <button class="btn-primary !py-2 !px-4 !min-h-[2.75rem] text-small" :disabled="!content.trim() || !selectedTopicId || saving" @click="save">
@@ -64,7 +66,7 @@ const selectedTopicId = ref('')
 const saving = ref(false)
 const inputRef = ref<HTMLTextAreaElement>()
 const rootTopics = ref<Topic[]>([])
-
+const topicOptions = computed(() => rootTopics.value.map(t => ({ value: t.id, label: t.name })))
 async function fetchTopics() {
   try {
     const res = await $api<{ data: any[] }>('/topics')

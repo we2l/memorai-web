@@ -56,10 +56,10 @@
 
         <!-- Weak topics banner -->
         <div v-else-if="weakNodesCount > 0" class="px-4 py-2.5 bg-danger/10 text-danger text-small text-center shrink-0 flex items-center justify-center gap-3 flex-wrap">
-          <span>Você está fraco em <strong>{{ weakNodesCount }}</strong> {{ weakNodesCount === 1 ? 'caderno' : 'cadernos' }}</span>
-          <NuxtLink to="/revisar" class="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-danger text-white text-micro font-medium hover:bg-danger/90 transition-colors">
-            Revisar agora
-          </NuxtLink>
+          <span>{{ weakNodesCount }} {{ weakNodesCount === 1 ? 'caderno precisa' : 'cadernos precisam' }} de atenção</span>
+          <button class="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-danger text-white text-micro font-medium hover:bg-danger/90 transition-colors" @click="showOnlyWeak = !showOnlyWeak">
+            {{ showOnlyWeak ? 'Mostrar todos' : 'Ver quais' }}
+          </button>
         </div>
 
         <div class="flex flex-1 overflow-hidden">
@@ -199,7 +199,7 @@ const weakNodesCount = computed(() => (graphStore.data?.nodes ?? []).filter(n =>
 const graphNodes = computed(() => {
   const nodes = graphStore.data?.nodes ?? []
   if (!showOnlyWeak.value) return nodes
-  return nodes.filter(n => n.progress < 0.3 || n.flashcards_count === 0)
+  return nodes.filter(n => n.progress < 0.3 && n.flashcards_count > 0)
 })
 const graphEdges = computed(() => {
   const edges = graphStore.data?.edges ?? []

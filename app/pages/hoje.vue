@@ -82,16 +82,13 @@
       <div class="card md:col-span-2">
         <div class="flex items-center justify-between mb-3">
           <p class="text-small font-medium text-base-primary">Seu ritmo hoje</p>
-          <span class="text-micro text-base-muted">
-            {{ stats.reviews_done ?? 0 }}/{{ stats.reviews_limit ?? '∞' }} reviews · {{ stats.new_done ?? 0 }}/{{ stats.new_limit ?? '∞' }} novos
-          </span>
         </div>
         <div class="h-2 rounded-full bg-surface-tertiary overflow-hidden">
           <div class="h-2 rounded-full bg-success transition-all duration-500 glow-success" :style="{ width: progressPercent + '%' }" />
         </div>
         <div class="flex justify-between text-micro text-base-muted mt-2">
           <span>Faltam: {{ stats.due_today ?? 0 }}</span>
-          <span>Revisados: {{ stats.reviewed_today ?? 0 }}</span>
+          <span>{{ stats.reviewed_today ?? 0 }} revisados</span>
         </div>
       </div>
       <div class="flex flex-col gap-2">
@@ -196,11 +193,11 @@ const featureUsage = useFeatureUsage()
 const { $api } = useNuxtApp()
 
 const featureLabels: Record<string, string> = {
-  cards_ai: 'Cards IA',
+  cards_ai: 'Gerar cards',
   pdf_upload: 'Uploads PDF',
-  pdf_to_note: 'PDF → Nota IA',
-  agent_chat: 'Tirar dúvidas',
-  podcast: 'Podcasts',
+  pdf_to_note: 'Processar PDF',
+  agent_chat: 'Tira-dúvidas',
+  podcast: 'Revisão em áudio',
 }
 
 const limitedFeatures = computed(() => {

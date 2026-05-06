@@ -23,8 +23,8 @@
         <!-- Header -->
         <div class="flex items-center justify-between px-4 py-3 border-b border-base shrink-0">
           <div class="flex-1 min-w-0">
-            <p class="text-small font-medium text-base-primary truncate">
-              💬 {{ contextLabel }}
+            <p class="text-small font-medium text-base-primary truncate flex items-center gap-1.5">
+              <GraduationCap :size="14" class="text-accent-primary shrink-0" /> {{ contextLabel }}
             </p>
           </div>
           <div class="flex items-center gap-2">
@@ -142,7 +142,7 @@
 </template>
 
 <script setup lang="ts">
-import { X, Plus, Send, MessageCircle, Clock } from 'lucide-vue-next'
+import { X, Plus, Send, MessageCircle, Clock, GraduationCap } from 'lucide-vue-next'
 import { marked } from 'marked'
 
 marked.setOptions({ breaks: true })
@@ -157,7 +157,7 @@ const drawerRef = ref<HTMLElement>()
 const contextLabel = computed(() => {
   if (chat.currentContext.topicName) return `Sobre: ${chat.currentContext.topicName}`
   if (chat.currentContext.cardFront) return 'Sobre este card'
-  return 'Chat geral'
+  return 'Tira-dúvidas'
 })
 
 const followUpChips = computed(() => {

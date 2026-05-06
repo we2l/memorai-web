@@ -52,8 +52,8 @@
                 Importar Anki
               </NuxtLink>
               <button class="w-full text-left px-3 py-2 text-small hover:bg-surface-tertiary transition-colors" @click="showAddMenu = false; triggerStructureUpload()">
-                <span class="block">PDF → Cadernos com IA</span>
-                <span class="block text-micro text-base-muted">Sobe um PDF e a IA organiza em cadernos</span>
+                <span class="block">Organizar PDF</span>
+                <span class="block text-micro text-base-muted">A IA lê o PDF e monta cadernos e tópicos pra você</span>
               </button>
             </div>
           </div>
@@ -158,7 +158,7 @@
         </div>
 
         <!-- Podcast generate button -->
-        <div v-if="selectedTopicId" class="mx-4 mb-3">
+        <div v-if="selectedTopicId" class="mx-4 mb-3" :class="pendingCount <= 0 ? 'mt-5' : ''">
           <button class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-surface-secondary border border-base hover:border-accent-primary/30 transition-colors text-left" @click="showPodcastSheet = true">
             <span class="text-xl">🎙️</span>
             <div class="flex-1">

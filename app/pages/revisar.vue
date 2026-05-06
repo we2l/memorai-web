@@ -11,7 +11,7 @@
         <span v-if="sessionTimer > 0" class="font-mono" :class="sessionTimer <= 60 ? 'text-danger' : ''" aria-live="polite" :aria-label="`${formatTimer(sessionTimer)} restantes`">
           {{ formatTimer(sessionTimer) }}
         </span>
-        <span class="font-medium text-base-primary">{{ review.reviewed }} <span class="opacity-40">/ {{ review.total }}</span></span>
+        <span v-if="review.currentCard" class="font-medium text-base-primary">{{ review.remaining <= 1 ? 'Último!' : `${review.remaining - 1} restante${review.remaining - 1 !== 1 ? 's' : ''}` }}</span>
         <span class="text-micro opacity-50">{{ reviewMood }}</span>
       </div>
       <div class="w-12" />
@@ -47,11 +47,28 @@
 
     <!-- Finished -->
     <div v-else-if="review.finished && !review.showErrorDiary" class="flex-1 flex flex-col items-center justify-center px-4 text-center">
-      <p class="text-5xl mb-6">🔥</p>
-      <h2 class="text-display">Missão de hoje concluída!</h2>
-      <p class="text-body text-base-muted mt-3">
-        Você reforçou <span class="text-accent-primary font-medium">{{ review.reviewed }}</span> conceito{{ review.reviewed !== 1 ? 's' : '' }}
-      </p>
+      <!-- Empty session (no cards found) -->
+      <template v-if="review.reviewed === 0">
+        <div class="w-16 h-16 rounded-2xl bg-success/10 flex items-center justify-center mx-auto mb-6">
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-success"><path d="M20 6 9 17l-5-5"/></svg>
+        </div>
+        <h2 class="text-display">{{ isErrorsOnly ? 'Sem erros pra revisar' : 'Tudo em dia!' }}</h2>
+        <p class="text-body text-base-muted mt-3 max-w-sm">
+          {{ isErrorsOnly
+            ? 'Seus cards errados já foram revisados ou ainda não estão na hora de voltar. Eles vão reaparecer automaticamente.'
+            : 'Nenhum card pendente agora. Que tal criar novos cards?'
+          }}
+        </p>
+        <NuxtLink to="/hoje" class="btn-primary mt-8">Voltar</NuxtLink>
+      </template>
+
+      <!-- Normal finish (reviewed some cards) -->
+      <template v-else>
+        <p class="text-5xl mb-6">🔥</p>
+        <h2 class="text-display">Missão de hoje concluída!</h2>
+        <p class="text-body text-base-muted mt-3">
+          Você reforçou <span class="text-accent-primary font-medium">{{ review.reviewed }}</span> conceito{{ review.reviewed !== 1 ? 's' : '' }}
+        </p>
       <p v-if="correctStreak > 3" class="text-small text-success mt-2">
         {{ correctStreak }} acertos seguidos — seu cérebro agradece 🧠
       </p>
@@ -73,6 +90,7 @@
       </div>
 
       <NuxtLink v-else to="/hoje" class="btn-primary mt-8">Voltar</NuxtLink>
+      </template>
     </div>
 
     <!-- Waiting for learning cards -->
@@ -219,6 +237,7 @@ const lastErrorCardId = ref('')
 const lastErrorCard = ref<any>(null)
 const cardFeedback = ref<'success' | 'error' | null>(null)
 const correctStreak = ref(0)
+const remaining = computed(() => review.remaining)
 const rewardMessage = ref('')
 const progressPulse = ref(false)
 const errorsByTopic = ref<Record<string, { name: string; count: number; id: string }>>({})
@@ -323,6 +342,7 @@ const sessionTimer = ref(0)
 const showTimerModal = ref(false)
 const isSurvivalMode = ref(false)
 const isBlitz = ref(false)
+const isErrorsOnly = computed(() => route.query.errors_only === '1')
 let timerInterval: ReturnType<typeof setInterval> | null = null
 
 async function loadSessionTimer() {

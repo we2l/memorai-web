@@ -8,11 +8,11 @@
         v-for="item in items"
         :key="item.to"
         :to="item.to"
-        class="flex flex-col items-center gap-0.5 px-3 py-1.5 text-small transition-all duration-150"
+        class="flex flex-col items-center gap-0.5 px-1.5 min-[360px]:px-3 py-1.5 text-[11px] min-[360px]:text-small transition-all duration-150"
         :class="isActive(item.to) ? 'text-accent-primary' : 'text-base-muted'"
         :aria-current="isActive(item.to) ? 'page' : undefined"
       >
-        <component :is="getIcon(item.icon)" :size="22" :stroke-width="1.5" />
+        <component :is="getIcon(item.icon)" :size="20" :stroke-width="1.5" />
         {{ item.label }}
       </NuxtLink>
     </div>

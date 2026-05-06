@@ -10,7 +10,9 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed"
   },
   "keywords": [],
   "author": "",
@@ -19,14 +21,25 @@
   "dependencies": {
     "@pinia/nuxt": "^0.11.3",
     "@tailwindcss/vite": "^4.2.2",
+    "@tiptap/extension-image": "^3.22.4",
+    "@tiptap/extension-placeholder": "^3.22.3",
+    "@tiptap/extension-underline": "^3.22.3",
+    "@tiptap/starter-kit": "^3.22.3",
+    "@tiptap/vue-3": "^3.22.3",
+    "@types/d3": "^7.4.3",
+    "d3": "^7.9.0",
     "lucide-vue-next": "^1.0.0",
+    "marked": "^18.0.2",
     "nuxt": "^4.4.2",
+    "pdfjs-dist": "^4.9.155",
     "pinia": "^3.0.4",
     "tailwindcss": "^4.2.2"
   },
   "private": true,
   "devDependencies": {
     "@nuxt/test-utils": "^4.0.2",
+    "@playwright/test": "^1.59.1",
+    "@vite-pwa/nuxt": "^1.1.1",
     "@vue/test-utils": "^2.4.6",
     "happy-dom": "^20.9.0",
     "vitest": "^4.1.4"

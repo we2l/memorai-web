@@ -1,35 +1,104 @@
 import { defineStore } from 'pinia'
-import type { Flashcard, ReviewPayload } from '~/types'
+import type { Flashcard, WeakConnection } from '~/types'
+
+interface SessionCard extends Flashcard {
+  next_intervals: { again: string; hard: string; good: string; easy: string }
+}
 
 export const useReviewStore = defineStore('review', {
   state: () => ({
-    cards: [] as Flashcard[],
+    cards: [] as SessionCard[],
+    learningQueue: [] as { card: SessionCard; dueAt: number }[],
     currentIndex: 0,
+    totalReviewed: 0,
+    initialTotal: 0,
     flipped: false,
     loading: false,
     submitting: false,
     finished: false,
+    weakSuggestion: null as WeakConnection[] | null,
+    noteSnippet: null as { note_id: string; title: string; snippet: string; topic_id: string } | null,
+    lastReviewId: null as string | null,
+    showErrorDiary: false,
+    hints: [] as { type: string; text: string }[],
+    _tick: 0,
+    _pendingAdvance: null as (() => void) | null,
   }),
 
   getters: {
-    currentCard: (state) => state.cards[state.currentIndex] ?? null,
-    total: (state) => state.cards.length,
+    currentCard(state): SessionCard | null {
+      const _tick = state._tick // reactive dependency
+      const now = Date.now()
+      // Show due learning cards first
+      const dueLearn = state.learningQueue.find(q => q.dueAt <= now)
+      if (dueLearn) return dueLearn.card
+      // Show main cards
+      const mainCard = state.cards[state.currentIndex] ?? null
+      if (mainCard) return mainCard
+      // No main cards left — show next learning card regardless of timer (learn ahead)
+      if (state.learningQueue.length) return state.learningQueue[0].card
+      return null
+    },
+    currentIntervals(): { again: string; hard: string; good: string; easy: string } {
+      return this.currentCard?.next_intervals ?? { again: '', hard: '', good: '', easy: '' }
+    },
+    total(state): number {
+      return state.cards.length + state.learningQueue.length
+    },
     reviewed: (state) => state.currentIndex,
-    progress: (state) => state.cards.length ? Math.round((state.currentIndex / state.cards.length) * 100) : 0,
+    progress(state): number {
+      const _tick = state._tick // force reactivity
+      const total = state.cards.length + state.learningQueue.length
+      const left = (state.cards.length - state.currentIndex) + state.learningQueue.length
+      if (!total) return 0
+      return Math.min(100, Math.round(((total - left) / total) * 100))
+    },
+    pendingLearning: (state) => state.learningQueue.length,
+    remaining(state): number {
+      const _tick = state._tick // force reactivity
+      return (state.cards.length - state.currentIndex) + state.learningQueue.length
+    },
   },
 
   actions: {
-    async fetchSession(deckId?: string) {
+    async fetchSession(deckId?: string, topicId?: string, errorsOnly?: boolean, backlog?: boolean, mode?: string) {
       this.loading = true
       this.finished = false
       this.currentIndex = 0
+      this.totalReviewed = 0
       this.flipped = false
+      this.learningQueue = []
+      this.weakSuggestion = null
+      this.noteSnippet = null
+      this.hints = []
+      this.showErrorDiary = false
       try {
         const { $api } = useNuxtApp()
-        const query = deckId ? `?deck_id=${deckId}` : ''
+        const params = new URLSearchParams()
+        if (deckId) params.set('deck_id', deckId)
+        if (topicId) params.set('topic_id', topicId)
+        if (errorsOnly) params.set('errors_only', '1')
+        if (backlog) params.set('backlog', '1')
+        if (mode) params.set('mode', mode)
+        const query = params.toString() ? `?${params}` : ''
         const res = await $api<any>(`/review/session${query}`)
-        this.cards = res.data
-        if (!this.cards.length) this.finished = true
+        const allCards = res.data as SessionCard[]
+        const now = Date.now()
+
+        // Separate learning/relearning cards with future due into learningQueue
+        this.cards = []
+        for (const card of allCards) {
+          const isLearning = card.state === 'learning' || card.state === 'relearning'
+          const dueFuture = card.due && new Date(card.due).getTime() > now
+          if (isLearning && dueFuture) {
+            this.learningQueue.push({ card, dueAt: new Date(card.due!).getTime() })
+          } else {
+            this.cards.push(card)
+          }
+        }
+
+        if (!this.cards.length && !this.learningQueue.length) this.finished = true
+        this.initialTotal = this.cards.length
       } finally {
         this.loading = false
       }
@@ -40,21 +109,84 @@ export const useReviewStore = defineStore('review', {
     },
 
     async submitReview(rating: 1 | 2 | 3 | 4) {
-      if (!this.currentCard || this.submitting) return
+      const card = this.currentCard
+      if (!card || this.submitting) return
       this.submitting = true
       try {
         const { $api } = useNuxtApp()
-        await $api('/review', {
+        const res = await $api<any>('/review', {
           method: 'POST',
-          body: { flashcard_id: this.currentCard.id, rating } as ReviewPayload,
+          body: { flashcard_id: card.id, rating },
         })
-        this.flipped = false
-        this.currentIndex++
-        if (this.currentIndex >= this.cards.length) {
-          this.finished = true
+
+        // Weak connection suggestion on Again
+        this.weakSuggestion = res.data.weak_connections ?? null
+        this.noteSnippet = res.data.note_snippet ?? null
+
+        // Fetch hints on Again/Hard
+        this.hints = []
+        if (rating <= 2 && card.source_note_id) {
+          try {
+            const hintsRes = await $api<any>(`/flashcards/${card.id}/hints`)
+            this.hints = hintsRes.data ?? []
+          } catch {}
+        }
+
+        // Show error diary on Again
+        this.lastReviewId = res.data.review?.id ?? null
+        this.showErrorDiary = rating === 1 && !!this.lastReviewId
+
+        const updatedCard = {
+          ...res.data.flashcard,
+          next_intervals: res.data.next_intervals,
+        } as SessionCard
+
+        // Remove from learning queue if it was there
+        const wasFromLearningQueue = this.learningQueue.some(q => q.card.id === card.id)
+        this.learningQueue = this.learningQueue.filter(q => q.card.id !== card.id)
+
+        // Build advance function
+        const doAdvance = () => {
+          if (!wasFromLearningQueue) {
+            this.currentIndex++
+            this.totalReviewed++
+          }
+
+          const hasMoreMainCards = this.currentIndex < this.cards.length
+
+          if (updatedCard.is_learning) {
+            const dueAt = updatedCard.due ? new Date(updatedCard.due).getTime() : Date.now() + 60000
+            this.learningQueue.push({ card: updatedCard, dueAt })
+          }
+
+          if (!hasMoreMainCards) {
+            this.learningQueue = this.learningQueue.map(item => ({
+              ...item,
+              dueAt: Date.now(),
+            }))
+          }
+
+          this.flipped = false
+          this._tick++
+          this.checkFinished()
+        }
+
+        // If error diary shown, delay advance until dismissed
+        if (this.showErrorDiary) {
+          this._pendingAdvance = doAdvance
+        } else {
+          doAdvance()
         }
       } finally {
         this.submitting = false
+      }
+    },
+
+    checkFinished() {
+      const hasMainCards = this.currentIndex < this.cards.length
+      const hasPendingLearning = this.learningQueue.length > 0
+      if (!hasMainCards && !hasPendingLearning) {
+        this.finished = true
       }
     },
   },

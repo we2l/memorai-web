@@ -12,7 +12,10 @@
         <Headphones :size="16" class="text-accent-primary" />
       </div>
       <div class="flex-1 min-w-0">
-        <p class="text-small text-base-primary truncate">{{ player.currentPodcast.title }}</p>
+        <p class="text-small text-base-primary truncate">
+          {{ player.currentPodcast.title }}
+          <span v-if="player.episodeLabel" class="text-micro text-base-muted ml-1">Ep {{ player.episodeLabel }}</span>
+        </p>
         <p class="text-micro text-base-muted">{{ player.currentPodcast.topic_name ?? '' }}</p>
       </div>
       <button

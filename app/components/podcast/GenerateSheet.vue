@@ -5,9 +5,36 @@
 
     <!-- Topic selector (only when no topicId prop) -->
     <div v-if="!topicId" class="mb-5">
-      <p class="text-small font-medium text-base-primary mb-2">Caderno <span class="text-danger">*</span></p>
-      <UiSelect v-model="selectedTopicId" :options="topicOptions" placeholder="Selecione um caderno" />
-      <p v-if="!selectedTopicId" class="text-micro text-base-muted mt-1">Escolha o caderno que será revisado no áudio</p>
+      <div class="flex items-center gap-1.5 mb-2">
+        <p class="text-small font-medium text-base-primary">Caderno <span class="text-danger">*</span></p>
+        <UiTooltip text="Só aparecem cadernos com pelo menos 5 cards revisados. Revise mais cards pra desbloquear os outros.">
+          <span class="w-4 h-4 rounded-full bg-surface-tertiary text-base-muted flex items-center justify-center text-micro cursor-help">?</span>
+        </UiTooltip>
+      </div>
+      <template v-if="topicOptions.length">
+        <UiSelect v-model="selectedTopicId" :options="topicOptions" placeholder="Selecione um caderno" />
+      </template>
+      <div v-else-if="!loading" class="p-4 rounded-xl bg-surface-secondary border border-base text-center">
+        <p class="text-small text-base-muted">Nenhum caderno pronto pra podcast.</p>
+        <p class="text-micro text-base-muted mt-1">Revise pelo menos 5 cards em um caderno pra desbloquear.</p>
+      </div>
+    </div>
+
+    <!-- Content Mode -->
+    <div class="mb-5">
+      <p class="text-small font-medium text-base-primary mb-2">Modo de revisão</p>
+      <div class="grid grid-cols-3 gap-2">
+        <button
+          v-for="m in modes"
+          :key="m.value"
+          class="p-3 rounded-xl border text-center transition-all"
+          :class="contentMode === m.value ? 'border-accent-primary bg-accent-primary-subtle' : 'border-base bg-surface-secondary hover:border-base-muted'"
+          @click="selectMode(m.value)"
+        >
+          <p class="text-small font-medium" :class="contentMode === m.value ? 'text-accent-primary' : 'text-base-primary'">{{ m.label }}</p>
+          <p class="text-micro text-base-muted">{{ m.desc }}</p>
+        </button>
+      </div>
     </div>
 
     <!-- Duration -->
@@ -109,13 +136,16 @@
       <Loader2 v-if="generating" :size="16" class="animate-spin" />
       🎙️ {{ generating ? 'Gerando...' : 'Gerar podcast' }}
     </button>
-    <p v-if="usageText" class="text-micro text-base-muted text-center mt-2">{{ usageText }}</p>
+    <p class="text-micro text-base-muted text-center mt-2">
+      {{ estimatedTime }}
+      <span v-if="usageText"> · {{ usageText }}</span>
+    </p>
   </UiModal>
 </template>
 
 <script setup lang="ts">
 import { User, Users, ChevronDown, Loader2 } from 'lucide-vue-next'
-import type { PodcastDuration, PodcastTone, PodcastFormat } from '~/types'
+import type { PodcastContentMode, PodcastDuration, PodcastTone, PodcastFormat } from '~/types'
 
 const props = defineProps<{
   topicId?: string
@@ -137,6 +167,13 @@ const isFree = computed(() => auth.user?.plan === 'free')
 const generating = computed(() => podcastStore.generating)
 const usageText = computed(() => props.usage ? `${props.usage.used}/${props.usage.limit} este mês` : null)
 
+const estimatedTime = computed(() => {
+  const base = duration.value === 'short' ? 1 : duration.value === 'medium' ? 2 : 3
+  const debateMultiplier = format.value === 'debate' ? 1.5 : 1
+  const minutes = Math.ceil(base * debateMultiplier)
+  return `⏱️ ~${minutes}-${minutes + 1} min para gerar`
+})
+
 function openUpgrade() {
   window.dispatchEvent(new CustomEvent('feature-limit-reached', {
     detail: { feature: 'Podcasts personalizados — duração, tom, formato debate e 6 vozes diferentes', planRequired: 'pro' },
@@ -152,7 +189,7 @@ watch(model, async (val) => {
     try {
       const { $api } = useNuxtApp()
       const res = await $api<any>('/topics')
-      topics.value = (res.data ?? []).filter((t: any) => !t.parent_id)
+      topics.value = (res.data ?? []).filter((t: any) => !t.parent_id && (t.flashcards_count ?? 0) >= 5)
     } catch {}
   }
 })
@@ -160,10 +197,11 @@ watch(model, async (val) => {
 const duration = ref<PodcastDuration>('medium')
 const tone = ref<PodcastTone>('conversational')
 const format = ref<PodcastFormat>('expository')
+const contentMode = ref<PodcastContentMode>('weak_points')
 const host1Name = ref('Ana')
-const host1Voice = ref('Kore')
+const host1Voice = ref('Leda')
 const host2Name = ref('Lucas')
-const host2Voice = ref('Puck')
+const host2Voice = ref('Charon')
 const showAdvanced = ref(false)
 const fetchedWeakCount = ref(0)
 
@@ -189,10 +227,27 @@ watchEffect(() => { if (!isFree.value) duration.value = recommended.value })
 watchEffect(() => { if (isFree.value) duration.value = 'short' })
 
 const durations = [
-  { value: 'short' as const, label: 'Curto', time: '2-3 min' },
-  { value: 'medium' as const, label: 'Médio', time: '5-7 min' },
-  { value: 'long' as const, label: 'Longo', time: '10-15 min' },
+  { value: 'short' as const, label: 'Curto', time: '3-5 min' },
+  { value: 'medium' as const, label: 'Médio', time: '8-12 min' },
+  { value: 'long' as const, label: 'Longo', time: '12-15 min' },
 ]
+
+const modes = [
+  { value: 'weak_points' as const, label: 'Pontos fracos', desc: 'Foco nos erros' },
+  { value: 'general_review' as const, label: 'Revisão geral', desc: 'Cobertura ampla' },
+  { value: 'pre_exam' as const, label: 'Pré-prova', desc: 'Véspera de prova' },
+]
+
+function selectMode(mode: PodcastContentMode) {
+  contentMode.value = mode
+  if (mode === 'pre_exam') {
+    tone.value = 'motivational'
+    format.value = 'debate'
+  } else {
+    tone.value = 'conversational'
+    format.value = 'expository'
+  }
+}
 
 const tones = [
   { value: 'formal' as const, label: 'Formal' },
@@ -207,12 +262,12 @@ const formats = [
 ]
 
 const voices = [
-  { id: 'Kore', label: 'Kore · Firme' },
-  { id: 'Aoede', label: 'Aoede · Leve' },
-  { id: 'Leda', label: 'Leda · Jovem' },
+  { id: 'Leda', label: 'Leda · Profissional' },
+  { id: 'Aoede', label: 'Aoede · Suave' },
+  { id: 'Eirene', label: 'Eirene · Tranquila' },
   { id: 'Puck', label: 'Puck · Animado' },
-  { id: 'Charon', label: 'Charon · Informativo' },
-  { id: 'Orus', label: 'Orus · Firme' },
+  { id: 'Charon', label: 'Charon · Natural' },
+  { id: 'Orus', label: 'Orus · Grave' },
 ]
 const voiceOptions = voices.map(v => ({ value: v.id, label: v.label }))
 
@@ -237,6 +292,7 @@ async function handleGenerate() {
   try {
     await podcastStore.generate({
       topic_id: topicIdToUse,
+      content_mode: contentMode.value,
       duration: duration.value,
       tone: tone.value,
       format: format.value,

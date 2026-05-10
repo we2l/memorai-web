@@ -32,8 +32,8 @@
       <!-- Currently playing -->
       <div v-if="player.currentPodcast" class="mb-6">
         <p class="text-micro text-accent-primary uppercase tracking-wide mb-3">Tocando agora</p>
-        <button
-          class="w-full card flex items-center gap-4 border-accent-primary/30 hover:border-accent-primary/50 transition-colors text-left"
+        <div
+          class="w-full card flex items-center gap-4 border-accent-primary/30 hover:border-accent-primary/50 transition-colors text-left cursor-pointer"
           @click="player.expand()"
         >
           <div class="w-12 h-12 rounded-xl bg-accent-primary/15 flex items-center justify-center shrink-0">
@@ -50,7 +50,7 @@
             <Pause v-if="player.isPlaying" :size="16" class="text-white" />
             <Play v-else :size="16" class="text-white ml-0.5" />
           </button>
-        </button>
+        </div>
       </div>
 
       <!-- Grouped by topic -->

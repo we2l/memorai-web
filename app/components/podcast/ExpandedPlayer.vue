@@ -47,7 +47,16 @@
           </div>
 
           <!-- Controls -->
-          <div class="flex items-center gap-6">
+          <div class="flex items-center gap-4">
+            <button
+              v-if="player.isPlaylist"
+              class="p-2 text-base-muted hover:text-base-primary disabled:opacity-30"
+              :disabled="!player.hasPrev"
+              aria-label="Episódio anterior"
+              @click="player.prev()"
+            >
+              <SkipBack :size="20" />
+            </button>
             <button class="p-2 text-base-muted hover:text-base-primary" aria-label="Voltar 15s" @click="player.skip(-15)">
               <RotateCcw :size="22" />
             </button>
@@ -62,7 +71,21 @@
             <button class="p-2 text-base-muted hover:text-base-primary" aria-label="Avançar 15s" @click="player.skip(15)">
               <RotateCw :size="22" />
             </button>
+            <button
+              v-if="player.isPlaylist"
+              class="p-2 text-base-muted hover:text-base-primary disabled:opacity-30"
+              :disabled="!player.hasNext"
+              aria-label="Próximo episódio"
+              @click="player.next()"
+            >
+              <SkipForward :size="20" />
+            </button>
           </div>
+
+          <!-- Episode indicator -->
+          <p v-if="player.episodeLabel" class="text-micro text-base-muted">
+            Episódio {{ player.episodeLabel }}
+          </p>
 
           <!-- Speed -->
           <div class="flex gap-2">
@@ -128,7 +151,7 @@
 </template>
 
 <script setup lang="ts">
-import { Headphones, Play, Pause, RotateCcw, RotateCw, Download, X } from 'lucide-vue-next'
+import { Headphones, Play, Pause, RotateCcw, RotateCw, Download, X, SkipBack, SkipForward } from 'lucide-vue-next'
 
 const { sanitize } = useSanitize()
 const player = usePlayerStore()

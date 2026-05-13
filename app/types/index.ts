@@ -308,6 +308,7 @@ export interface Podcast {
   topic_name?: string | null
   source_data?: { topic_names?: string[]; card_count?: number; error_count?: number } | null
   card_ids?: string[] | null
+  timestamps?: { type: string; start_ms: number; end_ms: number; flip_ms?: number; card_index?: number }[] | null
   session_id?: string | null
   episode_number?: number | null
   created_at: string

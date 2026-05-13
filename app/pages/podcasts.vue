@@ -160,8 +160,9 @@ function formatDuration(seconds: number): string {
 }
 
 function formatTime(s: number): string {
-  const m = Math.floor(s / 60)
-  const sec = s % 60
+  const total = Math.floor(s)
+  const m = Math.floor(total / 60)
+  const sec = total % 60
   return `${m}:${sec.toString().padStart(2, '0')}`
 }
 

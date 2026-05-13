@@ -199,9 +199,9 @@ const tone = ref<PodcastTone>('conversational')
 const format = ref<PodcastFormat>('expository')
 const contentMode = ref<PodcastContentMode>('weak_points')
 const host1Name = ref('Ana')
-const host1Voice = ref('Leda')
+const host1Voice = ref('Achird')
 const host2Name = ref('Lucas')
-const host2Voice = ref('Charon')
+const host2Voice = ref('Despina')
 const showAdvanced = ref(false)
 const fetchedWeakCount = ref(0)
 
@@ -262,12 +262,10 @@ const formats = [
 ]
 
 const voices = [
-  { id: 'Leda', label: 'Leda · Profissional' },
-  { id: 'Aoede', label: 'Aoede · Suave' },
-  { id: 'Eirene', label: 'Eirene · Tranquila' },
-  { id: 'Puck', label: 'Puck · Animado' },
-  { id: 'Charon', label: 'Charon · Natural' },
-  { id: 'Orus', label: 'Orus · Grave' },
+  { id: 'Achird', label: 'Achird · Padrão' },
+  { id: 'Algenib', label: 'Algenib · Masculina' },
+  { id: 'Despina', label: 'Despina · Feminina' },
+  { id: 'Gacrux', label: 'Gacrux · Feminina' },
 ]
 const voiceOptions = voices.map(v => ({ value: v.id, label: v.label }))
 

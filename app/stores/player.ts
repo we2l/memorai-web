@@ -195,9 +195,9 @@ export const usePlayerStore = defineStore('player', {
         el.preload = 'metadata'
         document.body.appendChild(el)
         el.addEventListener('timeupdate', () => {
-          this.currentTime = Math.floor(el.currentTime)
+          this.currentTime = el.currentTime
           // Save position every 10s
-          if (this.currentTime % 10 === 0 && this.currentTime > 0) {
+          if (Math.floor(el.currentTime) % 10 === 0 && Math.floor(el.currentTime) > 0) {
             this._savePosition()
           }
         })

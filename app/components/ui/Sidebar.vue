@@ -1,5 +1,5 @@
 <template>
-  <aside class="hidden lg:flex flex-col bg-surface-secondary h-screen fixed left-0 top-0 w-[220px] p-4">
+  <aside class="hidden lg:flex flex-col bg-[#0A0017] border-r border-white/[0.04] h-screen fixed left-0 top-0 w-[220px] p-4">
     <NuxtLink to="/hoje" class="mb-8 group">
       <UiLogo :icon-size="28" text-class="text-xl font-semibold text-white dark:text-white text-slate-800" />
     </NuxtLink>
@@ -10,7 +10,7 @@
         :key="item.to"
         :to="item.to"
         class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-small transition-all duration-150"
-        :class="isActive(item.to) ? 'bg-[rgba(217,119,6,0.12)] text-accent-primary font-medium shadow-[inset_2px_0_0_#D97706]' : 'text-base-muted opacity-70 hover:opacity-100 hover:text-base-secondary hover:bg-surface-tertiary'"
+        :class="isActive(item.to) ? 'bg-white/[0.05] text-baigi-text font-medium border-l-2 border-l-[#F4C84A]' : 'text-white/50 hover:text-white/70 hover:bg-white/[0.04]'"
         :aria-current="isActive(item.to) ? 'page' : undefined"
         :data-tour="item.to === '/revisar' ? 'review-link' : undefined"
       >

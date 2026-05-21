@@ -1,8 +1,8 @@
 <template>
-  <div class="review-bg h-[calc(100vh-56px)] flex flex-col overflow-y-auto">
+  <div class="review-bg h-[calc(100vh-56px)] flex flex-col overflow-hidden">
     <!-- Top bar — minimal -->
     <div class="flex items-center justify-between px-4 py-3">
-      <NuxtLink to="/hoje" class="text-small text-base-muted opacity-60 hover:opacity-100 hover:text-accent-primary transition-opacity">
+      <NuxtLink to="/hoje" class="text-sm text-white/55 hover:text-white transition-opacity">
         ← Voltar
       </NuxtLink>
       <div class="flex items-center gap-3 text-small text-base-muted">
@@ -18,17 +18,17 @@
     </div>
 
     <!-- Progress bar — thin, with pulse on update -->
-    <div class="w-full h-[3px] bg-black/5 dark:bg-[rgba(255,255,255,0.06)]">
+    <div class="w-full h-[3px] bg-white/[0.06]">
       <div
-        class="h-[3px] transition-all duration-500 ease-out"
+        class="h-[3px] transition-all duration-500 ease-out bg-baigi-primary"
         :class="progressPulse ? 'progress-pulse' : ''"
-        :style="{ width: review.progress + '%', background: 'linear-gradient(90deg, #B45309, #D97706, #F59E0B)' }"
+        :style="{ width: review.progress + '%' }"
       />
     </div>
 
     <!-- Micro reward toast -->
     <Transition name="reward-pop">
-      <div v-if="rewardMessage" class="fixed top-16 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-surface-secondary border border-success/20 text-small text-success shadow-lg">
+      <div v-if="rewardMessage" class="fixed top-16 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-[#150A25] border border-[rgba(244,200,74,0.2)] text-sm text-baigi-primary shadow-lg">
         {{ rewardMessage }}
       </div>
     </Transition>
@@ -104,16 +104,11 @@
     </div>
 
     <!-- Review -->
-    <div v-else-if="review.currentCard" class="flex-1 flex flex-col items-center justify-center px-4 pt-6 gap-10">
+    <div v-else-if="review.currentCard" class="flex-1 flex flex-col items-center justify-center px-4 gap-4">
       <!-- State badge -->
       <div v-if="review.currentCard.is_learning || review.currentCard.state === 'new'" class="flex items-center gap-2">
         <span
-          class="px-3 py-1 rounded-full text-micro tracking-wide uppercase font-medium"
-          :class="{
-            'bg-orange-500/15 text-orange-400': review.currentCard.state === 'relearning',
-            'bg-blue-500/15 text-blue-400': review.currentCard.state === 'learning',
-            'bg-emerald-500/15 text-emerald-400': review.currentCard.state === 'new',
-          }"
+          class="px-3 py-1 rounded-full text-xs tracking-wide uppercase font-medium bg-white/[0.06] border border-white/[0.08] text-white/60"
         >
           {{ review.currentCard.state === 'relearning' ? '🔄 Reaprendendo' : review.currentCard.state === 'new' ? '✨ Novo' : '📖 Aprendendo' }}
         </span>
@@ -127,12 +122,34 @@
       />
 
       <FlashcardButtons
-        v-if="review.flipped"
-        class="sticky bottom-4 z-10"
+        v-if="review.flipped && !review.showErrorDiary"
+        class="mt-4"
         :disabled="review.submitting"
         :intervals="review.currentIntervals"
         @rate="handleRate"
       />
+
+      <!-- Error diary (replaces buttons after error) -->
+      <div v-if="review.showErrorDiary" class="w-full max-w-lg mt-8 space-y-3">
+        <FlashcardErrorDiary
+          :visible="true"
+          :flashcard-id="lastErrorCardId"
+          :review-id="review.lastReviewId ?? ''"
+          @saved="dismissErrorDiary"
+          @skipped="dismissErrorDiary"
+        />
+        <!-- Note snippet -->
+        <div v-if="review.noteSnippet" class="p-3 rounded-lg bg-white/[0.03] border border-white/[0.06]">
+          <p class="text-xs text-[#F4C84A] font-medium mb-1">📝 Da sua nota: {{ review.noteSnippet.title }}</p>
+          <p class="text-sm text-white/70">{{ review.noteSnippet.snippet }}</p>
+        </div>
+        <!-- Actions -->
+        <div class="flex gap-2 justify-center">
+          <button class="btn-secondary !py-1.5 !px-3 !min-h-0 text-sm" @click="openChatForError">
+            ✨ Me explica esse erro
+          </button>
+        </div>
+      </div>
 
       <!-- Weak connection suggestion -->
       <div v-if="review.weakSuggestion?.length && !review.showErrorDiary" class="w-full max-w-lg px-4">
@@ -154,62 +171,6 @@
       <NuxtLink to="/cadernos" class="btn-primary mt-6">Ir pra Cadernos</NuxtLink>
     </div>
 
-    <!-- Error diary -->
-    <div v-if="review.showErrorDiary" class="flex-1 flex flex-col items-center justify-center px-4">
-      <FlashcardErrorDiary
-        :visible="true"
-        :flashcard-id="lastErrorCardId"
-        :review-id="review.lastReviewId ?? ''"
-        @saved="dismissErrorDiary"
-        @skipped="dismissErrorDiary"
-      />
-      <!-- Note snippet (reverse linking) -->
-      <div v-if="review.noteSnippet" class="mt-4 w-full max-w-md p-3 rounded-lg bg-accent-primary-subtle border border-accent-primary/20">
-        <p class="text-micro text-accent-primary font-medium mb-1">📝 Da sua nota: {{ review.noteSnippet.title }}</p>
-        <p class="text-small text-base-secondary">{{ review.noteSnippet.snippet }}</p>
-        <NuxtLink
-          :to="`/cadernos?topic=${review.noteSnippet.topic_id}&note=${review.noteSnippet.note_id}`"
-          class="text-micro text-accent-primary hover:underline mt-1 inline-block"
-        >
-          Ver nota completa →
-        </NuxtLink>
-      </div>
-
-      <!-- Hints from callout blocks -->
-      <div v-if="review.hints.length" class="mt-3 w-full max-w-md space-y-2">
-        <template v-for="(hint, i) in visibleHints" :key="i">
-          <div class="p-3 rounded-lg bg-surface-secondary border border-base-muted/10 flex items-start gap-2">
-            <span class="shrink-0">{{ hintIcon(hint.type) }}</span>
-            <p class="text-small text-base-secondary">{{ hint.text }}</p>
-          </div>
-        </template>
-        <button
-          v-if="review.hints.length > 2 && !showAllHints"
-          class="text-micro text-accent-primary hover:underline"
-          @click="showAllHints = true"
-        >
-          Ver mais {{ review.hints.length - 2 }} dica{{ review.hints.length - 2 !== 1 ? 's' : '' }}
-        </button>
-      </div>
-
-      <!-- Chat trigger after error -->
-      <div class="flex gap-2 mt-3">
-        <button
-          v-if="review.showErrorDiary || review.noteSnippet"
-          class="btn-secondary !py-1.5 !px-3 !min-h-[2.75rem] text-small"
-          @click="openChatForError"
-        >
-          ✨ Entender isso
-        </button>
-        <NuxtLink
-          v-if="review.currentCard?.topic_id && review.currentCard?.source_note_id"
-          :to="`/cadernos?topic=${review.currentCard.topic_id}&note=${review.currentCard.source_note_id}`"
-          class="btn-secondary !py-1.5 !px-3 !min-h-[2.75rem] text-small"
-        >
-          📝 Ver no conteúdo
-        </NuxtLink>
-      </div>
-    </div>
     <!-- Timer expired modal -->
     <UiModal v-model="showTimerModal" size="sm" aria-label="Tempo esgotado">
       <div class="text-center">
@@ -457,23 +418,19 @@ watch(() => route.query, (newQ, oldQ) => {
 
 <style scoped>
 .review-bg {
-  background: #FAFAFA;
+  background: #0F001F;
   color: var(--text-primary);
 }
 
-:where(.dark) .review-bg {
-  background: radial-gradient(ellipse at 50% 45%, #1E1814 0%, #110F0D 40%, #0A0908 70%);
-}
-
 .progress-pulse {
-  box-shadow: 0 0 8px rgba(217, 119, 6, 0.3);
+  box-shadow: 0 0 8px rgba(244, 200, 74, 0.3);
   animation: pulse-glow 0.6s ease;
 }
 
 @keyframes pulse-glow {
-  0% { box-shadow: 0 0 4px rgba(217, 119, 6, 0.1); }
-  50% { box-shadow: 0 0 12px rgba(217, 119, 6, 0.4); }
-  100% { box-shadow: 0 0 4px rgba(217, 119, 6, 0.1); }
+  0% { box-shadow: 0 0 4px rgba(244, 200, 74, 0.1); }
+  50% { box-shadow: 0 0 12px rgba(244, 200, 74, 0.4); }
+  100% { box-shadow: 0 0 4px rgba(244, 200, 74, 0.1); }
 }
 
 .reward-pop-enter-active {

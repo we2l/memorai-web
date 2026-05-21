@@ -3,14 +3,14 @@
     <Transition name="fade">
       <div
         v-if="modelValue"
-        class="fixed inset-0 z-50 bg-surface flex flex-col"
+        class="fixed inset-0 z-50 bg-[#0F001F] flex flex-col"
         role="dialog"
         aria-modal="true"
         aria-label="Mapa de Conhecimento"
         @keydown.escape="close"
       >
         <!-- Header -->
-        <div class="flex items-center gap-2 px-3 sm:px-4 py-3 border-b border-base shrink-0">
+        <div class="flex items-center gap-2 px-3 sm:px-4 py-3 border-b border-white/[0.06] shrink-0">
           <button class="btn-secondary !py-1.5 !px-3 !min-h-[2.75rem] text-small" @click="close">
             ← Voltar
           </button>
@@ -39,11 +39,7 @@
           <button v-else class="btn-danger !py-1.5 !px-3 !min-h-[2.75rem] text-small" @click="cancelConnectMode">
             <X :size="16" /> Cancelar
           </button>
-          <button class="p-2 rounded-lg text-base-muted hover:text-base-secondary hover:bg-surface-tertiary" :title="isDark ? 'Modo claro' : 'Modo escuro'" @click="toggleTheme">
-            <Sun v-if="isDark" :size="18" :stroke-width="1.5" />
-            <Moon v-else :size="18" :stroke-width="1.5" />
-          </button>
-          <button class="p-2 rounded-lg text-base-muted hover:text-base-secondary hover:bg-surface-tertiary" aria-label="Fechar mapa" @click="close">
+          <button class="p-2 rounded-lg text-white/40 hover:text-white hover:bg-white/[0.06]" aria-label="Fechar mapa" @click="close">
             <X :size="20" />
           </button>
         </div>
@@ -100,7 +96,7 @@
           <!-- Node detail panel -->
           <aside
             v-if="graphStore.selectedNode"
-            class="max-sm:absolute max-sm:inset-0 max-sm:z-20 sm:w-80 border-l border-base bg-surface-secondary flex flex-col overflow-y-auto shrink-0"
+            class="max-sm:absolute max-sm:inset-0 max-sm:z-20 sm:w-80 border-l border-white/[0.06] bg-[#0A0017] flex flex-col overflow-y-auto shrink-0"
           >
             <div class="p-4 border-b border-base">
               <div class="flex items-center justify-between mb-2">
@@ -110,14 +106,13 @@
                 </button>
               </div>
               <div class="flex items-center gap-2 mb-3">
-                <div class="flex-1 h-2 rounded-full bg-surface-tertiary">
+                <div class="flex-1 h-1 rounded-full bg-white/[0.08]">
                   <div
-                    class="h-2 rounded-full transition-all"
-                    :class="graphStore.selectedNode.progress < 0.3 ? 'bg-danger' : graphStore.selectedNode.progress < 0.7 ? 'bg-warning' : 'bg-success'"
+                    class="h-1 rounded-full bg-[#F4C84A] transition-all"
                     :style="{ width: Math.round(graphStore.selectedNode.progress * 100) + '%' }"
                   />
                 </div>
-                <span class="text-micro text-base-muted">{{ Math.round(graphStore.selectedNode.progress * 100) }}%</span>
+                <span class="text-xs text-white/55">{{ Math.round(graphStore.selectedNode.progress * 100) }}%</span>
               </div>
               <div class="flex gap-4 text-micro text-base-muted">
                 <span>{{ graphStore.selectedNode.flashcards_count }} cards</span>

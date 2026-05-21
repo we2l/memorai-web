@@ -126,7 +126,7 @@
         </div>
 
         <!-- Bottom actions -->
-        <div class="flex gap-3 px-6 py-4 border-t border-base shrink-0">
+        <div class="flex gap-3 px-6 py-4 pb-safe border-t border-base shrink-0 mb-16 sm:mb-0">
           <button
             v-if="player.currentPodcast.audio_url"
             class="btn-secondary flex-none !py-2.5"
@@ -139,7 +139,7 @@
           <NuxtLink
             v-if="linkedCards.length && player.currentPodcast.topic_id"
             :to="`/revisar?topic_id=${player.currentPodcast.topic_id}&errors_only=1`"
-            class="btn-primary flex-1 justify-center"
+            class="btn-primary flex-1 justify-center items-center text-center"
             @click="player.collapse()"
           >
             Revisar cartões deste caderno

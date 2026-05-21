@@ -3,15 +3,15 @@
     <!-- Greeting + Streak -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
       <div>
-        <h1 class="text-display">
+        <h1 class="font-heading font-bold text-3xl text-baigi-text">
           {{ greeting }}, <span class="text-accent-primary opacity-85">{{ auth.user?.name?.split(' ')[0] ?? 'estudante' }}</span>
         </h1>
         <p class="text-base-muted mt-1">Vamos manter seu ritmo hoje.</p>
       </div>
-      <div class="flex items-center gap-2 shrink-0 sm:shrink-0 justify-center sm:justify-start">
-        <span class="text-[2rem] font-semibold text-accent-primary leading-none">{{ stats?.streak ?? 0 }}</span>
+      <div class="flex items-center gap-2 shrink-0 px-3 py-2 rounded-xl bg-white/[0.04]">
+        <span class="text-2xl font-semibold text-baigi-primary leading-none">{{ stats?.streak ?? 0 }}</span>
         <div class="flex flex-col items-start">
-          <span class="text-small text-base-muted">dias 🔥</span>
+          <span class="text-xs text-white/45">dias 🔥</span>
           <UiSparkline v-if="sparklineData.length" :data="sparklineData" :width="60" :height="18" />
         </div>
       </div>
@@ -42,17 +42,18 @@
     </div>
 
     <!-- CTA Hero -->
-    <div v-if="(stats?.due_today ?? 0) > 0 || (backlog?.overdue_count ?? 0) > 0" class="card-warm mt-6 py-5 px-5" style="background: linear-gradient(90deg, rgba(217,119,6,0.06), transparent);">
-      <div class="flex items-center justify-between mb-2">
-        <p class="text-title text-base-primary">🎯 {{ totalCards }} cards para revisar<span v-if="mainTopicName" class="text-base-muted font-normal"> · {{ mainTopicName }}</span></p>
-        <span class="text-small text-base-muted">~{{ backlog?.estimated_minutes ?? Math.ceil(totalCards * 0.25) }} min</span>
+    <div v-if="(stats?.due_today ?? 0) > 0 || (backlog?.overdue_count ?? 0) > 0" class="card-warm mt-6 py-5 px-5">
+      <div class="flex items-center justify-between mb-3">
+        <p class="font-heading font-semibold text-2xl text-baigi-text">🎯 {{ totalCards }} cards para revisar<span class="text-sm text-white/50 font-normal"> · {{ mainTopicName }}</span></p>
+        <span class="text-xs text-white/45">~{{ backlog?.estimated_minutes ?? Math.ceil(totalCards * 0.25) }} min</span>
       </div>
-      <div class="h-3 rounded-full bg-surface-tertiary overflow-hidden mb-3">
-        <div
-          class="h-3 rounded-full transition-all duration-500 ease-out glow-success"
-          :class="progressPercent > 80 ? 'bg-success' : progressPercent > 40 ? 'bg-warning' : 'bg-accent-primary'"
-          :style="{ width: progressPercent + '%' }"
-        />
+      <div class="border-t border-white/[0.06] pt-3 mb-3">
+        <div class="h-1.5 rounded-full bg-white/[0.08] overflow-hidden">
+          <div
+            class="h-1.5 rounded-full bg-baigi-primary transition-all duration-500 ease-out"
+            :style="{ width: progressPercent + '%' }"
+          />
+        </div>
       </div>
       <div class="flex items-center justify-between">
         <span class="text-micro text-base-muted">{{ stats?.reviewed_today ?? 0 }} revisados hoje</span>
@@ -79,23 +80,24 @@
 
     <!-- Seu ritmo + Ações rápidas -->
     <div v-if="stats" class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-      <div class="card md:col-span-2">
+      <div class="card md:col-span-2 h-full flex flex-col justify-between">
         <div class="flex items-center justify-between mb-3">
-          <p class="text-small font-medium text-base-primary">Seu ritmo hoje</p>
+          <p class="text-xs uppercase tracking-wider text-white/45 font-medium">Seu ritmo hoje</p>
+          <span class="text-lg font-semibold text-baigi-text">{{ stats.due_today ?? 0 }} <span class="text-xs font-normal text-white/45">restantes</span></span>
         </div>
-        <div class="h-2 rounded-full bg-surface-tertiary overflow-hidden">
-          <div class="h-2 rounded-full bg-success transition-all duration-500 glow-success" :style="{ width: progressPercent + '%' }" />
+        <div class="h-1 rounded-full bg-white/[0.08] overflow-hidden">
+          <div class="h-1 rounded-full bg-baigi-primary transition-all duration-500" :style="{ width: progressPercent + '%' }" />
         </div>
-        <div class="flex justify-between text-micro text-base-muted mt-2">
-          <span>Faltam: {{ stats.due_today ?? 0 }}</span>
+        <div class="flex justify-between text-xs text-white/45 mt-2">
           <span>{{ stats.reviewed_today ?? 0 }} revisados</span>
+          <span>{{ progressPercent }}%</span>
         </div>
       </div>
-      <div class="flex flex-col gap-2">
+      <div class="flex flex-col gap-2 h-full">
         <NuxtLink to="/revisar?errors_only=1" class="btn-secondary justify-center text-small flex-1">
           Revisar só erros
         </NuxtLink>
-        <NuxtLink to="/importar" class="btn-accent justify-center text-small flex-1">
+        <NuxtLink to="/importar" class="btn-secondary justify-center text-small flex-1">
           Importar Anki
         </NuxtLink>
       </div>
@@ -114,11 +116,11 @@
     </div>
 
     <!-- Pra hoje (max 3 actions) -->
-    <div v-if="pendingActions.length" class="mt-8">
+    <div v-if="pendingActions.length" class="mt-10">
       <p class="text-label mb-3">Pra hoje</p>
       <div class="space-y-2">
-        <div v-for="action in pendingActions" :key="action.label" class="flex items-center justify-between px-4 py-3 rounded-lg bg-surface-secondary">
-          <span class="text-small text-base-primary">{{ action.label }}</span>
+        <div v-for="action in pendingActions" :key="action.label" class="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+          <span class="text-small text-baigi-text truncate min-w-0">{{ action.label }}</span>
           <NuxtLink :to="action.url" class="btn-secondary !py-1 !px-3 !min-h-[2.75rem] text-small shrink-0">
             {{ action.action_label }}
           </NuxtLink>
@@ -127,7 +129,7 @@
     </div>
 
     <!-- Continuar estudando -->
-    <div v-if="topicProgress.length" class="mt-8">
+    <div v-if="topicProgress.length" class="mt-10">
       <p class="text-label mb-3">Continuar estudando</p>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <NuxtLink
@@ -136,16 +138,15 @@
           :to="`/cadernos?topic=${tp.id}`"
           class="card-interactive"
         >
-          <p class="text-small font-medium text-base-primary truncate">{{ tp.name }}</p>
+          <p class="text-small font-medium text-baigi-text truncate">{{ tp.name }}</p>
           <div class="flex items-center gap-2 mt-2">
-            <div class="flex-1 h-1.5 rounded-full bg-surface-tertiary">
+            <div class="flex-1 h-1 rounded-full bg-white/[0.06]">
               <div
-                class="h-1.5 rounded-full transition-all"
-                :class="tp.progress < 0.3 ? 'bg-danger' : tp.progress < 0.7 ? 'bg-warning' : 'bg-success'"
+                class="h-1 rounded-full bg-baigi-primary transition-all"
                 :style="{ width: Math.round(tp.progress * 100) + '%' }"
               />
             </div>
-            <span class="text-micro text-base-muted">{{ Math.round(tp.progress * 100) }}%</span>
+            <span class="text-xs text-white/50">{{ Math.round(tp.progress * 100) }}%</span>
           </div>
           <p class="text-micro text-base-muted mt-1">{{ tp.flashcards_count }} cards</p>
         </NuxtLink>
@@ -153,7 +154,7 @@
     </div>
 
     <!-- Activation checklist -->
-    <div v-if="stats" class="mt-8">
+    <div v-if="stats" class="mt-10">
       <!-- debug -->
       <UiActivationChecklist
         :has-topics="Number(stats.total_decks) > 0"
@@ -165,16 +166,15 @@
     </div>
 
     <!-- AI Usage -->
-    <div v-if="featureUsage.usage.value && hasLimitedFeatures" class="mt-8">
+    <div v-if="featureUsage.usage.value && hasLimitedFeatures" class="mt-10">
       <p class="text-label mb-3">Uso de IA este mês</p>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <div v-for="(data, key) in limitedFeatures" :key="key" class="card py-3 px-4">
           <p class="text-micro text-base-muted mb-1">{{ featureLabels[key] }}</p>
           <p class="text-title text-base-primary">{{ data.used }}/{{ data.limit }}</p>
-          <div class="h-1.5 rounded-full bg-surface-tertiary mt-2 overflow-hidden">
+          <div class="h-1 rounded-full bg-white/[0.06] mt-2 overflow-hidden">
             <div
-              class="h-1.5 rounded-full transition-all"
-              :class="data.remaining === 0 ? 'bg-danger' : data.used / data.limit > 0.8 ? 'bg-warning' : 'bg-accent-primary'"
+              class="h-1 rounded-full bg-baigi-primary transition-all"
               :style="{ width: Math.min(100, (data.used / data.limit) * 100) + '%' }"
             />
           </div>

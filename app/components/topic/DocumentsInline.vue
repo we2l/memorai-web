@@ -2,13 +2,13 @@
   <div>
     <!-- Upload area -->
     <label
-      class="flex items-center gap-3 px-4 py-3.5 rounded-xl border-2 border-dashed cursor-pointer transition-all"
-      :class="uploading ? 'opacity-50 pointer-events-none border-base' : 'border-accent-primary/30 hover:border-accent-primary hover:bg-accent-primary-subtle'"
+      class="flex items-center gap-3 px-4 py-3.5 rounded-xl border cursor-pointer transition-all"
+      :class="uploading ? 'opacity-50 pointer-events-none border-white/[0.06] bg-white/[0.02]' : 'border-white/[0.06] bg-white/[0.02] hover:border-[rgba(244,200,74,0.12)] hover:bg-white/[0.04]'"
     >
-      <Upload :size="20" class="text-accent-primary shrink-0" />
+      <Upload :size="20" class="text-[#F4C84A]/70 shrink-0" />
       <div>
-        <p class="text-small text-base-primary">{{ uploading ? `Enviando ${uploadProgress}%...` : 'Subir PDF' }}</p>
-        <p v-if="!uploading" class="text-small text-base-muted">A IA transforma em resumo + flashcards</p>
+        <p class="text-sm text-baigi-text">{{ uploading ? `Enviando ${uploadProgress}%...` : 'Subir PDF' }}</p>
+        <p v-if="!uploading" class="text-xs text-white/[0.55]">A IA transforma em resumo + flashcards</p>
       </div>
       <input type="file" accept=".pdf" class="hidden" @change="onFileSelect" />
     </label>

@@ -2,7 +2,7 @@
   <div class="flex h-[calc(100vh-64px)]">
     <!-- Sidebar: Topic tree (desktop: inline, mobile: overlay) -->
     <aside
-      class="border-r border-base flex flex-col shrink-0 transition-all duration-200 bg-surface"
+      class="border-r border-white/[0.04] flex flex-col shrink-0 transition-all duration-200 bg-[#0A0017]"
       :class="[
         sidebarCollapsed ? 'w-0 overflow-hidden' : 'w-72',
         'max-lg:fixed max-lg:inset-0 max-lg:z-40 max-lg:w-full max-lg:border-r-0',
@@ -11,12 +11,12 @@
     >
       <div class="p-3 sm:p-4 border-b border-base">
         <div class="flex items-center justify-between mb-3">
-          <h2 class="text-body font-semibold text-base-primary">Cadernos</h2>
+          <h2 class="text-sm font-semibold text-baigi-text">Cadernos</h2>
           <div class="flex items-center gap-1">
-            <button class="p-1 rounded-lg text-base-muted hover:text-accent-primary hover:bg-surface-tertiary transition-colors lg:hidden" title="Fechar" @click="sidebarOpen = false">
+            <button class="p-1 rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-colors lg:hidden" title="Fechar" @click="sidebarOpen = false">
               <X :size="16" />
             </button>
-            <button class="p-1 rounded-lg text-base-muted hover:text-accent-primary hover:bg-surface-tertiary transition-colors max-lg:hidden" title="Recolher painel" @click="sidebarCollapsed = true">
+            <button class="p-1 rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-colors max-lg:hidden" title="Recolher painel" @click="sidebarCollapsed = true">
               <PanelLeftClose :size="16" />
             </button>
           </div>
@@ -36,7 +36,7 @@
             >
               <Network :size="16" /> Mapa
             </button>
-            <span class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 rounded-lg bg-surface-secondary border border-base shadow-lg text-micro text-base-muted whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+            <span class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 rounded-lg bg-[#1E0F35] border border-white/[0.06] shadow-lg text-micro text-white/60 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
               Disponível com 5+ cadernos ({{ topicStore.tree?.length ?? 0 }}/5)
             </span>
           </div>
@@ -44,14 +44,14 @@
             <button class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small w-full justify-center" data-tour="create-notebook" @click="showAddMenu = !showAddMenu">
               <Plus :size="16" /> Novo
             </button>
-            <div v-if="showAddMenu" class="absolute right-0 top-full mt-1 w-52 bg-surface-secondary border border-base rounded-lg shadow-lg py-1 z-20">
-              <button class="w-full text-left px-3 py-2 text-small hover:bg-surface-tertiary transition-colors" @click="showAddMenu = false; openCreate(null)">
+            <div v-if="showAddMenu" class="absolute right-0 top-full mt-1 w-52 bg-[#1E0F35] border border-white/[0.06] rounded-xl shadow-lg py-1 z-20">
+              <button class="w-full text-left px-3 py-2 text-small text-baigi-text hover:bg-white/10 transition-colors" @click="showAddMenu = false; openCreate(null)">
                 Novo caderno
               </button>
-              <NuxtLink to="/importar" class="block px-3 py-2 text-small hover:bg-surface-tertiary transition-colors" @click="showAddMenu = false">
+              <NuxtLink to="/importar" class="block px-3 py-2 text-small text-baigi-text hover:bg-white/10 transition-colors" @click="showAddMenu = false">
                 Importar Anki
               </NuxtLink>
-              <button class="w-full text-left px-3 py-2 text-small hover:bg-surface-tertiary transition-colors" @click="showAddMenu = false; triggerStructureUpload()">
+              <button class="w-full text-left px-3 py-2 text-small text-baigi-text hover:bg-white/10 transition-colors" @click="showAddMenu = false; triggerStructureUpload()">
                 <span class="block">Organizar PDF</span>
                 <span class="block text-micro text-base-muted">A IA lê o PDF e monta cadernos e tópicos pra você</span>
               </button>
@@ -62,9 +62,9 @@
       </div>
 
       <!-- Structure generating banner -->
-      <div v-if="structureGenerating" class="mx-3 mb-2 px-3 py-2.5 rounded-lg bg-accent-primary-subtle flex items-center gap-2">
-        <div class="w-4 h-4 border-2 border-accent-primary border-t-transparent rounded-full animate-spin shrink-0" />
-        <p class="text-micro text-accent-primary">Lendo o PDF e organizando cadernos...</p>
+      <div v-if="structureGenerating" class="mx-3 mb-2 px-3 py-2.5 rounded-lg bg-white/5 border border-white/10 flex items-center gap-2">
+        <div class="w-4 h-4 border-2 border-[#F4C84A] border-t-transparent rounded-full animate-spin shrink-0" />
+        <p class="text-micro text-baigi-text">Lendo o PDF e organizando cadernos...</p>
       </div>
 
       <div class="flex-1 overflow-y-auto p-2">
@@ -85,10 +85,10 @@
     </aside>
 
     <!-- Main: Topic Hub -->
-    <main class="flex-1 flex flex-col overflow-y-auto pb-20 lg:pb-0" style="background: radial-gradient(circle at top, rgba(217,119,6,0.04), transparent 60%);">
+    <main class="flex-1 flex flex-col overflow-y-auto pb-20 lg:pb-0">
       <template v-if="selectedTopicId">
         <!-- Topic header -->
-        <div ref="headerRef" class="p-5 border-b border-base bg-surface-secondary/50">
+        <div ref="headerRef" class="p-5 border-b border-white/5">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2 min-w-0">
               <button
@@ -107,7 +107,7 @@
                 <PanelLeftOpen :size="16" />
               </button>
               <div class="min-w-0">
-                <h2 class="text-headline truncate">{{ selectedTopicName }}</h2>
+                <h2 class="font-heading font-bold text-xl text-baigi-text truncate">{{ selectedTopicName }}</h2>
                 <p v-if="topicCards.length" class="text-small text-base-muted mt-0.5">
                   {{ memorizeProgress > 0 ? memorizeProgress + '% dominado · ' : '' }}{{ topicCards.length }} card{{ topicCards.length !== 1 ? 's' : '' }}
                 </p>
@@ -118,10 +118,9 @@
           <!-- Progress bar -->
           <div v-if="topicCards.length" class="mt-3">
             <div class="flex items-center gap-3">
-              <div class="flex-1 h-2.5 rounded-full bg-surface-tertiary overflow-hidden">
+              <div class="flex-1 h-1 rounded-full bg-white/[0.06] overflow-hidden">
                 <div
-                  class="h-2.5 rounded-full transition-all duration-500"
-                  :class="memorizeProgress < 30 ? 'bg-danger' : memorizeProgress < 70 ? 'bg-warning' : 'bg-success'"
+                  class="h-1 rounded-full bg-[#F4C84A]/[0.65] transition-all duration-500"
                   :style="{ width: memorizeProgress + '%' }"
                 />
               </div>
@@ -134,7 +133,7 @@
             <button
               v-for="sub in subTopics"
               :key="sub.id"
-              class="text-small px-2.5 py-1 rounded-full bg-surface-tertiary text-base-muted hover:text-accent-primary hover:bg-accent-primary-subtle transition-colors"
+              class="text-sm px-2.5 py-1 rounded-full bg-white/[0.06] text-white/[0.65] border border-white/[0.06] hover:bg-white/[0.08] hover:text-white/80 transition-colors"
               @click="selectTopic(sub.id)"
             >
               {{ sub.name }}
@@ -144,9 +143,9 @@
         </div>
 
         <!-- HERO — simple: pending cards + review button -->
-        <div v-if="pendingCount > 0" class="mx-4 mt-5 mb-3 px-6 py-5 rounded-2xl bg-surface-secondary flex items-center justify-between gap-4">
+        <div v-if="pendingCount > 0" class="mx-4 mt-5 mb-3 px-6 py-5 rounded-2xl bg-[#1A0C2E] border border-white/[0.06] flex items-center justify-between gap-4">
           <div>
-            <p class="text-headline text-base-primary">{{ pendingCount }} card{{ pendingCount !== 1 ? 's' : '' }} pendente{{ pendingCount !== 1 ? 's' : '' }}</p>
+            <p class="font-heading font-semibold text-xl text-baigi-text">{{ pendingCount }} card{{ pendingCount !== 1 ? 's' : '' }} pendente{{ pendingCount !== 1 ? 's' : '' }}</p>
             <p class="text-small text-base-muted mt-1">Continue seu progresso de hoje</p>
           </div>
           <div class="flex items-center gap-2 shrink-0">
@@ -159,13 +158,13 @@
 
         <!-- Podcast generate button -->
         <div v-if="selectedTopicId" class="mx-4 mb-3" :class="pendingCount <= 0 ? 'mt-5' : ''">
-          <button class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-surface-secondary border border-base hover:border-accent-primary/30 transition-colors text-left" @click="showPodcastSheet = true">
-            <span class="text-xl">🎙️</span>
+          <button class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-[#1A0C2E] border border-[rgba(244,200,74,0.12)] hover:border-[rgba(244,200,74,0.25)] hover:bg-white/[0.03] transition-all text-left" @click="showPodcastSheet = true">
+            <span class="text-xl">🎧</span>
             <div class="flex-1">
-              <p class="text-small text-base-primary">Gerar podcast deste caderno</p>
-              <p class="text-micro text-base-muted">Ouça seus pontos fracos</p>
+              <p class="text-sm text-baigi-text font-medium">Revisar ouvindo seus erros</p>
+              <p class="text-xs text-white/45">Podcast personalizado baseado no que você errou</p>
             </div>
-            <span class="text-base-muted text-small">→</span>
+            <span class="text-white/30 text-sm">→</span>
           </button>
         </div>
 

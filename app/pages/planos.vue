@@ -45,7 +45,7 @@
 
         <p class="text-label uppercase tracking-wide mb-1 text-accent-primary">Pro</p>
         <p class="text-3xl font-bold text-base-primary mb-1">
-          R$14<span class="text-lg">,90</span>
+          R$24<span class="text-lg">,90</span>
           <span class="text-small font-normal text-base-muted">/mês</span>
         </p>
         <p class="text-micro text-base-muted mb-6">Sem limites. Sem interrupções.</p>

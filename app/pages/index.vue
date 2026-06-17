@@ -128,7 +128,7 @@
         <div class="card py-8 px-6 border-accent-primary/30 relative">
           <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent-primary text-surface text-micro font-semibold px-3 py-1 rounded-full">🔥 Mais popular</span>
           <h3 class="text-title text-accent-primary mb-1">Pro</h3>
-          <p class="text-2xl font-bold text-base-primary mb-1">R$ 14,90<span class="text-small font-normal text-base-muted">/mês</span></p>
+          <p class="text-2xl font-bold text-base-primary mb-1">R$ 24,90<span class="text-small font-normal text-base-muted">/mês</span></p>
           <p class="text-micro text-base-muted mb-4">Menos que um lanche por mês pra nunca mais esquecer</p>
           <ul class="space-y-2 text-small text-base-secondary mb-6">
             <li>✓ Tudo do Grátis</li>

@@ -2,11 +2,14 @@
   <div class="p-4 sm:p-6 pb-20 lg:pb-6 max-w-5xl mx-auto">
     <!-- Greeting + Streak -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-      <div>
+      <div class="flex items-center gap-3">
+        <UiBaigiMascot state="idle" :visible="true" :size="48" />
+        <div>
         <h1 class="font-heading font-bold text-3xl text-baigi-text">
           {{ greeting }}, <span class="text-accent-primary opacity-85">{{ auth.user?.name?.split(' ')[0] ?? 'estudante' }}</span>
         </h1>
         <p class="text-base-muted mt-1">Vamos manter seu ritmo hoje.</p>
+        </div>
       </div>
       <div class="flex items-center gap-2 shrink-0 px-3 py-2 rounded-xl bg-white/[0.04]">
         <span class="text-2xl font-semibold text-baigi-primary leading-none">{{ stats?.streak ?? 0 }}</span>

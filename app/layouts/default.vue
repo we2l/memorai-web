@@ -1,10 +1,11 @@
 <template>
   <div class="min-h-screen bg-[#0F001F]">
     <UiPaymentBanner />
-    <UiSidebar />
-    <UiBottomNav />
+    <UiSidebar v-show="!dive.active.value" />
+    <UiBottomNav v-show="!dive.active.value" />
+    <UiDiveMode />
 
-    <main class="lg:ml-[220px] relative min-h-screen overflow-hidden" :class="mainPadding">
+    <main class="relative min-h-screen overflow-hidden transition-[margin] duration-500" :class="[mainPadding, dive.active.value ? '' : 'lg:ml-[220px]']">
       <!-- Ambient Glow (subtle — atmosphere, not UI) -->
       <div class="absolute -top-48 -left-48 w-[500px] h-[500px] rounded-full bg-[#B96A3D] blur-[180px] opacity-[0.12] pointer-events-none z-0" aria-hidden="true" />
       <div class="absolute -bottom-48 -right-48 w-[400px] h-[400px] rounded-full bg-[#4B007D] blur-[180px] opacity-[0.12] pointer-events-none z-0" aria-hidden="true" />
@@ -38,6 +39,7 @@
 <script setup lang="ts">
 const toast = useToast()
 const route = useRoute()
+const dive = useDiveMode()
 
 const player = usePlayerStore()
 const hasMiniplayer = computed(() => !!player.currentPodcast)

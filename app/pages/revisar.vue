@@ -1,7 +1,7 @@
 <template>
   <div class="review-bg h-[calc(100vh-56px)] flex flex-col overflow-hidden">
     <!-- Top bar — minimal -->
-    <div class="flex items-center justify-between px-4 py-3">
+    <div v-show="!dive.active.value" class="flex items-center justify-between px-4 py-3">
       <NuxtLink to="/hoje" class="text-sm text-white/55 hover:text-white transition-opacity">
         ← Voltar
       </NuxtLink>
@@ -14,7 +14,9 @@
         <span v-if="review.currentCard" class="font-medium text-base-primary">{{ review.remaining <= 1 ? 'Último!' : `${review.remaining - 1} restante${review.remaining - 1 !== 1 ? 's' : ''}` }}</span>
         <span class="text-micro opacity-50">{{ reviewMood }}</span>
       </div>
-      <div class="w-12" />
+      <button class="px-3 py-1.5 rounded-full text-micro font-medium bg-baigi-primary/10 text-baigi-primary border border-baigi-primary/20 hover:bg-baigi-primary/20 transition-colors" @click="dive.start()">
+        🐬 Mergulhar
+      </button>
     </div>
 
     <!-- Progress bar — thin, with pulse on update -->
@@ -64,8 +66,8 @@
 
       <!-- Normal finish (reviewed some cards) -->
       <template v-else>
-        <p class="text-5xl mb-6">🔥</p>
-        <h2 class="text-display">Missão de hoje concluída!</h2>
+        <UiBaigiMascot state="celebrating" :visible="true" :size="72" />
+        <h2 class="text-display mt-4">Missão de hoje concluída!</h2>
         <p class="text-body text-base-muted mt-3">
           Você reforçou <span class="text-accent-primary font-medium">{{ review.reviewed }}</span> conceito{{ review.reviewed !== 1 ? 's' : '' }}
         </p>
@@ -193,6 +195,7 @@ const review = useReviewStore()
 const deckStore = useDeckStore()
 const chat = useChatStore()
 const route = useRoute()
+const dive = useDiveMode()
 const toast = useToast()
 const lastErrorCardId = ref('')
 const lastErrorCard = ref<any>(null)
@@ -305,6 +308,21 @@ const isSurvivalMode = ref(false)
 const isBlitz = ref(false)
 const isErrorsOnly = computed(() => route.query.errors_only === '1')
 let timerInterval: ReturnType<typeof setInterval> | null = null
+
+// Sync blitz countdown with dive mode
+watch(sessionTimer, (val) => {
+  if (isBlitz.value && dive.active.value) {
+    dive.setCountdown(val > 0 ? val : null)
+  }
+})
+
+watch(() => dive.active.value, (active) => {
+  if (active && isBlitz.value && sessionTimer.value > 0) {
+    dive.setCountdown(sessionTimer.value)
+  } else if (!active) {
+    dive.setCountdown(null)
+  }
+})
 
 async function loadSessionTimer() {
   try {

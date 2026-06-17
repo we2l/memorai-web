@@ -8,7 +8,8 @@
       <div class="h-[2px] bg-[#F4C84A] transition-all duration-300" :style="{ width: progressPercent + '%' }" />
     </div>
     <div class="flex items-center gap-3 px-4 py-2.5">
-      <div class="w-8 h-8 rounded-lg bg-[rgba(244,200,74,0.08)] flex items-center justify-center shrink-0">
+      <UiBaigiMascot state="subtle" :visible="player.isPlaying" :size="28" />
+      <div v-show="!player.isPlaying" class="w-8 h-8 rounded-lg bg-[rgba(244,200,74,0.08)] flex items-center justify-center shrink-0">
         <Headphones :size="16" class="text-[#F4C84A]" />
       </div>
       <div class="flex-1 min-w-0">

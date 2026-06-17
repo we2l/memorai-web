@@ -90,7 +90,7 @@
           <!-- Speed -->
           <div class="flex gap-2">
             <button
-              v-for="rate in [0.75, 1, 1.25, 1.5]"
+              v-for="rate in [0.75, 1, 1.25, 1.5, 2]"
               :key="rate"
               class="px-3 py-1 rounded-full text-micro border transition-all"
               :class="player.playbackRate === rate ? 'border-accent-primary text-accent-primary bg-accent-primary-subtle' : 'border-base text-base-muted'"
@@ -100,27 +100,45 @@
             </button>
           </div>
 
-          <!-- Cards carousel -->
-          <div v-if="linkedCards.length" class="w-full max-w-md pb-4">
-            <p class="text-micro text-accent-primary uppercase tracking-wide mb-2">Flashcards vinculados · {{ linkedCards.length }} cartões</p>
-            <div class="flex gap-3 overflow-x-auto pb-2 -mx-2 px-2 snap-x">
-              <div
-                v-for="card in linkedCards"
-                :key="card.id"
-                class="shrink-0 w-64 p-4 rounded-xl bg-surface-secondary border border-base snap-start"
-              >
-                <p class="text-small text-base-primary line-clamp-3 card-front-preview" v-html="sanitize(card.front)" />
-                <div class="flex gap-3 mt-3">
-                  <NuxtLink
-                    v-if="card.topic_id"
-                    :to="`/cadernos?topic=${card.topic_id}&tab=cards&highlight=${card.id}`"
-                    class="text-micro text-accent-primary hover:underline"
-                    @click="player.collapse()"
-                  >
-                    Ver card no caderno
-                  </NuxtLink>
+          <!-- Synced Flashcard -->
+          <div v-if="linkedCards.length && activeCard" class="w-full max-w-sm">
+            <!-- Card counter -->
+            <p class="text-micro text-base-muted text-center mb-2">
+              Card {{ activeCardIndex + 1 }} de {{ linkedCards.length }}
+            </p>
+
+            <!-- Flip card -->
+            <div class="relative w-full h-44 perspective-1000">
+              <Transition name="card-flip" mode="out-in">
+                <div
+                  :key="`${activeCard.id}-${isFlipped ? 'back' : 'front'}`"
+                  class="absolute inset-0 p-5 rounded-xl border flex items-center justify-center text-center backface-hidden"
+                  :class="isFlipped
+                    ? 'bg-accent-primary-subtle border-accent-primary'
+                    : 'bg-surface-secondary border-base'"
+                >
+                  <p
+                    class="text-small leading-relaxed line-clamp-5"
+                    :class="isFlipped ? 'text-accent-primary' : 'text-base-primary'"
+                    v-html="sanitize(isFlipped ? (activeCard.back || '') : activeCard.front)"
+                  />
                 </div>
-              </div>
+              </Transition>
+            </div>
+
+            <!-- Think progress bar -->
+            <div v-if="isThinking" class="w-full h-1 bg-surface-tertiary rounded-full mt-3 overflow-hidden">
+              <div class="h-full bg-amber-500 transition-all duration-200 rounded-full" :style="{ width: thinkProgress + '%' }" />
+            </div>
+
+            <!-- Card dots -->
+            <div class="flex justify-center gap-1.5 mt-3">
+              <div
+                v-for="(card, idx) in linkedCards"
+                :key="card.id"
+                class="w-2 h-2 rounded-full transition-all"
+                :class="idx === activeCardIndex ? 'bg-accent-primary scale-125' : idx < activeCardIndex ? 'bg-accent-primary/40' : 'bg-surface-tertiary'"
+              />
             </div>
           </div>
         </div>
@@ -170,16 +188,11 @@ async function downloadPodcast() {
   downloading.value = true
   try {
     const { $api } = useNuxtApp()
-    const blob = await $api<Blob>(`/podcasts/${podcast.id}/download`, {
-      responseType: 'blob',
-      headers: { Accept: 'application/octet-stream' },
-    })
-    const url = URL.createObjectURL(blob)
+    const { url } = await $api<{ url: string }>(`/podcasts/${podcast.id}/download`)
     const a = document.createElement('a')
     a.href = url
-    a.download = `${podcast.title || 'podcast'}.wav`
+    a.download = `${podcast.title || 'podcast'}.mp3`
     a.click()
-    URL.revokeObjectURL(url)
   } catch {
     // silent fail
   } finally {
@@ -190,6 +203,7 @@ async function downloadPodcast() {
 interface LinkedCard {
   id: string
   front: string
+  back?: string
   topic_id?: string
 }
 
@@ -203,12 +217,11 @@ watch(() => player.currentPodcast?.id, async (id) => {
 
   try {
     const { $api } = useNuxtApp()
-    // Fetch each card's basic info
     const cards = await Promise.all(
-      cardIds.slice(0, 10).map(async (cardId: string) => {
+      cardIds.slice(0, 20).map(async (cardId: string) => {
         try {
           const res = await $api<any>(`/flashcards/${cardId}`)
-          return { id: res.data.id, front: res.data.front, topic_id: res.data.topic_id }
+          return { id: res.data.id, front: res.data.front, back: res.data.back, topic_id: res.data.topic_id }
         } catch {
           return null
         }
@@ -218,13 +231,46 @@ watch(() => player.currentPodcast?.id, async (id) => {
   } catch {}
 }, { immediate: true })
 
+// Sync logic
+const timestamps = computed(() => player.currentPodcast?.timestamps as any[] | null)
+
+const activeSegment = computed(() => {
+  if (!timestamps.value) return null
+  const ms = player.currentTime * 1000
+  return timestamps.value.find((t: any) => t.type === 'card' && ms >= t.start_ms && ms < t.end_ms) ?? null
+})
+
+const activeCardIndex = computed(() => activeSegment.value?.card_index ?? 0)
+const activeCard = computed(() => linkedCards.value[activeCardIndex.value] ?? linkedCards.value[0])
+
+const isFlipped = computed(() => {
+  if (!activeSegment.value?.flip_ms) return false
+  return player.currentTime * 1000 >= activeSegment.value.flip_ms
+})
+
+const isThinking = computed(() => {
+  if (!activeSegment.value?.flip_ms) return false
+  const ms = player.currentTime * 1000
+  const thinkStart = activeSegment.value.flip_ms - 5400 // clock is ~5s + 400ms silence
+  return ms >= thinkStart && ms < activeSegment.value.flip_ms
+})
+
+const thinkProgress = computed(() => {
+  if (!isThinking.value || !activeSegment.value?.flip_ms) return 0
+  const ms = player.currentTime * 1000
+  const thinkStart = activeSegment.value.flip_ms - 5400
+  const elapsed = ms - thinkStart
+  return Math.min((elapsed / 5400) * 100, 100)
+})
+
 function onSeek(e: Event) {
   player.seek(Number((e.target as HTMLInputElement).value))
 }
 
 function formatTime(s: number): string {
-  const m = Math.floor(s / 60)
-  const sec = s % 60
+  const total = Math.floor(s)
+  const m = Math.floor(total / 60)
+  const sec = total % 60
   return `${m}:${sec.toString().padStart(2, '0')}`
 }
 
@@ -239,5 +285,22 @@ function formatDate(date: string): string {
 }
 .slide-up-enter-from, .slide-up-leave-to {
   transform: translateY(100%);
+}
+.perspective-1000 {
+  perspective: 1000px;
+}
+.backface-hidden {
+  backface-visibility: hidden;
+}
+.card-flip-enter-active, .card-flip-leave-active {
+  transition: transform 0.4s ease, opacity 0.2s ease;
+}
+.card-flip-enter-from {
+  transform: rotateY(90deg);
+  opacity: 0;
+}
+.card-flip-leave-to {
+  transform: rotateY(-90deg);
+  opacity: 0;
 }
 </style>

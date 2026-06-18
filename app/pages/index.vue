@@ -135,7 +135,7 @@
             <li>✓ Gerar cards <strong>ilimitado</strong></li>
             <li>✓ 15 processamentos de PDF/mês</li>
             <li>✓ Tira-dúvidas <strong>ilimitado</strong></li>
-            <li>✓ 5 revisões em áudio/mês</li>
+            <li>✓ 10 revisões em áudio/mês</li>
           </ul>
           <NuxtLink to="/criar-conta" class="btn-primary w-full justify-center">Quero memorizar de verdade</NuxtLink>
         </div>

@@ -5,24 +5,24 @@
       <NuxtLink to="/hoje" class="text-sm text-base-muted hover:text-base-primary transition-opacity">
         ← Voltar
       </NuxtLink>
-      <div class="flex items-center gap-3 text-small text-base-muted">
+      <div class="flex items-center gap-3 text-small text-base-secondary">
         <span v-if="isSurvivalMode" class="px-2 py-0.5 rounded-full text-micro uppercase tracking-wide font-medium bg-warning/15 text-warning">Sobrevivência</span>
         <span v-if="isBlitz" class="px-2 py-0.5 rounded-full text-micro uppercase tracking-wide font-medium bg-accent-primary/15 text-accent-primary">⚡ Relâmpago</span>
         <span v-if="sessionTimer > 0" class="font-mono" :class="sessionTimer <= 60 ? 'text-danger' : ''" aria-live="polite" :aria-label="`${formatTimer(sessionTimer)} restantes`">
           {{ formatTimer(sessionTimer) }}
         </span>
         <span v-if="review.currentCard" class="font-medium text-base-primary">{{ review.remaining <= 1 ? 'Último!' : `${review.remaining - 1} restante${review.remaining - 1 !== 1 ? 's' : ''}` }}</span>
-        <span class="text-micro opacity-50">{{ reviewMood }}</span>
+        <span class="text-micro text-base-muted">{{ reviewMood }}</span>
       </div>
-      <button class="px-3 py-1.5 rounded-full text-micro font-medium bg-primary-500/10 text-accent-primary border border-primary-200 hover:bg-primary-500/20 transition-colors" @click="dive.start()">
+      <button class="px-3 py-1.5 rounded-full text-micro font-medium bg-accent-primary-subtle0/10 text-accent-primary border border-[var(--color-accent-primary)]/20 hover:bg-accent-primary-subtle0/20 transition-colors" @click="dive.start()">
         🐬 Mergulhar
       </button>
     </div>
 
     <!-- Progress bar — thin, with pulse on update -->
-    <div class="w-full h-[3px] bg-surface-secondary">
+    <div class="w-full h-[3px] bg-[var(--border-base)]">
       <div
-        class="h-[3px] transition-all duration-500 ease-out bg-primary-500"
+        class="h-[3px] transition-all duration-500 ease-out bg-[var(--color-accent-soft)]"
         :class="progressPulse ? 'progress-pulse' : ''"
         :style="{ width: review.progress + '%' }"
       />
@@ -30,7 +30,7 @@
 
     <!-- Micro reward toast -->
     <Transition name="reward-pop">
-      <div v-if="rewardMessage" class="fixed top-16 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-[var(--bg-card)] border border-primary-200 text-sm text-accent-primary shadow-lg">
+      <div v-if="rewardMessage" class="fixed top-16 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-[var(--bg-card)] border border-[var(--color-accent-primary)]/20 text-sm text-accent-primary shadow-lg">
         {{ rewardMessage }}
       </div>
     </Transition>

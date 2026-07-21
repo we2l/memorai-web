@@ -11,7 +11,7 @@
             :key="opt.value"
             type="button"
             class="px-3 py-1.5 rounded-full text-xs font-medium transition-all"
-            :class="selected === opt.value ? 'bg-primary-50 text-accent-primary border border-primary-200' : 'bg-surface-secondary text-base-secondary border border-base hover:bg-surface-secondary'"
+            :class="selected === opt.value ? 'bg-accent-primary-subtle text-accent-primary border border-[var(--color-accent-primary)]/20' : 'bg-surface-secondary text-base-secondary border border-base hover:bg-surface-secondary'"
             @click="selected = opt.value"
           >
             {{ opt.icon }} {{ opt.label }}

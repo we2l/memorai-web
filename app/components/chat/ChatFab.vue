@@ -1,7 +1,7 @@
 <template>
   <button
     v-if="!chat.isOpen"
-    class="fixed z-40 rounded-full bg-primary-50 border border-primary-200 text-accent-primary hover:bg-primary-100 hover:border-primary-300 shadow-lg transition-all duration-200 flex items-center justify-center group"
+    class="fixed z-40 rounded-full bg-accent-primary-subtle border border-[var(--color-accent-primary)]/20 text-accent-primary hover:bg-[var(--color-accent-primary-subtle)] hover:border-[var(--color-accent-primary)]/40 shadow-lg transition-all duration-200 flex items-center justify-center group"
     :class="isMobile ? 'bottom-20 right-3 w-11 h-11' : 'bottom-6 right-6 h-11 px-3 gap-2 rounded-full'"
     :aria-label="label"
     @click="chat.toggle()"

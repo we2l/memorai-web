@@ -18,7 +18,7 @@ const props = withDefaults(defineProps<{
   width?: number
   height?: number
 }>(), {
-  color: '#6F3FF5',
+  color: 'var(--color-accent-primary)',
   width: 80,
   height: 24,
 })

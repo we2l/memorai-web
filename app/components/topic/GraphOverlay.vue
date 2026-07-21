@@ -108,7 +108,7 @@
               <div class="flex items-center gap-2 mb-3">
                 <div class="flex-1 h-1 rounded-full bg-[var(--bg-soft)]">
                   <div
-                    class="h-1 rounded-full bg-primary-500 transition-all"
+                    class="h-1 rounded-full bg-[var(--color-accent-soft)] transition-all"
                     :style="{ width: Math.round(graphStore.selectedNode.progress * 100) + '%' }"
                   />
                 </div>

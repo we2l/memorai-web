@@ -63,7 +63,7 @@
 
       <!-- Structure generating banner -->
       <div v-if="structureGenerating" class="mx-3 mb-2 px-3 py-2.5 rounded-lg bg-surface-secondary border border-base flex items-center gap-2">
-        <div class="w-4 h-4 border-2 border-primary-500 border-t-transparent rounded-full animate-spin shrink-0" />
+        <div class="w-4 h-4 border-2 border-[var(--color-accent-primary)] border-t-transparent rounded-full animate-spin shrink-0" />
         <p class="text-micro text-base-primary">Lendo o PDF e organizando cadernos...</p>
       </div>
 
@@ -120,7 +120,7 @@
             <div class="flex items-center gap-3">
               <div class="flex-1 h-1 rounded-full bg-surface-secondary overflow-hidden">
                 <div
-                  class="h-1 rounded-full bg-primary-500/65 transition-all duration-500"
+                  class="h-1 rounded-full bg-accent-primary-subtle0/65 transition-all duration-500"
                   :style="{ width: memorizeProgress + '%' }"
                 />
               </div>
@@ -158,7 +158,7 @@
 
         <!-- Podcast generate button -->
         <div v-if="selectedTopicId" class="mx-4 mb-3" :class="pendingCount <= 0 ? 'mt-5' : ''">
-          <button class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-[var(--bg-card)] border border-primary-100 hover:border-primary-200 hover:bg-surface-secondary transition-all text-left" @click="showPodcastSheet = true">
+          <button class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-[var(--bg-card)] border border-[var(--color-accent-primary)]/15 hover:border-[var(--color-accent-primary)]/20 hover:bg-surface-secondary transition-all text-left" @click="showPodcastSheet = true">
             <span class="text-xl">🎧</span>
             <div class="flex-1">
               <p class="text-sm text-base-primary font-medium">Revisar ouvindo seus erros</p>
@@ -183,7 +183,7 @@
           class="sticky top-0 z-10 px-4 py-2.5 border-b border-base bg-[var(--bg-card)]/95 backdrop-blur-md flex items-center justify-between"
         >
           <span class="text-small font-medium text-base-primary truncate">{{ selectedTopicName }}</span>
-          <NuxtLink v-if="dueCardsCount > 0" :to="`/revisar?topic_id=${selectedTopicId}`" class="btn-primary !py-2 !px-3.5 !min-h-[2.75rem] text-small shrink-0">
+          <NuxtLink v-if="dueCardsCount > 0" :to="`/revisar?topic_id=${selectedTopicId}`" class="btn-primary !py-2 !px-3.5 !min-h-[2.75rem] !text-sm shrink-0">
             Revisar {{ dueCardsCount }}
           </NuxtLink>
         </div>

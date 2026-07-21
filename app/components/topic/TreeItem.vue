@@ -88,7 +88,7 @@ const healthColor = computed(() => {
   const p = props.progressMap?.[props.topic.id]
   if (p === undefined) return 'bg-[var(--border-base)]'
   if (p < 0.3) return 'bg-red-400/70'
-  if (p < 0.7) return 'bg-primary-500/70'
-  return 'bg-primary-500'
+  if (p < 0.7) return 'bg-accent-primary-subtle0/70'
+  return 'bg-accent-primary-subtle0'
 })
 </script>

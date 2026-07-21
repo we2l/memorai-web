@@ -3,7 +3,7 @@
     <!-- Upload area -->
     <label
       class="flex items-center gap-3 px-4 py-3.5 rounded-xl border cursor-pointer transition-all"
-      :class="uploading ? 'opacity-50 pointer-events-none border-base bg-[var(--bg-card)]' : 'border-base bg-[var(--bg-card)] hover:border-primary-100 hover:bg-surface-secondary'"
+      :class="uploading ? 'opacity-50 pointer-events-none border-base bg-[var(--bg-card)]' : 'border-base bg-[var(--bg-card)] hover:border-[var(--color-accent-primary)]/15 hover:bg-surface-secondary'"
     >
       <Upload :size="20" class="text-accent-primary/70 shrink-0" />
       <div>
@@ -105,7 +105,7 @@
             <Sparkles :size="14" /> Gerar resumo com IA
           </button>
           <p class="text-micro text-base-muted text-center mt-1.5">Extrai conceitos, pegadinhas e pontos-chave</p>
-          <p v-if="doc.pages_count && doc.pages_count > 100" class="text-micro text-amber-400 text-center mt-1">
+          <p v-if="doc.pages_count && doc.pages_count > 100" class="text-micro text-warning text-center mt-1">
             ⚠️ Máximo 100 páginas para processar com IA
           </p>
         </div>

@@ -287,10 +287,10 @@ onBeforeUnmount(() => {
   margin: 0.5em 0;
 }
 .rich-input .tiptap .cloze-chip {
-  background: var(--color-primary-100, rgba(59, 130, 246, 0.15));
+  background: var(--color-accent-primary-subtle);
   border-radius: 4px;
   padding: 1px 4px;
-  border: 1px solid var(--color-primary-300, rgba(59, 130, 246, 0.3));
+  border: 1px solid var(--color-accent-soft);
   position: relative;
 }
 .rich-input .tiptap .cloze-chip::after {

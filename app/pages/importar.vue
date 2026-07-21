@@ -18,7 +18,7 @@
 
       <div
         class="mt-6 border border-base bg-[var(--bg-card)] rounded-xl p-8 transition-all"
-        :class="dragOver ? 'border-primary-200 bg-surface-secondary' : 'hover:border-strong'"
+        :class="dragOver ? 'border-[var(--color-accent-primary)]/20 bg-surface-secondary' : 'hover:border-strong'"
         @dragover.prevent="dragOver = true"
         @dragleave="dragOver = false"
         @drop.prevent="handleDrop"
@@ -102,7 +102,7 @@
 
       <div class="w-full h-3 rounded-full bg-[var(--border-divider)] overflow-hidden mb-2">
         <div
-          class="h-3 rounded-full bg-accent-primary transition-all duration-500"
+          class="h-3 rounded-full bg-[var(--color-accent-soft)] transition-all duration-500"
           :style="{ width: (store.status.progress_percent ?? 0) + '%' }"
         />
       </div>

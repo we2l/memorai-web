@@ -36,15 +36,15 @@
           class="w-full rounded-2xl bg-[var(--bg-card)] border border-base p-5 flex items-center gap-4 hover:border-strong transition-colors cursor-pointer shadow-lg"
           @click="player.expand()"
         >
-          <div class="w-14 h-14 rounded-xl bg-primary-50 border border-primary-200 flex items-center justify-center shrink-0">
-            <div class="w-3 h-3 rounded-full bg-primary-500 animate-pulse" />
+          <div class="w-14 h-14 rounded-xl bg-accent-primary-subtle border border-[var(--color-accent-primary)]/20 flex items-center justify-center shrink-0">
+            <div class="w-3 h-3 rounded-full bg-accent-primary-subtle0 animate-pulse" />
           </div>
           <div class="flex-1 min-w-0">
             <p class="text-sm text-base-primary font-medium truncate">{{ player.currentPodcast.title }}</p>
             <p class="text-xs text-base-muted mt-0.5">{{ formatTime(player.currentTime) }} / {{ formatTime(player.duration) }}</p>
           </div>
           <button
-            class="w-10 h-10 rounded-full bg-primary-500 flex items-center justify-center shrink-0 hover:brightness-110 transition-all"
+            class="w-10 h-10 rounded-full bg-accent-primary-subtle0 flex items-center justify-center shrink-0 hover:brightness-110 transition-all"
             @click.stop="player.togglePlay()"
           >
             <Pause v-if="player.isPlaying" :size="16" class="text-base-primary" />
@@ -136,7 +136,7 @@ function isGenerating(status: string) {
 }
 
 function statusBg(status: string) {
-  if (status === 'ready') return 'bg-primary-50'
+  if (status === 'ready') return 'bg-accent-primary-subtle'
   if (status === 'failed') return 'bg-red-500/10'
   return 'bg-surface-secondary'
 }

@@ -25,7 +25,7 @@ const label = computed(() => {
 const badgeClass = computed(() => {
   const classes: Record<string, string> = {
     free: 'bg-[var(--border-divider)] text-base-muted',
-    pro: 'bg-amber-500/15 text-amber-600',
+    pro: 'bg-accent-primary-subtle text-accent-primary',
   }
   return classes[props.plan] || classes.free
 })

@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-[linear-gradient(180deg,#FFFFFF,#F7F4FF)]">
+  <div class="min-h-screen" :class="colorMode === 'dark' ? 'bg-[#0F001F]' : 'bg-[linear-gradient(180deg,#FFFFFF,#F7F4FF)]'">
     <UiPaymentBanner />
     <UiSidebar v-show="!dive.active.value" />
     <UiBottomNav v-show="!dive.active.value" />
@@ -36,6 +36,7 @@
 const toast = useToast()
 const route = useRoute()
 const dive = useDiveMode()
+const { colorMode } = useColorMode()
 
 const player = usePlayerStore()
 const hasMiniplayer = computed(() => !!player.currentPodcast)

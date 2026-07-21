@@ -20,7 +20,7 @@
         </form>
 
         <!-- Generate suggestion banner -->
-        <div v-if="suggestGenerate" class="mb-4 px-4 py-3 rounded-xl bg-primary-500/10 backdrop-blur-sm border border-base flex items-center justify-between gap-3">
+        <div v-if="suggestGenerate" class="mb-4 px-4 py-3 rounded-xl bg-accent-primary-subtle0/10 backdrop-blur-sm border border-base flex items-center justify-between gap-3">
           <p class="text-small text-base-primary">Material salvo. Gerar cards com IA?</p>
           <div class="flex gap-2">
             <button class="btn-primary !py-1.5 !px-3 !min-h-0 text-small" @click="$emit('generate-from-note', 5); suggestGenerate = false">Gerar</button>
@@ -102,7 +102,7 @@
             v-for="n in [3, 5, 10]"
             :key="n"
             class="px-3 py-1.5 rounded-lg text-small font-medium transition-colors"
-            :class="generateCount === n ? 'bg-accent-primary text-surface' : 'bg-[var(--border-divider)] text-base-secondary hover:bg-[var(--border-divider)]/80'"
+            :class="generateCount === n ? 'bg-accent-primary text-white' : 'bg-[var(--border-divider)] text-base-secondary hover:bg-[var(--border-divider)]/80'"
             @click="generateCount = n"
           >
             {{ n }}

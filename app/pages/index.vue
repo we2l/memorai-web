@@ -126,7 +126,7 @@
         </div>
         <!-- Pro -->
         <div class="card py-8 px-6 border-accent-primary/30 relative">
-          <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent-primary text-surface text-micro font-semibold px-3 py-1 rounded-full">🔥 Mais popular</span>
+          <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent-primary text-white text-micro font-semibold px-3 py-1 rounded-full">🔥 Mais popular</span>
           <h3 class="text-title text-accent-primary mb-1">Pro</h3>
           <p class="text-2xl font-bold text-base-primary mb-1">R$ 24,90<span class="text-small font-normal text-base-muted">/mês</span></p>
           <p class="text-micro text-base-muted mb-4">Menos que um lanche por mês pra nunca mais esquecer</p>
@@ -165,7 +165,7 @@
             <p class="text-small font-medium text-base-primary mb-1">Podcast de Revisão</p>
             <p class="text-micro text-base-muted">5 min · Seus pontos fracos</p>
             <div class="mt-4 h-2 rounded-full bg-[var(--border-divider)] overflow-hidden">
-              <div class="h-2 rounded-full bg-accent-primary w-2/3" />
+              <div class="h-2 rounded-full bg-[var(--color-accent-soft)] w-2/3" />
             </div>
           </div>
         </div>

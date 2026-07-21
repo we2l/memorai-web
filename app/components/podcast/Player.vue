@@ -16,7 +16,7 @@
           min="0"
           :max="audioDuration || 100"
           :value="currentTime"
-          class="flex-1 h-1 accent-amber-600 cursor-pointer"
+          class="flex-1 h-1 accent-[var(--color-accent-soft)] cursor-pointer"
           aria-label="Progresso do áudio"
           @input="seek"
         />

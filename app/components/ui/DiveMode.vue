@@ -58,7 +58,7 @@
       <span v-if="dive.externalCountdown.value != null" class="font-mono text-sm text-accent-primary">
         {{ dive.formatElapsed(dive.externalCountdown.value) }}
       </span>
-      <span v-else class="font-mono text-sm text-accent-primary">{{ dive.formatElapsed(dive.elapsed.value) }}</span>
+      <span v-else class="font-mono text-sm text-[var(--color-accent-soft)]">{{ dive.formatElapsed(dive.elapsed.value) }}</span>
     </div>
     <button class="dive-exit" @click="exitDive">
       🐬 Emergir
@@ -271,8 +271,9 @@ function exitDive() {
   gap: 8px;
   padding: 6px 16px;
   border-radius: 9999px;
-  background: rgba(31, 35, 67, 0.6);
-  border: 1px solid rgba(111, 63, 245, 0.12);
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--border-base);
+  box-shadow: var(--shadow-sm);
   backdrop-filter: blur(8px);
   pointer-events: auto;
 }

@@ -89,7 +89,7 @@
           <div class="flex items-center justify-between mb-3">
             <label class="text-title">Novos cards por dia</label>
             <label class="flex items-center gap-2 text-small text-base-muted cursor-pointer">
-              <input type="checkbox" :checked="settings.daily_new_cards_limit === null" @change="settings.daily_new_cards_limit = ($event.target as HTMLInputElement).checked ? null : 20" class="accent-primary-500" />
+              <input type="checkbox" :checked="settings.daily_new_cards_limit === null" @change="settings.daily_new_cards_limit = ($event.target as HTMLInputElement).checked ? null : 20" class="accent-[var(--color-accent-primary)]" />
               Ilimitado
             </label>
           </div>
@@ -105,7 +105,7 @@
           <div class="flex items-center justify-between mb-3">
             <label class="text-title">Máximo de revisões por dia</label>
             <label class="flex items-center gap-2 text-small text-base-muted cursor-pointer">
-              <input type="checkbox" :checked="settings.daily_review_limit === null" @change="settings.daily_review_limit = ($event.target as HTMLInputElement).checked ? null : 100" class="accent-primary-500" />
+              <input type="checkbox" :checked="settings.daily_review_limit === null" @change="settings.daily_review_limit = ($event.target as HTMLInputElement).checked ? null : 100" class="accent-[var(--color-accent-primary)]" />
               Ilimitado
             </label>
           </div>

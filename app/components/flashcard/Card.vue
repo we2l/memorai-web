@@ -91,7 +91,7 @@ const currentAudio = computed(() =>
 .review-card {
   background: var(--bg-card);
   border: 1px solid var(--border-base);
-  border-left: 3px solid #6F3FF5;
+  border-left: 3px solid var(--color-accent-primary);
   box-shadow: var(--shadow-lg);
   transition: box-shadow 0.3s ease, border-color 0.3s ease;
 }

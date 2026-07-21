@@ -36,7 +36,7 @@
               min="0"
               :max="player.duration || 100"
               :value="player.currentTime"
-              class="w-full h-1.5 accent-amber-600 cursor-pointer"
+              class="w-full h-1.5 accent-[var(--color-accent-soft)] cursor-pointer"
               aria-label="Progresso"
               @input="onSeek"
             />
@@ -65,8 +65,8 @@
               :aria-label="player.isPlaying ? 'Pausar' : 'Reproduzir'"
               @click="player.togglePlay()"
             >
-              <Pause v-if="player.isPlaying" :size="24" class="text-base-primary" />
-              <Play v-else :size="24" class="text-base-primary ml-1" />
+              <Pause v-if="player.isPlaying" :size="24" class="text-white" />
+              <Play v-else :size="24" class="text-white ml-1" />
             </button>
             <button class="p-2 text-base-muted hover:text-base-primary" aria-label="Avançar 15s" @click="player.skip(15)">
               <RotateCw :size="22" />
@@ -128,7 +128,7 @@
 
             <!-- Think progress bar -->
             <div v-if="isThinking" class="w-full h-1 bg-[var(--border-divider)] rounded-full mt-3 overflow-hidden">
-              <div class="h-full bg-amber-500 transition-all duration-200 rounded-full" :style="{ width: thinkProgress + '%' }" />
+              <div class="h-full bg-[var(--color-accent-soft)] transition-all duration-200 rounded-full" :style="{ width: thinkProgress + '%' }" />
             </div>
 
             <!-- Card dots -->

@@ -12,8 +12,9 @@ export function useTopicCards() {
 
   const memorizeProgress = computed(() => {
     if (!cards.value.length) return 0
-    const mastered = cards.value.filter(c => c.state === 'review').length
-    return Math.round((mastered / cards.value.length) * 100)
+    const now = new Date()
+    const upToDate = cards.value.filter(c => c.state === 'review' && c.due && new Date(c.due) > now).length
+    return Math.round((upToDate / cards.value.length) * 100)
   })
 
   const dueCardsCount = computed(() => {

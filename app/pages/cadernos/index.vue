@@ -114,7 +114,7 @@
               <div class="min-w-0">
                 <h2 class="font-heading font-bold text-xl text-base-primary truncate">{{ selectedTopicName }}</h2>
                 <p v-if="topicCards.length" class="text-small text-base-muted mt-0.5">
-                  {{ memorizeProgress > 0 ? memorizeProgress + '% dominado · ' : '' }}{{ topicCards.length }} card{{ topicCards.length !== 1 ? 's' : '' }}
+                  {{ memorizeProgress > 0 ? memorizeProgress + '% em dia · ' : '' }}{{ topicCards.length }} card{{ topicCards.length !== 1 ? 's' : '' }}
                 </p>
               </div>
             </div>
@@ -125,7 +125,7 @@
             <div class="flex items-center gap-3">
               <div class="flex-1 h-1 rounded-full bg-surface-secondary overflow-hidden">
                 <div
-                  class="h-1 rounded-full bg-accent-primary-subtle0/65 transition-all duration-500"
+                  class="h-1 rounded-full bg-[var(--color-accent-primary)] transition-all duration-500"
                   :style="{ width: memorizeProgress + '%' }"
                 />
               </div>

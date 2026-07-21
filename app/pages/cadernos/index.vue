@@ -84,6 +84,7 @@
           @edit="openEdit"
           @delete="openDelete"
           @add-child="openCreate"
+          @structure-pdf="structurePdf.trigger()"
         />
       </div>
     </aside>

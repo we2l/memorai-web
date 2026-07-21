@@ -481,74 +481,12 @@ const newCardsCount = computed(() => {
 const pendingCount = computed(() => dueCardsCount.value + newCardsCount.value)
 
 const { sanitize } = useSanitize()
+const { toHtml, toText } = useTiptapRender()
 
 const noteContentHtml = computed(() => {
   if (!noteContent.value) return ''
-  return sanitize(extractHtmlFromTiptap(noteContent.value))
+  return sanitize(toHtml(noteContent.value))
 })
-
-function extractHtmlFromTiptap(doc: any): string {
-  if (!doc) return ''
-  if (typeof doc === 'string') return doc
-
-  if (doc.type === 'doc' && doc.content) {
-    return doc.content.map((n: any) => renderNode(n)).join('')
-  }
-
-  return renderNode(doc)
-}
-
-function renderNode(node: any): string {
-  if (!node) return ''
-
-  switch (node.type) {
-    case 'heading': {
-      const level = node.attrs?.level ?? 2
-      return `<h${level}>${renderChildren(node)}</h${level}>`
-    }
-    case 'paragraph':
-      return `<p>${renderChildren(node)}</p>`
-    case 'bulletList':
-      return `<ul>${renderChildren(node)}</ul>`
-    case 'orderedList':
-      return `<ol>${renderChildren(node)}</ol>`
-    case 'listItem':
-      return `<li>${renderChildren(node)}</li>`
-    case 'callout': {
-      const calloutType = node.attrs?.type || 'info'
-      return `<div class="callout callout-${calloutType}">${renderChildren(node)}</div>`
-    }
-    case 'blockquote':
-      return `<blockquote>${renderChildren(node)}</blockquote>`
-    case 'image':
-      return `<img src="${node.attrs?.src}" alt="${node.attrs?.alt || ''}" />`
-    case 'text': {
-      let text = escapeHtml(node.text || '')
-      if (node.marks) {
-        for (const mark of node.marks) {
-          if (mark.type === 'bold') text = `<strong>${text}</strong>`
-          else if (mark.type === 'italic') text = `<em>${text}</em>`
-          else if (mark.type === 'code') text = `<code>${text}</code>`
-        }
-      }
-      return text
-    }
-    default:
-      return renderChildren(node)
-  }
-}
-
-function renderChildren(node: any): string {
-  if (!node.content) return node.text ? escapeHtml(node.text) : ''
-  return node.content.map((child: any) => renderNode(child)).join('')
-}
-
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-}
 
 function cardsFromNote(noteId: string): number {
   return topicCards.value.filter(c => c.source_note_id === noteId).length
@@ -860,20 +798,6 @@ async function handleDeleteTopic() {
   if (selectedTopicId.value === deleteTopicId.value) selectedTopicId.value = null
   showDeleteTopic.value = false
   toast.show('Deletado.', 'success')
-}
-
-function extractTextFromTiptap(doc: any): string {
-  if (!doc) return ''
-  if (typeof doc === 'string') return doc
-  let text = ''
-  if (doc.text) text += doc.text
-  if (doc.content) {
-    for (const node of doc.content) {
-      text += extractTextFromTiptap(node)
-      if (node.type === 'paragraph' || node.type === 'heading') text += '\n'
-    }
-  }
-  return text.trim()
 }
 
 function getEditorHtml(): string {

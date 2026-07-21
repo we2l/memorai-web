@@ -3,14 +3,14 @@
     <Transition name="fade">
       <div
         v-if="modelValue"
-        class="fixed inset-0 z-50 bg-[#0F001F] flex flex-col"
+        class="fixed inset-0 z-50 bg-surface flex flex-col"
         role="dialog"
         aria-modal="true"
         aria-label="Mapa de Conhecimento"
         @keydown.escape="close"
       >
         <!-- Header -->
-        <div class="flex items-center gap-2 px-3 sm:px-4 py-3 border-b border-white/[0.06] shrink-0">
+        <div class="flex items-center gap-2 px-3 sm:px-4 py-3 border-b border-base shrink-0">
           <button class="btn-secondary !py-1.5 !px-3 !min-h-[2.75rem] text-small" @click="close">
             ← Voltar
           </button>
@@ -39,7 +39,7 @@
           <button v-else class="btn-danger !py-1.5 !px-3 !min-h-[2.75rem] text-small" @click="cancelConnectMode">
             <X :size="16" /> Cancelar
           </button>
-          <button class="p-2 rounded-lg text-white/40 hover:text-white hover:bg-white/[0.06]" aria-label="Fechar mapa" @click="close">
+          <button class="p-2 rounded-lg text-base-muted hover:text-base-primary hover:bg-surface-secondary" aria-label="Fechar mapa" @click="close">
             <X :size="20" />
           </button>
         </div>
@@ -53,7 +53,7 @@
         <!-- Weak topics banner -->
         <div v-else-if="weakNodesCount > 0" class="px-4 py-2.5 bg-danger/10 text-danger text-small text-center shrink-0 flex items-center justify-center gap-3 flex-wrap">
           <span>{{ weakNodesCount }} {{ weakNodesCount === 1 ? 'caderno precisa' : 'cadernos precisam' }} de atenção</span>
-          <button class="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-danger text-white text-micro font-medium hover:bg-danger/90 transition-colors" @click="showOnlyWeak = !showOnlyWeak">
+          <button class="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-danger text-base-primary text-micro font-medium hover:bg-danger/90 transition-colors" @click="showOnlyWeak = !showOnlyWeak">
             {{ showOnlyWeak ? 'Mostrar todos' : 'Ver quais' }}
           </button>
         </div>
@@ -96,7 +96,7 @@
           <!-- Node detail panel -->
           <aside
             v-if="graphStore.selectedNode"
-            class="max-sm:absolute max-sm:inset-0 max-sm:z-20 sm:w-80 border-l border-white/[0.06] bg-[#0A0017] flex flex-col overflow-y-auto shrink-0"
+            class="max-sm:absolute max-sm:inset-0 max-sm:z-20 sm:w-80 border-l border-base bg-surface-secondary flex flex-col overflow-y-auto shrink-0"
           >
             <div class="p-4 border-b border-base">
               <div class="flex items-center justify-between mb-2">
@@ -106,13 +106,13 @@
                 </button>
               </div>
               <div class="flex items-center gap-2 mb-3">
-                <div class="flex-1 h-1 rounded-full bg-white/[0.08]">
+                <div class="flex-1 h-1 rounded-full bg-[var(--bg-soft)]">
                   <div
-                    class="h-1 rounded-full bg-[#F4C84A] transition-all"
+                    class="h-1 rounded-full bg-primary-500 transition-all"
                     :style="{ width: Math.round(graphStore.selectedNode.progress * 100) + '%' }"
                   />
                 </div>
-                <span class="text-xs text-white/55">{{ Math.round(graphStore.selectedNode.progress * 100) }}%</span>
+                <span class="text-xs text-base-muted">{{ Math.round(graphStore.selectedNode.progress * 100) }}%</span>
               </div>
               <div class="flex gap-4 text-micro text-base-muted">
                 <span>{{ graphStore.selectedNode.flashcards_count }} cards</span>

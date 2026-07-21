@@ -14,14 +14,14 @@
             placeholder="Cole seu material de estudo aqui..."
             @keydown.stop
           />
-          <button type="submit" class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] !bg-white/[0.06] hover:!bg-white/[0.1] text-sm shrink-0" :disabled="!quickText.trim()">
+          <button type="submit" class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] !bg-surface-secondary hover:!bg-[var(--bg-soft)] text-sm shrink-0" :disabled="!quickText.trim()">
             + Adicionar
           </button>
         </form>
 
         <!-- Generate suggestion banner -->
-        <div v-if="suggestGenerate" class="mb-4 px-4 py-3 rounded-xl bg-[#4B007D]/80 backdrop-blur-sm border border-white/10 flex items-center justify-between gap-3">
-          <p class="text-small text-baigi-text">Material salvo. Gerar cards com IA?</p>
+        <div v-if="suggestGenerate" class="mb-4 px-4 py-3 rounded-xl bg-primary-500/10 backdrop-blur-sm border border-base flex items-center justify-between gap-3">
+          <p class="text-small text-base-primary">Material salvo. Gerar cards com IA?</p>
           <div class="flex gap-2">
             <button class="btn-primary !py-1.5 !px-3 !min-h-0 text-small" @click="$emit('generate-from-note', 5); suggestGenerate = false">Gerar</button>
             <button class="btn-secondary !py-1.5 !px-3 !min-h-0 text-small" @click="suggestGenerate = false">Depois</button>

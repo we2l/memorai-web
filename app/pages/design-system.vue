@@ -13,54 +13,54 @@ const sizes = ['sm', 'md', 'lg'] as const
     <div class="mx-auto max-w-4xl space-y-12">
       <!-- Header -->
       <header>
-        <h1 class="text-display text-baigi-text">BAIGI Design System</h1>
-        <p class="text-body text-baigi-text/60 mt-2">Living styleguide — dev only</p>
+        <h1 class="text-display text-base-primary">BAIGI Design System</h1>
+        <p class="text-body text-base-primary/60 mt-2">Living styleguide — dev only</p>
       </header>
 
       <!-- Colors -->
       <section>
-        <h2 class="text-headline text-baigi-text mb-4">Cores</h2>
+        <h2 class="text-headline text-base-primary mb-4">Cores</h2>
         <div class="grid grid-cols-2 gap-4 sm:grid-cols-5">
           <div class="space-y-2">
             <div class="h-16 rounded-xl bg-baigi-bg border border-white/10" />
-            <p class="text-micro text-baigi-text/60">bg #2B0057</p>
+            <p class="text-micro text-base-primary/60">bg #2B0057</p>
           </div>
           <div class="space-y-2">
             <div class="h-16 rounded-xl bg-baigi-bg-secondary" />
-            <p class="text-micro text-baigi-text/60">secondary #4B007D</p>
+            <p class="text-micro text-base-primary/60">secondary #4B007D</p>
           </div>
           <div class="space-y-2">
-            <div class="h-16 rounded-xl bg-baigi-primary" />
-            <p class="text-micro text-baigi-text/60">primary #F4C84A</p>
+            <div class="h-16 rounded-xl bg-primary-500" />
+            <p class="text-micro text-base-primary/60">primary #F4C84A</p>
           </div>
           <div class="space-y-2">
             <div class="h-16 rounded-xl bg-baigi-glow" />
-            <p class="text-micro text-baigi-text/60">glow #B96A3D</p>
+            <p class="text-micro text-base-primary/60">glow #B96A3D</p>
           </div>
           <div class="space-y-2">
             <div class="h-16 rounded-xl bg-baigi-dark-glow" />
-            <p class="text-micro text-baigi-text/60">dark-glow #5E2D46</p>
+            <p class="text-micro text-base-primary/60">dark-glow #5E2D46</p>
           </div>
         </div>
       </section>
 
       <!-- Typography -->
       <section>
-        <h2 class="text-headline text-baigi-text mb-4">Tipografia</h2>
+        <h2 class="text-headline text-base-primary mb-4">Tipografia</h2>
         <div class="space-y-3">
-          <p class="text-display text-baigi-text">Display — Plus Jakarta Sans 800</p>
-          <p class="text-headline text-baigi-text">Headline — Plus Jakarta Sans 700</p>
-          <p class="text-title text-baigi-text">Title — Inter 600</p>
-          <p class="text-body text-baigi-text">Body — Inter 400</p>
-          <p class="text-small text-baigi-text-muted">Small — Inter 400</p>
-          <p class="text-micro text-baigi-text-muted">Micro — Inter 400</p>
+          <p class="text-display text-base-primary">Display — Plus Jakarta Sans 800</p>
+          <p class="text-headline text-base-primary">Headline — Plus Jakarta Sans 700</p>
+          <p class="text-title text-base-primary">Title — Inter 600</p>
+          <p class="text-body text-base-primary">Body — Inter 400</p>
+          <p class="text-small text-base-primary-muted">Small — Inter 400</p>
+          <p class="text-micro text-base-primary-muted">Micro — Inter 400</p>
           <p class="text-label">LABEL — INTER 600 UPPERCASE</p>
         </div>
       </section>
 
       <!-- Buttons -->
       <section>
-        <h2 class="text-headline text-baigi-text mb-4">Botões</h2>
+        <h2 class="text-headline text-base-primary mb-4">Botões</h2>
         <div class="space-y-6">
           <div v-for="intent in buttons" :key="intent">
             <p class="text-label mb-2">{{ intent }}</p>
@@ -78,26 +78,26 @@ const sizes = ['sm', 'md', 'lg'] as const
 
       <!-- Cards -->
       <section>
-        <h2 class="text-headline text-baigi-text mb-4">Cards</h2>
+        <h2 class="text-headline text-base-primary mb-4">Cards</h2>
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div class="card">
-            <p class="text-title text-baigi-text">Card padrão</p>
-            <p class="text-small text-baigi-text-muted mt-1">Superfície secundária com borda sutil</p>
+            <p class="text-title text-base-primary">Card padrão</p>
+            <p class="text-small text-base-primary-muted mt-1">Superfície secundária com borda sutil</p>
           </div>
           <div class="card-interactive">
-            <p class="text-title text-baigi-text">Card interativo</p>
-            <p class="text-small text-baigi-text-muted mt-1">Hover com glow roxo</p>
+            <p class="text-title text-base-primary">Card interativo</p>
+            <p class="text-small text-base-primary-muted mt-1">Hover com glow roxo</p>
           </div>
           <div class="card-glow">
-            <p class="text-title text-baigi-text">Card glow</p>
-            <p class="text-small text-baigi-text-muted mt-1">Borda accent com sombra</p>
+            <p class="text-title text-base-primary">Card glow</p>
+            <p class="text-small text-base-primary-muted mt-1">Borda accent com sombra</p>
           </div>
         </div>
       </section>
 
       <!-- Inputs -->
       <section>
-        <h2 class="text-headline text-baigi-text mb-4">Inputs</h2>
+        <h2 class="text-headline text-base-primary mb-4">Inputs</h2>
         <div class="max-w-md space-y-4">
           <input class="input-base" placeholder="Input padrão..." />
           <textarea class="textarea-base" rows="3" placeholder="Textarea..." />
@@ -106,7 +106,7 @@ const sizes = ['sm', 'md', 'lg'] as const
 
       <!-- Badges -->
       <section>
-        <h2 class="text-headline text-baigi-text mb-4">Badges</h2>
+        <h2 class="text-headline text-base-primary mb-4">Badges</h2>
         <div class="flex flex-wrap gap-2">
           <span class="badge badge-primary">Primary</span>
           <span class="badge badge-accent">Accent</span>
@@ -119,7 +119,7 @@ const sizes = ['sm', 'md', 'lg'] as const
 
       <!-- Review Buttons -->
       <section>
-        <h2 class="text-headline text-baigi-text mb-4">Botões de Revisão</h2>
+        <h2 class="text-headline text-base-primary mb-4">Botões de Revisão</h2>
         <div class="grid grid-cols-4 gap-3 max-w-lg">
           <button class="btn-again">
             <span class="text-micro">Não lembrei</span>
@@ -138,9 +138,9 @@ const sizes = ['sm', 'md', 'lg'] as const
 
       <!-- Glow Effects -->
       <section>
-        <h2 class="text-headline text-baigi-text mb-4">Efeitos</h2>
+        <h2 class="text-headline text-base-primary mb-4">Efeitos</h2>
         <div class="flex gap-4">
-          <div class="h-16 w-16 rounded-full bg-baigi-primary glow-primary" />
+          <div class="h-16 w-16 rounded-full bg-primary-500 glow-primary" />
           <div class="h-16 w-16 rounded-full bg-baigi-accent glow-accent" />
           <div class="h-4 w-32 rounded-full skeleton mt-6" />
         </div>

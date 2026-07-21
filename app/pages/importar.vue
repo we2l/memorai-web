@@ -17,13 +17,13 @@
       </label>
 
       <div
-        class="mt-6 border border-white/[0.06] bg-white/[0.02] rounded-xl p-8 transition-all"
-        :class="dragOver ? 'border-[rgba(244,200,74,0.25)] bg-white/[0.04]' : 'hover:border-white/[0.1]'"
+        class="mt-6 border border-base bg-[var(--bg-card)] rounded-xl p-8 transition-all"
+        :class="dragOver ? 'border-primary-200 bg-surface-secondary' : 'hover:border-strong'"
         @dragover.prevent="dragOver = true"
         @dragleave="dragOver = false"
         @drop.prevent="handleDrop"
       >
-        <p class="text-sm text-white/[0.55]">ou arraste e solte aqui</p>
+        <p class="text-sm text-base-primary/[0.55]">ou arraste e solte aqui</p>
       </div>
     </div>
 

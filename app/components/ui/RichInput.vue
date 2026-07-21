@@ -297,7 +297,7 @@ onBeforeUnmount(() => {
   content: attr(data-cloze-index);
   font-size: 0.6em;
   font-weight: 700;
-  color: var(--color-primary-600, #2563eb);
+  color: var(--color-accent-primary);
   vertical-align: super;
   margin-left: 2px;
 }

@@ -54,11 +54,11 @@
   <!-- Active dive overlay -->
   <div v-if="dive.active.value && !showDiveAnimation && !showRiseAnimation" class="dive-overlay">
     <div class="dive-timer">
-      <span class="text-micro text-white/40 uppercase tracking-widest">Mergulho</span>
-      <span v-if="dive.externalCountdown.value != null" class="font-mono text-sm text-baigi-primary">
+      <span class="text-micro text-base-muted uppercase tracking-widest">Mergulho</span>
+      <span v-if="dive.externalCountdown.value != null" class="font-mono text-sm text-accent-primary">
         {{ dive.formatElapsed(dive.externalCountdown.value) }}
       </span>
-      <span v-else class="font-mono text-sm text-baigi-primary">{{ dive.formatElapsed(dive.elapsed.value) }}</span>
+      <span v-else class="font-mono text-sm text-accent-primary">{{ dive.formatElapsed(dive.elapsed.value) }}</span>
     </div>
     <button class="dive-exit" @click="exitDive">
       🐬 Emergir
@@ -286,7 +286,7 @@ function exitDive() {
   border-radius: 9999px;
   background: rgba(244, 200, 74, 0.1);
   border: 1px solid rgba(244, 200, 74, 0.25);
-  color: #F4C84A;
+  color: var(--color-accent-primary);
   font-size: 0.8rem;
   font-weight: 500;
   cursor: pointer;

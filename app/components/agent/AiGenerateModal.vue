@@ -9,7 +9,7 @@
           v-for="tab in tabs"
           :key="tab.value"
           class="px-4 py-2 rounded-lg text-small transition-colors"
-          :class="source === tab.value ? 'bg-accent-primary text-white' : 'bg-surface-tertiary text-base-muted hover:text-base-primary'"
+          :class="source === tab.value ? 'bg-accent-primary text-base-primary' : 'bg-surface-tertiary text-base-muted hover:text-base-primary'"
           role="tab"
           :aria-selected="source === tab.value"
           @click="source = tab.value"

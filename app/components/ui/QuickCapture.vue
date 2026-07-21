@@ -2,7 +2,7 @@
   <div>
     <!-- Trigger button -->
     <button
-      class="fixed z-40 bg-white/[0.08] border border-white/[0.1] rounded-full p-3 shadow-lg hover:bg-white/[0.12] transition-all right-4 hidden sm:block text-white/70 hover:text-white"
+      class="fixed z-40 bg-[var(--bg-soft)] border border-base rounded-full p-3 shadow-lg hover:bg-surface-secondary transition-all right-4 hidden sm:block text-base-secondary hover:text-base-primary"
       :class="isOpen ? '!hidden' : ''"
       style="bottom: 80px;"
       title="Anotar rapidamente (Ctrl+N)"

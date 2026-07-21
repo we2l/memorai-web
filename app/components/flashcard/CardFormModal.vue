@@ -51,7 +51,7 @@
               @focus="previewSide = 'back'"
             />
           </div>
-          <div v-else class="flex-1 flex items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-6">
+          <div v-else class="flex-1 flex items-center justify-center rounded-xl border border-base bg-[var(--bg-card)] px-4 py-6">
             <p class="text-small text-base-muted text-center">O verso é gerado automaticamente pelas lacunas.</p>
           </div>
 
@@ -88,7 +88,7 @@
             :key="idx"
             type="button"
             class="px-2 py-0.5 rounded text-micro font-medium transition-colors"
-            :class="previewClozeIndex === idx ? 'bg-accent-primary text-white' : 'bg-surface-tertiary text-base-muted hover:text-base-primary'"
+            :class="previewClozeIndex === idx ? 'bg-accent-primary text-base-primary' : 'bg-surface-tertiary text-base-muted hover:text-base-primary'"
             @click="previewClozeIndex = idx"
           >
             c{{ idx }}

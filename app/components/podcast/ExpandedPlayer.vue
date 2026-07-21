@@ -65,8 +65,8 @@
               :aria-label="player.isPlaying ? 'Pausar' : 'Reproduzir'"
               @click="player.togglePlay()"
             >
-              <Pause v-if="player.isPlaying" :size="24" class="text-white" />
-              <Play v-else :size="24" class="text-white ml-1" />
+              <Pause v-if="player.isPlaying" :size="24" class="text-base-primary" />
+              <Play v-else :size="24" class="text-base-primary ml-1" />
             </button>
             <button class="p-2 text-base-muted hover:text-base-primary" aria-label="Avançar 15s" @click="player.skip(15)">
               <RotateCw :size="22" />

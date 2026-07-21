@@ -25,11 +25,11 @@
         <Transition name="answer-expand">
           <div v-if="flipped" class="w-full max-w-md">
             <div class="flex items-center gap-3 mb-6">
-              <div class="flex-1 h-px bg-white/[0.08]" />
-              <span class="text-micro uppercase tracking-widest text-white/40">Resposta</span>
-              <div class="flex-1 h-px bg-white/[0.08]" />
+              <div class="flex-1 h-px bg-[var(--bg-soft)]" />
+              <span class="text-micro uppercase tracking-widest text-base-muted">Resposta</span>
+              <div class="flex-1 h-px bg-[var(--bg-soft)]" />
             </div>
-            <div class="text-base text-white/80 leading-relaxed card-content" v-html="displayBack" />
+            <div class="text-base text-base-secondary leading-relaxed card-content" v-html="displayBack" />
             <div v-if="currentAudio" class="mt-4 w-full max-w-xs mx-auto" @click.stop>
               <UiAudioPlayer :src="currentAudio" />
             </div>
@@ -89,19 +89,19 @@ const currentAudio = computed(() =>
 
 <style scoped>
 .review-card {
-  background: linear-gradient(180deg, #1A0C2E 0%, #150A25 100%);
-  border: 1px solid rgba(255, 255, 255, 0.04);
-  border-left: 2px solid rgba(244, 200, 74, 0.3);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  background: var(--bg-card);
+  border: 1px solid var(--border-base);
+  border-left: 3px solid #6F3FF5;
+  box-shadow: var(--shadow-lg);
   transition: box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
-/* Micro feedback — golden glow on success */
+/* Micro feedback — purple glow on success */
 .feedback-success {
-  border-color: rgba(244, 200, 74, 0.4);
+  border-color: rgba(34, 197, 94, 0.4);
   box-shadow:
-    0 20px 60px rgba(0, 0, 0, 0.5),
-    0 0 40px rgba(244, 200, 74, 0.1);
+    var(--shadow-lg),
+    0 0 40px rgba(34, 197, 94, 0.1);
   animation: settle 0.3s ease;
 }
 
@@ -109,7 +109,7 @@ const currentAudio = computed(() =>
 .feedback-error {
   border-color: rgba(239, 68, 68, 0.4);
   box-shadow:
-    0 20px 60px rgba(0, 0, 0, 0.5),
+    var(--shadow-lg),
     0 0 40px rgba(239, 68, 68, 0.12);
   animation: shake 0.3s ease;
 }

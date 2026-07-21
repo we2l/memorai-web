@@ -138,7 +138,7 @@
             <button
               v-for="sub in subTopics"
               :key="sub.id"
-              class="text-sm px-2.5 py-1 rounded-full border transition-colors"
+              class="text-sm px-2.5 py-1 rounded-full border transition-all hover:brightness-90 hover:shadow-sm cursor-pointer"
               :style="chipStyle(sub.id)"
               @click="selectTopic(sub.id)"
             >

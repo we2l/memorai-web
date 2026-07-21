@@ -282,12 +282,13 @@
   gap: 0.5rem;
   box-shadow: var(--shadow-sm);
   &:hover {
-    background-color: var(--color-accent-primary-subtle);
-    border-color: var(--color-accent-primary);
+    background-color: var(--bg-soft);
+    border-color: var(--color-accent-soft);
     box-shadow: var(--shadow-md);
   }
   &:active {
     background-color: var(--color-accent-primary-subtle);
+    border-color: var(--color-accent-soft);
   }
 }
 
@@ -669,6 +670,11 @@ body {
 
 button {
   cursor: pointer;
+  outline: none;
+  &:focus-visible {
+    box-shadow: 0 0 0 2px var(--bg-card), 0 0 0 4px var(--color-accent-soft);
+    border-radius: 8px;
+  }
 }
 
 /* Scrollbar */

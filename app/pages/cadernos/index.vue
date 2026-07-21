@@ -1,5 +1,5 @@
 <template>
-  <div class="flex h-[calc(100vh-64px)]">
+  <div class="flex h-screen">
     <!-- Sidebar: Topic tree (desktop: inline, mobile: overlay) -->
     <aside
       class="border-r border-base flex flex-col shrink-0 transition-all duration-200 bg-[var(--bg-card)]"

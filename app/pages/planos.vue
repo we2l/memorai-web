@@ -45,7 +45,7 @@
 
         <p class="text-label uppercase tracking-wide mb-1 text-accent-primary">Pro</p>
         <p class="text-3xl font-bold text-base-primary mb-1">
-          R$14<span class="text-lg">,90</span>
+          R$24<span class="text-lg">,90</span>
           <span class="text-small font-normal text-base-muted">/mês</span>
         </p>
         <p class="text-micro text-base-muted mb-6">Sem limites. Sem interrupções.</p>
@@ -71,7 +71,7 @@
           <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> Gerar cards <strong>ilimitado</strong></li>
           <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> Tira-dúvidas <strong>ilimitado</strong></li>
           <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> 15 processamentos de PDF/mês</li>
-          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> 5 revisões em áudio/mês</li>
+          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> 10 revisões em áudio/mês (até 15 min)</li>
         </ul>
       </div>
     </div>
@@ -95,14 +95,14 @@
         <button
           class="card p-4 flex items-center justify-between hover:border-accent-primary/30 transition-colors text-left"
           :disabled="loading"
-          @click="buyAddon('podcast_pack')"
+          @click="buyAddon('reta_final')"
         >
           <div>
-            <p class="text-small font-medium text-base-primary">🎧 +5 Revisões em áudio</p>
-            <p class="text-micro text-base-muted">Ouça seus pontos fracos no ônibus</p>
+            <p class="text-small font-medium text-base-primary">🎧 Reta Final — 3 sessões longas</p>
+            <p class="text-micro text-base-muted">30+ min em debate, modo pré-prova intensivo</p>
           </div>
-          <span v-if="loadingAddon === 'podcast_pack'" class="text-small text-base-muted animate-pulse">Abrindo...</span>
-          <span v-else class="text-small font-semibold text-accent-primary">R$9,90</span>
+          <span v-if="loadingAddon === 'reta_final'" class="text-small text-base-muted animate-pulse">Abrindo...</span>
+          <span v-else class="text-small font-semibold text-accent-primary">R$14,90</span>
         </button>
         <button
           class="card p-4 flex items-center justify-between hover:border-accent-primary/30 transition-colors text-left"

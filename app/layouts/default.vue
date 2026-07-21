@@ -1,22 +1,18 @@
 <template>
-  <div class="min-h-screen bg-surface">
+  <div class="min-h-screen bg-[#0F001F]">
     <UiPaymentBanner />
-    <UiSidebar />
-    <UiBottomNav />
+    <UiSidebar v-show="!dive.active.value" />
+    <UiBottomNav v-show="!dive.active.value" />
+    <UiDiveMode />
 
-    <main class="lg:ml-[220px] relative" :class="mainPadding">
-      <div class="absolute top-3 z-10" :class="showThemeToggle === 'side' ? 'right-3' : 'left-1/2 -translate-x-1/2'">
-        <button
-          class="p-2 rounded-lg text-base-muted hover:text-accent-primary hover:bg-surface-tertiary/50 transition-colors"
-          :title="colorMode === 'dark' ? 'Modo claro' : 'Modo escuro'"
-          aria-label="Alternar tema"
-          @click="toggle"
-        >
-          <Sun v-if="colorMode === 'dark'" :size="20" :stroke-width="1.5" />
-          <Moon v-else :size="20" :stroke-width="1.5" />
-        </button>
+    <main class="relative min-h-screen overflow-hidden transition-[margin] duration-500" :class="[mainPadding, dive.active.value ? '' : 'lg:ml-[220px]']">
+      <!-- Ambient Glow (subtle — atmosphere, not UI) -->
+      <div class="absolute -top-48 -left-48 w-[500px] h-[500px] rounded-full bg-[#B96A3D] blur-[180px] opacity-[0.12] pointer-events-none z-0" aria-hidden="true" />
+      <div class="absolute -bottom-48 -right-48 w-[400px] h-[400px] rounded-full bg-[#4B007D] blur-[180px] opacity-[0.12] pointer-events-none z-0" aria-hidden="true" />
+
+      <div class="relative z-10">
+        <slot />
       </div>
-      <slot />
     </main>
 
     <UiToast
@@ -41,21 +37,12 @@
 </template>
 
 <script setup lang="ts">
-import { Sun, Moon } from 'lucide-vue-next'
-
 const toast = useToast()
-const { colorMode, toggle } = useColorMode()
 const route = useRoute()
-
-const showThemeToggle = computed(() => {
-  const path = route.path
-  if (path === '/revisar' || path === '/grafo') return 'side'
-  return 'center'
-})
+const dive = useDiveMode()
 
 const player = usePlayerStore()
 const hasMiniplayer = computed(() => !!player.currentPodcast)
-// pb-20 = bottom nav (mobile), +16 = miniplayer extra space
 const mainPadding = computed(() => {
   if (hasMiniplayer.value) return 'pb-36 lg:pb-20'
   return 'pb-20 lg:pb-0'

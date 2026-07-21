@@ -5,11 +5,11 @@
       <div v-for="item in items" :key="item.key" class="flex items-center gap-2.5">
         <span
           class="w-5 h-5 rounded-full flex items-center justify-center text-micro shrink-0"
-          :class="item.done ? 'bg-success text-white' : 'border-2 border-base'"
+          :class="item.done ? 'bg-baigi-primary text-[#1A0033]' : 'border-2 border-white/20'"
         >
           <span v-if="item.done">✓</span>
         </span>
-        <span class="text-small" :class="item.done ? 'text-base-muted line-through' : 'text-base-primary'">
+        <span class="text-small" :class="item.done ? 'text-base-muted line-through' : 'text-baigi-text'">
           {{ item.label }}
         </span>
       </div>

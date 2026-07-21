@@ -24,7 +24,7 @@ function nodeRadius(d: D3Node): number {
 function nodeColor(d: D3Node): string {
   if (d.flashcards_count === 0) return '#706B64' // warm muted
   if (d.progress < 0.3) return '#EF4444' // red danger
-  if (d.progress < 0.7) return '#D97706' // amber active
+  if (d.progress < 0.7) return '#F4C84A' // gold active
   return '#22C55E' // green mastered
 }
 
@@ -83,11 +83,12 @@ export function useGraph(
       .attr('width', width)
       .attr('height', height)
 
-    // Zoom
+    // Zoom (smaller steps for smoother control)
     const g = svg.append('g')
     svg.call(
       d3.zoom<SVGSVGElement, unknown>()
-        .scaleExtent([0.2, 4])
+        .scaleExtent([0.3, 3])
+        .wheelDelta((event: WheelEvent) => -event.deltaY * 0.002)
         .on('zoom', (event) => {
           g.attr('transform', event.transform)
         }),

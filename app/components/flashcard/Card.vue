@@ -4,7 +4,7 @@
     <Transition name="card-slide" mode="out-in">
       <div
         :key="card.id"
-        class="review-card relative rounded-2xl px-5 sm:px-12 py-8 sm:py-12 min-h-[280px] sm:min-h-[360px] flex flex-col items-center justify-center text-center"
+        class="review-card relative rounded-2xl px-6 sm:px-10 py-10 sm:py-12 min-h-[280px] sm:min-h-[360px] flex flex-col items-center justify-center text-center"
         :class="[feedbackClass, { 'cursor-pointer select-none': !flipped }]"
         style="z-index: 1;"
         @click="!flipped && $emit('flip')"
@@ -25,11 +25,11 @@
         <Transition name="answer-expand">
           <div v-if="flipped" class="w-full max-w-md">
             <div class="flex items-center gap-3 mb-6">
-              <div class="flex-1 h-px bg-black/10 dark:bg-white/10" />
-              <span class="text-micro uppercase tracking-widest text-base-muted/50">Resposta</span>
-              <div class="flex-1 h-px bg-black/10 dark:bg-white/10" />
+              <div class="flex-1 h-px bg-white/[0.08]" />
+              <span class="text-micro uppercase tracking-widest text-white/40">Resposta</span>
+              <div class="flex-1 h-px bg-white/[0.08]" />
             </div>
-            <div class="text-lg text-base-primary leading-relaxed card-content" v-html="displayBack" />
+            <div class="text-base text-white/80 leading-relaxed card-content" v-html="displayBack" />
             <div v-if="currentAudio" class="mt-4 w-full max-w-xs mx-auto" @click.stop>
               <UiAudioPlayer :src="currentAudio" />
             </div>
@@ -56,6 +56,7 @@ const props = defineProps<{
 defineEmits<{ flip: [] }>()
 
 const { renderQuestion, renderAnswer } = useCloze()
+const { sanitize } = useSanitize()
 const config = useRuntimeConfig()
 const apiOrigin = config.public.apiBase.replace('/api', '')
 
@@ -73,12 +74,12 @@ const isCloze = computed(() => props.card.type === 'cloze')
 
 const displayFront = computed(() => {
   const html = isCloze.value ? renderQuestion(props.card.front, props.card.cloze_index ?? undefined) : props.card.front
-  return resolveMedia(html)
+  return sanitize(resolveMedia(html))
 })
 
 const displayBack = computed(() => {
   const html = isCloze.value ? renderAnswer(props.card.front, props.card.cloze_index ?? undefined) : props.card.back
-  return resolveMedia(html)
+  return sanitize(resolveMedia(html))
 })
 
 const currentAudio = computed(() =>
@@ -88,30 +89,19 @@ const currentAudio = computed(() =>
 
 <style scoped>
 .review-card {
-  background: #FFFFFF;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid #EAEAEA;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  background: linear-gradient(180deg, #1A0C2E 0%, #150A25 100%);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-left: 2px solid rgba(244, 200, 74, 0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
   transition: box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
-:where(.dark) .review-card {
-  background: rgba(16, 14, 12, 0.85);
-  border-color: rgba(217, 119, 6, 0.12);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.03),
-    0 20px 60px rgba(0, 0, 0, 0.5),
-    0 0 30px rgba(217, 119, 6, 0.05);
-}
-
-/* Micro feedback — green glow on success */
+/* Micro feedback — golden glow on success */
 .feedback-success {
-  border-color: rgba(34, 197, 94, 0.4);
+  border-color: rgba(244, 200, 74, 0.4);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.03),
     0 20px 60px rgba(0, 0, 0, 0.5),
-    0 0 40px rgba(34, 197, 94, 0.15);
+    0 0 40px rgba(244, 200, 74, 0.1);
   animation: settle 0.3s ease;
 }
 
@@ -119,9 +109,8 @@ const currentAudio = computed(() =>
 .feedback-error {
   border-color: rgba(239, 68, 68, 0.4);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.03),
     0 20px 60px rgba(0, 0, 0, 0.5),
-    0 0 40px rgba(239, 68, 68, 0.15);
+    0 0 40px rgba(239, 68, 68, 0.12);
   animation: shake 0.3s ease;
 }
 

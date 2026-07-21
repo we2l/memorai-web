@@ -14,11 +14,11 @@ export default defineNuxtConfig({
   pwa: {
     registerType: 'autoUpdate',
     manifest: {
-      name: 'Memorai',
-      short_name: 'Memorai',
-      description: 'Memora aí — sua memória com IA',
-      theme_color: '#522A6F',
-      background_color: '#1A1A1D',
+      name: 'BAIGI',
+      short_name: 'BAIGI',
+      description: 'Estude de forma mais inteligente — repetição espaçada com IA',
+      theme_color: '#180838',
+      background_color: '#180838',
       display: 'standalone',
       scope: '/',
       start_url: '/dashboard',
@@ -42,13 +42,13 @@ export default defineNuxtConfig({
 
   app: {
     head: {
-      htmlAttrs: { lang: 'pt-BR', class: 'dark' },
-      title: 'Memorai',
+      htmlAttrs: { lang: 'pt-BR' },
+      title: 'BAIGI',
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { name: 'description', content: 'Memora aí — sua memória com IA' },
-        { name: 'theme-color', content: '#522A6F' },
+        { name: 'description', content: 'Estude de forma mais inteligente — repetição espaçada com IA' },
+        { name: 'theme-color', content: '#180838' },
         { name: 'apple-mobile-web-app-capable', content: 'yes' },
         { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
       ],
@@ -57,7 +57,7 @@ export default defineNuxtConfig({
         { rel: 'apple-touch-icon', href: '/apple-touch-icon.svg' },
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
-        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap' },
+        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Fredoka:wght@600;700&family=Inter:wght@400;500;600&family=Poppins:wght@600;700;800&display=swap' },
       ],
     },
   },

@@ -92,7 +92,7 @@
             {{ stateIcon(card.state) }}
           </div>
           <div class="flex-1 min-w-0">
-            <div class="text-body text-base-primary line-clamp-2 card-front-preview" v-html="card.front" />
+            <div class="text-body text-base-primary line-clamp-2 card-front-preview" v-html="sanitize(card.front)" />
             <p class="text-small text-base-muted mt-0.5">
               {{ stateLabel(card.state) }}
               <span v-if="card.source_note_id"> · {{ noteNameById(card.source_note_id) }}</span>
@@ -100,7 +100,7 @@
             <!-- Verso (expandable) -->
             <div v-if="expandedCardId === card.id" class="mt-2 pt-2 border-t border-base">
               <p class="text-micro text-base-muted mb-1">Verso</p>
-              <div class="text-small text-base-secondary card-front-preview" v-html="card.back" />
+              <div class="text-small text-base-secondary card-front-preview" v-html="sanitize(card.back)" />
             </div>
           </div>
           <div class="flex items-center gap-1 shrink-0">
@@ -146,6 +146,8 @@
 
 <script setup lang="ts">
 import { Plus, Search, Trash2, Pencil, ChevronDown, ChevronUp, Camera } from 'lucide-vue-next'
+
+const { sanitize } = useSanitize()
 
 const props = defineProps<{
   topicId: string

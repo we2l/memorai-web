@@ -51,7 +51,7 @@
               @focus="previewSide = 'back'"
             />
           </div>
-          <div v-else class="flex-1 flex items-center justify-center rounded-lg border border-dashed border-base bg-surface-tertiary/50 px-4 py-6">
+          <div v-else class="flex-1 flex items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-6">
             <p class="text-small text-base-muted text-center">O verso é gerado automaticamente pelas lacunas.</p>
           </div>
 

@@ -297,14 +297,24 @@ export interface Podcast {
   id: string
   title: string
   status: 'pending' | 'generating_script' | 'generating_audio' | 'ready' | 'failed'
+  content_mode?: PodcastContentMode | null
   script?: string
   audio_url?: string | null
   duration_seconds?: number | null
+  duration_target?: PodcastDuration | null
+  tone?: PodcastTone | null
+  format?: PodcastFormat | null
+  topic_id?: string | null
+  topic_name?: string | null
   source_data?: { topic_names?: string[]; card_count?: number; error_count?: number } | null
+  card_ids?: string[] | null
+  timestamps?: { type: string; start_ms: number; end_ms: number; flip_ms?: number; card_index?: number }[] | null
+  session_id?: string | null
+  episode_number?: number | null
   created_at: string
 }
 
-
+export type PodcastContentMode = 'weak_points' | 'general_review' | 'pre_exam'
 export type PodcastDuration = 'short' | 'medium' | 'long'
 export type PodcastTone = 'formal' | 'conversational' | 'motivational' | 'didactic'
 export type PodcastFormat = 'expository' | 'debate'

@@ -14,7 +14,7 @@
         <span v-if="review.currentCard" class="font-medium text-base-primary">{{ review.remaining <= 1 ? 'Último!' : `${review.remaining - 1} restante${review.remaining - 1 !== 1 ? 's' : ''}` }}</span>
         <span class="text-micro opacity-50">{{ reviewMood }}</span>
       </div>
-      <button class="px-3 py-1.5 rounded-full text-micro font-medium bg-primary-500/10 text-accent-primary border border-baigi-primary/20 hover:bg-primary-500/20 transition-colors" @click="dive.start()">
+      <button class="px-3 py-1.5 rounded-full text-micro font-medium bg-primary-500/10 text-accent-primary border border-primary-200 hover:bg-primary-500/20 transition-colors" @click="dive.start()">
         🐬 Mergulhar
       </button>
     </div>

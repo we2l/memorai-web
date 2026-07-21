@@ -88,7 +88,7 @@
             :key="idx"
             type="button"
             class="px-2 py-0.5 rounded text-micro font-medium transition-colors"
-            :class="previewClozeIndex === idx ? 'bg-accent-primary text-base-primary' : 'bg-surface-tertiary text-base-muted hover:text-base-primary'"
+            :class="previewClozeIndex === idx ? 'bg-accent-primary text-base-primary' : 'bg-[var(--border-divider)] text-base-muted hover:text-base-primary'"
             @click="previewClozeIndex = idx"
           >
             c{{ idx }}

@@ -36,7 +36,7 @@
           class="w-full rounded-2xl bg-[var(--bg-card)] border border-base p-5 flex items-center gap-4 hover:border-strong transition-colors cursor-pointer shadow-lg"
           @click="player.expand()"
         >
-          <div class="w-14 h-14 rounded-xl bg-primary-50 border border-[rgba(244,200,74,0.2)] flex items-center justify-center shrink-0">
+          <div class="w-14 h-14 rounded-xl bg-primary-50 border border-primary-200 flex items-center justify-center shrink-0">
             <div class="w-3 h-3 rounded-full bg-primary-500 animate-pulse" />
           </div>
           <div class="flex-1 min-w-0">
@@ -77,7 +77,7 @@
               <p class="text-small text-base-primary font-medium truncate">{{ podcast.title }}</p>
               <div class="flex items-center gap-2 text-micro text-base-muted mt-0.5">
                 <span v-if="podcast.status === 'ready' && podcast.duration_seconds">{{ formatDuration(podcast.duration_seconds) }}</span>
-                <span v-if="podcast.status === 'ready' && podcast.format" class="px-1.5 py-0.5 rounded bg-surface-tertiary text-micro">{{ podcast.format === 'debate' ? 'Debate' : 'Expositivo' }}</span>
+                <span v-if="podcast.status === 'ready' && podcast.format" class="px-1.5 py-0.5 rounded bg-[var(--border-divider)] text-micro">{{ podcast.format === 'debate' ? 'Debate' : 'Expositivo' }}</span>
                 <span v-if="isGenerating(podcast.status)">{{ statusLabel(podcast.status) }}</span>
                 <span v-if="podcast.status === 'failed'" class="text-danger">Falhou</span>
                 <span>{{ timeAgo(podcast.created_at) }}</span>
@@ -136,7 +136,7 @@ function isGenerating(status: string) {
 }
 
 function statusBg(status: string) {
-  if (status === 'ready') return 'bg-[rgba(244,200,74,0.08)]'
+  if (status === 'ready') return 'bg-primary-50'
   if (status === 'failed') return 'bg-red-500/10'
   return 'bg-surface-secondary'
 }

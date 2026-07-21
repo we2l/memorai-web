@@ -66,7 +66,7 @@ withDefaults(defineProps<{
 /* Celebrating: bounce alto + glow + wiggle */
 .baigi--celebrating .baigi-svg {
   animation: baigi-celebrate 1.2s ease-out;
-  filter: drop-shadow(0 0 8px rgba(244, 200, 74, 0.5));
+  filter: drop-shadow(0 0 8px rgba(111, 63, 245, 0.4));
 }
 
 /* Subtle: just breathing, lower opacity */

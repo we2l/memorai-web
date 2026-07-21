@@ -164,7 +164,7 @@
             <span class="text-4xl block mb-3">🎧</span>
             <p class="text-small font-medium text-base-primary mb-1">Podcast de Revisão</p>
             <p class="text-micro text-base-muted">5 min · Seus pontos fracos</p>
-            <div class="mt-4 h-2 rounded-full bg-surface-tertiary overflow-hidden">
+            <div class="mt-4 h-2 rounded-full bg-[var(--border-divider)] overflow-hidden">
               <div class="h-2 rounded-full bg-accent-primary w-2/3" />
             </div>
           </div>

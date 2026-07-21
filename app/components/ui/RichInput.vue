@@ -6,20 +6,20 @@
         :key="btn.label"
         type="button"
         class="p-1 rounded text-small transition-colors"
-        :class="btn.active() ? 'bg-accent-primary-subtle text-accent-primary' : 'text-base-muted hover:bg-surface-tertiary'"
+        :class="btn.active() ? 'bg-accent-primary-subtle text-accent-primary' : 'text-base-muted hover:bg-[var(--border-divider)]'"
         :title="btn.label"
         @click="btn.action"
       >
         <component :is="btn.icon" :size="14" />
       </button>
 
-      <div class="w-px h-4 bg-surface-tertiary mx-1" />
+      <div class="w-px h-4 bg-[var(--border-divider)] mx-1" />
 
       <!-- Mic -->
       <button
         type="button"
         class="p-1 rounded text-small transition-colors"
-        :class="recording ? 'bg-danger/15 text-danger' : 'text-base-muted hover:bg-surface-tertiary'"
+        :class="recording ? 'bg-danger/15 text-danger' : 'text-base-muted hover:bg-[var(--border-divider)]'"
         :title="recording ? 'Parar gravação' : 'Gravar áudio'"
         @click="toggleRecording"
       >

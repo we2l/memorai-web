@@ -59,7 +59,7 @@
         </div>
       </div>
       <div class="flex items-center justify-between">
-        <span class="text-micro text-base-muted">{{ stats?.reviewed_today ?? 0 }} revisados hoje</span>
+        <span class="text-micro text-base-secondary">{{ stats?.reviewed_today ?? 0 }} revisados hoje</span>
         <NuxtLink to="/revisar" class="btn-primary glow-primary">Começar revisão</NuxtLink>
       </div>
     </div>
@@ -85,8 +85,8 @@
     <div v-if="stats" class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
       <div class="card md:col-span-2 h-full flex flex-col justify-between">
         <div class="flex items-center justify-between mb-3">
-          <p class="text-xs uppercase tracking-wider text-base-muted font-medium">Seu ritmo hoje</p>
-          <span class="text-lg font-semibold text-base-primary">{{ stats.due_today ?? 0 }} <span class="text-xs font-normal text-base-muted">restantes</span></span>
+          <p class="text-xs uppercase tracking-wider text-base-secondary font-medium">Seu ritmo hoje</p>
+          <span class="text-lg font-semibold text-base-primary">{{ stats.due_today ?? 0 }} <span class="text-xs font-normal text-base-secondary">restantes</span></span>
         </div>
         <div class="h-1 rounded-full bg-[var(--bg-soft)] overflow-hidden">
           <div class="h-1 rounded-full bg-primary-500 transition-all duration-500" :style="{ width: progressPercent + '%' }" />
@@ -97,10 +97,10 @@
         </div>
       </div>
       <div class="flex flex-col gap-2 h-full">
-        <NuxtLink to="/revisar?errors_only=1" class="btn-secondary justify-center text-small flex-1">
+        <NuxtLink to="/revisar?errors_only=1" class="inline-flex items-center justify-center px-4 py-2.5 rounded-xl bg-primary-50 text-primary-500 text-small font-medium hover:bg-primary-100 border border-primary-200 transition-colors flex-1">
           Revisar só erros
         </NuxtLink>
-        <NuxtLink to="/importar" class="btn-secondary justify-center text-small flex-1">
+        <NuxtLink to="/importar" class="inline-flex items-center justify-center px-4 py-2.5 rounded-xl bg-primary-50 text-primary-500 text-small font-medium hover:bg-primary-100 border border-primary-200 transition-colors flex-1">
           Importar Anki
         </NuxtLink>
       </div>
@@ -122,9 +122,9 @@
     <div v-if="pendingActions.length" class="mt-10">
       <p class="text-label mb-3">Pra hoje</p>
       <div class="space-y-2">
-        <div v-for="action in pendingActions" :key="action.label" class="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-surface-secondary border border-base">
+        <div v-for="action in pendingActions" :key="action.label" class="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-[var(--bg-card)] border border-base shadow-sm">
           <span class="text-small text-base-primary truncate min-w-0">{{ action.label }}</span>
-          <NuxtLink :to="action.url" class="btn-secondary !py-1 !px-3 !min-h-[2.75rem] text-small shrink-0">
+          <NuxtLink :to="action.url" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-primary-50 text-primary-500 text-small font-medium hover:bg-primary-100 transition-colors shrink-0">
             {{ action.action_label }}
           </NuxtLink>
         </div>

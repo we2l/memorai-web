@@ -2,7 +2,7 @@
   <div class="border border-base rounded-lg overflow-hidden flex flex-col h-full">
     <!-- Toolbar -->
     <div v-if="editor" class="flex flex-wrap gap-1 p-2 border-b border-base bg-surface-secondary shrink-0">
-      <button v-for="btn in toolbar" :key="btn.label" class="p-1.5 rounded text-small transition-colors" :class="btn.active?.() ? 'bg-accent-primary-subtle text-accent-primary' : 'text-base-muted hover:bg-surface-tertiary'" :title="btn.label" @click="btn.action">
+      <button v-for="btn in toolbar" :key="btn.label" class="p-1.5 rounded text-small transition-colors" :class="btn.active?.() ? 'bg-accent-primary-subtle text-accent-primary' : 'text-base-muted hover:bg-[var(--border-divider)]'" :title="btn.label" @click="btn.action">
         <component :is="btn.icon" :size="16" />
       </button>
     </div>

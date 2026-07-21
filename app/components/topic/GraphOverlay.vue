@@ -79,7 +79,7 @@
                 <button
                   v-for="node in searchResults"
                   :key="node.id"
-                  class="w-full text-left px-3 py-2 text-small hover:bg-surface-tertiary transition-colors truncate"
+                  class="w-full text-left px-3 py-2 text-small hover:bg-[var(--border-divider)] transition-colors truncate"
                   @click="selectSearchResult(node.id)"
                 >
                   {{ node.name }}
@@ -101,7 +101,7 @@
             <div class="p-4 border-b border-base">
               <div class="flex items-center justify-between mb-2">
                 <h3 class="text-title truncate">{{ graphStore.selectedNode.name }}</h3>
-                <button class="p-1 rounded hover:bg-surface-tertiary" @click="graphStore.clearSelection()">
+                <button class="p-1 rounded hover:bg-[var(--border-divider)]" @click="graphStore.clearSelection()">
                   <X :size="16" class="text-base-muted" />
                 </button>
               </div>
@@ -152,7 +152,7 @@
         <UiModal v-model="showLabelModal" size="sm">
           <h2 class="text-headline mb-4">Conectar cadernos</h2>
           <p class="text-small text-base-secondary mb-3">{{ connectSourceName }} ↔ {{ connectTargetName }}</p>
-          <p class="text-micro text-base-muted mb-3 bg-surface-tertiary rounded-lg px-3 py-2">💡 Cadernos conectados são revisados juntos — o algoritmo mistura cards dos dois pra fortalecer a memória.</p>
+          <p class="text-micro text-base-muted mb-3 bg-[var(--border-divider)] rounded-lg px-3 py-2">💡 Cadernos conectados são revisados juntos — o algoritmo mistura cards dos dois pra fortalecer a memória.</p>
           <input v-model="connectLabel" class="input-base" placeholder="Label (opcional, ex: 'é exceção de')" @keydown.enter="confirmConnection" />
           <div class="flex gap-3 justify-end mt-4">
             <button class="btn-secondary" @click="cancelLabel">Cancelar</button>

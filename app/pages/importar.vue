@@ -53,15 +53,15 @@
 
         <!-- Stats -->
         <div class="grid grid-cols-3 gap-3 mb-4">
-          <div class="bg-surface-tertiary rounded-lg p-3 text-center">
+          <div class="bg-[var(--border-divider)] rounded-lg p-3 text-center">
             <p class="text-title text-accent-primary">{{ store.preview.total_cards }}</p>
             <p class="text-micro text-base-muted">Cards</p>
           </div>
-          <div class="bg-surface-tertiary rounded-lg p-3 text-center">
+          <div class="bg-[var(--border-divider)] rounded-lg p-3 text-center">
             <p class="text-title text-accent-primary">{{ store.preview.tags.length }}</p>
             <p class="text-micro text-base-muted">Tags → Cadernos</p>
           </div>
-          <div class="bg-surface-tertiary rounded-lg p-3 text-center">
+          <div class="bg-[var(--border-divider)] rounded-lg p-3 text-center">
             <p class="text-title text-accent-primary">{{ store.preview.media_count }}</p>
             <p class="text-micro text-base-muted">Media</p>
           </div>
@@ -71,9 +71,9 @@
         <div class="mb-4">
           <p class="text-label mb-2">Tipos de card</p>
           <div class="flex gap-3 text-small">
-            <span v-if="store.preview.note_types.Basic" class="px-2 py-1 rounded bg-surface-tertiary">Basic: {{ store.preview.note_types.Basic }}</span>
-            <span v-if="store.preview.note_types.Cloze" class="px-2 py-1 rounded bg-surface-tertiary">Cloze: {{ store.preview.note_types.Cloze }}</span>
-            <span v-if="store.preview.note_types.Other" class="px-2 py-1 rounded bg-surface-tertiary">Outros: {{ store.preview.note_types.Other }}</span>
+            <span v-if="store.preview.note_types.Basic" class="px-2 py-1 rounded bg-[var(--border-divider)]">Basic: {{ store.preview.note_types.Basic }}</span>
+            <span v-if="store.preview.note_types.Cloze" class="px-2 py-1 rounded bg-[var(--border-divider)]">Cloze: {{ store.preview.note_types.Cloze }}</span>
+            <span v-if="store.preview.note_types.Other" class="px-2 py-1 rounded bg-[var(--border-divider)]">Outros: {{ store.preview.note_types.Other }}</span>
           </div>
         </div>
 
@@ -81,7 +81,7 @@
         <div v-if="store.preview.tags.length">
           <p class="text-label mb-2">Tags encontradas</p>
           <div class="flex flex-wrap gap-1">
-            <span v-for="tag in store.preview.tags" :key="tag" class="px-2 py-0.5 rounded-full bg-surface-tertiary text-micro text-base-muted">
+            <span v-for="tag in store.preview.tags" :key="tag" class="px-2 py-0.5 rounded-full bg-[var(--border-divider)] text-micro text-base-muted">
               {{ tag }}
             </span>
           </div>
@@ -100,7 +100,7 @@
       <p class="text-title mb-2">Importando...</p>
       <p class="text-small text-base-muted mb-4">{{ stepLabel }}</p>
 
-      <div class="w-full h-3 rounded-full bg-surface-tertiary overflow-hidden mb-2">
+      <div class="w-full h-3 rounded-full bg-[var(--border-divider)] overflow-hidden mb-2">
         <div
           class="h-3 rounded-full bg-accent-primary transition-all duration-500"
           :style="{ width: (store.status.progress_percent ?? 0) + '%' }"
@@ -121,19 +121,19 @@
       <p class="text-5xl mb-4">🎉</p>
       <h2 class="text-display mb-2">Importação concluída!</h2>
       <div class="grid grid-cols-2 gap-3 max-w-xs mx-auto mt-4 mb-6">
-        <div class="bg-surface-tertiary rounded-lg p-3">
+        <div class="bg-[var(--border-divider)] rounded-lg p-3">
           <p class="text-title text-accent-primary">{{ store.status.stats?.decks_created }}</p>
           <p class="text-micro text-base-muted">Decks</p>
         </div>
-        <div class="bg-surface-tertiary rounded-lg p-3">
+        <div class="bg-[var(--border-divider)] rounded-lg p-3">
           <p class="text-title text-accent-primary">{{ store.status.stats?.cards_created }}</p>
           <p class="text-micro text-base-muted">Cards</p>
         </div>
-        <div class="bg-surface-tertiary rounded-lg p-3">
+        <div class="bg-[var(--border-divider)] rounded-lg p-3">
           <p class="text-title text-accent-primary">{{ store.status.stats?.topics_created }}</p>
           <p class="text-micro text-base-muted">Cadernos</p>
         </div>
-        <div class="bg-surface-tertiary rounded-lg p-3">
+        <div class="bg-[var(--border-divider)] rounded-lg p-3">
           <p class="text-title text-accent-primary">{{ store.status.stats?.media_extracted }}</p>
           <p class="text-micro text-base-muted">Media</p>
         </div>

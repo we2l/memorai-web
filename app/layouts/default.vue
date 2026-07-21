@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-surface">
+  <div class="min-h-screen bg-[linear-gradient(180deg,#FFFFFF,#F7F4FF)]">
     <UiPaymentBanner />
     <UiSidebar v-show="!dive.active.value" />
     <UiBottomNav v-show="!dive.active.value" />

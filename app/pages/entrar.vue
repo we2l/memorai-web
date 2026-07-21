@@ -9,7 +9,7 @@
     <!-- Google OAuth -->
     <button
       type="button"
-      class="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-border bg-surface-secondary hover:bg-surface-tertiary transition-colors mb-8"
+      class="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-border bg-surface-secondary hover:bg-[var(--border-divider)] transition-colors mb-8"
       :disabled="googleLoading"
       @click="loginWithGoogle"
     >

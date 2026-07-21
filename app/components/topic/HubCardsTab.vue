@@ -11,7 +11,7 @@
     />
 
     <!-- Weak cards (errors compact) -->
-    <div v-if="errorPatterns && errorPatterns.total_errors > 0" class="mb-4 px-4 py-3 rounded-xl bg-surface-tertiary/50 flex items-center justify-between gap-3">
+    <div v-if="errorPatterns && errorPatterns.total_errors > 0" class="mb-4 px-4 py-3 rounded-xl bg-[var(--border-divider)]/50 flex items-center justify-between gap-3">
       <div class="flex items-center gap-2 text-small text-base-muted flex-wrap">
         <span>Pontos fracos:</span>
         <span v-for="(count, reason) in errorPatterns.patterns" :key="reason">
@@ -63,7 +63,7 @@
 
     <!-- Card list -->
     <div v-if="cards.length" class="space-y-1.5">
-      <div v-if="cards.length > 10" class="flex items-center gap-2 p-2 rounded-lg bg-surface-tertiary mb-2">
+      <div v-if="cards.length > 10" class="flex items-center gap-2 p-2 rounded-lg bg-[var(--border-divider)] mb-2">
         <Search :size="14" class="text-base-muted shrink-0" />
         <input
           v-model="search"
@@ -86,7 +86,7 @@
             :class="{
               'bg-success/15 text-success': card.state === 'review',
               'bg-warning/15 text-warning': card.state === 'learning' || card.state === 'relearning',
-              'bg-surface-tertiary text-base-muted': card.state === 'new',
+              'bg-[var(--border-divider)] text-base-muted': card.state === 'new',
             }"
           >
             {{ stateIcon(card.state) }}

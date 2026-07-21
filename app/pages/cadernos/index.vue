@@ -2,7 +2,7 @@
   <div class="flex h-[calc(100vh-64px)]">
     <!-- Sidebar: Topic tree (desktop: inline, mobile: overlay) -->
     <aside
-      class="border-r border-base flex flex-col shrink-0 transition-all duration-200 bg-surface-secondary"
+      class="border-r border-base flex flex-col shrink-0 transition-all duration-200 bg-[var(--bg-card)]"
       :class="[
         sidebarCollapsed ? 'w-0 overflow-hidden' : 'w-72',
         'max-lg:fixed max-lg:inset-0 max-lg:z-40 max-lg:w-full max-lg:border-r-0',
@@ -180,7 +180,7 @@
         <!-- Sticky header (appears on scroll) -->
         <div
           v-if="showStickyHeader"
-          class="sticky top-0 z-10 px-4 py-2.5 border-b border-base bg-overlay flex items-center justify-between"
+          class="sticky top-0 z-10 px-4 py-2.5 border-b border-base bg-[var(--bg-card)]/95 backdrop-blur-md flex items-center justify-between"
         >
           <span class="text-small font-medium text-base-primary truncate">{{ selectedTopicName }}</span>
           <NuxtLink v-if="dueCardsCount > 0" :to="`/revisar?topic_id=${selectedTopicId}`" class="btn-primary !py-2 !px-3.5 !min-h-[2.75rem] text-small shrink-0">
@@ -292,7 +292,7 @@
     </main>
 
     <!-- Mobile: sticky bottom review button -->
-    <div v-if="selectedTopicId && dueCardsCount > 0" class="lg:hidden fixed bottom-16 left-0 right-0 p-3 bg-overlay border-t border-base z-30 flex gap-2">
+    <div v-if="selectedTopicId && dueCardsCount > 0" class="lg:hidden fixed bottom-16 left-0 right-0 p-3 bg-[var(--bg-card)]/95 backdrop-blur-md border-t border-base z-30 flex gap-2">
       <NuxtLink :to="`/revisar?mode=blitz&topic_id=${selectedTopicId}`" class="btn-secondary flex-none justify-center !py-2.5 !px-3">
         ⚡ Rápida
       </NuxtLink>

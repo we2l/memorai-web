@@ -1,5 +1,5 @@
 <template>
-  <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-surface-tertiary">
+  <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--border-divider)]">
     <button
       type="button"
       class="w-7 h-7 rounded-full flex items-center justify-center transition-colors shrink-0"

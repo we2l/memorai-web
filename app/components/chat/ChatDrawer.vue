@@ -4,7 +4,7 @@
     <Transition name="fade">
       <div
         v-if="chat.isOpen"
-        class="fixed inset-0 bg-black/40 z-40"
+        class="fixed inset-0 bg-overlay z-40"
         @click="chat.close()"
       />
     </Transition>
@@ -30,21 +30,21 @@
           </div>
           <div class="flex items-center gap-2">
             <button
-              class="p-2.5 rounded-lg text-base-muted hover:text-base-secondary hover:bg-surface-tertiary transition-colors"
+              class="p-2.5 rounded-lg text-base-muted hover:text-base-secondary hover:bg-[var(--border-divider)] transition-colors"
               title="Histórico"
               @click="showHistory = !showHistory"
             >
               <Clock :size="16" />
             </button>
             <button
-              class="p-2.5 rounded-lg text-base-muted hover:text-base-secondary hover:bg-surface-tertiary transition-colors"
+              class="p-2.5 rounded-lg text-base-muted hover:text-base-secondary hover:bg-[var(--border-divider)] transition-colors"
               title="Nova conversa"
               @click="chat.newConversation()"
             >
               <Plus :size="16" />
             </button>
             <button
-              class="p-2.5 rounded-lg text-base-muted hover:text-base-secondary hover:bg-surface-tertiary transition-colors"
+              class="p-2.5 rounded-lg text-base-muted hover:text-base-secondary hover:bg-[var(--border-divider)] transition-colors"
               aria-label="Fechar chat"
               @click="chat.close()"
             >
@@ -58,7 +58,7 @@
           <button
             v-for="conv in chat.conversations"
             :key="conv.id"
-            class="w-full text-left px-4 py-2 text-small hover:bg-surface-tertiary transition-colors truncate"
+            class="w-full text-left px-4 py-2 text-small hover:bg-[var(--border-divider)] transition-colors truncate"
             :class="chat.currentId === conv.id && 'text-accent-primary bg-accent-primary-subtle'"
             @click="chat.loadConversation(conv.id); showHistory = false"
           >
@@ -70,7 +70,7 @@
         <!-- Card anexado (quando vem de erro na revisão) -->
         <div
           v-if="chat.currentContext.source === 'review_error' && chat.currentContext.cardFront"
-          class="mx-4 mt-3 p-3 rounded-lg bg-surface-tertiary border border-base text-small"
+          class="mx-4 mt-3 p-3 rounded-lg bg-[var(--border-divider)] border border-base text-small"
         >
           <p class="text-micro text-base-muted mb-1">Card errado:</p>
           <p class="text-base-primary" v-html="sanitize(chat.currentContext.cardFront)" />
@@ -93,7 +93,7 @@
               class="max-w-[85%] rounded-2xl px-3.5 py-2.5 text-small"
               :class="msg.role === 'user'
                 ? 'bg-accent-primary text-base-primary rounded-br-md'
-                : 'bg-surface-tertiary text-base-primary rounded-bl-md prose-chat'"
+                : 'bg-[var(--border-divider)] text-base-primary rounded-bl-md prose-chat'"
               v-html="msg.role === 'assistant' ? sanitize(marked.parse(msg.content) as string) : sanitize(msg.content)"
             />
           </div>
@@ -111,7 +111,7 @@
           </div>
 
           <div v-if="chat.sending" class="flex justify-start">
-            <div class="bg-surface-tertiary rounded-2xl rounded-bl-md px-3.5 py-2.5">
+            <div class="bg-[var(--border-divider)] rounded-2xl rounded-bl-md px-3.5 py-2.5">
               <span class="text-base-muted text-small animate-pulse">Pensando...</span>
             </div>
           </div>

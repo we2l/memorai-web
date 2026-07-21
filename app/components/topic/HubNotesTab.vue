@@ -34,7 +34,7 @@
             v-for="note in notes"
             :key="note.id"
             class="w-full text-left px-3 py-2.5 rounded-lg transition-colors flex items-center gap-3"
-            :class="activeNote?.id === note.id ? 'bg-accent-primary-subtle text-accent-primary' : 'hover:bg-surface-tertiary text-base-secondary'"
+            :class="activeNote?.id === note.id ? 'bg-accent-primary-subtle text-accent-primary' : 'hover:bg-[var(--border-divider)] text-base-secondary'"
             @click="$emit('open-note', note)"
           >
             <FileText :size="16" class="shrink-0 opacity-60" />
@@ -102,7 +102,7 @@
             v-for="n in [3, 5, 10]"
             :key="n"
             class="px-3 py-1.5 rounded-lg text-small font-medium transition-colors"
-            :class="generateCount === n ? 'bg-accent-primary text-surface' : 'bg-surface-tertiary text-base-secondary hover:bg-surface-tertiary/80'"
+            :class="generateCount === n ? 'bg-accent-primary text-surface' : 'bg-[var(--border-divider)] text-base-secondary hover:bg-[var(--border-divider)]/80'"
             @click="generateCount = n"
           >
             {{ n }}

@@ -22,24 +22,6 @@
           </div>
         </div>
         <div class="flex items-center gap-2">
-          <button
-            v-if="(topicStore.tree?.length ?? 0) >= 5"
-            class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small flex-1 justify-center"
-            @click="showGraph = true"
-          >
-            <Network :size="16" /> Mapa
-          </button>
-          <div v-else class="relative flex-1 group">
-            <button
-              class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small w-full justify-center opacity-50 cursor-not-allowed"
-              disabled
-            >
-              <Network :size="16" /> Mapa
-            </button>
-            <span class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 rounded-lg bg-[var(--bg-card)] border border-base shadow-lg text-micro text-base-muted whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-              Disponível com 5+ cadernos ({{ topicStore.tree?.length ?? 0 }}/5)
-            </span>
-          </div>
           <div class="relative flex-1">
             <button class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small w-full justify-center" data-tour="create-notebook" @click="showAddMenu = !showAddMenu">
               <Plus :size="16" /> Novo
@@ -68,18 +50,41 @@
       </div>
 
       <div class="flex-1 overflow-y-auto p-2">
+        <!-- Search -->
+        <div class="px-2 pb-2">
+          <div class="relative">
+            <Search :size="14" class="absolute left-2.5 top-1/2 -translate-y-1/2 text-base-muted pointer-events-none" />
+            <input
+              v-model="searchQuery"
+              type="text"
+              class="input-base w-full !py-2 !pl-8 !pr-8 !text-small"
+              placeholder="Buscar caderno..."
+              @keydown.esc="searchQuery = ''"
+            />
+            <button
+              v-if="searchQuery"
+              class="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded text-base-muted hover:text-base-primary"
+              @click="searchQuery = ''"
+            >
+              <X :size="12" />
+            </button>
+          </div>
+        </div>
+
         <div v-if="topicStore.loading" class="space-y-2 p-2">
           <div v-for="i in 4" :key="i" class="skeleton h-8 rounded" />
         </div>
         <TopicTree
           v-else
-          :topics="topicStore.tree"
+          :topics="filteredTree"
           :selected-id="selectedTopicId"
           :progress-map="progressMap"
+          :force-expand="!!searchQuery"
           @select="selectTopic"
           @edit="openEdit"
           @delete="openDelete"
           @add-child="openCreate"
+          @structure-pdf="structurePdf.trigger()"
         />
       </div>
     </aside>
@@ -113,6 +118,13 @@
                 </p>
               </div>
             </div>
+            <button
+              class="btn-secondary !p-2 !min-h-0 shrink-0"
+              title="Mapa de conhecimento"
+              @click="showGraph = true"
+            >
+              <Network :size="18" />
+            </button>
           </div>
 
           <!-- Progress bar -->
@@ -377,7 +389,7 @@
 </template>
 
 <script setup lang="ts">
-import { Plus, Network, PanelLeftClose, PanelLeftOpen, X } from 'lucide-vue-next'
+import { Plus, Network, Search, PanelLeftClose, PanelLeftOpen, X } from 'lucide-vue-next'
 import type { Topic, Note } from '~/types'
 
 const topicStore = useTopicStore()
@@ -391,6 +403,7 @@ const selectedTopicId = ref<string | null>(null)
 const sidebarCollapsed = ref(false)
 const sidebarOpen = ref(true)
 const activeTab = ref('notes')
+const searchQuery = ref('')
 const { topicCards, showDeleteCard, deleteCardId, memorizeProgress, dueCardsCount, newCardsCount, pendingCount, setCards, cardsFromNote, confirmDeleteCard, handleDeleteCard } = useTopicCards()
 const { noteTitle, noteContent, editingNote, selectedText, showDeleteNote, flushPendingSave, debouncedSave, saveTitle, selectNote, openNoteEditor, closeEditor, handleQuickAdd, createNote, handleDeleteNote } = useNoteEditor(selectedTopicId)
 const errorPatterns = ref<any>(null)
@@ -468,6 +481,22 @@ const subTopics = computed(() => {
     return []
   }
   return findChildren(topicStore.tree, selectedTopicId.value)
+})
+
+const filteredTree = computed(() => {
+  const q = searchQuery.value.trim().toLowerCase()
+  if (!q) return topicStore.tree
+  function filterTopics(topics: Topic[]): Topic[] {
+    return topics.reduce<Topic[]>((acc, topic) => {
+      const nameMatches = topic.name.toLowerCase().includes(q)
+      const filteredChildren = filterTopics(topic.children ?? [])
+      if (nameMatches || filteredChildren.length) {
+        acc.push({ ...topic, children: nameMatches ? (topic.children ?? []) : filteredChildren })
+      }
+      return acc
+    }, [])
+  }
+  return filterTopics(topicStore.tree)
 })
 
 const headerRef = ref<HTMLElement>()

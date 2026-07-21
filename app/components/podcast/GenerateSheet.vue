@@ -191,10 +191,10 @@ const generating = computed(() => podcastStore.generating)
 const usageText = computed(() => props.usage ? `${props.usage.used}/${props.usage.limit} este mês` : null)
 
 const estimatedTime = computed(() => {
-  const base = duration.value === 'short' ? 1 : duration.value === 'medium' ? 2 : 3
-  const debateMultiplier = format.value === 'debate' ? 1.5 : 1
-  const minutes = Math.ceil(base * debateMultiplier)
-  return `⏱️ ~${minutes}-${minutes + 1} min para gerar`
+  if (retaFinalMode.value) return '⏱️ ~10-12 min para gerar'
+  const isDebate = format.value === 'debate'
+  if (duration.value === 'short') return isDebate ? '⏱️ ~4-5 min para gerar' : '⏱️ ~3-4 min para gerar'
+  return isDebate ? '⏱️ ~7-9 min para gerar' : '⏱️ ~5-6 min para gerar'
 })
 
 function openUpgrade() {
@@ -249,8 +249,8 @@ const format = ref<PodcastFormat>('expository')
 const contentMode = ref<PodcastContentMode>('weak_points')
 const host1Name = ref('Ana')
 const host1Voice = ref('Achird')
-const host2Name = ref('Lucas')
-const host2Voice = ref('Despina')
+const host2Name = ref(auth.user?.name?.split(' ')[0] || 'Lucas')
+const host2Voice = ref('Charon')
 const showAdvanced = ref(false)
 const fetchedWeakCount = ref(0)
 

@@ -554,15 +554,6 @@ function askAiAboutSelection() {
   })
 }
 
-function openChatForPdf(docId: string) {
-  const chat = useChatStore()
-  chat.newConversation()
-  chat.open({ topicId: selectedTopicId.value ?? undefined, documentId: docId, source: 'pdf_summary' })
-  nextTick(() => {
-    chat.sendMessage('Resuma este documento pra mim, destacando os pontos mais importantes.')
-  })
-}
-
 const structurePdf = useStructurePdf()
 const { fileInput: structureFileInput, generating: structureGenerating } = structurePdf
 

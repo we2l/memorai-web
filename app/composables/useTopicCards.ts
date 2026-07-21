@@ -1,5 +1,3 @@
-import type { Ref, ComputedRef } from 'vue'
-
 /**
  * Composable para gestão de cards de um tópico.
  * Gerencia refs de cards, computeds de estado (due, new, progress) e delete.

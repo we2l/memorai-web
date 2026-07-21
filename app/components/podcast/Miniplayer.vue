@@ -1,16 +1,16 @@
 <template>
   <div
     v-if="player.currentPodcast"
-    class="fixed left-0 lg:left-[220px] right-0 z-40 bg-[#0A0017] border-t border-white/[0.06]"
+    class="fixed left-0 lg:left-[240px] right-0 z-40 bg-[var(--bg-card)] border-t border-base shadow-[0_-4px_16px_rgba(45,35,66,0.06)]"
     :class="isMobile ? 'bottom-16' : 'bottom-0'"
   >
-    <div class="h-[2px] bg-white/[0.06]">
-      <div class="h-[2px] bg-[#F4C84A] transition-all duration-300" :style="{ width: progressPercent + '%' }" />
+    <div class="h-[2px] bg-surface-secondary">
+      <div class="h-[2px] bg-[var(--color-accent-soft)] transition-all duration-300" :style="{ width: progressPercent + '%' }" />
     </div>
     <div class="flex items-center gap-3 px-4 py-2.5">
       <UiBaigiMascot state="subtle" :visible="player.isPlaying" :size="28" />
-      <div v-show="!player.isPlaying" class="w-8 h-8 rounded-lg bg-[rgba(244,200,74,0.08)] flex items-center justify-center shrink-0">
-        <Headphones :size="16" class="text-[#F4C84A]" />
+      <div v-show="!player.isPlaying" class="w-8 h-8 rounded-lg bg-accent-primary-subtle flex items-center justify-center shrink-0">
+        <Headphones :size="16" class="text-[var(--color-accent-soft)]" />
       </div>
       <div class="flex-1 min-w-0">
         <p class="text-small text-base-primary truncate">

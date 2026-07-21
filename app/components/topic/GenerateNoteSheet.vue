@@ -3,7 +3,7 @@
     <div class="py-2">
       <h2 class="text-headline mb-3">Gerar resumo com IA</h2>
 
-      <div class="flex items-center gap-3 p-3 rounded-lg bg-surface-tertiary mb-4">
+      <div class="flex items-center gap-3 p-3 rounded-lg bg-[var(--border-divider)] mb-4">
         <span class="text-2xl">📄</span>
         <div class="min-w-0">
           <p class="text-small font-medium text-base-primary truncate">{{ document?.original_name }}</p>

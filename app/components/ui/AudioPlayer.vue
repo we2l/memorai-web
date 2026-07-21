@@ -1,9 +1,9 @@
 <template>
-  <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-surface-tertiary">
+  <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--border-divider)]">
     <button
       type="button"
       class="w-7 h-7 rounded-full flex items-center justify-center transition-colors shrink-0"
-      :class="playing ? 'bg-danger text-white' : 'bg-accent-primary-subtle text-accent-primary'"
+      :class="playing ? 'bg-danger text-base-primary' : 'bg-accent-primary-subtle text-accent-primary'"
       @click="toggle"
     >
       <Pause v-if="playing" :size="14" />

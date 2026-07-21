@@ -1,7 +1,7 @@
 <template>
-  <aside class="hidden lg:flex flex-col bg-[#0A0017] border-r border-white/[0.04] h-screen fixed left-0 top-0 w-[220px] p-4">
+  <aside class="hidden lg:flex flex-col bg-[var(--bg-card)] border-r border-base h-screen fixed left-0 top-0 w-[240px] p-5">
     <NuxtLink to="/hoje" class="mb-8 group">
-      <UiLogo :icon-size="28" text-class="text-xl font-semibold text-white dark:text-white text-slate-800" />
+      <UiLogo :icon-size="28" text-class="text-xl font-semibold text-accent-primary" />
     </NuxtLink>
 
     <nav class="flex flex-col gap-1 flex-1" aria-label="Navegação principal" data-tour="sidebar-notebooks">
@@ -9,8 +9,8 @@
         v-for="item in items"
         :key="item.to"
         :to="item.to"
-        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-small transition-all duration-150"
-        :class="isActive(item.to) ? 'bg-white/[0.05] text-baigi-text font-medium border-l-2 border-l-[#F4C84A]' : 'text-white/50 hover:text-white/70 hover:bg-white/[0.04]'"
+        class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-small transition-all duration-150"
+        :class="isActive(item.to) ? 'bg-accent-primary-subtle text-[var(--color-accent-soft)] font-medium border-l-3 border-l-[var(--color-accent-soft)]' : 'text-base-secondary hover:text-[var(--color-accent-soft)] hover:bg-accent-primary-subtle'"
         :aria-current="isActive(item.to) ? 'page' : undefined"
         :data-tour="item.to === '/revisar' ? 'review-link' : undefined"
       >
@@ -21,16 +21,24 @@
 
     <div class="border-t border-base pt-4 mt-4">
       <UiPlanBadge :plan="auth.user?.plan" />
+      <button
+        @click="toggleMode"
+        class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-small text-base-muted hover:text-[var(--color-accent-soft)] hover:bg-accent-primary-subtle transition-all duration-150 w-full"
+      >
+        <Moon v-if="colorMode === 'light'" :size="20" :stroke-width="1.5" />
+        <Sun v-else :size="20" :stroke-width="1.5" />
+        {{ colorMode === 'light' ? 'Modo escuro' : 'Modo claro' }}
+      </button>
       <NuxtLink
         to="/configuracoes"
-        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-small text-base-muted hover:bg-surface-tertiary transition-all duration-150"
+        class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-small text-base-muted hover:text-[var(--color-accent-soft)] hover:bg-accent-primary-subtle transition-all duration-150"
       >
         <Settings :size="20" :stroke-width="1.5" />
         Configurações
       </NuxtLink>
       <button
         @click="handleLogout"
-        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-small text-danger hover:bg-surface-tertiary transition-all duration-150 w-full mt-1"
+        class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-small text-danger hover:bg-danger/5 transition-all duration-150 w-full mt-1"
       >
         <LogOut :size="20" :stroke-width="1.5" />
         Sair
@@ -48,11 +56,14 @@ import {
   BarChart3,
   Settings,
   LogOut,
+  Moon,
+  Sun,
 } from 'lucide-vue-next'
 
 const route = useRoute()
 const auth = useAuthStore()
 const { $api } = useNuxtApp()
+const { colorMode, toggle: toggleMode } = useColorMode()
 
 async function handleLogout() {
   try {

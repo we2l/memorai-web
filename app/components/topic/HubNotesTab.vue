@@ -14,14 +14,14 @@
             placeholder="Cole seu material de estudo aqui..."
             @keydown.stop
           />
-          <button type="submit" class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] !bg-white/[0.06] hover:!bg-white/[0.1] text-sm shrink-0" :disabled="!quickText.trim()">
+          <button type="submit" class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] !bg-surface-secondary hover:!bg-[var(--bg-soft)] text-sm shrink-0" :disabled="!quickText.trim()">
             + Adicionar
           </button>
         </form>
 
         <!-- Generate suggestion banner -->
-        <div v-if="suggestGenerate" class="mb-4 px-4 py-3 rounded-xl bg-[#4B007D]/80 backdrop-blur-sm border border-white/10 flex items-center justify-between gap-3">
-          <p class="text-small text-baigi-text">Material salvo. Gerar cards com IA?</p>
+        <div v-if="suggestGenerate" class="mb-4 px-4 py-3 rounded-xl bg-accent-primary-subtle0/10 backdrop-blur-sm border border-base flex items-center justify-between gap-3">
+          <p class="text-small text-base-primary">Material salvo. Gerar cards com IA?</p>
           <div class="flex gap-2">
             <button class="btn-primary !py-1.5 !px-3 !min-h-0 text-small" @click="$emit('generate-from-note', 5); suggestGenerate = false">Gerar</button>
             <button class="btn-secondary !py-1.5 !px-3 !min-h-0 text-small" @click="suggestGenerate = false">Depois</button>
@@ -34,7 +34,7 @@
             v-for="note in notes"
             :key="note.id"
             class="w-full text-left px-3 py-2.5 rounded-lg transition-colors flex items-center gap-3"
-            :class="activeNote?.id === note.id ? 'bg-accent-primary-subtle text-accent-primary' : 'hover:bg-surface-tertiary text-base-secondary'"
+            :class="activeNote?.id === note.id ? 'bg-accent-primary-subtle text-accent-primary' : 'hover:bg-[var(--border-divider)] text-base-secondary'"
             @click="$emit('open-note', note)"
           >
             <FileText :size="16" class="shrink-0 opacity-60" />
@@ -102,7 +102,7 @@
             v-for="n in [3, 5, 10]"
             :key="n"
             class="px-3 py-1.5 rounded-lg text-small font-medium transition-colors"
-            :class="generateCount === n ? 'bg-accent-primary text-surface' : 'bg-surface-tertiary text-base-secondary hover:bg-surface-tertiary/80'"
+            :class="generateCount === n ? 'bg-accent-primary text-white' : 'bg-[var(--border-divider)] text-base-secondary hover:bg-[var(--border-divider)]/80'"
             @click="generateCount = n"
           >
             {{ n }}

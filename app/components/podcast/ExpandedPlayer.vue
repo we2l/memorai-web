@@ -9,7 +9,7 @@
             <p class="text-micro text-base-muted uppercase tracking-wide">Tocando de</p>
             <p class="text-small text-base-primary font-medium">{{ player.currentPodcast.topic_name ?? '' }}</p>
           </div>
-          <button class="p-2 text-base-muted hover:text-base-primary rounded-lg hover:bg-surface-tertiary transition-colors" aria-label="Fechar" @click="player.collapse()">
+          <button class="p-2 text-base-muted hover:text-base-primary rounded-lg hover:bg-[var(--border-divider)] transition-colors" aria-label="Fechar" @click="player.collapse()">
             <X :size="20" />
           </button>
         </div>
@@ -36,7 +36,7 @@
               min="0"
               :max="player.duration || 100"
               :value="player.currentTime"
-              class="w-full h-1.5 accent-amber-600 cursor-pointer"
+              class="w-full h-1.5 accent-[var(--color-accent-soft)] cursor-pointer"
               aria-label="Progresso"
               @input="onSeek"
             />
@@ -127,8 +127,8 @@
             </div>
 
             <!-- Think progress bar -->
-            <div v-if="isThinking" class="w-full h-1 bg-surface-tertiary rounded-full mt-3 overflow-hidden">
-              <div class="h-full bg-amber-500 transition-all duration-200 rounded-full" :style="{ width: thinkProgress + '%' }" />
+            <div v-if="isThinking" class="w-full h-1 bg-[var(--border-divider)] rounded-full mt-3 overflow-hidden">
+              <div class="h-full bg-[var(--color-accent-soft)] transition-all duration-200 rounded-full" :style="{ width: thinkProgress + '%' }" />
             </div>
 
             <!-- Card dots -->
@@ -137,7 +137,7 @@
                 v-for="(card, idx) in linkedCards"
                 :key="card.id"
                 class="w-2 h-2 rounded-full transition-all"
-                :class="idx === activeCardIndex ? 'bg-accent-primary scale-125' : idx < activeCardIndex ? 'bg-accent-primary/40' : 'bg-surface-tertiary'"
+                :class="idx === activeCardIndex ? 'bg-accent-primary scale-125' : idx < activeCardIndex ? 'bg-accent-primary/40' : 'bg-[var(--border-divider)]'"
               />
             </div>
           </div>

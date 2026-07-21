@@ -36,7 +36,7 @@
         <div v-for="(data, key) in settingsFeatures" :key="key" class="flex items-center gap-4">
           <p class="text-small text-base-primary w-28 shrink-0">{{ settingsFeatureLabels[key as string] }}</p>
           <div class="flex-1">
-            <div v-if="data.limit !== null" class="h-2 rounded-full bg-surface-tertiary overflow-hidden">
+            <div v-if="data.limit !== null" class="h-2 rounded-full bg-[var(--border-divider)] overflow-hidden">
               <div
                 class="h-2 rounded-full transition-all"
                 :class="data.remaining === 0 ? 'bg-danger' : 'bg-accent-primary'"
@@ -63,14 +63,14 @@
         <div class="flex gap-2">
           <button
             class="px-4 py-2 rounded-lg text-small transition-colors"
-            :class="colorMode.value === 'dark' ? 'bg-accent-primary-subtle text-accent-primary' : 'bg-surface-tertiary text-base-muted'"
+            :class="colorMode.value === 'dark' ? 'bg-accent-primary-subtle text-accent-primary' : 'bg-[var(--border-divider)] text-base-muted'"
             @click="setMode('dark')"
           >
             <Moon :size="16" class="inline mr-1" /> Escuro
           </button>
           <button
             class="px-4 py-2 rounded-lg text-small transition-colors"
-            :class="colorMode.value === 'light' ? 'bg-accent-primary-subtle text-accent-primary' : 'bg-surface-tertiary text-base-muted'"
+            :class="colorMode.value === 'light' ? 'bg-accent-primary-subtle text-accent-primary' : 'bg-[var(--border-divider)] text-base-muted'"
             @click="setMode('light')"
           >
             <Sun :size="16" class="inline mr-1" /> Claro
@@ -89,7 +89,7 @@
           <div class="flex items-center justify-between mb-3">
             <label class="text-title">Novos cards por dia</label>
             <label class="flex items-center gap-2 text-small text-base-muted cursor-pointer">
-              <input type="checkbox" :checked="settings.daily_new_cards_limit === null" @change="settings.daily_new_cards_limit = ($event.target as HTMLInputElement).checked ? null : 20" class="accent-[#D97706]" />
+              <input type="checkbox" :checked="settings.daily_new_cards_limit === null" @change="settings.daily_new_cards_limit = ($event.target as HTMLInputElement).checked ? null : 20" class="accent-[var(--color-accent-primary)]" />
               Ilimitado
             </label>
           </div>
@@ -105,7 +105,7 @@
           <div class="flex items-center justify-between mb-3">
             <label class="text-title">Máximo de revisões por dia</label>
             <label class="flex items-center gap-2 text-small text-base-muted cursor-pointer">
-              <input type="checkbox" :checked="settings.daily_review_limit === null" @change="settings.daily_review_limit = ($event.target as HTMLInputElement).checked ? null : 100" class="accent-[#D97706]" />
+              <input type="checkbox" :checked="settings.daily_review_limit === null" @change="settings.daily_review_limit = ($event.target as HTMLInputElement).checked ? null : 100" class="accent-[var(--color-accent-primary)]" />
               Ilimitado
             </label>
           </div>

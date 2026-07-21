@@ -3,12 +3,12 @@
     <!-- Upload area -->
     <label
       class="flex items-center gap-3 px-4 py-3.5 rounded-xl border cursor-pointer transition-all"
-      :class="uploading ? 'opacity-50 pointer-events-none border-white/[0.06] bg-white/[0.02]' : 'border-white/[0.06] bg-white/[0.02] hover:border-[rgba(244,200,74,0.12)] hover:bg-white/[0.04]'"
+      :class="uploading ? 'opacity-50 pointer-events-none border-base bg-[var(--bg-card)]' : 'border-base bg-[var(--bg-card)] hover:border-[var(--color-accent-primary)]/15 hover:bg-surface-secondary'"
     >
-      <Upload :size="20" class="text-[#F4C84A]/70 shrink-0" />
+      <Upload :size="20" class="text-accent-primary/70 shrink-0" />
       <div>
-        <p class="text-sm text-baigi-text">{{ uploading ? `Enviando ${uploadProgress}%...` : 'Subir PDF' }}</p>
-        <p v-if="!uploading" class="text-xs text-white/[0.55]">A IA transforma em resumo + flashcards</p>
+        <p class="text-sm text-base-primary">{{ uploading ? `Enviando ${uploadProgress}%...` : 'Subir PDF' }}</p>
+        <p v-if="!uploading" class="text-xs text-base-primary/[0.55]">A IA transforma em resumo + flashcards</p>
       </div>
       <input type="file" accept=".pdf" class="hidden" @change="onFileSelect" />
     </label>
@@ -105,7 +105,7 @@
             <Sparkles :size="14" /> Gerar resumo com IA
           </button>
           <p class="text-micro text-base-muted text-center mt-1.5">Extrai conceitos, pegadinhas e pontos-chave</p>
-          <p v-if="doc.pages_count && doc.pages_count > 100" class="text-micro text-amber-400 text-center mt-1">
+          <p v-if="doc.pages_count && doc.pages_count > 100" class="text-micro text-warning text-center mt-1">
             ⚠️ Máximo 100 páginas para processar com IA
           </p>
         </div>

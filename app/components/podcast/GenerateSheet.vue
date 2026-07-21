@@ -8,7 +8,7 @@
       <div class="flex items-center gap-1.5 mb-2">
         <p class="text-small font-medium text-base-primary">Caderno <span class="text-danger">*</span></p>
         <UiTooltip text="Só aparecem cadernos com pelo menos 5 cards revisados. Revise mais cards pra desbloquear os outros.">
-          <span class="w-4 h-4 rounded-full bg-surface-tertiary text-base-muted flex items-center justify-center text-micro cursor-help">?</span>
+          <span class="w-4 h-4 rounded-full bg-[var(--border-divider)] text-base-muted flex items-center justify-center text-micro cursor-help">?</span>
         </UiTooltip>
       </div>
       <template v-if="topicOptions.length">

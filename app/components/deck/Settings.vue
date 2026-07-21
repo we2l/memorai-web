@@ -66,7 +66,7 @@
             min="0.70"
             max="0.97"
             step="0.01"
-            class="w-full accent-primary-500"
+            class="w-full accent-[var(--color-accent-primary)]"
             aria-describedby="retention-help"
           />
           <div class="flex justify-between text-micro text-base-muted">

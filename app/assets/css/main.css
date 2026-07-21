@@ -71,7 +71,7 @@
 :root {
   /* Backgrounds */
   --bg-base: #FAFBFD;
-  --bg-soft: #F5F6FA;
+  --bg-soft: #F6F3FF;
   --bg-card: #FFFFFF;
   --bg-hero: #FCFBFF;
 
@@ -82,9 +82,9 @@
   --text-disabled: #A3A8BE;
 
   /* Borders */
-  --border-base: #E7EAF3;
-  --border-hover: #DADFF0;
-  --border-divider: #EFF2F8;
+  --border-base: #E9E5F5;
+  --border-hover: #DDD8EE;
+  --border-divider: #F0ECFA;
 
   /* Accent (primary mapped) */
   --color-accent-primary: #6F3FF5;

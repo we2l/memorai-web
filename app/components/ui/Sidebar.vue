@@ -4,7 +4,7 @@
     :class="collapsed ? 'w-16' : 'w-[240px]'"
     :style="{ padding: collapsed ? '1.25rem 0.5rem' : '1.25rem' }"
   >
-    <NuxtLink to="/hoje" class="mb-8 group" :class="collapsed ? 'flex justify-center' : ''">
+    <NuxtLink to="/hoje" class="mb-8" :class="collapsed ? 'flex justify-center' : ''">
       <UiLogo v-if="!collapsed" :icon-size="28" text-class="text-xl font-semibold text-accent-primary" />
       <UiLogo v-else :icon-size="24" :show-text="false" />
     </NuxtLink>

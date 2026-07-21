@@ -2,11 +2,11 @@
   <div>
     <button
       class="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-left text-body transition-colors"
-      :class="topic.id === selectedId ? 'bg-surface-secondary text-base-primary font-medium' : 'text-base-muted hover:bg-surface-secondary hover:text-base-secondary'"
+      :class="topic.id === selectedId ? 'bg-accent-primary-subtle text-[var(--color-accent-soft)] font-medium border-l-3 border-l-[var(--color-accent-soft)]' : 'text-base-muted hover:bg-surface-secondary hover:text-base-secondary'"
       :style="{ paddingLeft: `${depth * 16 + 12}px` }"
       @click="$emit('select', topic.id)"
       @mouseenter="isHovered = true"
-      @mouseleave="isHovered = false"
+      @mouseleave="isHovered = false; showMenu = false"
     >
       <button
         v-if="topic.children?.length"
@@ -26,21 +26,30 @@
 
       <span class="truncate flex-1" :title="topic.name">{{ topic.name }}</span>
 
-      <span v-if="(topic.flashcards_count || topic.notes_count) && !showActions" class="text-small text-base-muted shrink-0">
-        {{ topic.flashcards_count ?? 0 }}
-      </span>
-
-      <!-- Actions (visible on hover/selected) -->
-      <span v-if="showActions" class="flex items-center gap-0.5 shrink-0" @click.stop>
-        <button class="p-2 rounded text-base-muted hover:text-base-primary hover:bg-surface-secondary" title="Adicionar tópico" @click="$emit('add-child', topic.id)">
-          <Plus :size="14" />
-        </button>
-        <button class="p-2 rounded text-base-muted hover:text-base-primary hover:bg-surface-secondary" title="Editar" @click="$emit('edit', topic)">
-          <Pencil :size="14" />
-        </button>
-        <button class="p-2 rounded text-base-muted hover:text-red-400 hover:bg-surface-secondary" title="Deletar" @click="$emit('delete', topic)">
-          <Trash2 :size="14" />
-        </button>
+      <span class="shrink-0 flex items-center">
+        <span v-if="(topic.flashcards_count || topic.notes_count) && !showActions" class="text-small text-base-muted">
+          {{ topic.flashcards_count ?? 0 }}
+        </span>
+        <div v-if="showActions" class="relative" @click.stop>
+          <button
+            class="p-1.5 rounded text-base-muted hover:text-base-primary hover:bg-surface-secondary"
+            title="Opções"
+            @click="showMenu = !showMenu"
+          >
+            <MoreHorizontal :size="14" />
+          </button>
+          <div v-if="showMenu" class="absolute right-0 top-full mt-1 w-40 bg-[var(--bg-card)] border border-base rounded-lg shadow-lg py-1 z-30">
+            <button class="w-full text-left px-3 py-2 text-small text-base-primary hover:bg-surface-secondary transition-colors" @click="showMenu = false; $emit('add-child', topic.id)">
+              Adicionar tópico
+            </button>
+            <button class="w-full text-left px-3 py-2 text-small text-base-primary hover:bg-surface-secondary transition-colors" @click="showMenu = false; $emit('edit', topic)">
+              Editar
+            </button>
+            <button class="w-full text-left px-3 py-2 text-small text-danger hover:bg-danger/5 transition-colors" @click="showMenu = false; $emit('delete', topic)">
+              Deletar
+            </button>
+          </div>
+        </div>
       </span>
     </button>
 
@@ -64,7 +73,7 @@
 </template>
 
 <script setup lang="ts">
-import { ChevronRight, Plus, Pencil, Trash2 } from 'lucide-vue-next'
+import { ChevronRight, MoreHorizontal } from 'lucide-vue-next'
 import type { Topic } from '~/types'
 
 const props = defineProps<{
@@ -85,6 +94,7 @@ defineEmits<{
 // Collapse by default for depth > 0, expand for root
 const expanded = ref(props.depth === 0)
 const isHovered = ref(false)
+const showMenu = ref(false)
 const showActions = computed(() => isHovered.value || props.topic.id === props.selectedId)
 
 // Force expand when searching, or when selected item is in this subtree

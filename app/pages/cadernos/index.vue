@@ -138,7 +138,8 @@
             <button
               v-for="sub in subTopics"
               :key="sub.id"
-              class="text-sm px-2.5 py-1 rounded-full bg-surface-secondary text-base-secondary border border-base hover:bg-[var(--bg-soft)] hover:text-base-secondary transition-colors"
+              class="text-sm px-2.5 py-1 rounded-full border transition-colors"
+              :style="chipStyle(sub.id)"
               @click="selectTopic(sub.id)"
             >
               {{ sub.name }}
@@ -468,6 +469,18 @@ const noteContentHtml = computed(() => {
 
 function noteNameById(noteId: string): string {
   return noteStore.notes.find(n => n.id === noteId)?.title ?? 'Nota'
+}
+
+function chipStyle(topicId: string): Record<string, string> {
+  const p = progressMap.value[topicId] ?? 0
+  // Opacity from 0.08 (no progress) to 0.35 (full progress)
+  const bgOpacity = 0.08 + p * 0.27
+  const borderOpacity = bgOpacity + 0.12
+  return {
+    backgroundColor: `color-mix(in srgb, var(--color-accent-soft) ${Math.round(bgOpacity * 100)}%, transparent)`,
+    borderColor: `color-mix(in srgb, var(--color-accent-soft) ${Math.round(borderOpacity * 100)}%, transparent)`,
+    color: 'var(--color-accent-soft)',
+  }
 }
 
 const subTopics = computed(() => {

@@ -68,8 +68,8 @@
         retaFinalMode ? 'border-accent-primary bg-accent-primary-subtle' : 'border-base bg-surface-secondary',
         !hasRetaFinal ? 'opacity-60 cursor-not-allowed' : 'hover:border-base-muted',
       ]"
-      :disabled="!hasRetaFinal"
-      @click="hasRetaFinal && toggleRetaFinal()"
+      :disabled="false"
+      @click="hasRetaFinal ? toggleRetaFinal() : openRetaFinalCheckout()"
     >
       <div>
         <p class="text-small font-medium text-base-primary">🔥 Reta Final <span class="text-micro text-base-muted">· Longo</span></p>
@@ -204,9 +204,17 @@ function openUpgrade() {
 }
 
 const retaFinalMode = ref(false)
+const { usage: featureUsage, fetchUsage } = useFeatureUsage()
+
+watch(model, (val) => {
+  if (val) fetchUsage()
+}, { immediate: true })
+
 const hasRetaFinal = computed(() => {
-  // DEV: always enabled for testing
-  return true
+  if (!featureUsage.value) return false
+  const podcastLong = featureUsage.value.features['podcast_long']
+  if (!podcastLong) return false
+  return podcastLong.limit > 0 && (podcastLong.remaining ?? 0) > 0
 })
 
 function activateRetaFinal() {
@@ -227,6 +235,11 @@ function toggleRetaFinal() {
   } else {
     activateRetaFinal()
   }
+}
+
+function openRetaFinalCheckout() {
+  const subscriptionStore = useSubscriptionStore()
+  subscriptionStore.checkoutAddon('reta_final')
 }
 
 // Topic selector for library mode

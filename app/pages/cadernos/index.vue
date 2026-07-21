@@ -51,14 +51,14 @@
               <NuxtLink to="/importar" class="block px-3 py-2 text-small text-base-primary hover:bg-surface-secondary transition-colors" @click="showAddMenu = false">
                 Importar Anki
               </NuxtLink>
-              <button class="w-full text-left px-3 py-2 text-small text-base-primary hover:bg-surface-secondary transition-colors" @click="showAddMenu = false; triggerStructureUpload()">
+              <button class="w-full text-left px-3 py-2 text-small text-base-primary hover:bg-surface-secondary transition-colors" @click="showAddMenu = false; structurePdf.trigger()">
                 <span class="block">Organizar PDF</span>
                 <span class="block text-micro text-base-muted">A IA lê o PDF e monta cadernos e tópicos pra você</span>
               </button>
             </div>
           </div>
         </div>
-        <input ref="structureFileInput" type="file" accept=".pdf" class="hidden" @change="handleStructurePdf" />
+        <input ref="structureFileInput" type="file" accept=".pdf" class="hidden" @change="structurePdf.handleFile" />
       </div>
 
       <!-- Structure generating banner -->
@@ -706,64 +706,8 @@ function openChatForPdf(docId: string) {
   })
 }
 
-const structureFileInput = ref<HTMLInputElement | null>(null)
-const structureGenerating = ref(false)
-
-function triggerStructureUpload() {
-  structureFileInput.value?.click()
-}
-
-async function handleStructurePdf(e: Event) {
-  const file = (e.target as HTMLInputElement).files?.[0]
-  if (!file) return
-  if (!file.name.endsWith('.pdf')) { toast.show('Apenas PDF.', 'error'); return }
-  if (file.size > 50 * 1024 * 1024) { toast.show('Máximo 50MB.', 'error'); return }
-
-  toast.show('Enviando PDF...')
-  try {
-    const config = useRuntimeConfig()
-    const auth = useAuthStore()
-
-    // Upload without topic_id
-    const formData = new FormData()
-    formData.append('file', file)
-
-    const uploadRes = await $api<any>('/documents', { method: 'POST', body: formData })
-    const documentId = uploadRes.data.id
-
-    // Trigger structure generation
-    await $api('/topics/from-document', { method: 'POST', body: { document_id: documentId } })
-    structureGenerating.value = true
-
-    // Poll for completion
-    const poll = setInterval(async () => {
-      try {
-        const res = await $api<any>(`/documents/${documentId}`)
-        const status = res.data.study_structure_status
-        if (status === 'completed') {
-          clearInterval(poll)
-          structureGenerating.value = false
-          toast.show('Cadernos criados com sucesso! 📚')
-          topicStore.fetchTree()
-        } else if (status === 'failed') {
-          clearInterval(poll)
-          structureGenerating.value = false
-          toast.show('Falha ao criar estrutura. Tente novamente.', 'error')
-        }
-        // else: still generating, keep polling
-      } catch {
-        // Network error — keep polling, don't stop
-      }
-    }, 4000)
-
-    // Timeout after 5 min
-    setTimeout(() => { clearInterval(poll); structureGenerating.value = false }, 300000)
-  } catch (e: any) {
-    toast.show(e?.data?.message || 'Erro ao enviar PDF.', 'error')
-  } finally {
-    if (structureFileInput.value) structureFileInput.value.value = ''
-  }
-}
+const structurePdf = useStructurePdf()
+const { fileInput: structureFileInput, generating: structureGenerating } = structurePdf
 
 const editTopicIsRoot = ref(false)
 

@@ -212,7 +212,7 @@
           :cards-ai-remaining="cardsAiRemaining"
           :cards-ai-limit="cardsAiLimit"
           @open-note="openNoteEditor"
-          @close-editor="editingNote = null; noteStore.current = null"
+          @close-editor="closeEditor"
           @quick-add="handleQuickAdd"
           @create-note="createNote"
           @generate-from-note="generateFromCurrentNote"
@@ -390,11 +390,9 @@ const featureUsage = useFeatureUsage()
 const selectedTopicId = ref<string | null>(null)
 const sidebarCollapsed = ref(false)
 const sidebarOpen = ref(true)
-const noteTitle = ref('')
-const noteContent = ref<Record<string, any> | null>(null)
-const selectedText = ref('')
 const topicErrors = ref<any[]>([])
 const { topicCards, showDeleteCard, deleteCardId, memorizeProgress, dueCardsCount, newCardsCount, pendingCount, setCards, cardsFromNote, confirmDeleteCard, handleDeleteCard } = useTopicCards()
+const { noteTitle, noteContent, editingNote, selectedText, showDeleteNote, flushPendingSave, debouncedSave, saveTitle, selectNote, openNoteEditor, closeEditor, handleQuickAdd, createNote, handleDeleteNote } = useNoteEditor(selectedTopicId)
 const errorPatterns = ref<any>(null)
 const generatedCards = ref<any[]>([])
 const generatingDeckId = ref<string>('')
@@ -441,7 +439,6 @@ const editingGeneratedCardIndex = ref<number | null>(null)
 const editingCard = ref<any>(null)
 const docsInlineRef = ref<any>(null)
 const activeTab = ref('notes')
-const editingNote = ref<Note | null>(null)
 
 const newTopicName = ref('')
 const editTopicName = ref('')
@@ -491,40 +488,6 @@ const subTopics = computed(() => {
 
 const headerRef = ref<HTMLElement>()
 const showStickyHeader = ref(false)
-
-let saveTimeout: ReturnType<typeof setTimeout> | null = null
-let pendingSaveNoteId: string | null = null
-let pendingSaveContent: Record<string, any> | null = null
-
-function flushPendingSave() {
-  if (saveTimeout && pendingSaveNoteId && pendingSaveContent) {
-    clearTimeout(saveTimeout)
-    saveTimeout = null
-    noteStore.update(pendingSaveNoteId, { content: pendingSaveContent })
-    pendingSaveNoteId = null
-    pendingSaveContent = null
-  }
-}
-
-function debouncedSave() {
-  if (saveTimeout) clearTimeout(saveTimeout)
-  pendingSaveNoteId = noteStore.current?.id ?? null
-  pendingSaveContent = noteContent.value ? JSON.parse(JSON.stringify(noteContent.value)) : null
-  saveTimeout = setTimeout(() => {
-    if (pendingSaveNoteId && pendingSaveContent) {
-      noteStore.update(pendingSaveNoteId, { content: pendingSaveContent })
-      pendingSaveNoteId = null
-      pendingSaveContent = null
-    }
-    saveTimeout = null
-  }, 1000)
-}
-
-function saveTitle() {
-  if (noteStore.current && noteTitle.value !== noteStore.current.title) {
-    noteStore.update(noteStore.current.id, { title: noteTitle.value })
-  }
-}
 
 function selectTopic(id: string) {
   flushPendingSave()
@@ -577,50 +540,6 @@ async function loadTopicData(id: string) {
       }, 300)
     }
   } catch {}
-}
-
-const showDeleteNote = ref(false)
-
-function selectNote(note: Note) {
-  flushPendingSave()
-  noteStore.current = note
-  noteTitle.value = note.title
-  noteContent.value = note.content
-}
-
-function openNoteEditor(note: Note) {
-  selectNote(note)
-  editingNote.value = note
-}
-
-async function handleQuickAdd(text: string) {
-  if (!selectedTopicId.value) return
-  const title = text.substring(0, 50).split('\n')[0] || 'Material'
-  const note = await noteStore.create(selectedTopicId.value, {
-    title,
-    content: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text }] }] },
-  })
-  openNoteEditor(note)
-  await topicStore.fetchTree()
-}
-
-async function createNote() {
-  if (!selectedTopicId.value) return
-  const note = await noteStore.create(selectedTopicId.value, { title: 'Novo material' })
-  openNoteEditor(note)
-  await topicStore.fetchTree()
-}
-
-async function deleteNote() {
-  if (!noteStore.current) return
-  await noteStore.remove(noteStore.current.id)
-  toast.show('Nota excluída.', 'success')
-  await topicStore.fetchTree()
-}
-
-async function handleDeleteNote() {
-  await deleteNote()
-  showDeleteNote.value = false
 }
 
 function openCreate(parentId: string | null) {

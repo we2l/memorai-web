@@ -22,24 +22,6 @@
           </div>
         </div>
         <div class="flex items-center gap-2">
-          <button
-            v-if="(topicStore.tree?.length ?? 0) >= 5"
-            class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small flex-1 justify-center"
-            @click="showGraph = true"
-          >
-            <Network :size="16" /> Mapa
-          </button>
-          <div v-else class="relative flex-1 group">
-            <button
-              class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small w-full justify-center opacity-50 cursor-not-allowed"
-              disabled
-            >
-              <Network :size="16" /> Mapa
-            </button>
-            <span class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 rounded-lg bg-[var(--bg-card)] border border-base shadow-lg text-micro text-base-muted whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-              Disponível com 5+ cadernos ({{ topicStore.tree?.length ?? 0 }}/5)
-            </span>
-          </div>
           <div class="relative flex-1">
             <button class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small w-full justify-center" data-tour="create-notebook" @click="showAddMenu = !showAddMenu">
               <Plus :size="16" /> Novo
@@ -135,6 +117,13 @@
                 </p>
               </div>
             </div>
+            <button
+              class="btn-secondary !p-2 !min-h-0 shrink-0"
+              title="Mapa de conhecimento"
+              @click="showGraph = true"
+            >
+              <Network :size="18" />
+            </button>
           </div>
 
           <!-- Progress bar -->

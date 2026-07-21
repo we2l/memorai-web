@@ -7,6 +7,7 @@
       :depth="0"
       :selected-id="selectedId"
       :progress-map="progressMap"
+      :force-expand="forceExpand"
       @select="$emit('select', $event)"
       @edit="$emit('edit', $event)"
       @delete="$emit('delete', $event)"
@@ -25,6 +26,7 @@ defineProps<{
   topics: Topic[]
   selectedId?: string | null
   progressMap?: Record<string, number>
+  forceExpand?: boolean
 }>()
 
 defineEmits<{

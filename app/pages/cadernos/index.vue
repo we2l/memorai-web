@@ -68,14 +68,36 @@
       </div>
 
       <div class="flex-1 overflow-y-auto p-2">
+        <!-- Search -->
+        <div class="px-2 pb-2">
+          <div class="relative">
+            <Search :size="14" class="absolute left-2.5 top-1/2 -translate-y-1/2 text-base-muted pointer-events-none" />
+            <input
+              v-model="searchQuery"
+              type="text"
+              class="input-base w-full !py-2 !pl-8 !pr-8 !text-small"
+              placeholder="Buscar caderno..."
+              @keydown.esc="searchQuery = ''"
+            />
+            <button
+              v-if="searchQuery"
+              class="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded text-base-muted hover:text-base-primary"
+              @click="searchQuery = ''"
+            >
+              <X :size="12" />
+            </button>
+          </div>
+        </div>
+
         <div v-if="topicStore.loading" class="space-y-2 p-2">
           <div v-for="i in 4" :key="i" class="skeleton h-8 rounded" />
         </div>
         <TopicTree
           v-else
-          :topics="topicStore.tree"
+          :topics="filteredTree"
           :selected-id="selectedTopicId"
           :progress-map="progressMap"
+          :force-expand="!!searchQuery"
           @select="selectTopic"
           @edit="openEdit"
           @delete="openDelete"
@@ -377,7 +399,7 @@
 </template>
 
 <script setup lang="ts">
-import { Plus, Network, PanelLeftClose, PanelLeftOpen, X } from 'lucide-vue-next'
+import { Plus, Network, Search, PanelLeftClose, PanelLeftOpen, X } from 'lucide-vue-next'
 import type { Topic, Note } from '~/types'
 
 const topicStore = useTopicStore()
@@ -391,6 +413,7 @@ const selectedTopicId = ref<string | null>(null)
 const sidebarCollapsed = ref(false)
 const sidebarOpen = ref(true)
 const activeTab = ref('notes')
+const searchQuery = ref('')
 const { topicCards, showDeleteCard, deleteCardId, memorizeProgress, dueCardsCount, newCardsCount, pendingCount, setCards, cardsFromNote, confirmDeleteCard, handleDeleteCard } = useTopicCards()
 const { noteTitle, noteContent, editingNote, selectedText, showDeleteNote, flushPendingSave, debouncedSave, saveTitle, selectNote, openNoteEditor, closeEditor, handleQuickAdd, createNote, handleDeleteNote } = useNoteEditor(selectedTopicId)
 const errorPatterns = ref<any>(null)
@@ -468,6 +491,22 @@ const subTopics = computed(() => {
     return []
   }
   return findChildren(topicStore.tree, selectedTopicId.value)
+})
+
+const filteredTree = computed(() => {
+  const q = searchQuery.value.trim().toLowerCase()
+  if (!q) return topicStore.tree
+  function filterTopics(topics: Topic[]): Topic[] {
+    return topics.reduce<Topic[]>((acc, topic) => {
+      const nameMatches = topic.name.toLowerCase().includes(q)
+      const filteredChildren = filterTopics(topic.children ?? [])
+      if (nameMatches || filteredChildren.length) {
+        acc.push({ ...topic, children: nameMatches ? (topic.children ?? []) : filteredChildren })
+      }
+      return acc
+    }, [])
+  }
+  return filterTopics(topicStore.tree)
 })
 
 const headerRef = ref<HTMLElement>()

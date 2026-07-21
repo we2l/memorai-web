@@ -1,5 +1,5 @@
 export function useColorMode() {
-  const colorMode = useState<'light' | 'dark'>('color-mode', () => 'dark')
+  const colorMode = useState<'light' | 'dark'>('color-mode', () => 'light')
 
   function toggle() {
     colorMode.value = colorMode.value === 'dark' ? 'light' : 'dark'
@@ -21,7 +21,7 @@ export function useColorMode() {
   function init() {
     if (import.meta.client) {
       const saved = localStorage.getItem('color-mode') as 'light' | 'dark' | null
-      colorMode.value = saved ?? 'dark'
+      colorMode.value = saved ?? 'light'
       apply()
     }
   }

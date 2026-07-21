@@ -8,14 +8,14 @@
     <Transition name="fade">
       <div
         v-if="showPopover"
-        class="absolute right-0 top-full mt-2 w-64 bg-overlay border border-base rounded-lg p-3 shadow-lg z-20"
+        class="absolute right-0 top-full mt-2 w-64 bg-[var(--bg-card)] border border-base rounded-xl p-3 shadow-lg z-20"
       >
         <p class="text-micro text-base-muted mb-2">De onde?</p>
         <div class="space-y-1.5 mb-3">
           <button
             v-if="hasNotes"
             class="w-full text-left px-3 py-2 rounded-lg text-small transition-colors"
-            :class="selectedSource === 'notes' ? 'bg-accent-primary-subtle text-accent-primary' : 'text-base-secondary hover:bg-surface-tertiary'"
+            :class="selectedSource === 'notes' ? 'bg-accent-primary-subtle text-accent-primary' : 'text-base-secondary hover:bg-[var(--border-divider)]'"
             @click="selectedSource = 'notes'"
           >
             📝 Das notas
@@ -23,14 +23,14 @@
           <button
             v-if="hasDocuments"
             class="w-full text-left px-3 py-2 rounded-lg text-small transition-colors"
-            :class="selectedSource === 'pdf' ? 'bg-accent-primary-subtle text-accent-primary' : 'text-base-secondary hover:bg-surface-tertiary'"
+            :class="selectedSource === 'pdf' ? 'bg-accent-primary-subtle text-accent-primary' : 'text-base-secondary hover:bg-[var(--border-divider)]'"
             @click="selectedSource = 'pdf'"
           >
             📄 Do PDF
           </button>
           <button
             class="w-full text-left px-3 py-2 rounded-lg text-small transition-colors"
-            :class="selectedSource === 'free' ? 'bg-accent-primary-subtle text-accent-primary' : 'text-base-secondary hover:bg-surface-tertiary'"
+            :class="selectedSource === 'free' ? 'bg-accent-primary-subtle text-accent-primary' : 'text-base-secondary hover:bg-[var(--border-divider)]'"
             @click="selectedSource = 'free'"
           >
             ✏️ Tema livre
@@ -39,9 +39,9 @@
         <div class="flex items-center gap-2 mb-3">
           <label class="text-micro text-base-muted">Quantidade:</label>
           <div class="flex items-center gap-1">
-            <button class="w-7 h-7 rounded-md bg-surface-tertiary text-base-muted hover:text-base-primary text-small flex items-center justify-center" @click="quantity = Math.max(1, quantity - 1)">−</button>
+            <button class="w-7 h-7 rounded-md bg-[var(--border-divider)] text-base-muted hover:text-base-primary text-small flex items-center justify-center" @click="quantity = Math.max(1, quantity - 1)">−</button>
             <span class="w-6 text-center text-small text-base-primary">{{ quantity }}</span>
-            <button class="w-7 h-7 rounded-md bg-surface-tertiary text-base-muted hover:text-base-primary text-small flex items-center justify-center" @click="quantity = Math.min(10, quantity + 1)">+</button>
+            <button class="w-7 h-7 rounded-md bg-[var(--border-divider)] text-base-muted hover:text-base-primary text-small flex items-center justify-center" @click="quantity = Math.min(10, quantity + 1)">+</button>
           </div>
         </div>
         <div v-if="selectedSource === 'free'" class="mb-3">

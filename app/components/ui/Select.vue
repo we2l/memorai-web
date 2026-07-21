@@ -21,7 +21,7 @@
           :key="opt.value"
           type="button"
           class="w-full text-left px-3 py-2 text-small transition-colors"
-          :class="opt.value === modelValue ? 'text-accent-primary bg-accent-primary-subtle' : 'text-base-primary hover:bg-surface-tertiary'"
+          :class="opt.value === modelValue ? 'text-accent-primary bg-accent-primary-subtle' : 'text-base-primary hover:bg-[var(--border-divider)]'"
           @click="select(opt.value)"
         >
           {{ opt.label }}

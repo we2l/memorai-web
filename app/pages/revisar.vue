@@ -2,27 +2,27 @@
   <div class="review-bg h-[calc(100vh-56px)] flex flex-col overflow-hidden">
     <!-- Top bar — minimal -->
     <div v-show="!dive.active.value" class="flex items-center justify-between px-4 py-3">
-      <NuxtLink to="/hoje" class="text-sm text-white/55 hover:text-white transition-opacity">
+      <NuxtLink to="/hoje" class="text-sm text-base-muted hover:text-base-primary transition-opacity">
         ← Voltar
       </NuxtLink>
-      <div class="flex items-center gap-3 text-small text-base-muted">
+      <div class="flex items-center gap-3 text-small text-base-secondary">
         <span v-if="isSurvivalMode" class="px-2 py-0.5 rounded-full text-micro uppercase tracking-wide font-medium bg-warning/15 text-warning">Sobrevivência</span>
         <span v-if="isBlitz" class="px-2 py-0.5 rounded-full text-micro uppercase tracking-wide font-medium bg-accent-primary/15 text-accent-primary">⚡ Relâmpago</span>
         <span v-if="sessionTimer > 0" class="font-mono" :class="sessionTimer <= 60 ? 'text-danger' : ''" aria-live="polite" :aria-label="`${formatTimer(sessionTimer)} restantes`">
           {{ formatTimer(sessionTimer) }}
         </span>
         <span v-if="review.currentCard" class="font-medium text-base-primary">{{ review.remaining <= 1 ? 'Último!' : `${review.remaining - 1} restante${review.remaining - 1 !== 1 ? 's' : ''}` }}</span>
-        <span class="text-micro opacity-50">{{ reviewMood }}</span>
+        <span class="text-micro text-base-muted">{{ reviewMood }}</span>
       </div>
-      <button class="px-3 py-1.5 rounded-full text-micro font-medium bg-baigi-primary/10 text-baigi-primary border border-baigi-primary/20 hover:bg-baigi-primary/20 transition-colors" @click="dive.start()">
+      <button class="px-3 py-1.5 rounded-full text-micro font-medium bg-accent-primary-subtle0/10 text-accent-primary border border-[var(--color-accent-primary)]/20 hover:bg-accent-primary-subtle0/20 transition-colors" @click="dive.start()">
         🐬 Mergulhar
       </button>
     </div>
 
     <!-- Progress bar — thin, with pulse on update -->
-    <div class="w-full h-[3px] bg-white/[0.06]">
+    <div class="w-full h-[3px] bg-[var(--border-base)]">
       <div
-        class="h-[3px] transition-all duration-500 ease-out bg-baigi-primary"
+        class="h-[3px] transition-all duration-500 ease-out bg-[var(--color-accent-soft)]"
         :class="progressPulse ? 'progress-pulse' : ''"
         :style="{ width: review.progress + '%' }"
       />
@@ -30,7 +30,7 @@
 
     <!-- Micro reward toast -->
     <Transition name="reward-pop">
-      <div v-if="rewardMessage" class="fixed top-16 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-[#150A25] border border-[rgba(244,200,74,0.2)] text-sm text-baigi-primary shadow-lg">
+      <div v-if="rewardMessage" class="fixed top-16 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-[var(--bg-card)] border border-[var(--color-accent-primary)]/20 text-sm text-accent-primary shadow-lg">
         {{ rewardMessage }}
       </div>
     </Transition>
@@ -110,7 +110,7 @@
       <!-- State badge -->
       <div v-if="review.currentCard.is_learning || review.currentCard.state === 'new'" class="flex items-center gap-2">
         <span
-          class="px-3 py-1 rounded-full text-xs tracking-wide uppercase font-medium bg-white/[0.06] border border-white/[0.08] text-white/60"
+          class="px-3 py-1 rounded-full text-xs tracking-wide uppercase font-medium bg-surface-secondary border border-base text-base-muted"
         >
           {{ review.currentCard.state === 'relearning' ? '🔄 Reaprendendo' : review.currentCard.state === 'new' ? '✨ Novo' : '📖 Aprendendo' }}
         </span>
@@ -141,9 +141,9 @@
           @skipped="dismissErrorDiary"
         />
         <!-- Note snippet -->
-        <div v-if="review.noteSnippet" class="p-3 rounded-lg bg-white/[0.03] border border-white/[0.06]">
-          <p class="text-xs text-[#F4C84A] font-medium mb-1">📝 Da sua nota: {{ review.noteSnippet.title }}</p>
-          <p class="text-sm text-white/70">{{ review.noteSnippet.snippet }}</p>
+        <div v-if="review.noteSnippet" class="p-3 rounded-lg bg-surface-secondary border border-base">
+          <p class="text-xs text-accent-primary font-medium mb-1">📝 Da sua nota: {{ review.noteSnippet.title }}</p>
+          <p class="text-sm text-base-secondary">{{ review.noteSnippet.snippet }}</p>
         </div>
         <!-- Actions -->
         <div class="flex gap-2 justify-center">
@@ -436,19 +436,19 @@ watch(() => route.query, (newQ, oldQ) => {
 
 <style scoped>
 .review-bg {
-  background: #0F001F;
-  color: var(--text-primary);
+  background: var(--bg-base);
+  color: var(--text-heading);
 }
 
 .progress-pulse {
-  box-shadow: 0 0 8px rgba(244, 200, 74, 0.3);
+  box-shadow: 0 0 8px rgba(111, 63, 245, 0.3);
   animation: pulse-glow 0.6s ease;
 }
 
 @keyframes pulse-glow {
-  0% { box-shadow: 0 0 4px rgba(244, 200, 74, 0.1); }
-  50% { box-shadow: 0 0 12px rgba(244, 200, 74, 0.4); }
-  100% { box-shadow: 0 0 4px rgba(244, 200, 74, 0.1); }
+  0% { box-shadow: 0 0 4px rgba(111, 63, 245, 0.1); }
+  50% { box-shadow: 0 0 12px rgba(111, 63, 245, 0.4); }
+  100% { box-shadow: 0 0 4px rgba(111, 63, 245, 0.1); }
 }
 
 .reward-pop-enter-active {

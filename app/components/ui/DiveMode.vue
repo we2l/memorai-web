@@ -54,11 +54,11 @@
   <!-- Active dive overlay -->
   <div v-if="dive.active.value && !showDiveAnimation && !showRiseAnimation" class="dive-overlay">
     <div class="dive-timer">
-      <span class="text-micro text-white/40 uppercase tracking-widest">Mergulho</span>
-      <span v-if="dive.externalCountdown.value != null" class="font-mono text-sm text-baigi-primary">
+      <span class="text-micro text-base-muted uppercase tracking-widest">Mergulho</span>
+      <span v-if="dive.externalCountdown.value != null" class="font-mono text-sm text-accent-primary">
         {{ dive.formatElapsed(dive.externalCountdown.value) }}
       </span>
-      <span v-else class="font-mono text-sm text-baigi-primary">{{ dive.formatElapsed(dive.elapsed.value) }}</span>
+      <span v-else class="font-mono text-sm text-[var(--color-accent-soft)]">{{ dive.formatElapsed(dive.elapsed.value) }}</span>
     </div>
     <button class="dive-exit" @click="exitDive">
       🐬 Emergir
@@ -105,7 +105,7 @@ function exitDive() {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: rgba(15, 0, 31, 0.95);
+  background: var(--bg-overlay);
   pointer-events: all;
 }
 
@@ -132,7 +132,7 @@ function exitDive() {
 }
 
 .wave {
-  fill: rgba(244, 200, 74, 0.12);
+  fill: rgba(111, 63, 245, 0.1);
 }
 
 .wave-1 {
@@ -140,7 +140,7 @@ function exitDive() {
 }
 
 .wave-2 {
-  fill: rgba(244, 200, 74, 0.06);
+  fill: rgba(111, 63, 245, 0.05);
   animation: wave-move 2.5s ease-in-out infinite 0.4s;
 }
 
@@ -156,7 +156,7 @@ function exitDive() {
   width: 20px;
   height: 8px;
   border-radius: 50%;
-  border: 1px solid rgba(244, 200, 74, 0.3);
+  border: 1px solid rgba(111, 63, 245, 0.25);
   opacity: 0;
 }
 
@@ -175,7 +175,7 @@ function exitDive() {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: rgba(244, 200, 74, 0.25);
+  background: rgba(111, 63, 245, 0.2);
   opacity: 0;
 }
 
@@ -207,13 +207,13 @@ function exitDive() {
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  background: rgba(244, 200, 74, 0.25);
+  background: rgba(111, 63, 245, 0.2);
   animation: big-splash 0.5s ease-out 0.15s both;
 }
 
 .emerge-splash-2 {
   animation-delay: 0.25s;
-  background: rgba(244, 200, 74, 0.15);
+  background: rgba(111, 63, 245, 0.12);
 }
 
 /* Water drops flying up on emerge */
@@ -223,7 +223,7 @@ function exitDive() {
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: rgba(244, 200, 74, 0.4);
+  background: rgba(111, 63, 245, 0.35);
   opacity: 0;
 }
 
@@ -250,14 +250,14 @@ function exitDive() {
 .dive-text {
   margin-top: 24px;
   font-size: 0.9rem;
-  color: rgba(244, 200, 74, 0.7);
+  color: var(--color-accent-primary);
   animation: fade-in 0.4s ease 0.6s both;
 }
 
 .dive-text-rise {
   margin-top: 24px;
   font-size: 0.9rem;
-  color: rgba(244, 200, 74, 0.9);
+  color: var(--color-accent-primary);
   animation: fade-in 0.3s ease 1.2s both;
 }
 
@@ -271,8 +271,9 @@ function exitDive() {
   gap: 8px;
   padding: 6px 16px;
   border-radius: 9999px;
-  background: rgba(15, 0, 31, 0.85);
-  border: 1px solid rgba(244, 200, 74, 0.15);
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--border-base);
+  box-shadow: var(--shadow-sm);
   backdrop-filter: blur(8px);
   pointer-events: auto;
 }
@@ -284,9 +285,9 @@ function exitDive() {
   transform: translateX(-50%);
   padding: 8px 20px;
   border-radius: 9999px;
-  background: rgba(244, 200, 74, 0.1);
-  border: 1px solid rgba(244, 200, 74, 0.25);
-  color: #F4C84A;
+  background: rgba(111, 63, 245, 0.08);
+  border: 1px solid rgba(111, 63, 245, 0.2);
+  color: var(--color-accent-primary);
   font-size: 0.8rem;
   font-weight: 500;
   cursor: pointer;
@@ -295,7 +296,7 @@ function exitDive() {
 }
 
 .dive-exit:hover {
-  background: rgba(244, 200, 74, 0.2);
+  background: rgba(111, 63, 245, 0.15);
 }
 
 /* DIVE: bico aponta pra baixo a 90°, mergulha rápido */

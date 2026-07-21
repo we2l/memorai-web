@@ -6,20 +6,20 @@
         :key="btn.label"
         type="button"
         class="p-1 rounded text-small transition-colors"
-        :class="btn.active() ? 'bg-accent-primary-subtle text-accent-primary' : 'text-base-muted hover:bg-surface-tertiary'"
+        :class="btn.active() ? 'bg-accent-primary-subtle text-accent-primary' : 'text-base-muted hover:bg-[var(--border-divider)]'"
         :title="btn.label"
         @click="btn.action"
       >
         <component :is="btn.icon" :size="14" />
       </button>
 
-      <div class="w-px h-4 bg-surface-tertiary mx-1" />
+      <div class="w-px h-4 bg-[var(--border-divider)] mx-1" />
 
       <!-- Mic -->
       <button
         type="button"
         class="p-1 rounded text-small transition-colors"
-        :class="recording ? 'bg-danger/15 text-danger' : 'text-base-muted hover:bg-surface-tertiary'"
+        :class="recording ? 'bg-danger/15 text-danger' : 'text-base-muted hover:bg-[var(--border-divider)]'"
         :title="recording ? 'Parar gravação' : 'Gravar áudio'"
         @click="toggleRecording"
       >
@@ -287,17 +287,17 @@ onBeforeUnmount(() => {
   margin: 0.5em 0;
 }
 .rich-input .tiptap .cloze-chip {
-  background: var(--color-primary-100, rgba(59, 130, 246, 0.15));
+  background: var(--color-accent-primary-subtle);
   border-radius: 4px;
   padding: 1px 4px;
-  border: 1px solid var(--color-primary-300, rgba(59, 130, 246, 0.3));
+  border: 1px solid var(--color-accent-soft);
   position: relative;
 }
 .rich-input .tiptap .cloze-chip::after {
   content: attr(data-cloze-index);
   font-size: 0.6em;
   font-weight: 700;
-  color: var(--color-primary-600, #2563eb);
+  color: var(--color-accent-primary);
   vertical-align: super;
   margin-left: 2px;
 }

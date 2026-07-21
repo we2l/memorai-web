@@ -24,7 +24,7 @@ function nodeRadius(d: D3Node): number {
 function nodeColor(d: D3Node): string {
   if (d.flashcards_count === 0) return '#706B64' // warm muted
   if (d.progress < 0.3) return '#EF4444' // red danger
-  if (d.progress < 0.7) return '#F4C84A' // gold active
+  if (d.progress < 0.7) return 'var(--color-accent-primary)' // purple active
   return '#22C55E' // green mastered
 }
 

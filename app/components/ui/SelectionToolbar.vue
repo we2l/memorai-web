@@ -11,7 +11,7 @@
       <Zap :size="12" /> Criar card
     </button>
     <button
-      class="flex items-center gap-1 px-2 py-1 rounded text-micro font-medium text-base-muted hover:bg-surface-tertiary transition-colors"
+      class="flex items-center gap-1 px-2 py-1 rounded text-micro font-medium text-base-muted hover:bg-[var(--border-divider)] transition-colors"
       @mousedown.prevent="$emit('askAi')"
     >
       ✨ Perguntar

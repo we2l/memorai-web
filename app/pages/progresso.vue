@@ -16,7 +16,7 @@
         <p class="text-4xl font-bold text-base-primary">{{ data.mastery_pct }}%</p>
         <p class="text-micro text-base-muted mt-2">dos seus cards estão dominados</p>
         <!-- Card states bar -->
-        <div class="flex h-3 rounded-full overflow-hidden mt-4 bg-surface-tertiary">
+        <div class="flex h-3 rounded-full overflow-hidden mt-4 bg-[var(--border-divider)]">
           <div
             v-if="data.card_states.mature"
             class="bg-success transition-all"
@@ -74,7 +74,7 @@
         </div>
         <div class="flex items-center gap-2 mt-3 text-micro text-base-muted">
           <span>Menos</span>
-          <span class="w-3 h-3 rounded-sm bg-surface-tertiary" />
+          <span class="w-3 h-3 rounded-sm bg-[var(--border-divider)]" />
           <span class="w-3 h-3 rounded-sm bg-success/20" />
           <span class="w-3 h-3 rounded-sm bg-success/50" />
           <span class="w-3 h-3 rounded-sm bg-success/80" />
@@ -91,7 +91,7 @@
             <div class="flex-1 min-w-0">
               <p class="text-small text-base-primary truncate">{{ topic.name }}</p>
               <div class="flex items-center gap-2 mt-1">
-                <div class="flex-1 h-2 rounded-full bg-surface-tertiary">
+                <div class="flex-1 h-2 rounded-full bg-[var(--border-divider)]">
                   <div
                     class="h-2 rounded-full bg-danger transition-all"
                     :style="{ width: topic.mastery_pct + '%' }"
@@ -164,7 +164,7 @@ const heatmapDays = computed(() => {
 })
 
 function heatmapColor(count: number) {
-  if (count === 0) return 'bg-surface-tertiary'
+  if (count === 0) return 'bg-[var(--border-divider)]'
   if (count <= 5) return 'bg-success/20'
   if (count <= 15) return 'bg-success/50'
   if (count <= 30) return 'bg-success/80'

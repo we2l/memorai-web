@@ -2,8 +2,8 @@
   <div class="p-4 sm:p-6 pb-20 lg:pb-6 max-w-3xl mx-auto">
     <div class="flex items-center justify-between mb-6">
       <div>
-        <h1 class="font-heading font-bold text-3xl text-baigi-text">Podcasts</h1>
-        <p class="text-sm text-white/55 mt-1">Sua biblioteca de revisão em áudio</p>
+        <h1 class="font-heading font-bold text-3xl text-base-primary">Podcasts</h1>
+        <p class="text-sm text-base-muted mt-1">Sua biblioteca de revisão em áudio</p>
       </div>
       <button class="btn-primary" @click="showGenerate = true">
         🎙️ Gerar podcast
@@ -33,22 +33,22 @@
       <div v-if="player.currentPodcast" class="mb-8">
         <p class="text-label mb-3">Tocando agora</p>
         <div
-          class="w-full rounded-2xl bg-gradient-to-b from-[#2A1550] to-[#1A0C2E] border border-white/[0.08] p-5 flex items-center gap-4 hover:border-white/[0.12] transition-colors cursor-pointer shadow-[0_8px_32px_rgba(0,0,0,0.4)]"
+          class="w-full rounded-2xl bg-[var(--bg-card)] border border-base p-5 flex items-center gap-4 hover:border-strong transition-colors cursor-pointer shadow-lg"
           @click="player.expand()"
         >
-          <div class="w-14 h-14 rounded-xl bg-[rgba(244,200,74,0.12)] border border-[rgba(244,200,74,0.2)] flex items-center justify-center shrink-0">
-            <div class="w-3 h-3 rounded-full bg-[#F4C84A] animate-pulse" />
+          <div class="w-14 h-14 rounded-xl bg-accent-primary-subtle border border-[var(--color-accent-primary)]/20 flex items-center justify-center shrink-0">
+            <div class="w-3 h-3 rounded-full bg-accent-primary-subtle0 animate-pulse" />
           </div>
           <div class="flex-1 min-w-0">
-            <p class="text-sm text-baigi-text font-medium truncate">{{ player.currentPodcast.title }}</p>
-            <p class="text-xs text-white/55 mt-0.5">{{ formatTime(player.currentTime) }} / {{ formatTime(player.duration) }}</p>
+            <p class="text-sm text-base-primary font-medium truncate">{{ player.currentPodcast.title }}</p>
+            <p class="text-xs text-base-muted mt-0.5">{{ formatTime(player.currentTime) }} / {{ formatTime(player.duration) }}</p>
           </div>
           <button
-            class="w-10 h-10 rounded-full bg-[#F4C84A] flex items-center justify-center shrink-0 hover:brightness-110 transition-all"
+            class="w-10 h-10 rounded-full bg-accent-primary-subtle0 flex items-center justify-center shrink-0 hover:brightness-110 transition-all"
             @click.stop="player.togglePlay()"
           >
-            <Pause v-if="player.isPlaying" :size="16" class="text-white" />
-            <Play v-else :size="16" class="text-white ml-0.5" />
+            <Pause v-if="player.isPlaying" :size="16" class="text-base-primary" />
+            <Play v-else :size="16" class="text-base-primary ml-0.5" />
           </button>
         </div>
       </div>
@@ -64,7 +64,7 @@
           >
             <!-- Status icon -->
             <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" :class="statusBg(podcast.status)">
-              <Loader2 v-if="isGenerating(podcast.status)" :size="18" class="animate-spin text-white/50" />
+              <Loader2 v-if="isGenerating(podcast.status)" :size="18" class="animate-spin text-base-muted" />
               <AlertCircle v-else-if="podcast.status === 'failed'" :size="18" class="text-red-400" />
               <button v-else @click="playPodcast(podcast)" class="w-full h-full flex items-center justify-center">
                 <Pause v-if="player.currentPodcast?.id === podcast.id && player.isPlaying" :size="18" :class="statusText(podcast.status)" />
@@ -77,7 +77,7 @@
               <p class="text-small text-base-primary font-medium truncate">{{ podcast.title }}</p>
               <div class="flex items-center gap-2 text-micro text-base-muted mt-0.5">
                 <span v-if="podcast.status === 'ready' && podcast.duration_seconds">{{ formatDuration(podcast.duration_seconds) }}</span>
-                <span v-if="podcast.status === 'ready' && podcast.format" class="px-1.5 py-0.5 rounded bg-surface-tertiary text-micro">{{ podcast.format === 'debate' ? 'Debate' : 'Expositivo' }}</span>
+                <span v-if="podcast.status === 'ready' && podcast.format" class="px-1.5 py-0.5 rounded bg-[var(--border-divider)] text-micro">{{ podcast.format === 'debate' ? 'Debate' : 'Expositivo' }}</span>
                 <span v-if="isGenerating(podcast.status)">{{ statusLabel(podcast.status) }}</span>
                 <span v-if="podcast.status === 'failed'" class="text-danger">Falhou</span>
                 <span>{{ timeAgo(podcast.created_at) }}</span>
@@ -136,14 +136,14 @@ function isGenerating(status: string) {
 }
 
 function statusBg(status: string) {
-  if (status === 'ready') return 'bg-[rgba(244,200,74,0.08)]'
+  if (status === 'ready') return 'bg-accent-primary-subtle'
   if (status === 'failed') return 'bg-red-500/10'
-  return 'bg-white/[0.04]'
+  return 'bg-surface-secondary'
 }
 
 function statusText(status: string) {
-  if (status === 'ready') return 'text-[#F4C84A]'
-  return 'text-white/50'
+  if (status === 'ready') return 'text-accent-primary'
+  return 'text-base-muted'
 }
 
 function statusLabel(status: string): string {

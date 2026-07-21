@@ -3,7 +3,7 @@
     <Transition name="modal">
       <div
         v-if="modelValue"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-overlay"
         @click.self="close"
       >
         <div
@@ -13,7 +13,7 @@
           :aria-label="ariaLabel"
         >
           <button
-            class="absolute top-4 right-4 p-1.5 text-base-muted hover:text-base-primary rounded-lg hover:bg-surface-tertiary transition-colors"
+            class="absolute top-4 right-4 p-1.5 text-base-muted hover:text-base-primary rounded-lg hover:bg-[var(--border-divider)] transition-colors"
             aria-label="Fechar"
             @click="close"
           >

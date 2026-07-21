@@ -3,14 +3,14 @@
     <Transition name="fade">
       <div
         v-if="modelValue"
-        class="fixed inset-0 z-50 bg-[#0F001F] flex flex-col"
+        class="fixed inset-0 z-50 bg-surface flex flex-col"
         role="dialog"
         aria-modal="true"
         aria-label="Mapa de Conhecimento"
         @keydown.escape="close"
       >
         <!-- Header -->
-        <div class="flex items-center gap-2 px-3 sm:px-4 py-3 border-b border-white/[0.06] shrink-0">
+        <div class="flex items-center gap-2 px-3 sm:px-4 py-3 border-b border-base shrink-0">
           <button class="btn-secondary !py-1.5 !px-3 !min-h-[2.75rem] text-small" @click="close">
             ← Voltar
           </button>
@@ -39,7 +39,7 @@
           <button v-else class="btn-danger !py-1.5 !px-3 !min-h-[2.75rem] text-small" @click="cancelConnectMode">
             <X :size="16" /> Cancelar
           </button>
-          <button class="p-2 rounded-lg text-white/40 hover:text-white hover:bg-white/[0.06]" aria-label="Fechar mapa" @click="close">
+          <button class="p-2 rounded-lg text-base-muted hover:text-base-primary hover:bg-surface-secondary" aria-label="Fechar mapa" @click="close">
             <X :size="20" />
           </button>
         </div>
@@ -53,7 +53,7 @@
         <!-- Weak topics banner -->
         <div v-else-if="weakNodesCount > 0" class="px-4 py-2.5 bg-danger/10 text-danger text-small text-center shrink-0 flex items-center justify-center gap-3 flex-wrap">
           <span>{{ weakNodesCount }} {{ weakNodesCount === 1 ? 'caderno precisa' : 'cadernos precisam' }} de atenção</span>
-          <button class="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-danger text-white text-micro font-medium hover:bg-danger/90 transition-colors" @click="showOnlyWeak = !showOnlyWeak">
+          <button class="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-danger text-base-primary text-micro font-medium hover:bg-danger/90 transition-colors" @click="showOnlyWeak = !showOnlyWeak">
             {{ showOnlyWeak ? 'Mostrar todos' : 'Ver quais' }}
           </button>
         </div>
@@ -79,7 +79,7 @@
                 <button
                   v-for="node in searchResults"
                   :key="node.id"
-                  class="w-full text-left px-3 py-2 text-small hover:bg-surface-tertiary transition-colors truncate"
+                  class="w-full text-left px-3 py-2 text-small hover:bg-[var(--border-divider)] transition-colors truncate"
                   @click="selectSearchResult(node.id)"
                 >
                   {{ node.name }}
@@ -96,23 +96,23 @@
           <!-- Node detail panel -->
           <aside
             v-if="graphStore.selectedNode"
-            class="max-sm:absolute max-sm:inset-0 max-sm:z-20 sm:w-80 border-l border-white/[0.06] bg-[#0A0017] flex flex-col overflow-y-auto shrink-0"
+            class="max-sm:absolute max-sm:inset-0 max-sm:z-20 sm:w-80 border-l border-base bg-surface-secondary flex flex-col overflow-y-auto shrink-0"
           >
             <div class="p-4 border-b border-base">
               <div class="flex items-center justify-between mb-2">
                 <h3 class="text-title truncate">{{ graphStore.selectedNode.name }}</h3>
-                <button class="p-1 rounded hover:bg-surface-tertiary" @click="graphStore.clearSelection()">
+                <button class="p-1 rounded hover:bg-[var(--border-divider)]" @click="graphStore.clearSelection()">
                   <X :size="16" class="text-base-muted" />
                 </button>
               </div>
               <div class="flex items-center gap-2 mb-3">
-                <div class="flex-1 h-1 rounded-full bg-white/[0.08]">
+                <div class="flex-1 h-1 rounded-full bg-[var(--bg-soft)]">
                   <div
-                    class="h-1 rounded-full bg-[#F4C84A] transition-all"
+                    class="h-1 rounded-full bg-[var(--color-accent-soft)] transition-all"
                     :style="{ width: Math.round(graphStore.selectedNode.progress * 100) + '%' }"
                   />
                 </div>
-                <span class="text-xs text-white/55">{{ Math.round(graphStore.selectedNode.progress * 100) }}%</span>
+                <span class="text-xs text-base-muted">{{ Math.round(graphStore.selectedNode.progress * 100) }}%</span>
               </div>
               <div class="flex gap-4 text-micro text-base-muted">
                 <span>{{ graphStore.selectedNode.flashcards_count }} cards</span>
@@ -152,7 +152,7 @@
         <UiModal v-model="showLabelModal" size="sm">
           <h2 class="text-headline mb-4">Conectar cadernos</h2>
           <p class="text-small text-base-secondary mb-3">{{ connectSourceName }} ↔ {{ connectTargetName }}</p>
-          <p class="text-micro text-base-muted mb-3 bg-surface-tertiary rounded-lg px-3 py-2">💡 Cadernos conectados são revisados juntos — o algoritmo mistura cards dos dois pra fortalecer a memória.</p>
+          <p class="text-micro text-base-muted mb-3 bg-[var(--border-divider)] rounded-lg px-3 py-2">💡 Cadernos conectados são revisados juntos — o algoritmo mistura cards dos dois pra fortalecer a memória.</p>
           <input v-model="connectLabel" class="input-base" placeholder="Label (opcional, ex: 'é exceção de')" @keydown.enter="confirmConnection" />
           <div class="flex gap-3 justify-end mt-4">
             <button class="btn-secondary" @click="cancelLabel">Cancelar</button>

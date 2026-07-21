@@ -2,7 +2,7 @@
   <div>
     <button
       class="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-left text-body transition-colors"
-      :class="topic.id === selectedId ? 'bg-white/10 text-baigi-text font-medium' : 'text-white/60 hover:bg-white/5 hover:text-white/80'"
+      :class="topic.id === selectedId ? 'bg-surface-secondary text-base-primary font-medium' : 'text-base-muted hover:bg-surface-secondary hover:text-base-secondary'"
       :style="{ paddingLeft: `${depth * 16 + 12}px` }"
       @click="$emit('select', topic.id)"
       @mouseenter="isHovered = true"
@@ -10,7 +10,7 @@
     >
       <button
         v-if="topic.children?.length"
-        class="shrink-0 p-1.5 rounded hover:bg-white/10 text-white/40"
+        class="shrink-0 p-1.5 rounded hover:bg-surface-secondary text-base-muted"
         @click.stop="expanded = !expanded"
       >
         <ChevronRight :size="14" class="transition-transform" :class="{ 'rotate-90': expanded }" />
@@ -32,13 +32,13 @@
 
       <!-- Actions (visible on hover/selected) -->
       <span v-if="showActions" class="flex items-center gap-0.5 shrink-0" @click.stop>
-        <button class="p-2 rounded text-white/40 hover:text-white hover:bg-white/10" title="Adicionar tópico" @click="$emit('add-child', topic.id)">
+        <button class="p-2 rounded text-base-muted hover:text-base-primary hover:bg-surface-secondary" title="Adicionar tópico" @click="$emit('add-child', topic.id)">
           <Plus :size="14" />
         </button>
-        <button class="p-2 rounded text-white/40 hover:text-white hover:bg-white/10" title="Editar" @click="$emit('edit', topic)">
+        <button class="p-2 rounded text-base-muted hover:text-base-primary hover:bg-surface-secondary" title="Editar" @click="$emit('edit', topic)">
           <Pencil :size="14" />
         </button>
-        <button class="p-2 rounded text-white/40 hover:text-red-400 hover:bg-white/10" title="Deletar" @click="$emit('delete', topic)">
+        <button class="p-2 rounded text-base-muted hover:text-red-400 hover:bg-surface-secondary" title="Deletar" @click="$emit('delete', topic)">
           <Trash2 :size="14" />
         </button>
       </span>
@@ -86,9 +86,9 @@ const showActions = computed(() => isHovered.value || props.topic.id === props.s
 
 const healthColor = computed(() => {
   const p = props.progressMap?.[props.topic.id]
-  if (p === undefined) return 'bg-white/20'
+  if (p === undefined) return 'bg-[var(--border-base)]'
   if (p < 0.3) return 'bg-red-400/70'
-  if (p < 0.7) return 'bg-[#F4C84A]/70'
-  return 'bg-[#F4C84A]'
+  if (p < 0.7) return 'bg-accent-primary-subtle0/70'
+  return 'bg-accent-primary-subtle0'
 })
 </script>

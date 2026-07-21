@@ -1,6 +1,6 @@
 <template>
   <nav
-    class="lg:hidden fixed bottom-0 left-0 right-0 bg-surface-secondary border-t border-base z-50"
+    class="lg:hidden fixed bottom-0 left-0 right-0 bg-[var(--bg-card)] border-t border-base z-50"
     aria-label="Navegação mobile"
   >
     <div class="flex items-center justify-around h-16">
@@ -9,7 +9,7 @@
         :key="item.to"
         :to="item.to"
         class="flex flex-col items-center gap-0.5 px-1.5 min-[360px]:px-3 py-1.5 text-[11px] min-[360px]:text-small transition-all duration-150"
-        :class="isActive(item.to) ? 'text-accent-primary' : 'text-base-muted'"
+        :class="isActive(item.to) ? 'text-[var(--color-accent-soft)] font-medium' : 'text-base-muted'"
         :aria-current="isActive(item.to) ? 'page' : undefined"
       >
         <component :is="getIcon(item.icon)" :size="20" :stroke-width="1.5" />

@@ -377,7 +377,7 @@
 </template>
 
 <script setup lang="ts">
-import { Plus, Network, Trash2, PanelLeftClose, PanelLeftOpen, X } from 'lucide-vue-next'
+import { Plus, Network, PanelLeftClose, PanelLeftOpen, X } from 'lucide-vue-next'
 import type { Topic, Note } from '~/types'
 
 const topicStore = useTopicStore()
@@ -390,7 +390,6 @@ const featureUsage = useFeatureUsage()
 const selectedTopicId = ref<string | null>(null)
 const sidebarCollapsed = ref(false)
 const sidebarOpen = ref(true)
-const topicErrors = ref<any[]>([])
 const { topicCards, showDeleteCard, deleteCardId, memorizeProgress, dueCardsCount, newCardsCount, pendingCount, setCards, cardsFromNote, confirmDeleteCard, handleDeleteCard } = useTopicCards()
 const { noteTitle, noteContent, editingNote, selectedText, showDeleteNote, flushPendingSave, debouncedSave, saveTitle, selectNote, openNoteEditor, closeEditor, handleQuickAdd, createNote, handleDeleteNote } = useNoteEditor(selectedTopicId)
 const errorPatterns = ref<any>(null)
@@ -447,7 +446,7 @@ const selectedTopicName = computed(() => {
 })
 
 const { sanitize } = useSanitize()
-const { toHtml, toText } = useTiptapRender()
+const { toHtml } = useTiptapRender()
 
 const noteContentHtml = computed(() => {
   if (!noteContent.value) return ''
@@ -490,12 +489,10 @@ function selectTopic(id: string) {
 
 async function loadTopicData(id: string) {
   try {
-    const [errRes, detailRes, patternsRes] = await Promise.all([
-      $api<any>(`/topics/${id}/error-logs`),
+    const [detailRes, patternsRes] = await Promise.all([
       $api<any>(`/topics/${id}/details`),
       $api<any>(`/topics/${id}/error-patterns`),
     ])
-    topicErrors.value = errRes.data
     setCards(detailRes.data.flashcards)
     errorPatterns.value = patternsRes.data
 

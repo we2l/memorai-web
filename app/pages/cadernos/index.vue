@@ -394,7 +394,7 @@ const noteTitle = ref('')
 const noteContent = ref<Record<string, any> | null>(null)
 const selectedText = ref('')
 const topicErrors = ref<any[]>([])
-const topicCards = ref<any[]>([])
+const { topicCards, showDeleteCard, deleteCardId, memorizeProgress, dueCardsCount, newCardsCount, pendingCount, setCards, cardsFromNote, confirmDeleteCard, handleDeleteCard } = useTopicCards()
 const errorPatterns = ref<any>(null)
 const generatedCards = ref<any[]>([])
 const generatingDeckId = ref<string>('')
@@ -464,22 +464,6 @@ const selectedTopicName = computed(() => {
   return selectedTopicId.value ? find(topicStore.tree, selectedTopicId.value) ?? '' : ''
 })
 
-const memorizeProgress = computed(() => {
-  if (!topicCards.value.length) return 0
-  const mastered = topicCards.value.filter(c => c.state === 'review').length
-  return Math.round((mastered / topicCards.value.length) * 100)
-})
-
-const dueCardsCount = computed(() => {
-  return topicCards.value.filter(c => c.due && new Date(c.due) <= new Date()).length
-})
-
-const newCardsCount = computed(() => {
-  return topicCards.value.filter(c => c.state === 'new').length
-})
-
-const pendingCount = computed(() => dueCardsCount.value + newCardsCount.value)
-
 const { sanitize } = useSanitize()
 const { toHtml, toText } = useTiptapRender()
 
@@ -487,10 +471,6 @@ const noteContentHtml = computed(() => {
   if (!noteContent.value) return ''
   return sanitize(toHtml(noteContent.value))
 })
-
-function cardsFromNote(noteId: string): number {
-  return topicCards.value.filter(c => c.source_note_id === noteId).length
-}
 
 function noteNameById(noteId: string): string {
   return noteStore.notes.find(n => n.id === noteId)?.title ?? 'Nota'
@@ -568,7 +548,7 @@ async function loadTopicData(id: string) {
       $api<any>(`/topics/${id}/error-patterns`),
     ])
     topicErrors.value = errRes.data
-    topicCards.value = detailRes.data.flashcards
+    setCards(detailRes.data.flashcards)
     errorPatterns.value = patternsRes.data
 
     // Set default tab based on content
@@ -599,31 +579,7 @@ async function loadTopicData(id: string) {
   } catch {}
 }
 
-async function deleteCard(cardId: string) {
-  try {
-    await $api(`/flashcards/${cardId}`, { method: 'DELETE' })
-    topicCards.value = topicCards.value.filter(c => c.id !== cardId)
-    toast.show('Card excluído.', 'success')
-  } catch {
-    toast.show('Erro ao excluir card.', 'error')
-  }
-}
-
-const showDeleteCard = ref(false)
-const deleteCardId = ref<string | null>(null)
 const showDeleteNote = ref(false)
-
-function confirmDeleteCard(id: string) {
-  deleteCardId.value = id
-  showDeleteCard.value = true
-}
-
-async function handleDeleteCard() {
-  if (!deleteCardId.value) return
-  await deleteCard(deleteCardId.value)
-  deleteCardId.value = null
-  showDeleteCard.value = false
-}
 
 function selectNote(note: Note) {
   flushPendingSave()

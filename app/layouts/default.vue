@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen" :class="colorMode === 'dark' ? 'bg-[#0F001F]' : 'bg-[linear-gradient(180deg,#FFFFFF,#F7F4FF)]'">
+  <div class="min-h-screen" :class="colorMode === 'dark' ? 'bg-[#0F001F]' : 'bg-[linear-gradient(180deg,#FFFFFF,#F9F7FF)]'">
     <UiPaymentBanner />
     <UiSidebar v-show="!dive.active.value" :collapsed="sidebarCollapsed" />
     <UiBottomNav v-show="!dive.active.value" />

@@ -4,7 +4,7 @@
     <aside
       class="border-r border-base flex flex-col shrink-0 transition-all duration-200 bg-[var(--bg-card)]"
       :class="[
-        sidebarCollapsed ? 'w-0 overflow-hidden' : 'w-72',
+        sidebarCollapsed ? 'w-0 overflow-hidden' : 'w-60',
         'max-lg:fixed max-lg:inset-0 max-lg:z-40 max-lg:w-full max-lg:border-r-0',
         !sidebarOpen && 'max-lg:hidden',
       ]"

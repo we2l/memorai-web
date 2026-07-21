@@ -2,7 +2,7 @@
   <div class="flex h-full">
     <!-- Left: material list -->
     <div
-      class="w-full lg:w-[35%] lg:border-r border-base flex flex-col transition-all duration-300 ease-in-out"
+      class="w-full lg:w-[25%] lg:min-w-[200px] lg:border-r border-base flex flex-col transition-all duration-300 ease-in-out"
       :class="[activeNote && 'max-lg:hidden', activeNote && readMode && 'lg:!w-0 lg:overflow-hidden lg:!border-0 lg:!p-0']"
     >
       <div class="p-4">

@@ -258,7 +258,7 @@
           @accept-card="acceptCard"
           @accept-all-cards="acceptAllCards"
           @edit-generated="editGeneratedCard"
-          @discard-generated="(i: number) => generatedCards.splice(i, 1)"
+          @discard-generated="discardGenerated"
           @ocr-cards="handleOcrCards"
         >
           <template #ai-generate>
@@ -394,29 +394,14 @@ const topicErrors = ref<any[]>([])
 const { topicCards, showDeleteCard, deleteCardId, memorizeProgress, dueCardsCount, newCardsCount, pendingCount, setCards, cardsFromNote, confirmDeleteCard, handleDeleteCard } = useTopicCards()
 const { noteTitle, noteContent, editingNote, selectedText, showDeleteNote, flushPendingSave, debouncedSave, saveTitle, selectNote, openNoteEditor, closeEditor, handleQuickAdd, createNote, handleDeleteNote } = useNoteEditor(selectedTopicId)
 const errorPatterns = ref<any>(null)
-const generatedCards = ref<any[]>([])
-const generatingDeckId = ref<string>('')
-const aiGenerating = ref(false)
 
-// Auto-accept generated cards if user leaves
-function autoAcceptPendingCards() {
-  if (generatedCards.value.length && generatingDeckId.value) {
-    // Fire-and-forget — navigator.sendBeacon doesn't work with JSON easily, use fetch keepalive
-    const { $api } = useNuxtApp()
-    $api('/ai/accept-cards', {
-      method: 'POST',
-      body: {
-        deck_id: generatingDeckId.value,
-        cards: generatedCards.value.map(c => ({ ...c, topic_id: selectedTopicId.value })),
-      },
-    }).catch(() => {})
-    generatedCards.value = []
-  }
-}
-
-onBeforeRouteLeave(() => { autoAcceptPendingCards() })
-onMounted(() => { window.addEventListener('beforeunload', autoAcceptPendingCards) })
-onUnmounted(() => { window.removeEventListener('beforeunload', autoAcceptPendingCards) })
+const aiGenerate = useAiGenerate({
+  topicId: selectedTopicId,
+  topicCards,
+  activeTab,
+  onReload: async () => { if (selectedTopicId.value) await loadTopicData(selectedTopicId.value) },
+})
+const { generatedCards, aiGenerating, handleAiGenerate, handleOcrCards, acceptCard, acceptAllCards, generateFromCurrentNote, discardGenerated } = aiGenerate
 
 // Topic modals
 const showCreateTopic = ref(false)
@@ -638,85 +623,6 @@ function openNoteToCard() {
   }
 }
 
-async function handleAiGenerate(source: string, quantity: number, documentIdOrPrompt?: string) {
-  if (!selectedTopicId.value) return
-
-  let deckId = topicCards.value[0]?.deck_id
-  if (!deckId) {
-    const deckStore = useDeckStore()
-    if (!deckStore.decks.length) await deckStore.fetchDecks()
-    deckId = deckStore.decks[0]?.id
-  }
-  if (!deckId) {
-    toast.show('Crie um deck antes de gerar cards.', 'error')
-    return
-  }
-
-  activeTab.value = 'cards'
-  aiGenerating.value = true
-  toast.show('Gerando cards com IA...', 'success')
-  try {
-    const res = await $api<any>('/ai/generate-cards', {
-      method: 'POST',
-      body: {
-        topic_id: selectedTopicId.value,
-        deck_id: deckId,
-        source,
-        count: quantity,
-        document_id: source === 'pdf' ? documentIdOrPrompt : undefined,
-        prompt: source === 'free' ? documentIdOrPrompt : undefined,
-      },
-    })
-    const cards = res.data?.cards ?? []
-    if (cards.length) {
-      generatedCards.value = cards
-      generatingDeckId.value = deckId
-    } else {
-      toast.show('Nenhum card gerado.', 'error')
-    }
-  } catch (e: any) {
-    const msg = e.data?.message || 'Erro ao gerar cards.'
-    toast.show(msg, 'error')
-  } finally {
-    aiGenerating.value = false
-  }
-}
-
-async function handleOcrCards(cards: any[]) {
-  generatedCards.value = cards.map(c => ({ front: c.front, back: c.back }))
-
-  // Ensure we have a deck to accept cards into
-  let deckId = topicCards.value[0]?.deck_id
-  if (!deckId) {
-    const deckStore = useDeckStore()
-    if (!deckStore.decks.length) await deckStore.fetchDecks()
-    deckId = deckStore.decks[0]?.id
-  }
-  generatingDeckId.value = deckId || null
-
-  activeTab.value = 'cards'
-  toast.show(`${cards.length} cards gerados da imagem!`, 'success')
-}
-
-async function acceptCard(index: number) {
-  const card = generatedCards.value[index]
-  if (!card || !generatingDeckId.value) return
-  try {
-    await $api('/ai/accept-cards', {
-      method: 'POST',
-      body: {
-        deck_id: generatingDeckId.value,
-        cards: [{ ...card, topic_id: selectedTopicId.value }],
-      },
-    })
-    generatedCards.value.splice(index, 1)
-    toast.show('Card aceito!', 'success')
-    if (selectedTopicId.value) await loadTopicData(selectedTopicId.value)
-  } catch {
-    toast.show('Erro ao aceitar card.', 'error')
-  }
-}
-
 function editGeneratedCard(index: number) {
   const card = generatedCards.value[index]
   if (!card) return
@@ -740,33 +646,6 @@ function openEditCard(card: any) {
   showCardForm.value = true
 }
 
-function generateFromCurrentNote(count: number = 5) {
-  if (!selectedTopicId.value) {
-    toast.show('Selecione um caderno primeiro.', 'error')
-    return
-  }
-  handleAiGenerate('notes', count)
-}
-
-async function acceptAllCards() {
-  if (!generatedCards.value.length || !generatingDeckId.value) return
-  try {
-    await $api('/ai/accept-cards', {
-      method: 'POST',
-      body: {
-        deck_id: generatingDeckId.value,
-        cards: generatedCards.value.map(c => ({ ...c, topic_id: selectedTopicId.value })),
-      },
-    })
-    const count = generatedCards.value.length
-    generatedCards.value = []
-    toast.show(`${count} cards aceitos!`, 'success')
-    if (selectedTopicId.value) await loadTopicData(selectedTopicId.value)
-  } catch {
-    toast.show('Erro ao aceitar cards.', 'error')
-  }
-}
-
 async function onCardCreated() {
   if (selectedTopicId.value) await loadTopicData(selectedTopicId.value)
   await topicStore.fetchTree()
@@ -774,13 +653,7 @@ async function onCardCreated() {
 
 function onLocalSaveGenerated(card: { front: string; back: string; tags: string[]; frontAudioBlob: Blob | null; backAudioBlob: Blob | null }) {
   if (editingGeneratedCardIndex.value === null) return
-  generatedCards.value[editingGeneratedCardIndex.value] = {
-    ...generatedCards.value[editingGeneratedCardIndex.value],
-    front: card.front,
-    back: card.back,
-    frontAudioBlob: card.frontAudioBlob,
-    backAudioBlob: card.backAudioBlob,
-  }
+  aiGenerate.onLocalSaveGenerated(editingGeneratedCardIndex.value, card)
   editingGeneratedCardIndex.value = null
 }
 

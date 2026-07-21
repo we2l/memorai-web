@@ -118,13 +118,6 @@
                 </p>
               </div>
             </div>
-            <button
-              class="btn-secondary !p-2 !min-h-0 shrink-0"
-              title="Mapa de conhecimento"
-              @click="showGraph = true"
-            >
-              <Network :size="18" />
-            </button>
           </div>
 
           <!-- Progress bar -->
@@ -207,10 +200,17 @@
             :tabs="[
               { key: 'notes', label: 'Material', count: noteStore.notes.length },
               { key: 'cards', label: 'Cards', count: topicCards.length },
+              { key: 'map', label: 'Mapa' },
             ]"
             :storage-key="`memorai-hub-tab-${selectedTopicId}`"
           />
         </div>
+
+        <!-- Tab: Mapa -->
+        <TopicGraphInline
+          v-if="activeTab === 'map'"
+          @expand="showGraph = true"
+        />
 
         <!-- Tab: Material -->
         <TopicHubNotesTab
@@ -389,7 +389,7 @@
 </template>
 
 <script setup lang="ts">
-import { Plus, Network, Search, PanelLeftClose, PanelLeftOpen, X } from 'lucide-vue-next'
+import { Plus, Search, PanelLeftClose, PanelLeftOpen, X } from 'lucide-vue-next'
 import type { Topic, Note } from '~/types'
 
 const topicStore = useTopicStore()

@@ -51,14 +51,14 @@
               <NuxtLink to="/importar" class="block px-3 py-2 text-small text-base-primary hover:bg-surface-secondary transition-colors" @click="showAddMenu = false">
                 Importar Anki
               </NuxtLink>
-              <button class="w-full text-left px-3 py-2 text-small text-base-primary hover:bg-surface-secondary transition-colors" @click="showAddMenu = false; triggerStructureUpload()">
+              <button class="w-full text-left px-3 py-2 text-small text-base-primary hover:bg-surface-secondary transition-colors" @click="showAddMenu = false; structurePdf.trigger()">
                 <span class="block">Organizar PDF</span>
                 <span class="block text-micro text-base-muted">A IA lê o PDF e monta cadernos e tópicos pra você</span>
               </button>
             </div>
           </div>
         </div>
-        <input ref="structureFileInput" type="file" accept=".pdf" class="hidden" @change="handleStructurePdf" />
+        <input ref="structureFileInput" type="file" accept=".pdf" class="hidden" @change="structurePdf.handleFile" />
       </div>
 
       <!-- Structure generating banner -->
@@ -212,7 +212,7 @@
           :cards-ai-remaining="cardsAiRemaining"
           :cards-ai-limit="cardsAiLimit"
           @open-note="openNoteEditor"
-          @close-editor="editingNote = null; noteStore.current = null"
+          @close-editor="closeEditor"
           @quick-add="handleQuickAdd"
           @create-note="createNote"
           @generate-from-note="generateFromCurrentNote"
@@ -258,7 +258,7 @@
           @accept-card="acceptCard"
           @accept-all-cards="acceptAllCards"
           @edit-generated="editGeneratedCard"
-          @discard-generated="(i: number) => generatedCards.splice(i, 1)"
+          @discard-generated="discardGenerated"
           @ocr-cards="handleOcrCards"
         >
           <template #ai-generate>
@@ -377,7 +377,7 @@
 </template>
 
 <script setup lang="ts">
-import { Plus, Network, Trash2, PanelLeftClose, PanelLeftOpen, X } from 'lucide-vue-next'
+import { Plus, Network, PanelLeftClose, PanelLeftOpen, X } from 'lucide-vue-next'
 import type { Topic, Note } from '~/types'
 
 const topicStore = useTopicStore()
@@ -390,35 +390,18 @@ const featureUsage = useFeatureUsage()
 const selectedTopicId = ref<string | null>(null)
 const sidebarCollapsed = ref(false)
 const sidebarOpen = ref(true)
-const noteTitle = ref('')
-const noteContent = ref<Record<string, any> | null>(null)
-const selectedText = ref('')
-const topicErrors = ref<any[]>([])
-const topicCards = ref<any[]>([])
+const activeTab = ref('notes')
+const { topicCards, showDeleteCard, deleteCardId, memorizeProgress, dueCardsCount, newCardsCount, pendingCount, setCards, cardsFromNote, confirmDeleteCard, handleDeleteCard } = useTopicCards()
+const { noteTitle, noteContent, editingNote, selectedText, showDeleteNote, flushPendingSave, debouncedSave, saveTitle, selectNote, openNoteEditor, closeEditor, handleQuickAdd, createNote, handleDeleteNote } = useNoteEditor(selectedTopicId)
 const errorPatterns = ref<any>(null)
-const generatedCards = ref<any[]>([])
-const generatingDeckId = ref<string>('')
-const aiGenerating = ref(false)
 
-// Auto-accept generated cards if user leaves
-function autoAcceptPendingCards() {
-  if (generatedCards.value.length && generatingDeckId.value) {
-    // Fire-and-forget — navigator.sendBeacon doesn't work with JSON easily, use fetch keepalive
-    const { $api } = useNuxtApp()
-    $api('/ai/accept-cards', {
-      method: 'POST',
-      body: {
-        deck_id: generatingDeckId.value,
-        cards: generatedCards.value.map(c => ({ ...c, topic_id: selectedTopicId.value })),
-      },
-    }).catch(() => {})
-    generatedCards.value = []
-  }
-}
-
-onBeforeRouteLeave(() => { autoAcceptPendingCards() })
-onMounted(() => { window.addEventListener('beforeunload', autoAcceptPendingCards) })
-onUnmounted(() => { window.removeEventListener('beforeunload', autoAcceptPendingCards) })
+const aiGenerate = useAiGenerate({
+  topicId: selectedTopicId,
+  topicCards,
+  activeTab,
+  onReload: async () => { if (selectedTopicId.value) await loadTopicData(selectedTopicId.value) },
+})
+const { generatedCards, aiGenerating, handleAiGenerate, handleOcrCards, acceptCard, acceptAllCards, generateFromCurrentNote, discardGenerated } = aiGenerate
 
 // Topic modals
 const showCreateTopic = ref(false)
@@ -440,8 +423,6 @@ const cardFormInitialBack = ref('')
 const editingGeneratedCardIndex = ref<number | null>(null)
 const editingCard = ref<any>(null)
 const docsInlineRef = ref<any>(null)
-const activeTab = ref('notes')
-const editingNote = ref<Note | null>(null)
 
 const newTopicName = ref('')
 const editTopicName = ref('')
@@ -464,95 +445,13 @@ const selectedTopicName = computed(() => {
   return selectedTopicId.value ? find(topicStore.tree, selectedTopicId.value) ?? '' : ''
 })
 
-const memorizeProgress = computed(() => {
-  if (!topicCards.value.length) return 0
-  const mastered = topicCards.value.filter(c => c.state === 'review').length
-  return Math.round((mastered / topicCards.value.length) * 100)
-})
-
-const dueCardsCount = computed(() => {
-  return topicCards.value.filter(c => c.due && new Date(c.due) <= new Date()).length
-})
-
-const newCardsCount = computed(() => {
-  return topicCards.value.filter(c => c.state === 'new').length
-})
-
-const pendingCount = computed(() => dueCardsCount.value + newCardsCount.value)
-
 const { sanitize } = useSanitize()
+const { toHtml } = useTiptapRender()
 
 const noteContentHtml = computed(() => {
   if (!noteContent.value) return ''
-  return sanitize(extractHtmlFromTiptap(noteContent.value))
+  return sanitize(toHtml(noteContent.value))
 })
-
-function extractHtmlFromTiptap(doc: any): string {
-  if (!doc) return ''
-  if (typeof doc === 'string') return doc
-
-  if (doc.type === 'doc' && doc.content) {
-    return doc.content.map((n: any) => renderNode(n)).join('')
-  }
-
-  return renderNode(doc)
-}
-
-function renderNode(node: any): string {
-  if (!node) return ''
-
-  switch (node.type) {
-    case 'heading': {
-      const level = node.attrs?.level ?? 2
-      return `<h${level}>${renderChildren(node)}</h${level}>`
-    }
-    case 'paragraph':
-      return `<p>${renderChildren(node)}</p>`
-    case 'bulletList':
-      return `<ul>${renderChildren(node)}</ul>`
-    case 'orderedList':
-      return `<ol>${renderChildren(node)}</ol>`
-    case 'listItem':
-      return `<li>${renderChildren(node)}</li>`
-    case 'callout': {
-      const calloutType = node.attrs?.type || 'info'
-      return `<div class="callout callout-${calloutType}">${renderChildren(node)}</div>`
-    }
-    case 'blockquote':
-      return `<blockquote>${renderChildren(node)}</blockquote>`
-    case 'image':
-      return `<img src="${node.attrs?.src}" alt="${node.attrs?.alt || ''}" />`
-    case 'text': {
-      let text = escapeHtml(node.text || '')
-      if (node.marks) {
-        for (const mark of node.marks) {
-          if (mark.type === 'bold') text = `<strong>${text}</strong>`
-          else if (mark.type === 'italic') text = `<em>${text}</em>`
-          else if (mark.type === 'code') text = `<code>${text}</code>`
-        }
-      }
-      return text
-    }
-    default:
-      return renderChildren(node)
-  }
-}
-
-function renderChildren(node: any): string {
-  if (!node.content) return node.text ? escapeHtml(node.text) : ''
-  return node.content.map((child: any) => renderNode(child)).join('')
-}
-
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-}
-
-function cardsFromNote(noteId: string): number {
-  return topicCards.value.filter(c => c.source_note_id === noteId).length
-}
 
 function noteNameById(noteId: string): string {
   return noteStore.notes.find(n => n.id === noteId)?.title ?? 'Nota'
@@ -574,40 +473,6 @@ const subTopics = computed(() => {
 const headerRef = ref<HTMLElement>()
 const showStickyHeader = ref(false)
 
-let saveTimeout: ReturnType<typeof setTimeout> | null = null
-let pendingSaveNoteId: string | null = null
-let pendingSaveContent: Record<string, any> | null = null
-
-function flushPendingSave() {
-  if (saveTimeout && pendingSaveNoteId && pendingSaveContent) {
-    clearTimeout(saveTimeout)
-    saveTimeout = null
-    noteStore.update(pendingSaveNoteId, { content: pendingSaveContent })
-    pendingSaveNoteId = null
-    pendingSaveContent = null
-  }
-}
-
-function debouncedSave() {
-  if (saveTimeout) clearTimeout(saveTimeout)
-  pendingSaveNoteId = noteStore.current?.id ?? null
-  pendingSaveContent = noteContent.value ? JSON.parse(JSON.stringify(noteContent.value)) : null
-  saveTimeout = setTimeout(() => {
-    if (pendingSaveNoteId && pendingSaveContent) {
-      noteStore.update(pendingSaveNoteId, { content: pendingSaveContent })
-      pendingSaveNoteId = null
-      pendingSaveContent = null
-    }
-    saveTimeout = null
-  }, 1000)
-}
-
-function saveTitle() {
-  if (noteStore.current && noteTitle.value !== noteStore.current.title) {
-    noteStore.update(noteStore.current.id, { title: noteTitle.value })
-  }
-}
-
 function selectTopic(id: string) {
   flushPendingSave()
   selectedTopicId.value = id
@@ -624,13 +489,11 @@ function selectTopic(id: string) {
 
 async function loadTopicData(id: string) {
   try {
-    const [errRes, detailRes, patternsRes] = await Promise.all([
-      $api<any>(`/topics/${id}/error-logs`),
+    const [detailRes, patternsRes] = await Promise.all([
       $api<any>(`/topics/${id}/details`),
       $api<any>(`/topics/${id}/error-patterns`),
     ])
-    topicErrors.value = errRes.data
-    topicCards.value = detailRes.data.flashcards
+    setCards(detailRes.data.flashcards)
     errorPatterns.value = patternsRes.data
 
     // Set default tab based on content
@@ -659,74 +522,6 @@ async function loadTopicData(id: string) {
       }, 300)
     }
   } catch {}
-}
-
-async function deleteCard(cardId: string) {
-  try {
-    await $api(`/flashcards/${cardId}`, { method: 'DELETE' })
-    topicCards.value = topicCards.value.filter(c => c.id !== cardId)
-    toast.show('Card excluído.', 'success')
-  } catch {
-    toast.show('Erro ao excluir card.', 'error')
-  }
-}
-
-const showDeleteCard = ref(false)
-const deleteCardId = ref<string | null>(null)
-const showDeleteNote = ref(false)
-
-function confirmDeleteCard(id: string) {
-  deleteCardId.value = id
-  showDeleteCard.value = true
-}
-
-async function handleDeleteCard() {
-  if (!deleteCardId.value) return
-  await deleteCard(deleteCardId.value)
-  deleteCardId.value = null
-  showDeleteCard.value = false
-}
-
-function selectNote(note: Note) {
-  flushPendingSave()
-  noteStore.current = note
-  noteTitle.value = note.title
-  noteContent.value = note.content
-}
-
-function openNoteEditor(note: Note) {
-  selectNote(note)
-  editingNote.value = note
-}
-
-async function handleQuickAdd(text: string) {
-  if (!selectedTopicId.value) return
-  const title = text.substring(0, 50).split('\n')[0] || 'Material'
-  const note = await noteStore.create(selectedTopicId.value, {
-    title,
-    content: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text }] }] },
-  })
-  openNoteEditor(note)
-  await topicStore.fetchTree()
-}
-
-async function createNote() {
-  if (!selectedTopicId.value) return
-  const note = await noteStore.create(selectedTopicId.value, { title: 'Novo material' })
-  openNoteEditor(note)
-  await topicStore.fetchTree()
-}
-
-async function deleteNote() {
-  if (!noteStore.current) return
-  await noteStore.remove(noteStore.current.id)
-  toast.show('Nota excluída.', 'success')
-  await topicStore.fetchTree()
-}
-
-async function handleDeleteNote() {
-  await deleteNote()
-  showDeleteNote.value = false
 }
 
 function openCreate(parentId: string | null) {
@@ -759,73 +554,8 @@ function askAiAboutSelection() {
   })
 }
 
-function openChatForPdf(docId: string) {
-  const chat = useChatStore()
-  chat.newConversation()
-  chat.open({ topicId: selectedTopicId.value ?? undefined, documentId: docId, source: 'pdf_summary' })
-  nextTick(() => {
-    chat.sendMessage('Resuma este documento pra mim, destacando os pontos mais importantes.')
-  })
-}
-
-const structureFileInput = ref<HTMLInputElement | null>(null)
-const structureGenerating = ref(false)
-
-function triggerStructureUpload() {
-  structureFileInput.value?.click()
-}
-
-async function handleStructurePdf(e: Event) {
-  const file = (e.target as HTMLInputElement).files?.[0]
-  if (!file) return
-  if (!file.name.endsWith('.pdf')) { toast.show('Apenas PDF.', 'error'); return }
-  if (file.size > 50 * 1024 * 1024) { toast.show('Máximo 50MB.', 'error'); return }
-
-  toast.show('Enviando PDF...')
-  try {
-    const config = useRuntimeConfig()
-    const auth = useAuthStore()
-
-    // Upload without topic_id
-    const formData = new FormData()
-    formData.append('file', file)
-
-    const uploadRes = await $api<any>('/documents', { method: 'POST', body: formData })
-    const documentId = uploadRes.data.id
-
-    // Trigger structure generation
-    await $api('/topics/from-document', { method: 'POST', body: { document_id: documentId } })
-    structureGenerating.value = true
-
-    // Poll for completion
-    const poll = setInterval(async () => {
-      try {
-        const res = await $api<any>(`/documents/${documentId}`)
-        const status = res.data.study_structure_status
-        if (status === 'completed') {
-          clearInterval(poll)
-          structureGenerating.value = false
-          toast.show('Cadernos criados com sucesso! 📚')
-          topicStore.fetchTree()
-        } else if (status === 'failed') {
-          clearInterval(poll)
-          structureGenerating.value = false
-          toast.show('Falha ao criar estrutura. Tente novamente.', 'error')
-        }
-        // else: still generating, keep polling
-      } catch {
-        // Network error — keep polling, don't stop
-      }
-    }, 4000)
-
-    // Timeout after 5 min
-    setTimeout(() => { clearInterval(poll); structureGenerating.value = false }, 300000)
-  } catch (e: any) {
-    toast.show(e?.data?.message || 'Erro ao enviar PDF.', 'error')
-  } finally {
-    if (structureFileInput.value) structureFileInput.value.value = ''
-  }
-}
+const structurePdf = useStructurePdf()
+const { fileInput: structureFileInput, generating: structureGenerating } = structurePdf
 
 const editTopicIsRoot = ref(false)
 
@@ -862,20 +592,6 @@ async function handleDeleteTopic() {
   toast.show('Deletado.', 'success')
 }
 
-function extractTextFromTiptap(doc: any): string {
-  if (!doc) return ''
-  if (typeof doc === 'string') return doc
-  let text = ''
-  if (doc.text) text += doc.text
-  if (doc.content) {
-    for (const node of doc.content) {
-      text += extractTextFromTiptap(node)
-      if (node.type === 'paragraph' || node.type === 'heading') text += '\n'
-    }
-  }
-  return text.trim()
-}
-
 function getEditorHtml(): string {
   // Get HTML from the Tiptap editor DOM
   const el = document.querySelector('.ProseMirror')
@@ -892,85 +608,6 @@ function openNoteToCard() {
       cardFormInitialFront.value = getEditorHtml()
       showCardForm.value = true
     }
-  }
-}
-
-async function handleAiGenerate(source: string, quantity: number, documentIdOrPrompt?: string) {
-  if (!selectedTopicId.value) return
-
-  let deckId = topicCards.value[0]?.deck_id
-  if (!deckId) {
-    const deckStore = useDeckStore()
-    if (!deckStore.decks.length) await deckStore.fetchDecks()
-    deckId = deckStore.decks[0]?.id
-  }
-  if (!deckId) {
-    toast.show('Crie um deck antes de gerar cards.', 'error')
-    return
-  }
-
-  activeTab.value = 'cards'
-  aiGenerating.value = true
-  toast.show('Gerando cards com IA...', 'success')
-  try {
-    const res = await $api<any>('/ai/generate-cards', {
-      method: 'POST',
-      body: {
-        topic_id: selectedTopicId.value,
-        deck_id: deckId,
-        source,
-        count: quantity,
-        document_id: source === 'pdf' ? documentIdOrPrompt : undefined,
-        prompt: source === 'free' ? documentIdOrPrompt : undefined,
-      },
-    })
-    const cards = res.data?.cards ?? []
-    if (cards.length) {
-      generatedCards.value = cards
-      generatingDeckId.value = deckId
-    } else {
-      toast.show('Nenhum card gerado.', 'error')
-    }
-  } catch (e: any) {
-    const msg = e.data?.message || 'Erro ao gerar cards.'
-    toast.show(msg, 'error')
-  } finally {
-    aiGenerating.value = false
-  }
-}
-
-async function handleOcrCards(cards: any[]) {
-  generatedCards.value = cards.map(c => ({ front: c.front, back: c.back }))
-
-  // Ensure we have a deck to accept cards into
-  let deckId = topicCards.value[0]?.deck_id
-  if (!deckId) {
-    const deckStore = useDeckStore()
-    if (!deckStore.decks.length) await deckStore.fetchDecks()
-    deckId = deckStore.decks[0]?.id
-  }
-  generatingDeckId.value = deckId || null
-
-  activeTab.value = 'cards'
-  toast.show(`${cards.length} cards gerados da imagem!`, 'success')
-}
-
-async function acceptCard(index: number) {
-  const card = generatedCards.value[index]
-  if (!card || !generatingDeckId.value) return
-  try {
-    await $api('/ai/accept-cards', {
-      method: 'POST',
-      body: {
-        deck_id: generatingDeckId.value,
-        cards: [{ ...card, topic_id: selectedTopicId.value }],
-      },
-    })
-    generatedCards.value.splice(index, 1)
-    toast.show('Card aceito!', 'success')
-    if (selectedTopicId.value) await loadTopicData(selectedTopicId.value)
-  } catch {
-    toast.show('Erro ao aceitar card.', 'error')
   }
 }
 
@@ -997,33 +634,6 @@ function openEditCard(card: any) {
   showCardForm.value = true
 }
 
-function generateFromCurrentNote(count: number = 5) {
-  if (!selectedTopicId.value) {
-    toast.show('Selecione um caderno primeiro.', 'error')
-    return
-  }
-  handleAiGenerate('notes', count)
-}
-
-async function acceptAllCards() {
-  if (!generatedCards.value.length || !generatingDeckId.value) return
-  try {
-    await $api('/ai/accept-cards', {
-      method: 'POST',
-      body: {
-        deck_id: generatingDeckId.value,
-        cards: generatedCards.value.map(c => ({ ...c, topic_id: selectedTopicId.value })),
-      },
-    })
-    const count = generatedCards.value.length
-    generatedCards.value = []
-    toast.show(`${count} cards aceitos!`, 'success')
-    if (selectedTopicId.value) await loadTopicData(selectedTopicId.value)
-  } catch {
-    toast.show('Erro ao aceitar cards.', 'error')
-  }
-}
-
 async function onCardCreated() {
   if (selectedTopicId.value) await loadTopicData(selectedTopicId.value)
   await topicStore.fetchTree()
@@ -1031,13 +641,7 @@ async function onCardCreated() {
 
 function onLocalSaveGenerated(card: { front: string; back: string; tags: string[]; frontAudioBlob: Blob | null; backAudioBlob: Blob | null }) {
   if (editingGeneratedCardIndex.value === null) return
-  generatedCards.value[editingGeneratedCardIndex.value] = {
-    ...generatedCards.value[editingGeneratedCardIndex.value],
-    front: card.front,
-    back: card.back,
-    frontAudioBlob: card.frontAudioBlob,
-    backAudioBlob: card.backAudioBlob,
-  }
+  aiGenerate.onLocalSaveGenerated(editingGeneratedCardIndex.value, card)
   editingGeneratedCardIndex.value = null
 }
 

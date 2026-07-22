@@ -92,135 +92,15 @@
     <!-- Main: Topic Hub -->
     <main class="flex-1 flex flex-col overflow-y-auto pb-20 lg:pb-0">
       <template v-if="selectedTopicId">
-        <!-- Topic header -->
-        <div ref="headerRef" class="p-5 border-b border-base">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2 min-w-0">
-              <button
-                class="btn-secondary !p-1.5 !min-h-[2.75rem] shrink-0 lg:hidden"
-                title="Ver cadernos"
-                @click="sidebarOpen = true"
-              >
-                <PanelLeftOpen :size="16" />
-              </button>
-              <button
-                v-if="sidebarCollapsed"
-                class="btn-secondary !p-1.5 !min-h-[2.75rem] shrink-0 max-lg:hidden"
-                title="Expandir cadernos"
-                @click="sidebarCollapsed = false"
-              >
-                <PanelLeftOpen :size="16" />
-              </button>
-              <div class="min-w-0">
-                <h2 class="font-heading font-bold text-xl text-base-primary truncate">{{ selectedTopicName }}</h2>
-                <p v-if="topicCards.length" class="text-small text-base-muted mt-0.5">
-                  {{ memorizeProgress > 0 ? memorizeProgress + '% em dia · ' : '' }}{{ topicCards.length }} card{{ topicCards.length !== 1 ? 's' : '' }}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Progress bar -->
-          <div v-if="topicCards.length" class="mt-3">
-            <div class="flex items-center gap-3">
-              <div class="flex-1 h-1 rounded-full bg-surface-secondary overflow-hidden">
-                <div
-                  class="h-1 rounded-full bg-[var(--color-accent-primary)] transition-all duration-500"
-                  :style="{ width: memorizeProgress + '%' }"
-                />
-              </div>
-              <span class="text-small text-base-muted shrink-0">{{ memorizeProgress }}%</span>
-            </div>
-          </div>
-
-          <!-- Sub-topics -->
-          <div v-if="subTopics.length" class="flex flex-wrap gap-1.5 mt-3">
-            <button
-              v-for="sub in subTopics"
-              :key="sub.id"
-              class="text-sm px-2.5 py-1 rounded-full border transition-all hover:brightness-90 hover:shadow-sm cursor-pointer"
-              :style="chipStyle(sub.id)"
-              @click="selectTopic(sub.id)"
-            >
-              {{ sub.name }}
-            </button>
-          </div>
-
-        </div>
-
-        <!-- HERO — simple: pending cards + review button -->
-        <div v-if="pendingCount > 0" class="mx-4 mt-5 mb-3 px-6 py-5 rounded-2xl bg-[var(--bg-card)] border border-base flex items-center justify-between gap-4">
-          <div>
-            <p class="font-heading font-semibold text-xl text-base-primary">{{ pendingCount }} card{{ pendingCount !== 1 ? 's' : '' }} pendente{{ pendingCount !== 1 ? 's' : '' }}</p>
-            <p class="text-small text-base-muted mt-1">Continue seu progresso de hoje</p>
-          </div>
-          <div class="flex items-center gap-2 shrink-0">
-            <NuxtLink :to="`/revisar?mode=blitz&topic_id=${selectedTopicId}`" class="btn-secondary !py-3 !px-4 text-small">⚡ Rápida</NuxtLink>
-            <NuxtLink :to="`/revisar?topic_id=${selectedTopicId}`" class="btn-primary !py-3 !px-6">
-              Revisar agora
-            </NuxtLink>
-          </div>
-        </div>
-
-        <!-- Podcast generate button -->
-        <div v-if="selectedTopicId" class="mx-4 mb-3" :class="pendingCount <= 0 ? 'mt-5' : ''">
-          <button class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-[var(--bg-card)] border border-[var(--color-accent-primary)]/15 hover:border-[var(--color-accent-primary)]/20 hover:bg-surface-secondary transition-all text-left" @click="showPodcastSheet = true">
-            <span class="text-xl">🎧</span>
-            <div class="flex-1">
-              <p class="text-sm text-base-primary font-medium">Revisar ouvindo seus erros</p>
-              <p class="text-xs text-base-muted">Podcast personalizado baseado no que você errou</p>
-            </div>
-            <span class="text-base-primary/30 text-sm">→</span>
-          </button>
-        </div>
-
-        <PodcastGenerateSheet
-          v-if="selectedTopicId"
-          v-model="showPodcastSheet"
-          :topic-id="selectedTopicId"
-          :topic-name="selectedTopicName ?? ''"
-          :weak-cards-count="topicCards.filter(c => c.lapses > 0).length"
-          @generated="onPodcastGenerated"
-        />
-
-        <!-- Sticky header (appears on scroll) -->
-        <div
-          v-if="showStickyHeader"
-          class="sticky top-0 z-10 px-4 py-2.5 border-b border-base bg-[var(--bg-card)]/95 backdrop-blur-md flex items-center justify-between"
-        >
-          <span class="text-small font-medium text-base-primary truncate">{{ selectedTopicName }}</span>
-          <NuxtLink v-if="dueCardsCount > 0" :to="`/revisar?topic_id=${selectedTopicId}`" class="btn-primary !py-2 !px-3.5 !min-h-[2.75rem] !text-sm shrink-0">
-            Revisar {{ dueCardsCount }}
-          </NuxtLink>
-        </div>
-
-        <!-- Tabs -->
-        <div class="px-4 mt-4">
-          <UiHubTabs
-            v-model="activeTab"
-            :tabs="[
-              { key: 'notes', label: 'Material', count: noteStore.notes.length },
-              { key: 'cards', label: 'Cards', count: topicCards.length },
-              { key: 'map', label: 'Mapa' },
-            ]"
-            :storage-key="`memorai-hub-tab-${selectedTopicId}`"
-          />
-        </div>
-
-        <!-- Tab: Mapa -->
-        <TopicGraphInline
-          v-if="activeTab === 'map'"
-          @expand="showGraph = true"
-        />
-
-        <!-- Tab: Material -->
+        <!-- When editor is open: full-screen note editing -->
         <TopicHubNotesTab
-          v-if="activeTab === 'notes'"
+          v-if="editingNote"
           :notes="noteStore.notes"
           :active-note="editingNote"
           :note-title="noteTitle"
           :saving="noteStore.saving"
           :has-documents="!!docsInlineRef?.documents?.length"
+          :breadcrumb-topic="selectedTopicName ?? ''"
           :cards-from-note="cardsFromNote"
           :cards-ai-remaining="cardsAiRemaining"
           :cards-ai-limit="cardsAiLimit"
@@ -247,42 +127,200 @@
           </template>
           <template #editor>
             <TopicNoteEditor v-model="noteContent" @update:model-value="debouncedSave" />
-            <UiSelectionToolbar @create-card="openNoteToCard" @ask-ai="askAiAboutSelection" />
           </template>
-          <template #read-content>
-            <div class="prose-memorai" v-html="noteContentHtml" />
+          <template #selection-toolbar>
+            <UiSelectionToolbar @create-card="openNoteToCard" @ask-ai="askAiAboutSelection" />
           </template>
         </TopicHubNotesTab>
 
-        <!-- Tab: Cards -->
-        <TopicHubCardsTab
-          v-if="activeTab === 'cards'"
-          :topic-id="selectedTopicId!"
-          :cards="topicCards"
-          :generated-cards="generatedCards"
-          :ai-generating="aiGenerating"
-          :error-patterns="errorPatterns"
-          :note-name-by-id="noteNameById"
-          :highlight-id="highlightCardId"
-          :can-use-ocr="featureUsage.canUse('cards_ai')"
-          @create-card="openCreateCard"
-          @delete-card="confirmDeleteCard"
-          @edit-card="openEditCard"
-          @accept-card="acceptCard"
-          @accept-all-cards="acceptAllCards"
-          @edit-generated="editGeneratedCard"
-          @discard-generated="discardGenerated"
-          @ocr-cards="handleOcrCards"
-        >
-          <template #ai-generate>
-            <AgentAiGenerateInline
-              :topic-id="selectedTopicId!"
-              :has-notes="noteStore.notes.length > 0"
-              :has-documents="docsInlineRef?.documents?.length > 0"
-              @generate="handleAiGenerate"
+        <!-- When editor is NOT open: topic hub view -->
+        <template v-else>
+          <!-- Topic header -->
+          <div ref="headerRef" class="p-5 border-b border-base">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2 min-w-0">
+                <button
+                  class="btn-secondary !p-1.5 !min-h-[2.75rem] shrink-0 lg:hidden"
+                  title="Ver cadernos"
+                  @click="sidebarOpen = true"
+                >
+                  <PanelLeftOpen :size="16" />
+                </button>
+                <button
+                  v-if="sidebarCollapsed"
+                  class="btn-secondary !p-1.5 !min-h-[2.75rem] shrink-0 max-lg:hidden"
+                  title="Expandir cadernos"
+                  @click="sidebarCollapsed = false"
+                >
+                  <PanelLeftOpen :size="16" />
+                </button>
+                <div class="min-w-0">
+                  <h2 class="font-heading font-bold text-xl text-base-primary truncate">{{ selectedTopicName }}</h2>
+                  <p v-if="topicCards.length" class="text-small text-base-muted mt-0.5">
+                    {{ memorizeProgress > 0 ? memorizeProgress + '% em dia · ' : '' }}{{ topicCards.length }} card{{ topicCards.length !== 1 ? 's' : '' }}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Progress bar -->
+            <div v-if="topicCards.length" class="mt-3">
+              <div class="flex items-center gap-3">
+                <div class="flex-1 h-1 rounded-full bg-surface-secondary overflow-hidden">
+                  <div
+                    class="h-1 rounded-full bg-[var(--color-accent-primary)] transition-all duration-500"
+                    :style="{ width: memorizeProgress + '%' }"
+                  />
+                </div>
+                <span class="text-small text-base-muted shrink-0">{{ memorizeProgress }}%</span>
+              </div>
+            </div>
+
+            <!-- Sub-topics -->
+            <div v-if="subTopics.length" class="flex flex-wrap gap-1.5 mt-3">
+              <button
+                v-for="sub in subTopics"
+                :key="sub.id"
+                class="text-sm px-2.5 py-1 rounded-full border transition-all hover:brightness-90 hover:shadow-sm cursor-pointer"
+                :style="chipStyle(sub.id)"
+                @click="selectTopic(sub.id)"
+              >
+                {{ sub.name }}
+              </button>
+            </div>
+
+          </div>
+
+          <!-- HERO — simple: pending cards + review button -->
+          <div v-if="pendingCount > 0" class="mx-4 mt-5 mb-3 px-6 py-5 rounded-2xl bg-[var(--bg-card)] border border-base flex items-center justify-between gap-4">
+            <div>
+              <p class="font-heading font-semibold text-xl text-base-primary">{{ pendingCount }} card{{ pendingCount !== 1 ? 's' : '' }} pendente{{ pendingCount !== 1 ? 's' : '' }}</p>
+              <p class="text-small text-base-muted mt-1">Continue seu progresso de hoje</p>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <NuxtLink :to="`/revisar?mode=blitz&topic_id=${selectedTopicId}`" class="btn-secondary !py-3 !px-4 text-small">⚡ Rápida</NuxtLink>
+              <NuxtLink :to="`/revisar?topic_id=${selectedTopicId}`" class="btn-primary !py-3 !px-6">
+                Revisar agora
+              </NuxtLink>
+            </div>
+          </div>
+
+          <!-- Podcast generate button -->
+          <div v-if="selectedTopicId" class="mx-4 mb-3" :class="pendingCount <= 0 ? 'mt-5' : ''">
+            <button class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-[var(--bg-card)] border border-[var(--color-accent-primary)]/15 hover:border-[var(--color-accent-primary)]/20 hover:bg-surface-secondary transition-all text-left" @click="showPodcastSheet = true">
+              <span class="text-xl">🎧</span>
+              <div class="flex-1">
+                <p class="text-sm text-base-primary font-medium">Revisar ouvindo seus erros</p>
+                <p class="text-xs text-base-muted">Podcast personalizado baseado no que você errou</p>
+              </div>
+              <span class="text-base-primary/30 text-sm">→</span>
+            </button>
+          </div>
+
+          <PodcastGenerateSheet
+            v-if="selectedTopicId"
+            v-model="showPodcastSheet"
+            :topic-id="selectedTopicId"
+            :topic-name="selectedTopicName ?? ''"
+            :weak-cards-count="topicCards.filter(c => c.lapses > 0).length"
+            @generated="onPodcastGenerated"
+          />
+
+          <!-- Sticky header (appears on scroll) -->
+          <div
+            v-if="showStickyHeader"
+            class="sticky top-0 z-10 px-4 py-2.5 border-b border-base bg-[var(--bg-card)]/95 backdrop-blur-md flex items-center justify-between"
+          >
+            <span class="text-small font-medium text-base-primary truncate">{{ selectedTopicName }}</span>
+            <NuxtLink v-if="dueCardsCount > 0" :to="`/revisar?topic_id=${selectedTopicId}`" class="btn-primary !py-2 !px-3.5 !min-h-[2.75rem] !text-sm shrink-0">
+              Revisar {{ dueCardsCount }}
+            </NuxtLink>
+          </div>
+
+          <!-- Tabs -->
+          <div class="px-4 mt-4">
+            <UiHubTabs
+              v-model="activeTab"
+              :tabs="[
+                { key: 'notes', label: 'Material', count: noteStore.notes.length },
+                { key: 'cards', label: 'Cards', count: topicCards.length },
+                { key: 'map', label: 'Mapa' },
+              ]"
+              :storage-key="`memorai-hub-tab-${selectedTopicId}`"
             />
-          </template>
-        </TopicHubCardsTab>
+          </div>
+
+          <!-- Tab: Mapa -->
+          <TopicGraphInline
+            v-if="activeTab === 'map'"
+            @expand="showGraph = true"
+          />
+
+          <!-- Tab: Material (list only, no editor here) -->
+          <TopicHubNotesTab
+            v-if="activeTab === 'notes'"
+            :notes="noteStore.notes"
+            :active-note="null"
+            :note-title="''"
+            :saving="false"
+            :has-documents="!!docsInlineRef?.documents?.length"
+            :breadcrumb-topic="selectedTopicName ?? ''"
+            :cards-from-note="cardsFromNote"
+            :cards-ai-remaining="cardsAiRemaining"
+            :cards-ai-limit="cardsAiLimit"
+            @open-note="openNoteEditor"
+            @close-editor="closeEditor"
+            @quick-add="handleQuickAdd"
+            @create-note="createNote"
+            @generate-from-note="generateFromCurrentNote"
+            @improve-note="openChatForNote"
+            @delete-note="showDeleteNote = true"
+            @save-title="saveTitle"
+            @update:note-title="noteTitle = $event"
+          >
+            <template #documents>
+              <TopicDocumentsInline
+                v-if="selectedTopicId"
+                ref="docsInlineRef"
+                :topic-id="selectedTopicId"
+                @generate-from-pdf="(docId: string) => handleAiGenerate('pdf', 5, docId)"
+                @note-ready="noteStore.fetchForTopic(selectedTopicId!)"
+                @generate-cards="(noteId: string) => handleAiGenerate('notes', 5)"
+                @structure-ready="topicStore.fetchTree()"
+              />
+            </template>
+          </TopicHubNotesTab>
+
+          <!-- Tab: Cards -->
+          <TopicHubCardsTab
+            v-if="activeTab === 'cards'"
+            :topic-id="selectedTopicId!"
+            :cards="topicCards"
+            :generated-cards="generatedCards"
+            :ai-generating="aiGenerating"
+            :error-patterns="errorPatterns"
+            :note-name-by-id="noteNameById"
+            :highlight-id="highlightCardId"
+            :can-use-ocr="featureUsage.canUse('cards_ai')"
+            @create-card="openCreateCard"
+            @delete-card="confirmDeleteCard"
+            @edit-card="openEditCard"
+            @accept-card="acceptCard"
+            @accept-all-cards="acceptAllCards"
+            @edit-generated="editGeneratedCard"
+            @discard-generated="discardGenerated"
+            @ocr-cards="handleOcrCards"
+          >
+            <template #ai-generate>
+              <AgentAiGenerateInline
+                :topic-id="selectedTopicId!"
+                :has-notes="noteStore.notes.length > 0"
+                :has-documents="docsInlineRef?.documents?.length > 0"
+                @generate="handleAiGenerate"
+              />
+            </template>
+          </TopicHubCardsTab>
+        </template>
 
       </template>
 
@@ -457,14 +495,6 @@ const selectedTopicName = computed(() => {
     return null
   }
   return selectedTopicId.value ? find(topicStore.tree, selectedTopicId.value) ?? '' : ''
-})
-
-const { sanitize } = useSanitize()
-const { toHtml } = useTiptapRender()
-
-const noteContentHtml = computed(() => {
-  if (!noteContent.value) return ''
-  return sanitize(toHtml(noteContent.value))
 })
 
 function noteNameById(noteId: string): string {

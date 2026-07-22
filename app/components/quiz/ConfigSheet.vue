@@ -1,7 +1,6 @@
 <template>
-  <UiModal :open="modelValue" @close="emit('update:modelValue', false)" size="md">
-    <template #title>Novo simulado</template>
-    <template #default>
+  <UiModal :model-value="modelValue" @update:model-value="emit('update:modelValue', $event)" size="md">
+    <h2 class="font-heading font-semibold text-xl text-base-primary mb-5">Novo simulado</h2>
       <div class="space-y-5">
         <!-- Caderno -->
         <div>
@@ -100,14 +99,14 @@
           {{ form.quantity }} questões · {{ typesLabel }} · {{ timerLabel }} · Modo {{ form.mode === 'learning' ? 'aprendizado' : 'prova' }}
         </div>
       </div>
-    </template>
-    <template #footer>
-      <button class="btn-secondary" @click="emit('update:modelValue', false)">Cancelar</button>
-      <button class="btn-primary" :disabled="!canSubmit || generating" @click="submit">
-        <span v-if="generating">Gerando...</span>
-        <span v-else>Gerar simulado</span>
-      </button>
-    </template>
+
+      <div class="flex justify-end gap-3 mt-6">
+        <button class="btn-secondary" @click="emit('update:modelValue', false)">Cancelar</button>
+        <button class="btn-primary" :disabled="!canSubmit || generating" @click="submit">
+          <span v-if="generating">Gerando...</span>
+          <span v-else>Gerar simulado</span>
+        </button>
+      </div>
   </UiModal>
 </template>
 

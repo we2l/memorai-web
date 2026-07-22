@@ -24,6 +24,8 @@
     <PodcastMiniplayer />
     <PodcastExpandedPlayer />
 
+    <UiCommandPalette />
+
     <UiUpgradeModal
       v-model="showUpgrade"
       :feature="upgradeFeature"

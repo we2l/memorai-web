@@ -97,10 +97,10 @@
         </div>
       </div>
       <div class="flex flex-col gap-2 h-full">
-        <NuxtLink to="/revisar?errors_only=1" class="inline-flex items-center justify-center px-4 py-2.5 rounded-xl bg-accent-primary-subtle text-accent-primary text-small font-medium hover:bg-[var(--color-accent-primary-subtle)] border border-[var(--color-accent-primary)]/20 transition-colors flex-1">
+        <NuxtLink to="/revisar?errors_only=1" class="inline-flex items-center justify-center px-4 py-2.5 rounded-xl bg-[var(--bg-card)] text-[var(--color-accent-soft)] text-small font-medium hover:bg-[var(--bg-soft)] border border-[var(--color-accent-soft)]/20 hover:border-[var(--color-accent-soft)]/40 transition-all flex-1">
           Revisar só erros
         </NuxtLink>
-        <NuxtLink to="/importar" class="inline-flex items-center justify-center px-4 py-2.5 rounded-xl bg-accent-primary-subtle text-accent-primary text-small font-medium hover:bg-[var(--color-accent-primary-subtle)] border border-[var(--color-accent-primary)]/20 transition-colors flex-1">
+        <NuxtLink to="/importar" class="inline-flex items-center justify-center px-4 py-2.5 rounded-xl bg-[var(--bg-card)] text-[var(--color-accent-soft)] text-small font-medium hover:bg-[var(--bg-soft)] border border-[var(--color-accent-soft)]/20 hover:border-[var(--color-accent-soft)]/40 transition-all flex-1">
           Importar Anki
         </NuxtLink>
       </div>

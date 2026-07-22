@@ -29,7 +29,9 @@
           :key="m.value"
           class="p-3 rounded-xl border text-center transition-all"
           :class="[
-            contentMode === m.value ? 'border-accent-primary bg-accent-primary-subtle' : 'border-base bg-surface-secondary hover:border-base-muted',
+            contentMode === m.value
+              ? 'border-[var(--color-accent-soft)] bg-[var(--color-accent-soft)]/10 ring-2 ring-[var(--color-accent-soft)]/20'
+              : 'border-base bg-[var(--bg-card)] hover:bg-[var(--bg-soft)] hover:border-[var(--color-accent-soft)]/40',
             retaFinalMode && m.value !== 'pre_exam' ? 'opacity-40 cursor-not-allowed' : '',
           ]"
           :disabled="retaFinalMode && m.value !== 'pre_exam'"
@@ -47,8 +49,10 @@
         <button
           class="p-4 rounded-xl border text-center transition-all relative w-full"
           :class="[
-            !retaFinalMode && duration === d.value ? 'border-accent-primary bg-accent-primary-subtle' : 'border-base bg-surface-secondary',
-            retaFinalMode || (isFree && d.value !== 'short') ? 'opacity-40 cursor-not-allowed' : 'hover:border-base-muted',
+            !retaFinalMode && duration === d.value
+              ? 'border-[var(--color-accent-soft)] bg-[var(--color-accent-soft)]/10 ring-2 ring-[var(--color-accent-soft)]/20'
+              : 'border-base bg-[var(--bg-card)]',
+            retaFinalMode || (isFree && d.value !== 'short') ? 'opacity-40 cursor-not-allowed' : 'hover:bg-[var(--bg-soft)] hover:border-[var(--color-accent-soft)]/40',
           ]"
           :disabled="retaFinalMode || (isFree && d.value !== 'short')"
           @click="!retaFinalMode && (isFree && d.value !== 'short' ? openUpgrade() : (duration = d.value))"
@@ -65,8 +69,10 @@
     <button
       class="w-full p-4 rounded-xl border text-left transition-all mb-5 flex items-center justify-between"
       :class="[
-        retaFinalMode ? 'border-accent-primary bg-accent-primary-subtle' : 'border-base bg-surface-secondary',
-        !hasRetaFinal ? 'opacity-60 cursor-not-allowed' : 'hover:border-base-muted',
+        retaFinalMode
+          ? 'border-[var(--color-accent-soft)] bg-[var(--color-accent-soft)]/10 ring-2 ring-[var(--color-accent-soft)]/20'
+          : 'border-base bg-[var(--bg-card)]',
+        !hasRetaFinal ? 'opacity-60 cursor-not-allowed' : 'hover:bg-[var(--bg-soft)] hover:border-[var(--color-accent-soft)]/40',
       ]"
       :disabled="false"
       @click="hasRetaFinal ? toggleRetaFinal() : openRetaFinalCheckout()"
@@ -79,7 +85,8 @@
       <span v-else-if="retaFinalMode" class="text-micro text-accent-primary font-medium">Ativo</span>
     </button>
 
-    <!-- Customize toggle -->
+    <!-- Customize toggle (hidden for now) -->
+    <template v-if="false">
     <button class="text-small text-accent-primary mb-4 flex items-center gap-1" @click="showAdvanced = !showAdvanced">
       Personalizar opções
       <ChevronDown :size="16" :class="showAdvanced ? 'rotate-180' : ''" class="transition-transform" />
@@ -95,7 +102,9 @@
             :key="t.value"
             class="px-3 py-1.5 rounded-full text-small border transition-all"
             :class="[
-              tone === t.value ? 'border-accent-primary bg-accent-primary-subtle text-accent-primary' : 'border-base text-base-muted hover:border-base-muted',
+              tone === t.value
+                ? 'border-[var(--color-accent-soft)] bg-[var(--color-accent-soft)]/10 text-[var(--color-accent-soft)]'
+                : 'border-base text-base-muted bg-[var(--bg-card)] hover:bg-[var(--bg-soft)] hover:border-[var(--color-accent-soft)]/40 hover:text-base-primary',
               isFree && t.value !== 'conversational' ? 'opacity-60' : '',
             ]"
             @click="isFree && t.value !== 'conversational' ? openUpgrade() : (tone = t.value)"
@@ -115,13 +124,15 @@
             :key="f.value"
             class="p-3 rounded-xl border text-center transition-all relative"
             :class="[
-              format === f.value ? 'border-accent-primary bg-accent-primary-subtle' : 'border-base bg-surface-secondary hover:border-base-muted',
+              format === f.value
+                ? 'border-[var(--color-accent-soft)] bg-[var(--color-accent-soft)]/10 ring-2 ring-[var(--color-accent-soft)]/20'
+                : 'border-base bg-[var(--bg-card)] hover:bg-[var(--bg-soft)] hover:border-[var(--color-accent-soft)]/40',
               isFree && f.value !== 'expository' ? 'opacity-60' : '',
             ]"
             @click="isFree && f.value !== 'expository' ? openUpgrade() : (format = f.value)"
           >
-            <component :is="f.icon" :size="24" class="mx-auto mb-1" :class="format === f.value ? 'text-accent-primary' : 'text-base-muted'" />
-            <p class="text-small" :class="format === f.value ? 'text-accent-primary' : 'text-base-muted'">{{ f.label }}</p>
+            <component :is="f.icon" :size="24" class="mx-auto mb-1" :class="format === f.value ? 'text-[var(--color-accent-soft)]' : 'text-base-muted'" />
+            <p class="text-small" :class="format === f.value ? 'text-[var(--color-accent-soft)]' : 'text-base-muted'">{{ f.label }}</p>
             <span v-if="isFree && f.value !== 'expository'" class="text-micro text-accent-primary">🔒 Pro</span>
           </button>
         </div>
@@ -149,6 +160,7 @@
         </div>
       </div>
     </div>
+    </template>
 
     <!-- Generate button -->
     <button

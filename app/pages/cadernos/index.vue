@@ -1,10 +1,10 @@
 <template>
-  <div class="flex h-[calc(100vh-64px)]">
+  <div class="flex h-screen">
     <!-- Sidebar: Topic tree (desktop: inline, mobile: overlay) -->
     <aside
       class="border-r border-base flex flex-col shrink-0 transition-all duration-200 bg-[var(--bg-card)]"
       :class="[
-        sidebarCollapsed ? 'w-0 overflow-hidden' : 'w-72',
+        sidebarCollapsed ? 'w-0 overflow-hidden' : 'w-60',
         'max-lg:fixed max-lg:inset-0 max-lg:z-40 max-lg:w-full max-lg:border-r-0',
         !sidebarOpen && 'max-lg:hidden',
       ]"
@@ -22,24 +22,6 @@
           </div>
         </div>
         <div class="flex items-center gap-2">
-          <button
-            v-if="(topicStore.tree?.length ?? 0) >= 5"
-            class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small flex-1 justify-center"
-            @click="showGraph = true"
-          >
-            <Network :size="16" /> Mapa
-          </button>
-          <div v-else class="relative flex-1 group">
-            <button
-              class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small w-full justify-center opacity-50 cursor-not-allowed"
-              disabled
-            >
-              <Network :size="16" /> Mapa
-            </button>
-            <span class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 rounded-lg bg-[var(--bg-card)] border border-base shadow-lg text-micro text-base-muted whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-              Disponível com 5+ cadernos ({{ topicStore.tree?.length ?? 0 }}/5)
-            </span>
-          </div>
           <div class="relative flex-1">
             <button class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small w-full justify-center" data-tour="create-notebook" @click="showAddMenu = !showAddMenu">
               <Plus :size="16" /> Novo
@@ -51,14 +33,14 @@
               <NuxtLink to="/importar" class="block px-3 py-2 text-small text-base-primary hover:bg-surface-secondary transition-colors" @click="showAddMenu = false">
                 Importar Anki
               </NuxtLink>
-              <button class="w-full text-left px-3 py-2 text-small text-base-primary hover:bg-surface-secondary transition-colors" @click="showAddMenu = false; triggerStructureUpload()">
+              <button class="w-full text-left px-3 py-2 text-small text-base-primary hover:bg-surface-secondary transition-colors" @click="showAddMenu = false; structurePdf.trigger()">
                 <span class="block">Organizar PDF</span>
                 <span class="block text-micro text-base-muted">A IA lê o PDF e monta cadernos e tópicos pra você</span>
               </button>
             </div>
           </div>
         </div>
-        <input ref="structureFileInput" type="file" accept=".pdf" class="hidden" @change="handleStructurePdf" />
+        <input ref="structureFileInput" type="file" accept=".pdf" class="hidden" @change="structurePdf.handleFile" />
       </div>
 
       <!-- Structure generating banner -->
@@ -68,18 +50,41 @@
       </div>
 
       <div class="flex-1 overflow-y-auto p-2">
+        <!-- Search -->
+        <div class="px-2 pb-2">
+          <div class="relative">
+            <Search :size="14" class="absolute left-2.5 top-1/2 -translate-y-1/2 text-base-muted pointer-events-none" />
+            <input
+              v-model="searchQuery"
+              type="text"
+              class="input-base w-full !py-2 !pl-8 !pr-8 !text-small"
+              placeholder="Buscar caderno..."
+              @keydown.esc="searchQuery = ''"
+            />
+            <button
+              v-if="searchQuery"
+              class="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded text-base-muted hover:text-base-primary"
+              @click="searchQuery = ''"
+            >
+              <X :size="12" />
+            </button>
+          </div>
+        </div>
+
         <div v-if="topicStore.loading" class="space-y-2 p-2">
           <div v-for="i in 4" :key="i" class="skeleton h-8 rounded" />
         </div>
         <TopicTree
           v-else
-          :topics="topicStore.tree"
+          :topics="filteredTree"
           :selected-id="selectedTopicId"
           :progress-map="progressMap"
+          :force-expand="!!searchQuery"
           @select="selectTopic"
           @edit="openEdit"
           @delete="openDelete"
           @add-child="openCreate"
+          @structure-pdf="structurePdf.trigger()"
         />
       </div>
     </aside>
@@ -87,132 +92,20 @@
     <!-- Main: Topic Hub -->
     <main class="flex-1 flex flex-col overflow-y-auto pb-20 lg:pb-0">
       <template v-if="selectedTopicId">
-        <!-- Topic header -->
-        <div ref="headerRef" class="p-5 border-b border-base">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2 min-w-0">
-              <button
-                class="btn-secondary !p-1.5 !min-h-[2.75rem] shrink-0 lg:hidden"
-                title="Ver cadernos"
-                @click="sidebarOpen = true"
-              >
-                <PanelLeftOpen :size="16" />
-              </button>
-              <button
-                v-if="sidebarCollapsed"
-                class="btn-secondary !p-1.5 !min-h-[2.75rem] shrink-0 max-lg:hidden"
-                title="Expandir cadernos"
-                @click="sidebarCollapsed = false"
-              >
-                <PanelLeftOpen :size="16" />
-              </button>
-              <div class="min-w-0">
-                <h2 class="font-heading font-bold text-xl text-base-primary truncate">{{ selectedTopicName }}</h2>
-                <p v-if="topicCards.length" class="text-small text-base-muted mt-0.5">
-                  {{ memorizeProgress > 0 ? memorizeProgress + '% dominado · ' : '' }}{{ topicCards.length }} card{{ topicCards.length !== 1 ? 's' : '' }}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Progress bar -->
-          <div v-if="topicCards.length" class="mt-3">
-            <div class="flex items-center gap-3">
-              <div class="flex-1 h-1 rounded-full bg-surface-secondary overflow-hidden">
-                <div
-                  class="h-1 rounded-full bg-accent-primary-subtle0/65 transition-all duration-500"
-                  :style="{ width: memorizeProgress + '%' }"
-                />
-              </div>
-              <span class="text-small text-base-muted shrink-0">{{ memorizeProgress }}%</span>
-            </div>
-          </div>
-
-          <!-- Sub-topics -->
-          <div v-if="subTopics.length" class="flex flex-wrap gap-1.5 mt-3">
-            <button
-              v-for="sub in subTopics"
-              :key="sub.id"
-              class="text-sm px-2.5 py-1 rounded-full bg-surface-secondary text-base-secondary border border-base hover:bg-[var(--bg-soft)] hover:text-base-secondary transition-colors"
-              @click="selectTopic(sub.id)"
-            >
-              {{ sub.name }}
-            </button>
-          </div>
-
-        </div>
-
-        <!-- HERO — simple: pending cards + review button -->
-        <div v-if="pendingCount > 0" class="mx-4 mt-5 mb-3 px-6 py-5 rounded-2xl bg-[var(--bg-card)] border border-base flex items-center justify-between gap-4">
-          <div>
-            <p class="font-heading font-semibold text-xl text-base-primary">{{ pendingCount }} card{{ pendingCount !== 1 ? 's' : '' }} pendente{{ pendingCount !== 1 ? 's' : '' }}</p>
-            <p class="text-small text-base-muted mt-1">Continue seu progresso de hoje</p>
-          </div>
-          <div class="flex items-center gap-2 shrink-0">
-            <NuxtLink :to="`/revisar?mode=blitz&topic_id=${selectedTopicId}`" class="btn-secondary !py-3 !px-4 text-small">⚡ Rápida</NuxtLink>
-            <NuxtLink :to="`/revisar?topic_id=${selectedTopicId}`" class="btn-primary !py-3 !px-6">
-              Revisar agora
-            </NuxtLink>
-          </div>
-        </div>
-
-        <!-- Podcast generate button -->
-        <div v-if="selectedTopicId" class="mx-4 mb-3" :class="pendingCount <= 0 ? 'mt-5' : ''">
-          <button class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-[var(--bg-card)] border border-[var(--color-accent-primary)]/15 hover:border-[var(--color-accent-primary)]/20 hover:bg-surface-secondary transition-all text-left" @click="showPodcastSheet = true">
-            <span class="text-xl">🎧</span>
-            <div class="flex-1">
-              <p class="text-sm text-base-primary font-medium">Revisar ouvindo seus erros</p>
-              <p class="text-xs text-base-muted">Podcast personalizado baseado no que você errou</p>
-            </div>
-            <span class="text-base-primary/30 text-sm">→</span>
-          </button>
-        </div>
-
-        <PodcastGenerateSheet
-          v-if="selectedTopicId"
-          v-model="showPodcastSheet"
-          :topic-id="selectedTopicId"
-          :topic-name="selectedTopicName ?? ''"
-          :weak-cards-count="topicCards.filter(c => c.lapses > 0).length"
-          @generated="onPodcastGenerated"
-        />
-
-        <!-- Sticky header (appears on scroll) -->
-        <div
-          v-if="showStickyHeader"
-          class="sticky top-0 z-10 px-4 py-2.5 border-b border-base bg-[var(--bg-card)]/95 backdrop-blur-md flex items-center justify-between"
-        >
-          <span class="text-small font-medium text-base-primary truncate">{{ selectedTopicName }}</span>
-          <NuxtLink v-if="dueCardsCount > 0" :to="`/revisar?topic_id=${selectedTopicId}`" class="btn-primary !py-2 !px-3.5 !min-h-[2.75rem] !text-sm shrink-0">
-            Revisar {{ dueCardsCount }}
-          </NuxtLink>
-        </div>
-
-        <!-- Tabs -->
-        <div class="px-4 mt-4">
-          <UiHubTabs
-            v-model="activeTab"
-            :tabs="[
-              { key: 'notes', label: 'Material', count: noteStore.notes.length },
-              { key: 'cards', label: 'Cards', count: topicCards.length },
-            ]"
-            :storage-key="`memorai-hub-tab-${selectedTopicId}`"
-          />
-        </div>
-
-        <!-- Tab: Material -->
+        <!-- When editor is open: full-screen note editing -->
         <TopicHubNotesTab
-          v-if="activeTab === 'notes'"
+          v-if="editingNote"
           :notes="noteStore.notes"
           :active-note="editingNote"
           :note-title="noteTitle"
           :saving="noteStore.saving"
           :has-documents="!!docsInlineRef?.documents?.length"
+          :breadcrumb-topic="selectedTopicName ?? ''"
           :cards-from-note="cardsFromNote"
           :cards-ai-remaining="cardsAiRemaining"
           :cards-ai-limit="cardsAiLimit"
           @open-note="openNoteEditor"
-          @close-editor="editingNote = null; noteStore.current = null"
+          @close-editor="closeEditor"
           @quick-add="handleQuickAdd"
           @create-note="createNote"
           @generate-from-note="generateFromCurrentNote"
@@ -233,43 +126,199 @@
             />
           </template>
           <template #editor>
-            <TopicNoteEditor v-model="noteContent" @update:model-value="debouncedSave" />
-            <UiSelectionToolbar @create-card="openNoteToCard" @ask-ai="askAiAboutSelection" />
+            <TopicNoteEditor v-model="noteContent" @update:model-value="debouncedSave" @create-card="openNoteToCard" @ask-ai="askAiAboutSelection" />
           </template>
-          <template #read-content>
-            <div class="prose-memorai" v-html="noteContentHtml" />
-          </template>
+          <template #selection-toolbar />
         </TopicHubNotesTab>
 
-        <!-- Tab: Cards -->
-        <TopicHubCardsTab
-          v-if="activeTab === 'cards'"
-          :topic-id="selectedTopicId!"
-          :cards="topicCards"
-          :generated-cards="generatedCards"
-          :ai-generating="aiGenerating"
-          :error-patterns="errorPatterns"
-          :note-name-by-id="noteNameById"
-          :highlight-id="highlightCardId"
-          :can-use-ocr="featureUsage.canUse('cards_ai')"
-          @create-card="openCreateCard"
-          @delete-card="confirmDeleteCard"
-          @edit-card="openEditCard"
-          @accept-card="acceptCard"
-          @accept-all-cards="acceptAllCards"
-          @edit-generated="editGeneratedCard"
-          @discard-generated="(i: number) => generatedCards.splice(i, 1)"
-          @ocr-cards="handleOcrCards"
-        >
-          <template #ai-generate>
-            <AgentAiGenerateInline
-              :topic-id="selectedTopicId!"
-              :has-notes="noteStore.notes.length > 0"
-              :has-documents="docsInlineRef?.documents?.length > 0"
-              @generate="handleAiGenerate"
+        <!-- When editor is NOT open: topic hub view -->
+        <template v-else>
+          <!-- Topic header -->
+          <div ref="headerRef" class="p-5 border-b border-base">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2 min-w-0">
+                <button
+                  class="btn-secondary !p-1.5 !min-h-[2.75rem] shrink-0 lg:hidden"
+                  title="Ver cadernos"
+                  @click="sidebarOpen = true"
+                >
+                  <PanelLeftOpen :size="16" />
+                </button>
+                <button
+                  v-if="sidebarCollapsed"
+                  class="btn-secondary !p-1.5 !min-h-[2.75rem] shrink-0 max-lg:hidden"
+                  title="Expandir cadernos"
+                  @click="sidebarCollapsed = false"
+                >
+                  <PanelLeftOpen :size="16" />
+                </button>
+                <div class="min-w-0">
+                  <h2 class="font-heading font-bold text-xl text-base-primary truncate">{{ selectedTopicName }}</h2>
+                  <p v-if="topicCards.length" class="text-small text-base-muted mt-0.5">
+                    {{ memorizeProgress > 0 ? memorizeProgress + '% em dia · ' : '' }}{{ topicCards.length }} card{{ topicCards.length !== 1 ? 's' : '' }}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Progress bar -->
+            <div v-if="topicCards.length" class="mt-3">
+              <div class="flex items-center gap-3">
+                <div class="flex-1 h-1 rounded-full bg-surface-secondary overflow-hidden">
+                  <div
+                    class="h-1 rounded-full bg-[var(--color-accent-primary)] transition-all duration-500"
+                    :style="{ width: memorizeProgress + '%' }"
+                  />
+                </div>
+                <span class="text-small text-base-muted shrink-0">{{ memorizeProgress }}%</span>
+              </div>
+            </div>
+
+            <!-- Sub-topics -->
+            <div v-if="subTopics.length" class="flex flex-wrap gap-1.5 mt-3">
+              <button
+                v-for="sub in subTopics"
+                :key="sub.id"
+                class="text-sm px-2.5 py-1 rounded-full border transition-all hover:brightness-90 hover:shadow-sm cursor-pointer"
+                :style="chipStyle(sub.id)"
+                @click="selectTopic(sub.id)"
+              >
+                {{ sub.name }}
+              </button>
+            </div>
+
+          </div>
+
+          <!-- HERO — simple: pending cards + review button -->
+          <div v-if="pendingCount > 0" class="mx-4 mt-5 mb-3 px-6 py-5 rounded-2xl bg-[var(--bg-card)] border border-base flex items-center justify-between gap-4">
+            <div>
+              <p class="font-heading font-semibold text-xl text-base-primary">{{ pendingCount }} card{{ pendingCount !== 1 ? 's' : '' }} pendente{{ pendingCount !== 1 ? 's' : '' }}</p>
+              <p class="text-small text-base-muted mt-1">Continue seu progresso de hoje</p>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <NuxtLink :to="`/revisar?mode=blitz&topic_id=${selectedTopicId}`" class="btn-secondary !py-3 !px-4 text-small">⚡ Rápida</NuxtLink>
+              <NuxtLink :to="`/revisar?topic_id=${selectedTopicId}`" class="btn-primary !py-3 !px-6">
+                Revisar agora
+              </NuxtLink>
+            </div>
+          </div>
+
+          <!-- Podcast generate button -->
+          <div v-if="selectedTopicId" class="mx-4 mb-3" :class="pendingCount <= 0 ? 'mt-5' : ''">
+            <button class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-[var(--bg-card)] border border-[var(--color-accent-primary)]/15 hover:border-[var(--color-accent-primary)]/20 hover:bg-surface-secondary transition-all text-left" @click="showPodcastSheet = true">
+              <span class="text-xl">🎧</span>
+              <div class="flex-1">
+                <p class="text-sm text-base-primary font-medium">Revisar ouvindo seus erros</p>
+                <p class="text-xs text-base-muted">Podcast personalizado baseado no que você errou</p>
+              </div>
+              <span class="text-base-primary/30 text-sm">→</span>
+            </button>
+          </div>
+
+          <PodcastGenerateSheet
+            v-if="selectedTopicId"
+            v-model="showPodcastSheet"
+            :topic-id="selectedTopicId"
+            :topic-name="selectedTopicName ?? ''"
+            :weak-cards-count="topicCards.filter(c => c.lapses > 0).length"
+            @generated="onPodcastGenerated"
+          />
+
+          <!-- Sticky header (appears on scroll) -->
+          <div
+            v-if="showStickyHeader"
+            class="sticky top-0 z-10 px-4 py-2.5 border-b border-base bg-[var(--bg-card)]/95 backdrop-blur-md flex items-center justify-between"
+          >
+            <span class="text-small font-medium text-base-primary truncate">{{ selectedTopicName }}</span>
+            <NuxtLink v-if="dueCardsCount > 0" :to="`/revisar?topic_id=${selectedTopicId}`" class="btn-primary !py-2 !px-3.5 !min-h-[2.75rem] !text-sm shrink-0">
+              Revisar {{ dueCardsCount }}
+            </NuxtLink>
+          </div>
+
+          <!-- Tabs -->
+          <div class="px-4 mt-4">
+            <UiHubTabs
+              v-model="activeTab"
+              :tabs="[
+                { key: 'notes', label: 'Material', count: noteStore.notes.length },
+                { key: 'cards', label: 'Cards', count: topicCards.length },
+                { key: 'map', label: 'Mapa' },
+              ]"
+              :storage-key="`memorai-hub-tab-${selectedTopicId}`"
             />
-          </template>
-        </TopicHubCardsTab>
+          </div>
+
+          <!-- Tab: Mapa -->
+          <TopicGraphInline
+            v-if="activeTab === 'map'"
+            @expand="showGraph = true"
+          />
+
+          <!-- Tab: Material (list only, no editor here) -->
+          <TopicHubNotesTab
+            v-if="activeTab === 'notes'"
+            :notes="noteStore.notes"
+            :active-note="null"
+            :note-title="''"
+            :saving="false"
+            :has-documents="!!docsInlineRef?.documents?.length"
+            :breadcrumb-topic="selectedTopicName ?? ''"
+            :cards-from-note="cardsFromNote"
+            :cards-ai-remaining="cardsAiRemaining"
+            :cards-ai-limit="cardsAiLimit"
+            @open-note="openNoteEditor"
+            @close-editor="closeEditor"
+            @quick-add="handleQuickAdd"
+            @create-note="createNote"
+            @generate-from-note="generateFromCurrentNote"
+            @improve-note="openChatForNote"
+            @delete-note="showDeleteNote = true"
+            @save-title="saveTitle"
+            @update:note-title="noteTitle = $event"
+          >
+            <template #documents>
+              <TopicDocumentsInline
+                v-if="selectedTopicId"
+                ref="docsInlineRef"
+                :topic-id="selectedTopicId"
+                @generate-from-pdf="(docId: string) => handleAiGenerate('pdf', 5, docId)"
+                @note-ready="noteStore.fetchForTopic(selectedTopicId!)"
+                @generate-cards="(noteId: string) => handleAiGenerate('notes', 5)"
+                @structure-ready="topicStore.fetchTree()"
+              />
+            </template>
+          </TopicHubNotesTab>
+
+          <!-- Tab: Cards -->
+          <TopicHubCardsTab
+            v-if="activeTab === 'cards'"
+            :topic-id="selectedTopicId!"
+            :cards="topicCards"
+            :generated-cards="generatedCards"
+            :ai-generating="aiGenerating"
+            :error-patterns="errorPatterns"
+            :note-name-by-id="noteNameById"
+            :highlight-id="highlightCardId"
+            :can-use-ocr="featureUsage.canUse('cards_ai')"
+            @create-card="openCreateCard"
+            @delete-card="confirmDeleteCard"
+            @edit-card="openEditCard"
+            @accept-card="acceptCard"
+            @accept-all-cards="acceptAllCards"
+            @edit-generated="editGeneratedCard"
+            @discard-generated="discardGenerated"
+            @ocr-cards="handleOcrCards"
+          >
+            <template #ai-generate>
+              <AgentAiGenerateInline
+                :topic-id="selectedTopicId!"
+                :has-notes="noteStore.notes.length > 0"
+                :has-documents="docsInlineRef?.documents?.length > 0"
+                @generate="handleAiGenerate"
+              />
+            </template>
+          </TopicHubCardsTab>
+        </template>
 
       </template>
 
@@ -377,7 +426,7 @@
 </template>
 
 <script setup lang="ts">
-import { Plus, Network, Trash2, PanelLeftClose, PanelLeftOpen, X } from 'lucide-vue-next'
+import { Plus, Search, PanelLeftClose, PanelLeftOpen, X } from 'lucide-vue-next'
 import type { Topic, Note } from '~/types'
 
 const topicStore = useTopicStore()
@@ -390,35 +439,19 @@ const featureUsage = useFeatureUsage()
 const selectedTopicId = ref<string | null>(null)
 const sidebarCollapsed = ref(false)
 const sidebarOpen = ref(true)
-const noteTitle = ref('')
-const noteContent = ref<Record<string, any> | null>(null)
-const selectedText = ref('')
-const topicErrors = ref<any[]>([])
-const topicCards = ref<any[]>([])
+const activeTab = ref('notes')
+const searchQuery = ref('')
+const { topicCards, showDeleteCard, deleteCardId, memorizeProgress, dueCardsCount, newCardsCount, pendingCount, setCards, cardsFromNote, confirmDeleteCard, handleDeleteCard } = useTopicCards()
+const { noteTitle, noteContent, editingNote, selectedText, showDeleteNote, flushPendingSave, debouncedSave, saveTitle, selectNote, openNoteEditor, closeEditor, handleQuickAdd, createNote, handleDeleteNote } = useNoteEditor(selectedTopicId)
 const errorPatterns = ref<any>(null)
-const generatedCards = ref<any[]>([])
-const generatingDeckId = ref<string>('')
-const aiGenerating = ref(false)
 
-// Auto-accept generated cards if user leaves
-function autoAcceptPendingCards() {
-  if (generatedCards.value.length && generatingDeckId.value) {
-    // Fire-and-forget — navigator.sendBeacon doesn't work with JSON easily, use fetch keepalive
-    const { $api } = useNuxtApp()
-    $api('/ai/accept-cards', {
-      method: 'POST',
-      body: {
-        deck_id: generatingDeckId.value,
-        cards: generatedCards.value.map(c => ({ ...c, topic_id: selectedTopicId.value })),
-      },
-    }).catch(() => {})
-    generatedCards.value = []
-  }
-}
-
-onBeforeRouteLeave(() => { autoAcceptPendingCards() })
-onMounted(() => { window.addEventListener('beforeunload', autoAcceptPendingCards) })
-onUnmounted(() => { window.removeEventListener('beforeunload', autoAcceptPendingCards) })
+const aiGenerate = useAiGenerate({
+  topicId: selectedTopicId,
+  topicCards,
+  activeTab,
+  onReload: async () => { if (selectedTopicId.value) await loadTopicData(selectedTopicId.value) },
+})
+const { generatedCards, aiGenerating, handleAiGenerate, handleOcrCards, acceptCard, acceptAllCards, generateFromCurrentNote, discardGenerated } = aiGenerate
 
 // Topic modals
 const showCreateTopic = ref(false)
@@ -440,8 +473,6 @@ const cardFormInitialBack = ref('')
 const editingGeneratedCardIndex = ref<number | null>(null)
 const editingCard = ref<any>(null)
 const docsInlineRef = ref<any>(null)
-const activeTab = ref('notes')
-const editingNote = ref<Note | null>(null)
 
 const newTopicName = ref('')
 const editTopicName = ref('')
@@ -464,98 +495,20 @@ const selectedTopicName = computed(() => {
   return selectedTopicId.value ? find(topicStore.tree, selectedTopicId.value) ?? '' : ''
 })
 
-const memorizeProgress = computed(() => {
-  if (!topicCards.value.length) return 0
-  const mastered = topicCards.value.filter(c => c.state === 'review').length
-  return Math.round((mastered / topicCards.value.length) * 100)
-})
-
-const dueCardsCount = computed(() => {
-  return topicCards.value.filter(c => c.due && new Date(c.due) <= new Date()).length
-})
-
-const newCardsCount = computed(() => {
-  return topicCards.value.filter(c => c.state === 'new').length
-})
-
-const pendingCount = computed(() => dueCardsCount.value + newCardsCount.value)
-
-const { sanitize } = useSanitize()
-
-const noteContentHtml = computed(() => {
-  if (!noteContent.value) return ''
-  return sanitize(extractHtmlFromTiptap(noteContent.value))
-})
-
-function extractHtmlFromTiptap(doc: any): string {
-  if (!doc) return ''
-  if (typeof doc === 'string') return doc
-
-  if (doc.type === 'doc' && doc.content) {
-    return doc.content.map((n: any) => renderNode(n)).join('')
-  }
-
-  return renderNode(doc)
-}
-
-function renderNode(node: any): string {
-  if (!node) return ''
-
-  switch (node.type) {
-    case 'heading': {
-      const level = node.attrs?.level ?? 2
-      return `<h${level}>${renderChildren(node)}</h${level}>`
-    }
-    case 'paragraph':
-      return `<p>${renderChildren(node)}</p>`
-    case 'bulletList':
-      return `<ul>${renderChildren(node)}</ul>`
-    case 'orderedList':
-      return `<ol>${renderChildren(node)}</ol>`
-    case 'listItem':
-      return `<li>${renderChildren(node)}</li>`
-    case 'callout': {
-      const calloutType = node.attrs?.type || 'info'
-      return `<div class="callout callout-${calloutType}">${renderChildren(node)}</div>`
-    }
-    case 'blockquote':
-      return `<blockquote>${renderChildren(node)}</blockquote>`
-    case 'image':
-      return `<img src="${node.attrs?.src}" alt="${node.attrs?.alt || ''}" />`
-    case 'text': {
-      let text = escapeHtml(node.text || '')
-      if (node.marks) {
-        for (const mark of node.marks) {
-          if (mark.type === 'bold') text = `<strong>${text}</strong>`
-          else if (mark.type === 'italic') text = `<em>${text}</em>`
-          else if (mark.type === 'code') text = `<code>${text}</code>`
-        }
-      }
-      return text
-    }
-    default:
-      return renderChildren(node)
-  }
-}
-
-function renderChildren(node: any): string {
-  if (!node.content) return node.text ? escapeHtml(node.text) : ''
-  return node.content.map((child: any) => renderNode(child)).join('')
-}
-
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-}
-
-function cardsFromNote(noteId: string): number {
-  return topicCards.value.filter(c => c.source_note_id === noteId).length
-}
-
 function noteNameById(noteId: string): string {
   return noteStore.notes.find(n => n.id === noteId)?.title ?? 'Nota'
+}
+
+function chipStyle(topicId: string): Record<string, string> {
+  const p = progressMap.value[topicId] ?? 0
+  // Opacity from 0.08 (no progress) to 0.35 (full progress)
+  const bgOpacity = 0.08 + p * 0.27
+  const borderOpacity = bgOpacity + 0.12
+  return {
+    backgroundColor: `color-mix(in srgb, var(--color-accent-soft) ${Math.round(bgOpacity * 100)}%, transparent)`,
+    borderColor: `color-mix(in srgb, var(--color-accent-soft) ${Math.round(borderOpacity * 100)}%, transparent)`,
+    color: 'var(--color-accent-soft)',
+  }
 }
 
 const subTopics = computed(() => {
@@ -571,42 +524,24 @@ const subTopics = computed(() => {
   return findChildren(topicStore.tree, selectedTopicId.value)
 })
 
+const filteredTree = computed(() => {
+  const q = searchQuery.value.trim().toLowerCase()
+  if (!q) return topicStore.tree
+  function filterTopics(topics: Topic[]): Topic[] {
+    return topics.reduce<Topic[]>((acc, topic) => {
+      const nameMatches = topic.name.toLowerCase().includes(q)
+      const filteredChildren = filterTopics(topic.children ?? [])
+      if (nameMatches || filteredChildren.length) {
+        acc.push({ ...topic, children: nameMatches ? (topic.children ?? []) : filteredChildren })
+      }
+      return acc
+    }, [])
+  }
+  return filterTopics(topicStore.tree)
+})
+
 const headerRef = ref<HTMLElement>()
 const showStickyHeader = ref(false)
-
-let saveTimeout: ReturnType<typeof setTimeout> | null = null
-let pendingSaveNoteId: string | null = null
-let pendingSaveContent: Record<string, any> | null = null
-
-function flushPendingSave() {
-  if (saveTimeout && pendingSaveNoteId && pendingSaveContent) {
-    clearTimeout(saveTimeout)
-    saveTimeout = null
-    noteStore.update(pendingSaveNoteId, { content: pendingSaveContent })
-    pendingSaveNoteId = null
-    pendingSaveContent = null
-  }
-}
-
-function debouncedSave() {
-  if (saveTimeout) clearTimeout(saveTimeout)
-  pendingSaveNoteId = noteStore.current?.id ?? null
-  pendingSaveContent = noteContent.value ? JSON.parse(JSON.stringify(noteContent.value)) : null
-  saveTimeout = setTimeout(() => {
-    if (pendingSaveNoteId && pendingSaveContent) {
-      noteStore.update(pendingSaveNoteId, { content: pendingSaveContent })
-      pendingSaveNoteId = null
-      pendingSaveContent = null
-    }
-    saveTimeout = null
-  }, 1000)
-}
-
-function saveTitle() {
-  if (noteStore.current && noteTitle.value !== noteStore.current.title) {
-    noteStore.update(noteStore.current.id, { title: noteTitle.value })
-  }
-}
 
 function selectTopic(id: string) {
   flushPendingSave()
@@ -624,13 +559,11 @@ function selectTopic(id: string) {
 
 async function loadTopicData(id: string) {
   try {
-    const [errRes, detailRes, patternsRes] = await Promise.all([
-      $api<any>(`/topics/${id}/error-logs`),
+    const [detailRes, patternsRes] = await Promise.all([
       $api<any>(`/topics/${id}/details`),
       $api<any>(`/topics/${id}/error-patterns`),
     ])
-    topicErrors.value = errRes.data
-    topicCards.value = detailRes.data.flashcards
+    setCards(detailRes.data.flashcards)
     errorPatterns.value = patternsRes.data
 
     // Set default tab based on content
@@ -659,74 +592,6 @@ async function loadTopicData(id: string) {
       }, 300)
     }
   } catch {}
-}
-
-async function deleteCard(cardId: string) {
-  try {
-    await $api(`/flashcards/${cardId}`, { method: 'DELETE' })
-    topicCards.value = topicCards.value.filter(c => c.id !== cardId)
-    toast.show('Card excluído.', 'success')
-  } catch {
-    toast.show('Erro ao excluir card.', 'error')
-  }
-}
-
-const showDeleteCard = ref(false)
-const deleteCardId = ref<string | null>(null)
-const showDeleteNote = ref(false)
-
-function confirmDeleteCard(id: string) {
-  deleteCardId.value = id
-  showDeleteCard.value = true
-}
-
-async function handleDeleteCard() {
-  if (!deleteCardId.value) return
-  await deleteCard(deleteCardId.value)
-  deleteCardId.value = null
-  showDeleteCard.value = false
-}
-
-function selectNote(note: Note) {
-  flushPendingSave()
-  noteStore.current = note
-  noteTitle.value = note.title
-  noteContent.value = note.content
-}
-
-function openNoteEditor(note: Note) {
-  selectNote(note)
-  editingNote.value = note
-}
-
-async function handleQuickAdd(text: string) {
-  if (!selectedTopicId.value) return
-  const title = text.substring(0, 50).split('\n')[0] || 'Material'
-  const note = await noteStore.create(selectedTopicId.value, {
-    title,
-    content: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text }] }] },
-  })
-  openNoteEditor(note)
-  await topicStore.fetchTree()
-}
-
-async function createNote() {
-  if (!selectedTopicId.value) return
-  const note = await noteStore.create(selectedTopicId.value, { title: 'Novo material' })
-  openNoteEditor(note)
-  await topicStore.fetchTree()
-}
-
-async function deleteNote() {
-  if (!noteStore.current) return
-  await noteStore.remove(noteStore.current.id)
-  toast.show('Nota excluída.', 'success')
-  await topicStore.fetchTree()
-}
-
-async function handleDeleteNote() {
-  await deleteNote()
-  showDeleteNote.value = false
 }
 
 function openCreate(parentId: string | null) {
@@ -759,73 +624,8 @@ function askAiAboutSelection() {
   })
 }
 
-function openChatForPdf(docId: string) {
-  const chat = useChatStore()
-  chat.newConversation()
-  chat.open({ topicId: selectedTopicId.value ?? undefined, documentId: docId, source: 'pdf_summary' })
-  nextTick(() => {
-    chat.sendMessage('Resuma este documento pra mim, destacando os pontos mais importantes.')
-  })
-}
-
-const structureFileInput = ref<HTMLInputElement | null>(null)
-const structureGenerating = ref(false)
-
-function triggerStructureUpload() {
-  structureFileInput.value?.click()
-}
-
-async function handleStructurePdf(e: Event) {
-  const file = (e.target as HTMLInputElement).files?.[0]
-  if (!file) return
-  if (!file.name.endsWith('.pdf')) { toast.show('Apenas PDF.', 'error'); return }
-  if (file.size > 50 * 1024 * 1024) { toast.show('Máximo 50MB.', 'error'); return }
-
-  toast.show('Enviando PDF...')
-  try {
-    const config = useRuntimeConfig()
-    const auth = useAuthStore()
-
-    // Upload without topic_id
-    const formData = new FormData()
-    formData.append('file', file)
-
-    const uploadRes = await $api<any>('/documents', { method: 'POST', body: formData })
-    const documentId = uploadRes.data.id
-
-    // Trigger structure generation
-    await $api('/topics/from-document', { method: 'POST', body: { document_id: documentId } })
-    structureGenerating.value = true
-
-    // Poll for completion
-    const poll = setInterval(async () => {
-      try {
-        const res = await $api<any>(`/documents/${documentId}`)
-        const status = res.data.study_structure_status
-        if (status === 'completed') {
-          clearInterval(poll)
-          structureGenerating.value = false
-          toast.show('Cadernos criados com sucesso! 📚')
-          topicStore.fetchTree()
-        } else if (status === 'failed') {
-          clearInterval(poll)
-          structureGenerating.value = false
-          toast.show('Falha ao criar estrutura. Tente novamente.', 'error')
-        }
-        // else: still generating, keep polling
-      } catch {
-        // Network error — keep polling, don't stop
-      }
-    }, 4000)
-
-    // Timeout after 5 min
-    setTimeout(() => { clearInterval(poll); structureGenerating.value = false }, 300000)
-  } catch (e: any) {
-    toast.show(e?.data?.message || 'Erro ao enviar PDF.', 'error')
-  } finally {
-    if (structureFileInput.value) structureFileInput.value.value = ''
-  }
-}
+const structurePdf = useStructurePdf()
+const { fileInput: structureFileInput, generating: structureGenerating } = structurePdf
 
 const editTopicIsRoot = ref(false)
 
@@ -862,20 +662,6 @@ async function handleDeleteTopic() {
   toast.show('Deletado.', 'success')
 }
 
-function extractTextFromTiptap(doc: any): string {
-  if (!doc) return ''
-  if (typeof doc === 'string') return doc
-  let text = ''
-  if (doc.text) text += doc.text
-  if (doc.content) {
-    for (const node of doc.content) {
-      text += extractTextFromTiptap(node)
-      if (node.type === 'paragraph' || node.type === 'heading') text += '\n'
-    }
-  }
-  return text.trim()
-}
-
 function getEditorHtml(): string {
   // Get HTML from the Tiptap editor DOM
   const el = document.querySelector('.ProseMirror')
@@ -892,85 +678,6 @@ function openNoteToCard() {
       cardFormInitialFront.value = getEditorHtml()
       showCardForm.value = true
     }
-  }
-}
-
-async function handleAiGenerate(source: string, quantity: number, documentIdOrPrompt?: string) {
-  if (!selectedTopicId.value) return
-
-  let deckId = topicCards.value[0]?.deck_id
-  if (!deckId) {
-    const deckStore = useDeckStore()
-    if (!deckStore.decks.length) await deckStore.fetchDecks()
-    deckId = deckStore.decks[0]?.id
-  }
-  if (!deckId) {
-    toast.show('Crie um deck antes de gerar cards.', 'error')
-    return
-  }
-
-  activeTab.value = 'cards'
-  aiGenerating.value = true
-  toast.show('Gerando cards com IA...', 'success')
-  try {
-    const res = await $api<any>('/ai/generate-cards', {
-      method: 'POST',
-      body: {
-        topic_id: selectedTopicId.value,
-        deck_id: deckId,
-        source,
-        count: quantity,
-        document_id: source === 'pdf' ? documentIdOrPrompt : undefined,
-        prompt: source === 'free' ? documentIdOrPrompt : undefined,
-      },
-    })
-    const cards = res.data?.cards ?? []
-    if (cards.length) {
-      generatedCards.value = cards
-      generatingDeckId.value = deckId
-    } else {
-      toast.show('Nenhum card gerado.', 'error')
-    }
-  } catch (e: any) {
-    const msg = e.data?.message || 'Erro ao gerar cards.'
-    toast.show(msg, 'error')
-  } finally {
-    aiGenerating.value = false
-  }
-}
-
-async function handleOcrCards(cards: any[]) {
-  generatedCards.value = cards.map(c => ({ front: c.front, back: c.back }))
-
-  // Ensure we have a deck to accept cards into
-  let deckId = topicCards.value[0]?.deck_id
-  if (!deckId) {
-    const deckStore = useDeckStore()
-    if (!deckStore.decks.length) await deckStore.fetchDecks()
-    deckId = deckStore.decks[0]?.id
-  }
-  generatingDeckId.value = deckId || null
-
-  activeTab.value = 'cards'
-  toast.show(`${cards.length} cards gerados da imagem!`, 'success')
-}
-
-async function acceptCard(index: number) {
-  const card = generatedCards.value[index]
-  if (!card || !generatingDeckId.value) return
-  try {
-    await $api('/ai/accept-cards', {
-      method: 'POST',
-      body: {
-        deck_id: generatingDeckId.value,
-        cards: [{ ...card, topic_id: selectedTopicId.value }],
-      },
-    })
-    generatedCards.value.splice(index, 1)
-    toast.show('Card aceito!', 'success')
-    if (selectedTopicId.value) await loadTopicData(selectedTopicId.value)
-  } catch {
-    toast.show('Erro ao aceitar card.', 'error')
   }
 }
 
@@ -997,33 +704,6 @@ function openEditCard(card: any) {
   showCardForm.value = true
 }
 
-function generateFromCurrentNote(count: number = 5) {
-  if (!selectedTopicId.value) {
-    toast.show('Selecione um caderno primeiro.', 'error')
-    return
-  }
-  handleAiGenerate('notes', count)
-}
-
-async function acceptAllCards() {
-  if (!generatedCards.value.length || !generatingDeckId.value) return
-  try {
-    await $api('/ai/accept-cards', {
-      method: 'POST',
-      body: {
-        deck_id: generatingDeckId.value,
-        cards: generatedCards.value.map(c => ({ ...c, topic_id: selectedTopicId.value })),
-      },
-    })
-    const count = generatedCards.value.length
-    generatedCards.value = []
-    toast.show(`${count} cards aceitos!`, 'success')
-    if (selectedTopicId.value) await loadTopicData(selectedTopicId.value)
-  } catch {
-    toast.show('Erro ao aceitar cards.', 'error')
-  }
-}
-
 async function onCardCreated() {
   if (selectedTopicId.value) await loadTopicData(selectedTopicId.value)
   await topicStore.fetchTree()
@@ -1031,13 +711,7 @@ async function onCardCreated() {
 
 function onLocalSaveGenerated(card: { front: string; back: string; tags: string[]; frontAudioBlob: Blob | null; backAudioBlob: Blob | null }) {
   if (editingGeneratedCardIndex.value === null) return
-  generatedCards.value[editingGeneratedCardIndex.value] = {
-    ...generatedCards.value[editingGeneratedCardIndex.value],
-    front: card.front,
-    back: card.back,
-    frontAudioBlob: card.frontAudioBlob,
-    backAudioBlob: card.backAudioBlob,
-  }
+  aiGenerate.onLocalSaveGenerated(editingGeneratedCardIndex.value, card)
   editingGeneratedCardIndex.value = null
 }
 

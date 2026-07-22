@@ -1,11 +1,11 @@
 <template>
-  <div class="min-h-screen" :class="colorMode === 'dark' ? 'bg-[#0F001F]' : 'bg-[linear-gradient(180deg,#FFFFFF,#F7F4FF)]'">
+  <div class="min-h-screen" :class="colorMode === 'dark' ? 'bg-[#0F001F]' : 'bg-[linear-gradient(180deg,#FFFFFF,#F9F7FF)]'">
     <UiPaymentBanner />
-    <UiSidebar v-show="!dive.active.value" />
+    <UiSidebar v-show="!dive.active.value" :collapsed="sidebarCollapsed" />
     <UiBottomNav v-show="!dive.active.value" />
     <UiDiveMode />
 
-    <main class="relative min-h-screen transition-[margin] duration-500" :class="[mainPadding, dive.active.value ? '' : 'lg:ml-[240px]']">
+    <main class="relative min-h-screen transition-[margin] duration-200" :class="[mainPadding, dive.active.value ? '' : mainMargin]">
       <div class="relative">
         <slot />
       </div>
@@ -44,6 +44,9 @@ const mainPadding = computed(() => {
   if (hasMiniplayer.value) return 'pb-36 lg:pb-20'
   return 'pb-20 lg:pb-0'
 })
+
+const sidebarCollapsed = computed(() => route.path.startsWith('/cadernos'))
+const mainMargin = computed(() => sidebarCollapsed.value ? 'lg:ml-16' : 'lg:ml-[240px]')
 
 const showUpgrade = ref(false)
 const upgradeFeature = ref('')

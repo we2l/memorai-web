@@ -330,3 +330,60 @@ export interface SubscriptionInfo {
   subscription_ends_at: string | null
   has_subscription: boolean
 }
+
+// Quiz / Simulados
+export interface Quiz {
+  id: string
+  title: string
+  status: 'configuring' | 'in_progress' | 'completed' | 'failed' | 'abandoned'
+  mode: 'learning' | 'exam'
+  config: QuizConfig
+  total_questions: number
+  correct_count: number | null
+  score_percent: number | null
+  time_limit_seconds: number | null
+  time_spent_seconds: number | null
+  topic?: { id: string; name: string } | null
+  questions?: QuizQuestion[]
+  started_at: string | null
+  completed_at: string | null
+  cards_created_at: string | null
+  created_at: string
+}
+
+export interface QuizConfig {
+  quantity: number
+  types: ('multiple_choice' | 'true_false' | 'short_answer')[]
+  difficulty: 'easy' | 'mixed' | 'hard'
+  time_limit: number | null
+}
+
+export interface QuizQuestion {
+  id: string
+  position: number
+  type: 'multiple_choice' | 'true_false' | 'short_answer'
+  difficulty: 'easy' | 'medium' | 'hard'
+  stem: string
+  options: string[] | null
+  topic_tag: string | null
+  user_answer: string | null
+  is_correct: boolean | null
+  correct_answer?: string
+  explanation?: string
+  ai_feedback?: string | null
+  ai_score?: number | null
+  answered_at: string | null
+}
+
+export interface QuizStats {
+  total_completed: number
+  average_score: number | null
+  evolution: Array<{
+    id: string
+    topic_id: string | null
+    score_percent: number
+    total_questions: number
+    correct_count: number
+    completed_at: string
+  }>
+}

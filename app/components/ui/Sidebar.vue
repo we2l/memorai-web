@@ -83,6 +83,7 @@ import {
   Moon,
   Sun,
   HelpCircle,
+  ClipboardCheck,
 } from 'lucide-vue-next'
 
 defineProps<{
@@ -106,6 +107,7 @@ const items = [
   { label: 'Hoje', to: '/hoje', icon: 'home' },
   { label: 'Cadernos', to: '/cadernos', icon: 'topics' },
   { label: 'Revisão', to: '/revisar', icon: 'review' },
+  { label: 'Simulados', to: '/simulados', icon: 'quiz' },
   { label: 'Podcasts', to: '/podcasts', icon: 'podcasts' },
   { label: 'Progresso', to: '/progresso', icon: 'progress' },
 ]
@@ -114,6 +116,7 @@ const iconMap: Record<string, any> = {
   home: Home,
   topics: BookOpen,
   review: RotateCcw,
+  quiz: ClipboardCheck,
   podcasts: Headphones,
   progress: BarChart3,
 }

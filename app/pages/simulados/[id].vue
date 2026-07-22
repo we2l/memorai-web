@@ -92,7 +92,7 @@
 
         <!-- Feedback (learning mode, after answering) -->
         <Transition enter-active-class="transition-all duration-200" enter-from-class="opacity-0 translate-y-2" enter-to-class="opacity-100 translate-y-0">
-          <div v-if="isAnswered && isLearning && question.is_correct !== null" class="mt-6 p-4 rounded-xl border" :class="question.is_correct ? 'bg-success/5 border-success/30' : 'bg-danger/5 border-danger/30'">
+          <div v-if="isAnswered && isLearning && question.type !== 'short_answer' && question.is_correct !== null" class="mt-6 p-4 rounded-xl border" :class="question.is_correct ? 'bg-success/5 border-success/30' : 'bg-danger/5 border-danger/30'">
             <p class="font-medium text-sm" :class="question.is_correct ? 'text-success' : 'text-danger'">
               {{ question.is_correct ? '✓ Correto!' : '✗ Incorreto' }}
             </p>
@@ -100,6 +100,9 @@
               Resposta correta: <strong>{{ question.correct_answer }}</strong>
             </p>
             <p v-if="question.explanation" class="text-sm text-base-secondary mt-2">{{ question.explanation }}</p>
+          </div>
+          <div v-else-if="isAnswered && isLearning && question.type === 'short_answer'" class="mt-6 p-4 rounded-xl border border-[var(--border-base)] bg-[var(--bg-soft)]">
+            <p class="text-sm text-base-secondary">✓ Resposta salva. Será corrigida ao finalizar o simulado.</p>
           </div>
         </Transition>
       </div>

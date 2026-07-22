@@ -97,7 +97,7 @@
               {{ question.is_correct ? '✓ Correto!' : '✗ Incorreto' }}
             </p>
             <p v-if="question.correct_answer && !question.is_correct" class="text-sm text-base-secondary mt-1">
-              Resposta correta: <strong>{{ question.correct_answer }}</strong>
+              Resposta correta: <strong>{{ formatCorrectAnswer() }}</strong>
             </p>
             <p v-if="question.explanation" class="text-sm text-base-secondary mt-2">{{ question.explanation }}</p>
           </div>
@@ -259,10 +259,13 @@ async function submitShortAnswer() {
 }
 
 async function handleFinish() {
+  const quizId = quizStore.currentQuiz?.id
+  if (!quizId) return
   try {
     await quizStore.finishQuiz()
-    await navigateTo(`/simulados/${quizStore.currentQuiz!.id}/resultado`)
+    await navigateTo(`/simulados/${quizId}/resultado`)
   } catch (e: any) {
+    console.error('Finish error:', e)
     toast.show('Erro ao finalizar', 'error')
   }
 }
@@ -272,6 +275,21 @@ function handleExit() {
     quizStore.pauseQuiz()
   }
   navigateTo('/simulados')
+}
+
+function formatCorrectAnswer(): string {
+  const q = question.value
+  if (!q || !q.correct_answer) return ''
+  if (q.type === 'multiple_choice' && q.options) {
+    // correct_answer is a letter like "b" — find the matching option
+    const letter = q.correct_answer.toLowerCase().trim()
+    const match = q.options.find((o) => o.toLowerCase().startsWith(letter + ')'))
+    return match ?? q.correct_answer
+  }
+  if (q.type === 'true_false') {
+    return q.correct_answer === 'true' ? 'Verdadeiro' : 'Falso'
+  }
+  return q.correct_answer
 }
 
 function getOptionClass(option: string, index: number) {

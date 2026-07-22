@@ -182,9 +182,26 @@ onMounted(async () => {
   const id = route.params.id as string
   try {
     const quiz = await quizStore.fetchQuiz(id)
+
+    // Quiz failed during generation
+    if (quiz.status === 'failed') {
+      toast.show('Falha ao gerar simulado. Tente novamente com outro caderno.', 'error')
+      await navigateTo('/simulados')
+      return
+    }
+
+    // Still generating — poll until ready
     if (quiz.status === 'configuring') {
       await quizStore.pollUntilReady(id)
     }
+
+    // Check again after polling (might have failed)
+    if (quizStore.currentQuiz?.status === 'failed') {
+      toast.show('Falha ao gerar simulado. Tente novamente.', 'error')
+      await navigateTo('/simulados')
+      return
+    }
+
     if (quizStore.currentQuiz?.status === 'in_progress' && !quizStore.currentQuiz.started_at) {
       await quizStore.startQuiz(id)
     } else if (quizStore.currentQuiz?.status === 'in_progress') {
@@ -199,6 +216,7 @@ onMounted(async () => {
     if (firstUnanswered > 0) quizStore.goToQuestion(firstUnanswered)
   } catch (e: any) {
     toast.show(e?.message || 'Erro ao carregar simulado', 'error')
+    await navigateTo('/simulados')
   } finally {
     loadingQuiz.value = false
   }

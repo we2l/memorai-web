@@ -198,7 +198,7 @@ function scrollToBottom() {
 const route = useRoute()
 watch(() => chat.isOpen, async (open) => {
   if (open) {
-    // If opened without explicit context (manual/Ctrl+K), infer from route
+    // If opened without explicit context (manual/FAB), infer from route
     if (!chat.currentContext.source) {
       const topicMatch = route.path.match(/\/cadernos/)
       const topicId = route.query.topic as string | undefined
@@ -218,16 +218,7 @@ watch(() => chat.messages.length, async () => {
   scrollToBottom()
 })
 
-// Ctrl+K / ⌘K global shortcut
-function onKeydown(e: KeyboardEvent) {
-  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-    e.preventDefault()
-    chat.toggle()
-  }
-}
 
-onMounted(() => document.addEventListener('keydown', onKeydown))
-onUnmounted(() => document.removeEventListener('keydown', onKeydown))
 </script>
 
 <style scoped>

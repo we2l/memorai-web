@@ -41,6 +41,15 @@
         <span v-if="!collapsed">{{ colorMode === 'light' ? 'Modo escuro' : 'Modo claro' }}</span>
       </button>
       <NuxtLink
+        to="/ajuda"
+        class="flex items-center rounded-xl text-small text-base-muted hover:text-[var(--color-accent-soft)] hover:bg-accent-primary-subtle transition-all duration-150"
+        :class="collapsed ? 'justify-center px-0 py-2.5' : 'gap-3 px-3 py-2.5'"
+        :title="collapsed ? 'Ajuda' : undefined"
+      >
+        <HelpCircle :size="20" :stroke-width="1.5" />
+        <span v-if="!collapsed">Ajuda</span>
+      </NuxtLink>
+      <NuxtLink
         to="/configuracoes"
         class="flex items-center rounded-xl text-small text-base-muted hover:text-[var(--color-accent-soft)] hover:bg-accent-primary-subtle transition-all duration-150"
         :class="collapsed ? 'justify-center px-0 py-2.5' : 'gap-3 px-3 py-2.5'"
@@ -73,6 +82,7 @@ import {
   LogOut,
   Moon,
   Sun,
+  HelpCircle,
 } from 'lucide-vue-next'
 
 defineProps<{

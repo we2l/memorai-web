@@ -31,7 +31,7 @@
     <main class="flex-1 flex items-start justify-center px-4 py-8">
       <div v-if="loadingQuiz" class="text-center py-16">
         <div class="animate-spin w-8 h-8 border-2 border-[var(--color-primary-500)] border-t-transparent rounded-full mx-auto mb-4" />
-        <p class="text-base-muted">Gerando questões com IA...</p>
+        <p class="text-base-muted">Gerando questões...</p>
         <p class="text-xs text-base-muted mt-1">Isso pode levar até 30 segundos</p>
       </div>
 

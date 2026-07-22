@@ -17,6 +17,21 @@
       >
         <component :is="btn.icon" :size="16" />
       </button>
+      <span class="bubble-separator" />
+      <button
+        class="bubble-action"
+        title="Criar card"
+        @mousedown.prevent="emit('create-card')"
+      >
+        <Zap :size="14" /> Card
+      </button>
+      <button
+        class="bubble-action"
+        title="Perguntar à IA"
+        @mousedown.prevent="emit('ask-ai')"
+      >
+        ✨ IA
+      </button>
     </div>
 
     <!-- Editor content -->
@@ -63,7 +78,7 @@ import Image from '@tiptap/extension-image'
 import Link from '@tiptap/extension-link'
 import { Callout } from '~/extensions/callout'
 import {
-  Bold, Italic, Underline as UnderlineIcon, Strikethrough, LinkIcon,
+  Bold, Italic, Underline as UnderlineIcon, Strikethrough, LinkIcon, Zap,
   Heading1, Heading2, Heading3, List, ListOrdered, Quote, Minus,
   ImagePlus, AlertTriangle, Lightbulb, ShieldAlert, Type,
 } from 'lucide-vue-next'
@@ -74,6 +89,8 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: Record<string, any>): void
+  (e: 'create-card'): void
+  (e: 'ask-ai'): void
 }>()
 
 const editorWrapperRef = ref<HTMLElement>()
@@ -528,6 +545,31 @@ onBeforeUnmount(() => {
 }
 
 .bubble-btn.active {
+  background: var(--color-primary-50, #F5F2FF);
+  color: var(--color-primary-500, #6F3FF5);
+}
+
+.bubble-separator {
+  width: 1px;
+  height: 20px;
+  background: var(--color-border-base, #E7EAF3);
+  margin: 0 4px;
+}
+
+.bubble-action {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-text-body, #50597A);
+  transition: all 150ms;
+  white-space: nowrap;
+}
+
+.bubble-action:hover {
   background: var(--color-primary-50, #F5F2FF);
   color: var(--color-primary-500, #6F3FF5);
 }

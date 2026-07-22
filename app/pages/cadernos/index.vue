@@ -126,11 +126,9 @@
             />
           </template>
           <template #editor>
-            <TopicNoteEditor v-model="noteContent" @update:model-value="debouncedSave" />
+            <TopicNoteEditor v-model="noteContent" @update:model-value="debouncedSave" @create-card="openNoteToCard" @ask-ai="askAiAboutSelection" />
           </template>
-          <template #selection-toolbar>
-            <UiSelectionToolbar @create-card="openNoteToCard" @ask-ai="askAiAboutSelection" />
-          </template>
+          <template #selection-toolbar />
         </TopicHubNotesTab>
 
         <!-- When editor is NOT open: topic hub view -->

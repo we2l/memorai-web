@@ -27,8 +27,10 @@
 
       <!-- CTAs -->
       <div class="flex flex-wrap justify-center gap-3 mb-8">
-        <button class="btn-primary !text-sm" @click="createCards" :disabled="creatingCards">
-          {{ creatingCards ? 'Criando...' : `Criar cards dos erros (${wrongCount})` }}
+        <button class="btn-primary !text-sm" @click="createCards" :disabled="creatingCards || wrongCount === 0 || cardsCreated">
+          <span v-if="cardsCreated">✓ Cards criados</span>
+          <span v-else-if="creatingCards">Criando...</span>
+          <span v-else>Criar cards dos erros ({{ wrongCount }})</span>
         </button>
         <button class="btn-secondary !text-sm" @click="navigateTo('/simulados')">Novo simulado</button>
       </div>
@@ -98,6 +100,7 @@ const toast = useToast()
 
 const filter = ref<'all' | 'wrong'>('all')
 const creatingCards = ref(false)
+const cardsCreated = ref(false)
 
 const quiz = computed(() => quizStore.currentQuiz)
 const questions = computed(() => quizStore.questions)
@@ -144,12 +147,18 @@ onMounted(async () => {
 })
 
 async function createCards() {
+  if (!quiz.value?.id) {
+    toast.show('Simulado não carregado', 'error')
+    return
+  }
   creatingCards.value = true
   try {
-    const count = await quizStore.createCardsFromErrors(quiz.value!.id)
+    const count = await quizStore.createCardsFromErrors(quiz.value.id)
     toast.show(`${count} cards criados dos erros!`, 'success')
-  } catch {
-    toast.show('Erro ao criar cards', 'error')
+    cardsCreated.value = true
+  } catch (e: any) {
+    console.error('createCards error:', e)
+    toast.show(e?.data?.message || 'Erro ao criar cards', 'error')
   } finally {
     creatingCards.value = false
   }

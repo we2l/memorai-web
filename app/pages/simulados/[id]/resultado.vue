@@ -100,7 +100,7 @@ const toast = useToast()
 
 const filter = ref<'all' | 'wrong'>('all')
 const creatingCards = ref(false)
-const cardsCreated = ref(false)
+const cardsCreated = computed(() => !!quiz.value?.cards_created_at)
 
 const quiz = computed(() => quizStore.currentQuiz)
 const questions = computed(() => quizStore.questions)
@@ -155,7 +155,8 @@ async function createCards() {
   try {
     const count = await quizStore.createCardsFromErrors(quiz.value.id)
     toast.show(`${count} cards criados dos erros!`, 'success')
-    cardsCreated.value = true
+    // Refresh quiz to get cards_created_at
+    await quizStore.fetchQuiz(quiz.value.id)
   } catch (e: any) {
     console.error('createCards error:', e)
     toast.show(e?.data?.message || 'Erro ao criar cards', 'error')

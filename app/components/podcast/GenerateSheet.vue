@@ -175,6 +175,7 @@
       {{ estimatedTime }}
       <span v-if="usageText"> · {{ usageText }}</span>
     </p>
+    <p class="text-micro text-base-muted text-center mt-1">↳ Áudio dos seus pontos fracos — ouça no ônibus, reforce sem esforço</p>
   </UiModal>
 </template>
 

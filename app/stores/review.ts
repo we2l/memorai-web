@@ -21,6 +21,7 @@ export const useReviewStore = defineStore('review', {
     lastReviewId: null as string | null,
     showErrorDiary: false,
     hints: [] as { type: string; text: string }[],
+    retaFinal: null as { active: boolean; exam_titles: string[]; extra_count: number } | null,
     _tick: 0,
     _pendingAdvance: null as (() => void) | null,
   }),
@@ -72,6 +73,7 @@ export const useReviewStore = defineStore('review', {
       this.noteSnippet = null
       this.hints = []
       this.showErrorDiary = false
+      this.retaFinal = null
       try {
         const { $api } = useNuxtApp()
         const params = new URLSearchParams()
@@ -83,6 +85,7 @@ export const useReviewStore = defineStore('review', {
         const query = params.toString() ? `?${params}` : ''
         const res = await $api<any>(`/review/session${query}`)
         const allCards = res.data as SessionCard[]
+        this.retaFinal = res.reta_final ?? null
         const now = Date.now()
 
         // Separate learning/relearning cards with future due into learningQueue

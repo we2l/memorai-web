@@ -249,10 +249,40 @@
           </div>
 
           <!-- Tab: Mapa -->
-          <TopicGraphInline
-            v-if="activeTab === 'map'"
-            @expand="showGraph = true"
-          />
+          <div v-if="activeTab === 'map'" class="flex flex-col h-full">
+            <!-- Toggle: Cadernos | Mapa Mental -->
+            <div class="flex items-center gap-2 px-4 pt-3 pb-2">
+              <div class="inline-flex rounded-lg border border-base p-0.5 bg-surface-secondary">
+                <button
+                  class="px-3 py-1.5 text-small rounded-md transition-colors flex items-center gap-1.5"
+                  :class="mapSubView === 'graph' ? 'bg-[var(--bg-card)] shadow text-base-primary font-medium' : 'text-base-muted hover:text-base-primary'"
+                  @click="mapSubView = 'graph'"
+                >
+                  🔗 Cadernos
+                </button>
+                <button
+                  class="px-3 py-1.5 text-small rounded-md transition-colors flex items-center gap-1.5"
+                  :class="mapSubView === 'mindmap' ? 'bg-[var(--bg-card)] shadow text-base-primary font-medium' : 'text-base-muted hover:text-base-primary'"
+                  @click="mapSubView = 'mindmap'"
+                >
+                  🧠 Mapa Mental
+                </button>
+              </div>
+            </div>
+
+            <!-- Sub-view: Grafo de Cadernos -->
+            <TopicGraphInline
+              v-if="mapSubView === 'graph'"
+              @expand="showGraph = true"
+            />
+
+            <!-- Sub-view: Mapa Mental -->
+            <TopicMindMapView
+              v-if="mapSubView === 'mindmap' && selectedTopicId"
+              :topic-id="selectedTopicId"
+              @create-note="createNote"
+            />
+          </div>
 
           <!-- Tab: Material (list only, no editor here) -->
           <TopicHubNotesTab
@@ -440,6 +470,9 @@ const selectedTopicId = ref<string | null>(null)
 const sidebarCollapsed = ref(false)
 const sidebarOpen = ref(true)
 const activeTab = ref('notes')
+const mapSubView = ref<'graph' | 'mindmap'>(
+  (import.meta.client && localStorage.getItem('memorai-map-subview') as 'graph' | 'mindmap') || 'mindmap'
+)
 const searchQuery = ref('')
 const { topicCards, showDeleteCard, deleteCardId, memorizeProgress, dueCardsCount, newCardsCount, pendingCount, setCards, cardsFromNote, confirmDeleteCard, handleDeleteCard } = useTopicCards()
 const { noteTitle, noteContent, editingNote, selectedText, showDeleteNote, flushPendingSave, debouncedSave, saveTitle, selectNote, openNoteEditor, closeEditor, handleQuickAdd, createNote, handleDeleteNote } = useNoteEditor(selectedTopicId)
@@ -720,6 +753,10 @@ function formatDate(date: string) {
 }
 
 const progressMap = ref<Record<string, number>>({})
+
+watch(mapSubView, (val) => {
+  if (import.meta.client) localStorage.setItem('memorai-map-subview', val)
+})
 
 onMounted(async () => {
   await topicStore.fetchTree()

@@ -99,10 +99,10 @@
 
     <!-- Empty state: no cards at all -->
     <div v-else-if="!stats?.total_cards" class="card mt-6 text-center py-10">
-      <p class="text-title text-base-secondary mb-2">Pare de esquecer o que estuda</p>
-      <p class="text-small text-base-muted mb-4">Crie um caderno, cole seu material e a IA gera flashcards em segundos.</p>
+      <p class="text-title text-base-secondary mb-2">Hora de criar seus primeiros cards</p>
+      <p class="text-small text-base-muted mb-4">Vá até um caderno, cole seu material e a IA gera flashcards em segundos. Ou importe do Anki.</p>
       <div class="flex gap-3 justify-center">
-        <NuxtLink to="/cadernos" class="btn-primary">Criar caderno</NuxtLink>
+        <NuxtLink to="/cadernos" class="btn-primary">Ir pra Cadernos</NuxtLink>
         <NuxtLink to="/importar" class="btn-secondary">Importar Anki</NuxtLink>
       </div>
     </div>

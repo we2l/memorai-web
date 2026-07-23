@@ -84,6 +84,7 @@ import {
   Sun,
   HelpCircle,
   ClipboardCheck,
+  CalendarClock,
 } from 'lucide-vue-next'
 
 defineProps<{
@@ -108,6 +109,7 @@ const items = [
   { label: 'Cadernos', to: '/cadernos', icon: 'topics' },
   { label: 'Revisão', to: '/revisar', icon: 'review' },
   { label: 'Simulados', to: '/simulados', icon: 'quiz' },
+  { label: 'Provas', to: '/provas', icon: 'exams' },
   { label: 'Podcasts', to: '/podcasts', icon: 'podcasts' },
   { label: 'Progresso', to: '/progresso', icon: 'progress' },
 ]
@@ -117,6 +119,7 @@ const iconMap: Record<string, any> = {
   topics: BookOpen,
   review: RotateCcw,
   quiz: ClipboardCheck,
+  exams: CalendarClock,
   podcasts: Headphones,
   progress: BarChart3,
 }

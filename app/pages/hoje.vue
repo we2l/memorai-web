@@ -44,6 +44,39 @@
       <button class="btn-primary !py-1 !px-3 !min-h-[2.75rem] !text-small" @click="toggleSurvivalMode(true)">Ativar</button>
     </div>
 
+    <!-- Upcoming Exams -->
+    <div v-if="examStore.upcoming.length > 0" class="mt-4 space-y-2">
+      <h2 class="text-sm font-medium text-base-muted flex items-center gap-1.5">
+        <CalendarClock :size="14" /> Próximas Provas
+      </h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+        <NuxtLink
+          v-for="exam in examStore.upcoming"
+          :key="exam.id"
+          to="/provas"
+          class="p-3 rounded-xl bg-surface-secondary border border-border-primary hover:border-accent-primary/30 transition-colors"
+        >
+          <div class="flex items-center justify-between mb-1">
+            <span class="font-medium text-sm text-base-primary truncate">{{ exam.title }}</span>
+            <span
+              class="text-xs px-2 py-0.5 rounded-full font-semibold shrink-0 ml-2"
+              :class="{
+                'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400': exam.urgency_color === 'red',
+                'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400': exam.urgency_color === 'yellow',
+                'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400': exam.urgency_color === 'green',
+              }"
+            >
+              {{ exam.days_remaining }}d
+            </span>
+          </div>
+          <p class="text-xs text-base-muted">~{{ exam.cards_per_day }} cards/dia · {{ exam.cards_weak }} fracos</p>
+          <div v-if="exam.reta_final_active" class="mt-1">
+            <span class="text-[10px] px-1.5 py-0.5 rounded bg-red-500 text-white font-medium">🚨 Reta Final</span>
+          </div>
+        </NuxtLink>
+      </div>
+    </div>
+
     <!-- CTA Hero -->
     <div v-if="(stats?.due_today ?? 0) > 0 || (backlog?.overdue_count ?? 0) > 0" class="card-warm mt-6 py-5 px-5">
       <div class="flex items-center justify-between mb-3">
@@ -188,10 +221,11 @@
 </template>
 
 <script setup lang="ts">
-import { ShieldAlert, TrendingDown } from 'lucide-vue-next'
+import { ShieldAlert, TrendingDown, CalendarClock } from 'lucide-vue-next'
 import type { Stats, TopicProgress, BacklogStats } from '~/types'
 
 const auth = useAuthStore()
+const examStore = useExamStore()
 const featureUsage = useFeatureUsage()
 const { $api } = useNuxtApp()
 
@@ -265,6 +299,7 @@ async function loadData() {
   sparklineData.value = sparkRes.data
   pendingActions.value = actionsRes.data
   featureUsage.fetchUsage()
+  examStore.fetchUpcoming()
 }
 
 async function toggleSurvivalMode(enabled: boolean) {

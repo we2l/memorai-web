@@ -14,6 +14,7 @@ import {
   Plus,
   StickyNote,
   Palette,
+  CalendarClock,
   type LucideIcon,
 } from 'lucide-vue-next'
 
@@ -74,6 +75,7 @@ export function useCommandPalette() {
     { id: 'page-cadernos', label: 'Cadernos', category: 'pages', icon: BookOpen, keywords: ['cadernos', 'notebooks', 'tópicos', 'matérias'], handler: () => navigateTo('/cadernos') },
     { id: 'page-revisar', label: 'Revisão', category: 'pages', icon: RotateCcw, keywords: ['revisão', 'revisar', 'review', 'cards', 'flashcards'], meta: 'Alt+R', handler: () => navigateTo('/revisar') },
     { id: 'page-simulados', label: 'Simulados', category: 'pages', icon: BookOpen, keywords: ['simulados', 'quiz', 'prova', 'exame', 'teste'], handler: () => navigateTo('/simulados') },
+    { id: 'page-provas', label: 'Provas', category: 'pages', icon: CalendarClock, keywords: ['provas', 'agenda', 'calendario', 'deadline', 'concurso', 'exame'], handler: () => navigateTo('/provas') },
     { id: 'page-podcasts', label: 'Podcasts', category: 'pages', icon: Headphones, keywords: ['podcasts', 'áudio', 'ouvir'], handler: () => navigateTo('/podcasts') },
     { id: 'page-progresso', label: 'Progresso', category: 'pages', icon: BarChart3, keywords: ['progresso', 'estatísticas', 'stats', 'desempenho'], handler: () => navigateTo('/progresso') },
     { id: 'page-grafo', label: 'Grafo', category: 'pages', icon: Network, keywords: ['grafo', 'graph', 'mapa', 'conexões'], handler: () => navigateTo('/grafo') },
@@ -90,6 +92,7 @@ export function useCommandPalette() {
     { id: 'action-nova-nota', label: 'Nova nota', category: 'actions', icon: StickyNote, keywords: ['nova', 'nota', 'criar', 'escrever'], meta: 'Alt+N', handler: () => navigateTo('/cadernos?action=new-note') },
     { id: 'action-gerar-cards', label: 'Gerar cards com IA', category: 'actions', icon: Zap, keywords: ['gerar', 'cards', 'ia', 'flashcards', 'inteligência'], handler: () => navigateTo('/cadernos?action=generate-cards') },
     { id: 'action-simulado', label: 'Novo simulado', category: 'actions', icon: BookOpen, keywords: ['simulado', 'quiz', 'prova', 'gerar', 'teste'], handler: () => navigateTo('/simulados?action=new') },
+    { id: 'action-nova-prova', label: 'Nova prova', category: 'actions', icon: CalendarClock, keywords: ['prova', 'agendar', 'concurso', 'deadline', 'data'], handler: () => navigateTo('/provas?action=new') },
     { id: 'action-importar', label: 'Importar Anki', category: 'actions', icon: Download, keywords: ['importar', 'anki', 'apkg', 'upload'], handler: () => navigateTo('/importar') },
     { id: 'action-podcast', label: 'Gerar podcast', category: 'actions', icon: Headphones, keywords: ['podcast', 'gerar', 'áudio', 'ouvir'], handler: () => navigateTo('/podcasts?action=generate') },
     { id: 'action-tema', label: 'Alternar tema', category: 'actions', icon: Palette, keywords: ['tema', 'dark', 'light', 'escuro', 'claro', 'modo'], handler: () => { toggleTheme(); close() } },

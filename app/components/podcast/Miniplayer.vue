@@ -17,7 +17,10 @@
           {{ player.currentPodcast.title }}
           <span v-if="player.episodeLabel" class="text-micro text-base-muted ml-1">Ep {{ player.episodeLabel }}</span>
         </p>
-        <p class="text-micro text-base-muted">{{ player.currentPodcast.topic_name ?? '' }}</p>
+        <div class="flex items-center gap-2">
+          <p class="text-micro text-base-muted truncate">{{ player.currentPodcast.topic_name ?? '' }}</p>
+          <span v-if="contentModeBadge" class="px-1.5 py-0.5 rounded text-[9px] font-medium bg-surface-secondary text-base-muted shrink-0">{{ contentModeBadge }}</span>
+        </div>
       </div>
       <button
         class="w-9 h-9 rounded-full bg-accent-primary flex items-center justify-center shrink-0"
@@ -46,6 +49,14 @@ const isMobile = ref(false)
 const progressPercent = computed(() => {
   if (!player.duration) return 0
   return Math.min(100, (player.currentTime / player.duration) * 100)
+})
+
+const contentModeBadge = computed(() => {
+  const mode = player.currentPodcast?.source_data?.content_mode
+  if (mode === 'weak_points') return '🎯 Pontos fracos'
+  if (mode === 'pre_exam') return '📝 Pré-prova'
+  if (mode === 'general_review') return '🔄 Revisão geral'
+  return ''
 })
 
 onMounted(() => {

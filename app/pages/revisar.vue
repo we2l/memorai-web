@@ -35,6 +35,32 @@
       </div>
     </Transition>
 
+    <!-- Insight banners -->
+    <div v-if="!review.loading && !review.finished" class="px-4 space-y-2 mt-2">
+      <UiInsightBanner
+        v-if="review.retaFinal?.active"
+        icon="🔥"
+        :text="`Reta Final — +${review.retaFinal.extra_count} cards extras de ${review.retaFinal.exam_titles.join(', ')}`"
+        variant="accent"
+      />
+      <UiInsightBanner
+        v-if="isSurvivalMode"
+        icon="⚡"
+        text="Modo Sobrevivência — apenas os 20 mais urgentes"
+        variant="warning"
+        dismissible
+        persist-key="survival-review"
+      />
+      <UiInsightBanner
+        v-if="isBlitz"
+        icon="⏱️"
+        text="Revisão relâmpago — só cards pendentes, sem novos"
+        variant="info"
+        dismissible
+        persist-key="blitz-review"
+      />
+    </div>
+
     <!-- Loading -->
     <div v-if="review.loading" class="flex-1 flex flex-col items-center justify-center px-4 gap-6">
       <div class="w-full max-w-2xl">

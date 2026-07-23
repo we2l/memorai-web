@@ -3,16 +3,19 @@
     <!-- View: Material list (when no note is being edited) -->
     <div v-if="!activeNote" class="flex-1 overflow-y-auto p-4">
       <!-- Quick input -->
-      <form class="flex gap-2 mb-4" data-tour="quick-input" @submit.prevent="handleQuickInput">
-        <input
-          v-model="quickText"
-          class="input-base flex-1 !text-small"
-          placeholder="Cole seu material de estudo aqui..."
-          @keydown.stop
-        />
-        <button type="submit" class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] !bg-surface-secondary hover:!bg-[var(--bg-soft)] text-sm shrink-0" :disabled="!quickText.trim()">
-          + Adicionar
-        </button>
+      <form class="flex flex-col gap-1 mb-4" data-tour="quick-input" @submit.prevent="handleQuickInput">
+        <div class="flex gap-2">
+          <input
+            v-model="quickText"
+            class="input-base flex-1 !text-small"
+            placeholder="Cole seu material de estudo aqui..."
+            @keydown.stop
+          />
+          <button type="submit" class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] !bg-surface-secondary hover:!bg-[var(--bg-soft)] text-sm shrink-0" :disabled="!quickText.trim()">
+            + Adicionar
+          </button>
+        </div>
+        <p class="text-micro text-base-muted pl-1">↳ Suas notas viram contexto pra IA gerar cards, quiz e podcast</p>
       </form>
 
       <!-- Generate suggestion banner -->

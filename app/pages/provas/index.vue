@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { ChevronLeft, ChevronRight, Plus, X, Eye } from 'lucide-vue-next'
+import { ChevronLeft, ChevronRight, Plus, Trash2, Eye } from 'lucide-vue-next'
 
 const examStore = useExamStore()
 const toast = useToast()
 
 const showCreateModal = ref(false)
+const showDeleteModal = ref(false)
+const examToDelete = ref<string | null>(null)
 const activeTab = ref<'upcoming' | 'past'>('upcoming')
 const currentMonth = ref(new Date())
 const selectedDay = ref<null | { day: number; date: string; exams: any[]; totalCards: number; isCurrentMonth: boolean }>(null)
@@ -29,7 +31,40 @@ function selectDay(cell: any) {
 }
 
 async function handleCreated() { showCreateModal.value = false; await examStore.fetchExams(); await fetchCalendar(); toast.show('Prova criada!', 'success') }
-async function handleDelete(id: string) { if (!confirm('Excluir esta prova?')) return; await examStore.deleteExam(id); await fetchCalendar(); toast.show('Prova removida', 'success') }
+
+function confirmDelete(id: string) {
+  examToDelete.value = id
+  showDeleteModal.value = true
+}
+
+async function handleDelete() {
+  if (!examToDelete.value) return
+  await examStore.deleteExam(examToDelete.value)
+  await fetchCalendar()
+  showDeleteModal.value = false
+  examToDelete.value = null
+  toast.show('Prova removida', 'success')
+}
+
+function viewExamDetails(exam: any) {
+  // Scroll to calendar and select exam date
+  const dateStr = exam.exam_date
+  const cell = calendarDays.value.find(c => c.date === dateStr)
+  if (cell) {
+    // Navigate to exam month if needed
+    const examDate = new Date(dateStr + 'T00:00:00')
+    if (examDate.getMonth() !== currentMonth.value.getMonth() || examDate.getFullYear() !== currentMonth.value.getFullYear()) {
+      currentMonth.value = new Date(examDate.getFullYear(), examDate.getMonth(), 1)
+      fetchCalendar().then(() => {
+        selectedDay.value = calendarDays.value.find(c => c.date === dateStr) || null
+      })
+    } else {
+      selectedDay.value = cell
+    }
+    // Scroll to top (calendar)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+}
 
 function formatDate(date: string) { return new Date(date + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) }
 
@@ -127,14 +162,22 @@ const calendarDays = computed(() => {
           <span v-else style="color: #101a37">{{ cell.day }}</span>
 
           <!-- Exam chip -->
-          <div v-if="cell.exams.length && cell.isCurrentMonth" class="mt-2">
+          <div v-if="cell.exams.length && cell.isCurrentMonth" class="mt-2 space-y-1">
             <div
               v-for="exam in cell.exams.filter(e => e.is_exam_day).slice(0, 2)"
               :key="exam.exam_id"
               class="text-[10px] leading-tight px-2 py-1.5 rounded-lg font-bold truncate"
               style="background: #F5F2FF; color: #6F3FF5; border: 1px solid #D7DDF2"
             >
-              {{ exam.title }}
+              📝 {{ exam.title }}
+            </div>
+            <!-- Study days: show card count -->
+            <div
+              v-if="!cell.exams.some(e => e.is_exam_day) && cell.totalCards > 0"
+              class="text-[10px] leading-tight px-2 py-1 rounded-md font-medium truncate"
+              style="background: #F0FDF4; color: #16A34A"
+            >
+              {{ cell.totalCards }} cards
             </div>
           </div>
         </button>
@@ -201,31 +244,46 @@ const calendarDays = computed(() => {
           class="rounded-[24px] p-6 relative group transition-all"
           style="background: var(--bg-card); border: 1px solid #E7EAF3; box-shadow: 0 8px 24px rgba(45, 35, 66, 0.08)"
         >
-          <!-- Delete -->
-          <button class="absolute top-4 right-4 p-2 opacity-0 group-hover:opacity-100 transition-opacity" style="color: #8A90A8" @click="handleDelete(exam.id)">
-            <X class="w-4 h-4" />
-          </button>
-
           <div class="flex justify-between items-start mb-3">
-            <h3 class="font-bold text-lg" style="color: #1F2343">{{ exam.title }}</h3>
-            <span
-              class="px-3 py-1 rounded-full text-[10px] font-bold uppercase shrink-0 ml-2"
-              :style="{
-                background: exam.urgency_color === 'red' ? '#ffdad6' : exam.urgency_color === 'yellow' ? '#FFF8E1' : '#F0FDF4',
-                color: exam.urgency_color === 'red' ? '#ba1a1a' : exam.urgency_color === 'yellow' ? '#B8860B' : '#16A34A',
-              }"
-            >{{ exam.days_remaining }} dias</span>
+            <h3 class="font-bold text-lg pr-2" style="color: #1F2343">{{ exam.title }}</h3>
+            <div class="flex items-center gap-2 shrink-0">
+              <span
+                class="px-3 py-1 rounded-full text-[10px] font-bold uppercase"
+                :style="{
+                  background: exam.urgency_color === 'red' ? '#ffdad6' : exam.urgency_color === 'yellow' ? '#FFF8E1' : '#F0FDF4',
+                  color: exam.urgency_color === 'red' ? '#ba1a1a' : exam.urgency_color === 'yellow' ? '#B8860B' : '#16A34A',
+                }"
+              >{{ exam.days_remaining }} dias</span>
+              <button
+                class="p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-danger/10"
+                style="color: #8A90A8"
+                title="Excluir prova"
+                @click="confirmDelete(exam.id)"
+              >
+                <Trash2 class="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
           <p class="text-sm mb-5" style="color: #50597A">Cadernos: {{ exam.topics?.map(t => t.name).join(', ') || '—' }}</p>
 
-          <div class="flex items-center gap-2 text-sm font-bold" style="color: #6F3FF5">
+          <button class="flex items-center gap-2 text-sm font-bold cursor-pointer hover:opacity-80 transition-opacity" style="color: #6F3FF5" @click="viewExamDetails(exam)">
             <Eye class="w-4 h-4" /> Ver detalhes
-          </div>
+          </button>
         </div>
       </div>
     </section>
 
     <ExamCreateModal v-if="showCreateModal" @close="showCreateModal = false" @created="handleCreated" />
+
+    <!-- Delete confirmation modal -->
+    <UiConfirmModal
+      v-model="showDeleteModal"
+      title="Excluir prova"
+      message="Tem certeza que deseja excluir esta prova? A priorização dos cadernos vinculados será removida."
+      confirm-label="Excluir"
+      variant="danger"
+      @confirm="handleDelete"
+    />
   </div>
 </template>

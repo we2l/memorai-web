@@ -387,3 +387,51 @@ export interface QuizStats {
     completed_at: string
   }>
 }
+
+// Exam / Agenda de Provas
+export interface Exam {
+  id: string
+  title: string
+  exam_date: string
+  days_remaining: number
+  urgency_color: 'red' | 'yellow' | 'green'
+  reta_final_enabled: boolean
+  reta_final_active: boolean
+  google_calendar_event_id: string | null
+  topics: { id: string; name: string }[]
+  created_at: string
+}
+
+export interface ExamUpcoming {
+  id: string
+  title: string
+  exam_date: string
+  days_remaining: number
+  urgency_color: 'red' | 'yellow' | 'green'
+  reta_final_enabled: boolean
+  reta_final_active: boolean
+  cards_per_day: number
+  cards_weak: number
+  topics: { id: string; name: string }[]
+  podcast_suggestion: boolean
+}
+
+export interface ExamCalendarDay {
+  date: string
+  exams: ExamCalendarEntry[]
+  total_cards: number
+}
+
+export interface ExamCalendarEntry {
+  exam_id: string
+  title: string
+  color: string
+  estimated_cards?: number
+  is_exam_day: boolean
+}
+
+export interface RetaFinalInfo {
+  active: boolean
+  exam_titles: string[]
+  extra_count: number
+}

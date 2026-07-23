@@ -39,6 +39,17 @@
 
       <!-- Breakdown by topic_tag -->
       <div v-if="breakdown.length > 1" class="rounded-2xl bg-[var(--bg-card)] border border-base p-5 shadow-sm mb-6">
+        <!-- Weak topic insight -->
+        <UiInsightBanner
+          v-if="weakTopics.length"
+          class="mb-4"
+          icon="⚠️"
+          :text="weakTopics.length === 1
+            ? `${weakTopics[0].tag}: ${weakTopics[0].percent}% acerto — considere revisar este tema`
+            : `${weakTopics.map(t => t.tag).join(' e ')}: abaixo de 50% — considere revisar`"
+          variant="warning"
+          dismissible
+        />
         <p class="text-small font-medium text-base-secondary mb-4">Desempenho por tópico</p>
         <div class="space-y-4">
           <div v-for="item in breakdown" :key="item.tag">
@@ -152,6 +163,8 @@ const breakdown = computed(() => {
     percent: data.total > 0 ? Math.round((data.correct / data.total) * 100) : 0,
   }))
 })
+
+const weakTopics = computed(() => breakdown.value.filter(t => t.percent < 50 && t.total >= 2).slice(0, 2))
 
 const scoreBorderClass = computed(() => {
   const s = quiz.value?.score_percent ?? 0

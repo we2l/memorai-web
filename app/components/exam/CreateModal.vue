@@ -143,6 +143,7 @@ const minDate = computed(() => {
       </div>
 
       <!-- Submit -->
+      <p class="text-micro text-base-muted mt-2">↳ O algoritmo prioriza os cadernos vinculados conforme a data se aproxima</p>
       <div class="flex justify-end gap-3 pt-2">
         <button type="button" class="btn-secondary" @click="emit('close')">Cancelar</button>
         <button

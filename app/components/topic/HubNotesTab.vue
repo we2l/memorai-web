@@ -94,6 +94,9 @@
               <button class="w-full text-left px-3 py-2 text-small text-base-primary hover:bg-surface-secondary transition-colors" @click="showMenu = false; showGeneratePanel = !showGeneratePanel">
                 <Zap :size="14" class="inline mr-2" /> Gerar cards
               </button>
+              <button class="w-full text-left px-3 py-2 text-small text-base-primary hover:bg-surface-secondary transition-colors" @click="showMenu = false; showMindMap = true">
+                🧠 Mapa mental
+              </button>
               <button class="w-full text-left px-3 py-2 text-small text-base-primary hover:bg-surface-secondary transition-colors" @click="showMenu = false; $emit('improve-note')">
                 ✨ Melhorar com IA
               </button>
@@ -159,6 +162,14 @@
       <!-- Selection toolbar (create card from selection) -->
       <slot name="selection-toolbar" />
     </div>
+
+    <!-- Mind Map Modal -->
+    <TopicNoteMindMapModal
+      v-if="activeNote"
+      v-model="showMindMap"
+      :note-id="activeNote.id"
+      :note-title="activeNote.title"
+    />
   </div>
 </template>
 
@@ -193,6 +204,7 @@ const emit = defineEmits<{
 const showGeneratePanel = ref(false)
 const generateCount = ref(5)
 const showMenu = ref(false)
+const showMindMap = ref(false)
 const quickText = ref('')
 const suggestGenerate = ref(false)
 const titleRef = ref<HTMLElement>()

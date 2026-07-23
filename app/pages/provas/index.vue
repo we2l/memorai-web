@@ -47,21 +47,21 @@ async function handleDelete() {
 }
 
 function viewExamDetails(exam: any) {
-  // Scroll to calendar and select exam date
-  const dateStr = exam.exam_date
-  const cell = calendarDays.value.find(c => c.date === dateStr)
-  if (cell) {
-    // Navigate to exam month if needed
-    const examDate = new Date(dateStr + 'T00:00:00')
-    if (examDate.getMonth() !== currentMonth.value.getMonth() || examDate.getFullYear() !== currentMonth.value.getFullYear()) {
-      currentMonth.value = new Date(examDate.getFullYear(), examDate.getMonth(), 1)
-      fetchCalendar().then(() => {
+  // exam_date may come as "2026-07-25" or "2026-07-25T00:00:00.000Z"
+  const dateStr = exam.exam_date.slice(0, 10)
+  const examDate = new Date(dateStr + 'T12:00:00')
+
+  // Navigate to exam month if needed
+  if (examDate.getMonth() !== currentMonth.value.getMonth() || examDate.getFullYear() !== currentMonth.value.getFullYear()) {
+    currentMonth.value = new Date(examDate.getFullYear(), examDate.getMonth(), 1)
+    fetchCalendar().then(() => {
+      nextTick(() => {
         selectedDay.value = calendarDays.value.find(c => c.date === dateStr) || null
+        window.scrollTo({ top: 0, behavior: 'smooth' })
       })
-    } else {
-      selectedDay.value = cell
-    }
-    // Scroll to top (calendar)
+    })
+  } else {
+    selectedDay.value = calendarDays.value.find(c => c.date === dateStr) || null
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 }
@@ -161,21 +161,22 @@ const calendarDays = computed(() => {
           >{{ cell.day }}</span>
           <span v-else style="color: #101a37">{{ cell.day }}</span>
 
-          <!-- Exam chip -->
-          <div v-if="cell.exams.length && cell.isCurrentMonth" class="mt-2 space-y-1">
+          <!-- Exam chip / study indicator (like Google Calendar) -->
+          <div v-if="cell.isCurrentMonth && (cell.exams.length || cell.totalCards > 0)" class="mt-1.5 space-y-0.5">
+            <!-- Exam day: show exam name chip -->
             <div
               v-for="exam in cell.exams.filter(e => e.is_exam_day).slice(0, 2)"
               :key="exam.exam_id"
-              class="text-[10px] leading-tight px-2 py-1.5 rounded-lg font-bold truncate"
+              class="text-[10px] leading-tight px-2 py-1 rounded-md font-bold truncate"
               style="background: #F5F2FF; color: #6F3FF5; border: 1px solid #D7DDF2"
             >
               📝 {{ exam.title }}
             </div>
-            <!-- Study days: show card count -->
+            <!-- Study day: show cards to review -->
             <div
-              v-if="!cell.exams.some(e => e.is_exam_day) && cell.totalCards > 0"
-              class="text-[10px] leading-tight px-2 py-1 rounded-md font-medium truncate"
-              style="background: #F0FDF4; color: #16A34A"
+              v-if="cell.totalCards > 0 && !cell.exams.some(e => e.is_exam_day)"
+              class="text-[9px] leading-tight px-1.5 py-0.5 rounded font-medium"
+              style="background: #EEF2FF; color: #6366F1"
             >
               {{ cell.totalCards }} cards
             </div>

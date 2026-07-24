@@ -189,34 +189,6 @@
 
           </div>
 
-          <!-- Barra de ações do caderno -->
-          <div class="mx-4 mt-4 flex items-center gap-2 overflow-x-auto pb-1 hide-scrollbar">
-            <UiDisabledFeature :enabled="pendingCount > 0" tooltip="Nenhum card pendente neste caderno">
-              <NuxtLink :to="`/revisar?topic_id=${selectedTopicId}`" class="action-pill">
-                <PlayCircle :size="16" />
-                <span>Revisar</span>
-              </NuxtLink>
-            </UiDisabledFeature>
-            <UiDisabledFeature :enabled="pendingCount > 0" tooltip="Nenhum card pendente neste caderno">
-              <NuxtLink :to="`/revisar?mode=blitz&topic_id=${selectedTopicId}`" class="action-pill">
-                <Zap :size="16" />
-                <span>Rápida</span>
-              </NuxtLink>
-            </UiDisabledFeature>
-            <button class="action-pill" @click="showPodcastSheet = true">
-              <Headphones :size="16" />
-              <span>Podcast</span>
-            </button>
-            <NuxtLink :to="`/simulados?topic_id=${selectedTopicId}`" class="action-pill">
-              <ClipboardList :size="16" />
-              <span>Simulado</span>
-            </NuxtLink>
-            <button class="action-pill" @click="openMindMap">
-              <Network :size="16" />
-              <span>Mapa mental</span>
-            </button>
-          </div>
-
           <!-- HERO — simple: pending cards + review button -->
           <div v-if="pendingCount > 0" class="mx-4 mt-5 mb-3 px-6 py-5 rounded-2xl bg-[var(--bg-card)] border border-base flex items-center justify-between gap-4">
             <div>
@@ -241,6 +213,18 @@
               </div>
               <span class="text-base-primary/30 text-sm">→</span>
             </button>
+          </div>
+
+          <!-- Simulado button -->
+          <div v-if="selectedTopicId" class="mx-4 mb-3">
+            <NuxtLink :to="`/simulados?topic_id=${selectedTopicId}`" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-[var(--bg-card)] border border-base hover:border-[var(--color-accent-primary)]/20 hover:bg-surface-secondary transition-all text-left">
+              <ClipboardList :size="20" class="text-[var(--color-accent-soft)] shrink-0" />
+              <div class="flex-1">
+                <p class="text-sm text-base-primary font-medium">Testar com simulado</p>
+                <p class="text-xs text-base-muted">Questões geradas pela IA das suas notas</p>
+              </div>
+              <span class="text-base-primary/30 text-sm">→</span>
+            </NuxtLink>
           </div>
 
           <PodcastGenerateSheet
@@ -484,7 +468,7 @@
 </template>
 
 <script setup lang="ts">
-import { Plus, Search, PanelLeftClose, PanelLeftOpen, X, Link2, Brain, Zap, Headphones, PlayCircle, ClipboardList, Network } from 'lucide-vue-next'
+import { Plus, Search, PanelLeftClose, PanelLeftOpen, X, Link2, Brain, Zap, Headphones, ClipboardList } from 'lucide-vue-next'
 import type { Topic, Note } from '~/types'
 
 const topicStore = useTopicStore()
@@ -501,11 +485,6 @@ const activeTab = ref('notes')
 const mapSubView = ref<'graph' | 'mindmap'>(
   (import.meta.client && localStorage.getItem('memorai-map-subview') as 'graph' | 'mindmap') || 'mindmap'
 )
-
-function openMindMap() {
-  activeTab.value = 'map'
-  mapSubView.value = 'mindmap'
-}
 const searchQuery = ref('')
 const { topicCards, showDeleteCard, deleteCardId, memorizeProgress, dueCardsCount, newCardsCount, pendingCount, setCards, cardsFromNote, confirmDeleteCard, handleDeleteCard } = useTopicCards()
 const { noteTitle, noteContent, editingNote, selectedText, showDeleteNote, flushPendingSave, debouncedSave, saveTitle, selectNote, openNoteEditor, closeEditor, handleQuickAdd, createNote, handleDeleteNote } = useNoteEditor(selectedTopicId)

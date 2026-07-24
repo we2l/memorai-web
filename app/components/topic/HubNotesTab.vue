@@ -3,20 +3,20 @@
     <!-- View: Material list (when no note is being edited) -->
     <div v-if="!activeNote" class="flex-1 overflow-y-auto p-4">
       <!-- Quick input -->
-      <form class="flex flex-col gap-1 mb-4" data-tour="quick-input" @submit.prevent="handleQuickInput">
-        <div class="flex gap-2">
+      <div class="mb-4 rounded-xl bg-[var(--bg-card)] border border-base p-3 shadow-sm" data-tour="quick-input">
+        <form class="flex gap-2" @submit.prevent="handleQuickInput">
           <input
             v-model="quickText"
-            class="input-base flex-1 !text-small"
-            placeholder="Cole seu material de estudo aqui..."
+            class="input-base flex-1 !text-small !border-0 !shadow-none !bg-transparent !p-0 !min-h-0"
+            placeholder="Cole texto, resumo, anotação de aula..."
             @keydown.stop
           />
-          <button type="submit" class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] !bg-surface-secondary hover:!bg-[var(--bg-soft)] text-sm shrink-0" :disabled="!quickText.trim()">
-            + Adicionar
+          <button type="submit" class="btn-primary !py-1.5 !px-3 !min-h-0 text-small shrink-0" :disabled="!quickText.trim()">
+            Salvar
           </button>
-        </div>
-        <p class="text-micro text-base-muted pl-1">↳ Suas notas viram contexto pra IA gerar cards, quiz e podcast</p>
-      </form>
+        </form>
+        <p class="text-micro text-base-muted mt-2 pl-0.5">Suas notas viram contexto pra IA gerar cards, quiz e podcast</p>
+      </div>
 
       <!-- Generate suggestion banner -->
       <div v-if="suggestGenerate" class="mb-4 px-4 py-3 rounded-xl bg-accent-primary-subtle/10 backdrop-blur-sm border border-base flex items-center justify-between gap-3">
@@ -67,8 +67,8 @@
 
     <!-- View: Editor full-screen (when a note is open) -->
     <div v-else class="flex-1 flex flex-col overflow-hidden bg-[var(--bg-card)]">
-      <!-- Minimal header -->
-      <div class="flex items-center justify-between px-4 h-12 shrink-0">
+      <!-- Editor header -->
+      <div class="flex items-center justify-between px-4 h-12 shrink-0 border-b border-base">
         <div class="flex items-center gap-2 min-w-0">
           <button
             class="p-1.5 rounded-lg text-base-muted hover:text-base-primary hover:bg-surface-secondary transition-colors"
@@ -83,28 +83,38 @@
             <span class="truncate max-w-[160px] text-base-secondary">{{ activeNote.title || 'Sem título' }}</span>
           </nav>
         </div>
-        <div class="flex items-center gap-2">
-          <span class="text-micro text-base-muted">{{ saving ? 'Salvando...' : '✓ Salvo' }}</span>
+        <div class="flex items-center gap-1">
+          <!-- Quick actions (visible) -->
+          <button
+            class="p-1.5 rounded-lg text-base-muted hover:text-accent-primary hover:bg-[var(--color-primary-50)] transition-colors"
+            title="Gerar cards com IA"
+            @click="showGeneratePanel = !showGeneratePanel"
+          >
+            <Zap :size="16" />
+          </button>
+          <button
+            class="p-1.5 rounded-lg text-base-muted hover:text-accent-primary hover:bg-[var(--color-primary-50)] transition-colors"
+            title="Mapa mental"
+            @click="showMindMap = true"
+          >
+            <Brain :size="16" />
+          </button>
+          <span class="text-micro text-base-muted mx-1">{{ saving ? 'Salvando...' : '✓' }}</span>
+          <!-- More menu -->
           <div class="relative">
             <button
               class="p-1.5 rounded-lg text-base-muted hover:text-base-primary hover:bg-surface-secondary transition-colors"
-              title="Opções"
+              title="Mais opções"
               @click="showMenu = !showMenu"
             >
               <MoreHorizontal :size="16" />
             </button>
             <div v-if="showMenu" class="absolute right-0 top-full mt-1 w-48 bg-[var(--bg-card)] border border-base rounded-xl shadow-lg py-1 z-30">
-              <button class="w-full text-left px-3 py-2 text-small text-base-primary hover:bg-surface-secondary transition-colors" @click="showMenu = false; showGeneratePanel = !showGeneratePanel">
-                <Zap :size="14" class="inline mr-2" /> Gerar cards
-              </button>
-              <button class="w-full text-left px-3 py-2 text-small text-base-primary hover:bg-surface-secondary transition-colors flex items-center gap-2" @click="showMenu = false; showMindMap = true">
-                <Brain :size="14" class="text-[var(--color-accent-soft)]" /> Mapa mental
-              </button>
               <button class="w-full text-left px-3 py-2 text-small text-base-primary hover:bg-surface-secondary transition-colors flex items-center gap-2" @click="showMenu = false; $emit('improve-note')">
                 <Sparkles :size="14" class="text-[var(--color-accent-soft)]" /> Melhorar com IA
               </button>
-              <button class="w-full text-left px-3 py-2 text-small text-danger hover:bg-danger/5 transition-colors" @click="showMenu = false; $emit('delete-note')">
-                <Trash2 :size="14" class="inline mr-2" /> Excluir nota
+              <button class="w-full text-left px-3 py-2 text-small text-danger hover:bg-danger/5 transition-colors flex items-center gap-2" @click="showMenu = false; $emit('delete-note')">
+                <Trash2 :size="14" /> Excluir nota
               </button>
             </div>
           </div>
@@ -160,6 +170,13 @@
             <slot name="editor" />
           </div>
         </div>
+      </div>
+
+      <!-- Footer: word count -->
+      <div class="px-4 py-2 border-t border-base flex items-center justify-between text-micro text-base-muted shrink-0">
+        <span>{{ wordCount }} palavras</span>
+        <span v-if="wordCount >= 50" class="text-success">Material suficiente pra IA</span>
+        <span v-else-if="wordCount > 0">Adicione mais conteúdo pra cards melhores</span>
       </div>
 
       <!-- Selection toolbar (create card from selection) -->
@@ -239,6 +256,30 @@ function focusEditor() {
   const tiptap = document.querySelector('.notion-editor .tiptap') as HTMLElement
   tiptap?.focus()
 }
+
+const wordCount = ref(0)
+let wordCountInterval: ReturnType<typeof setInterval> | null = null
+
+function updateWordCount() {
+  const tiptap = document.querySelector('.notion-editor .tiptap') as HTMLElement
+  if (tiptap) {
+    const text = tiptap.textContent ?? ''
+    wordCount.value = text.trim() ? text.trim().split(/\s+/).length : 0
+  }
+}
+
+watch(() => props.activeNote?.id, (id) => {
+  if (id) {
+    nextTick(updateWordCount)
+    wordCountInterval = setInterval(updateWordCount, 2000)
+  } else {
+    if (wordCountInterval) clearInterval(wordCountInterval)
+  }
+}, { immediate: true })
+
+onUnmounted(() => {
+  if (wordCountInterval) clearInterval(wordCountInterval)
+})
 
 function handleQuickInput() {
   if (!quickText.value.trim()) return

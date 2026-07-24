@@ -18,7 +18,7 @@
             :class="selectedSource === 'notes' ? 'bg-accent-primary-subtle text-accent-primary' : 'text-base-secondary hover:bg-[var(--border-divider)]'"
             @click="selectedSource = 'notes'"
           >
-            📝 Das notas
+            <FileText :size="14" class="inline text-base-muted" /> Das notas
           </button>
           <button
             v-if="hasDocuments"
@@ -33,7 +33,7 @@
             :class="selectedSource === 'free' ? 'bg-accent-primary-subtle text-accent-primary' : 'text-base-secondary hover:bg-[var(--border-divider)]'"
             @click="selectedSource = 'free'"
           >
-            ✏️ Tema livre
+            <PenLine :size="14" class="inline text-base-muted" /> Tema livre
           </button>
         </div>
         <div class="flex items-center gap-2 mb-3">
@@ -62,7 +62,7 @@
 </template>
 
 <script setup lang="ts">
-import { Sparkles } from 'lucide-vue-next'
+import { Sparkles, FileText, PenLine } from 'lucide-vue-next'
 
 const props = defineProps<{
   topicId: string

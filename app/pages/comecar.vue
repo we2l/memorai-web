@@ -82,7 +82,7 @@
 
       <!-- Step 3: Success → Review -->
       <div v-else-if="step === 3" class="text-center">
-        <p class="text-4xl mb-4">✨</p>
+        <div class="w-14 h-14 rounded-2xl bg-accent-primary-subtle flex items-center justify-center mx-auto mb-4"><Sparkles :size="28" class="text-[var(--color-accent-soft)]" /></div>
         <h1 class="text-display mb-2">{{ generatedCount }} cards prontos!</h1>
         <p class="text-small text-base-muted mb-8">Vamos revisar os primeiros para você ver como funciona.</p>
 
@@ -110,6 +110,7 @@
 </template>
 
 <script setup lang="ts">
+import { Sparkles } from 'lucide-vue-next'
 definePageMeta({ layout: 'auth' })
 
 const { $api } = useNuxtApp()

@@ -170,7 +170,7 @@ const calendarDays = computed(() => {
               class="text-[10px] leading-tight px-2 py-1 rounded-md font-bold truncate"
               style="background: #F5F2FF; color: #6F3FF5; border: 1px solid #D7DDF2"
             >
-              📝 {{ exam.title }}
+              {{ exam.title }}
             </div>
             <!-- Study day: show cards to review -->
             <div

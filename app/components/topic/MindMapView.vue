@@ -7,7 +7,9 @@
 
     <!-- Empty state: < 3 notes -->
     <div v-else-if="meta?.min_notes_required" class="flex-1 flex flex-col items-center justify-center gap-3 text-center">
-      <div class="text-4xl">🧠</div>
+      <div class="w-14 h-14 rounded-2xl bg-accent-primary-subtle flex items-center justify-center">
+        <Brain :size="28" class="text-[var(--color-accent-soft)]" />
+      </div>
       <p class="text-body text-base-secondary">Adicione pelo menos 3 notas com conteúdo para ver o mapa mental</p>
       <button class="btn-primary !py-2 !px-4 text-small" @click="$emit('create-note')">
         Criar nota
@@ -36,10 +38,14 @@
         </div>
       </div>
 
-      <!-- Banner: 3-4 notes -->
-      <div v-if="meta && meta.total_notes >= 3 && meta.total_notes <= 4 && activeLevel === 'auto'" class="px-3 py-2 mb-3 rounded-lg bg-accent-primary-subtle text-accent-primary text-small text-center">
-        🌱 Quanto mais notas, mais rico o mapa mental
-      </div>
+      <UiInsightBanner
+        v-if="meta && meta.total_notes >= 3 && meta.total_notes <= 4 && activeLevel === 'auto'" class="px-3 py-2 mb-3 rounded-lg bg-accent-primary-subtle text-accent-primary text-small text-center"
+        :icon="Sprout"
+        text="Quanto mais notas, mais rico o mapa mental"
+        variant="success"
+        dismissible
+        persist-key="mindmap-growth"
+      />
 
       <!-- Banner: truncated -->
       <div v-if="meta?.truncated && activeLevel === 'auto'" class="px-3 py-2 mb-3 rounded-lg bg-surface-secondary text-base-muted text-small text-center">
@@ -55,7 +61,9 @@
       <div v-else class="flex-1 flex flex-col">
         <!-- Free user: CTA -->
         <div v-if="!isPro && !aiMap" class="flex-1 flex flex-col items-center justify-center gap-3 text-center">
-          <div class="text-4xl">🔒</div>
+          <div class="w-14 h-14 rounded-2xl bg-surface-secondary flex items-center justify-center">
+            <Lock :size="28" class="text-base-muted" />
+          </div>
           <p class="text-body text-base-secondary">Gere um mapa mental detalhado com conceitos extraídos por IA</p>
           <NuxtLink to="/planos" class="btn-primary !py-2 !px-4 text-small">
             Desbloquear com Plano Pro
@@ -65,7 +73,9 @@
         <!-- Pro: no map yet -->
         <template v-else-if="!aiMap && !generating">
           <div class="flex-1 flex flex-col items-center justify-center gap-3 text-center">
-            <div class="text-4xl">🧠</div>
+            <div class="w-14 h-14 rounded-2xl bg-accent-primary-subtle flex items-center justify-center">
+              <Brain :size="28" class="text-[var(--color-accent-soft)]" />
+            </div>
             <p class="text-body text-base-secondary">Gere um mapa mental detalhado com conceitos, definições e exemplos extraídos por IA</p>
             <button class="btn-primary !py-2 !px-4 text-small" @click="generateAiMap">
               Gerar mapa detalhado com IA
@@ -112,6 +122,7 @@
 </template>
 
 <script setup lang="ts">
+import { Brain, Lock, Sprout } from 'lucide-vue-next'
 import type { MindMapNode } from '~/composables/useMindMap'
 
 const props = defineProps<{

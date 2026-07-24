@@ -14,7 +14,7 @@
             :class="selected === opt.value ? 'bg-accent-primary-subtle text-accent-primary border border-[var(--color-accent-primary)]/20' : 'bg-surface-secondary text-base-secondary border border-base hover:bg-surface-secondary'"
             @click="selected = opt.value"
           >
-            {{ opt.icon }} {{ opt.label }}
+            <component :is="opt.icon" :size="12" class="inline" /> {{ opt.label }}
           </button>
         </div>
 
@@ -42,6 +42,8 @@
 </template>
 
 <script setup lang="ts">
+import { RefreshCw, HelpCircle, Brain as BrainIcon, Frown } from 'lucide-vue-next'
+
 const props = defineProps<{
   visible: boolean
   flashcardId: string
@@ -59,10 +61,10 @@ const selected = ref<string | null>(null)
 const note = ref('')
 
 const reasons = [
-  { value: 'confused', label: 'Confundi', icon: '🔄' },
-  { value: 'didnt_know', label: 'Não sabia', icon: '❓' },
-  { value: 'forgot', label: 'Esqueci', icon: '🧠' },
-  { value: 'silly_mistake', label: 'Erro bobo', icon: '😅' },
+  { value: 'confused', label: 'Confundi', icon: RefreshCw },
+  { value: 'didnt_know', label: 'Não sabia', icon: HelpCircle },
+  { value: 'forgot', label: 'Esqueci', icon: BrainIcon },
+  { value: 'silly_mistake', label: 'Erro bobo', icon: Frown },
 ]
 
 async function save() {

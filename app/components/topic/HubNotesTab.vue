@@ -39,7 +39,7 @@
           <div class="flex-1 min-w-0">
             <p class="text-body font-medium truncate text-base-primary">
               {{ note.title }}
-              <span v-if="note.source_document_id" class="text-micro font-semibold text-accent-primary ml-1">✨ IA</span>
+              <span v-if="note.source_document_id" class="text-micro font-semibold text-accent-primary ml-1 inline-flex items-center gap-0.5"><Sparkles :size="10" /> IA</span>
             </p>
             <div class="flex items-center gap-2 text-small text-base-muted">
               <span>{{ formatDate(note.updated_at) }}</span>
@@ -97,11 +97,11 @@
               <button class="w-full text-left px-3 py-2 text-small text-base-primary hover:bg-surface-secondary transition-colors" @click="showMenu = false; showGeneratePanel = !showGeneratePanel">
                 <Zap :size="14" class="inline mr-2" /> Gerar cards
               </button>
-              <button class="w-full text-left px-3 py-2 text-small text-base-primary hover:bg-surface-secondary transition-colors" @click="showMenu = false; showMindMap = true">
-                🧠 Mapa mental
+              <button class="w-full text-left px-3 py-2 text-small text-base-primary hover:bg-surface-secondary transition-colors flex items-center gap-2" @click="showMenu = false; showMindMap = true">
+                <Brain :size="14" class="text-[var(--color-accent-soft)]" /> Mapa mental
               </button>
-              <button class="w-full text-left px-3 py-2 text-small text-base-primary hover:bg-surface-secondary transition-colors" @click="showMenu = false; $emit('improve-note')">
-                ✨ Melhorar com IA
+              <button class="w-full text-left px-3 py-2 text-small text-base-primary hover:bg-surface-secondary transition-colors flex items-center gap-2" @click="showMenu = false; $emit('improve-note')">
+                <Sparkles :size="14" class="text-[var(--color-accent-soft)]" /> Melhorar com IA
               </button>
               <button class="w-full text-left px-3 py-2 text-small text-danger hover:bg-danger/5 transition-colors" @click="showMenu = false; $emit('delete-note')">
                 <Trash2 :size="14" class="inline mr-2" /> Excluir nota
@@ -177,7 +177,7 @@
 </template>
 
 <script setup lang="ts">
-import { FileText, ArrowLeft, ChevronRight, MoreHorizontal, Zap, Trash2 } from 'lucide-vue-next'
+import { FileText, ArrowLeft, ChevronRight, MoreHorizontal, Zap, Trash2, Brain, Sparkles } from 'lucide-vue-next'
 import type { Note } from '~/types'
 
 const props = defineProps<{

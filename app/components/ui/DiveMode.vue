@@ -47,7 +47,7 @@
           <UiBaigiMascot state="celebrating" :visible="true" :size="80" />
         </div>
       </div>
-      <p class="dive-text-rise">Bom mergulho 🐬</p>
+      <p class="dive-text-rise">Bom mergulho</p>
     </div>
   </Transition>
 
@@ -61,7 +61,7 @@
       <span v-else class="font-mono text-sm text-[var(--color-accent-soft)]">{{ dive.formatElapsed(dive.elapsed.value) }}</span>
     </div>
     <button class="dive-exit" @click="exitDive">
-      🐬 Emergir
+      Emergir
     </button>
   </div>
 </template>

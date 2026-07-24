@@ -35,7 +35,7 @@
     <!-- Survival mode -->
     <div v-if="survivalActive" class="mt-4 p-4 rounded-xl bg-warning/10 border border-warning/30 flex items-center gap-3">
       <ShieldAlert :size="20" class="text-warning shrink-0" />
-      <p class="text-small text-base-primary flex-1">🆘 Modo Sobrevivência ativo — apenas os 20 cards mais urgentes.</p>
+      <p class="text-small text-base-primary flex-1"><AlertOctagon :size="16" class="text-warning inline" /> Modo Sobrevivência ativo — apenas os 20 cards mais urgentes.</p>
       <button class="btn-secondary !py-1 !px-3 !min-h-[2.75rem] !text-small" @click="toggleSurvivalMode(false)">Desativar</button>
     </div>
     <div v-else-if="backlog?.suggest_survival_mode" class="mt-4 p-4 rounded-xl bg-danger/10 border border-danger/30 flex items-center gap-3">
@@ -54,7 +54,7 @@
           v-for="exam in examStore.upcoming"
           :key="exam.id"
           to="/provas"
-          class="p-3 rounded-xl bg-surface-secondary border border-border-primary hover:border-accent-primary/30 transition-colors"
+          class="p-3 rounded-xl bg-[var(--bg-card)] border border-base hover:border-[var(--color-accent-primary)]/30 transition-colors"
         >
           <div class="flex items-center justify-between mb-1">
             <span class="font-medium text-sm text-base-primary truncate">{{ exam.title }}</span>
@@ -71,7 +71,7 @@
           </div>
           <p class="text-xs text-base-muted">~{{ exam.cards_per_day }} cards/dia · {{ exam.cards_weak }} fracos</p>
           <div v-if="exam.reta_final_active" class="mt-1">
-            <span class="text-[10px] px-1.5 py-0.5 rounded bg-red-500 text-white font-medium">🚨 Reta Final</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded bg-red-500 text-white font-medium">Reta Final</span>
           </div>
         </NuxtLink>
       </div>
@@ -80,7 +80,7 @@
     <!-- CTA Hero -->
     <div v-if="(stats?.due_today ?? 0) > 0 || (backlog?.overdue_count ?? 0) > 0" class="card-warm mt-6 py-5 px-5">
       <div class="flex items-center justify-between mb-3">
-        <p class="font-heading font-semibold text-2xl text-base-primary">🎯 {{ totalCards }} cards para revisar<span class="text-sm text-base-muted font-normal"> · {{ mainTopicName }}</span></p>
+        <p class="font-heading font-semibold text-2xl text-base-primary"><Target :size="16" class="inline text-[var(--color-accent-soft)]" /> {{ totalCards }} cards para revisar<span class="text-sm text-base-muted font-normal"> · {{ mainTopicName }}</span></p>
         <span class="text-xs text-base-muted">~{{ backlog?.estimated_minutes ?? Math.ceil(totalCards * 0.25) }} min</span>
       </div>
       <div class="border-t border-base pt-3 mb-3">
@@ -142,7 +142,7 @@
     <!-- Podcast card -->
     <div v-if="auth.user?.plan !== 'free' && (stats?.reviewed_today ?? 0) > 0" class="mt-6">
       <NuxtLink to="/podcasts" class="card flex items-center gap-4 hover:border-accent-primary/30 transition-colors">
-        <span class="text-3xl">🎧</span>
+        <Headphones :size="24" class="text-[var(--color-accent-soft)]" />
         <div class="flex-1">
           <p class="text-small font-medium text-base-primary">Ouça seus pontos fracos</p>
           <p class="text-micro text-base-muted">Gere um podcast dentro de um caderno</p>
@@ -221,7 +221,7 @@
 </template>
 
 <script setup lang="ts">
-import { ShieldAlert, TrendingDown, CalendarClock } from 'lucide-vue-next'
+import { ShieldAlert, TrendingDown, CalendarClock, AlertOctagon, Target, Headphones } from 'lucide-vue-next'
 import type { Stats, TopicProgress, BacklogStats } from '~/types'
 
 const auth = useAuthStore()
@@ -235,6 +235,8 @@ const featureLabels: Record<string, string> = {
   pdf_to_note: 'Processar PDF',
   agent_chat: 'Tira-dúvidas',
   podcast: 'Revisão em áudio',
+  quiz_ai: 'Simulados',
+  study_structure: 'Organizar PDF',
 }
 
 const limitedFeatures = computed(() => {

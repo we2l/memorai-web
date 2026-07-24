@@ -53,9 +53,9 @@ const progressPercent = computed(() => {
 
 const contentModeBadge = computed(() => {
   const mode = player.currentPodcast?.source_data?.content_mode
-  if (mode === 'weak_points') return '🎯 Pontos fracos'
-  if (mode === 'pre_exam') return '📝 Pré-prova'
-  if (mode === 'general_review') return '🔄 Revisão geral'
+  if (mode === 'weak_points') return 'Pontos fracos'
+  if (mode === 'pre_exam') return 'Pré-prova'
+  if (mode === 'general_review') return 'Revisão geral'
   return ''
 })
 

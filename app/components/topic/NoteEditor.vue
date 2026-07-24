@@ -37,6 +37,12 @@
     <!-- Editor content -->
     <EditorContent :editor="editor" class="prose-notion" />
 
+    <!-- Editor hint -->
+    <div class="editor-hint">
+      <span><kbd>/</kbd> comandos</span>
+      <span><kbd>Ctrl+Shift+C</kbd> cloze</span>
+    </div>
+
     <!-- Slash command menu -->
     <div
       v-if="slashMenu.open"
@@ -664,5 +670,30 @@ onBeforeUnmount(() => {
 
 :root.dark .slash-icon {
   background: var(--color-bg-soft);
+}
+
+/* Editor hint */
+.editor-hint {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.6875rem;
+  color: var(--text-muted, #8A90A8);
+  border-top: 1px solid var(--border-base, #E7EAF3);
+  user-select: none;
+}
+
+.editor-hint kbd {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.375rem;
+  font-size: 0.625rem;
+  font-family: inherit;
+  border-radius: 4px;
+  border: 1px solid var(--border-base, #E7EAF3);
+  background: var(--bg-soft, #F5F6FA);
+  color: var(--text-body, #50597A);
+  margin-right: 0.25rem;
 }
 </style>

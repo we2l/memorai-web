@@ -54,7 +54,7 @@
           v-for="exam in examStore.upcoming"
           :key="exam.id"
           to="/provas"
-          class="p-3 rounded-xl bg-surface-secondary border border-border-primary hover:border-accent-primary/30 transition-colors"
+          class="p-3 rounded-xl bg-[var(--bg-card)] border border-base hover:border-[var(--color-accent-primary)]/30 transition-colors"
         >
           <div class="flex items-center justify-between mb-1">
             <span class="font-medium text-sm text-base-primary truncate">{{ exam.title }}</span>
@@ -71,7 +71,7 @@
           </div>
           <p class="text-xs text-base-muted">~{{ exam.cards_per_day }} cards/dia · {{ exam.cards_weak }} fracos</p>
           <div v-if="exam.reta_final_active" class="mt-1">
-            <span class="text-[10px] px-1.5 py-0.5 rounded bg-red-500 text-white font-medium">🚨 Reta Final</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded bg-red-500 text-white font-medium">Reta Final</span>
           </div>
         </NuxtLink>
       </div>

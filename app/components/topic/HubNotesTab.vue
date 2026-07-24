@@ -175,7 +175,7 @@
       <!-- Footer: word count -->
       <div class="px-4 py-2 border-t border-base flex items-center justify-between text-micro text-base-muted shrink-0">
         <span>{{ wordCount }} palavras</span>
-        <span v-if="wordCount >= 50" class="text-success">Material suficiente pra IA</span>
+        <span v-if="wordCount >= 150" class="text-success">Material suficiente pra IA</span>
         <span v-else-if="wordCount > 0">Adicione mais conteúdo pra cards melhores</span>
       </div>
 

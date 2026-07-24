@@ -2,13 +2,13 @@
   <div>
     <!-- Upload area -->
     <label
-      class="flex items-center gap-3 px-4 py-3.5 rounded-xl border cursor-pointer transition-all"
-      :class="uploading ? 'opacity-50 pointer-events-none border-base bg-[var(--bg-card)]' : 'border-base bg-[var(--bg-card)] hover:border-[var(--color-accent-primary)]/15 hover:bg-surface-secondary'"
+      class="flex items-center gap-3 px-4 py-3.5 rounded-xl border-2 border-dashed cursor-pointer transition-all"
+      :class="uploading ? 'opacity-50 pointer-events-none border-base bg-[var(--bg-card)]' : 'border-[var(--color-accent-primary)]/30 bg-[var(--color-primary-50)] hover:border-[var(--color-accent-primary)]/50 hover:bg-[var(--color-primary-100)]'"
     >
-      <Upload :size="20" class="text-accent-primary/70 shrink-0" />
+      <Upload :size="20" class="text-accent-primary shrink-0" />
       <div>
-        <p class="text-sm text-base-primary">{{ uploading ? `Enviando ${uploadProgress}%...` : 'Subir PDF' }}</p>
-        <p v-if="!uploading" class="text-xs text-base-primary/[0.55]">A IA transforma em resumo + flashcards</p>
+        <p class="text-sm font-medium text-accent-primary">{{ uploading ? `Enviando ${uploadProgress}%...` : 'Subir PDF' }}</p>
+        <p v-if="!uploading" class="text-xs text-base-muted">A IA transforma em resumo + flashcards</p>
       </div>
       <input type="file" accept=".pdf" class="hidden" @change="onFileSelect" />
     </label>

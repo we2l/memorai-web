@@ -215,6 +215,18 @@
             </button>
           </div>
 
+          <!-- Simulado button -->
+          <div v-if="selectedTopicId" class="mx-4 mb-3">
+            <NuxtLink :to="`/simulados?topic_id=${selectedTopicId}`" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-[var(--bg-card)] border border-base hover:border-[var(--color-accent-primary)]/20 hover:bg-surface-secondary transition-all text-left">
+              <ClipboardList :size="20" class="text-[var(--color-accent-soft)] shrink-0" />
+              <div class="flex-1">
+                <p class="text-sm text-base-primary font-medium">Testar com simulado</p>
+                <p class="text-xs text-base-muted">Questões geradas pela IA das suas notas</p>
+              </div>
+              <span class="text-base-primary/30 text-sm">→</span>
+            </NuxtLink>
+          </div>
+
           <PodcastGenerateSheet
             v-if="selectedTopicId"
             v-model="showPodcastSheet"
@@ -456,7 +468,7 @@
 </template>
 
 <script setup lang="ts">
-import { Plus, Search, PanelLeftClose, PanelLeftOpen, X, Link2, Brain, Zap, Headphones } from 'lucide-vue-next'
+import { Plus, Search, PanelLeftClose, PanelLeftOpen, X, Link2, Brain, Zap, Headphones, ClipboardList } from 'lucide-vue-next'
 import type { Topic, Note } from '~/types'
 
 const topicStore = useTopicStore()

@@ -70,8 +70,9 @@
             </span>
           </div>
           <p class="text-xs text-base-muted">~{{ exam.cards_per_day }} cards/dia · {{ exam.cards_weak }} fracos</p>
-          <div v-if="exam.reta_final_active" class="mt-1">
-            <span class="text-[10px] px-1.5 py-0.5 rounded bg-red-500 text-white font-medium">Reta Final</span>
+          <div class="flex flex-wrap gap-1 mt-1.5">
+            <span v-if="exam.days_remaining <= 14" class="text-[10px] px-1.5 py-0.5 rounded-full bg-success/10 text-success font-medium">Boost ativo</span>
+            <span v-if="exam.reta_final_active" class="text-[10px] px-1.5 py-0.5 rounded-full bg-red-500 text-white font-medium">Reta Final</span>
           </div>
         </NuxtLink>
       </div>
@@ -114,28 +115,41 @@
       <NuxtLink to="/cadernos" class="btn-primary mt-4 inline-flex">Ir pra Cadernos</NuxtLink>
     </div>
 
-    <!-- Seu ritmo + Ações rápidas -->
-    <div v-if="stats" class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-      <div class="card md:col-span-2 h-full flex flex-col justify-between">
-        <div class="flex items-center justify-between mb-3">
-          <p class="text-xs uppercase tracking-wider text-base-secondary font-medium">Seu ritmo hoje</p>
-          <span class="text-lg font-semibold text-base-primary">{{ stats.due_today ?? 0 }} <span class="text-xs font-normal text-base-secondary">restantes</span></span>
-        </div>
-        <div class="h-1 rounded-full bg-[var(--bg-soft)] overflow-hidden">
-          <div class="h-1 rounded-full bg-[var(--color-accent-soft)] transition-all duration-500" :style="{ width: progressPercent + '%' }" />
-        </div>
-        <div class="flex justify-between text-xs text-base-muted mt-2">
-          <span>{{ stats.reviewed_today ?? 0 }} revisados</span>
-          <span>{{ progressPercent }}%</span>
-        </div>
-      </div>
-      <div class="flex flex-col gap-2 h-full">
-        <NuxtLink to="/revisar?errors_only=1" class="inline-flex items-center justify-center px-4 py-2.5 rounded-xl bg-[var(--bg-card)] text-[var(--color-accent-soft)] text-small font-medium hover:bg-[var(--bg-soft)] border border-[var(--color-accent-soft)]/20 hover:border-[var(--color-accent-soft)]/40 transition-all flex-1">
-          Revisar só erros
-        </NuxtLink>
-        <NuxtLink to="/importar" class="inline-flex items-center justify-center px-4 py-2.5 rounded-xl bg-[var(--bg-card)] text-[var(--color-accent-soft)] text-small font-medium hover:bg-[var(--bg-soft)] border border-[var(--color-accent-soft)]/20 hover:border-[var(--color-accent-soft)]/40 transition-all flex-1">
-          Importar Anki
-        </NuxtLink>
+    <!-- Modos de revisão -->
+    <div v-if="stats" class="mt-6">
+      <p class="text-label mb-3">Como quer revisar?</p>
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <UiDisabledFeature :enabled="totalCards > 0" tooltip="Nenhum card pra revisar hoje">
+          <NuxtLink to="/revisar" class="review-mode-card">
+            <PlayCircle :size="20" class="text-[var(--color-accent-soft)]" />
+            <span class="review-mode-label">Normal</span>
+            <span class="review-mode-desc">Todos os cards pendentes</span>
+          </NuxtLink>
+        </UiDisabledFeature>
+
+        <UiDisabledFeature :enabled="totalCards > 0" tooltip="Nenhum card pra revisar hoje">
+          <NuxtLink to="/revisar?mode=blitz" class="review-mode-card">
+            <Zap :size="20" class="text-[var(--color-accent-soft)]" />
+            <span class="review-mode-label">Relâmpago</span>
+            <span class="review-mode-desc">5 min, só urgentes</span>
+          </NuxtLink>
+        </UiDisabledFeature>
+
+        <UiDisabledFeature :enabled="hasLapsedCards" tooltip="Aparece quando errar cards na revisão">
+          <NuxtLink to="/revisar?errors_only=1" class="review-mode-card">
+            <XCircle :size="20" class="text-[var(--color-accent-soft)]" />
+            <span class="review-mode-label">Só erros</span>
+            <span class="review-mode-desc">Cards com mais erros</span>
+          </NuxtLink>
+        </UiDisabledFeature>
+
+        <UiDisabledFeature :enabled="survivalAvailable" tooltip="Ativa com 100+ cards atrasados">
+          <NuxtLink to="/revisar?survival=1" class="review-mode-card">
+            <LifeBuoy :size="20" class="text-[var(--color-accent-soft)]" />
+            <span class="review-mode-label">Sobrevivência</span>
+            <span class="review-mode-desc">20 mais urgentes</span>
+          </NuxtLink>
+        </UiDisabledFeature>
       </div>
     </div>
 
@@ -221,7 +235,7 @@
 </template>
 
 <script setup lang="ts">
-import { ShieldAlert, TrendingDown, CalendarClock, AlertOctagon, Target, Headphones } from 'lucide-vue-next'
+import { ShieldAlert, TrendingDown, CalendarClock, AlertOctagon, Target, Headphones, PlayCircle, Zap, XCircle, LifeBuoy } from 'lucide-vue-next'
 import type { Stats, TopicProgress, BacklogStats } from '~/types'
 
 const auth = useAuthStore()
@@ -268,6 +282,10 @@ const greeting = computed(() => {
 })
 
 const totalCards = computed(() => (stats.value?.due_today ?? 0) + (backlog.value?.overdue_count ?? 0))
+
+const hasLapsedCards = computed(() => (stats.value?.total_cards ?? 0) > 0 && (stats.value?.reviewed_today ?? 0) > 0 || (stats.value?.ratings_today?.again ?? 0) > 0 || (stats.value?.streak ?? 0) > 0)
+
+const survivalAvailable = computed(() => (backlog.value?.overdue_count ?? 0) >= 100)
 
 const mainTopicName = computed(() => {
   if (!topicProgress.value.length) return ''

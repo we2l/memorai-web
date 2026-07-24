@@ -235,6 +235,8 @@ const featureLabels: Record<string, string> = {
   pdf_to_note: 'Processar PDF',
   agent_chat: 'Tira-dúvidas',
   podcast: 'Revisão em áudio',
+  quiz_ai: 'Simulados',
+  study_structure: 'Organizar PDF',
 }
 
 const limitedFeatures = computed(() => {

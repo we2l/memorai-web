@@ -112,9 +112,9 @@
             Tem dúvidas ou sugestões? Fale com a gente:
           </p>
           <div class="mt-3 flex flex-wrap gap-3">
-            <a href="mailto:contato@memorai.ia.br" class="btn-secondary !py-2 !px-4 !text-sm inline-flex items-center gap-2">
+            <a href="mailto:contato@baigi.com.br" class="btn-secondary !py-2 !px-4 !text-sm inline-flex items-center gap-2">
               <Mail :size="16" />
-              contato@memorai.ia.br
+              contato@baigi.com.br
             </a>
           </div>
         </div>

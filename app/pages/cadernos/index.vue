@@ -90,7 +90,7 @@
     </aside>
 
     <!-- Main: Topic Hub -->
-    <main class="flex-1 flex flex-col overflow-y-auto pb-20 lg:pb-0 bg-[var(--bg-card)]">
+    <main class="flex-1 flex flex-col overflow-y-auto pb-20 lg:pb-0">
       <template v-if="selectedTopicId">
         <!-- When editor is open: full-screen note editing -->
         <TopicHubNotesTab

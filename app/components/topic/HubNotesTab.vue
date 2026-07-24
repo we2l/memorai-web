@@ -28,11 +28,11 @@
       </div>
 
       <!-- Material list -->
-      <div v-if="notes.length || hasDocuments" class="space-y-1.5">
+      <div v-if="notes.length || hasDocuments" class="space-y-2">
         <button
           v-for="note in notes"
           :key="note.id"
-          class="w-full text-left px-3 py-2.5 rounded-lg transition-colors flex items-center gap-3 hover:bg-[var(--border-divider)]"
+          class="w-full text-left px-4 py-3 rounded-xl bg-[var(--bg-card)] border border-base shadow-sm transition-all flex items-center gap-3 hover:border-[var(--color-accent-primary)]/30 hover:shadow-md"
           @click="$emit('open-note', note)"
         >
           <FileText :size="16" class="shrink-0 opacity-60 text-base-muted" />
@@ -66,7 +66,7 @@
     </div>
 
     <!-- View: Editor full-screen (when a note is open) -->
-    <div v-else class="flex-1 flex flex-col overflow-hidden">
+    <div v-else class="flex-1 flex flex-col overflow-hidden bg-[var(--bg-card)]">
       <!-- Minimal header -->
       <div class="flex items-center justify-between px-4 h-12 shrink-0">
         <div class="flex items-center gap-2 min-w-0">

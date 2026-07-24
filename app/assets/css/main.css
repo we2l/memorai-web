@@ -352,6 +352,12 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+@utility card-base {
+  background: var(--bg-card);
+  border: 1px solid var(--border-base);
+  border-radius: 16px;
+}
+
 @utility card-interactive {
   background: var(--bg-card);
   border: 1px solid var(--border-base);

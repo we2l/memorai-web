@@ -14,13 +14,13 @@
       class="flex items-center gap-1 px-2 py-1 rounded text-micro font-medium text-base-muted hover:bg-[var(--border-divider)] transition-colors"
       @mousedown.prevent="$emit('askAi')"
     >
-      ✨ Perguntar
+      <Sparkles :size="12" class="inline" /> Perguntar
     </button>
   </div>
 </template>
 
 <script setup lang="ts">
-import { Zap } from 'lucide-vue-next'
+import { Zap, Sparkles } from 'lucide-vue-next'
 
 defineEmits<{ createCard: []; askAi: [] }>()
 

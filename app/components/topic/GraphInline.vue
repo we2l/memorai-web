@@ -8,7 +8,7 @@
         :disabled="!graphStore.data?.nodes.length"
         @click="showOnlyWeak = !showOnlyWeak"
       >
-        {{ showOnlyWeak ? '✕ Todos' : '🔴 Só fracos' }}
+        {{ showOnlyWeak ? 'Todos' : 'Só fracos' }}
       </button>
       <button
         v-if="!connectMode"

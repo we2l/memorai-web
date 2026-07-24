@@ -196,7 +196,7 @@
               <p class="text-small text-base-muted mt-1">Continue seu progresso de hoje</p>
             </div>
             <div class="flex items-center gap-2 shrink-0">
-              <NuxtLink :to="`/revisar?mode=blitz&topic_id=${selectedTopicId}`" class="btn-secondary !py-3 !px-4 text-small">⚡ Rápida</NuxtLink>
+              <NuxtLink :to="`/revisar?mode=blitz&topic_id=${selectedTopicId}`" class="btn-secondary !py-3 !px-4 text-small"><Zap :size="14" /> Rápida</NuxtLink>
               <NuxtLink :to="`/revisar?topic_id=${selectedTopicId}`" class="btn-primary !py-3 !px-6">
                 Revisar agora
               </NuxtLink>
@@ -206,7 +206,7 @@
           <!-- Podcast generate button -->
           <div v-if="selectedTopicId" class="mx-4 mb-3" :class="pendingCount <= 0 ? 'mt-5' : ''">
             <button class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-[var(--bg-card)] border border-[var(--color-accent-primary)]/15 hover:border-[var(--color-accent-primary)]/20 hover:bg-surface-secondary transition-all text-left" @click="showPodcastSheet = true">
-              <span class="text-xl">🎧</span>
+              <Headphones :size="20" class="text-[var(--color-accent-soft)] shrink-0" />
               <div class="flex-1">
                 <p class="text-sm text-base-primary font-medium">Revisar ouvindo seus erros</p>
                 <p class="text-xs text-base-muted">Podcast personalizado baseado no que você errou</p>
@@ -255,17 +255,17 @@
               <div class="inline-flex rounded-lg border border-base p-0.5 bg-surface-secondary">
                 <button
                   class="px-3 py-1.5 text-small rounded-md transition-colors flex items-center gap-1.5"
-                  :class="mapSubView === 'graph' ? 'bg-[var(--bg-card)] shadow text-base-primary font-medium' : 'text-base-muted hover:text-base-primary'"
+                  :class="mapSubView === 'graph' ? 'bg-[var(--bg-card)] shadow text-[var(--color-accent-soft)] font-medium' : 'text-base-muted hover:text-base-primary'"
                   @click="mapSubView = 'graph'"
                 >
-                  🔗 Cadernos
+                  <Link2 :size="14" /> Cadernos
                 </button>
                 <button
                   class="px-3 py-1.5 text-small rounded-md transition-colors flex items-center gap-1.5"
-                  :class="mapSubView === 'mindmap' ? 'bg-[var(--bg-card)] shadow text-base-primary font-medium' : 'text-base-muted hover:text-base-primary'"
+                  :class="mapSubView === 'mindmap' ? 'bg-[var(--bg-card)] shadow text-[var(--color-accent-soft)] font-medium' : 'text-base-muted hover:text-base-primary'"
                   @click="mapSubView = 'mindmap'"
                 >
-                  🧠 Mapa Mental
+                  <Brain :size="14" /> Mapa Mental
                 </button>
               </div>
             </div>
@@ -372,8 +372,8 @@
 
     <!-- Mobile: sticky bottom review button -->
     <div v-if="selectedTopicId && dueCardsCount > 0" class="lg:hidden fixed bottom-16 left-0 right-0 p-3 bg-[var(--bg-card)]/95 backdrop-blur-md border-t border-base z-30 flex gap-2">
-      <NuxtLink :to="`/revisar?mode=blitz&topic_id=${selectedTopicId}`" class="btn-secondary flex-none justify-center !py-2.5 !px-3">
-        ⚡ Rápida
+      <NuxtLink :to="`/revisar?mode=blitz&topic_id=${selectedTopicId}`" class="btn-secondary flex-none justify-center !py-2.5 !px-3 inline-flex items-center gap-1">
+        <Zap :size="14" /> Rápida
       </NuxtLink>
       <NuxtLink :to="`/revisar?topic_id=${selectedTopicId}`" class="btn-primary flex-1 justify-center">
         Revisar {{ dueCardsCount }} card{{ dueCardsCount !== 1 ? 's' : '' }}
@@ -456,7 +456,7 @@
 </template>
 
 <script setup lang="ts">
-import { Plus, Search, PanelLeftClose, PanelLeftOpen, X } from 'lucide-vue-next'
+import { Plus, Search, PanelLeftClose, PanelLeftOpen, X, Link2, Brain, Zap, Headphones } from 'lucide-vue-next'
 import type { Topic, Note } from '~/types'
 
 const topicStore = useTopicStore()

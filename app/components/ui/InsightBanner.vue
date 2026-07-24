@@ -4,7 +4,9 @@
     class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-small"
     :class="variantClasses"
   >
-    <span v-if="icon" class="shrink-0 text-base">{{ icon }}</span>
+    <slot name="icon">
+      <component :is="icon" v-if="icon" :size="16" class="shrink-0" />
+    </slot>
     <p class="flex-1 min-w-0 truncate sm:whitespace-normal">{{ text }}</p>
     <button
       v-if="actionLabel"
@@ -20,14 +22,17 @@
       title="Fechar"
       @click="dismiss"
     >
-      ✕
+      <X :size="14" />
     </button>
   </div>
 </template>
 
 <script setup lang="ts">
+import { X } from 'lucide-vue-next'
+import type { Component } from 'vue'
+
 const props = withDefaults(defineProps<{
-  icon?: string
+  icon?: Component
   text: string
   variant?: 'info' | 'warning' | 'success' | 'accent'
   dismissible?: boolean

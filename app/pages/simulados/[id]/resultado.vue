@@ -43,7 +43,7 @@
         <UiInsightBanner
           v-if="weakTopics.length"
           class="mb-4"
-          icon="⚠️"
+          :icon="AlertTriangle"
           :text="weakTopics.length === 1
             ? `${weakTopics[0].tag}: ${weakTopics[0].percent}% acerto — considere revisar este tema`
             : `${weakTopics.map(t => t.tag).join(' e ')}: abaixo de 50% — considere revisar`"
@@ -126,7 +126,7 @@
 </template>
 
 <script setup lang="ts">
-import { ArrowLeft, CheckCircle2, XCircle, Clock } from 'lucide-vue-next'
+import { ArrowLeft, CheckCircle2, XCircle, Clock, AlertTriangle } from 'lucide-vue-next'
 import type { QuizQuestion } from '~/types'
 
 definePageMeta({ layout: 'default' })

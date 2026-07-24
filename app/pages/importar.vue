@@ -41,7 +41,7 @@
               <span class="text-micro text-base-muted ml-2">{{ deck.cards_count }} cards</span>
             </div>
             <div v-if="deck.conflict" class="flex items-center gap-2">
-              <span class="text-micro text-warning">⚠ Já existe</span>
+              <span class="text-micro text-warning inline-flex items-center gap-0.5"><AlertTriangle :size="10" /> Já existe</span>
               <UiSelect
                 :model-value="store.deckConflicts[deck.name]"
                 @update:model-value="store.deckConflicts[deck.name] = $event"
@@ -143,7 +143,7 @@
 
     <!-- Failed -->
     <div v-else-if="store.status?.status === 'failed'" class="card p-8 text-center">
-      <p class="text-4xl mb-4">❌</p>
+      <div class="w-14 h-14 rounded-2xl bg-danger/10 flex items-center justify-center mx-auto mb-4"><XCircle :size="28" class="text-danger" /></div>
       <h2 class="text-display mb-2">Erro na importação</h2>
       <p class="text-small text-base-muted mb-4">{{ store.status.error }}</p>
       <button class="btn-primary" @click="retryImport">Tentar novamente</button>
@@ -157,7 +157,7 @@
 </template>
 
 <script setup lang="ts">
-import { Upload } from 'lucide-vue-next'
+import { Upload, XCircle, AlertTriangle } from 'lucide-vue-next'
 
 const store = useImportStore()
 const toast = useToast()

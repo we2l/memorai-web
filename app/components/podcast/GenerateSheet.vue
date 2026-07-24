@@ -59,8 +59,8 @@
         >
           <p class="text-small font-medium text-base-primary">{{ d.label }}</p>
           <p class="text-micro text-base-muted">{{ d.time }}</p>
-          <p class="text-micro mt-1" :class="d.value === recommended ? 'text-accent-primary' : 'invisible'">✨ Recomendado</p>
-          <span v-if="isFree && d.value !== 'short'" class="text-micro text-accent-primary">🔒 Pro</span>
+          <p class="text-micro mt-1" :class="d.value === recommended ? 'text-accent-primary' : 'invisible'">Recomendado</p>
+          <span v-if="isFree && d.value !== 'short'" class="text-micro text-accent-primary"><Lock :size="10" class="inline" /> Pro</span>
         </button>
       </UiTooltip>
     </div>
@@ -78,10 +78,10 @@
       @click="hasRetaFinal ? toggleRetaFinal() : openRetaFinalCheckout()"
     >
       <div>
-        <p class="text-small font-medium text-base-primary">🔥 Reta Final <span class="text-micro text-base-muted">· Longo</span></p>
+        <p class="text-small font-medium text-base-primary"><Flame :size="14" class="inline text-warning" /> Reta Final <span class="text-micro text-base-muted">· Longo</span></p>
         <p class="text-micro text-base-muted">30+ min · debate · modo pré-prova intensivo</p>
       </div>
-      <span v-if="!hasRetaFinal" class="text-micro text-base-muted flex items-center gap-1">🔒 R$14,90</span>
+      <span v-if="!hasRetaFinal" class="text-micro text-base-muted flex items-center gap-1"><Lock :size="10" class="inline" /> R$14,90</span>
       <span v-else-if="retaFinalMode" class="text-micro text-accent-primary font-medium">Ativo</span>
     </button>
 
@@ -110,7 +110,7 @@
             @click="isFree && t.value !== 'conversational' ? openUpgrade() : (tone = t.value)"
           >
             {{ t.label }}
-            <span v-if="isFree && t.value !== 'conversational'" class="text-micro ml-1">🔒</span>
+            <span v-if="isFree && t.value !== 'conversational'" class="text-micro ml-1">< Lock :size="10" class="inline" /></span>
           </button>
         </div>
       </div>
@@ -133,7 +133,7 @@
           >
             <component :is="f.icon" :size="24" class="mx-auto mb-1" :class="format === f.value ? 'text-[var(--color-accent-soft)]' : 'text-base-muted'" />
             <p class="text-small" :class="format === f.value ? 'text-[var(--color-accent-soft)]' : 'text-base-muted'">{{ f.label }}</p>
-            <span v-if="isFree && f.value !== 'expository'" class="text-micro text-accent-primary">🔒 Pro</span>
+            <span v-if="isFree && f.value !== 'expository'" class="text-micro text-accent-primary"><Lock :size="10" class="inline" /> Pro</span>
           </button>
         </div>
       </div>
@@ -156,7 +156,7 @@
               <UiSelect v-model="host2Voice" :options="voiceOptions" :disabled="isFree" @click="isFree && openUpgrade()" />
             </div>
           </div>
-          <p v-if="isFree" class="text-micro text-accent-primary">🔒 Personalização de voz disponível no Pro</p>
+          <p v-if="isFree" class="text-micro text-accent-primary"><Lock :size="10" class="inline" /> Personalização de voz disponível no Pro</p>
         </div>
       </div>
     </div>
@@ -169,7 +169,7 @@
       @click="handleGenerate"
     >
       <Loader2 v-if="generating" :size="16" class="animate-spin" />
-      🎙️ {{ generating ? 'Gerando...' : 'Gerar podcast' }}
+      <Mic :size="14" class="inline" /> {{ generating ? 'Gerando...' : 'Gerar podcast' }}
     </button>
     <p class="text-micro text-base-muted text-center mt-2">
       {{ estimatedTime }}
@@ -180,7 +180,7 @@
 </template>
 
 <script setup lang="ts">
-import { User, Users, ChevronDown, Loader2 } from 'lucide-vue-next'
+import { User, Users, ChevronDown, Loader2, Lock, Flame, Mic } from 'lucide-vue-next'
 import type { PodcastContentMode, PodcastDuration, PodcastTone, PodcastFormat } from '~/types'
 
 const props = defineProps<{
@@ -204,10 +204,10 @@ const generating = computed(() => podcastStore.generating)
 const usageText = computed(() => props.usage ? `${props.usage.used}/${props.usage.limit} este mês` : null)
 
 const estimatedTime = computed(() => {
-  if (retaFinalMode.value) return '⏱️ ~10-12 min para gerar'
+  if (retaFinalMode.value) return '~10-12 min para gerar'
   const isDebate = format.value === 'debate'
-  if (duration.value === 'short') return isDebate ? '⏱️ ~4-5 min para gerar' : '⏱️ ~3-4 min para gerar'
-  return isDebate ? '⏱️ ~7-9 min para gerar' : '⏱️ ~5-6 min para gerar'
+  if (duration.value === 'short') return isDebate ? '~4-5 min para gerar' : '~3-4 min para gerar'
+  return isDebate ? '~7-9 min para gerar' : '~5-6 min para gerar'
 })
 
 function openUpgrade() {

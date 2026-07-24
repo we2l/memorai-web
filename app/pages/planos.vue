@@ -98,7 +98,7 @@
           @click="buyAddon('reta_final')"
         >
           <div>
-            <p class="text-small font-medium text-base-primary">🎧 Reta Final — 3 sessões longas</p>
+            <p class="text-small font-medium text-base-primary"><Headphones :size="14" class="inline text-[var(--color-accent-soft)]" /> Reta Final — 3 sessões longas</p>
             <p class="text-micro text-base-muted">30+ min em debate, modo pré-prova intensivo</p>
           </div>
           <span v-if="loadingAddon === 'reta_final'" class="text-small text-base-muted animate-pulse">Abrindo...</span>
@@ -122,7 +122,7 @@
 </template>
 
 <script setup lang="ts">
-import { Check, Zap } from 'lucide-vue-next'
+import { Check, Zap, Headphones } from 'lucide-vue-next'
 
 const route = useRoute()
 const toast = useToast()

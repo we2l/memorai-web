@@ -9,9 +9,9 @@
           <div class="space-y-3">
             <p class="text-micro font-bold uppercase tracking-wide text-base-muted">Você cria</p>
             <div class="space-y-2">
-              <div class="flow-node bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800/40">📖 Notas</div>
-              <div class="flow-node bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800/40">📝 Provas</div>
-              <div class="flow-node bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800/40">🗂️ Cards</div>
+              <div class="flow-node bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800/40"><BookOpen :size="14" class="inline text-blue-600 dark:text-blue-400" /> Notas</div>
+              <div class="flow-node bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800/40"><CalendarCheck :size="14" class="inline text-amber-600 dark:text-amber-400" /> Provas</div>
+              <div class="flow-node bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800/40"><Layers :size="14" class="inline text-emerald-600 dark:text-emerald-400" /> Cards</div>
             </div>
           </div>
 
@@ -19,7 +19,7 @@
           <div class="space-y-3 flex flex-col items-center justify-center">
             <p class="text-micro font-bold uppercase tracking-wide text-base-muted">O sistema processa</p>
             <div class="flow-node bg-[#F5F2FF] dark:bg-[#6F3FF5]/10 border-[#D7DDF2] dark:border-[#6F3FF5]/30 !py-4">
-              <span class="text-lg">🧠</span>
+              <Brain :size="24" class="text-[#6F3FF5] dark:text-[#B794F4]" />
               <span class="block text-small font-semibold text-[#6F3FF5] dark:text-[#B794F4]">IA + FSRS</span>
               <span class="block text-micro text-base-muted">prioriza, gera, conecta</span>
             </div>
@@ -33,9 +33,9 @@
           <div class="space-y-3">
             <p class="text-micro font-bold uppercase tracking-wide text-base-muted">Você recebe</p>
             <div class="space-y-2">
-              <div class="flow-node bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800/40">🔄 Revisão inteligente</div>
-              <div class="flow-node bg-[#F5F2FF] dark:bg-[#6F3FF5]/10 border-[#D7DDF2] dark:border-[#6F3FF5]/30">🎧 Podcast personalizado</div>
-              <div class="flow-node bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800/40">📊 Simulados focados</div>
+              <div class="flow-node bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800/40"><RefreshCw :size="14" class="inline text-emerald-600 dark:text-emerald-400" /> Revisão inteligente</div>
+              <div class="flow-node bg-[#F5F2FF] dark:bg-[#6F3FF5]/10 border-[#D7DDF2] dark:border-[#6F3FF5]/30"><Headphones :size="14" class="inline text-[#6F3FF5] dark:text-[#B794F4]" /> Podcast personalizado</div>
+              <div class="flow-node bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800/40"><BarChart3 :size="14" class="inline text-blue-600 dark:text-blue-400" /> Simulados focados</div>
             </div>
           </div>
         </div>
@@ -55,7 +55,9 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div v-for="item in features" :key="item.title" class="card-base p-5">
           <div class="flex items-start gap-3">
-            <span class="text-2xl shrink-0">{{ item.icon }}</span>
+            <div class="w-10 h-10 rounded-xl bg-accent-primary-subtle flex items-center justify-center shrink-0">
+              <component :is="item.icon" :size="20" class="text-[var(--color-accent-soft)]" />
+            </div>
             <div>
               <h3 class="font-medium text-base-primary text-sm">{{ item.title }}</h3>
               <p class="text-micro text-base-muted mt-1">{{ item.description }}</p>
@@ -82,51 +84,52 @@
 </template>
 
 <script setup lang="ts">
+import { BookOpen, Brain, CalendarCheck, Layers, RefreshCw, Headphones, BarChart3, XCircle, Zap } from 'lucide-vue-next'
 const features = [
   {
-    icon: '📝',
+    icon: CalendarCheck,
     title: 'Agenda de Provas',
     description: 'Cadastre suas provas com os cadernos vinculados.',
     impact: 'O algoritmo prioriza esses cards automaticamente. 3 dias antes → Reta Final (+20 cards extras).',
   },
   {
-    icon: '🔄',
+    icon: RefreshCw,
     title: 'Revisão (FSRS)',
     description: 'O algoritmo calcula o momento ideal pra revisar cada card.',
     impact: 'Ordem: learning steps → prova próxima → mais atrasados → normais. Nunca mais do que você aguenta.',
   },
   {
-    icon: '❌',
+    icon: XCircle,
     title: 'Registro de Erros',
     description: 'Quando erra, registre o motivo (confundi, esqueci, não sabia).',
     impact: 'Padrões são detectados. O podcast aborda seus erros. Tópicos fracos conectados são sugeridos.',
   },
   {
-    icon: '📖',
+    icon: BookOpen,
     title: 'Notas',
     description: 'Suas notas são indexadas semanticamente pela IA.',
     impact: 'Servem como contexto pra gerar cards, quiz e podcast mais precisos. Aparecem quando erra card vinculado.',
   },
   {
-    icon: '🎧',
+    icon: Headphones,
     title: 'Podcast',
     description: 'Áudio gerado dos seus pontos fracos para revisão passiva.',
     impact: 'Seleção: cards com mais erros + prova próxima. Modo pré-prova foca nos tópicos da prova.',
   },
   {
-    icon: '📊',
+    icon: BarChart3,
     title: 'Simulados',
     description: 'Questões geradas pela IA a partir das suas notas.',
     impact: 'Conteúdo diversificado via busca semântica. Erros do quiz podem virar cards com 1 clique.',
   },
   {
-    icon: '🧠',
+    icon: Brain,
     title: 'Mapa Mental',
     description: 'Visualize a hierarquia dos conceitos do seu caderno.',
     impact: 'Nível 1 automático (grátis). Nível 2 com IA extrai conceitos — cada nó vira card.',
   },
   {
-    icon: '⚡',
+    icon: Zap,
     title: 'Anti-Backlog',
     description: 'Limites diários, modo sobrevivência e sugestão de retenção.',
     impact: 'Nunca acumula 500 cards. Se sobrecarregar, o sistema sugere reduzir retenção ou focar no essencial.',

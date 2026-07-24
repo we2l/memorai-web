@@ -19,7 +19,7 @@
       class="w-full mt-3 px-4 py-3 rounded-xl bg-accent-primary-subtle border border-accent-primary/20 flex items-center gap-3 text-left hover:bg-accent-primary/10 transition-colors"
       @click="openUpgrade"
     >
-      <span class="text-body">✨</span>
+      <Sparkles :size="16" class="text-[var(--color-accent-soft)]" />
       <div class="flex-1">
         <p class="text-small font-medium text-accent-primary">Deixar a IA criar os cards</p>
         <p class="text-micro text-base-muted">Sua cota de IA acabou este mês</p>
@@ -106,7 +106,7 @@
           </button>
           <p class="text-micro text-base-muted text-center mt-1.5">Extrai conceitos, pegadinhas e pontos-chave</p>
           <p v-if="doc.pages_count && doc.pages_count > 100" class="text-micro text-warning text-center mt-1">
-            ⚠️ Máximo 100 páginas para processar com IA
+            <AlertTriangle :size="12" class="inline text-warning" /> Máximo 100 páginas para processar com IA
           </p>
         </div>
       </div>
@@ -161,7 +161,7 @@
 </template>
 
 <script setup lang="ts">
-import { Upload, ChevronDown, FileText, Loader2, CheckCircle, XCircle, Sparkles, Layers } from 'lucide-vue-next'
+import { Upload, ChevronDown, FileText, Loader2, CheckCircle, XCircle, Sparkles, Layers, AlertTriangle } from 'lucide-vue-next'
 import type { Document } from '~/types'
 
 const props = defineProps<{ topicId: string }>()

@@ -189,6 +189,34 @@
 
           </div>
 
+          <!-- Barra de ações do caderno -->
+          <div class="mx-4 mt-4 flex items-center gap-2 overflow-x-auto pb-1 hide-scrollbar">
+            <UiDisabledFeature :enabled="pendingCount > 0" tooltip="Nenhum card pendente neste caderno">
+              <NuxtLink :to="`/revisar?topic_id=${selectedTopicId}`" class="action-pill">
+                <PlayCircle :size="16" />
+                <span>Revisar</span>
+              </NuxtLink>
+            </UiDisabledFeature>
+            <UiDisabledFeature :enabled="pendingCount > 0" tooltip="Nenhum card pendente neste caderno">
+              <NuxtLink :to="`/revisar?mode=blitz&topic_id=${selectedTopicId}`" class="action-pill">
+                <Zap :size="16" />
+                <span>Rápida</span>
+              </NuxtLink>
+            </UiDisabledFeature>
+            <button class="action-pill" @click="showPodcastSheet = true">
+              <Headphones :size="16" />
+              <span>Podcast</span>
+            </button>
+            <NuxtLink :to="`/simulados?topic_id=${selectedTopicId}`" class="action-pill">
+              <ClipboardList :size="16" />
+              <span>Simulado</span>
+            </NuxtLink>
+            <button class="action-pill" @click="openMindMap">
+              <Network :size="16" />
+              <span>Mapa mental</span>
+            </button>
+          </div>
+
           <!-- HERO — simple: pending cards + review button -->
           <div v-if="pendingCount > 0" class="mx-4 mt-5 mb-3 px-6 py-5 rounded-2xl bg-[var(--bg-card)] border border-base flex items-center justify-between gap-4">
             <div>
@@ -456,7 +484,7 @@
 </template>
 
 <script setup lang="ts">
-import { Plus, Search, PanelLeftClose, PanelLeftOpen, X, Link2, Brain, Zap, Headphones } from 'lucide-vue-next'
+import { Plus, Search, PanelLeftClose, PanelLeftOpen, X, Link2, Brain, Zap, Headphones, PlayCircle, ClipboardList, Network } from 'lucide-vue-next'
 import type { Topic, Note } from '~/types'
 
 const topicStore = useTopicStore()
@@ -473,6 +501,11 @@ const activeTab = ref('notes')
 const mapSubView = ref<'graph' | 'mindmap'>(
   (import.meta.client && localStorage.getItem('memorai-map-subview') as 'graph' | 'mindmap') || 'mindmap'
 )
+
+function openMindMap() {
+  activeTab.value = 'map'
+  mapSubView.value = 'mindmap'
+}
 const searchQuery = ref('')
 const { topicCards, showDeleteCard, deleteCardId, memorizeProgress, dueCardsCount, newCardsCount, pendingCount, setCards, cardsFromNote, confirmDeleteCard, handleDeleteCard } = useTopicCards()
 const { noteTitle, noteContent, editingNote, selectedText, showDeleteNote, flushPendingSave, debouncedSave, saveTitle, selectNote, openNoteEditor, closeEditor, handleQuickAdd, createNote, handleDeleteNote } = useNoteEditor(selectedTopicId)

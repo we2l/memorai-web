@@ -266,7 +266,20 @@ const calendarDays = computed(() => {
             </div>
           </div>
 
-          <p class="text-sm mb-5" style="color: #50597A">Cadernos: {{ exam.topics?.map(t => t.name).join(', ') || '—' }}</p>
+          <p class="text-sm mb-3" style="color: #50597A">Cadernos: {{ exam.topics?.map(t => t.name).join(', ') || '—' }}</p>
+
+          <!-- Status badges -->
+          <div class="flex flex-wrap gap-1.5 mb-4">
+            <UiTooltip v-if="exam.days_remaining <= 14" text="Cards deste caderno estão sendo priorizados na revisão">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-success/10 text-success border border-success/20">Boost ativo</span>
+            </UiTooltip>
+            <UiTooltip v-if="exam.reta_final_active" text="Modo intensivo: +20 cards extras pra consolidar antes da prova">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-danger/10 text-danger border border-danger/20">Reta Final</span>
+            </UiTooltip>
+            <UiTooltip v-if="exam.days_remaining > 14" text="Boost ativa quando faltar 14 dias ou menos">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-surface-secondary text-base-muted border border-base">Preparando</span>
+            </UiTooltip>
+          </div>
 
           <button class="flex items-center gap-2 text-sm font-bold cursor-pointer hover:opacity-80 transition-opacity" style="color: #6F3FF5" @click="viewExamDetails(exam)">
             <Eye class="w-4 h-4" /> Ver detalhes

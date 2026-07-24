@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { X, CalendarPlus } from 'lucide-vue-next'
+import { X, CalendarPlus, Info } from 'lucide-vue-next'
 
 const emit = defineEmits<{
   close: []
@@ -136,14 +136,26 @@ const minDate = computed(() => {
         </div>
       </div>
 
-      <!-- Preview -->
-      <div v-if="preview" class="text-sm text-base-muted bg-surface-secondary rounded-lg p-3">
-        {{ preview.topicCount }} {{ preview.topicCount === 1 ? 'caderno' : 'cadernos' }} ·
-        {{ preview.daysRemaining }} dias restantes
+      <!-- Preview + Impact explanation -->
+      <div v-if="preview" class="rounded-xl border border-base bg-surface-secondary p-3 space-y-2">
+        <p class="text-sm text-base-primary font-medium">
+          {{ preview.topicCount }} {{ preview.topicCount === 1 ? 'caderno' : 'cadernos' }} ·
+          {{ preview.daysRemaining }} dias restantes
+        </p>
+        <div class="flex items-start gap-2">
+          <Info :size="14" class="text-base-muted shrink-0 mt-0.5" />
+          <div class="text-micro text-base-muted space-y-0.5">
+            <p>Ao criar esta prova, o algoritmo vai:</p>
+            <ul class="list-disc list-inside space-y-0.5">
+              <li>Priorizar cards dos cadernos selecionados na revisão</li>
+              <li>3 dias antes: ativar Reta Final (+20 cards extras)</li>
+              <li>Podcast em modo pré-prova focará nesses tópicos</li>
+            </ul>
+          </div>
+        </div>
       </div>
 
       <!-- Submit -->
-      <p class="text-micro text-base-muted mt-2">↳ O algoritmo prioriza os cadernos vinculados conforme a data se aproxima</p>
       <div class="flex justify-end gap-3 pt-2">
         <button type="button" class="btn-secondary" @click="emit('close')">Cancelar</button>
         <button

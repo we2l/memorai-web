@@ -248,7 +248,7 @@ const editor = useEditor({
     Placeholder.configure({
       placeholder: ({ node, pos }) => {
         if (pos === 0 || (node.type.name === 'paragraph' && pos <= 1)) {
-          return 'Escreva ou digite / para comandos'
+          return 'Escreva ou digite / para blocos. Suas notas melhoram cards, quiz e podcast.'
         }
         return ''
       },

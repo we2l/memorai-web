@@ -173,7 +173,7 @@ export const usePlayerStore = defineStore('player', {
       if (!('mediaSession' in navigator) || !this.currentPodcast) return
       navigator.mediaSession.metadata = new MediaMetadata({
         title: this.currentPodcast.title,
-        artist: 'Memorai',
+        artist: 'Baigi',
         album: this.currentPodcast.topic_name || 'Podcast de Revisão',
       })
       navigator.mediaSession.setActionHandler('play', () => this.resume())

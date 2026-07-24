@@ -8,7 +8,7 @@
         <span class="text-micro opacity-50">{{ intervals.again }}</span>
       </button>
       <button class="btn-good ring-1 ring-[#6A994E]/30" :disabled="disabled" @click="onRate(3)" :aria-label="`Lembrei — ${intervals.good}`">
-        <span class="text-lg">✅</span>
+        <CheckCircle2 :size="18" class="text-success" />
         <span>Lembrei</span>
         <span class="text-micro opacity-50">{{ intervals.good }}</span>
       </button>
@@ -18,7 +18,7 @@
         <span class="text-micro opacity-50">{{ intervals.hard }}</span>
       </button>
       <button class="btn-easy" :disabled="disabled" @click="onRate(4)" :aria-label="`Fácil demais — ${intervals.easy}`">
-        <span class="text-lg">🔥</span>
+        <Flame :size="18" class="text-warning" />
         <span>Fácil demais</span>
         <span class="text-micro opacity-50">{{ intervals.easy }}</span>
       </button>
@@ -37,12 +37,12 @@
         <span class="text-micro opacity-50">{{ intervals.hard }}</span>
       </button>
       <button class="btn-good ring-1 ring-[#6A994E]/30" :disabled="disabled" @click="onRate(3)" :aria-label="`Lembrei — ${intervals.good}`">
-        <span class="text-lg">✅</span>
+        <CheckCircle2 :size="18" class="text-success" />
         <span>Lembrei</span>
         <span class="text-micro opacity-50">{{ intervals.good }}</span>
       </button>
       <button class="btn-easy" :disabled="disabled" @click="onRate(4)" :aria-label="`Fácil demais — ${intervals.easy}`">
-        <span class="text-lg">🔥</span>
+        <Flame :size="18" class="text-warning" />
         <span>Fácil demais</span>
         <span class="text-micro opacity-50">{{ intervals.easy }}</span>
       </button>
@@ -51,6 +51,7 @@
 </template>
 
 <script setup lang="ts">
+import { CheckCircle2, Flame } from 'lucide-vue-next'
 defineProps<{
   disabled?: boolean
   intervals: { again: string; hard: string; good: string; easy: string }

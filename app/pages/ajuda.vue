@@ -66,7 +66,7 @@
         </h2>
         <div class="grid gap-3">
           <div v-for="tip in tips" :key="tip.title" class="card-base p-4 flex gap-3">
-            <span class="text-xl shrink-0">{{ tip.emoji }}</span>
+            <component :is="tip.icon" :size="20" class="text-[var(--color-accent-soft)] shrink-0 mt-0.5" />
             <div>
               <p class="font-medium text-[var(--text-heading)] text-sm">{{ tip.title }}</p>
               <p class="text-[var(--text-muted)] text-sm mt-0.5">{{ tip.description }}</p>
@@ -124,7 +124,7 @@
 </template>
 
 <script setup lang="ts">
-import { Keyboard, Lightbulb, PenTool, MessageCircle, Mail } from 'lucide-vue-next'
+import { Keyboard, Lightbulb, PenTool, MessageCircle, Mail, Search as SearchIcon, Scissors, Headphones, BarChart3 } from 'lucide-vue-next'
 
 definePageMeta({ layout: 'default' })
 
@@ -145,11 +145,11 @@ const shortcuts = [
 ]
 
 const tips = [
-  { emoji: '🔍', title: 'Busca rápida com Ctrl+K', description: 'Acesse qualquer página, caderno ou ação em segundos. Funciona de qualquer lugar do app.' },
-  { emoji: '✂️', title: 'Selecione texto → crie card', description: 'No editor de notas, selecione um trecho e use o bubble menu para transformar em flashcard.' },
-  { emoji: '/', title: 'Comandos com barra', description: 'No editor, digite / para inserir blocos: títulos, listas, callouts, imagens, cloze e mais.' },
-  { emoji: '🎧', title: 'Podcast dos pontos fracos', description: 'O Baigi gera podcasts focados nos cards que você mais erra. Ouça no ônibus, na academia.' },
-  { emoji: '📊', title: 'Grafo de conhecimento', description: 'Veja como seus cadernos se conectam. Nós vermelhos = pontos fracos. Use pra priorizar estudo.' },
+  { icon: SearchIcon, title: 'Busca rápida com Ctrl+K', description: 'Acesse qualquer página, caderno ou ação em segundos. Funciona de qualquer lugar do app.' },
+  { icon: Scissors, title: 'Selecione texto → crie card', description: 'No editor de notas, selecione um trecho e use o bubble menu para transformar em flashcard.' },
+  { icon: PenTool, title: 'Comandos com barra', description: 'No editor, digite / para inserir blocos: títulos, listas, callouts, imagens, cloze e mais.' },
+  { icon: Headphones, title: 'Podcast dos pontos fracos', description: 'O Baigi gera podcasts focados nos cards que você mais erra. Ouça no ônibus, na academia.' },
+  { icon: BarChart3, title: 'Grafo de conhecimento', description: 'Veja como seus cadernos se conectam. Nós vermelhos = pontos fracos. Use pra priorizar estudo.' },
 ]
 
 const editorCommands = [

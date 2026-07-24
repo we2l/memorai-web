@@ -1,7 +1,7 @@
 <template>
   <UiModal v-model="modelValue" size="lg">
     <div class="flex items-center justify-between mb-4">
-      <h2 class="text-headline">🧠 Mapa Mental</h2>
+      <h2 class="text-headline inline-flex items-center gap-2"><Brain :size="20" class="text-[var(--color-accent-soft)]" /> Mapa Mental</h2>
       <span v-if="noteTitle" class="text-small text-base-muted truncate max-w-[200px]">{{ noteTitle }}</span>
     </div>
 
@@ -12,7 +12,9 @@
 
     <!-- No map, Free user -->
     <div v-else-if="!mapData && !canGenerate" class="flex flex-col items-center justify-center h-64 gap-3 text-center">
-      <div class="text-4xl">🔒</div>
+      <div class="w-14 h-14 rounded-2xl bg-surface-secondary flex items-center justify-center">
+        <Lock :size="28" class="text-base-muted" />
+      </div>
       <p class="text-body text-base-secondary">Gere um mapa mental detalhado dos conceitos desta nota</p>
       <NuxtLink to="/planos" class="btn-primary !py-2 !px-4 text-small" @click="modelValue = false">
         Desbloquear com Plano Pro
@@ -21,7 +23,9 @@
 
     <!-- No map, Pro user -->
     <div v-else-if="!mapData && canGenerate && !generating" class="flex flex-col items-center justify-center h-64 gap-3 text-center">
-      <div class="text-4xl">🧠</div>
+      <div class="w-14 h-14 rounded-2xl bg-accent-primary-subtle flex items-center justify-center">
+        <Brain :size="28" class="text-[var(--color-accent-soft)]" />
+      </div>
       <p class="text-body text-base-secondary">Extraia conceitos, definições e exemplos desta nota em um mapa mental</p>
       <button class="btn-primary !py-2 !px-4 text-small" @click="generate">
         Gerar mapa mental
@@ -76,6 +80,7 @@
 </template>
 
 <script setup lang="ts">
+import { Brain, Lock } from 'lucide-vue-next'
 import type { MindMapNode } from '~/composables/useMindMap'
 
 const modelValue = defineModel<boolean>({ required: true })

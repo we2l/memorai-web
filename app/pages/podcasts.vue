@@ -6,7 +6,7 @@
         <p class="text-sm text-base-muted mt-1">Sua biblioteca de revisão em áudio</p>
       </div>
       <button class="btn-primary" @click="showGenerate = true">
-        🎙️ Gerar podcast
+        <Mic :size="14" class="inline" /> Gerar podcast
       </button>
     </div>
 
@@ -96,7 +96,7 @@
 </template>
 
 <script setup lang="ts">
-import { Headphones, Loader2, Play, Pause, AlertCircle } from 'lucide-vue-next'
+import { Headphones, Loader2, Play, Pause, AlertCircle, Mic } from 'lucide-vue-next'
 import type { Podcast } from '~/types'
 
 const store = usePodcastStore()

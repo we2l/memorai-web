@@ -30,7 +30,7 @@
         title="Perguntar à IA"
         @mousedown.prevent="emit('ask-ai')"
       >
-        ✨ IA
+        <Sparkles :size="12" class="inline" /> IA
       </button>
     </div>
 
@@ -80,7 +80,7 @@ import { Callout } from '~/extensions/callout'
 import {
   Bold, Italic, Underline as UnderlineIcon, Strikethrough, LinkIcon, Zap,
   Heading1, Heading2, Heading3, List, ListOrdered, Quote, Minus,
-  ImagePlus, AlertTriangle, Lightbulb, ShieldAlert, Type,
+  ImagePlus, AlertTriangle, Lightbulb, ShieldAlert, Type, Sparkles,
 } from 'lucide-vue-next'
 
 const props = defineProps<{

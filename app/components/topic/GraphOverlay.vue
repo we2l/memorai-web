@@ -22,7 +22,7 @@
             :disabled="!graphStore.data?.nodes.length"
             @click="showOnlyWeak = !showOnlyWeak"
           >
-            {{ showOnlyWeak ? '✕ Todos' : '🔴 Só fracos' }}
+            {{ showOnlyWeak ? 'Todos' : 'Só fracos' }}
           </button>
           <div v-if="!connectMode" class="relative group/connect">
             <button
@@ -152,7 +152,7 @@
         <UiModal v-model="showLabelModal" size="sm">
           <h2 class="text-headline mb-4">Conectar cadernos</h2>
           <p class="text-small text-base-secondary mb-3">{{ connectSourceName }} ↔ {{ connectTargetName }}</p>
-          <p class="text-micro text-base-muted mb-3 bg-[var(--border-divider)] rounded-lg px-3 py-2">💡 Cadernos conectados são revisados juntos — o algoritmo mistura cards dos dois pra fortalecer a memória.</p>
+          <p class="text-micro text-base-muted mb-3 bg-[var(--border-divider)] rounded-lg px-3 py-2"><Lightbulb :size="12" class="inline text-[var(--color-accent-soft)]" /> Cadernos conectados são revisados juntos — o algoritmo mistura cards dos dois pra fortalecer a memória.</p>
           <input v-model="connectLabel" class="input-base" placeholder="Label (opcional, ex: 'é exceção de')" @keydown.enter="confirmConnection" />
           <div class="flex gap-3 justify-end mt-4">
             <button class="btn-secondary" @click="cancelLabel">Cancelar</button>
@@ -165,7 +165,7 @@
 </template>
 
 <script setup lang="ts">
-import { Link2, X, Maximize2, Sun, Moon } from 'lucide-vue-next'
+import { Link2, X, Maximize2, Sun, Moon, Lightbulb } from 'lucide-vue-next'
 
 const props = defineProps<{ modelValue: boolean }>()
 const emit = defineEmits<{ 'update:modelValue': [value: boolean] }>()

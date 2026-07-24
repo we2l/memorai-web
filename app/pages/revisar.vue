@@ -7,7 +7,7 @@
       </NuxtLink>
       <div class="flex items-center gap-3 text-small text-base-secondary">
         <span v-if="isSurvivalMode" class="px-2 py-0.5 rounded-full text-micro uppercase tracking-wide font-medium bg-warning/15 text-warning">Sobrevivência</span>
-        <span v-if="isBlitz" class="px-2 py-0.5 rounded-full text-micro uppercase tracking-wide font-medium bg-accent-primary/15 text-accent-primary">⚡ Relâmpago</span>
+        <span v-if="isBlitz" class="px-2 py-0.5 rounded-full text-micro uppercase tracking-wide font-medium bg-accent-primary/15 text-accent-primary inline-flex items-center gap-1"><Zap :size="10" /> Relâmpago</span>
         <span v-if="sessionTimer > 0" class="font-mono" :class="sessionTimer <= 60 ? 'text-danger' : ''" aria-live="polite" :aria-label="`${formatTimer(sessionTimer)} restantes`">
           {{ formatTimer(sessionTimer) }}
         </span>
@@ -15,7 +15,7 @@
         <span class="text-micro text-base-muted">{{ reviewMood }}</span>
       </div>
       <button class="px-3 py-1.5 rounded-full text-micro font-medium bg-accent-primary-subtle0/10 text-accent-primary border border-[var(--color-accent-primary)]/20 hover:bg-accent-primary-subtle0/20 transition-colors" @click="dive.start()">
-        🐬 Mergulhar
+        Mergulhar
       </button>
     </div>
 
@@ -39,13 +39,13 @@
     <div v-if="!review.loading && !review.finished" class="px-4 space-y-2 mt-2">
       <UiInsightBanner
         v-if="review.retaFinal?.active"
-        icon="🔥"
+        :icon="Flame"
         :text="`Reta Final — +${review.retaFinal.extra_count} cards extras de ${review.retaFinal.exam_titles.join(', ')}`"
         variant="accent"
       />
       <UiInsightBanner
         v-if="isSurvivalMode"
-        icon="⚡"
+        :icon="AlertOctagon"
         text="Modo Sobrevivência — apenas os 20 mais urgentes"
         variant="warning"
         dismissible
@@ -53,7 +53,7 @@
       />
       <UiInsightBanner
         v-if="isBlitz"
-        icon="⏱️"
+        :icon="Timer"
         text="Revisão relâmpago — só cards pendentes, sem novos"
         variant="info"
         dismissible
@@ -98,7 +98,7 @@
           Você reforçou <span class="text-accent-primary font-medium">{{ review.reviewed }}</span> conceito{{ review.reviewed !== 1 ? 's' : '' }}
         </p>
       <p v-if="correctStreak > 3" class="text-small text-success mt-2">
-        {{ correctStreak }} acertos seguidos — seu cérebro agradece 🧠
+        {{ correctStreak }} acertos seguidos — seu cérebro agradece
       </p>
       <p v-if="review.pendingLearning > 0" class="text-base-muted text-small mt-2">
         {{ review.pendingLearning }} card{{ review.pendingLearning !== 1 ? 's' : '' }} em aprendizado — {{ review.pendingLearning === 1 ? 'volta' : 'voltam' }} em breve.
@@ -138,7 +138,7 @@
         <span
           class="px-3 py-1 rounded-full text-xs tracking-wide uppercase font-medium bg-surface-secondary border border-base text-base-muted"
         >
-          {{ review.currentCard.state === 'relearning' ? '🔄 Reaprendendo' : review.currentCard.state === 'new' ? '✨ Novo' : '📖 Aprendendo' }}
+          {{ review.currentCard.state === 'relearning' ? 'Reaprendendo' : review.currentCard.state === 'new' ? 'Novo' : 'Aprendendo' }}
         </span>
       </div>
 
@@ -168,13 +168,13 @@
         />
         <!-- Note snippet -->
         <div v-if="review.noteSnippet" class="p-3 rounded-lg bg-surface-secondary border border-base">
-          <p class="text-xs text-accent-primary font-medium mb-1">📝 Da sua nota: {{ review.noteSnippet.title }}</p>
+          <p class="text-xs text-accent-primary font-medium mb-1">Da sua nota: {{ review.noteSnippet.title }}</p>
           <p class="text-sm text-base-secondary">{{ review.noteSnippet.snippet }}</p>
         </div>
         <!-- Actions -->
         <div class="flex gap-2 justify-center">
           <button class="btn-secondary !py-1.5 !px-3 !min-h-0 text-sm" @click="openChatForError">
-            ✨ Me explica esse erro
+            Me explica esse erro
           </button>
         </div>
       </div>
@@ -184,7 +184,7 @@
         <div class="card border border-warning/30 text-center">
           <p class="text-small text-base-muted mb-2">Caderno conectado também está fraco:</p>
           <div v-for="w in review.weakSuggestion" :key="w.id" class="flex items-center justify-center gap-2 text-small">
-            <span class="text-warning">⚠</span>
+            <AlertTriangle :size="14" class="text-warning" />
             <span class="text-base-primary font-medium">{{ w.name }}</span>
             <span class="text-base-muted">({{ Math.round(w.progress * 100) }}%)</span>
           </div>
@@ -202,7 +202,7 @@
     <!-- Timer expired modal -->
     <UiModal v-model="showTimerModal" size="sm" aria-label="Tempo esgotado">
       <div class="text-center">
-        <p class="text-4xl mb-4">{{ isBlitz ? '⚡' : '⏰' }}</p>
+        <p class="text-4xl mb-4"></p>
         <h2 class="text-title font-serif">{{ isBlitz ? 'Revisão rápida concluída!' : 'Tempo esgotado!' }}</h2>
         <p class="text-base-muted text-small mt-2">
           Você revisou <span class="text-accent-primary font-medium">{{ review.reviewed }}</span> card{{ review.reviewed !== 1 ? 's' : '' }}{{ isBlitz ? ' em 5 min' : '' }}.
@@ -217,6 +217,8 @@
 </template>
 
 <script setup lang="ts">
+import { Flame, AlertOctagon, Timer, Zap } from 'lucide-vue-next'
+
 const review = useReviewStore()
 const deckStore = useDeckStore()
 const chat = useChatStore()
@@ -239,9 +241,9 @@ const visibleHints = computed(() =>
 )
 
 function hintIcon(type: string): string {
-  if (type === 'error') return '❌'
-  if (type === 'gotcha') return '⚠️'
-  return '💡'
+  if (type === 'error') return 'error'
+  if (type === 'gotcha') return 'gotcha'
+  return 'insight'
 }
 
 const topErrorTopic = computed(() => {
@@ -259,7 +261,7 @@ async function handleRate(rating: number) {
   cardFeedback.value = rating >= 3 ? 'success' : 'error'
 
   // Micro reaction
-  if (rating === 4) showReward('Fácil demais — esse você dominou 🔥')
+  if (rating === 4) showReward('Fácil demais — esse você dominou')
   else if (rating === 3) showReward('Boa — conceito reforçado 👏')
   else if (rating === 2) showReward('Quase — vai fixar na próxima')
   else if (rating === 1) showReward('Normal — você vai fixar isso agora')
@@ -267,9 +269,9 @@ async function handleRate(rating: number) {
   // Track streak
   if (rating >= 3) {
     correctStreak.value++
-    if (correctStreak.value === 5) showReward('⚡ 5 seguidos — você está no ritmo!')
-    else if (correctStreak.value === 10) showReward('🧠 10 seguidos — seu cérebro tá voando!')
-    else if (correctStreak.value > 10 && correctStreak.value % 10 === 0) showReward(`🔥 ${correctStreak.value} seguidos!`)
+    if (correctStreak.value === 5) showReward('5 seguidos — você está no ritmo!')
+    else if (correctStreak.value === 10) showReward('10 seguidos — seu cérebro tá voando!')
+    else if (correctStreak.value > 10 && correctStreak.value % 10 === 0) showReward(`${correctStreak.value} seguidos!`)
   } else {
     correctStreak.value = 0
     // Track errors by topic for post-session suggestion
@@ -434,10 +436,10 @@ const progressLabel = computed(() => {
 const reviewMood = computed(() => {
   const pct = review.progress
   if (pct === 0) return ''
-  if (pct < 30) return 'aquecendo 🧠'
-  if (pct < 70) return 'no ritmo 🔥'
-  if (pct < 100) return 'quase lá ⚡'
-  return 'concluído ✨'
+  if (pct < 30) return 'aquecendo'
+  if (pct < 70) return 'no ritmo'
+  if (pct < 100) return 'quase lá'
+  return 'concluído'
 })
 
 onMounted(loadSession)

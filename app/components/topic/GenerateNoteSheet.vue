@@ -13,7 +13,7 @@
 
       <p class="text-small text-base-secondary mb-4">
         A IA vai ler o PDF e extrair conceitos, pegadinhas e pontos-chave em uma nota estruturada.
-        <span class="block mt-2 text-base-muted">⏱ Leva cerca de 2 minutos. Pode sair da tela.</span>
+        <span class="block mt-2 text-base-muted">Leva cerca de 2 minutos. Pode sair da tela.</span>
       </p>
 
       <p class="text-micro text-base-muted mb-5">
@@ -23,7 +23,7 @@
       <div class="flex gap-3 justify-end">
         <button class="btn-secondary" @click="open = false">Cancelar</button>
         <button class="btn-primary" :disabled="generating" @click="generate">
-          {{ generating ? 'Processando...' : '✨ Gerar resumo' }}
+          {{ generating ? 'Processando...' : 'Gerar resumo' }}
         </button>
       </div>
     </div>
@@ -31,6 +31,7 @@
 </template>
 
 <script setup lang="ts">
+import { Sparkles } from 'lucide-vue-next'
 import type { Document } from '~/types'
 
 const props = defineProps<{ document: Document | null }>()

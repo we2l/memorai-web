@@ -25,7 +25,12 @@
 
     <!-- Uso de IA -->
     <section class="card p-5 mb-6">
-      <h2 class="text-headline mb-4">Uso de IA este mês</h2>
+      <div class="flex items-center gap-2 mb-4">
+        <h2 class="text-headline">Uso de IA este mês</h2>
+        <UiTooltip text="Cada feature de IA tem um limite mensal que renova automaticamente">
+          <Info :size="14" class="text-base-muted" />
+        </UiTooltip>
+      </div>
       <div v-if="featureUsage.loading.value" class="space-y-3">
         <div v-for="i in 4" :key="i" class="skeleton h-10 w-full" />
       </div>
@@ -145,7 +150,7 @@
 </template>
 
 <script setup lang="ts">
-import { Moon, Sun, LogOut, AlertTriangle, Lightbulb } from 'lucide-vue-next'
+import { Moon, Sun, LogOut, AlertTriangle, Lightbulb, Info } from 'lucide-vue-next'
 import type { UserSettings } from '~/types'
 
 const auth = useAuthStore()

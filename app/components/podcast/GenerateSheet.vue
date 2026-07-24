@@ -307,9 +307,9 @@ const durations = [
 ]
 
 const modes = [
-  { value: 'weak_points' as const, label: 'Pontos fracos', desc: 'Foco nos erros' },
-  { value: 'general_review' as const, label: 'Revisão geral', desc: 'Cobertura ampla' },
-  { value: 'pre_exam' as const, label: 'Pré-prova', desc: 'Véspera de prova' },
+  { value: 'weak_points' as const, label: 'Pontos fracos', desc: 'Foca nos cards que você mais erra' },
+  { value: 'general_review' as const, label: 'Revisão geral', desc: 'Mix equilibrado — reforço + revisão + dopamina' },
+  { value: 'pre_exam' as const, label: 'Pré-prova', desc: 'Concentra nos tópicos da prova mais próxima' },
 ]
 
 function selectMode(mode: PodcastContentMode) {

@@ -142,6 +142,14 @@
         </span>
       </div>
 
+      <!-- Context badge -->
+      <UiTooltip v-if="contextBadge" :text="contextBadge.tooltip">
+        <span class="px-3 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1.5" :class="contextBadge.classes">
+          <component :is="contextBadge.icon" :size="12" />
+          {{ contextBadge.label }}
+        </span>
+      </UiTooltip>
+
       <FlashcardCard
         :card="review.currentCard"
         :flipped="review.flipped"
@@ -217,11 +225,12 @@
 </template>
 
 <script setup lang="ts">
-import { Flame, AlertOctagon, Timer, Zap } from 'lucide-vue-next'
+import { Flame, AlertOctagon, Timer, Zap, CalendarClock, GitBranch, FastForward } from 'lucide-vue-next'
 
 const review = useReviewStore()
 const deckStore = useDeckStore()
 const chat = useChatStore()
+const examStore = useExamStore()
 const route = useRoute()
 const dive = useDiveMode()
 const toast = useToast()
@@ -250,6 +259,50 @@ const topErrorTopic = computed(() => {
   const entries = Object.values(errorsByTopic.value).filter(e => e.count >= 2)
   if (!entries.length) return null
   return entries.sort((a, b) => b.count - a.count)[0]
+})
+
+const contextBadge = computed(() => {
+  const card = review.currentCard
+  if (!card) return null
+
+  // Priority 1: Exam boost
+  if (card.topic_id && examStore.upcoming.length) {
+    const exam = examStore.upcoming.find(e =>
+      e.days_remaining <= 14 && e.topics.some(t => t.id === card.topic_id)
+    )
+    if (exam) {
+      return {
+        icon: CalendarClock,
+        label: `Prova em ${exam.days_remaining}d`,
+        tooltip: `Priorizado porque você tem prova de "${exam.title}" em ${exam.days_remaining} dias`,
+        classes: 'bg-warning/15 text-warning border border-warning/20',
+      }
+    }
+  }
+
+  // Priority 2: Interleaved (card from different topic than query)
+  const queryTopicId = route.query.topic_id as string | undefined
+  if (queryTopicId && card.topic_id && card.topic_id !== queryTopicId) {
+    return {
+      icon: GitBranch,
+      label: 'Tópico conectado',
+      tooltip: 'Cards de cadernos conectados são revisados juntos pra fortalecer relações',
+      classes: 'bg-info/15 text-info border border-info/20',
+    }
+  }
+
+  // Priority 3: Learn ahead
+  const isLearnAhead = !review.cards[review.currentIndex] && review.pendingLearning > 0
+  if (isLearnAhead && card.due && new Date(card.due).getTime() > Date.now()) {
+    return {
+      icon: FastForward,
+      label: 'Adiantando',
+      tooltip: 'Não tem mais cards pendentes — você está revisando adiantado',
+      classes: 'bg-surface-secondary text-base-muted border border-base',
+    }
+  }
+
+  return null
 })
 
 async function handleRate(rating: number) {
@@ -443,6 +496,7 @@ const reviewMood = computed(() => {
 })
 
 onMounted(loadSession)
+onMounted(() => examStore.fetchUpcoming())
 
 // Tick every 5s to re-evaluate learning queue due times
 let tickInterval: ReturnType<typeof setInterval> | null = null

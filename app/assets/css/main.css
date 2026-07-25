@@ -1,5 +1,7 @@
 @import 'tailwindcss';
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* ============================================
    Design Tokens — BAIGI v2 (Clean/Premium)
    Light-first: branco com toque lilás + roxo como acento

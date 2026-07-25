@@ -1,221 +1,417 @@
 <template>
-  <div>
-    <!-- Nav -->
-    <header class="fixed top-0 inset-x-0 z-50 backdrop-blur-md bg-surface/80 border-b border-base">
+  <div class="min-h-screen bg-white">
+    <!-- Navbar - white background like reference -->
+    <header class="fixed top-0 inset-x-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100">
       <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-        <UiLogo :icon-size="24" text-class="text-lg font-semibold text-base-primary" />
-        <div class="flex items-center gap-3">
-          <NuxtLink to="/entrar" class="text-small text-base-muted hover:text-base-primary transition-colors">Entrar</NuxtLink>
-          <NuxtLink to="/criar-conta" class="btn-primary !py-2 !px-4 !min-h-0 text-small">Começar grátis</NuxtLink>
+        <LandingLogoLanding :icon-size="34" size="md" />
+
+        <nav class="hidden md:flex items-center gap-8">
+          <a href="#como-funciona" class="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">Como funciona</a>
+          <a href="#planos" class="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">Planos</a>
+        </nav>
+
+        <div class="flex items-center gap-4">
+          <NuxtLink to="/entrar" class="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">Entrar</NuxtLink>
+          <NuxtLink to="/criar-conta" class="bg-[#6F3FF5] hover:bg-[#5A2EE6] text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all">
+            Começar grátis
+          </NuxtLink>
         </div>
       </div>
     </header>
 
     <!-- Hero -->
-    <section class="pt-32 pb-16 sm:pt-40 sm:pb-24 px-4 sm:px-6 max-w-4xl mx-auto text-center relative">
-      <h1 class="text-3xl sm:text-5xl font-bold text-base-primary leading-tight mb-4">
-        Você estuda… e esquece na prova?<br class="hidden sm:block" /> Com o Baigi, isso não acontece.
-      </h1>
-      <p class="text-base sm:text-lg text-base-muted max-w-2xl mx-auto mb-8">
-        Cole seu material, a IA cria flashcards e você revisa no momento exato para não esquecer — sem a complexidade do Anki.
-      </p>
-      <div class="flex flex-col sm:flex-row gap-3 justify-center">
-        <NuxtLink to="/criar-conta" class="btn-primary !py-3 !px-8 text-base font-semibold">
-          Começar grátis
-        </NuxtLink>
-        <a href="#como-funciona" class="btn-secondary !py-3 !px-8 text-base">
-          Ver como funciona
-        </a>
-      </div>
-      <!-- Demo placeholder -->
-      <div class="mt-12 rounded-2xl border border-base bg-surface-secondary overflow-hidden shadow-xl">
-        <div class="aspect-video flex items-center justify-center text-base-muted">
-          <p class="text-small">GIF demo: PDF → cards → revisão (5-8s loop)</p>
-        </div>
-      </div>
-    </section>
+    <section class="pt-28 sm:pt-36 pb-16 sm:pb-20 px-4 sm:px-6 bg-white relative">
+      <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-center pb-16 sm:pb-24">
+        <!-- Left -->
+        <div class="order-2 lg:order-1">
+          <span class="inline-block px-4 py-1.5 rounded-full text-xs font-semibold bg-[#F0EAFF] text-[#6F3FF5] border border-[#E0D4FF]">
+            Sistema completo de estudos com IA
+          </span>
 
-    <!-- Prova social -->
-    <section class="py-6 px-4 sm:px-6 max-w-3xl mx-auto text-center">
-      <p class="text-small text-base-muted">
-        Junte-se aos primeiros estudantes que estão parando de esquecer o que estudam.
-      </p>
-    </section>
+          <h1 class="mt-6 text-[2.75rem] sm:text-[3.25rem] font-extrabold text-[#1E0A3C] leading-[1.08] tracking-tight">
+            Seu PDF vira notas, flashcards e simulados em 30 segundos.
+          </h1>
 
-    <!-- Dor -->
-    <section class="py-12 px-4 sm:px-6 max-w-3xl mx-auto text-center">
-      <p class="text-lg sm:text-xl text-base-secondary leading-relaxed">
-        Você estuda horas, revisa… e mesmo assim esquece metade.<br class="hidden sm:block" />
-        <span class="text-base-primary font-medium">Isso não é falta de esforço. É porque você está usando o método errado.</span>
-      </p>
-    </section>
-
-    <!-- Como funciona -->
-    <section id="como-funciona" class="py-16 sm:py-24 px-4 sm:px-6 max-w-5xl mx-auto">
-      <h2 class="text-2xl sm:text-3xl font-bold text-base-primary text-center mb-12">
-        3 passos pra memorizar qualquer coisa
-      </h2>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="card text-center py-8 px-6">
-          <span class="text-4xl mb-4 block">📄</span>
-          <h3 class="text-title text-base-primary mb-2">1. Adicione material</h3>
-          <p class="text-small text-base-muted">Cole texto, suba um PDF ou importe do Anki. Sem setup.</p>
-        </div>
-        <div class="card text-center py-8 px-6">
-          <span class="text-4xl mb-4 block">✨</span>
-          <h3 class="text-title text-base-primary mb-2">2. IA cria flashcards</h3>
-          <p class="text-small text-base-muted">Cards prontos em segundos — com pegadinhas, dicas e pontos de prova.</p>
-        </div>
-        <div class="card text-center py-8 px-6">
-          <span class="text-4xl mb-4 block">🧠</span>
-          <h3 class="text-title text-base-primary mb-2">3. Revise no momento certo</h3>
-          <p class="text-small text-base-muted">O algoritmo calcula quando revisar pra você parar de esquecer. 5 min/dia bastam.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- Comparação -->
-    <section class="py-16 sm:py-24 px-4 sm:px-6 bg-surface-secondary">
-      <div class="max-w-4xl mx-auto">
-        <h2 class="text-2xl sm:text-3xl font-bold text-base-primary text-center mb-4">
-          Por que estudantes estão trocando o Anki pelo Baigi?
-        </h2>
-        <p class="text-base-muted text-center mb-12">Mesmo poder do Anki. Sem a curva de aprendizado absurda.</p>
-        <div class="overflow-x-auto">
-          <table class="w-full text-small">
-            <thead>
-              <tr class="border-b border-base">
-                <th class="text-left py-3 px-4 text-base-muted font-medium" />
-                <th class="py-3 px-4 text-accent-primary font-semibold">Baigi</th>
-                <th class="py-3 px-4 text-base-muted font-medium">Anki</th>
-                <th class="py-3 px-4 text-base-muted font-medium">Quizlet</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="row in comparison" :key="row.feature" class="border-b border-base/50">
-                <td class="py-3 px-4 text-base-secondary">{{ row.feature }}</td>
-                <td class="py-3 px-4 text-center">{{ row.baigi }}</td>
-                <td class="py-3 px-4 text-center text-base-muted">{{ row.anki }}</td>
-                <td class="py-3 px-4 text-center text-base-muted">{{ row.quizlet }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- Planos -->
-    <section class="py-16 sm:py-24 px-4 sm:px-6 max-w-4xl mx-auto">
-      <h2 class="text-2xl sm:text-3xl font-bold text-base-primary text-center mb-4">
-        Comece grátis e pare de esquecer de vez
-      </h2>
-      <p class="text-base-muted text-center mb-12">Core ilimitado. IA como upgrade natural.</p>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-        <!-- Free -->
-        <div class="card py-8 px-6">
-          <h3 class="text-title text-base-primary mb-1">Grátis</h3>
-          <p class="text-2xl font-bold text-base-primary mb-4">R$ 0<span class="text-small font-normal text-base-muted">/mês</span></p>
-          <ul class="space-y-2 text-small text-base-secondary mb-6">
-            <li>✓ Flashcards + FSRS ilimitados</li>
-            <li>✓ Notas, cadernos, grafo</li>
-            <li>✓ Importar Anki</li>
-            <li>✓ Gerar 20 cards/mês</li>
-            <li>✓ 1 revisão em áudio/mês</li>
-          </ul>
-          <NuxtLink to="/criar-conta" class="btn-secondary w-full justify-center">Começar grátis</NuxtLink>
-        </div>
-        <!-- Pro -->
-        <div class="card py-8 px-6 border-accent-primary/30 relative">
-          <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent-primary text-white text-micro font-semibold px-3 py-1 rounded-full">🔥 Mais popular</span>
-          <h3 class="text-title text-accent-primary mb-1">Pro</h3>
-          <p class="text-2xl font-bold text-base-primary mb-1">R$ 24,90<span class="text-small font-normal text-base-muted">/mês</span></p>
-          <p class="text-micro text-base-muted mb-4">Menos que um lanche por mês pra nunca mais esquecer</p>
-          <ul class="space-y-2 text-small text-base-secondary mb-6">
-            <li>✓ Tudo do Grátis</li>
-            <li>✓ Gerar cards <strong>ilimitado</strong></li>
-            <li>✓ 15 processamentos de PDF/mês</li>
-            <li>✓ Tira-dúvidas <strong>ilimitado</strong></li>
-            <li>✓ 10 revisões em áudio/mês</li>
-          </ul>
-          <NuxtLink to="/criar-conta" class="btn-primary w-full justify-center">Quero memorizar de verdade</NuxtLink>
-        </div>
-      </div>
-    </section>
-
-    <!-- Podcast -->
-    <section class="py-16 sm:py-24 px-4 sm:px-6 max-w-4xl mx-auto">
-      <div class="flex flex-col md:flex-row items-center gap-8 md:gap-12">
-        <div class="flex-1">
-          <span class="text-micro uppercase tracking-wide text-accent-primary font-semibold mb-2 block">Exclusivo</span>
-          <h2 class="text-2xl sm:text-3xl font-bold text-base-primary mb-4">
-            Ouça seus pontos fracos no ônibus
-          </h2>
-          <p class="text-base-muted mb-4">
-            O Baigi gera um podcast personalizado com os conceitos que você mais erra. Transforme horas mortas no trânsito ou lavando louça em tempo líquido de estudo.
+          <p class="mt-5 text-[17px] text-gray-600 max-w-[420px] leading-relaxed">
+            Notas, flashcards, simulados e podcast personalizado — tudo gerado pela IA a partir do seu material.
           </p>
-          <ul class="space-y-2 text-small text-base-secondary">
-            <li>🎧 Baseado nos seus erros reais</li>
-            <li>🤖 Gerado por IA em minutos</li>
-            <li>📱 Ouça offline, quando quiser</li>
-          </ul>
+
+          <div class="mt-8 flex flex-wrap items-center gap-5">
+            <NuxtLink to="/criar-conta" class="bg-[#6F3FF5] hover:bg-[#5A2EE6] text-white font-semibold text-[15px] px-8 py-4 rounded-2xl shadow-[0_4px_16px_rgba(111,63,245,0.3)] hover:shadow-[0_6px_20px_rgba(111,63,245,0.4)] transition-all hover:-translate-y-0.5">
+              Começar grátis
+            </NuxtLink>
+            <button class="inline-flex items-center gap-3 text-[15px] font-medium text-gray-700 hover:text-[#6F3FF5] transition-colors" @click="showDemoModal = true">
+              <span class="w-10 h-10 rounded-full bg-[#2D1B69] flex items-center justify-center shadow-md">
+                <svg class="w-4 h-4 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+              </span>
+              Ver demonstração (30s)
+            </button>
+          </div>
+
+          <div class="mt-10">
+            <p class="text-sm font-semibold text-gray-800">Feito para quem estuda de verdade.</p>
+            <p class="text-xs text-gray-500 mt-1">Concurseiros · Universitários · Vestibulandos · Idiomas</p>
+          </div>
         </div>
-        <div class="w-full md:w-64 shrink-0">
-          <div class="card py-6 px-5 text-center">
-            <span class="text-4xl block mb-3">🎧</span>
-            <p class="text-small font-medium text-base-primary mb-1">Podcast de Revisão</p>
-            <p class="text-micro text-base-muted">5 min · Seus pontos fracos</p>
-            <div class="mt-4 h-2 rounded-full bg-[var(--border-divider)] overflow-hidden">
-              <div class="h-2 rounded-full bg-[var(--color-accent-soft)] w-2/3" />
-            </div>
+
+        <!-- Right -->
+        <div class="order-1 lg:order-2">
+          <LandingHeroPipeline />
+        </div>
+      </div>
+
+      <!-- Wave separator: hero → social proof -->
+      <div class="absolute bottom-0 left-0 right-0 overflow-hidden leading-[0]">
+        <svg class="block w-full h-[70px] sm:h-[90px]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 90" preserveAspectRatio="none">
+          <path d="M0,50 C480,90 960,70 1440,20 L1440,90 L0,90 Z" fill="#F5F0FF" />
+        </svg>
+      </div>
+    </section>
+
+    <!-- Social proof -->
+    <section class="py-12 px-4 sm:px-6 bg-[#F5F0FF]">
+      <div class="max-w-4xl mx-auto">
+        <p class="text-xs uppercase tracking-widest text-[#6F3FF5] font-bold text-center mb-5">Do primeiro PDF até o dia da prova</p>
+        <div class="flex flex-wrap items-center justify-center gap-8 sm:gap-12">
+          <div v-for="stat in socialStats" :key="stat.label" class="text-center">
+            <p class="text-2xl sm:text-3xl font-extrabold text-[#1E0A3C]">{{ stat.value }}</p>
+            <p class="text-[11px] text-gray-500 mt-0.5">{{ stat.label }}</p>
           </div>
         </div>
       </div>
     </section>
 
+    <!-- Wave separator: social proof → comparison -->
+    <div class="overflow-hidden leading-[0] bg-[#F5F0FF]">
+      <svg class="block w-full h-[70px] sm:h-[90px]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 90" preserveAspectRatio="none">
+        <path d="M0,30 C480,0 960,20 1440,40 L1440,90 L0,90 Z" fill="#FFFFFF" />
+      </svg>
+    </div>
+
+    <!-- Comparação Baigi vs Anki -->
+    <section class="pt-8 pb-16 sm:pb-20 px-4 sm:px-6 bg-white">
+      <div class="max-w-5xl mx-auto">
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-[#1E0A3C] text-center mb-3">
+          O Anki que deveria existir.
+        </h2>
+        <p class="text-sm text-gray-500 text-center mb-12">Repetição espaçada que funciona — sem a dor de cabeça.</p>
+
+        <!-- Bento grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div
+            v-for="item in comparisons"
+            :key="item.solution"
+            class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition-shadow flex flex-col items-center text-center"
+          >
+            <!-- Pain (Anki) -->
+            <span class="text-[10px] font-medium text-gray-300 uppercase tracking-wide mb-2">Anki</span>
+            <div class="w-7 h-7 rounded-md bg-red-50 flex items-center justify-center mb-2">
+              <component :is="item.painIcon" class="w-3.5 h-3.5 text-red-400" :stroke-width="2" />
+            </div>
+            <p class="text-xs text-gray-400 line-through decoration-red-300/60 mb-3">{{ item.pain }}</p>
+            <!-- Arrow -->
+            <svg class="w-3 h-3 text-[#BEA6FF] mb-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+            </svg>
+            <!-- Solution (Baigi) -->
+            <span class="text-[10px] font-bold text-[#6F3FF5] uppercase tracking-wide mb-2">Baigi</span>
+            <div class="w-9 h-9 rounded-lg bg-[#F0EAFF] flex items-center justify-center mb-2">
+              <component :is="item.solIcon" class="w-4.5 h-4.5 text-[#6F3FF5]" :stroke-width="2" />
+            </div>
+            <p class="text-sm font-semibold text-[#1E0A3C]">{{ item.solution }}</p>
+          </div>
+        </div>
+
+        <div class="text-center mt-10">
+          <p class="text-sm text-gray-500">
+            Você não precisa abandonar o Anki.
+            <span class="font-semibold text-[#6F3FF5]">Importe seus decks e continue de onde parou.</span>
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Wave: white → lavender -->
+    <div class="overflow-hidden leading-[0] bg-white">
+      <svg class="block w-full h-[50px] sm:h-[70px]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 70" preserveAspectRatio="none">
+        <path d="M0,35 C360,0 1080,70 1440,35 L1440,70 L0,70 Z" fill="#F5F0FF" />
+      </svg>
+    </div>
+
+    <!-- Como funciona -->
+    <section id="como-funciona" class="py-16 sm:py-20 px-4 sm:px-6 bg-[#F5F0FF]">
+      <div class="max-w-5xl mx-auto">
+        <div class="text-center mb-12">
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-[#1E0A3C]">Como funciona</h2>
+          <p class="mt-2 text-sm text-gray-500">Três passos. Zero configuração.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div v-for="(step, i) in steps" :key="step.title" class="bg-white rounded-2xl border border-gray-100 shadow-md p-8 text-center hover:shadow-lg transition-shadow relative">
+            <span class="absolute top-4 left-4 text-[11px] font-bold text-[#6F3FF5] bg-[#F0EAFF] w-6 h-6 rounded-full flex items-center justify-center">{{ i + 1 }}</span>
+            <div class="w-14 h-14 rounded-2xl bg-[#F0EAFF] flex items-center justify-center mx-auto mb-5">
+              <component :is="step.icon" class="w-7 h-7 text-[#6F3FF5]" :stroke-width="2" />
+            </div>
+            <h3 class="text-base font-bold text-[#1E0A3C] mb-2">{{ step.title }}</h3>
+            <p class="text-sm text-gray-500 leading-relaxed">{{ step.desc }}</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Wave: lavender → white -->
+    <div class="overflow-hidden leading-[0] bg-[#F5F0FF]">
+      <svg class="block w-full h-[50px] sm:h-[70px]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 70" preserveAspectRatio="none">
+        <path d="M0,35 C480,70 960,0 1440,35 L1440,70 L0,70 Z" fill="#FFFFFF" />
+      </svg>
+    </div>
+
+    <!-- Casos de uso -->
+    <section class="py-16 sm:py-20 px-4 sm:px-6 bg-white">
+      <div class="max-w-5xl mx-auto">
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-[#1E0A3C] text-center mb-12">
+          Para todo tipo de estudante
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div v-for="uc in useCases" :key="uc.title" class="bg-white rounded-2xl border border-gray-100 shadow-md p-8 text-center hover:shadow-lg transition-shadow">
+            <div class="w-14 h-14 rounded-2xl bg-[#F0EAFF] flex items-center justify-center mx-auto mb-5">
+              <component :is="uc.icon" class="w-7 h-7 text-[#6F3FF5]" :stroke-width="2" />
+            </div>
+            <h3 class="text-base font-bold text-[#1E0A3C] mb-2">{{ uc.title }}</h3>
+            <p class="text-sm text-gray-500 leading-relaxed">{{ uc.desc }}</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Wave: white → lavender -->
+    <div class="overflow-hidden leading-[0] bg-white">
+      <svg class="block w-full h-[50px] sm:h-[70px]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 70" preserveAspectRatio="none">
+        <path d="M0,35 C360,0 1080,70 1440,35 L1440,70 L0,70 Z" fill="#F5F0FF" />
+      </svg>
+    </div>
+
+    <!-- Visão macro do conhecimento -->
+    <section class="py-16 sm:py-20 px-4 sm:px-6 bg-[#F5F0FF]">
+      <div class="max-w-5xl mx-auto">
+        <div class="text-center mb-10">
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-[#1E0A3C]">
+            Enxergue seu conhecimento por inteiro.
+          </h2>
+          <p class="mt-2 text-sm text-gray-500">Veja exatamente quais assuntos você domina e quais precisam de revisão.</p>
+        </div>
+
+        <!-- Tabs -->
+        <div class="flex items-center justify-center gap-2 mb-6">
+          <button
+            class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all"
+            :class="activeTab === 'graph' ? 'bg-white text-[#6F3FF5] shadow-md border border-[#E0D4FF]' : 'text-gray-500 hover:text-[#6F3FF5]'"
+            @click="activeTab = 'graph'"
+          >
+            <Network :size="16" :stroke-width="2" />
+            Grafo de Conhecimento
+          </button>
+          <button
+            class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all"
+            :class="activeTab === 'mindmap' ? 'bg-white text-[#6F3FF5] shadow-md border border-[#E0D4FF]' : 'text-gray-500 hover:text-[#6F3FF5]'"
+            @click="activeTab = 'mindmap'"
+          >
+            <GitBranch :size="16" :stroke-width="2" />
+            Mapa Mental
+          </button>
+        </div>
+
+        <!-- Tab content -->
+        <div class="relative">
+          <LandingMockGraph v-if="activeTab === 'graph'" />
+          <LandingMockMindMap v-else />
+        </div>
+
+        <!-- Caption -->
+        <p class="mt-4 text-center text-xs text-gray-400">
+          {{ activeTab === 'graph' ? 'Arraste nós, dê zoom e clique para ver detalhes — igual no app real.' : 'Expanda e recolha ramos, dê zoom — gerado automaticamente pela IA a partir das suas notas.' }}
+        </p>
+
+        <!-- Extra features grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-12">
+          <div v-for="feat in hiddenFeatures" :key="feat.title" class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 text-center">
+            <div class="w-10 h-10 rounded-xl bg-[#F0EAFF] flex items-center justify-center mx-auto mb-3">
+              <component :is="feat.icon" class="w-5 h-5 text-[#6F3FF5]" :stroke-width="2" />
+            </div>
+            <h4 class="text-sm font-bold text-[#1E0A3C] mb-1">{{ feat.title }}</h4>
+            <p class="text-[11px] text-gray-500 leading-relaxed">{{ feat.desc }}</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Wave: lavender → white -->
+    <div class="overflow-hidden leading-[0] bg-[#F5F0FF]">
+      <svg class="block w-full h-[50px] sm:h-[70px]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 70" preserveAspectRatio="none">
+        <path d="M0,35 C480,70 960,0 1440,35 L1440,70 L0,70 Z" fill="#FFFFFF" />
+      </svg>
+    </div>
+
+    <!-- Planos -->
+    <section id="planos" class="py-16 sm:py-20 px-4 sm:px-6 bg-white">
+      <div class="max-w-4xl mx-auto">
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-[#1E0A3C] text-center mb-3">
+          Comece grátis. Evolua quando quiser.
+        </h2>
+        <p class="text-sm text-gray-500 text-center mb-8">Core ilimitado pra sempre. IA como upgrade natural.</p>
+
+        <!-- Toggle -->
+        <div class="flex items-center justify-center gap-4 mb-10">
+          <span class="text-sm font-semibold cursor-pointer" :class="!isAnnual ? 'text-[#1E0A3C]' : 'text-gray-400'" @click="isAnnual = false">Mensal</span>
+          <button
+            class="relative w-14 h-7 rounded-full transition-colors duration-200"
+            :class="isAnnual ? 'bg-[#6F3FF5]' : 'bg-gray-300'"
+            @click="isAnnual = !isAnnual"
+            aria-label="Alternar entre plano mensal e anual"
+          >
+            <span
+              class="absolute top-1 left-1 w-5 h-5 rounded-full bg-white shadow-md transition-all duration-200"
+              :style="{ transform: isAnnual ? 'translateX(28px)' : 'translateX(0)' }"
+            />
+          </button>
+          <span class="text-sm font-semibold cursor-pointer" :class="isAnnual ? 'text-[#1E0A3C]' : 'text-gray-400'" @click="isAnnual = true">
+            Anual
+            <span class="ml-1.5 text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">-20%</span>
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+          <!-- Free -->
+          <div class="bg-white rounded-2xl border border-gray-100 shadow-md p-7">
+            <h3 class="text-lg font-bold text-[#1E0A3C] mb-1">Grátis</h3>
+            <p class="text-3xl font-extrabold text-[#1E0A3C] mb-1">R$ 0<span class="text-sm font-normal text-gray-400">/mês</span></p>
+            <p class="text-xs text-gray-400 mb-5">Para sempre</p>
+            <ul class="space-y-2.5 text-sm text-gray-600 mb-8">
+              <li class="flex items-start gap-2"><span class="text-emerald-500 font-bold">✓</span><span>Flashcards + repetição espaçada ilimitados</span></li>
+              <li class="flex items-start gap-2"><span class="text-emerald-500 font-bold">✓</span><span>Notas, cadernos, grafo, agenda de provas</span></li>
+              <li class="flex items-start gap-2"><span class="text-emerald-500 font-bold">✓</span><span>Importar do Anki (.apkg)</span></li>
+              <li class="flex items-start gap-2"><span class="text-emerald-500 font-bold">✓</span><span>10 cards com IA/mês</span></li>
+              <li class="flex items-start gap-2"><span class="text-emerald-500 font-bold">✓</span><span>5 conversas com agente/mês</span></li>
+              <li class="flex items-start gap-2"><span class="text-emerald-500 font-bold">✓</span><span>1 simulado/mês</span></li>
+              <li class="flex items-start gap-2"><span class="text-gray-300 font-bold">–</span><span class="text-gray-400">Podcast: prévia 30s</span></li>
+            </ul>
+            <NuxtLink to="/criar-conta" class="block w-full text-center py-3 rounded-xl border-2 border-gray-200 text-sm font-semibold text-gray-700 hover:border-[#6F3FF5] hover:text-[#6F3FF5] transition-all">
+              Começar grátis
+            </NuxtLink>
+          </div>
+
+          <!-- Pro -->
+          <div class="bg-white rounded-2xl border-2 border-[#6F3FF5]/20 shadow-lg p-7 relative">
+            <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#6F3FF5] text-white text-[11px] font-bold px-3.5 py-1 rounded-full shadow-md">
+              Mais popular
+            </span>
+            <h3 class="text-lg font-bold text-[#6F3FF5] mb-1">Pro</h3>
+            <div class="mb-1">
+              <p class="text-3xl font-extrabold text-[#1E0A3C] inline">
+                R$ {{ isAnnual ? '23,99' : '29,90' }}
+              </p>
+              <span class="text-sm font-normal text-gray-400">/mês</span>
+            </div>
+            <p v-if="isAnnual" class="text-xs text-gray-400 mb-5">
+              R$287,90 cobrado anualmente
+              <span class="text-emerald-600 font-semibold">(economize R$71)</span>
+            </p>
+            <p v-else class="text-xs text-gray-400 mb-5">Cancele quando quiser</p>
+            <ul class="space-y-2.5 text-sm text-gray-600 mb-8">
+              <li class="flex items-start gap-2"><span class="text-emerald-500 font-bold">✓</span><span>Tudo do Grátis, sem limites</span></li>
+              <li class="flex items-start gap-2"><span class="text-[#6F3FF5] font-bold">∞</span><span>Cards com IA <strong>ilimitado</strong></span></li>
+              <li class="flex items-start gap-2"><span class="text-[#6F3FF5] font-bold">∞</span><span>Agente tira-dúvidas <strong>ilimitado</strong></span></li>
+              <li class="flex items-start gap-2"><span class="text-[#6F3FF5] font-bold">∞</span><span>Simulados ilimitados (com dissertativa)</span></li>
+              <li class="flex items-start gap-2"><span class="text-emerald-500 font-bold">✓</span><span>30 PDFs processados/mês</span></li>
+              <li class="flex items-start gap-2"><span class="text-emerald-500 font-bold">✓</span><span>10 podcasts completos/mês</span></li>
+              <li class="flex items-start gap-2"><span class="text-emerald-500 font-bold">✓</span><span>Mapa mental com IA</span></li>
+            </ul>
+            <NuxtLink to="/criar-conta" class="block w-full text-center py-3.5 rounded-xl bg-[#6F3FF5] hover:bg-[#5A2EE6] text-white text-sm font-semibold shadow-[0_4px_12px_rgba(111,63,245,0.3)] hover:shadow-[0_6px_16px_rgba(111,63,245,0.4)] transition-all">
+              Assinar Pro
+            </NuxtLink>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Wave: white → lavender -->
+    <div class="overflow-hidden leading-[0] bg-white">
+      <svg class="block w-full h-[50px] sm:h-[70px]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 70" preserveAspectRatio="none">
+        <path d="M0,35 C480,70 960,0 1440,35 L1440,70 L0,70 Z" fill="#F5F0FF" />
+      </svg>
+    </div>
+
     <!-- FAQ -->
-    <section class="py-16 sm:py-24 px-4 sm:px-6 bg-surface-secondary">
+    <section class="py-16 sm:py-20 px-4 sm:px-6 bg-[#F5F0FF]">
       <div class="max-w-3xl mx-auto">
-        <h2 class="text-2xl sm:text-3xl font-bold text-base-primary text-center mb-12">
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-[#1E0A3C] text-center mb-12">
           Perguntas frequentes
         </h2>
-        <div class="space-y-4">
-          <details v-for="faq in faqs" :key="faq.q" class="card px-6 py-4 group">
-            <summary class="flex items-center justify-between cursor-pointer text-base-primary font-medium list-none">
+        <div class="space-y-3">
+          <details v-for="faq in faqs" :key="faq.q" class="bg-white rounded-xl border border-gray-100 shadow-sm px-6 py-4 group">
+            <summary class="flex items-center justify-between cursor-pointer text-[#1E0A3C] font-semibold text-sm list-none">
               {{ faq.q }}
-              <span class="text-base-muted transition-transform group-open:rotate-45">+</span>
+              <span class="text-gray-400 transition-transform group-open:rotate-45 text-lg leading-none">+</span>
             </summary>
-            <p class="mt-3 text-small text-base-muted">{{ faq.a }}</p>
+            <p class="mt-3 text-sm text-gray-500 leading-relaxed">{{ faq.a }}</p>
           </details>
         </div>
       </div>
     </section>
 
+    <!-- Wave: lavender → white -->
+    <div class="overflow-hidden leading-[0] bg-[#F5F0FF]">
+      <svg class="block w-full h-[50px] sm:h-[70px]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 70" preserveAspectRatio="none">
+        <path d="M0,35 C480,70 960,0 1440,35 L1440,70 L0,70 Z" fill="#FFFFFF" />
+      </svg>
+    </div>
+
     <!-- CTA Final -->
-    <section class="py-16 px-4 sm:px-6 text-center">
-      <h2 class="text-2xl sm:text-3xl font-bold text-base-primary mb-4">
-        Pare de estudar do jeito errado.
+    <section class="py-20 sm:py-24 px-4 sm:px-6 text-center bg-white">
+      <h2 class="text-2xl sm:text-3xl font-extrabold text-[#1E0A3C] mb-3">
+        Do primeiro PDF até o dia da prova.
       </h2>
-      <p class="text-base-muted text-lg mb-2">Comece a memorizar de verdade hoje.</p>
-      <p class="text-small text-base-muted mb-8">Leva menos de 1 minuto.</p>
-      <NuxtLink to="/criar-conta" class="btn-primary !py-3 !px-8 text-base font-semibold">
+      <p class="text-base text-gray-500 mb-8">Comece agora — grátis, sem cartão, em 30 segundos.</p>
+      <NuxtLink to="/criar-conta" class="inline-block bg-[#6F3FF5] hover:bg-[#5A2EE6] text-white font-semibold px-8 py-3.5 rounded-xl shadow-[0_4px_16px_rgba(111,63,245,0.3)] hover:shadow-[0_6px_20px_rgba(111,63,245,0.4)] transition-all hover:-translate-y-0.5">
         Criar conta grátis
       </NuxtLink>
     </section>
 
     <!-- Footer -->
-    <footer class="py-8 px-4 sm:px-6 border-t border-base">
-      <div class="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-        <p class="text-small text-base-muted">
-          Baigi — Feito no Brasil 🇧🇷
-        </p>
-        <div class="flex items-center gap-4 text-small text-base-muted">
-          <NuxtLink to="/entrar" class="hover:text-accent-primary">Entrar</NuxtLink>
-          <span>·</span>
-          <NuxtLink to="/terms" class="hover:text-accent-primary">Termos de Uso</NuxtLink>
-          <span>·</span>
-          <NuxtLink to="/privacy" class="hover:text-accent-primary">Privacidade</NuxtLink>
-          <span>·</span>
-          <a href="mailto:contato@baigi.com.br" class="hover:text-accent-primary">Contato</a>
+    <footer class="py-8 px-4 sm:px-6 border-t border-gray-100 bg-white">
+
+    <!-- Demo Video Modal -->
+    <Teleport to="body">
+      <Transition name="fade">
+        <div v-if="showDemoModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4" @click.self="showDemoModal = false">
+          <div class="absolute inset-0 bg-black/70" />
+          <div class="relative w-full max-w-3xl rounded-2xl overflow-hidden shadow-2xl bg-[#1E0A3C]">
+            <!-- Close -->
+            <button class="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors" @click="showDemoModal = false">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+            <!-- Placeholder video -->
+            <div class="aspect-video flex flex-col items-center justify-center gap-4 p-8">
+              <div class="w-16 h-16 rounded-full bg-[#6F3FF5] flex items-center justify-center">
+                <svg class="w-7 h-7 text-white ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+              </div>
+              <p class="text-white/80 text-sm text-center">Vídeo de demonstração em breve.</p>
+              <p class="text-white/50 text-xs text-center">PDF → Nota → Flashcards → Podcast em 30 segundos.</p>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+      <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <LandingLogoLanding :icon-size="22" size="sm" />
+        </div>
+        <div class="flex flex-wrap items-center gap-4 text-xs text-gray-400">
+          <a href="#recursos" class="hover:text-[#6F3FF5] transition-colors">Recursos</a>
+          <a href="#planos" class="hover:text-[#6F3FF5] transition-colors">Planos</a>
+          <NuxtLink to="/ajuda" class="hover:text-[#6F3FF5] transition-colors">Ajuda</NuxtLink>
+          <a href="mailto:contato@baigi.com.br" class="hover:text-[#6F3FF5] transition-colors">Contato</a>
         </div>
       </div>
     </footer>
@@ -223,41 +419,85 @@
 </template>
 
 <script setup lang="ts">
+import { FileUp, Sparkles, RefreshCw, Headphones, Brain, CalendarCheck, BookOpen, GraduationCap, Globe, PenLine, Layers, MonitorX, StickyNote, Network, ClipboardList, AlarmClockOff, Settings2, Languages, Zap, Podcast, BookMarked, GitBranch, ListChecks, Shield, Timer } from 'lucide-vue-next'
+
 definePageMeta({ layout: 'landing' })
 
 useHead({
-  title: 'Baigi — Pare de esquecer o que você estuda',
+  title: 'BAIGI — De PDF a revisão pronta em 30 segundos',
   meta: [
-    { name: 'description', content: 'Cole seu material, a IA gera flashcards. Revise no momento certo com FSRS e memorize de verdade. 100% em português.' },
-    { property: 'og:title', content: 'Baigi — Pare de esquecer o que você estuda' },
-    { property: 'og:description', content: 'Flashcards com IA + repetição espaçada. Melhor que Anki, mais inteligente que Quizlet.' },
+    { name: 'description', content: 'Transforme qualquer material em flashcards, notas, simulados e podcast com IA. Repetição espaçada inteligente. Grátis para começar.' },
+    { property: 'og:title', content: 'BAIGI — Sistema completo de estudos com IA' },
+    { property: 'og:description', content: 'PDF vira revisão pronta em 30 segundos. Flashcards, podcast e simulados gerados pela IA.' },
     { property: 'og:type', content: 'website' },
   ],
 })
 
-// Redirect logged-in users
 const auth = useAuthStore()
 if (auth.isAuthenticated) {
   navigateTo('/hoje')
 }
 
-const comparison = [
-  { feature: 'Interface moderna', baigi: '✅', anki: '❌', quizlet: '✅' },
-  { feature: 'Repetição espaçada (FSRS)', baigi: '✅', anki: '✅', quizlet: '❌' },
-  { feature: 'IA gera cards', baigi: '✅', anki: '❌', quizlet: '⚠️' },
-  { feature: '100% em português', baigi: '✅', anki: '❌', quizlet: '❌' },
-  { feature: 'Notas integradas', baigi: '✅', anki: '❌', quizlet: '❌' },
-  { feature: 'Podcast de revisão', baigi: '✅', anki: '❌', quizlet: '❌' },
-  { feature: 'Importar Anki', baigi: '✅', anki: '—', quizlet: '❌' },
-  { feature: 'Curva de aprendizado', baigi: '✅ Fácil', anki: '❌ Difícil', quizlet: '✅ Fácil' },
-  { feature: 'Gratuito (core)', baigi: '✅', anki: '✅', quizlet: '❌' },
+const isAnnual = ref(false)
+const activeTab = ref<'graph' | 'mindmap'>('graph')
+const showDemoModal = ref(false)
+
+const socialStats = [
+  { value: '30s', label: 'PDF vira material de estudo' },
+  { value: '100%', label: 'em português' },
+  { value: 'FSRS-6', label: 'mesmo algoritmo do Anki' },
+  { value: '0', label: 'configuração necessária' },
+]
+
+const steps = [
+  { icon: FileUp, title: 'Corte o tempo de resumo a zero', desc: 'Importe qualquer PDF ou apostila. A IA extrai o conteúdo e estrutura tudo pra você.' },
+  { icon: Sparkles, title: 'Material de estudo pronto na hora', desc: 'Notas organizadas, flashcards atômicos e simulados — gerados automaticamente.' },
+  { icon: RefreshCw, title: 'Revise exatamente antes de esquecer', desc: 'O algoritmo agenda cada revisão no momento ideal. E você ouve os pontos fracos como podcast.' },
+]
+
+const comparisons = [
+  { pain: 'Criar cards na mão, um por um', painIcon: PenLine, solution: 'PDF vira 24 cards em 30s', solIcon: Zap, featured: false },
+  { pain: 'Backlog infinito desmotiva', painIcon: Layers, solution: 'Modo Sobrevivência prioriza', solIcon: Shield, featured: false },
+  { pain: 'Plugins pra tudo funcionar', painIcon: MonitorX, solution: 'Tudo integrado, zero config', solIcon: Sparkles, featured: false },
+  { pain: 'Cards soltos, sem contexto', painIcon: StickyNote, solution: 'Notas + grafo + mapa mental', solIcon: Network, featured: false },
+  { pain: 'Sem simulados nem provas', painIcon: ClipboardList, solution: 'Simulados com IA integrados', solIcon: ListChecks, featured: false },
+  { pain: 'Sem áudio, só leitura', painIcon: AlarmClockOff, solution: 'Podcast dos pontos fracos', solIcon: Headphones, featured: false },
+]
+
+const useCases = [
+  { icon: BookOpen, title: 'Concurseiros', desc: 'Edital gigante? Importe a apostila e tenha flashcards prontos em segundos. Agenda de provas prioriza o que cai mais.' },
+  { icon: GraduationCap, title: 'Universitários', desc: 'Slides do professor viram material de revisão. Simulados antes da prova. Podcast no caminho da aula.' },
+  { icon: Globe, title: 'Idiomas', desc: 'Vocabulário, gramática, expressões — tudo com repetição espaçada. Nunca mais esqueça uma palavra.' },
+]
+
+const hiddenFeatures = [
+  { icon: Shield, title: 'Modo Sobrevivência', desc: 'Nunca deixe um backlog acabar com sua motivação.' },
+  { icon: CalendarCheck, title: 'Agenda de Provas', desc: 'Estude mais perto da prova sem reorganizar tudo manualmente.' },
+  { icon: Zap, title: 'Revisão Relâmpago', desc: 'Tem 5 minutos? Revise apenas o que importa.' },
+  { icon: RefreshCw, title: 'Anti-Backlog', desc: 'O algoritmo reduz a carga sem sacrificar sua retenção.' },
 ]
 
 const faqs = [
-  { q: 'Posso importar meus decks do Anki?', a: 'Sim! Basta exportar o arquivo .apkg do Anki e importar no Baigi. Decks, cards, tags e mídia são convertidos automaticamente.' },
-  { q: 'A IA não vai inventar informações erradas?', a: 'A IA gera cards a partir do SEU material (notas, PDFs). Ela extrai e organiza — não inventa conteúdo. Você sempre revisa antes de aceitar.' },
-  { q: 'Se eu cancelar o Pro, perco meus cards?', a: 'Não. O core é grátis para sempre. Seus cards, notas, decks e revisões continuam funcionando normalmente. Você só perde acesso à IA ilimitada.' },
-  { q: 'Funciona no celular?', a: 'Sim. O Baigi é um PWA — funciona como app no celular, sem precisar baixar nada. Basta acessar pelo navegador e adicionar à tela inicial.' },
-  { q: 'Quanto tempo preciso por dia?', a: '5 a 15 minutos. O algoritmo FSRS calcula o momento ideal de cada revisão, então você estuda menos e lembra mais.' },
+  { q: 'Posso importar do Anki?', a: 'Sim! Importa .apkg com decks, cards, tags e media automaticamente. Sem perder nada.' },
+  { q: 'O plano grátis é realmente grátis?', a: 'Sim. Core ilimitado — flashcards, notas, grafo, revisão, importar Anki. A IA tem limites mensais que você pode expandir com o Pro.' },
+  { q: 'Funciona no celular?', a: 'Sim, é PWA. Funciona em qualquer navegador como app nativo. Adicione à tela inicial e use offline.' },
+  { q: 'Meus dados ficam seguros?', a: 'Sim. Servidores no Brasil, criptografia em trânsito e repouso, compatível com LGPD.' },
+  { q: 'Posso cancelar a qualquer momento?', a: 'Sim, sem fidelidade. Cancela em 1 clique no painel. Seus dados e cards continuam no plano grátis.' },
+  { q: 'Preciso saber usar Anki?', a: 'Não. O Baigi é simples desde o primeiro uso. Sem plugins, sem configuração, sem curva de aprendizado.' },
 ]
 </script>
+
+<style scoped>
+html {
+  scroll-behavior: smooth;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>

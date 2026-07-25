@@ -19,9 +19,7 @@
 
     <!-- Empty state -->
     <div v-else-if="!store.podcasts.length" class="text-center py-16">
-      <div class="w-20 h-20 rounded-2xl bg-accent-primary/10 flex items-center justify-center mx-auto mb-4">
-        <Headphones :size="36" class="text-accent-primary" />
-      </div>
+      <img src="~/assets/mascot-baigi-podcast.png" alt="Baigi com fones" class="w-28 h-28 object-contain mx-auto mb-4" />
       <p class="text-title text-base-secondary">Nenhum podcast ainda</p>
       <p class="text-small text-base-muted mt-1 max-w-xs mx-auto">Gere seu primeiro podcast dentro de um caderno e ouça seus pontos fracos!</p>
       <NuxtLink to="/cadernos" class="btn-primary mt-5 inline-flex">Ir pra Cadernos</NuxtLink>

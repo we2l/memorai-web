@@ -3,7 +3,7 @@
     <!-- Greeting + Streak -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
       <div class="flex items-center gap-3">
-        <UiBaigiMascot state="idle" :visible="true" :size="48" />
+        <img src="~/assets/mascot-baigi-bust.png" alt="Baigi" class="w-14 h-14 object-contain" />
         <div>
         <h1 class="font-heading font-bold text-3xl text-base-primary">
           {{ greeting }}, <span class="text-accent-primary opacity-85">{{ auth.user?.name?.split(' ')[0] ?? 'estudante' }}</span>
@@ -100,6 +100,7 @@
 
     <!-- Empty state: no cards at all -->
     <div v-else-if="!stats?.total_cards" class="card mt-6 text-center py-10">
+      <img src="~/assets/mascot-baigi-reading.png" alt="Baigi lendo" class="w-24 h-24 object-contain mx-auto mb-4" />
       <p class="text-title text-base-secondary mb-2">Hora de criar seus primeiros cards</p>
       <p class="text-small text-base-muted mb-4">Vá até um caderno, cole seu material e a IA gera flashcards em segundos. Ou importe do Anki.</p>
       <div class="flex gap-3 justify-center">

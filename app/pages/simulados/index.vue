@@ -57,9 +57,7 @@
 
     <!-- Empty state -->
     <div v-else-if="completed.length === 0 && inProgress.length === 0" class="text-center py-16">
-      <div class="w-20 h-20 rounded-2xl bg-accent-primary/10 flex items-center justify-center mx-auto mb-4">
-        <ClipboardCheck :size="36" class="text-accent-primary" />
-      </div>
+      <img src="~/assets/mascot-baigi-thinking.png" alt="Baigi pensando" class="w-24 h-24 object-contain mx-auto mb-4" />
       <p class="text-title text-base-secondary">Nenhum simulado ainda</p>
       <p class="text-small text-base-muted mt-1 max-w-xs mx-auto">Gere simulados a partir dos seus cadernos e descubra seus pontos fracos.</p>
       <button class="btn-primary mt-5" @click="showConfig = true">Criar primeiro simulado</button>

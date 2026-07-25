@@ -53,6 +53,7 @@
       </div>
       <div v-else class="py-6">
         <div class="text-center mb-4">
+          <img src="~/assets/mascot-baigi-reading.png" alt="Baigi lendo" class="w-20 h-20 object-contain mx-auto mb-3" />
           <p class="text-headline text-base-primary mb-2">Pare de esquecer o que estuda</p>
           <p class="text-small text-base-muted">Cole um texto, suba um PDF — a IA transforma em flashcards em segundos.</p>
         </div>

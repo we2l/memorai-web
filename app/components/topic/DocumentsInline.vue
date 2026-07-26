@@ -1,19 +1,111 @@
 <template>
   <div>
-    <!-- Upload area -->
+    <!-- Upload area (compact) -->
     <label
-      class="flex items-center gap-3 px-4 py-3.5 rounded-xl border-2 border-dashed cursor-pointer transition-all"
+      class="flex items-center gap-3 px-4 py-3 rounded-xl border-2 border-dashed cursor-pointer transition-all"
       :class="uploading ? 'opacity-50 pointer-events-none border-base bg-[var(--bg-card)]' : 'border-[var(--color-accent-primary)]/30 bg-[var(--color-primary-50)] hover:border-[var(--color-accent-primary)]/50 hover:bg-[var(--color-primary-100)]'"
+      title="Aceita PDF de até 50MB (Free) ou 100MB (Pro). A IA lê o documento e cria uma nota estruturada com conceitos, pegadinhas e pontos-chave."
     >
-      <Upload :size="20" class="text-accent-primary shrink-0" />
-      <div>
-        <p class="text-sm font-medium text-accent-primary">{{ uploading ? `Enviando ${uploadProgress}%...` : 'Subir PDF' }}</p>
-        <p v-if="!uploading" class="text-xs text-base-muted">A IA transforma em resumo + flashcards</p>
+      <Upload :size="18" class="text-accent-primary shrink-0" />
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-medium text-accent-primary">{{ uploading ? `Enviando ${uploadProgress}%...` : 'Adicionar PDF' }}</p>
+        <p v-if="!uploading" class="text-micro text-base-muted">Suba apostilas, livros ou slides — a IA gera resumo e cards pra você</p>
       </div>
       <input type="file" accept=".pdf" class="hidden" @change="onFileSelect" />
     </label>
 
-    <!-- Paywall banner -->
+    <!-- Documents list (compact cards) -->
+    <div v-if="documents.length" class="space-y-2 mt-3">
+      <div
+        v-for="doc in documents"
+        :key="doc.id"
+        class="rounded-xl bg-[var(--bg-card)] border border-base p-3 shadow-sm"
+      >
+        <!-- Row 1: File info + delete -->
+        <div class="flex items-center gap-2">
+          <button class="flex items-center gap-2 group flex-1 min-w-0 text-left" @click="openViewer(doc)">
+            <FileText :size="16" class="text-accent-primary shrink-0" />
+            <span class="text-body text-base-primary truncate font-medium group-hover:text-accent-primary group-hover:underline transition-colors">{{ doc.original_name }}</span>
+          </button>
+          <span v-if="doc.pages_count" class="text-micro text-base-muted shrink-0">{{ doc.pages_count }} pág</span>
+          <button
+            class="p-1.5 rounded-lg text-base-muted hover:text-danger hover:bg-danger/10 transition-colors shrink-0"
+            title="Remover PDF"
+            @click="confirmDelete(doc)"
+          >
+            <Trash2 :size="14" />
+          </button>
+        </div>
+
+        <!-- Row 2: Status + actions (inline, compact) -->
+        <div class="mt-2 pl-6">
+          <!-- Generating -->
+          <div v-if="doc.note_generation_status === 'generating'" class="flex items-center gap-2 text-small text-accent-primary">
+            <Loader2 :size="14" class="animate-spin" />
+            <span>Gerando resumo{{ doc.pages_count ? ` (${doc.pages_count} pág)` : '' }}...</span>
+          </div>
+
+          <!-- Failed -->
+          <div v-else-if="doc.note_generation_status === 'failed'" class="flex items-center gap-2 text-small">
+            <XCircle :size="14" class="text-danger shrink-0" />
+            <span class="text-danger">Falhou.</span>
+            <button class="text-accent-primary hover:underline" @click="openGenerateNote(doc)">Tentar novamente</button>
+          </div>
+
+          <!-- Completed: resumo pronto -->
+          <div v-else-if="doc.has_generated_note">
+            <div class="flex items-center gap-2 flex-wrap">
+              <CheckCircle :size="14" class="text-success shrink-0" />
+              <span class="text-small text-success font-medium">Resumo pronto</span>
+              <span v-if="doc.processed_pages && doc.pages_count && doc.processed_pages < doc.pages_count" class="text-micro text-base-muted">
+                ({{ doc.processed_pages }}/{{ doc.pages_count }} pág)
+              </span>
+            </div>
+
+            <!-- Partial banner (compact) -->
+            <div
+              v-if="doc.processed_pages && doc.pages_count && doc.processed_pages < doc.pages_count"
+              class="mt-2 px-3 py-2 rounded-lg bg-accent-primary-subtle/50 border border-[var(--color-accent-primary)]/10 flex items-center gap-2"
+            >
+              <Lock :size="13" class="text-accent-primary shrink-0" />
+              <p class="text-micro text-base-secondary flex-1">
+                Parcial ({{ doc.processed_pages }}/{{ doc.pages_count }} pág).
+                <NuxtLink to="/planos" class="text-accent-primary hover:underline">Desbloquear →</NuxtLink>
+              </p>
+            </div>
+
+            <!-- Actions row (text buttons, not full-width) -->
+            <div class="mt-2 flex items-center gap-3 flex-wrap">
+              <button
+                class="inline-flex items-center gap-1.5 text-small text-accent-primary font-medium hover:underline transition-colors"
+                @click="openGenerateCards(doc)"
+              >
+                <Sparkles :size="13" /> Gerar cards
+              </button>
+            </div>
+          </div>
+
+          <!-- Processing embeddings -->
+          <div v-else-if="doc.status === 'processing'" class="flex items-center gap-2 text-small text-base-muted">
+            <Loader2 :size="14" class="animate-spin text-accent-primary" />
+            <span>Processando...</span>
+          </div>
+
+          <!-- Default: CTA to generate note -->
+          <div v-else class="flex items-center gap-3">
+            <button
+              class="inline-flex items-center gap-1.5 text-small text-accent-primary font-medium hover:underline transition-colors"
+              @click="openGenerateNote(doc)"
+            >
+              <Sparkles :size="13" /> Gerar resumo com IA
+            </button>
+            <span class="text-micro text-base-muted">Conceitos, pegadinhas, pontos-chave</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Paywall banner (appears only when quota exhausted) -->
     <button
       v-if="showPaywall"
       class="w-full mt-3 px-4 py-3 rounded-xl bg-accent-primary-subtle border border-accent-primary/20 flex items-center gap-3 text-left hover:bg-accent-primary/10 transition-colors"
@@ -21,97 +113,16 @@
     >
       <Sparkles :size="16" class="text-[var(--color-accent-soft)]" />
       <div class="flex-1">
-        <p class="text-small font-medium text-accent-primary">Deixar a IA criar os cards</p>
-        <p class="text-micro text-base-muted">Sua cota de IA acabou este mês</p>
+        <p class="text-small font-medium text-accent-primary">Criar cards com IA</p>
+        <p class="text-micro text-base-muted">Sua cota acabou este mês</p>
       </div>
-      <span class="text-small text-accent-primary font-medium shrink-0">Desbloquear Pro →</span>
+      <span class="text-small text-accent-primary font-medium shrink-0">Pro →</span>
     </button>
 
-    <!-- Documents list -->
-    <!-- Documents list -->
-    <div v-if="documents.length" class="space-y-3 mt-3">
-      <div v-for="doc in documents" :key="doc.id" class="rounded-xl bg-surface-secondary/60 border border-accent-primary/10 p-4">
-        <!-- File info -->
-        <button class="flex items-center gap-2 group w-full text-left" @click="openViewer(doc)">
-          <FileText :size="16" class="text-accent-primary shrink-0" />
-          <p class="text-body text-accent-primary truncate font-medium group-hover:underline">{{ doc.original_name }}</p>
-          <span v-if="doc.pages_count" class="text-micro text-base-muted shrink-0">{{ doc.pages_count }} pág</span>
-        </button>
-
-        <!-- Status: Generating -->
-        <div v-if="doc.note_generation_status === 'generating'" class="mt-3 flex items-center gap-2 text-small text-accent-primary">
-          <Loader2 :size="14" class="animate-spin" />
-          <span>A IA está lendo {{ doc.pages_count || '' }} páginas... Pode sair, avisamos quando estiver pronto.</span>
-        </div>
-
-        <!-- Status: Failed -->
-        <div v-else-if="doc.note_generation_status === 'failed'" class="mt-3 flex items-center gap-2 text-small text-danger">
-          <XCircle :size="14" />
-          <span>Falhou ao gerar.</span>
-          <button class="text-accent-primary hover:underline" @click="openGenerateNote(doc)">Tentar novamente</button>
-        </div>
-
-        <!-- Status: Ready -->
-        <div v-else-if="doc.has_generated_note" class="mt-3">
-          <div class="flex items-center gap-2 mb-2">
-            <CheckCircle :size="14" class="text-success shrink-0" />
-            <span class="text-small text-success">Resumo pronto</span>
-          </div>
-          <button
-            class="btn-primary !py-2 !px-4 !min-h-[2.75rem] text-small w-full justify-center"
-            @click="openGenerateCards(doc)"
-          >
-            <Sparkles :size="14" /> Gerar cards a partir do resumo
-          </button>
-          <button
-            v-if="!doc.topic_tree_generated && doc.study_structure_status !== 'generating' && doc.study_structure_status !== 'failed'"
-            class="btn-secondary !py-2 !px-4 !min-h-[2.75rem] text-small w-full justify-center mt-2"
-            :disabled="studyStructureLoading"
-            @click="generateStudyStructure(doc)"
-          >
-            <Layers :size="14" />
-            <span v-if="studyStructureLoading">Criando estrutura...</span>
-            <span v-else>📋 Criar estrutura de estudo</span>
-          </button>
-          <div v-else-if="doc.study_structure_status === 'generating'" class="mt-2 flex items-center gap-2 text-small text-accent-primary">
-            <Loader2 :size="14" class="animate-spin" />
-            <span>Organizando seus cadernos com IA...</span>
-          </div>
-          <div v-else-if="doc.study_structure_status === 'failed'" class="mt-2 flex items-center gap-2 text-small text-danger">
-            <XCircle :size="14" />
-            <span>Falhou ao criar estrutura.</span>
-            <button class="text-accent-primary hover:underline ml-1" @click="generateStudyStructure(doc)">Tentar novamente</button>
-          </div>
-          <div v-else-if="doc.topic_tree_generated" class="mt-2 flex items-center gap-2 text-small text-success">
-            <CheckCircle :size="14" />
-            <span>Estrutura de estudo criada</span>
-            <NuxtLink to="/cadernos" class="text-accent-primary hover:underline ml-auto text-micro">Ver cadernos →</NuxtLink>
-          </div>
-        </div>
-
-        <!-- Status: Processing embeddings -->
-        <div v-else-if="doc.status === 'processing'" class="mt-3 flex items-center gap-2 text-small text-base-muted">
-          <Loader2 :size="14" class="animate-spin text-accent-primary" />
-          <span>Processando...</span>
-        </div>
-
-        <!-- CTA: Generate note (visible directly, no collapse needed) -->
-        <div v-else class="mt-3">
-          <button
-            class="btn-primary !py-2 !px-4 !min-h-[2.75rem] text-small w-full justify-center"
-            @click="openGenerateNote(doc)"
-          >
-            <Sparkles :size="14" /> Gerar resumo com IA
-          </button>
-          <p class="text-micro text-base-muted text-center mt-1.5">Extrai conceitos, pegadinhas e pontos-chave</p>
-        </div>
-      </div>
-    </div>
-
     <!-- Success banner after note generation -->
-    <div v-if="completedDoc" class="mt-3 p-4 rounded-xl bg-accent-primary-subtle">
+    <div v-if="completedDoc" class="mt-3 p-4 rounded-xl bg-accent-primary-subtle/50 border border-[var(--color-accent-primary)]/10">
       <div class="flex items-center gap-2 mb-2">
-        <CheckCircle :size="18" class="text-success" />
+        <CheckCircle :size="16" class="text-success" />
         <p class="text-body font-semibold text-base-primary">Resumo pronto!</p>
       </div>
       <p v-if="completedDoc.note_stats" class="text-small text-base-secondary mb-3">
@@ -120,10 +131,10 @@
         <span v-if="completedDoc.note_stats.insights"> · {{ completedDoc.note_stats.insights }} dicas</span>
       </p>
       <div class="flex gap-2">
-        <button class="btn-primary !py-2 !px-4 !min-h-[2.75rem] text-small" @click="handleGenerateCards">
-          <Sparkles :size="14" /> Gerar cards agora
+        <button class="btn-primary !py-1.5 !px-3 !min-h-0 text-small" @click="handleGenerateCards">
+          <Sparkles :size="13" /> Gerar cards agora
         </button>
-        <button class="btn-secondary !py-2 !px-3 !min-h-[2.75rem] text-small" @click="completedDoc = null">
+        <button class="btn-secondary !py-1.5 !px-3 !min-h-0 text-small" @click="completedDoc = null">
           Depois
         </button>
       </div>
@@ -148,36 +159,41 @@
     <UiConfirmModal
       v-model="showConfirmCards"
       title="Gerar cards com IA"
-      :message="`Isso consome créditos de geração de cards IA. Deseja gerar cards a partir de &quot;${selectedDoc?.original_name}&quot;?`"
+      :message="`Gerar cards a partir de &quot;${selectedDoc?.original_name}&quot;? Isso consome créditos de IA.`"
       confirm-label="Gerar cards"
       variant="primary"
       @confirm="confirmGenerateCards"
     />
+
+    <!-- Confirm document deletion -->
+    <UiConfirmModal
+      v-model="showDeleteDoc"
+      title="Remover PDF?"
+      message="O PDF será removido. Resumos e cards já gerados serão mantidos."
+      confirm-label="Remover"
+      @confirm="handleDeleteDoc"
+    />
   </div>
 </template>
 
-<script lang="ts">
-import type { Document } from '~/types'
-
-// Module-level: prevents duplicate fetches when component remounts (tab toggle)
-const _lastFetchedTopic: { id: string; ts: number } = { id: '', ts: 0 }
-</script>
-
 <script setup lang="ts">
-import { Upload, ChevronDown, FileText, Loader2, CheckCircle, XCircle, Sparkles, Layers } from 'lucide-vue-next'
+import { Upload, FileText, Loader2, CheckCircle, XCircle, Sparkles, Lock, Trash2 } from 'lucide-vue-next'
+import type { Document } from '~/types'
 
 const props = defineProps<{ topicId: string }>()
 const emit = defineEmits<{
   generateFromPdf: [documentId: string]
   noteReady: []
   generateCards: [noteId: string]
-  structureReady: []
 }>()
 
 const { $api } = useNuxtApp()
 const toast = useToast()
 const auth = useAuthStore()
 const featureUsage = useFeatureUsage()
+const docStore = useDocumentStore()
+
+const documents = computed(() => docStore.documents)
 
 const uploadMaxSize = computed(() =>
   (auth.user?.plan === 'pro' ? 100 : 50) * 1024 * 1024,
@@ -193,10 +209,8 @@ function openUpgrade() {
   }))
 }
 
-const documents = ref<Document[]>([])
 const uploading = ref(false)
 const uploadProgress = ref(0)
-const expandedDoc = ref<string | null>(null)
 const completedDoc = ref<Document | null>(null)
 
 // Viewer state
@@ -211,21 +225,26 @@ const selectedDoc = ref<Document | null>(null)
 // Generate cards confirmation
 const showConfirmCards = ref(false)
 
-// Study structure
-const studyStructureLoading = ref(false)
+// Delete document
+const showDeleteDoc = ref(false)
+const deleteDocId = ref<string | null>(null)
 
-async function generateStudyStructure(doc: Document) {
-  studyStructureLoading.value = true
+function confirmDelete(doc: Document) {
+  deleteDocId.value = doc.id
+  showDeleteDoc.value = true
+}
+
+async function handleDeleteDoc() {
+  if (!deleteDocId.value) return
   try {
-    await $api('/topics/from-document', { method: 'POST', body: { document_id: doc.id } })
-    toast.show('Estrutura sendo criada com IA...')
-    doc.study_structure_status = 'generating'
-    startPolling()
+    await $api(`/documents/${deleteDocId.value}`, { method: 'DELETE' })
+    toast.show('PDF removido.')
+    await docStore.fetchForTopic(props.topicId, true)
   } catch (e: any) {
-    const msg = e?.data?.message || 'Erro ao criar estrutura.'
-    toast.show(msg, 'error')
+    toast.show(e?.data?.message || 'Erro ao remover.', 'error')
   } finally {
-    studyStructureLoading.value = false
+    showDeleteDoc.value = false
+    deleteDocId.value = null
   }
 }
 
@@ -266,8 +285,8 @@ function confirmGenerateCards() {
 }
 
 function onNoteGenerated() {
-  startPolling()
-  fetchDocuments(true)
+  docStore.fetchForTopic(props.topicId, true)
+  docStore.startPolling()
 }
 
 function handleGenerateCards() {
@@ -275,23 +294,6 @@ function handleGenerateCards() {
     emit('generateCards', completedDoc.value.note_stats.note_id)
   }
   completedDoc.value = null
-}
-
-const fetchingDocs = ref(false)
-
-async function fetchDocuments(force = false) {
-  if (fetchingDocs.value) return
-  // Skip if same topic was fetched less than 2s ago (prevents remount spam)
-  if (!force && _lastFetchedTopic.id === props.topicId && Date.now() - _lastFetchedTopic.ts < 2000) return
-  fetchingDocs.value = true
-  try {
-    const res = await $api<{ data: Document[] }>('/documents', { params: { topic_id: props.topicId } })
-    documents.value = res.data.filter(d => d.topic_id === props.topicId)
-    _lastFetchedTopic.id = props.topicId
-    _lastFetchedTopic.ts = Date.now()
-  } catch {} finally {
-    fetchingDocs.value = false
-  }
 }
 
 async function onFileSelect(e: Event) {
@@ -325,7 +327,7 @@ async function onFileSelect(e: Event) {
     })
 
     toast.show('PDF enviado!')
-    await fetchDocuments(true)
+    await docStore.fetchForTopic(props.topicId, true)
   } catch (e: any) {
     toast.show(e?.message || 'Erro ao enviar', 'error')
   } finally {
@@ -334,77 +336,23 @@ async function onFileSelect(e: Event) {
   }
 }
 
-// Polling: check for generating notes + processing documents
-const needsPolling = computed(() =>
-  documents.value.some(d => d.note_generation_status === 'generating' || d.status === 'processing' || d.study_structure_status === 'generating'),
-)
-let pollTimer: ReturnType<typeof setInterval> | null = null
-let pollStartedAt: number | null = null
-const POLL_TIMEOUT = 10 * 60 * 1000 // 10 minutes
+// Watch store documents for completion events (toasts + emits)
+let prevGeneratingIds: string[] = []
 
-function startPolling() {
-  if (pollTimer) return
-  pollStartedAt = Date.now()
-  pollTimer = setInterval(async () => {
-    // Timeout protection: stop polling but don't mark as failed
-    if (pollStartedAt && Date.now() - pollStartedAt > POLL_TIMEOUT) {
-      toast.show('Processamento em andamento. Atualize a página para verificar.', 'success')
-      clearInterval(pollTimer!)
-      pollTimer = null
-      pollStartedAt = null
-      return
-    }
-
-    const prevGenerating = documents.value.filter(d => d.note_generation_status === 'generating').map(d => d.id)
-    const prevStructure = documents.value.filter(d => d.study_structure_status === 'generating').map(d => d.id)
-    await fetchDocuments(true)
-
-    // Check if any note just finished generating
-    for (const id of prevGenerating) {
-      const doc = documents.value.find(d => d.id === id)
-      if (doc && doc.note_generation_status !== 'generating') {
-        if (doc.note_generation_status === 'completed') {
-          toast.show('Material de estudo gerado! 🎉')
-          completedDoc.value = doc
-          emit('noteReady')
-        } else if (doc.note_generation_status === 'failed') {
-          toast.show('Falha ao gerar nota. Tente novamente.', 'error')
-        }
+watch(documents, (docs) => {
+  for (const id of prevGeneratingIds) {
+    const doc = docs.find(d => d.id === id)
+    if (doc && doc.note_generation_status !== 'generating') {
+      if (doc.note_generation_status === 'completed') {
+        toast.show('Material de estudo gerado!')
+        completedDoc.value = doc
+        emit('noteReady')
+      } else if (doc.note_generation_status === 'failed') {
+        toast.show('Falha ao gerar nota. Tente novamente.', 'error')
       }
     }
-
-    // Check if study structure finished
-    for (const id of prevStructure) {
-      const doc = documents.value.find(d => d.id === id)
-      if (doc && doc.study_structure_status !== 'generating') {
-        if (doc.study_structure_status === 'completed') {
-          toast.show('Estrutura de estudo criada! Seus cadernos foram organizados. 📚')
-          emit('structureReady')
-        } else if (doc.study_structure_status === 'failed') {
-          toast.show('Falha ao criar estrutura. Tente novamente.', 'error')
-        }
-      }
-    }
-
-    if (!needsPolling.value) {
-      clearInterval(pollTimer!)
-      pollTimer = null
-      pollStartedAt = null
-    }
-  }, 4000)
-}
-
-watch(needsPolling, (val, oldVal) => { if (val && !oldVal) startPolling() })
-
-// Fetch once on mount, not on reactive changes (prevents re-fetch on tab toggle remount)
-let hasFetched = false
-onMounted(() => {
-  if (props.topicId && !hasFetched) {
-    hasFetched = true
-    fetchDocuments()
   }
-})
-onUnmounted(() => { if (pollTimer) clearInterval(pollTimer) })
 
-defineExpose({ documents })
+  prevGeneratingIds = docs.filter(d => d.note_generation_status === 'generating').map(d => d.id)
+}, { deep: true })
 </script>

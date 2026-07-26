@@ -82,9 +82,18 @@
               </div>
             </div>
 
-            <!-- Card count badge -->
-            <div v-if="podcast.card_ids?.length && podcast.status === 'ready'" class="text-micro text-base-muted shrink-0">
-              {{ podcast.card_ids.length }} cards
+            <!-- Card count badge + delete -->
+            <div class="flex items-center gap-2 shrink-0">
+              <span v-if="podcast.card_ids?.length && podcast.status === 'ready'" class="text-micro text-base-muted">
+                {{ podcast.card_ids.length }} cards
+              </span>
+              <button
+                @click.stop="confirmDelete(podcast)"
+                class="w-8 h-8 rounded-lg flex items-center justify-center text-base-muted hover:text-danger hover:bg-red-500/10 transition-colors"
+                title="Excluir podcast"
+              >
+                <Trash2 :size="14" />
+              </button>
             </div>
           </div>
         </div>
@@ -94,12 +103,28 @@
 </template>
 
 <script setup lang="ts">
-import { Headphones, Loader2, Play, Pause, AlertCircle, Mic } from 'lucide-vue-next'
+import { Headphones, Loader2, Play, Pause, AlertCircle, Mic, Trash2 } from 'lucide-vue-next'
 import type { Podcast } from '~/types'
 
 const store = usePodcastStore()
 const player = usePlayerStore()
 const showGenerate = ref(false)
+const podcastToDelete = ref<Podcast | null>(null)
+
+async function confirmDelete(podcast: Podcast) {
+  if (!confirm(`Excluir "${podcast.title}"? O áudio será removido permanentemente.`)) return
+
+  // If currently playing, stop
+  if (player.currentPodcast?.id === podcast.id) {
+    player.stop()
+  }
+
+  try {
+    await store.deletePodcast(podcast.id)
+  } catch (e) {
+    alert('Erro ao excluir podcast.')
+  }
+}
 
 function onGenerated() {
   if (store.hasPending) pollInterval = store.startPolling()

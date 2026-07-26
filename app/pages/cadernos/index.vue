@@ -127,12 +127,16 @@
               @structure-ready="topicStore.fetchTree()"
             />
           </template>
-          <template #editor>
-            <!-- Banner: note is being generated -->
-            <div v-if="noteIsGenerating" class="mb-4 px-4 py-3 rounded-xl bg-accent-primary-subtle/30 border border-[var(--color-accent-primary)]/10 flex items-center gap-3">
+          <template #generating-banner>
+            <div v-if="noteIsGenerating" class="px-6 py-3 bg-accent-primary-subtle/20 border-b border-[var(--color-accent-primary)]/10 flex items-center gap-3">
               <div class="w-4 h-4 border-2 border-[var(--color-accent-primary)] border-t-transparent rounded-full animate-spin shrink-0" />
-              <p class="text-small text-base-primary">Nota sendo gerada... O conteudo aparece conforme fica pronto.</p>
+              <div class="flex-1">
+                <p class="text-small text-base-primary">Gerando material... O conteudo aparece conforme fica pronto.</p>
+                <p class="text-micro text-base-muted">Edicao liberada ao finalizar.</p>
+              </div>
             </div>
+          </template>
+          <template #editor>
             <TopicNoteEditor v-model="noteContent" :editable="!noteIsGenerating" @update:model-value="debouncedSave" @create-card="openNoteToCard" @ask-ai="askAiAboutSelection" />
           </template>
           <template #selection-toolbar />

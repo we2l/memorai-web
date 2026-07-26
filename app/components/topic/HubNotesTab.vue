@@ -154,6 +154,9 @@
         </div>
       </div>
 
+      <!-- Generating banner (fixed above editor, does not scroll) -->
+      <slot name="generating-banner" />
+
       <!-- Editor area (scrollable, centered) -->
       <div class="flex-1 overflow-y-auto">
         <div class="max-w-[720px] mx-auto px-6 pt-12 pb-32">

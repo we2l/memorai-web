@@ -271,11 +271,17 @@ function handleGenerateCards() {
   completedDoc.value = null
 }
 
+const fetchingDocs = ref(false)
+
 async function fetchDocuments() {
+  if (fetchingDocs.value) return
+  fetchingDocs.value = true
   try {
     const res = await $api<{ data: Document[] }>('/documents', { params: { topic_id: props.topicId } })
     documents.value = res.data.filter(d => d.topic_id === props.topicId)
-  } catch {}
+  } catch {} finally {
+    fetchingDocs.value = false
+  }
 }
 
 async function onFileSelect(e: Event) {
@@ -378,8 +384,16 @@ function startPolling() {
   }, 4000)
 }
 
-watch(needsPolling, (val) => { if (val) startPolling() })
-watch(() => props.topicId, () => { if (props.topicId) fetchDocuments() }, { immediate: true })
+watch(needsPolling, (val, oldVal) => { if (val && !oldVal) startPolling() })
+
+// Fetch once on mount, not on reactive changes (prevents re-fetch on tab toggle remount)
+let hasFetched = false
+onMounted(() => {
+  if (props.topicId && !hasFetched) {
+    hasFetched = true
+    fetchDocuments()
+  }
+})
 onUnmounted(() => { if (pollTimer) clearInterval(pollTimer) })
 
 defineExpose({ documents })

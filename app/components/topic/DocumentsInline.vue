@@ -99,15 +99,11 @@
         <div v-else class="mt-3">
           <button
             class="btn-primary !py-2 !px-4 !min-h-[2.75rem] text-small w-full justify-center"
-            :disabled="doc.pages_count && doc.pages_count > 100"
             @click="openGenerateNote(doc)"
           >
             <Sparkles :size="14" /> Gerar resumo com IA
           </button>
           <p class="text-micro text-base-muted text-center mt-1.5">Extrai conceitos, pegadinhas e pontos-chave</p>
-          <p v-if="doc.pages_count && doc.pages_count > 100" class="text-micro text-warning text-center mt-1">
-            <AlertTriangle :size="12" class="inline text-warning" /> Máximo 100 páginas para processar com IA
-          </p>
         </div>
       </div>
     </div>
@@ -161,7 +157,7 @@
 </template>
 
 <script setup lang="ts">
-import { Upload, ChevronDown, FileText, Loader2, CheckCircle, XCircle, Sparkles, Layers, AlertTriangle } from 'lucide-vue-next'
+import { Upload, ChevronDown, FileText, Loader2, CheckCircle, XCircle, Sparkles, Layers } from 'lucide-vue-next'
 import type { Document } from '~/types'
 
 const props = defineProps<{ topicId: string }>()
@@ -176,6 +172,10 @@ const { $api } = useNuxtApp()
 const toast = useToast()
 const auth = useAuthStore()
 const featureUsage = useFeatureUsage()
+
+const uploadMaxSize = computed(() =>
+  (auth.user?.plan === 'pro' ? 100 : 50) * 1024 * 1024,
+)
 
 const showPaywall = computed(() =>
   auth.user?.plan === 'free' && featureUsage.remaining('cards_ai') === 0,
@@ -281,7 +281,7 @@ async function fetchDocuments() {
 async function onFileSelect(e: Event) {
   const file = (e.target as HTMLInputElement).files?.[0]
   if (!file) return
-  if (file.size > 50 * 1024 * 1024) { toast.show('Máximo 50MB', 'error'); return }
+  if (file.size > uploadMaxSize.value) { toast.show(`Máximo ${auth.user?.plan === 'pro' ? '100' : '50'}MB`, 'error'); return }
   if (!file.name.endsWith('.pdf')) { toast.show('Apenas PDF', 'error'); return }
 
   uploading.value = true

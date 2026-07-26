@@ -39,8 +39,34 @@ export default defineNuxtPlugin(() => {
           detail: { feature: data?.feature, planRequired: data?.plan_required },
         }))
       }
+
+      // Sanitize technical messages — never show raw English errors to user
+      if (response._data && typeof response._data.message === 'string') {
+        const msg = response._data.message
+        // If message looks technical (English, contains HTTP jargon), replace
+        if (/method is not supported|Route \[|Target class|No query results|SQLSTATE|Undefined|Call to/i.test(msg)) {
+          response._data.message = getClientFriendlyMessage(response.status)
+        }
+      }
     },
   })
 
   return { provide: { api } }
+
+  function getClientFriendlyMessage(status: number): string {
+    switch (status) {
+      case 400: return 'Requisição inválida. Verifique os dados e tente novamente.'
+      case 403: return 'Você não tem permissão para esta ação.'
+      case 404: return 'Recurso não encontrado.'
+      case 405: return 'Ação não permitida. Tente novamente.'
+      case 408: return 'Tempo esgotado. Tente novamente.'
+      case 413: return 'Arquivo muito grande.'
+      case 422: return 'Dados inválidos. Verifique os campos.'
+      case 429: return 'Muitas tentativas. Aguarde um momento.'
+      case 500: return 'Algo deu errado. Tente novamente em instantes.'
+      case 502: return 'Servidor temporariamente indisponível.'
+      case 503: return 'Sistema em manutenção. Tente novamente em breve.'
+      default: return 'Erro inesperado. Tente novamente.'
+    }
+  }
 })

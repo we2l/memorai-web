@@ -43,12 +43,6 @@
         <input ref="structureFileInput" type="file" accept=".pdf" class="hidden" @change="structurePdf.handleFile" />
       </div>
 
-      <!-- Structure generating banner -->
-      <div v-if="structureGenerating" class="mx-3 mb-2 px-3 py-2.5 rounded-lg bg-surface-secondary border border-base flex items-center gap-2">
-        <div class="w-4 h-4 border-2 border-[var(--color-accent-primary)] border-t-transparent rounded-full animate-spin shrink-0" />
-        <p class="text-micro text-base-primary">Lendo o PDF e organizando cadernos...</p>
-      </div>
-
       <div class="flex-1 overflow-y-auto p-2">
         <!-- Search -->
         <div class="px-2 pb-2">
@@ -91,6 +85,15 @@
 
     <!-- Main: Topic Hub -->
     <main class="flex-1 flex flex-col overflow-y-auto pb-20 lg:pb-0">
+      <!-- Structure generating banner (inline, when caderno is selected) -->
+      <div v-if="structureGenerating && selectedTopicId" class="mx-4 mt-3 px-4 py-3 rounded-xl bg-accent-primary-subtle/30 border border-[var(--color-accent-primary)]/10 flex items-center gap-3">
+        <div class="w-4 h-4 border-2 border-[var(--color-accent-primary)] border-t-transparent rounded-full animate-spin shrink-0" />
+        <div class="flex-1 min-w-0">
+          <p class="text-small text-base-primary">Organizando cadernos a partir do PDF...</p>
+          <p v-if="structureFileName" class="text-micro text-base-muted truncate">{{ structureFileName }}</p>
+        </div>
+      </div>
+
       <template v-if="selectedTopicId">
         <!-- When editor is open: full-screen note editing -->
         <TopicHubNotesTab
@@ -363,20 +366,30 @@
       </template>
 
       <div v-else class="flex-1 flex flex-col items-center justify-center text-base-muted text-small gap-3">
-        <button
-          class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small lg:hidden"
-          @click="sidebarOpen = true"
-        >
-          <PanelLeftOpen :size="16" /> Ver cadernos
-        </button>
-        <button
-          v-if="sidebarCollapsed"
-          class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small max-lg:hidden"
-          @click="sidebarCollapsed = false"
-        >
-          <PanelLeftOpen :size="16" /> Ver cadernos
-        </button>
-        <span>Selecione um caderno para começar.</span>
+        <!-- Structure generating banner (contextual, no main content) -->
+        <div v-if="structureGenerating" class="w-full max-w-md px-5 py-4 rounded-xl bg-[var(--bg-card)] border border-base shadow-sm text-center">
+          <div class="w-5 h-5 border-2 border-[var(--color-accent-primary)] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <p class="text-body text-base-primary font-medium">Organizando seus cadernos...</p>
+          <p v-if="structureFileName" class="text-small text-base-muted mt-1">{{ structureFileName }}</p>
+          <p class="text-micro text-base-muted mt-2">A IA está lendo o PDF e criando a estrutura. Leva cerca de 1 minuto.</p>
+        </div>
+
+        <template v-else>
+          <button
+            class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small lg:hidden"
+            @click="sidebarOpen = true"
+          >
+            <PanelLeftOpen :size="16" /> Ver cadernos
+          </button>
+          <button
+            v-if="sidebarCollapsed"
+            class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small max-lg:hidden"
+            @click="sidebarCollapsed = false"
+          >
+            <PanelLeftOpen :size="16" /> Ver cadernos
+          </button>
+          <span>Selecione um caderno para começar.</span>
+        </template>
       </div>
     </main>
 
@@ -669,7 +682,9 @@ function askAiAboutSelection() {
 }
 
 const structurePdf = useStructurePdf()
-const { fileInput: structureFileInput, generating: structureGenerating } = structurePdf
+const { fileInput: structureFileInput } = structurePdf
+const structureGenerating = computed(() => structurePdf.generating.value)
+const structureFileName = computed(() => structurePdf.fileName.value)
 
 const editTopicIsRoot = ref(false)
 
@@ -772,6 +787,7 @@ watch(mapSubView, (val) => {
 onMounted(async () => {
   await topicStore.fetchTree()
   featureUsage.fetchUsage()
+  useStructureStore().resumeIfNeeded()
   try {
     const res = await $api<any>('/topics/progress')
     for (const tp of res.data) {

@@ -61,7 +61,7 @@ const props = defineProps<{
   tooltip?: string
 }>()
 
-const STORAGE_KEY = 'memorai-sections'
+const STORAGE_KEY = 'baigi-sections'
 
 function loadState(): boolean {
   if (!import.meta.client) return props.defaultOpen ?? false

@@ -238,6 +238,7 @@ export interface Document {
   original_name: string
   file_size: number
   pages_count: number | null
+  processed_pages: number | null
   status: 'uploaded' | 'pending' | 'processing' | 'completed' | 'failed'
   topic_id: string | null
   chunks_count?: number

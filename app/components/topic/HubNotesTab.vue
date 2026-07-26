@@ -87,18 +87,20 @@
         <div class="flex items-center gap-1">
           <!-- Quick actions (visible) -->
           <button
-            class="p-1.5 rounded-lg text-base-muted hover:text-accent-primary hover:bg-[var(--color-primary-50)] transition-colors"
+            class="p-1.5 rounded-lg text-base-muted hover:text-accent-primary hover:bg-[var(--color-primary-50)] transition-colors flex items-center gap-1"
             title="Gerar cards com IA"
             @click="showGeneratePanel = !showGeneratePanel"
           >
             <Zap :size="16" />
+            <span class="text-small hidden lg:inline">Cards IA</span>
           </button>
           <button
-            class="p-1.5 rounded-lg text-base-muted hover:text-accent-primary hover:bg-[var(--color-primary-50)] transition-colors"
+            class="p-1.5 rounded-lg text-base-muted hover:text-accent-primary hover:bg-[var(--color-primary-50)] transition-colors flex items-center gap-1"
             title="Mapa mental"
             @click="showMindMap = true"
           >
             <Brain :size="16" />
+            <span class="text-small hidden lg:inline">Mapa</span>
           </button>
           <span class="text-micro text-base-muted mx-1">{{ saving ? 'Salvando...' : '✓' }}</span>
           <!-- More menu -->
@@ -130,8 +132,8 @@
             <button
               v-for="n in [3, 5, 10]"
               :key="n"
-              class="px-3 py-1.5 rounded-lg text-small font-medium transition-colors"
-              :class="generateCount === n ? 'bg-accent-primary text-white' : 'bg-[var(--border-divider)] text-base-secondary hover:bg-[var(--border-divider)]/80'"
+              class="px-3 py-1.5 rounded-lg text-small font-medium transition-colors border"
+              :class="generateCount === n ? 'bg-accent-primary-subtle text-accent-primary border-accent-primary/40' : 'bg-[var(--border-divider)] text-base-secondary border-transparent hover:bg-[var(--border-divider)]/80'"
               @click="generateCount = n"
             >
               {{ n }}

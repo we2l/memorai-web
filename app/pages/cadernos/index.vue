@@ -99,7 +99,7 @@
           :active-note="editingNote"
           :note-title="noteTitle"
           :saving="noteStore.saving"
-          :has-documents="!!docsInlineRef?.documents?.length"
+          :has-documents="docStore.documents.length > 0"
           :breadcrumb-topic="selectedTopicName ?? ''"
           :cards-from-note="cardsFromNote"
           :cards-ai-remaining="cardsAiRemaining"
@@ -117,7 +117,6 @@
           <template #documents>
             <TopicDocumentsInline
               v-if="selectedTopicId"
-              ref="docsInlineRef"
               :topic-id="selectedTopicId"
               @generate-from-pdf="(docId: string) => handleAiGenerate('pdf', 5, docId)"
               @note-ready="noteStore.fetchForTopic(selectedTopicId!)"
@@ -256,7 +255,7 @@
                 { key: 'cards', label: 'Cards', count: topicCards.length },
                 { key: 'map', label: 'Mapa' },
               ]"
-              :storage-key="`memorai-hub-tab-${selectedTopicId}`"
+              :storage-key="`baigi-hub-tab-${selectedTopicId}`"
             />
           </div>
 
@@ -303,7 +302,7 @@
             :active-note="null"
             :note-title="''"
             :saving="false"
-            :has-documents="!!docsInlineRef?.documents?.length"
+            :has-documents="docStore.documents.length > 0"
             :breadcrumb-topic="selectedTopicName ?? ''"
             :cards-from-note="cardsFromNote"
             :cards-ai-remaining="cardsAiRemaining"
@@ -321,7 +320,6 @@
             <template #documents>
               <TopicDocumentsInline
                 v-if="selectedTopicId"
-                ref="docsInlineRef"
                 :topic-id="selectedTopicId"
                 @generate-from-pdf="(docId: string) => handleAiGenerate('pdf', 5, docId)"
                 @note-ready="noteStore.fetchForTopic(selectedTopicId!)"
@@ -355,7 +353,7 @@
               <AgentAiGenerateInline
                 :topic-id="selectedTopicId!"
                 :has-notes="noteStore.notes.length > 0"
-                :has-documents="docsInlineRef?.documents?.length > 0"
+                :has-documents="docStore.documents.length > 0"
                 @generate="handleAiGenerate"
               />
             </template>
@@ -483,7 +481,7 @@ const sidebarCollapsed = ref(false)
 const sidebarOpen = ref(true)
 const activeTab = ref('notes')
 const mapSubView = ref<'graph' | 'mindmap'>(
-  (import.meta.client && localStorage.getItem('memorai-map-subview') as 'graph' | 'mindmap') || 'mindmap'
+  (import.meta.client && localStorage.getItem('baigi-map-subview') as 'graph' | 'mindmap') || 'mindmap'
 )
 const searchQuery = ref('')
 const { topicCards, showDeleteCard, deleteCardId, memorizeProgress, dueCardsCount, newCardsCount, pendingCount, setCards, cardsFromNote, confirmDeleteCard, handleDeleteCard } = useTopicCards()
@@ -517,7 +515,7 @@ const cardFormInitialFront = ref('')
 const cardFormInitialBack = ref('')
 const editingGeneratedCardIndex = ref<number | null>(null)
 const editingCard = ref<any>(null)
-const docsInlineRef = ref<any>(null)
+const docStore = useDocumentStore()
 
 const newTopicName = ref('')
 const editTopicName = ref('')
@@ -592,6 +590,7 @@ function selectTopic(id: string) {
   flushPendingSave()
   selectedTopicId.value = id
   noteStore.current = null
+  docStore.fetchForTopic(id)
   noteStore.fetchForTopic(id).then(() => {
     // Auto-select first note if available
     if (noteStore.notes.length && !noteStore.current) {
@@ -614,7 +613,7 @@ async function loadTopicData(id: string) {
     // Set default tab based on content
     const hasDue = topicCards.value.some(c => c.due && new Date(c.due) <= new Date())
     const hasNew = topicCards.value.some(c => c.state === 'new')
-    const stored = localStorage.getItem(`memorai-hub-tab-${id}`)
+    const stored = localStorage.getItem(`baigi-hub-tab-${id}`)
 
     // Query param override (from podcast player link)
     if (route.query.tab === 'cards') {
@@ -767,7 +766,7 @@ function formatDate(date: string) {
 const progressMap = ref<Record<string, number>>({})
 
 watch(mapSubView, (val) => {
-  if (import.meta.client) localStorage.setItem('memorai-map-subview', val)
+  if (import.meta.client) localStorage.setItem('baigi-map-subview', val)
 })
 
 onMounted(async () => {

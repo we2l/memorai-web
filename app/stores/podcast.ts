@@ -94,5 +94,11 @@ export const usePodcastStore = defineStore('podcast', {
       }, 5000)
       return interval
     },
+
+    async deletePodcast(podcastId: string) {
+      const { $api } = useNuxtApp()
+      await $api(`/podcasts/${podcastId}`, { method: 'DELETE' })
+      this.podcasts = this.podcasts.filter(p => p.id !== podcastId)
+    },
   },
 })

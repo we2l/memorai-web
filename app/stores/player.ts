@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import type { Podcast } from '~/types'
 
-const STORAGE_KEY = 'memorai_player_position'
+const STORAGE_KEY = 'baigi_player_position'
 
 interface SavedPosition {
   podcastId: string

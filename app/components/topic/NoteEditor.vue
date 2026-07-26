@@ -91,6 +91,7 @@ import {
 
 const props = defineProps<{
   modelValue?: Record<string, any> | null
+  editable?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -245,6 +246,7 @@ function handleSlashDetection(editorInstance: any) {
 // === Editor ===
 const editor = useEditor({
   content: props.modelValue ?? '',
+  editable: props.editable !== false,
   extensions: [
     StarterKit,
     Underline,
@@ -314,6 +316,11 @@ watch(() => props.modelValue, (val) => {
   if (current !== incoming) {
     editor.value.commands.setContent(val ?? '')
   }
+})
+
+watch(() => props.editable, (val) => {
+  if (!editor.value) return
+  editor.value.setEditable(val !== false)
 })
 
 // === Image upload ===

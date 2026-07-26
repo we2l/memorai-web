@@ -16,11 +16,11 @@ export const useSubscriptionStore = defineStore('subscription', {
       this.info = res.data
     },
 
-    async checkoutSubscription(priceId: string) {
+    async checkoutSubscription(plan: string, period: string = 'monthly') {
       const { $api } = useNuxtApp()
       const res = await $api<{ checkout_url: string }>('/checkout/subscription', {
         method: 'POST',
-        body: { price_id: priceId },
+        body: { plan, period },
       })
       window.location.href = res.checkout_url
     },

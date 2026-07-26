@@ -904,3 +904,42 @@ button {
   border-color: var(--badge-danger-text);
   color: var(--text-body);
 }
+
+.prose-baigi .callout-upgrade {
+  background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
+  border-color: #D97706;
+  color: var(--text-body);
+  text-align: center;
+  padding: 1.5rem;
+}
+
+.prose-baigi .callout-upgrade::before {
+  content: '🔒';
+  display: block;
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.prose-baigi .callout-upgrade-cta {
+  display: inline-block;
+  margin-top: 0.75rem;
+  padding: 0.5rem 1.25rem;
+  background: var(--color-accent-primary);
+  color: white;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: opacity 0.15s;
+}
+
+.prose-baigi .callout-upgrade-cta:hover {
+  opacity: 0.9;
+}
+
+@media (prefers-color-scheme: dark) {
+  .prose-baigi .callout-upgrade {
+    background: linear-gradient(135deg, rgba(217, 119, 6, 0.1) 0%, rgba(217, 119, 6, 0.05) 100%);
+    border-color: #D97706;
+  }
+}

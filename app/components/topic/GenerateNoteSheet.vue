@@ -16,6 +16,16 @@
         <span class="block mt-2 text-base-muted">Leva cerca de 2 minutos. Pode sair da tela.</span>
       </p>
 
+      <!-- Informative message about page limits -->
+      <p v-if="isPartial" class="text-small text-base-muted bg-surface-secondary rounded-lg p-3 mb-4">
+        <template v-if="isFree">
+          Seu PDF tem {{ document?.pages_count }} páginas. No grátis, a nota cobre as primeiras 100 — suficiente para avaliar a qualidade. O restante fica disponível no Pro.
+        </template>
+        <template v-else>
+          Seu PDF tem {{ document?.pages_count }} páginas. Serão processadas as primeiras 500 — limite ideal para qualidade da IA.
+        </template>
+      </p>
+
       <p class="text-micro text-base-muted mb-5">
         {{ used }}/{{ limit ?? '∞' }} créditos usados este mês
       </p>
@@ -40,9 +50,16 @@ const open = defineModel<boolean>({ required: true })
 
 const { $api } = useNuxtApp()
 const toast = useToast()
+const auth = useAuthStore()
 const generating = ref(false)
 const limit = ref<number | null>(null)
 const used = ref(0)
+
+const isFree = computed(() => auth.user?.plan !== 'pro')
+const pageLimit = computed(() => isFree.value ? 100 : 500)
+const isPartial = computed(() =>
+  props.document?.pages_count && props.document.pages_count > pageLimit.value,
+)
 
 watch(open, async (val) => {
   if (!val) return

@@ -26,6 +26,7 @@ export const usePlayerStore = defineStore('player', {
   getters: {
     hasNext: (state) => state.currentIndex < state.queue.length - 1,
     hasPrev: (state) => state.currentIndex > 0,
+    hasEnded: (state) => !state.isPlaying && state.currentTime > 0 && state.duration > 0 && state.currentTime >= state.duration - 1,
     isPlaylist: (state) => state.queue.length > 1,
     episodeLabel: (state) => state.queue.length > 1
       ? `${state.currentIndex + 1}/${state.queue.length}`

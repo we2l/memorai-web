@@ -6,9 +6,13 @@ export function useStructurePdf() {
   const { $api } = useNuxtApp()
   const toast = useToast()
   const topicStore = useTopicStore()
+  const auth = useAuthStore()
 
   const fileInput = ref<HTMLInputElement | null>(null)
   const generating = ref(false)
+
+  const uploadMaxMb = () => auth.user?.plan === 'pro' ? 100 : 50
+  const uploadMaxSize = () => uploadMaxMb() * 1024 * 1024
 
   function trigger() {
     fileInput.value?.click()
@@ -18,7 +22,7 @@ export function useStructurePdf() {
     const file = (e.target as HTMLInputElement).files?.[0]
     if (!file) return
     if (!file.name.endsWith('.pdf')) { toast.show('Apenas PDF.', 'error'); return }
-    if (file.size > 50 * 1024 * 1024) { toast.show('Máximo 50MB.', 'error'); return }
+    if (file.size > uploadMaxSize()) { toast.show(`Máximo ${uploadMaxMb()}MB.`, 'error'); return }
 
     toast.show('Enviando PDF...')
     try {

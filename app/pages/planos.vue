@@ -4,6 +4,28 @@
     <div class="text-center mb-10">
       <h1 class="text-display mb-2">Escolha seu plano</h1>
       <p class="text-base-muted text-small">Core grátis pra sempre. Pague só pela IA que acelera seus estudos.</p>
+
+      <!-- Billing toggle -->
+      <div class="flex items-center justify-center gap-3 mt-5">
+        <span :class="!isYearly ? 'text-base-primary font-medium' : 'text-base-muted'" class="text-small">Mensal</span>
+        <button
+          class="relative w-12 h-6 rounded-full transition-colors"
+          :class="isYearly ? 'bg-accent-primary' : 'bg-[var(--border-divider)]'"
+          aria-label="Alternar entre plano mensal e anual"
+          @click="isYearly = !isYearly"
+        >
+          <span
+            class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform"
+            :style="{ transform: isYearly ? 'translateX(24px)' : 'translateX(0)' }"
+          />
+        </button>
+        <span :class="isYearly ? 'text-base-primary font-medium' : 'text-base-muted'" class="text-small">
+          Anual
+          <span class="inline-block ml-1 text-micro bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 px-1.5 py-0.5 rounded-full font-medium">
+            Economize R$71
+          </span>
+        </span>
+      </div>
     </div>
 
     <!-- Plans -->
@@ -27,11 +49,12 @@
           <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> Flashcards + FSRS ilimitados</li>
           <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> Notas, cadernos e grafo</li>
           <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> Importar Anki</li>
-          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> Upload de PDFs ilimitado</li>
-          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> Gerar 20 cards/mês</li>
-          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> 10 tira-dúvidas/mês</li>
-          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> 2 processamentos de PDF/mês</li>
-          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> 1 revisão em áudio/mês</li>
+          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> Upload de PDFs</li>
+          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> 10 cards IA/mês</li>
+          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> 5 tira-dúvidas/mês</li>
+          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> 1 simulado/mês (10 questões)</li>
+          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> 1 PDF processado/mês (100 pág)</li>
+          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> Podcast: prévia 30s</li>
         </ul>
       </div>
 
@@ -45,10 +68,18 @@
 
         <p class="text-label uppercase tracking-wide mb-1 text-accent-primary">Pro</p>
         <p class="text-3xl font-bold text-base-primary mb-1">
-          R$24<span class="text-lg">,90</span>
+          <template v-if="isYearly">
+            R$23<span class="text-lg">,99</span>
+          </template>
+          <template v-else>
+            R$29<span class="text-lg">,90</span>
+          </template>
           <span class="text-small font-normal text-base-muted">/mês</span>
         </p>
-        <p class="text-micro text-base-muted mb-6">Sem limites. Sem interrupções.</p>
+        <p class="text-micro text-base-muted mb-6">
+          <template v-if="isYearly">R$287,90/ano · Sem limites. Sem interrupções.</template>
+          <template v-else>Sem limites. Sem interrupções.</template>
+        </p>
 
         <button
           v-if="currentPlan === 'pro'"
@@ -61,17 +92,19 @@
           v-else
           class="btn-primary w-full justify-center mb-6"
           :disabled="loading"
-          @click="subscribe('pro')"
+          @click="subscribe"
         >
-          {{ loading && !loadingAddon ? 'Abrindo checkout...' : 'Assinar Pro' }}
+          {{ loading ? 'Abrindo checkout...' : 'Assinar Pro' }}
         </button>
 
         <ul class="space-y-3 text-small">
           <li class="flex gap-2.5 font-medium text-base-primary"><Zap :size="16" class="text-accent-primary shrink-0 mt-0.5" /> Tudo do Grátis, mais:</li>
-          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> Gerar cards <strong>ilimitado</strong></li>
+          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> Cards com IA <strong>ilimitado</strong></li>
           <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> Tira-dúvidas <strong>ilimitado</strong></li>
-          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> 15 processamentos de PDF/mês</li>
-          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> 10 revisões em áudio/mês (até 15 min)</li>
+          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> Simulados <strong>ilimitados</strong> (com dissertativa)</li>
+          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> 20 PDFs processados/mês (até 500 pág)</li>
+          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> 5 podcasts/mês (até ~15 min)</li>
+          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> Mapa mental IA</li>
         </ul>
       </div>
     </div>
@@ -86,43 +119,11 @@
         Gerenciar
       </button>
     </div>
-
-    <!-- Addon packs -->
-    <div v-if="currentPlan !== 'free'">
-      <h2 class="text-headline mb-1">Precisa de mais?</h2>
-      <p class="text-micro text-base-muted mb-4">Pacotes extras com crédito imediato neste mês.</p>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <button
-          class="card p-4 flex items-center justify-between hover:border-accent-primary/30 transition-colors text-left"
-          :disabled="loading"
-          @click="buyAddon('reta_final')"
-        >
-          <div>
-            <p class="text-small font-medium text-base-primary"><Headphones :size="14" class="inline text-[var(--color-accent-soft)]" /> Reta Final — 3 sessões longas</p>
-            <p class="text-micro text-base-muted">30+ min em debate, modo pré-prova intensivo</p>
-          </div>
-          <span v-if="loadingAddon === 'reta_final'" class="text-small text-base-muted animate-pulse">Abrindo...</span>
-          <span v-else class="text-small font-semibold text-accent-primary">R$14,90</span>
-        </button>
-        <button
-          class="card p-4 flex items-center justify-between hover:border-accent-primary/30 transition-colors text-left"
-          :disabled="loading"
-          @click="buyAddon('pdf_pack')"
-        >
-          <div>
-            <p class="text-small font-medium text-base-primary">📄 +10 Processamentos de PDF</p>
-            <p class="text-micro text-base-muted">Resuma ou organize mais material</p>
-          </div>
-          <span v-if="loadingAddon === 'pdf_pack'" class="text-small text-base-muted animate-pulse">Abrindo...</span>
-          <span v-else class="text-small font-semibold text-accent-primary">R$4,90</span>
-        </button>
-      </div>
-    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { Check, Zap, Headphones } from 'lucide-vue-next'
+import { Check, Zap } from 'lucide-vue-next'
 
 const route = useRoute()
 const toast = useToast()
@@ -130,30 +131,17 @@ const auth = useAuthStore()
 const subscription = useSubscriptionStore()
 
 const loading = ref(false)
-const loadingAddon = ref<string | null>(null)
+const isYearly = ref(false)
 const currentPlan = computed(() => auth.user?.plan || 'free')
 
-async function subscribe(planKey: string) {
+async function subscribe() {
   loading.value = true
   try {
-    await subscription.checkoutSubscription(planKey)
+    await subscription.checkoutSubscription('pro', isYearly.value ? 'yearly' : 'monthly')
   } catch {
     toast.show('Erro ao iniciar checkout.', 'error')
   } finally {
     loading.value = false
-  }
-}
-
-async function buyAddon(addon: string) {
-  loading.value = true
-  loadingAddon.value = addon
-  try {
-    await subscription.checkoutAddon(addon)
-  } catch (e: any) {
-    toast.show(e?.data?.message || 'Erro ao processar pagamento. Tente novamente.', 'error')
-  } finally {
-    loading.value = false
-    loadingAddon.value = null
   }
 }
 

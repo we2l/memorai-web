@@ -304,6 +304,7 @@ export interface Podcast {
   duration_target?: PodcastDuration | null
   tone?: PodcastTone | null
   format?: PodcastFormat | null
+  is_teaser?: boolean
   topic_id?: string | null
   topic_name?: string | null
   source_data?: { topic_names?: string[]; card_count?: number; error_count?: number } | null

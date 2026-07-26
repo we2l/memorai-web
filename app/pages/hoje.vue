@@ -251,7 +251,7 @@ const featureLabels: Record<string, string> = {
   agent_chat: 'Tira-dúvidas',
   podcast: 'Revisão em áudio',
   quiz_ai: 'Simulados',
-  study_structure: 'Organizar PDF',
+  study_structure: 'Importar PDF',
 }
 
 const limitedFeatures = computed(() => {

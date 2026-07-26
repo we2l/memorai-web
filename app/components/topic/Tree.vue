@@ -39,12 +39,12 @@
         </NuxtLink>
         <button
           class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left text-small text-base-secondary hover:bg-surface-secondary transition-colors"
-          @click="$emit('structure-pdf')"
+          @click="$emit('import-pdf')"
         >
           <FileText :size="16" class="text-base-muted shrink-0" />
           <div>
-            <p class="font-medium text-base-primary">Organizar PDF</p>
-            <p class="text-micro text-base-muted">A IA monta pra você</p>
+            <p class="font-medium text-base-primary">Importar PDF</p>
+            <p class="text-micro text-base-muted">A IA gera resumo e cards pra você</p>
           </div>
         </button>
       </div>
@@ -68,6 +68,6 @@ defineEmits<{
   (e: 'edit', topic: Topic): void
   (e: 'delete', topic: Topic): void
   (e: 'add-child', parentId: string | null): void
-  (e: 'structure-pdf'): void
+  (e: 'import-pdf'): void
 }>()
 </script>

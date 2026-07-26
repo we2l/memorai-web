@@ -78,6 +78,7 @@
           @edit="openEdit"
           @delete="openDelete"
           @add-child="openCreate"
+          @import-pdf="importPdfInput?.click()"
         />
       </div>
     </aside>

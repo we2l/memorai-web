@@ -156,9 +156,15 @@
   </div>
 </template>
 
+<script lang="ts">
+import type { Document } from '~/types'
+
+// Module-level: prevents duplicate fetches when component remounts (tab toggle)
+const _lastFetchedTopic: { id: string; ts: number } = { id: '', ts: 0 }
+</script>
+
 <script setup lang="ts">
 import { Upload, ChevronDown, FileText, Loader2, CheckCircle, XCircle, Sparkles, Layers } from 'lucide-vue-next'
-import type { Document } from '~/types'
 
 const props = defineProps<{ topicId: string }>()
 const emit = defineEmits<{
@@ -261,7 +267,7 @@ function confirmGenerateCards() {
 
 function onNoteGenerated() {
   startPolling()
-  fetchDocuments()
+  fetchDocuments(true)
 }
 
 function handleGenerateCards() {
@@ -273,12 +279,16 @@ function handleGenerateCards() {
 
 const fetchingDocs = ref(false)
 
-async function fetchDocuments() {
+async function fetchDocuments(force = false) {
   if (fetchingDocs.value) return
+  // Skip if same topic was fetched less than 2s ago (prevents remount spam)
+  if (!force && _lastFetchedTopic.id === props.topicId && Date.now() - _lastFetchedTopic.ts < 2000) return
   fetchingDocs.value = true
   try {
     const res = await $api<{ data: Document[] }>('/documents', { params: { topic_id: props.topicId } })
     documents.value = res.data.filter(d => d.topic_id === props.topicId)
+    _lastFetchedTopic.id = props.topicId
+    _lastFetchedTopic.ts = Date.now()
   } catch {} finally {
     fetchingDocs.value = false
   }
@@ -315,7 +325,7 @@ async function onFileSelect(e: Event) {
     })
 
     toast.show('PDF enviado!')
-    await fetchDocuments()
+    await fetchDocuments(true)
   } catch (e: any) {
     toast.show(e?.message || 'Erro ao enviar', 'error')
   } finally {
@@ -347,7 +357,7 @@ function startPolling() {
 
     const prevGenerating = documents.value.filter(d => d.note_generation_status === 'generating').map(d => d.id)
     const prevStructure = documents.value.filter(d => d.study_structure_status === 'generating').map(d => d.id)
-    await fetchDocuments()
+    await fetchDocuments(true)
 
     // Check if any note just finished generating
     for (const id of prevGenerating) {

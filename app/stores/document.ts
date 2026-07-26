@@ -17,6 +17,11 @@ export const useDocumentStore = defineStore('document', () => {
       const res = await $api<{ data: Document[] }>('/documents', { params: { topic_id: topicId } })
       documents.value = res.data.filter(d => d.topic_id === topicId)
       currentTopicId.value = topicId
+
+      // Auto-start polling if any doc needs it
+      if (needsPolling.value && !pollTimer) {
+        startPolling()
+      }
     } catch {
       // Silent — component shows empty state
     } finally {

@@ -39,10 +39,22 @@
 
         <!-- Row 2: Status + actions (inline, compact) -->
         <div class="mt-2 pl-6">
-          <!-- Generating -->
-          <div v-if="doc.note_generation_status === 'generating'" class="flex items-center gap-2 text-small text-accent-primary">
-            <Loader2 :size="14" class="animate-spin" />
-            <span>Gerando resumo{{ doc.pages_count ? ` (${doc.pages_count} pág)` : '' }}...</span>
+          <!-- Generating (with progress) -->
+          <div v-if="doc.note_generation_status === 'generating'" class="space-y-1.5">
+            <div class="flex items-center gap-2 text-small text-accent-primary">
+              <Loader2 :size="14" class="animate-spin" />
+              <span v-if="doc.note_total_batches && doc.note_generation_progress">
+                Gerando material... ({{ doc.note_generation_progress }}/{{ doc.note_total_batches }} seções)
+              </span>
+              <span v-else>Preparando material de estudo...</span>
+            </div>
+            <div v-if="doc.note_total_batches" class="w-full h-1.5 bg-surface-secondary rounded-full overflow-hidden">
+              <div
+                class="h-full bg-accent-primary rounded-full transition-all duration-500"
+                :style="{ width: `${Math.round((doc.note_generation_progress / doc.note_total_batches) * 100)}%` }"
+              />
+            </div>
+            <p class="text-micro text-base-muted">Pode ler o que já está pronto na nota abaixo</p>
           </div>
 
           <!-- Failed -->

@@ -245,6 +245,8 @@ export interface Document {
   total_chunks?: number | null
   has_generated_note?: boolean
   note_generation_status?: 'generating' | 'completed' | 'failed' | null
+  note_generation_progress?: number
+  note_total_batches?: number
   topic_tree_generated?: boolean
   study_structure_status?: 'generating' | 'completed' | 'failed' | null
   note_stats?: {

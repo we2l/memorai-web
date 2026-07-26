@@ -690,8 +690,15 @@ const importPdfInput = ref<HTMLInputElement | null>(null)
 async function handleImportPdf(e: Event) {
   const file = (e.target as HTMLInputElement).files?.[0]
   if (!file) return
-  await useStructureStore().importPdf(file)
+  const structureStore = useStructureStore()
+  await structureStore.importPdf(file)
   if (importPdfInput.value) importPdfInput.value.value = ''
+
+  // Select the newly created topic and refresh tree
+  if (structureStore.topicId) {
+    await topicStore.fetchTree()
+    selectTopic(structureStore.topicId)
+  }
 }
 
 const editTopicIsRoot = ref(false)

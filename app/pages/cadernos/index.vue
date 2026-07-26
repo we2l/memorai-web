@@ -573,14 +573,30 @@ function stopNoteRefresh() {
 onUnmounted(() => stopNoteRefresh())
 
 // Auto-refresh notes list when document starts generating (note placeholder created)
-watch(() => docStore.documents.map(d => d.note_generation_status), (statuses, oldStatuses) => {
+let lastNoteStatuses: Record<string, string | null> = {}
+
+watch(() => docStore.documents, (docs) => {
   if (!selectedTopicId.value) return
-  // If any doc changed to 'generating' or 'completed', refresh notes
-  const changed = statuses.some((s, i) => s !== oldStatuses?.[i] && (s === 'generating' || s === 'completed'))
-  if (changed) {
-    noteStore.fetchForTopic(selectedTopicId.value)
+  let shouldRefresh = false
+
+  for (const doc of docs) {
+    const prev = lastNoteStatuses[doc.id]
+    const curr = doc.note_generation_status
+    // Refresh when status changes to generating (note created) or completed
+    if (prev !== curr && (curr === 'generating' || curr === 'completed')) {
+      shouldRefresh = true
+    }
+    lastNoteStatuses[doc.id] = curr ?? null
   }
-})
+
+  if (shouldRefresh) {
+    noteStore.fetchForTopic(selectedTopicId.value)
+    // Also refresh tree on completed (sub-cadernos may have been created)
+    if (docs.some(d => d.note_generation_status === 'completed' && lastNoteStatuses[d.id] !== 'completed')) {
+      topicStore.fetchTree()
+    }
+  }
+}, { deep: true })
 
 const newTopicName = ref('')
 const editTopicName = ref('')
@@ -655,7 +671,9 @@ function selectTopic(id: string) {
   flushPendingSave()
   selectedTopicId.value = id
   noteStore.current = null
-  docStore.fetchForTopic(id)
+  docStore.fetchForTopic(id).then(() => {
+    if (docStore.needsPolling) docStore.startPolling()
+  })
   noteStore.fetchForTopic(id).then(() => {
     // Auto-select first note if available
     if (noteStore.notes.length && !noteStore.current) {

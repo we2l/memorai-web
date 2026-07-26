@@ -54,7 +54,7 @@
                 :style="{ width: `${Math.round((doc.note_generation_progress / doc.note_total_batches) * 100)}%` }"
               />
             </div>
-            <p class="text-micro text-base-muted">Pode ler o que já está pronto na nota abaixo</p>
+            <p v-if="doc.note_generation_progress" class="text-micro text-base-muted">Pode ler o que já está pronto na nota abaixo</p>
           </div>
 
           <!-- Failed -->

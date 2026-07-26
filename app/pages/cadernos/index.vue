@@ -572,6 +572,16 @@ function stopNoteRefresh() {
 
 onUnmounted(() => stopNoteRefresh())
 
+// Auto-refresh notes list when document starts generating (note placeholder created)
+watch(() => docStore.documents.map(d => d.note_generation_status), (statuses, oldStatuses) => {
+  if (!selectedTopicId.value) return
+  // If any doc changed to 'generating' or 'completed', refresh notes
+  const changed = statuses.some((s, i) => s !== oldStatuses?.[i] && (s === 'generating' || s === 'completed'))
+  if (changed) {
+    noteStore.fetchForTopic(selectedTopicId.value)
+  }
+})
+
 const newTopicName = ref('')
 const editTopicName = ref('')
 const createParentId = ref<string | null>(null)

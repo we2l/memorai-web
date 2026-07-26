@@ -143,6 +143,18 @@
           </div>
         </div>
 
+        <!-- Teaser CTA (Free users) -->
+        <div
+          v-if="player.currentPodcast?.is_teaser && player.hasEnded"
+          class="px-6 py-4 bg-accent-primary-subtle border-t border-accent-primary/20"
+        >
+          <p class="text-small font-medium text-accent-primary text-center mb-2">Gostou? Essa foi só a prévia.</p>
+          <p class="text-micro text-base-muted text-center mb-3">Assine o Pro pra ouvir podcasts completos de até 15 min.</p>
+          <NuxtLink to="/planos" class="btn-primary w-full justify-center" @click="player.collapse()">
+            Ver planos
+          </NuxtLink>
+        </div>
+
         <!-- Bottom actions -->
         <div class="flex gap-3 px-6 py-4 pb-safe border-t border-base shrink-0 mb-16 sm:mb-0">
           <button

@@ -46,6 +46,9 @@ export function useTiptapRender() {
         return `<li>${renderChildren(node)}</li>`
       case 'callout': {
         const calloutType = node.attrs?.type || 'info'
+        if (calloutType === 'upgrade') {
+          return `<div class="callout callout-upgrade">${renderChildren(node)}<a href="/planos" class="callout-upgrade-cta">Ver planos →</a></div>`
+        }
         return `<div class="callout callout-${calloutType}">${renderChildren(node)}</div>`
       }
       case 'blockquote':

@@ -19,7 +19,7 @@ export const Callout = Node.create<CalloutOptions>({
   content: 'block+',
 
   addOptions() {
-    return { types: ['error', 'insight', 'gotcha'] }
+    return { types: ['error', 'insight', 'gotcha', 'info', 'upgrade'] }
   },
 
   addAttributes() {

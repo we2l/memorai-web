@@ -33,14 +33,14 @@
               <NuxtLink to="/importar" class="block px-3 py-2 text-small text-base-primary hover:bg-surface-secondary transition-colors" @click="showAddMenu = false">
                 Importar Anki
               </NuxtLink>
-              <button class="w-full text-left px-3 py-2 text-small text-base-primary hover:bg-surface-secondary transition-colors" @click="showAddMenu = false; structurePdf.trigger()">
-                <span class="block">Organizar PDF</span>
-                <span class="block text-micro text-base-muted">A IA lê o PDF e monta cadernos e tópicos pra você</span>
+              <button class="w-full text-left px-3 py-2 text-small text-base-primary hover:bg-surface-secondary transition-colors" @click="showAddMenu = false; importPdfInput?.click()">
+                <span class="block">Importar PDF</span>
+                <span class="block text-micro text-base-muted">A IA gera resumo, cards e organiza pra você</span>
               </button>
             </div>
           </div>
         </div>
-        <input ref="structureFileInput" type="file" accept=".pdf" class="hidden" @change="structurePdf.handleFile" />
+        <input ref="importPdfInput" type="file" accept=".pdf" class="hidden" @change="handleImportPdf" />
       </div>
 
       <div class="flex-1 overflow-y-auto p-2">
@@ -78,7 +78,6 @@
           @edit="openEdit"
           @delete="openDelete"
           @add-child="openCreate"
-          @structure-pdf="structurePdf.trigger()"
         />
       </div>
     </aside>
@@ -682,9 +681,17 @@ function askAiAboutSelection() {
 }
 
 const structurePdf = useStructurePdf()
-const { fileInput: structureFileInput } = structurePdf
 const structureGenerating = computed(() => structurePdf.generating.value)
 const structureFileName = computed(() => structurePdf.fileName.value)
+
+const importPdfInput = ref<HTMLInputElement | null>(null)
+
+async function handleImportPdf(e: Event) {
+  const file = (e.target as HTMLInputElement).files?.[0]
+  if (!file) return
+  await useStructureStore().importPdf(file)
+  if (importPdfInput.value) importPdfInput.value.value = ''
+}
 
 const editTopicIsRoot = ref(false)
 

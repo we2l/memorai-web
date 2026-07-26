@@ -91,15 +91,10 @@
             <span>Processando...</span>
           </div>
 
-          <!-- Default: CTA to generate note -->
-          <div v-else class="flex items-center gap-3">
-            <button
-              class="inline-flex items-center gap-1.5 text-small text-accent-primary font-medium hover:underline transition-colors"
-              @click="openGenerateNote(doc)"
-            >
-              <Sparkles :size="13" /> Gerar resumo com IA
-            </button>
-            <span class="text-micro text-base-muted">Conceitos, pegadinhas, pontos-chave</span>
+          <!-- Default: waiting for auto-generation -->
+          <div v-else class="flex items-center gap-2 text-small text-base-muted">
+            <Loader2 :size="14" class="animate-spin text-accent-primary" />
+            <span>Preparando material de estudo...</span>
           </div>
         </div>
       </div>

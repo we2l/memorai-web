@@ -1,19 +1,21 @@
 import { defineStore } from 'pinia'
 
 /**
- * Store para geração de estrutura de estudo a partir de PDF.
- * Persiste durante toda a sessão (não se perde ao navegar).
+ * Store para importação de PDF.
+ * Upload sem topic_id → backend cria caderno + gera nota + fragmenta automaticamente.
+ * Persiste durante toda a sessão.
  */
 export const useStructureStore = defineStore('structure', {
   state: () => ({
     generating: false,
     fileName: '',
     documentId: null as string | null,
+    topicId: null as string | null,
     _pollInterval: null as ReturnType<typeof setInterval> | null,
   }),
 
   actions: {
-    async startGeneration(file: File) {
+    async importPdf(file: File) {
       const { $api } = useNuxtApp()
       const toast = useToast()
       const auth = useAuthStore()
@@ -26,19 +28,25 @@ export const useStructureStore = defineStore('structure', {
       toast.show('Enviando PDF...')
 
       try {
+        const config = useRuntimeConfig()
+        const token = useCookie('auth_token').value
+
+        // Upload via XHR for progress (no topic_id → backend creates topic)
         const formData = new FormData()
         formData.append('file', file)
 
-        const uploadRes = await $api<any>('/documents', { method: 'POST', body: formData })
-        this.documentId = uploadRes.data.id
-
-        await $api('/topics/from-document', { method: 'POST', body: { document_id: this.documentId } })
+        const res = await $api<any>('/documents', { method: 'POST', body: formData })
+        this.documentId = res.data.id
+        this.topicId = res.topic_id
         this.generating = true
+
+        toast.show('Gerando material de estudo...')
         this._startPolling()
       } catch (e: any) {
         this.generating = false
         this.fileName = ''
         this.documentId = null
+        this.topicId = null
         toast.show(e?.data?.message || 'Erro ao enviar PDF.', 'error')
       }
     },
@@ -62,15 +70,15 @@ export const useStructureStore = defineStore('structure', {
 
         try {
           const res = await $api<any>(`/documents/${this.documentId}`)
-          const status = res.data.study_structure_status
+          const status = res.data.note_generation_status
 
           if (status === 'completed') {
             this._stopPolling()
-            toast.show('Cadernos criados com sucesso!')
+            toast.show('Material de estudo pronto!')
             topicStore.fetchTree()
           } else if (status === 'failed') {
             this._stopPolling()
-            toast.show('Falha ao criar estrutura. Tente novamente.', 'error')
+            toast.show('Falha ao gerar material. Tente novamente.', 'error')
           }
         } catch {
           // Network error — keep polling
@@ -89,6 +97,7 @@ export const useStructureStore = defineStore('structure', {
       this.generating = false
       this.fileName = ''
       this.documentId = null
+      this.topicId = null
     },
   },
 })

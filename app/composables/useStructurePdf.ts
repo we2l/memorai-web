@@ -1,5 +1,5 @@
 /**
- * Composable wrapper para o structure store.
+ * Composable wrapper para importação de PDF.
  * Gerencia o file input ref e delega pro store.
  */
 export function useStructurePdf() {
@@ -14,7 +14,7 @@ export function useStructurePdf() {
   async function handleFile(e: Event) {
     const file = (e.target as HTMLInputElement).files?.[0]
     if (!file) return
-    await store.startGeneration(file)
+    await store.importPdf(file)
     if (fileInput.value) fileInput.value.value = ''
   }
 

@@ -85,12 +85,11 @@
 
     <!-- Main: Topic Hub -->
     <main class="flex-1 flex flex-col overflow-y-auto pb-20 lg:pb-0">
-      <!-- Structure generating banner (inline, when caderno is selected) -->
-      <div v-if="structureGenerating && selectedTopicId" class="mx-4 mt-3 px-4 py-3 rounded-xl bg-accent-primary-subtle/30 border border-[var(--color-accent-primary)]/10 flex items-center gap-3">
+      <!-- Import PDF progress banner (inline, when caderno is selected) -->
+      <div v-if="importingInSelectedTopic && selectedTopicId" class="mx-4 mt-3 px-4 py-3 rounded-xl bg-accent-primary-subtle/30 border border-[var(--color-accent-primary)]/10 flex items-center gap-3">
         <div class="w-4 h-4 border-2 border-[var(--color-accent-primary)] border-t-transparent rounded-full animate-spin shrink-0" />
         <div class="flex-1 min-w-0">
-          <p class="text-small text-base-primary">Organizando cadernos a partir do PDF...</p>
-          <p v-if="structureFileName" class="text-micro text-base-muted truncate">{{ structureFileName }}</p>
+          <p class="text-small text-base-primary">Gerando material de estudo...</p>
         </div>
       </div>
 
@@ -183,19 +182,6 @@
                 </div>
                 <span class="text-small text-base-muted shrink-0">{{ memorizeProgress }}%</span>
               </div>
-            </div>
-
-            <!-- Sub-topics -->
-            <div v-if="subTopics.length" class="flex flex-wrap gap-1.5 mt-3">
-              <button
-                v-for="sub in subTopics"
-                :key="sub.id"
-                class="text-sm px-2.5 py-1 rounded-full border transition-all hover:brightness-90 hover:shadow-sm cursor-pointer"
-                :style="chipStyle(sub.id)"
-                @click="selectTopic(sub.id)"
-              >
-                {{ sub.name }}
-              </button>
             </div>
 
           </div>
@@ -365,7 +351,6 @@
               <AgentAiGenerateInline
                 :topic-id="selectedTopicId!"
                 :has-notes="noteStore.notes.length > 0"
-                :has-documents="docStore.documents.length > 0"
                 @generate="handleAiGenerate"
               />
             </template>
@@ -375,12 +360,11 @@
       </template>
 
       <div v-else class="flex-1 flex flex-col items-center justify-center text-base-muted text-small gap-3">
-        <!-- Structure generating banner (contextual, no main content) -->
-        <div v-if="structureGenerating" class="w-full max-w-md px-5 py-4 rounded-xl bg-[var(--bg-card)] border border-base shadow-sm text-center">
+        <!-- Import progress (no caderno selected) -->
+        <div v-if="importingInSelectedTopic" class="w-full max-w-md px-5 py-4 rounded-xl bg-[var(--bg-card)] border border-base shadow-sm text-center">
           <div class="w-5 h-5 border-2 border-[var(--color-accent-primary)] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-          <p class="text-body text-base-primary font-medium">Organizando seus cadernos...</p>
-          <p v-if="structureFileName" class="text-small text-base-muted mt-1">{{ structureFileName }}</p>
-          <p class="text-micro text-base-muted mt-2">A IA está lendo o PDF e criando a estrutura. Leva cerca de 1 minuto.</p>
+          <p class="text-body text-base-primary font-medium">Gerando material de estudo...</p>
+          <p class="text-micro text-base-muted mt-2">A IA esta lendo o PDF e criando o resumo.</p>
         </div>
 
         <template v-else>
@@ -572,29 +556,33 @@ function stopNoteRefresh() {
 
 onUnmounted(() => stopNoteRefresh())
 
-// Auto-refresh notes list when document starts generating (note placeholder created)
+// Auto-refresh notes list when documents change
 let lastNoteStatuses: Record<string, string | null> = {}
 
 watch(() => docStore.documents, (docs) => {
   if (!selectedTopicId.value) return
-  let shouldRefresh = false
 
-  for (const doc of docs) {
-    const prev = lastNoteStatuses[doc.id]
-    const curr = doc.note_generation_status
-    // Refresh when status changes to generating (note created) or completed
-    if (prev !== curr && (curr === 'generating' || curr === 'completed')) {
-      shouldRefresh = true
-    }
-    lastNoteStatuses[doc.id] = curr ?? null
+  const hasGenerating = docs.some(d => d.note_generation_status === 'generating')
+  const hasCompleted = docs.some(d => d.note_generation_status === 'completed')
+
+  // If a doc is generating or completed and we have no notes, fetch notes
+  if ((hasGenerating || hasCompleted) && noteStore.notes.length === 0) {
+    noteStore.fetchForTopic(selectedTopicId.value)
   }
 
-  if (shouldRefresh) {
-    noteStore.fetchForTopic(selectedTopicId.value)
-    // Also refresh tree on completed (sub-cadernos may have been created)
-    if (docs.some(d => d.note_generation_status === 'completed' && lastNoteStatuses[d.id] !== 'completed')) {
-      topicStore.fetchTree()
+  // Detect status transitions
+  for (const doc of docs) {
+    const prev = lastNoteStatuses[doc.id]
+    const curr = doc.note_generation_status ?? null
+    if (prev !== undefined && prev !== curr) {
+      if (curr === 'completed') {
+        noteStore.fetchForTopic(selectedTopicId.value)
+        topicStore.fetchTree()
+      } else if (curr === 'generating' && prev === null) {
+        noteStore.fetchForTopic(selectedTopicId.value)
+      }
     }
+    lastNoteStatuses[doc.id] = curr
   }
 }, { deep: true })
 
@@ -754,6 +742,11 @@ function askAiAboutSelection() {
 const structurePdf = useStructurePdf()
 const structureGenerating = computed(() => structurePdf.generating.value)
 const structureFileName = computed(() => structurePdf.fileName.value)
+
+// Check if there's a document generating in the current topic
+const importingInSelectedTopic = computed(() =>
+  docStore.documents.some(d => d.note_generation_status === 'generating'),
+)
 
 const importPdfInput = ref<HTMLInputElement | null>(null)
 

@@ -48,10 +48,10 @@
               </span>
               <span v-else>Preparando material de estudo...</span>
             </div>
-            <div v-if="doc.note_total_batches" class="w-full h-1.5 bg-surface-secondary rounded-full overflow-hidden">
+            <div v-if="doc.note_total_batches" class="w-full h-2 bg-[#e5e7eb] rounded-full overflow-hidden mt-1.5">
               <div
-                class="h-full bg-accent-primary rounded-full transition-all duration-500"
-                :style="{ width: `${Math.round((doc.note_generation_progress / doc.note_total_batches) * 100)}%` }"
+                class="h-full bg-[var(--color-accent-primary)] rounded-full transition-all duration-700 ease-out"
+                :style="{ width: `${Math.max(5, Math.round((doc.note_generation_progress / doc.note_total_batches) * 100))}%` }"
               />
             </div>
             <p v-if="doc.note_generation_progress" class="text-micro text-base-muted">Pode ler o que já está pronto na nota abaixo</p>

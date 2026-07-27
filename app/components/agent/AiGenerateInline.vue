@@ -1,6 +1,6 @@
 <template>
   <div class="relative inline-block">
-    <button class="btn-primary !py-2 !px-3.5 !min-h-[2.75rem] text-small" @click="handleClick">
+    <button class="btn-primary !py-2 !px-3.5 !min-h-[2.75rem] text-small" @click="togglePopover">
       <Sparkles :size="16" /> Gerar com IA
     </button>
 
@@ -19,14 +19,6 @@
             @click="selectedSource = 'notes'"
           >
             <FileText :size="14" class="inline text-base-muted" /> Das notas
-          </button>
-          <button
-            v-if="hasDocuments"
-            class="w-full text-left px-3 py-2 rounded-lg text-small transition-colors"
-            :class="selectedSource === 'pdf' ? 'bg-accent-primary-subtle text-accent-primary' : 'text-base-secondary hover:bg-[var(--border-divider)]'"
-            @click="selectedSource = 'pdf'"
-          >
-            📄 Do PDF
           </button>
           <button
             class="w-full text-left px-3 py-2 rounded-lg text-small transition-colors"
@@ -67,7 +59,6 @@ import { Sparkles, FileText, PenLine } from 'lucide-vue-next'
 const props = defineProps<{
   topicId: string
   hasNotes?: boolean
-  hasDocuments?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -85,14 +76,26 @@ const canGenerate = computed(() => {
   return true
 })
 
-function handleClick() {
-  // Always show popover so user can see/adjust quantity
-  selectedSource.value = props.hasNotes ? 'notes' : props.hasDocuments ? 'pdf' : 'free'
-  showPopover.value = true
+function togglePopover() {
+  if (showPopover.value) {
+    showPopover.value = false
+  } else {
+    selectedSource.value = props.hasNotes ? 'notes' : 'free'
+    showPopover.value = true
+  }
 }
 
 function generate() {
   showPopover.value = false
-  emit('generate', selectedSource.value, quantity.value, freePrompt.value)
+  emit('generate', selectedSource.value, quantity.value, selectedSource.value === 'free' ? freePrompt.value : undefined)
 }
+
+// Close on click outside
+function onClickOutside(e: MouseEvent) {
+  const el = (e.target as HTMLElement).closest('.relative.inline-block')
+  if (!el && showPopover.value) showPopover.value = false
+}
+
+onMounted(() => document.addEventListener('click', onClickOutside, true))
+onUnmounted(() => document.removeEventListener('click', onClickOutside, true))
 </script>

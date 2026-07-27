@@ -95,6 +95,27 @@
                 <Sparkles :size="13" /> Gerar cards
               </button>
             </div>
+
+            <!-- Language inference banner -->
+            <div
+              v-if="doc.language_detected && !dismissedLanguageBanners.has(doc.id)"
+              class="mt-2 px-3 py-2.5 rounded-lg bg-[var(--color-primary-50)] border border-[var(--color-accent-primary)]/15"
+            >
+              <p class="text-small text-base-primary mb-2">
+                📖 Este material está em <strong>{{ languageName(doc.source_language) }}</strong>. Como você quer estudá-lo?
+              </p>
+              <div class="flex items-center gap-2 flex-wrap">
+                <button class="btn-primary !py-1.5 !px-3 !min-h-0 text-small" @click="setLanguageMode(doc)">
+                  Aprender {{ languageName(doc.source_language) }}
+                </button>
+                <button class="btn-secondary !py-1.5 !px-3 !min-h-0 text-small" @click="dismissLanguageBanner(doc.id)">
+                  Só os conceitos
+                </button>
+                <button class="text-micro text-base-muted hover:text-base-secondary" @click="dismissLanguageBanner(doc.id)">
+                  Agora não
+                </button>
+              </div>
+            </div>
           </div>
 
           <!-- Processing embeddings -->
@@ -219,6 +240,29 @@ function openUpgrade() {
 const uploading = ref(false)
 const uploadProgress = ref(0)
 const completedDoc = ref<Document | null>(null)
+const dismissedLanguageBanners = ref(new Set<string>())
+
+function languageName(code?: string | null): string {
+  const map: Record<string, string> = { en: 'Inglês', es: 'Espanhol', fr: 'Francês', de: 'Alemão', it: 'Italiano', ja: 'Japonês', ko: 'Coreano', zh: 'Chinês' }
+  return map[code ?? ''] ?? code ?? 'idioma estrangeiro'
+}
+
+function dismissLanguageBanner(docId: string) {
+  dismissedLanguageBanners.value.add(docId)
+}
+
+async function setLanguageMode(doc: Document) {
+  dismissLanguageBanner(doc.id)
+  try {
+    await $api(`/topics/${props.topicId}`, {
+      method: 'PUT',
+      body: { learning_mode: 'language', target_language: doc.source_language || 'en' },
+    })
+    toast.show(`Modo idioma ativado! Próxima geração usará formato bilíngue.`, 'success')
+  } catch {
+    toast.show('Erro ao atualizar modo.', 'error')
+  }
+}
 
 // Viewer state
 const showViewer = ref(false)

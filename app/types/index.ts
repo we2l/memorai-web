@@ -3,6 +3,7 @@ export interface User {
   name: string
   email: string
   plan: string
+  default_learning_mode: string
   subscription_status?: string | null
   onboarding_completed: boolean
 }
@@ -81,6 +82,10 @@ export interface Topic {
   description: string | null
   parent_id: string | null
   position: number
+  learning_mode: string | null
+  target_language: string | null
+  source_language: string | null
+  language_level: string | null
   notes_count: number
   flashcards_count: number
   children: Topic[]
@@ -168,6 +173,7 @@ export interface UserSettings {
   daily_review_limit: number | null
   session_time_limit: number | null
   survival_mode: boolean
+  default_learning_mode?: string
 }
 
 export interface BacklogStats {
@@ -249,6 +255,8 @@ export interface Document {
   note_total_batches?: number
   topic_tree_generated?: boolean
   study_structure_status?: 'generating' | 'completed' | 'failed' | null
+  source_language?: string | null
+  language_detected?: boolean
   note_stats?: {
     note_id: string
     sections: number

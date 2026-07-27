@@ -401,6 +401,56 @@
       <h2 class="text-headline mb-4">{{ createParentId ? 'Novo tópico' : 'Novo caderno' }}</h2>
       <form @submit.prevent="handleCreateTopic" class="flex flex-col gap-4">
         <input v-model="newTopicName" type="text" class="input-base w-full" :placeholder="createParentId ? 'Nome do tópico' : 'Nome do caderno'" autofocus />
+
+        <!-- Learning mode selector (only for root topics/cadernos) -->
+        <div v-if="!createParentId" class="space-y-2">
+          <label class="text-small font-medium text-base-secondary">Modo de estudo</label>
+          <div class="grid grid-cols-3 gap-1.5">
+            <button
+              v-for="mode in learningModeOptions"
+              :key="mode.value"
+              type="button"
+              class="flex flex-col items-center gap-1 p-2 rounded-lg border text-center transition-all"
+              :class="newTopicMode === mode.value
+                ? 'border-[var(--color-accent-primary)] bg-accent-primary-subtle'
+                : 'border-base hover:border-[var(--color-accent-primary)]/50'"
+              @click="newTopicMode = mode.value"
+            >
+              <span class="text-base">{{ mode.icon }}</span>
+              <span class="text-micro font-medium text-base-primary leading-tight">{{ mode.label }}</span>
+            </button>
+          </div>
+
+          <!-- Language sub-fields -->
+          <div v-if="newTopicMode === 'language'" class="space-y-2 pt-1">
+            <select v-model="newTopicTargetLang" class="input-base w-full !text-small">
+              <option value="">Idioma-alvo...</option>
+              <option value="en">Inglês</option>
+              <option value="es">Espanhol</option>
+              <option value="fr">Francês</option>
+              <option value="de">Alemão</option>
+              <option value="it">Italiano</option>
+              <option value="ja">Japonês</option>
+              <option value="ko">Coreano</option>
+              <option value="zh">Chinês</option>
+            </select>
+            <div class="flex gap-1.5">
+              <button
+                v-for="lvl in ['beginner', 'intermediate', 'advanced']"
+                :key="lvl"
+                type="button"
+                class="flex-1 py-1.5 rounded-lg text-micro font-medium transition-all border"
+                :class="newTopicLangLevel === lvl
+                  ? 'border-[var(--color-accent-primary)] bg-accent-primary-subtle text-accent-primary'
+                  : 'border-base text-base-secondary hover:border-[var(--color-accent-primary)]/50'"
+                @click="newTopicLangLevel = lvl"
+              >
+                {{ lvl === 'beginner' ? 'Iniciante' : lvl === 'intermediate' ? 'Intermediário' : 'Avançado' }}
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div class="flex gap-3 justify-end">
           <button type="button" class="btn-secondary" @click="showCreateTopic = false">Cancelar</button>
           <button type="submit" class="btn-primary" :disabled="!newTopicName.trim()">Criar</button>
@@ -602,6 +652,18 @@ const editTopicName = ref('')
 const createParentId = ref<string | null>(null)
 const editTopicId = ref<string | null>(null)
 const deleteTopicId = ref<string | null>(null)
+const newTopicMode = ref(auth.user?.default_learning_mode || 'general')
+const newTopicTargetLang = ref('')
+const newTopicLangLevel = ref('')
+
+const learningModeOptions = [
+  { value: 'exam', icon: '📚', label: 'Concurso' },
+  { value: 'academic', icon: '🎓', label: 'Acadêmico' },
+  { value: 'language', icon: '🌍', label: 'Idiomas' },
+  { value: 'technical', icon: '💻', label: 'Técnico' },
+  { value: 'professional', icon: '📋', label: 'Certificação' },
+  { value: 'general', icon: '✨', label: 'Geral' },
+]
 
 const cardsAiRemaining = computed(() => featureUsage.remaining('cards_ai'))
 const cardsAiLimit = computed(() => featureUsage.usage.value?.features?.cards_ai?.limit ?? null)
@@ -790,8 +852,19 @@ function openDelete(topic: Topic) {
 }
 
 async function handleCreateTopic() {
-  await topicStore.create({ name: newTopicName.value, parent_id: createParentId.value })
+  const body: Record<string, any> = { name: newTopicName.value, parent_id: createParentId.value }
+  if (!createParentId.value && newTopicMode.value) {
+    body.learning_mode = newTopicMode.value
+    if (newTopicMode.value === 'language') {
+      body.target_language = newTopicTargetLang.value || null
+      body.language_level = newTopicLangLevel.value || null
+    }
+  }
+  await topicStore.create(body)
   showCreateTopic.value = false
+  newTopicMode.value = auth.user?.default_learning_mode || 'general'
+  newTopicTargetLang.value = ''
+  newTopicLangLevel.value = ''
   toast.show('Caderno criado!', 'success')
 }
 

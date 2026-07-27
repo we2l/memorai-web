@@ -133,6 +133,20 @@
           </div>
         </div>
 
+        <!-- Learning mode default -->
+        <div class="card p-3 sm:p-5">
+          <label class="text-title mb-3 block">Modo de estudo padrão</label>
+          <select v-model="settings.default_learning_mode" class="input-base w-full mb-3">
+            <option value="exam">📚 Concurso / Vestibular</option>
+            <option value="academic">🎓 Faculdade / Escola</option>
+            <option value="language">🌍 Idiomas</option>
+            <option value="technical">💻 Programação / TI</option>
+            <option value="professional">📋 Certificações</option>
+            <option value="general">✨ Uso geral</option>
+          </select>
+          <p class="text-small text-base-muted">Define o modo padrão para novos cadernos. Você pode mudar individualmente em cada caderno.</p>
+        </div>
+
         <button class="btn-primary" :disabled="savingSettings" @click="saveSettings">
           {{ savingSettings ? 'Salvando...' : 'Salvar configurações' }}
         </button>

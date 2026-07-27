@@ -531,6 +531,7 @@ const toast = useToast()
 const route = useRoute()
 const { $api } = useNuxtApp()
 const featureUsage = useFeatureUsage()
+const auth = useAuthStore()
 
 const selectedTopicId = ref<string | null>(null)
 const sidebarCollapsed = ref(false)

@@ -33,14 +33,14 @@
               <NuxtLink to="/importar" class="block px-3 py-2 text-small text-base-primary hover:bg-surface-secondary transition-colors" @click="showAddMenu = false">
                 Importar Anki
               </NuxtLink>
-              <button class="w-full text-left px-3 py-2 text-small text-base-primary hover:bg-surface-secondary transition-colors" @click="showAddMenu = false; importPdfInput?.click()">
+              <button class="w-full text-left px-3 py-2 text-small text-base-primary hover:bg-surface-secondary transition-colors" @click="showAddMenu = false; showImportUploadModal = true">
                 <span class="block">Importar PDF</span>
                 <span class="block text-micro text-base-muted">A IA gera resumo, cards e organiza pra você</span>
               </button>
             </div>
           </div>
         </div>
-        <input ref="importPdfInput" type="file" accept=".pdf" class="hidden" @change="handleImportPdf" />
+        <input ref="importPdfInput" type="file" accept=".pdf" class="hidden" />
       </div>
 
       <div class="flex-1 overflow-y-auto p-2">
@@ -78,7 +78,7 @@
           @edit="openEdit"
           @delete="openDelete"
           @add-child="openCreate"
-          @import-pdf="importPdfInput?.click()"
+          @import-pdf="showImportUploadModal = true"
         />
       </div>
     </aside>
@@ -845,24 +845,10 @@ const importingInSelectedTopic = computed(() =>
 
 const importPdfInput = ref<HTMLInputElement | null>(null)
 const showImportUploadModal = ref(false)
-const importPendingFile = ref<File | null>(null)
 
-async function handleImportPdf(e: Event) {
-  const file = (e.target as HTMLInputElement).files?.[0]
-  if (!file) return
-  if (importPdfInput.value) importPdfInput.value.value = ''
-
-  // Show modal to select learning mode before importing
-  importPendingFile.value = file
-  showImportUploadModal.value = true
-}
-
-async function onImportModalConfirm(data: { learning_mode: string; target_language?: string; language_level?: string }) {
-  if (!importPendingFile.value) return
-
+async function onImportModalConfirm(data: { learning_mode: string; target_language?: string; language_level?: string; file: File }) {
   const structureStore = useStructureStore()
-  await structureStore.importPdfWithMode(importPendingFile.value, data)
-  importPendingFile.value = null
+  await structureStore.importPdfWithMode(data.file, data)
 
   // Select the newly created topic and refresh tree
   if (structureStore.topicId) {

@@ -51,13 +51,20 @@
 
     <div class="flex gap-3 justify-end mt-4">
       <button class="btn-secondary" @click="$emit('update:modelValue', false)">Cancelar</button>
-      <button
-        class="btn-primary"
-        :disabled="!selected || (selected === 'language' && (!targetLang || !langLevel))"
-        @click="confirm"
+      <label
+        class="btn-primary cursor-pointer"
+        :class="{ 'opacity-50 pointer-events-none': !canConfirm }"
       >
-        Enviar PDF →
-      </button>
+        Selecionar PDF →
+        <input
+          ref="fileInput"
+          type="file"
+          accept=".pdf"
+          class="hidden"
+          :disabled="!canConfirm"
+          @change="onFileSelected"
+        />
+      </label>
     </div>
   </UiModal>
 </template>
@@ -70,12 +77,13 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
-  confirm: [data: { learning_mode: string; target_language?: string; language_level?: string }]
+  confirm: [data: { learning_mode: string; target_language?: string; language_level?: string; file: File }]
 }>()
 
 const selected = ref(props.defaultMode || 'general')
 const targetLang = ref('')
 const langLevel = ref('')
+const fileInput = ref<HTMLInputElement | null>(null)
 
 const modes = [
   { value: 'exam', icon: '🏛️', label: 'Concurso / OAB', desc: 'Leis, pegadinhas' },
@@ -92,17 +100,33 @@ const levels = [
   { value: 'advanced', label: 'Avançado' },
 ]
 
-function confirm() {
-  const data: any = { learning_mode: selected.value }
+const canConfirm = computed(() => {
+  if (!selected.value) return false
+  if (selected.value === 'language' && (!targetLang.value || !langLevel.value)) return false
+  return true
+})
+
+function onFileSelected(e: Event) {
+  const file = (e.target as HTMLInputElement).files?.[0]
+  if (!file) return
+
+  const data: any = { learning_mode: selected.value, file }
   if (selected.value === 'language') {
     data.target_language = targetLang.value
     data.language_level = langLevel.value
   }
   emit('confirm', data)
   emit('update:modelValue', false)
+
+  // Reset input
+  if (fileInput.value) fileInput.value.value = ''
 }
 
-watch(() => props.defaultMode, (v) => {
-  if (v) selected.value = v
+watch(() => props.modelValue, (v) => {
+  if (v) {
+    selected.value = props.defaultMode || 'general'
+    targetLang.value = ''
+    langLevel.value = ''
+  }
 })
 </script>

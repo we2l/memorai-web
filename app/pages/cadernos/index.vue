@@ -120,6 +120,7 @@
             <TopicDocumentsInline
               v-if="selectedTopicId"
               :topic-id="selectedTopicId"
+              :topic-learning-mode="selectedTopicLearningMode"
               @generate-from-pdf="(docId: string) => handleAiGenerate('pdf', 5, docId)"
               @note-ready="noteStore.fetchForTopic(selectedTopicId!)"
               @generate-cards="(noteId: string) => handleAiGenerate('notes', 5)"
@@ -319,6 +320,7 @@
               <TopicDocumentsInline
                 v-if="selectedTopicId"
                 :topic-id="selectedTopicId"
+                :topic-learning-mode="selectedTopicLearningMode"
                 @generate-from-pdf="(docId: string) => handleAiGenerate('pdf', 5, docId)"
                 @note-ready="noteStore.fetchForTopic(selectedTopicId!)"
                 @generate-cards="(noteId: string) => handleAiGenerate('notes', 5)"
@@ -679,6 +681,18 @@ const selectedTopicName = computed(() => {
     return null
   }
   return selectedTopicId.value ? find(topicStore.tree, selectedTopicId.value) ?? '' : ''
+})
+
+const selectedTopicLearningMode = computed(() => {
+  function find(topics: Topic[], id: string): string | null {
+    for (const t of topics) {
+      if (t.id === id) return t.learning_mode
+      const found = find(t.children ?? [], id)
+      if (found) return found
+    }
+    return null
+  }
+  return selectedTopicId.value ? find(topicStore.tree, selectedTopicId.value) : null
 })
 
 function noteNameById(noteId: string): string {

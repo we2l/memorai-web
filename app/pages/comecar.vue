@@ -2,6 +2,81 @@
   <div class="min-h-screen bg-surface flex items-center justify-center p-4 sm:p-6">
     <div class="w-full max-w-md">
 
+      <!-- Step 0: Learning Mode -->
+      <div v-if="step === 0">
+        <h1 class="text-display text-center mb-2">O que você mais estuda?</h1>
+        <p class="text-base-muted text-small text-center mb-8">Isso ajuda a IA a gerar materiais no formato ideal pra você.</p>
+
+        <div class="grid grid-cols-2 gap-3">
+          <button
+            v-for="mode in learningModes"
+            :key="mode.value"
+            class="flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all text-center"
+            :class="selectedMode === mode.value
+              ? 'border-[var(--color-accent-primary)] bg-accent-primary-subtle'
+              : 'border-base bg-[var(--bg-card)] hover:border-[var(--color-accent-primary)]/50'"
+            @click="selectMode(mode.value)"
+          >
+            <span class="text-2xl">{{ mode.icon }}</span>
+            <span class="text-small font-medium text-base-primary">{{ mode.label }}</span>
+          </button>
+        </div>
+
+        <!-- Language sub-form (inline) -->
+        <div v-if="selectedMode === 'language'" class="mt-4 p-4 rounded-xl bg-[var(--bg-card)] border border-base space-y-3">
+          <div>
+            <label class="text-small font-medium text-base-primary mb-1 block">Qual idioma?</label>
+            <select v-model="targetLanguage" class="input-base w-full !text-small">
+              <option value="">Selecione...</option>
+              <option value="en">Inglês</option>
+              <option value="es">Espanhol</option>
+              <option value="fr">Francês</option>
+              <option value="de">Alemão</option>
+              <option value="it">Italiano</option>
+              <option value="ja">Japonês</option>
+              <option value="ko">Coreano</option>
+              <option value="zh">Chinês</option>
+              <option value="other">Outro</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-small font-medium text-base-primary mb-1 block">Seu nível</label>
+            <div class="flex gap-2">
+              <button
+                v-for="level in languageLevels"
+                :key="level.value"
+                class="flex-1 py-2 rounded-lg text-small font-medium transition-all border"
+                :class="languageLevel === level.value
+                  ? 'border-[var(--color-accent-primary)] bg-accent-primary-subtle text-accent-primary'
+                  : 'border-base bg-[var(--bg-card)] text-base-secondary hover:border-[var(--color-accent-primary)]/50'"
+                @click="languageLevel = level.value"
+              >
+                {{ level.label }}
+              </button>
+            </div>
+          </div>
+          <button
+            class="btn-primary w-full !py-2.5 text-small font-semibold"
+            :disabled="!targetLanguage || !languageLevel"
+            @click="saveLearningMode"
+          >
+            Continuar →
+          </button>
+        </div>
+
+        <button
+          v-if="selectedMode && selectedMode !== 'language'"
+          class="btn-primary w-full mt-4 !py-3 text-base font-semibold"
+          @click="saveLearningMode"
+        >
+          Continuar →
+        </button>
+
+        <button class="w-full text-center text-micro text-base-muted mt-4 hover:text-base-secondary" @click="skipLearningMode">
+          Pular →
+        </button>
+      </div>
+
       <!-- Step 1: Input -->
       <div v-if="step === 1">
         <h1 class="text-display text-center mb-2">Pare de esquecer o que estuda</h1>
@@ -117,7 +192,7 @@ const { $api } = useNuxtApp()
 const auth = useAuthStore()
 const toast = useToast()
 
-const step = ref(1)
+const step = ref(0)
 const textInput = ref('')
 const topicInput = ref('')
 const generating = ref(false)
@@ -125,6 +200,51 @@ const generatedCount = ref(0)
 const loadingMessage = ref('Analisando material...')
 const createdTopicId = ref('')
 const error = ref('')
+
+// Learning mode selection (step 0)
+const selectedMode = ref('')
+const targetLanguage = ref('')
+const languageLevel = ref('')
+
+const learningModes = [
+  { value: 'exam', icon: '📚', label: 'Concurso / Vestibular' },
+  { value: 'academic', icon: '🎓', label: 'Faculdade / Escola' },
+  { value: 'language', icon: '🌍', label: 'Idiomas' },
+  { value: 'technical', icon: '💻', label: 'Programação / TI' },
+  { value: 'professional', icon: '📋', label: 'Certificações' },
+  { value: 'general', icon: '✨', label: 'Uso geral' },
+]
+
+const languageLevels = [
+  { value: 'beginner', label: 'Iniciante' },
+  { value: 'intermediate', label: 'Intermediário' },
+  { value: 'advanced', label: 'Avançado' },
+]
+
+function selectMode(mode: string) {
+  selectedMode.value = mode
+  if (mode !== 'language') {
+    targetLanguage.value = ''
+    languageLevel.value = ''
+  }
+}
+
+async function saveLearningMode() {
+  try {
+    const body: Record<string, string> = { learning_mode: selectedMode.value }
+    if (selectedMode.value === 'language') {
+      body.target_language = targetLanguage.value
+      body.language_level = languageLevel.value
+    }
+    await $api('/onboarding/learning-mode', { method: 'POST', body })
+    if (auth.user) auth.user.default_learning_mode = selectedMode.value
+  } catch {}
+  step.value = 1
+}
+
+function skipLearningMode() {
+  step.value = 1
+}
 
 async function generateFromText() {
   if (!textInput.value.trim()) return

@@ -17,29 +17,31 @@ export const useDocumentStore = defineStore('document', () => {
       const res = await $api<{ data: Document[] }>('/documents', { params: { topic_id: topicId } })
       documents.value = res.data.filter(d => d.topic_id === topicId)
       currentTopicId.value = topicId
-
-      // Auto-start polling if any doc needs it
-      if (needsPolling.value && !pollTimer) {
-        startPolling()
-      }
+      console.log('[docStore] fetched', documents.value.length, 'docs, progress:', documents.value[0]?.note_generation_progress, '/', documents.value[0]?.note_total_batches, 'status:', documents.value[0]?.note_generation_status)
     } catch {
       // Silent — component shows empty state
     } finally {
       loading.value = false
     }
+
+    // Always check if polling should start/stop after fetch
+    if (needsPolling.value && !pollTimer) {
+      startPolling()
+    } else if (!needsPolling.value && pollTimer) {
+      stopPolling()
+    }
   }
 
   // Polling
   let pollTimer: ReturnType<typeof setInterval> | null = null
-  let pollStartedAt: number | null = null
   const POLL_INTERVAL = 4000
   const POLL_TIMEOUT = 10 * 60 * 1000
+  let pollStartedAt: number | null = null
 
   const needsPolling = computed(() =>
     documents.value.some(d =>
       d.note_generation_status === 'generating' ||
-      d.status === 'processing' ||
-      d.study_structure_status === 'generating',
+      d.status === 'processing',
     ),
   )
 
@@ -47,16 +49,15 @@ export const useDocumentStore = defineStore('document', () => {
     if (pollTimer) return
     if (!currentTopicId.value) return
     pollStartedAt = Date.now()
+    console.log('[docStore] polling started for topic', currentTopicId.value)
     pollTimer = setInterval(async () => {
       if (pollStartedAt && Date.now() - pollStartedAt > POLL_TIMEOUT) {
         stopPolling()
         return
       }
       if (currentTopicId.value) {
+        console.log('[docStore] polling tick...')
         await fetchForTopic(currentTopicId.value, true)
-      }
-      if (!needsPolling.value) {
-        stopPolling()
       }
     }, POLL_INTERVAL)
   }
@@ -68,10 +69,6 @@ export const useDocumentStore = defineStore('document', () => {
       pollStartedAt = null
     }
   }
-
-  watch(needsPolling, (val, oldVal) => {
-    if (val && !oldVal) startPolling()
-  })
 
   function reset() {
     stopPolling()

@@ -520,6 +520,13 @@
     <!-- Note editor modal removed — now using split-view in HubNotesTab -->
 
     <TopicGraphOverlay v-model="showGraph" />
+
+    <!-- Upload modal for import PDF (learning mode selection) -->
+    <TopicUploadModal
+      v-model="showImportUploadModal"
+      :default-mode="auth.user?.default_learning_mode || 'general'"
+      @confirm="onImportModalConfirm"
+    />
   </div>
 </template>
 
@@ -837,13 +844,25 @@ const importingInSelectedTopic = computed(() =>
 )
 
 const importPdfInput = ref<HTMLInputElement | null>(null)
+const showImportUploadModal = ref(false)
+const importPendingFile = ref<File | null>(null)
 
 async function handleImportPdf(e: Event) {
   const file = (e.target as HTMLInputElement).files?.[0]
   if (!file) return
-  const structureStore = useStructureStore()
-  await structureStore.importPdf(file)
   if (importPdfInput.value) importPdfInput.value.value = ''
+
+  // Show modal to select learning mode before importing
+  importPendingFile.value = file
+  showImportUploadModal.value = true
+}
+
+async function onImportModalConfirm(data: { learning_mode: string; target_language?: string; language_level?: string }) {
+  if (!importPendingFile.value) return
+
+  const structureStore = useStructureStore()
+  await structureStore.importPdfWithMode(importPendingFile.value, data)
+  importPendingFile.value = null
 
   // Select the newly created topic and refresh tree
   if (structureStore.topicId) {

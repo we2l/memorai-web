@@ -17,7 +17,6 @@ export const useDocumentStore = defineStore('document', () => {
       const res = await $api<{ data: Document[] }>('/documents', { params: { topic_id: topicId } })
       documents.value = res.data.filter(d => d.topic_id === topicId)
       currentTopicId.value = topicId
-      console.log('[docStore] fetched', documents.value.length, 'docs, progress:', documents.value[0]?.note_generation_progress, '/', documents.value[0]?.note_total_batches, 'status:', documents.value[0]?.note_generation_status)
     } catch {
       // Silent — component shows empty state
     } finally {
@@ -49,14 +48,12 @@ export const useDocumentStore = defineStore('document', () => {
     if (pollTimer) return
     if (!currentTopicId.value) return
     pollStartedAt = Date.now()
-    console.log('[docStore] polling started for topic', currentTopicId.value)
     pollTimer = setInterval(async () => {
       if (pollStartedAt && Date.now() - pollStartedAt > POLL_TIMEOUT) {
         stopPolling()
         return
       }
       if (currentTopicId.value) {
-        console.log('[docStore] polling tick...')
         await fetchForTopic(currentTopicId.value, true)
       }
     }, POLL_INTERVAL)

@@ -558,6 +558,7 @@ onUnmounted(() => stopNoteRefresh())
 
 // Auto-refresh notes list when documents change
 let lastNoteStatuses: Record<string, string | null> = {}
+let lastNoteProgress: Record<string, number | null> = {}
 
 watch(() => docStore.documents, (docs) => {
   if (!selectedTopicId.value) return
@@ -570,10 +571,13 @@ watch(() => docStore.documents, (docs) => {
     noteStore.fetchForTopic(selectedTopicId.value)
   }
 
-  // Detect status transitions
+  // Detect status transitions and progress changes
   for (const doc of docs) {
     const prev = lastNoteStatuses[doc.id]
     const curr = doc.note_generation_status ?? null
+    const prevProgress = lastNoteProgress[doc.id] ?? null
+    const currProgress = doc.note_generation_progress ?? null
+
     if (prev !== undefined && prev !== curr) {
       if (curr === 'completed') {
         noteStore.fetchForTopic(selectedTopicId.value)
@@ -582,7 +586,14 @@ watch(() => docStore.documents, (docs) => {
         noteStore.fetchForTopic(selectedTopicId.value)
       }
     }
+
+    // Refresh notes when progress advances (incremental generation)
+    if (curr === 'generating' && currProgress !== null && currProgress !== prevProgress) {
+      noteStore.fetchForTopic(selectedTopicId.value)
+    }
+
     lastNoteStatuses[doc.id] = curr
+    lastNoteProgress[doc.id] = currProgress
   }
 }, { deep: true })
 

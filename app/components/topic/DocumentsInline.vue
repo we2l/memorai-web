@@ -96,6 +96,21 @@
               </button>
             </div>
 
+            <!-- Re-generation banner (mode changed after note was generated) -->
+            <div
+              v-if="doc.learning_mode_used && props.topicLearningMode && doc.learning_mode_used !== props.topicLearningMode"
+              class="mt-2 px-3 py-2 rounded-lg bg-[var(--color-warning-50,#fef3c7)] border border-[var(--color-warning-200,#fde68a)]"
+            >
+              <p class="text-small text-base-primary mb-1.5">⚠️ Esta nota foi criada com modo diferente do caderno.</p>
+              <button
+                class="btn-primary !py-1.5 !px-3 !min-h-0 text-small"
+                :disabled="regeneratingDoc === doc.id"
+                @click="regenerateNote(doc)"
+              >
+                {{ regeneratingDoc === doc.id ? 'Re-gerando...' : 'Re-gerar nota' }}
+              </button>
+            </div>
+
             <!-- Language inference banner -->
             <div
               v-if="doc.language_detected && !dismissedLanguageBanners.has(doc.id)"
@@ -201,6 +216,13 @@
       confirm-label="Remover"
       @confirm="handleDeleteDoc"
     />
+
+    <!-- Upload modal (learning mode selection) -->
+    <TopicUploadModal
+      v-model="showUploadModal"
+      :default-mode="auth.user?.default_learning_mode || 'general'"
+      @confirm="onUploadModalConfirm"
+    />
   </div>
 </template>
 
@@ -208,7 +230,7 @@
 import { Upload, FileText, Loader2, CheckCircle, XCircle, Sparkles, Lock, Trash2 } from 'lucide-vue-next'
 import type { Document } from '~/types'
 
-const props = defineProps<{ topicId: string }>()
+const props = defineProps<{ topicId: string; topicLearningMode?: string | null }>()
 const emit = defineEmits<{
   generateFromPdf: [documentId: string]
   noteReady: []
@@ -241,6 +263,25 @@ const uploading = ref(false)
 const uploadProgress = ref(0)
 const completedDoc = ref<Document | null>(null)
 const dismissedLanguageBanners = ref(new Set<string>())
+
+// Upload modal (when topic has no learning mode)
+const showUploadModal = ref(false)
+const pendingFile = ref<File | null>(null)
+const regeneratingDoc = ref<string | null>(null)
+
+async function regenerateNote(doc: Document) {
+  regeneratingDoc.value = doc.id
+  try {
+    await $api(`/documents/${doc.id}/regenerate-note`, { method: 'POST' })
+    toast.show('Nota sendo re-gerada com o novo modo!')
+    await docStore.fetchForTopic(props.topicId, true)
+    docStore.startPolling()
+  } catch (e: any) {
+    toast.show(e?.data?.message || 'Erro ao re-gerar.', 'error')
+  } finally {
+    regeneratingDoc.value = null
+  }
+}
 
 function languageName(code?: string | null): string {
   const map: Record<string, string> = { en: 'Inglês', es: 'Espanhol', fr: 'Francês', de: 'Alemão', it: 'Italiano', ja: 'Japonês', ko: 'Coreano', zh: 'Chinês' }
@@ -353,6 +394,29 @@ async function onFileSelect(e: Event) {
   if (file.size > uploadMaxSize.value) { toast.show(`Máximo ${auth.user?.plan === 'pro' ? '100' : '50'}MB`, 'error'); return }
   if (!file.name.endsWith('.pdf')) { toast.show('Apenas PDF', 'error'); return }
 
+  // If topic has no learning mode, show modal first
+  if (!props.topicLearningMode) {
+    pendingFile.value = file
+    showUploadModal.value = true
+    return
+  }
+
+  await doUpload(file)
+}
+
+async function onUploadModalConfirm(data: { learning_mode: string; target_language?: string; language_level?: string }) {
+  // Set mode on topic before uploading
+  try {
+    await $api(`/topics/${props.topicId}`, { method: 'PUT', body: data })
+  } catch {}
+
+  if (pendingFile.value) {
+    await doUpload(pendingFile.value)
+    pendingFile.value = null
+  }
+}
+
+async function doUpload(file: File) {
   uploading.value = true
   uploadProgress.value = 0
 

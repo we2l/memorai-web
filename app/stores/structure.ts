@@ -16,6 +16,10 @@ export const useStructureStore = defineStore('structure', {
 
   actions: {
     async importPdf(file: File) {
+      return this.importPdfWithMode(file)
+    },
+
+    async importPdfWithMode(file: File, modeData?: { learning_mode: string; target_language?: string; language_level?: string }) {
       const { $api } = useNuxtApp()
       const toast = useToast()
       const auth = useAuthStore()
@@ -34,6 +38,9 @@ export const useStructureStore = defineStore('structure', {
         // Upload via XHR for progress (no topic_id → backend creates topic)
         const formData = new FormData()
         formData.append('file', file)
+        if (modeData?.learning_mode) formData.append('learning_mode', modeData.learning_mode)
+        if (modeData?.target_language) formData.append('target_language', modeData.target_language)
+        if (modeData?.language_level) formData.append('language_level', modeData.language_level)
 
         const res = await $api<any>('/documents', { method: 'POST', body: formData })
         this.documentId = res.data.id

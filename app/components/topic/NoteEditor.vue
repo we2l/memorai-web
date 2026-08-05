@@ -32,6 +32,14 @@
       >
         <Sparkles :size="12" class="inline" /> IA
       </button>
+      <button
+        v-if="topicId"
+        class="bubble-action"
+        title="Transformar em matéria"
+        @mousedown.prevent="createSubpageFromSelection"
+      >
+        <FolderOpen :size="12" class="inline" /> Matéria
+      </button>
     </div>
 
     <!-- Editor content -->
@@ -72,6 +80,16 @@
         </div>
       </div>
     </div>
+
+    <!-- Subpage dropdown -->
+    <TopicSubpageDropdown
+      v-if="subpageDropdown.open && topicId"
+      :topic-id="topicId"
+      :position="subpageDropdown.position"
+      @select="onSubpageSelect"
+      @create="onSubpageCreate"
+      @close="subpageDropdown.open = false"
+    />
   </div>
 </template>
 
@@ -83,21 +101,25 @@ import Placeholder from '@tiptap/extension-placeholder'
 import Image from '@tiptap/extension-image'
 import Link from '@tiptap/extension-link'
 import { Callout } from '~/extensions/callout'
+import { SubpageBlock } from '~/extensions/subpage-block'
 import {
   Bold, Italic, Underline as UnderlineIcon, Strikethrough, LinkIcon, Zap,
   Heading1, Heading2, Heading3, List, ListOrdered, Quote, Minus,
   ImagePlus, AlertTriangle, Lightbulb, ShieldAlert, Type, Sparkles,
+  FolderOpen,
 } from 'lucide-vue-next'
 
 const props = defineProps<{
   modelValue?: Record<string, any> | null
   editable?: boolean
+  topicId?: string | null
 }>()
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: Record<string, any>): void
   (e: 'create-card'): void
   (e: 'ask-ai'): void
+  (e: 'navigate-topic', topicId: string): void
 }>()
 
 const editorWrapperRef = ref<HTMLElement>()
@@ -188,6 +210,7 @@ const slashItems = [
   { label: 'Erro', description: 'Bloco de erro comum', icon: AlertTriangle, command: (e: any) => e.chain().focus().setCallout('error').run() },
   { label: 'Insight', description: 'Algo que aprendi', icon: Lightbulb, command: (e: any) => e.chain().focus().setCallout('insight').run() },
   { label: 'Pegadinha', description: 'Atenção — pegadinha!', icon: ShieldAlert, command: (e: any) => e.chain().focus().setCallout('gotcha').run() },
+  { label: 'Matéria', description: 'Criar ou acessar subcaderno', icon: FolderOpen, command: () => openSubpageDropdown() },
 ]
 
 const filteredSlashItems = computed(() => {
@@ -244,6 +267,14 @@ function handleSlashDetection(editorInstance: any) {
 }
 
 // === Editor ===
+const topicStore = useTopicStore()
+
+// === Subpage dropdown (state) ===
+const subpageDropdown = reactive({
+  open: false,
+  position: { top: 0, left: 0 },
+})
+
 const editor = useEditor({
   content: props.modelValue ?? '',
   editable: props.editable !== false,
@@ -251,6 +282,9 @@ const editor = useEditor({
     StarterKit,
     Underline,
     Callout,
+    SubpageBlock.configure({
+      onNavigate: (topicId: string) => emit('navigate-topic', topicId),
+    }),
     Image.configure({ inline: false, allowBase64: false }),
     Link.configure({ openOnClick: false, HTMLAttributes: { class: 'notion-link' } }),
     Placeholder.configure({
@@ -308,6 +342,61 @@ const editor = useEditor({
     },
   },
 })
+
+// === Subpage dropdown (functions — depend on editor) ===
+function openSubpageDropdown() {
+  if (!editor.value || !props.topicId) return
+
+  // Position dropdown near cursor (text deletion already handled by selectSlashItem)
+  const coords = editor.value.view.coordsAtPos(editor.value.state.selection.from)
+  const wrapperRect = editorWrapperRef.value?.getBoundingClientRect()
+  if (wrapperRect) {
+    subpageDropdown.position = {
+      top: coords.bottom - wrapperRect.top + 8,
+      left: coords.left - wrapperRect.left,
+    }
+  }
+
+  // Delay opening to next frame — ensures the slash menu click event fully completes
+  // before the dropdown mounts and registers its click-outside listener
+  setTimeout(() => {
+    subpageDropdown.open = true
+  }, 0)
+}
+
+async function onSubpageCreate(name: string) {
+  if (!props.topicId) return
+  subpageDropdown.open = false
+  const created = await topicStore.create({ name, parent_id: props.topicId })
+  if (created?.id && editor.value) {
+    editor.value.chain().focus().insertSubpage(created.id).run()
+  }
+}
+
+function onSubpageSelect(topicId: string) {
+  subpageDropdown.open = false
+  if (editor.value) {
+    editor.value.chain().focus().insertSubpage(topicId).run()
+  }
+}
+
+async function createSubpageFromSelection() {
+  if (!editor.value || !props.topicId) return
+
+  const { state } = editor.value
+  const { from, to } = state.selection
+  if (from === to) return
+
+  const selectedText = state.doc.textBetween(from, to).trim()
+  if (!selectedText) return
+
+  // Create the topic with selected text as name
+  const created = await topicStore.create({ name: selectedText, parent_id: props.topicId })
+  if (created?.id) {
+    // Replace selection with subpage block
+    editor.value.chain().focus().deleteRange({ from, to }).insertSubpage(created.id).run()
+  }
+}
 
 watch(() => props.modelValue, (val) => {
   if (!editor.value) return

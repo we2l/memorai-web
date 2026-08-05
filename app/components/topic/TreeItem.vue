@@ -40,7 +40,7 @@
           </button>
           <div v-if="showMenu" class="absolute right-0 top-full mt-1 w-40 bg-[var(--bg-card)] border border-base rounded-lg shadow-lg py-1 z-30">
             <button class="w-full text-left px-3 py-2 text-small text-base-primary hover:bg-surface-secondary transition-colors" @click="showMenu = false; $emit('add-child', topic.id)">
-              Adicionar tópico
+              Adicionar matéria
             </button>
             <button class="w-full text-left px-3 py-2 text-small text-base-primary hover:bg-surface-secondary transition-colors" @click="showMenu = false; $emit('edit', topic)">
               Editar

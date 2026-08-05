@@ -137,7 +137,7 @@
             </div>
           </template>
           <template #editor>
-            <TopicNoteEditor v-model="noteContent" :editable="!noteIsGenerating" @update:model-value="debouncedSave" @create-card="openNoteToCard" @ask-ai="askAiAboutSelection" />
+            <TopicNoteEditor v-model="noteContent" :editable="!noteIsGenerating" :topic-id="selectedTopicId" @update:model-value="debouncedSave" @create-card="openNoteToCard" @ask-ai="askAiAboutSelection" @navigate-topic="selectTopic" />
           </template>
           <template #selection-toolbar />
         </TopicHubNotesTab>
@@ -752,8 +752,8 @@ const showStickyHeader = ref(false)
 
 function selectTopic(id: string) {
   flushPendingSave()
+  closeEditor()
   selectedTopicId.value = id
-  noteStore.current = null
   docStore.fetchForTopic(id).then(() => {
     if (docStore.needsPolling) docStore.startPolling()
   })

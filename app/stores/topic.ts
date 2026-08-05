@@ -8,6 +8,22 @@ export const useTopicStore = defineStore('topic', {
     loading: false,
   }),
 
+  getters: {
+    findById: (state) => {
+      function search(id: string, tree: Topic[]): Topic | null {
+        for (const t of tree) {
+          if (t.id === id) return t
+          if (t.children?.length) {
+            const found = search(id, t.children)
+            if (found) return found
+          }
+        }
+        return null
+      }
+      return (id: string) => search(id, state.tree)
+    },
+  },
+
   actions: {
     async fetchTree() {
       this.loading = true

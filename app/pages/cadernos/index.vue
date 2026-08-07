@@ -136,8 +136,18 @@
               </div>
             </div>
           </template>
+          <template #improve-bar>
+            <TopicNoteImproveBar
+              :visible="noteImprove.state.value !== 'idle' || (!!editingNote && noteImprove.isRawNote(noteContent) && !noteImprove.dismissed.value)"
+              :state="noteImprove.state.value"
+              @improve="editingNote && noteImprove.improve(editingNote)"
+              @apply="handleImproveApply"
+              @discard="handleImproveDiscard"
+              @dismiss="noteImprove.dismiss()"
+            />
+          </template>
           <template #editor>
-            <TopicNoteEditor v-model="noteContent" :editable="!noteIsGenerating" :topic-id="selectedTopicId" @update:model-value="debouncedSave" @create-card="openNoteToCard" @ask-ai="askAiAboutSelection" @navigate-topic="selectTopic" />
+            <TopicNoteEditor v-model="noteContent" :editable="!noteIsGenerating && noteImprove.state.value !== 'loading' && noteImprove.state.value !== 'preview'" :topic-id="selectedTopicId" @update:model-value="debouncedSave" @create-card="openNoteToCard" @ask-ai="askAiAboutSelection" @navigate-topic="selectTopic" />
           </template>
           <template #selection-toolbar />
         </TopicHubNotesTab>
@@ -552,6 +562,7 @@ const mapSubView = ref<'graph' | 'mindmap'>(
 const searchQuery = ref('')
 const { topicCards, showDeleteCard, deleteCardId, memorizeProgress, dueCardsCount, newCardsCount, pendingCount, setCards, cardsFromNote, confirmDeleteCard, handleDeleteCard } = useTopicCards()
 const { noteTitle, noteContent, editingNote, selectedText, showDeleteNote, flushPendingSave, debouncedSave, saveTitle, selectNote, openNoteEditor, closeEditor, handleQuickAdd, createNote, handleDeleteNote } = useNoteEditor(selectedTopicId)
+const noteImprove = useNoteImprove(selectedTopicId)
 const errorPatterns = ref<any>(null)
 
 const aiGenerate = useAiGenerate({
@@ -753,6 +764,7 @@ const showStickyHeader = ref(false)
 function selectTopic(id: string) {
   flushPendingSave()
   closeEditor()
+  noteImprove.reset()
   selectedTopicId.value = id
   docStore.fetchForTopic(id).then(() => {
     if (docStore.needsPolling) docStore.startPolling()
@@ -811,17 +823,33 @@ function openCreate(parentId: string | null) {
 }
 
 function openChatForNote() {
-  const chat = useChatStore()
-  const note = noteStore.current
-  chat.newConversation()
-  chat.open({ topicId: selectedTopicId.value ?? undefined, source: 'note_help' })
-  if (note) {
-    const title = note.title || 'minha nota'
-    nextTick(() => {
-      chat.sendMessage(`Me ajuda a melhorar essa nota "${title}"`)
-    })
+  // "Melhorar com IA" now uses the improve agent directly
+  if (editingNote.value) {
+    noteImprove.improve(editingNote.value)
   }
 }
+
+function handleImproveApply() {
+  const content = noteImprove.apply()
+  if (content) {
+    noteContent.value = content
+    debouncedSave()
+  }
+}
+
+function handleImproveDiscard() {
+  const content = noteImprove.discard()
+  if (content) {
+    noteContent.value = content
+  }
+}
+
+// When improve preview is ready, show improved content in editor
+watch(() => noteImprove.state.value, (newState) => {
+  if (newState === 'preview' && noteImprove.improvedContent.value) {
+    noteContent.value = noteImprove.improvedContent.value
+  }
+})
 
 function askAiAboutSelection() {
   const sel = window.getSelection()?.toString().trim()

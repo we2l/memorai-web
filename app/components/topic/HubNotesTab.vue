@@ -173,6 +173,7 @@
 
           <!-- Editor -->
           <div class="mt-6">
+            <slot name="improve-bar" />
             <slot name="editor" />
           </div>
         </div>

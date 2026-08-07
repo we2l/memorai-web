@@ -28,7 +28,7 @@ export const useNoteStore = defineStore('note', {
       return res.data
     },
 
-    async update(id: string, data: { title?: string; content?: Record<string, any> | null }) {
+    async update(id: string, data: { title?: string; content?: Record<string, any> | null; improved?: boolean }) {
       this.saving = true
       try {
         const { $api } = useNuxtApp()
@@ -36,7 +36,11 @@ export const useNoteStore = defineStore('note', {
         // Update local list without overwriting editor state via current
         const idx = this.notes.findIndex(n => n.id === id)
         if (idx !== -1) {
-          this.notes[idx] = { ...this.notes[idx], ...data }
+          const { improved, ...rest } = data
+          this.notes[idx] = { ...this.notes[idx], ...rest }
+          if (improved) {
+            this.notes[idx].last_ai_transform_at = new Date().toISOString()
+          }
         }
       } finally {
         this.saving = false

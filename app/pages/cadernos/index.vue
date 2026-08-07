@@ -110,7 +110,7 @@
           @close-editor="closeEditor"
           @quick-add="handleQuickAdd"
           @create-note="createNote"
-          @generate-from-note="generateFromCurrentNote"
+          @generate-from-note="handleGenerateFromNote"
           @improve-note="openChatForNote"
           @delete-note="showDeleteNote = true"
           @save-title="saveTitle"
@@ -121,9 +121,9 @@
               v-if="selectedTopicId"
               :topic-id="selectedTopicId"
               :topic-learning-mode="selectedTopicLearningMode"
-              @generate-from-pdf="(docId: string) => handleAiGenerate('pdf', 5, docId)"
+              @generate-from-pdf="(docId: string) => cardWorkshop.generate('pdf', undefined, docId)"
               @note-ready="noteStore.fetchForTopic(selectedTopicId!)"
-              @generate-cards="(noteId: string) => handleAiGenerate('notes', 5)"
+              @generate-cards="() => cardWorkshop.generate('notes')"
               @structure-ready="topicStore.fetchTree()"
             />
           </template>
@@ -137,17 +137,43 @@
             </div>
           </template>
           <template #improve-bar>
-            <TopicNoteImproveBar
-              :visible="noteImprove.state.value !== 'idle' || (!!editingNote && noteImprove.isRawNote(noteContent) && !noteImprove.dismissed.value)"
-              :state="noteImprove.state.value"
+            <TopicNextStepBar
+              :visible="nextStep.visible.value && cardWorkshop.state.value === 'idle'"
+              :step="nextStep.step.value"
+              :copy-text="nextStep.copyText.value"
               @improve="editingNote && noteImprove.improve(editingNote)"
+              @generate-cards="editingNote && cardWorkshop.generate('notes', editingNote.id)"
+              @review="navigateTo(`/revisar?topic_id=${selectedTopicId}`)"
+              @dismiss="nextStep.dismiss()"
+            />
+            <TopicNoteImproveBar
+              :visible="noteImprove.state.value === 'loading' || noteImprove.state.value === 'preview'"
+              :state="noteImprove.state.value"
               @apply="handleImproveApply"
               @discard="handleImproveDiscard"
-              @dismiss="noteImprove.dismiss()"
             />
           </template>
           <template #editor>
-            <TopicNoteEditor v-model="noteContent" :editable="!noteIsGenerating && noteImprove.state.value !== 'loading' && noteImprove.state.value !== 'preview'" :topic-id="selectedTopicId" @update:model-value="debouncedSave" @create-card="openNoteToCard" @ask-ai="askAiAboutSelection" @navigate-topic="selectTopic" />
+            <TopicCardWorkshop
+              v-if="cardWorkshop.state.value === 'workshop' || cardWorkshop.state.value === 'loading' || cardWorkshop.state.value === 'success'"
+              :cards="cardWorkshop.cards.value"
+              :loading="cardWorkshop.state.value === 'loading'"
+              :accepted-indexes="cardWorkshop.acceptedIndexes.value"
+              :show-success="cardWorkshop.state.value === 'success'"
+              :saved-count="cardWorkshop.savedCount.value"
+              :saving="cardWorkshop.saving.value"
+              @save="cardWorkshop.saveAll()"
+              @discard="cardWorkshop.discardAll()"
+              @edit-card="cardWorkshop.editCard"
+              @remove-card="cardWorkshop.removeCard"
+              @accept-card="cardWorkshop.acceptCard"
+            >
+              <template #post-save-actions>
+                <NuxtLink :to="`/revisar?topic_id=${selectedTopicId}`" class="btn-primary w-full justify-center">Revisar agora</NuxtLink>
+                <button class="btn-secondary w-full justify-center" @click="cardWorkshop.reset()">Voltar à nota</button>
+              </template>
+            </TopicCardWorkshop>
+            <TopicNoteEditor v-else v-model="noteContent" :editable="!noteIsGenerating && noteImprove.state.value !== 'loading' && noteImprove.state.value !== 'preview'" :topic-id="selectedTopicId" @update:model-value="debouncedSave" @create-card="openNoteToCard" @ask-ai="askAiAboutSelection" @navigate-topic="selectTopic" />
           </template>
           <template #selection-toolbar />
         </TopicHubNotesTab>
@@ -320,7 +346,7 @@
             @close-editor="closeEditor"
             @quick-add="handleQuickAdd"
             @create-note="createNote"
-            @generate-from-note="generateFromCurrentNote"
+            @generate-from-note="handleGenerateFromNote"
             @improve-note="openChatForNote"
             @delete-note="showDeleteNote = true"
             @save-title="saveTitle"
@@ -331,42 +357,67 @@
                 v-if="selectedTopicId"
                 :topic-id="selectedTopicId"
                 :topic-learning-mode="selectedTopicLearningMode"
-                @generate-from-pdf="(docId: string) => handleAiGenerate('pdf', 5, docId)"
+                @generate-from-pdf="(docId: string) => cardWorkshop.generate('pdf', undefined, docId)"
                 @note-ready="noteStore.fetchForTopic(selectedTopicId!)"
-                @generate-cards="(noteId: string) => handleAiGenerate('notes', 5)"
+                @generate-cards="() => cardWorkshop.generate('notes')"
                 @structure-ready="topicStore.fetchTree()"
               />
             </template>
           </TopicHubNotesTab>
 
           <!-- Tab: Cards -->
-          <TopicHubCardsTab
-            v-if="activeTab === 'cards'"
-            :topic-id="selectedTopicId!"
-            :cards="topicCards"
-            :generated-cards="generatedCards"
-            :ai-generating="aiGenerating"
-            :error-patterns="errorPatterns"
-            :note-name-by-id="noteNameById"
-            :highlight-id="highlightCardId"
-            :can-use-ocr="featureUsage.canUse('cards_ai')"
-            @create-card="openCreateCard"
-            @delete-card="confirmDeleteCard"
-            @edit-card="openEditCard"
-            @accept-card="acceptCard"
-            @accept-all-cards="acceptAllCards"
-            @edit-generated="editGeneratedCard"
-            @discard-generated="discardGenerated"
-            @ocr-cards="handleOcrCards"
-          >
-            <template #ai-generate>
-              <AgentAiGenerateInline
-                :topic-id="selectedTopicId!"
-                :has-notes="noteStore.notes.length > 0"
-                @generate="handleAiGenerate"
-              />
-            </template>
-          </TopicHubCardsTab>
+          <div v-if="activeTab === 'cards'">
+            <!-- Card Workshop (inline above card list) -->
+            <div v-if="cardWorkshop.state.value !== 'idle'" class="px-4 pt-4">
+              <TopicCardWorkshop
+                :cards="cardWorkshop.cards.value"
+                :loading="cardWorkshop.state.value === 'loading'"
+                :accepted-indexes="cardWorkshop.acceptedIndexes.value"
+                :show-success="cardWorkshop.state.value === 'success'"
+                :saved-count="cardWorkshop.savedCount.value"
+              :saving="cardWorkshop.saving.value"
+                @save="cardWorkshop.saveAll()"
+                @discard="cardWorkshop.discardAll()"
+                @edit-card="cardWorkshop.editCard"
+                @remove-card="cardWorkshop.removeCard"
+                @accept-card="cardWorkshop.acceptCard"
+              >
+                <template #post-save-actions>
+                  <NuxtLink :to="`/revisar?topic_id=${selectedTopicId}`" class="btn-primary w-full justify-center">Revisar agora</NuxtLink>
+                  <button class="btn-secondary w-full justify-center" @click="cardWorkshop.reset()">Fechar</button>
+                </template>
+              </TopicCardWorkshop>
+            </div>
+
+            <TopicHubCardsTab
+              :topic-id="selectedTopicId!"
+              :cards="topicCards"
+              :generated-cards="generatedCards"
+              :ai-generating="aiGenerating"
+              :error-patterns="errorPatterns"
+              :note-name-by-id="noteNameById"
+              :highlight-id="highlightCardId"
+              :can-use-ocr="featureUsage.canUse('cards_ai')"
+              @create-card="openCreateCard"
+              @delete-card="confirmDeleteCard"
+              @edit-card="openEditCard"
+              @accept-card="acceptCard"
+              @accept-all-cards="acceptAllCards"
+              @edit-generated="editGeneratedCard"
+              @discard-generated="discardGenerated"
+              @ocr-cards="handleOcrCards"
+            >
+              <template #ai-generate>
+                <button
+                  class="btn-primary !py-2 !px-3.5 !min-h-[2.75rem] text-small"
+                  :disabled="cardWorkshop.state.value === 'loading'"
+                  @click="cardWorkshop.generate('notes')"
+                >
+                  <Sparkles :size="14" /> Preparar revisão
+                </button>
+              </template>
+            </TopicHubCardsTab>
+          </div>
         </template>
 
       </template>
@@ -541,7 +592,7 @@
 </template>
 
 <script setup lang="ts">
-import { Plus, Search, PanelLeftClose, PanelLeftOpen, X, Link2, Brain, Zap, Headphones, ClipboardList } from 'lucide-vue-next'
+import { Plus, Search, PanelLeftClose, PanelLeftOpen, X, Link2, Brain, Zap, Headphones, ClipboardList, Sparkles } from 'lucide-vue-next'
 import type { Topic, Note } from '~/types'
 
 const topicStore = useTopicStore()
@@ -564,6 +615,21 @@ const { topicCards, showDeleteCard, deleteCardId, memorizeProgress, dueCardsCoun
 const { noteTitle, noteContent, editingNote, selectedText, showDeleteNote, flushPendingSave, debouncedSave, saveTitle, selectNote, openNoteEditor, closeEditor, handleQuickAdd, createNote, handleDeleteNote } = useNoteEditor(selectedTopicId)
 const noteImprove = useNoteImprove(selectedTopicId)
 const errorPatterns = ref<any>(null)
+
+// Card Workshop (pipeline inteligente)
+const cardWorkshop = useCardWorkshop({
+  topicId: selectedTopicId,
+  onReload: async () => { if (selectedTopicId.value) await loadTopicData(selectedTopicId.value) },
+})
+
+// Next Step (pipeline inteligente)
+const nextStep = useNextStep({
+  topicId: selectedTopicId,
+  notes: computed(() => noteStore.notes),
+  flashcardsCount: computed(() => topicCards.value.length),
+  dueCardsCount,
+  editingNote,
+})
 
 const aiGenerate = useAiGenerate({
   topicId: selectedTopicId,
@@ -765,6 +831,11 @@ function selectTopic(id: string) {
   flushPendingSave()
   closeEditor()
   noteImprove.reset()
+  // Don't clearPersisted — just hide workshop. It restores from sessionStorage when coming back.
+  cardWorkshop.state.value = 'idle'
+  cardWorkshop.cards.value = []
+  cardWorkshop.acceptedIndexes.value = new Set()
+  cardWorkshop.savedCount.value = 0
   selectedTopicId.value = id
   docStore.fetchForTopic(id).then(() => {
     if (docStore.needsPolling) docStore.startPolling()
@@ -829,11 +900,18 @@ function openChatForNote() {
   }
 }
 
+function handleGenerateFromNote() {
+  // Pipeline: use CardWorkshop instead of old modal
+  if (!editingNote.value || !selectedTopicId.value) return
+  cardWorkshop.generate('notes', editingNote.value.id)
+}
+
 function handleImproveApply() {
   const content = noteImprove.apply()
-  if (content) {
+  if (content && noteStore.current) {
     noteContent.value = content
-    debouncedSave()
+    // Save with improved flag to mark last_ai_transform_at
+    noteStore.update(noteStore.current.id, { content, improved: true })
   }
 }
 

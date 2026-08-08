@@ -162,17 +162,17 @@ watch(() => route.fullPath, () => {
 .home {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px 16px 80px;
+  padding: 16px 16px 80px;
 }
 @media (min-width: 768px) {
-  .home { padding: 48px 48px 48px; }
+  .home { padding: 32px 40px 40px; }
 }
 
 .home-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 24px;
-  margin-top: 48px;
+  margin-top: 32px;
 }
 @media (min-width: 1024px) {
   .home-grid {

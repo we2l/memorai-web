@@ -20,27 +20,27 @@ defineProps<{
   padding-left: 24px;
   border-left: 1px solid var(--border-base);
 }
-@media (max-width: 767px) {
+@media (max-width: 1023px) {
   .feed {
     border-left: none;
     border-top: 1px solid var(--border-base);
     padding-left: 0;
-    padding-top: 24px;
-    margin-top: 24px;
+    padding-top: 20px;
+    margin-top: 20px;
   }
 }
 
 .feed__label {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 .feed__list {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
 }
 </style>

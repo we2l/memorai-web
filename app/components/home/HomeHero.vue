@@ -13,13 +13,14 @@
       <p class="hero__context">≈{{ estimatedMinutes }} min · {{ mainTopicName }}</p>
     </div>
 
-    <NuxtLink to="/revisar" class="hero__cta">Começar revisão</NuxtLink>
-
-    <div class="hero__progress">
-      <div class="hero__progress-track" role="progressbar" :aria-valuenow="reviewedToday" :aria-valuemax="totalDue">
-        <div class="hero__progress-fill" :style="{ width: progressPercent + '%' }" />
+    <div class="hero__actions">
+      <NuxtLink to="/revisar" class="hero__cta">Começar revisão</NuxtLink>
+      <div class="hero__progress">
+        <div class="hero__progress-track" role="progressbar" :aria-valuenow="reviewedToday" :aria-valuemax="totalDue">
+          <div class="hero__progress-fill" :style="{ width: progressPercent + '%' }" />
+        </div>
+        <span class="hero__progress-label">{{ reviewedToday }}/{{ totalDue }}</span>
       </div>
-      <span class="hero__progress-label">{{ reviewedToday }}/{{ totalDue }}</span>
     </div>
   </section>
 
@@ -33,7 +34,7 @@
         <p class="hero__context">Importe um PDF ou crie um caderno pra gerar seus cards.</p>
       </div>
     </div>
-    <div class="flex gap-3 mt-6">
+    <div class="hero__actions">
       <NuxtLink to="/cadernos" class="hero__cta">Criar caderno</NuxtLink>
       <NuxtLink to="/importar" class="btn-secondary">Importar Anki</NuxtLink>
     </div>
@@ -49,7 +50,7 @@
       <h1 class="hero__number" style="font-size: 2rem">Tudo em dia! 🎉</h1>
       <p class="hero__context">{{ subtitle }}</p>
     </div>
-    <NuxtLink to="/cadernos" class="btn-secondary mt-6 inline-flex">Ir pra Cadernos</NuxtLink>
+    <NuxtLink to="/cadernos" class="btn-secondary mt-4 inline-flex">Ir pra Cadernos</NuxtLink>
   </section>
 </template>
 
@@ -94,52 +95,51 @@ const subtitle = computed(() => {
 
 <style scoped>
 .hero {
-  padding-top: 12px;
+  padding-top: 4px;
 }
 
 .hero__greeting {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 8px;
+  gap: 10px;
 }
 .hero__mascot {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   object-fit: contain;
   border-radius: 6px;
 }
 .hero__mascot--lg {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
 }
 .hero__greeting-text {
-  font-size: 16px;
+  font-size: 15px;
   color: var(--color-text-secondary);
 }
 
 .hero__mission {
-  margin-top: 4px;
+  margin-top: 12px;
 }
 .hero__subtitle {
-  font-size: 16px;
+  font-size: 15px;
   color: var(--color-text-secondary);
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 .hero__number {
-  font-size: 3rem;
+  font-size: 2.75rem;
   font-weight: 700;
-  line-height: 1.15;
+  line-height: 1.1;
   color: var(--color-text-primary);
   letter-spacing: -0.02em;
 }
 @media (min-width: 640px) {
-  .hero__number { font-size: 3.5rem; }
+  .hero__number { font-size: 3.25rem; }
 }
 .hero__context {
   font-size: 14px;
   color: var(--color-text-muted);
-  margin-top: 8px;
+  margin-top: 6px;
 }
 
 .hero__exam-badge {
@@ -148,25 +148,41 @@ const subtitle = computed(() => {
   font-size: 12px;
   font-weight: 500;
   color: var(--color-warning);
-  padding: 4px 12px;
+  padding: 3px 10px;
   border-radius: 6px;
   background: color-mix(in srgb, var(--color-warning) 8%, transparent);
-  margin-bottom: 12px;
+  margin-bottom: 8px;
+}
+
+/* CTA + Progress inline */
+.hero__actions {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-top: 20px;
+}
+@media (max-width: 639px) {
+  .hero__actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
 }
 
 .hero__cta {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  margin-top: 24px;
-  padding: 12px 32px;
-  font-size: 15px;
+  padding: 11px 28px;
+  font-size: 14px;
   font-weight: 600;
   color: #fff;
   background: var(--color-primary-500, var(--color-accent-primary));
   border-radius: 10px;
   transition: all 150ms ease-out;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02), 0 8px 24px rgba(111, 63, 245, 0.12);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 .hero__cta:hover {
   transform: translateY(-1px);
@@ -177,9 +193,10 @@ const subtitle = computed(() => {
 .hero__progress {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin-top: 32px;
-  max-width: 320px;
+  gap: 12px;
+  max-width: 240px;
+  flex: 1;
+  min-width: 0;
 }
 .hero__progress-track {
   flex: 1;

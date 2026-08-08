@@ -1,11 +1,11 @@
 <template>
-  <NuxtLink :to="item.url" class="feed-item group">
+  <NuxtLink :to="item.url" class="feed-item">
     <div class="feed-item__icon" :class="iconVariant">
       <span class="feed-item__emoji">{{ item.icon }}</span>
     </div>
     <div class="feed-item__content">
       <p class="feed-item__title">{{ item.label }}</p>
-      <NuxtLink :to="item.url" class="feed-item__action">{{ item.action_label }} <span class="feed-item__arrow">→</span></NuxtLink>
+      <span class="feed-item__action">{{ item.action_label }} →</span>
     </div>
   </NuxtLink>
 </template>
@@ -35,13 +35,12 @@ const iconVariant = computed(() => {
 .feed-item {
   display: flex;
   align-items: flex-start;
-  gap: 14px;
-  padding: 4px 0;
+  gap: 12px;
 }
 
 .feed-item__icon {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -49,7 +48,7 @@ const iconVariant = computed(() => {
   flex-shrink: 0;
 }
 .feed-item__emoji {
-  font-size: 16px;
+  font-size: 14px;
 }
 .feed-item__icon--doc {
   background: color-mix(in srgb, var(--color-primary-500) 6%, var(--bg-soft));
@@ -69,27 +68,20 @@ const iconVariant = computed(() => {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2px;
 }
 .feed-item__title {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 400;
   color: var(--color-text-primary);
   line-height: 1.4;
 }
 .feed-item__action {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--color-primary-500, var(--color-accent-primary));
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  transition: opacity 150ms ease-out;
 }
-.feed-item__action:hover {
+.feed-item:hover .feed-item__action {
   text-decoration: underline;
-}
-.feed-item__arrow {
-  font-size: 12px;
 }
 </style>

@@ -35,23 +35,23 @@ defineProps<{
 
 <style scoped>
 .review-modes {
-  margin-top: 48px;
-  padding-top: 24px;
-  border-top: 1px solid var(--border-base);
+  margin-top: 28px;
+  padding-top: 16px;
+  border-top: 1px solid color-mix(in srgb, var(--border-base) 60%, transparent);
 }
 .review-modes__list {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 24px;
+  gap: 20px;
 }
 
 .review-mode {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   color: var(--color-text-secondary);
-  font-size: 14px;
+  font-size: 13px;
   transition: color 150ms ease-out;
 }
 .review-mode:hover {
@@ -59,7 +59,7 @@ defineProps<{
 }
 
 .review-mode__icon {
-  font-size: 16px;
+  font-size: 14px;
 }
 .review-mode__icon--blitz {
   color: var(--color-warning);

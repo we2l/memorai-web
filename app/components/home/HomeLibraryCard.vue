@@ -39,7 +39,7 @@ const badgeClass = computed(() => `library-card__badge--${state.value.variant}`)
 <style scoped>
 .library-card {
   position: relative;
-  padding: 18px 20px 16px 24px;
+  padding: 14px 16px 12px 20px;
   background: var(--bg-card);
   border: 1px solid var(--border-base);
   border-radius: 10px;
@@ -58,18 +58,18 @@ const badgeClass = computed(() => `library-card__badge--${state.value.variant}`)
 }
 .library-card:hover {
   border-color: color-mix(in srgb, var(--nb-color) 30%, var(--border-base));
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02), 0 8px 20px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02), 0 4px 12px rgba(0, 0, 0, 0.03);
 }
 
 .library-card__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 12px;
 }
 
 .library-card__name {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--color-text-primary);
   white-space: nowrap;
@@ -80,10 +80,10 @@ const badgeClass = computed(() => `library-card__badge--${state.value.variant}`)
 }
 
 .library-card__badge {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
-  padding: 3px 10px;
-  border-radius: 6px;
+  padding: 2px 9px;
+  border-radius: 5px;
   flex-shrink: 0;
 }
 .library-card__badge--pending {
@@ -102,11 +102,11 @@ const badgeClass = computed(() => `library-card__badge--${state.value.variant}`)
 .library-card__divider {
   height: 1px;
   background: var(--border-base);
-  margin: 12px 0;
+  margin: 10px 0 8px;
 }
 
 .library-card__meta {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--color-text-secondary);
 }
 </style>

@@ -62,31 +62,35 @@
       </span>
     </button>
 
-    <!-- Progress meta block for root cadernos (shown when expanded) -->
+    <!-- Progress meta block for root cadernos (ALWAYS shown when root, even collapsed) -->
     <div
-      v-if="isRoot && isExpanded && (topicCards > 0 || pendingCount > 0)"
-      class="px-3 pt-1 pb-2"
+      v-if="isRoot && (topicCards > 0 || pendingCount > 0)"
+      class="px-3 pt-0.5 pb-2.5"
       :style="{ paddingLeft: `${depth * 16 + 36}px` }"
     >
-      <p class="text-micro text-base-muted">{{ topicCards }} cards</p>
-      <!-- Progress bar -->
-      <div v-if="topicProgress > 0" class="flex items-center gap-2 mt-1">
-        <div class="w-20 h-1.5 rounded-full bg-surface-secondary overflow-hidden">
+      <!-- Progress percentage + bar -->
+      <div class="flex items-center gap-2">
+        <div class="flex-1 max-w-[5rem] h-1.5 rounded-full bg-surface-secondary overflow-hidden">
           <div
-            class="h-1.5 rounded-full transition-all"
+            class="h-1.5 rounded-full transition-all duration-500"
             :class="progressBarColor"
-            :style="{ width: Math.round(topicProgress * 100) + '%' }"
+            :style="{ width: progressPercent + '%' }"
           />
         </div>
+        <span class="text-micro font-semibold" :class="progressTextColor">{{ progressPercent }}%</span>
       </div>
-      <p v-if="pendingCount > 0" class="text-micro text-[var(--color-accent-soft)] font-medium mt-1">
+      <!-- Pending info -->
+      <p v-if="pendingCount > 0" class="text-micro text-[var(--color-accent-soft)] font-medium mt-0.5">
         {{ pendingCount }} pendentes hoje
+      </p>
+      <p v-else-if="topicCards > 0 && pendingCount === 0" class="text-micro text-emerald-500 mt-0.5">
+        Em dia ✓
       </p>
     </div>
 
     <!-- Children -->
     <div v-if="isExpanded && topic.children?.length" class="relative">
-      <div class="absolute top-0 bottom-2 border-l border-[var(--border-base)]/50" :style="{ left: `${(depth + 1) * 16 + 18}px` }" />
+      <div class="absolute top-0 bottom-2 border-l border-[var(--border-base)]/40" :style="{ left: `${(depth + 1) * 16 + 18}px` }" />
       <TopicTreeItem
         v-for="child in topic.children"
         :key="child.id"
@@ -130,12 +134,21 @@ const colorHex = computed(() => getColorHex(props.topic.color))
 const topicProgress = computed(() => props.progressMap?.[props.topic.id]?.progress ?? 0)
 const pendingCount = computed(() => props.progressMap?.[props.topic.id]?.pending_count ?? 0)
 const topicCards = computed(() => props.topic.flashcards_count ?? 0)
+const progressPercent = computed(() => Math.round(topicProgress.value * 100))
 
 const progressBarColor = computed(() => {
   const p = topicProgress.value
   if (p < 0.3) return 'bg-red-400'
   if (p < 0.7) return 'bg-[var(--color-accent-primary)]'
   return 'bg-emerald-400'
+})
+
+const progressTextColor = computed(() => {
+  const p = topicProgress.value
+  if (p === 0) return 'text-base-muted'
+  if (p < 0.3) return 'text-red-400'
+  if (p < 0.7) return 'text-[var(--color-accent-soft)]'
+  return 'text-emerald-500'
 })
 
 // Collapse by default for depth > 0, expand for root

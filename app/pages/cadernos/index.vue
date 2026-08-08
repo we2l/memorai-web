@@ -219,7 +219,15 @@
               </div>
             </div>
 
-            <!-- Progress bar (removed - shown in sidebar now) -->
+            <!-- Progress bar (thin accent line, like Stitch separator) -->
+            <div v-if="topicCards.length" class="mt-3">
+              <div class="h-1 rounded-full bg-surface-secondary overflow-hidden">
+                <div
+                  class="h-1 rounded-full bg-[var(--color-accent-primary)] transition-all duration-500"
+                  :style="{ width: memorizeProgress + '%' }"
+                />
+              </div>
+            </div>
           </div>
 
           <!-- AI Tools collapsible (podcast, simulado, mapa) -->

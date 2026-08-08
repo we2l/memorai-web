@@ -28,34 +28,57 @@
       </div>
 
       <!-- Material list -->
-      <div v-if="notes.length || hasDocuments" class="space-y-2">
-        <button
+      <div v-if="notes.length || hasDocuments" class="space-y-3">
+        <div
           v-for="note in notes"
           :key="note.id"
-          class="w-full text-left px-4 py-3 rounded-xl bg-[var(--bg-card)] border border-base shadow-sm transition-all flex items-start gap-3 hover:border-[var(--color-accent-primary)]/30 hover:shadow-md"
+          class="group relative w-full text-left px-5 py-4 rounded-2xl bg-[var(--bg-card)] border border-base shadow-sm transition-all hover:border-[var(--color-accent-primary)]/30 hover:shadow-md cursor-pointer"
           @click="$emit('open-note', note)"
         >
-          <FileText :size="16" class="shrink-0 opacity-60 text-base-muted mt-0.5" />
-          <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-2">
-              <p class="text-body font-medium truncate text-base-primary">
-                {{ note.title }}
+          <div class="flex gap-4">
+            <!-- Visual placeholder (document icon area) -->
+            <div class="hidden sm:flex w-16 h-20 shrink-0 rounded-lg bg-surface-secondary/60 border border-base items-center justify-center">
+              <FileText :size="24" class="text-base-muted/40" />
+            </div>
+
+            <div class="flex-1 min-w-0">
+              <!-- Title -->
+              <h4 class="text-lg font-semibold text-base-primary truncate">{{ note.title }}</h4>
+
+              <!-- Date -->
+              <p class="text-small text-base-muted mt-0.5">{{ formatDate(note.updated_at) }}</p>
+
+              <!-- Badges row -->
+              <div class="flex items-center gap-2 mt-2">
+                <span v-if="note.flashcards_count > 0" class="inline-flex items-center gap-1 text-micro font-medium px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600">
+                  <Check :size="10" /> Estudado
+                </span>
+                <span v-if="note.source_document_id" class="inline-flex items-center gap-1 text-micro font-medium px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-600">
+                  <Sparkles :size="10" /> AI melhoria
+                </span>
+                <span v-if="!note.flashcards_count && noteMature(note)" class="inline-flex items-center gap-1 text-micro font-medium px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600">
+                  <Sparkles :size="10" /> AI sugestão
+                </span>
+                <span v-if="noteOutdated(note)" class="inline-flex items-center gap-1 text-micro font-medium px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600">
+                  Atualizar
+                </span>
+              </div>
+
+              <!-- Preview text -->
+              <p v-if="note.plain_preview" class="text-small text-base-muted mt-2 line-clamp-3">
+                {{ note.plain_preview }}
               </p>
-              <span v-if="note.source_document_id" class="text-micro font-semibold text-accent-primary inline-flex items-center gap-0.5 shrink-0"><Sparkles :size="10" /> IA</span>
             </div>
-            <!-- Preview text -->
-            <p v-if="note.plain_preview" class="text-small text-base-muted mt-0.5 line-clamp-2">
-              {{ note.plain_preview }}
-            </p>
-            <!-- Meta row: date + badge -->
-            <div class="flex items-center gap-2 mt-1.5">
-              <span class="text-micro text-base-muted">{{ formatDate(note.updated_at) }}</span>
-              <span v-if="getNoteBadge(note)" class="text-micro font-medium px-1.5 py-0.5 rounded-full" :class="badgeClass(getNoteBadge(note)!)">
-                {{ getNoteBadge(note)!.label }}
-              </span>
-            </div>
+
+            <!-- 3 dots menu (hover) -->
+            <button
+              class="absolute top-4 right-4 p-1.5 rounded-lg text-base-muted hover:text-base-primary hover:bg-surface-secondary opacity-0 group-hover:opacity-100 transition-opacity"
+              @click.stop
+            >
+              <MoreHorizontal :size="16" />
+            </button>
           </div>
-        </button>
+        </div>
 
         <!-- PDFs -->
         <slot name="documents" />
@@ -147,12 +170,12 @@
       </div>
 
       <!-- Footer: intelligent word count + concepts -->
-      <div class="px-4 py-2 border-t border-base flex items-center justify-between text-micro text-base-muted shrink-0">
-        <span v-if="wordCount >= 200">{{ wordCount }} palavras · ~{{ conceptCount }} conceitos encontrados</span>
-        <span v-else-if="wordCount >= 100">{{ wordCount }} palavras · Quase lá — mais um pouco pra IA funcionar</span>
-        <span v-else-if="wordCount > 0">{{ wordCount }} palavras · Continue escrevendo...</span>
-        <span v-else>0 palavras</span>
-        <span v-if="wordCount >= 200" class="text-emerald-500 font-medium">Material suficiente ✓</span>
+      <div class="px-4 py-2.5 border-t border-base flex items-center justify-between shrink-0">
+        <span v-if="wordCount >= 200" class="text-small text-base-secondary">{{ wordCount }} palavras · ~{{ conceptCount }} conceitos encontrados</span>
+        <span v-else-if="wordCount >= 100" class="text-small text-base-muted">{{ wordCount }} palavras · Quase lá — mais um pouco pra IA funcionar</span>
+        <span v-else-if="wordCount > 0" class="text-small text-base-muted">{{ wordCount }} palavras · Continue escrevendo...</span>
+        <span v-else class="text-small text-base-muted">0 palavras</span>
+        <span v-if="wordCount >= 200" class="text-small font-medium text-emerald-600 bg-emerald-500/10 px-2.5 py-1 rounded-full">Material suficiente pra flashcards ✓</span>
       </div>
 
       <!-- Selection toolbar (create card from selection) -->
@@ -170,9 +193,8 @@
 </template>
 
 <script setup lang="ts">
-import { FileText, ArrowLeft, ChevronRight, MoreHorizontal, Zap, Trash2, Brain, Sparkles } from 'lucide-vue-next'
+import { FileText, ArrowLeft, ChevronRight, MoreHorizontal, Zap, Trash2, Brain, Sparkles, Check } from 'lucide-vue-next'
 import type { Note } from '~/types'
-import { useNoteBadge, type NoteBadge } from '~/composables/useNoteBadge'
 
 const props = defineProps<{
   notes: Note[]
@@ -204,18 +226,15 @@ const quickText = ref('')
 const suggestGenerate = ref(false)
 const titleRef = ref<HTMLElement>()
 
-function getNoteBadge(note: Note): NoteBadge | null {
-  return useNoteBadge(note)
+function noteMature(note: Note): boolean {
+  // Note has enough content for AI (estimated 200+ words)
+  if (!note.plain_preview) return false
+  // If preview is exactly 150 chars (truncated), note is likely long enough
+  return note.plain_preview.length >= 148
 }
 
-function badgeClass(badge: NoteBadge): string {
-  switch (badge.color) {
-    case 'green': return 'bg-emerald-500/10 text-emerald-600'
-    case 'gray': return 'bg-[var(--border-base)]/30 text-base-muted'
-    case 'amber': return 'bg-amber-500/10 text-amber-600'
-    case 'purple': return 'bg-purple-500/10 text-purple-600'
-    default: return ''
-  }
+function noteOutdated(note: Note): boolean {
+  return !!(note.flashcards_count > 0 && note.cards_generated_at && note.updated_at > note.cards_generated_at)
 }
 
 // Set title text on mount / note change
@@ -318,6 +337,13 @@ onBeforeUnmount(() => {
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }

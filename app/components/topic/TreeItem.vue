@@ -1,47 +1,47 @@
 <template>
   <div>
+    <!-- Main row -->
     <button
-      class="group w-full flex items-center gap-2 px-3 py-2 rounded-lg text-left text-body transition-colors"
-      :class="topic.id === selectedId ? 'border-l-3 border-l-[var(--color-accent-soft)] font-medium text-base-primary bg-accent-primary-subtle/30' : 'text-base-muted hover:bg-surface-secondary hover:text-base-secondary'"
+      class="group w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-left text-body transition-colors"
+      :class="topic.id === selectedId ? 'border-l-3 border-l-[var(--color-accent-soft)] font-medium text-base-primary bg-accent-primary-subtle/20' : 'text-base-secondary hover:bg-surface-secondary hover:text-base-primary'"
       :style="{ paddingLeft: `${depth * 16 + 12}px` }"
       @click="$emit('select', topic.id)"
     >
+      <!-- Expand chevron -->
       <button
         v-if="topic.children?.length"
-        class="shrink-0 p-1 rounded hover:bg-surface-secondary text-base-muted"
+        class="shrink-0 p-0.5 rounded hover:bg-surface-secondary text-base-muted"
         @click.stop="expanded = !expanded"
       >
         <ChevronRight :size="14" class="transition-transform" :class="{ 'rotate-90': expanded }" />
       </button>
-      <span v-else class="w-5" />
 
-      <!-- Color dot for root topics, health dot for children -->
+      <!-- Color dot (root) or document icon (child) -->
       <span
         v-if="isRoot && topic.color"
-        class="w-2 h-2 rounded-full shrink-0"
+        class="w-2.5 h-2.5 rounded-full shrink-0"
         :style="{ backgroundColor: colorHex }"
       />
-      <span
-        v-else-if="topic.flashcards_count > 0"
-        class="w-2 h-2 rounded-full shrink-0"
-        :class="healthColor"
-      />
+      <span v-else-if="isRoot" class="w-2.5 h-2.5 rounded-full shrink-0 bg-[var(--border-base)]" />
+      <FileText v-else :size="14" class="shrink-0 text-base-muted/60" />
 
+      <!-- Name -->
       <span class="truncate flex-1" :title="topic.name">{{ topic.name }}</span>
 
-      <span class="shrink-0 flex items-center gap-1.5">
-        <!-- Pending badge for children -->
-        <span v-if="!isRoot && pendingCount > 0" class="text-micro text-base-muted bg-surface-secondary rounded px-1 py-0.5">
+      <!-- Right side: pending badge or 3 dots -->
+      <span class="shrink-0 flex items-center gap-1">
+        <!-- Pending count badge -->
+        <span v-if="pendingCount > 0" class="text-micro font-medium text-[var(--color-accent-soft)] bg-accent-primary-subtle/40 rounded px-1.5 py-0.5">
           {{ pendingCount }}
         </span>
-        <span v-else-if="!isRoot && pendingCount === 0 && topicProgress > 0" class="text-micro text-emerald-500">
+        <span v-else-if="!isRoot && topicProgress > 0 && pendingCount === 0" class="text-micro text-emerald-500">
           ✓
         </span>
 
-        <!-- 3 dots menu (hover-only on desktop) -->
-        <div class="relative opacity-0 group-hover:opacity-100 transition-opacity" :class="{ '!opacity-100': showMenu || topic.id === selectedId }" @click.stop>
+        <!-- 3 dots hover menu -->
+        <div class="relative opacity-0 group-hover:opacity-100 transition-opacity" :class="{ '!opacity-100': showMenu }" @click.stop>
           <button
-            class="p-1.5 rounded text-base-muted hover:text-base-primary hover:bg-surface-secondary"
+            class="p-1 rounded text-base-muted hover:text-base-primary hover:bg-surface-secondary"
             title="Opções"
             @click="showMenu = !showMenu"
           >
@@ -62,25 +62,31 @@
       </span>
     </button>
 
-    <!-- Progress meta for expanded root topics -->
+    <!-- Progress meta block for root cadernos (shown when expanded) -->
     <div
-      v-if="isRoot && isExpanded && topicProgress > 0"
-      class="flex items-center gap-2 px-3 pb-1"
-      :style="{ paddingLeft: `${depth * 16 + 40}px` }"
+      v-if="isRoot && isExpanded && (topicCards > 0 || pendingCount > 0)"
+      class="px-3 pt-1 pb-2"
+      :style="{ paddingLeft: `${depth * 16 + 36}px` }"
     >
-      <div class="w-12 h-1 rounded-full bg-surface-secondary overflow-hidden">
-        <div
-          class="h-1 rounded-full bg-[var(--color-accent-primary)] transition-all"
-          :style="{ width: Math.round(topicProgress * 100) + '%' }"
-        />
+      <p class="text-micro text-base-muted">{{ topicCards }} cards</p>
+      <!-- Progress bar -->
+      <div v-if="topicProgress > 0" class="flex items-center gap-2 mt-1">
+        <div class="w-20 h-1.5 rounded-full bg-surface-secondary overflow-hidden">
+          <div
+            class="h-1.5 rounded-full transition-all"
+            :class="progressBarColor"
+            :style="{ width: Math.round(topicProgress * 100) + '%' }"
+          />
+        </div>
       </div>
-      <span class="text-micro text-base-muted">{{ Math.round(topicProgress * 100) }}%</span>
-      <span v-if="lastReviewedText" class="text-micro text-base-muted">· {{ lastReviewedText }}</span>
+      <p v-if="pendingCount > 0" class="text-micro text-[var(--color-accent-soft)] font-medium mt-1">
+        {{ pendingCount }} pendentes hoje
+      </p>
     </div>
 
     <!-- Children -->
     <div v-if="isExpanded && topic.children?.length" class="relative">
-      <div class="absolute top-0 bottom-2 border-l border-[var(--border-base)]" :style="{ left: `${(depth + 1) * 16 + 18}px` }" />
+      <div class="absolute top-0 bottom-2 border-l border-[var(--border-base)]/50" :style="{ left: `${(depth + 1) * 16 + 18}px` }" />
       <TopicTreeItem
         v-for="child in topic.children"
         :key="child.id"
@@ -99,10 +105,9 @@
 </template>
 
 <script setup lang="ts">
-import { ChevronRight, MoreHorizontal } from 'lucide-vue-next'
+import { ChevronRight, MoreHorizontal, FileText } from 'lucide-vue-next'
 import type { Topic } from '~/types'
 import { getColorHex } from '~/utils/colors'
-import { relativeDate } from '~/utils/time'
 
 const props = defineProps<{
   topic: Topic
@@ -124,13 +129,20 @@ const colorHex = computed(() => getColorHex(props.topic.color))
 
 const topicProgress = computed(() => props.progressMap?.[props.topic.id]?.progress ?? 0)
 const pendingCount = computed(() => props.progressMap?.[props.topic.id]?.pending_count ?? 0)
-const lastReviewedText = computed(() => relativeDate(props.progressMap?.[props.topic.id]?.last_reviewed_at))
+const topicCards = computed(() => props.topic.flashcards_count ?? 0)
+
+const progressBarColor = computed(() => {
+  const p = topicProgress.value
+  if (p < 0.3) return 'bg-red-400'
+  if (p < 0.7) return 'bg-[var(--color-accent-primary)]'
+  return 'bg-emerald-400'
+})
 
 // Collapse by default for depth > 0, expand for root
 const expanded = ref(props.depth === 0)
 const showMenu = ref(false)
 
-// Force expand when searching, or when selected item is in this subtree
+// Force expand when searching
 const isExpanded = computed(() => {
   if (props.forceExpand) return true
   return expanded.value
@@ -151,12 +163,4 @@ watch(() => props.selectedId, (newId) => {
     expanded.value = true
   }
 }, { immediate: true })
-
-const healthColor = computed(() => {
-  const p = topicProgress.value
-  if (p === 0) return 'bg-[var(--border-base)]'
-  if (p < 0.3) return 'bg-red-400'
-  if (p < 0.7) return 'bg-amber-400'
-  return 'bg-emerald-400'
-})
 </script>

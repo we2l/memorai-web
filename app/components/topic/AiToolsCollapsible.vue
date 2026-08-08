@@ -1,75 +1,40 @@
 <template>
-  <div class="mx-4 mb-3">
-    <button
-      class="flex items-center gap-2 text-small text-base-muted hover:text-base-primary transition-colors"
-      @click="isOpen = !isOpen"
-    >
-      <ChevronRight :size="14" class="transition-transform" :class="{ 'rotate-90': isOpen }" />
-      <span class="font-medium">Ferramentas IA</span>
-    </button>
-
-    <div v-if="isOpen" class="mt-2 space-y-1.5 pl-5">
+  <div class="mx-4 mt-4 mb-3">
+    <div class="grid grid-cols-2 gap-3">
+      <!-- Podcast card -->
       <button
-        class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-surface-secondary transition-colors text-left"
+        class="flex items-center gap-3 px-4 py-3 rounded-xl bg-[var(--bg-card)] border border-base shadow-sm hover:border-[var(--color-accent-primary)]/20 hover:shadow-md transition-all text-left"
         @click="$emit('podcast')"
       >
-        <Headphones :size="16" class="text-[var(--color-accent-soft)] shrink-0" />
+        <Headphones :size="20" class="text-base-muted shrink-0" />
         <div class="flex-1 min-w-0">
-          <p class="text-small text-base-primary font-medium">Podcast dos seus erros</p>
-          <p class="text-micro text-base-muted">Revise ouvindo no ônibus</p>
+          <p class="text-small font-semibold text-base-primary">Podcast</p>
+          <p class="text-micro text-base-muted truncate">Revisar ouvindo seus erros</p>
         </div>
+        <ChevronRight :size="14" class="text-base-muted/40 shrink-0" />
       </button>
 
+      <!-- Simulado card -->
       <button
-        class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-surface-secondary transition-colors text-left"
+        class="flex items-center gap-3 px-4 py-3 rounded-xl bg-[var(--bg-card)] border border-base shadow-sm hover:border-[var(--color-accent-primary)]/20 hover:shadow-md transition-all text-left"
         @click="$emit('quiz')"
       >
-        <ClipboardList :size="16" class="text-[var(--color-accent-soft)] shrink-0" />
+        <ClipboardList :size="20" class="text-base-muted shrink-0" />
         <div class="flex-1 min-w-0">
-          <p class="text-small text-base-primary font-medium">Simulado</p>
-          <p class="text-micro text-base-muted">Questões geradas pela IA</p>
+          <p class="text-small font-semibold text-base-primary">Simulado</p>
+          <p class="text-micro text-base-muted truncate">Testar com questões da IA</p>
         </div>
-      </button>
-
-      <button
-        class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-surface-secondary transition-colors text-left"
-        @click="$emit('mindmap')"
-      >
-        <Brain :size="16" class="text-[var(--color-accent-soft)] shrink-0" />
-        <div class="flex-1 min-w-0">
-          <p class="text-small text-base-primary font-medium">Mapa mental</p>
-          <p class="text-micro text-base-muted">Visualize as conexões</p>
-        </div>
+        <ChevronRight :size="14" class="text-base-muted/40 shrink-0" />
       </button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ChevronRight, Headphones, ClipboardList, Brain } from 'lucide-vue-next'
-
-const props = defineProps<{
-  storageKey?: string
-}>()
+import { Headphones, ClipboardList, ChevronRight } from 'lucide-vue-next'
 
 defineEmits<{
   (e: 'podcast'): void
   (e: 'quiz'): void
-  (e: 'mindmap'): void
 }>()
-
-const isOpen = ref(false)
-
-// Persist collapsed state
-onMounted(() => {
-  if (props.storageKey && import.meta.client) {
-    isOpen.value = localStorage.getItem(props.storageKey) === 'true'
-  }
-})
-
-watch(isOpen, (val) => {
-  if (props.storageKey && import.meta.client) {
-    localStorage.setItem(props.storageKey, String(val))
-  }
-})
 </script>

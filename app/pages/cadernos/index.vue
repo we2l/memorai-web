@@ -200,8 +200,8 @@
                   <PanelLeftOpen :size="16" />
                 </button>
                 <div class="min-w-0">
-                  <h2 class="font-heading font-bold text-xl text-base-primary truncate">{{ selectedTopicName }}</h2>
-                  <p class="text-small text-base-muted mt-0.5">
+                  <h1 class="font-heading font-bold text-3xl text-base-primary truncate">{{ selectedTopicName }}</h1>
+                  <p class="text-small text-base-muted mt-1">
                     {{ topicCards.length }} card{{ topicCards.length !== 1 ? 's' : '' }}{{ pendingCount > 0 ? ` · ${pendingCount} pendente${pendingCount !== 1 ? 's' : ''} hoje` : '' }}
                   </p>
                 </div>
@@ -209,38 +209,24 @@
 
               <!-- CTA contextual -->
               <div class="shrink-0">
-                <NuxtLink v-if="pendingCount > 0" :to="`/revisar?topic_id=${selectedTopicId}`" class="btn-primary !py-2.5 !px-4">
-                  Revisar {{ pendingCount }}
+                <NuxtLink v-if="pendingCount > 0" :to="`/revisar?topic_id=${selectedTopicId}`" class="btn-primary !py-3 !px-6 !text-base font-semibold">
+                  Revisar {{ pendingCount }} cards
                 </NuxtLink>
-                <button v-else-if="topicCards.length === 0 && noteStore.notes.length > 0" class="btn-primary !py-2.5 !px-4" @click="cardWorkshop.generate('notes')">
+                <button v-else-if="topicCards.length === 0 && noteStore.notes.length > 0" class="btn-primary !py-3 !px-6 !text-base font-semibold" @click="cardWorkshop.generate('notes')">
                   Transformar em flashcards
                 </button>
                 <span v-else-if="topicCards.length > 0" class="text-small text-emerald-500 font-medium">Tudo em dia ✓</span>
               </div>
             </div>
 
-            <!-- Progress bar -->
-            <div v-if="topicCards.length" class="mt-3">
-              <div class="flex items-center gap-3">
-                <div class="flex-1 h-1 rounded-full bg-surface-secondary overflow-hidden">
-                  <div
-                    class="h-1 rounded-full bg-[var(--color-accent-primary)] transition-all duration-500"
-                    :style="{ width: memorizeProgress + '%' }"
-                  />
-                </div>
-                <span class="text-small text-base-muted shrink-0">{{ memorizeProgress }}%</span>
-              </div>
-            </div>
+            <!-- Progress bar (removed - shown in sidebar now) -->
           </div>
 
           <!-- AI Tools collapsible (podcast, simulado, mapa) -->
           <TopicAiToolsCollapsible
             v-if="selectedTopicId"
-            :storage-key="`baigi-ai-tools-${selectedTopicId}`"
-            class="mt-3"
             @podcast="showPodcastSheet = true"
             @quiz="navigateTo(`/simulados?topic_id=${selectedTopicId}`)"
-            @mindmap="activeTab = 'map'; mapSubView = 'mindmap'"
           />
 
           <PodcastGenerateSheet

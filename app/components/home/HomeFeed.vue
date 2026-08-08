@@ -17,13 +17,13 @@ defineProps<{
 
 <style scoped>
 .feed {
-  padding-left: 24px;
-  border-left: 1px solid var(--border-base);
+  padding-left: 20px;
+  border-left: 1px solid color-mix(in srgb, var(--border-base) 50%, transparent);
 }
 @media (max-width: 1023px) {
   .feed {
     border-left: none;
-    border-top: 1px solid var(--border-base);
+    border-top: 1px solid color-mix(in srgb, var(--border-base) 50%, transparent);
     padding-left: 0;
     padding-top: 20px;
     margin-top: 20px;
@@ -32,15 +32,15 @@ defineProps<{
 
 .feed__label {
   font-size: 11px;
-  font-weight: 600;
-  color: var(--color-text-muted);
+  font-weight: 500;
+  color: color-mix(in srgb, var(--color-text-muted) 80%, transparent);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   margin-bottom: 14px;
 }
 .feed__list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 </style>

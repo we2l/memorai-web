@@ -104,57 +104,62 @@ const subtitle = computed(() => {
   gap: 10px;
 }
 .hero__mascot {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   object-fit: contain;
-  border-radius: 6px;
+  border-radius: 5px;
+  opacity: 0.9;
 }
 .hero__mascot--lg {
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
 }
 .hero__greeting-text {
-  font-size: 15px;
-  color: var(--color-text-secondary);
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--color-text-muted);
+  letter-spacing: 0.005em;
 }
 
 .hero__mission {
-  margin-top: 12px;
+  margin-top: 14px;
 }
 .hero__subtitle {
-  font-size: 15px;
-  color: var(--color-text-secondary);
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--color-text-muted);
   margin-bottom: 2px;
 }
 .hero__number {
   font-size: 2.75rem;
   font-weight: 700;
-  line-height: 1.1;
+  line-height: 1.05;
   color: var(--color-text-primary);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
 }
 @media (min-width: 640px) {
   .hero__number { font-size: 3.25rem; }
 }
 .hero__context {
-  font-size: 14px;
+  font-size: 13px;
+  font-weight: 400;
   color: var(--color-text-muted);
   margin-top: 6px;
+  letter-spacing: 0.01em;
 }
 
 .hero__exam-badge {
   display: inline-flex;
   align-items: center;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
   color: var(--color-warning);
-  padding: 3px 10px;
-  border-radius: 6px;
-  background: color-mix(in srgb, var(--color-warning) 8%, transparent);
+  padding: 3px 9px;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--color-warning) 6%, transparent);
   margin-bottom: 8px;
 }
 
-/* CTA + Progress inline */
 .hero__actions {
   display: flex;
   align-items: center;
@@ -173,49 +178,52 @@ const subtitle = computed(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 11px 28px;
-  font-size: 14px;
+  padding: 10px 26px;
+  font-size: 13.5px;
   font-weight: 600;
   color: #fff;
   background: var(--color-primary-500, var(--color-accent-primary));
-  border-radius: 10px;
-  transition: all 150ms ease-out;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02), 0 8px 24px rgba(111, 63, 245, 0.12);
+  border-radius: 9px;
+  transition: all 180ms ease-out;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(111, 63, 245, 0.10);
   white-space: nowrap;
   flex-shrink: 0;
+  letter-spacing: 0.01em;
 }
 .hero__cta:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02), 0 12px 32px rgba(111, 63, 245, 0.18);
+  transform: translateY(-0.5px);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(111, 63, 245, 0.15);
   background: var(--color-primary-600, var(--color-accent-primary));
 }
 
 .hero__progress {
   display: flex;
   align-items: center;
-  gap: 12px;
-  max-width: 240px;
+  gap: 10px;
+  max-width: 200px;
   flex: 1;
   min-width: 0;
 }
 .hero__progress-track {
   flex: 1;
-  height: 4px;
+  height: 3px;
   border-radius: 99px;
-  background: color-mix(in srgb, var(--border-base) 60%, transparent);
+  background: color-mix(in srgb, var(--border-base) 40%, transparent);
   overflow: hidden;
 }
 .hero__progress-fill {
   height: 100%;
   border-radius: 99px;
   background: var(--color-primary-500, var(--color-accent-primary));
-  transition: width 500ms ease-out;
+  opacity: 0.7;
+  transition: width 600ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 .hero__progress-label {
-  font-size: 13px;
-  color: var(--color-text-muted);
+  font-size: 12px;
+  color: color-mix(in srgb, var(--color-text-muted) 70%, transparent);
   font-variant-numeric: tabular-nums;
   font-family: 'Geist', ui-monospace, monospace;
   flex-shrink: 0;
+  letter-spacing: 0.02em;
 }
 </style>

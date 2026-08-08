@@ -36,22 +36,22 @@ defineProps<{
 <style scoped>
 .review-modes {
   margin-top: 28px;
-  padding-top: 16px;
-  border-top: 1px solid color-mix(in srgb, var(--border-base) 60%, transparent);
+  padding-top: 14px;
+  border-top: 1px solid color-mix(in srgb, var(--border-base) 40%, transparent);
 }
 .review-modes__list {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 20px;
+  gap: 18px;
 }
 
 .review-mode {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  color: var(--color-text-secondary);
-  font-size: 13px;
+  gap: 5px;
+  color: color-mix(in srgb, var(--color-text-muted) 90%, transparent);
+  font-size: 12.5px;
   transition: color 150ms ease-out;
 }
 .review-mode:hover {
@@ -59,7 +59,7 @@ defineProps<{
 }
 
 .review-mode__icon {
-  font-size: 14px;
+  font-size: 13px;
 }
 .review-mode__icon--blitz {
   color: var(--color-warning);

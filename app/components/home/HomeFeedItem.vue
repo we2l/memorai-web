@@ -1,11 +1,11 @@
 <template>
-  <NuxtLink :to="item.url" class="feed-card group">
-    <span class="text-lg shrink-0">{{ item.icon }}</span>
-    <div class="flex-1 min-w-0">
-      <p class="text-[13px] font-semibold text-base-primary leading-snug">{{ item.label }}</p>
-      <p v-if="item.description" class="text-[12px] text-base-muted mt-0.5 truncate">{{ item.description }}</p>
-      <p class="text-[12px] text-accent-primary font-medium mt-1 group-hover:underline">{{ item.action_label }} →</p>
+  <NuxtLink :to="item.url" class="feed-item group">
+    <span class="feed-item__icon">{{ item.icon }}</span>
+    <div class="feed-item__content">
+      <p class="feed-item__title">{{ item.label }}</p>
+      <p v-if="item.description" class="feed-item__desc">{{ item.description }}</p>
     </div>
+    <span class="feed-item__action">{{ item.action_label }} →</span>
   </NuxtLink>
 </template>
 
@@ -24,18 +24,52 @@ defineProps<{
 </script>
 
 <style scoped>
-.feed-card {
+.feed-item {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 10px;
-  padding: 12px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-base);
-  border-radius: 10px;
-  transition: all 150ms ease-out;
+  padding: 10px 12px;
+  border-radius: 8px;
+  transition: background 120ms ease-out;
 }
-.feed-card:hover {
-  border-color: color-mix(in srgb, var(--color-primary-500, var(--color-accent-primary)) 20%, var(--border-base));
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+.feed-item:hover {
+  background: var(--bg-soft);
+}
+
+.feed-item__icon {
+  font-size: 14px;
+  flex-shrink: 0;
+  opacity: 0.8;
+}
+
+.feed-item__content {
+  flex: 1;
+  min-width: 0;
+}
+.feed-item__title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.feed-item__desc {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  margin-top: 1px;
+}
+
+.feed-item__action {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-primary-500, var(--color-accent-primary));
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 150ms ease-out;
+}
+.feed-item:hover .feed-item__action {
+  opacity: 1;
 }
 </style>

@@ -2,18 +2,17 @@
   <!-- Hero: cards pendentes -->
   <section v-if="totalCards > 0" class="hero">
     <div class="hero__top">
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2.5">
         <img src="~/assets/mascot-baigi-bust.png" alt="" class="w-8 h-8 object-contain" />
-        <span class="text-sm text-base-primary/80">{{ greeting }}, {{ firstName }}.</span>
+        <span class="text-[13px] text-base-primary/70 font-medium">{{ greeting }}, {{ firstName }}.</span>
       </div>
-      <span v-if="streak > 1" class="text-xs text-base-muted">🔥 {{ streak }}</span>
+      <span v-if="streak > 1" class="text-[11px] text-base-muted font-medium">🔥 {{ streak }}</span>
     </div>
 
     <div class="hero__body">
-      <p v-if="nextExam" class="inline-flex items-center text-xs text-warning font-medium px-2 py-0.5 rounded-full bg-warning/10 mb-2">📋 Prova em {{ nextExam.days_remaining }} dias</p>
-      <p class="text-sm text-base-secondary">{{ heroSubtitle }}</p>
-      <p class="hero__number">{{ totalCards }} cards.</p>
-      <p class="text-sm text-base-muted mt-1">≈{{ estimatedMinutes }} min · {{ mainTopicName }}</p>
+      <p v-if="nextExam" class="hero__exam-badge">📋 Prova em {{ nextExam.days_remaining }} dias</p>
+      <p class="hero__number">{{ totalCards }} cards para revisar</p>
+      <p class="hero__context">{{ mainTopicName }} · ~{{ estimatedMinutes }} min</p>
     </div>
 
     <div class="hero__actions">
@@ -22,7 +21,7 @@
         <div class="hero__progress-track" role="progressbar" :aria-valuenow="reviewedToday" :aria-valuemax="totalDue">
           <div class="hero__progress-fill" :style="{ width: progressPercent + '%' }" />
         </div>
-        <span class="text-[11px] text-base-muted font-mono shrink-0">{{ reviewedToday }}/{{ totalDue }}</span>
+        <span class="hero__progress-label">{{ reviewedToday }}/{{ totalDue }}</span>
       </div>
     </div>
   </section>
@@ -30,10 +29,10 @@
   <!-- Hero: novo usuário (0 cards) -->
   <section v-else-if="totalUserCards === 0" class="hero">
     <div class="flex items-center gap-3">
-      <img src="~/assets/mascot-baigi-reading.png" alt="" class="w-12 h-12 object-contain shrink-0" />
+      <img src="~/assets/mascot-baigi-reading.png" alt="" class="w-11 h-11 object-contain shrink-0" />
       <div>
-        <p class="text-xl font-bold text-base-primary">Comece por aqui.</p>
-        <p class="text-sm text-base-muted mt-0.5">Importe um PDF ou crie um caderno pra gerar seus cards.</p>
+        <p class="text-lg font-bold text-base-primary">Comece por aqui.</p>
+        <p class="text-[13px] text-base-muted mt-0.5">Importe um PDF ou crie um caderno pra gerar seus cards.</p>
       </div>
     </div>
     <div class="flex gap-3 mt-4">
@@ -47,8 +46,8 @@
     <div class="flex items-center gap-3">
       <img src="~/assets/mascot-baigi-celebrating.png" alt="" class="w-10 h-10 object-contain shrink-0" />
       <div>
-        <p class="text-xl font-bold text-base-primary">Tudo em dia! 🎉</p>
-        <p class="text-sm text-base-muted mt-0.5">{{ subtitle }}</p>
+        <p class="text-lg font-bold text-base-primary">Tudo em dia! 🎉</p>
+        <p class="text-[13px] text-base-muted mt-0.5">{{ subtitle }}</p>
       </div>
     </div>
     <NuxtLink to="/cadernos" class="btn-secondary mt-4 inline-flex">Ir pra Cadernos</NuxtLink>
@@ -88,13 +87,6 @@ const progressPercent = computed(() => {
   return Math.round((reviewedToday.value / totalDue.value) * 100)
 })
 
-const heroSubtitle = computed(() => {
-  const h = new Date().getHours()
-  if (h < 12) return 'Vamos manter o ritmo.'
-  if (h < 18) return `Faltam só ${totalCards.value} cards.`
-  return 'Última chance do dia. Bora?'
-})
-
 const subtitle = computed(() => {
   if (streak.value > 7) return `${streak.value} dias seguidos. Continue assim.`
   return 'Que tal gerar novos cards?'
@@ -113,26 +105,43 @@ const subtitle = computed(() => {
 }
 
 .hero__body {
-  margin-top: 16px;
+  margin-top: 20px;
+}
+
+.hero__exam-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-warning);
+  padding: 3px 10px;
+  border-radius: 99px;
+  background: color-mix(in srgb, var(--color-warning) 8%, transparent);
+  margin-bottom: 12px;
 }
 
 .hero__number {
-  font-size: 2.5rem;
-  font-weight: 800;
-  line-height: 1.1;
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.2;
   color: var(--color-text-primary);
-  letter-spacing: -0.03em;
-  margin-top: 2px;
+  letter-spacing: -0.02em;
 }
 @media (min-width: 640px) {
-  .hero__number { font-size: 3rem; }
+  .hero__number { font-size: 2rem; }
 }
 
-/* CTA + Progress on same line */
+.hero__context {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin-top: 4px;
+}
+
+/* CTA + Progress */
 .hero__actions {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 20px;
   margin-top: 20px;
 }
 @media (max-width: 639px) {
@@ -147,33 +156,34 @@ const subtitle = computed(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 12px 28px;
-  font-size: 15px;
+  padding: 10px 24px;
+  font-size: 14px;
   font-weight: 600;
   color: #fff;
   background: var(--color-primary-500, var(--color-accent-primary));
-  border-radius: 14px;
+  border-radius: 12px;
   transition: all 150ms ease-out;
-  box-shadow: 0 4px 16px rgba(111, 63, 245, 0.25);
+  box-shadow: 0 2px 12px rgba(111, 63, 245, 0.2);
   white-space: nowrap;
-  shrink: 0;
+  flex-shrink: 0;
 }
 .hero__cta:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(111, 63, 245, 0.3);
+  box-shadow: 0 4px 16px rgba(111, 63, 245, 0.28);
   background: var(--color-primary-600, var(--color-accent-primary));
 }
 
 .hero__progress {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  max-width: 180px;
   flex: 1;
   min-width: 0;
 }
 .hero__progress-track {
   flex: 1;
-  height: 5px;
+  height: 4px;
   border-radius: 99px;
   background: var(--bg-soft);
   overflow: hidden;
@@ -182,7 +192,13 @@ const subtitle = computed(() => {
   height: 100%;
   border-radius: 99px;
   background: var(--color-primary-500, var(--color-accent-primary));
-  opacity: 0.7;
+  opacity: 0.6;
   transition: width 500ms ease-out;
+}
+.hero__progress-label {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
 }
 </style>

@@ -33,6 +33,11 @@ const sortedTopics = computed(() =>
 .library__grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
+  gap: 8px;
+}
+@media (max-width: 639px) {
+  .library__grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

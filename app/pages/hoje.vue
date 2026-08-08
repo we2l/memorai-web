@@ -161,10 +161,10 @@ watch(() => route.fullPath, () => {
 <style scoped>
 .home {
   max-width: 1100px;
-  padding: 16px 16px 80px;
+  padding: 20px 16px 80px;
 }
 @media (min-width: 768px) {
-  .home { padding: 24px 32px 24px; }
+  .home { padding: 28px 32px 28px; }
 }
 
 .home-grid {

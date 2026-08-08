@@ -5,13 +5,13 @@
     :style="{ '--nb-color': topic.color || 'var(--color-primary-500, var(--color-accent-primary))' }"
   >
     <div class="flex items-center justify-between">
-      <span class="text-[15px] font-semibold text-base-primary truncate">{{ topic.name }}</span>
-      <span class="text-xs font-medium shrink-0 ml-3" :class="state.class">{{ state.text }}</span>
+      <span class="text-[13px] font-semibold text-base-primary truncate">{{ topic.name }}</span>
+      <span class="text-[11px] font-medium shrink-0 ml-2" :class="state.class">{{ state.text }}</span>
     </div>
     <div class="library-card__bar">
       <div class="library-card__bar-fill" :style="{ width: progressWidth }" />
     </div>
-    <p class="text-xs text-base-muted mt-1.5">{{ state.label }} · {{ topic.flashcards_count }} cards</p>
+    <p class="text-[11px] text-base-muted mt-1.5">{{ state.label }} · {{ topic.flashcards_count }} cards</p>
   </NuxtLink>
 </template>
 
@@ -31,7 +31,7 @@ const state = computed(() => {
     return { text: 'Em dia ✓', class: 'text-success', label: 'Em dia' }
   }
   if (pending.value > 0) {
-    return { text: `${pending.value} pendentes`, class: 'text-[var(--color-primary-500,var(--color-accent-soft))]', label: `${pending.value} pendentes` }
+    return { text: `${pending.value} pend.`, class: 'text-[var(--color-primary-500,var(--color-accent-soft))]', label: `${pending.value} pendentes` }
   }
   return { text: 'Novo', class: 'text-base-muted', label: 'Novo' }
 })
@@ -40,10 +40,10 @@ const state = computed(() => {
 <style scoped>
 .library-card {
   position: relative;
-  padding: 14px 16px 14px 20px;
+  padding: 10px 12px 10px 16px;
   background: var(--bg-card);
   border: 1px solid var(--border-base);
-  border-radius: 12px;
+  border-radius: 10px;
   transition: all 150ms ease-out;
   overflow: hidden;
 }
@@ -51,8 +51,8 @@ const state = computed(() => {
   content: '';
   position: absolute;
   left: 0;
-  top: 10px;
-  bottom: 10px;
+  top: 8px;
+  bottom: 8px;
   width: 4px;
   border-radius: 0 4px 4px 0;
   background: var(--nb-color);
@@ -73,7 +73,7 @@ const state = computed(() => {
   border-radius: 99px;
   background: var(--bg-soft);
   overflow: hidden;
-  margin-top: 8px;
+  margin-top: 6px;
 }
 .library-card__bar-fill {
   height: 100%;

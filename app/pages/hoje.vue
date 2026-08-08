@@ -19,11 +19,11 @@
       :user-name="auth.user?.name ?? 'estudante'"
     />
 
-    <!-- Continuar Estudando -->
-    <HomeLibrary :topics="topicProgress" />
-
-    <!-- Feed -->
-    <HomeFeed :items="feedItems" />
+    <!-- Grid: Cadernos (esquerda) + Feed (direita) -->
+    <div v-if="topicProgress.length || feedItems.length" class="home-grid">
+      <HomeLibrary :topics="topicProgress" />
+      <HomeFeed :items="feedItems" />
+    </div>
 
     <!-- Outras Formas de Revisar -->
     <HomeReviewModes
@@ -33,7 +33,7 @@
     />
 
     <!-- Activation (new users only) -->
-    <section v-if="stats && isNewUser" class="mt-8">
+    <section v-if="stats && isNewUser" class="mt-6">
       <UiActivationChecklist
         :has-topics="Number(stats.total_decks) > 0"
         :has-material="Number(stats.total_decks) > 0"
@@ -84,12 +84,13 @@ const feedItems = computed(() => {
   const items = [...pendingActions.value]
   if (auth.user?.plan !== 'free' && (stats.value?.reviewed_today ?? 0) > 0) {
     if (!items.some(i => i.url?.includes('podcast'))) {
-      items.push({ icon: '🎧', label: 'Podcast dos seus pontos fracos disponível.', action_label: 'Ouvir', url: '/podcasts' })
+      items.push({ icon: '🎧', label: 'Podcast disponível', description: 'Seus pontos fracos', action_label: 'Ouvir', url: '/podcasts' })
     }
   }
-  return items.slice(0, 3).map(item => ({
+  return items.slice(0, 4).map(item => ({
     ...item,
     icon: item.icon || guessIcon(item.label),
+    description: item.description || guessDescription(item.label),
   }))
 })
 
@@ -99,6 +100,12 @@ function guessIcon(label: string): string {
   if (label.includes('podcast') || label.includes('Podcast')) return '🎧'
   if (label.includes('quiz') || label.includes('simulado')) return '📝'
   return '✨'
+}
+
+function guessDescription(label: string): string {
+  if (label.includes('PDF') || label.includes('processado')) return 'Conceitos encontrados'
+  if (label.includes('esquecendo') || label.includes('fraco')) return 'Cards pendentes'
+  return ''
 }
 
 async function loadData() {
@@ -153,11 +160,22 @@ watch(() => route.fullPath, () => {
 
 <style scoped>
 .home {
-  max-width: 720px;
-  margin: 0 auto;
+  max-width: 1100px;
   padding: 16px 16px 80px;
 }
-@media (min-width: 640px) {
-  .home { padding: 32px 32px 32px; }
+@media (min-width: 768px) {
+  .home { padding: 24px 32px 24px; }
+}
+
+.home-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  margin-top: 24px;
+}
+@media (min-width: 768px) {
+  .home-grid {
+    grid-template-columns: 5fr 3fr;
+  }
 }
 </style>

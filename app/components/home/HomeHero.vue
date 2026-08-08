@@ -10,38 +10,47 @@
     </div>
 
     <div class="hero__body">
-      <p v-if="nextExam" class="text-xs text-warning font-medium mb-2">📋 Prova em {{ nextExam.days_remaining }} dias</p>
+      <p v-if="nextExam" class="inline-flex items-center text-xs text-warning font-medium px-2 py-0.5 rounded-full bg-warning/10 mb-2">📋 Prova em {{ nextExam.days_remaining }} dias</p>
       <p class="text-sm text-base-secondary">Hoje faltam apenas</p>
       <p class="hero__number">{{ totalCards }} cards.</p>
       <p class="text-sm text-base-muted mt-1">≈{{ estimatedMinutes }} min · {{ mainTopicName }}</p>
     </div>
 
-    <div class="hero__progress">
-      <div class="hero__progress-track" role="progressbar" :aria-valuenow="reviewedToday" :aria-valuemax="totalDue">
-        <div class="hero__progress-fill" :style="{ width: progressPercent + '%' }" />
+    <div class="hero__actions">
+      <NuxtLink to="/revisar" class="hero__cta">Começar revisão</NuxtLink>
+      <div class="hero__progress">
+        <div class="hero__progress-track" role="progressbar" :aria-valuenow="reviewedToday" :aria-valuemax="totalDue">
+          <div class="hero__progress-fill" :style="{ width: progressPercent + '%' }" />
+        </div>
+        <span class="text-[11px] text-base-muted font-mono shrink-0">{{ reviewedToday }}/{{ totalDue }}</span>
       </div>
-      <span class="text-xs text-base-muted font-mono">{{ reviewedToday }}/{{ totalDue }}</span>
     </div>
-
-    <NuxtLink to="/revisar" class="hero__cta">Começar revisão</NuxtLink>
   </section>
 
   <!-- Hero: novo usuário (0 cards) -->
-  <section v-else-if="totalUserCards === 0" class="hero hero--centered">
-    <img src="~/assets/mascot-baigi-reading.png" alt="" class="w-20 h-20 object-contain" />
-    <p class="text-xl font-bold text-base-primary mt-4">Comece por aqui.</p>
-    <p class="text-sm text-base-muted mt-1">Importe um PDF ou crie um caderno pra gerar seus cards.</p>
-    <div class="flex gap-3 mt-5">
+  <section v-else-if="totalUserCards === 0" class="hero">
+    <div class="flex items-center gap-3">
+      <img src="~/assets/mascot-baigi-reading.png" alt="" class="w-12 h-12 object-contain shrink-0" />
+      <div>
+        <p class="text-xl font-bold text-base-primary">Comece por aqui.</p>
+        <p class="text-sm text-base-muted mt-0.5">Importe um PDF ou crie um caderno pra gerar seus cards.</p>
+      </div>
+    </div>
+    <div class="flex gap-3 mt-4">
       <NuxtLink to="/cadernos" class="hero__cta">Criar caderno</NuxtLink>
       <NuxtLink to="/importar" class="btn-secondary">Importar Anki</NuxtLink>
     </div>
   </section>
 
   <!-- Hero: tudo em dia -->
-  <section v-else class="hero hero--centered">
-    <img src="~/assets/mascot-baigi-celebrating.png" alt="" class="w-16 h-16 object-contain" />
-    <p class="text-2xl font-bold text-base-primary mt-4">Tudo em dia! 🎉</p>
-    <p class="text-sm text-base-muted mt-1">{{ subtitle }}</p>
+  <section v-else class="hero">
+    <div class="flex items-center gap-3">
+      <img src="~/assets/mascot-baigi-celebrating.png" alt="" class="w-10 h-10 object-contain shrink-0" />
+      <div>
+        <p class="text-xl font-bold text-base-primary">Tudo em dia! 🎉</p>
+        <p class="text-sm text-base-muted mt-0.5">{{ subtitle }}</p>
+      </div>
+    </div>
     <NuxtLink to="/cadernos" class="btn-secondary mt-4 inline-flex">Ir pra Cadernos</NuxtLink>
   </section>
 </template>
@@ -89,13 +98,6 @@ const subtitle = computed(() => {
 .hero {
   padding-top: 4px;
 }
-.hero--centered {
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-top: 16px;
-}
 
 .hero__top {
   display: flex;
@@ -104,7 +106,7 @@ const subtitle = computed(() => {
 }
 
 .hero__body {
-  margin-top: 20px;
+  margin-top: 16px;
 }
 
 .hero__number {
@@ -119,11 +121,48 @@ const subtitle = computed(() => {
   .hero__number { font-size: 3rem; }
 }
 
+/* CTA + Progress on same line */
+.hero__actions {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-top: 20px;
+}
+@media (max-width: 639px) {
+  .hero__actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+}
+
+.hero__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 28px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--color-primary-500, var(--color-accent-primary));
+  border-radius: 14px;
+  transition: all 150ms ease-out;
+  box-shadow: 0 4px 16px rgba(111, 63, 245, 0.25);
+  white-space: nowrap;
+  shrink: 0;
+}
+.hero__cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(111, 63, 245, 0.3);
+  background: var(--color-primary-600, var(--color-accent-primary));
+}
+
 .hero__progress {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-top: 20px;
+  flex: 1;
+  min-width: 0;
 }
 .hero__progress-track {
   flex: 1;
@@ -138,25 +177,5 @@ const subtitle = computed(() => {
   background: var(--color-primary-500, var(--color-accent-primary));
   opacity: 0.7;
   transition: width 500ms ease-out;
-}
-
-.hero__cta {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 24px;
-  padding: 14px 32px;
-  font-size: 15px;
-  font-weight: 600;
-  color: #fff;
-  background: var(--color-primary-500, var(--color-accent-primary));
-  border-radius: 14px;
-  transition: all 150ms ease-out;
-  box-shadow: 0 4px 16px rgba(111, 63, 245, 0.25);
-}
-.hero__cta:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(111, 63, 245, 0.3);
-  background: var(--color-primary-600, var(--color-accent-primary));
 }
 </style>

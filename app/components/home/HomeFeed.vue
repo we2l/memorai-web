@@ -17,9 +17,14 @@ defineProps<{
 
 <style scoped>
 .feed {
-  margin-top: 28px;
-  padding-top: 20px;
-  border-top: 1px dashed color-mix(in srgb, var(--border-base) 50%, transparent);
+  border-left: 1px solid var(--border-base);
+  padding-left: 24px;
+}
+@media (max-width: 767px) {
+  .feed {
+    border-left: none;
+    padding-left: 0;
+  }
 }
 .feed__label {
   font-size: 11px;
@@ -27,11 +32,11 @@ defineProps<{
   color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 .feed__list {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 10px;
 }
 </style>

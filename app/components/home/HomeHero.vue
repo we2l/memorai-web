@@ -1,56 +1,57 @@
 <template>
   <!-- Hero: cards pendentes -->
-  <section v-if="totalCards > 0" class="hero">
-    <div class="hero__left">
-      <div class="hero__meta">
-        <img src="~/assets/mascot-baigi-bust.png" alt="" class="hero__mascot" />
-        <span class="hero__salute">{{ greeting }}, {{ firstName }}.</span>
-      </div>
-      <p class="hero__lead">Hoje faltam apenas</p>
-      <h1 class="hero__headline">{{ totalCards }}<span class="hero__unit"> cards.</span></h1>
+  <section v-if="totalCards > 0" class="hero-card">
+    <div class="hero-card__greeting">
+      <img src="~/assets/mascot-baigi-bust.png" alt="" class="hero-card__mascot" />
+      <span class="hero-card__salute">{{ greeting }}, {{ firstName }}.</span>
     </div>
 
-    <div class="hero__right">
-      <p v-if="nextExam" class="hero__badge">📋 Prova em {{ nextExam.days_remaining }} dias</p>
-      <p class="hero__session">{{ mainTopicName }} · ≈{{ estimatedMinutes }} min</p>
-      <NuxtLink to="/revisar" class="hero__cta">Começar revisão</NuxtLink>
-      <div class="hero__progress">
-        <div class="hero__bar" role="progressbar" :aria-valuenow="reviewedToday" :aria-valuemax="totalDue">
-          <div class="hero__bar-fill" :style="{ width: progressPercent + '%' }" />
+    <div class="hero-card__headline">
+      <p v-if="nextExam" class="hero-card__badge">📋 Prova em {{ nextExam.days_remaining }} dias</p>
+      <p class="hero-card__lead">Hoje faltam apenas</p>
+      <h1 class="hero-card__number"><span class="hero-card__value">{{ totalCards }}</span> cards.</h1>
+      <p class="hero-card__info">{{ mainTopicName }} · ≈{{ estimatedMinutes }} min</p>
+    </div>
+
+    <div class="hero-card__action">
+      <NuxtLink to="/revisar" class="hero-card__cta">Começar revisão</NuxtLink>
+      <div class="hero-card__progress">
+        <div class="hero-card__track" role="progressbar" :aria-valuenow="reviewedToday" :aria-valuemax="totalDue">
+          <div class="hero-card__fill" :style="{ width: progressPercent + '%' }" />
         </div>
-        <span class="hero__bar-label">{{ reviewedToday }}/{{ totalDue }}</span>
+        <span class="hero-card__count">{{ reviewedToday }}/{{ totalDue }}</span>
       </div>
     </div>
   </section>
 
   <!-- Hero: novo usuário (0 cards) -->
-  <section v-else-if="totalUserCards === 0" class="hero">
-    <div class="hero__left">
-      <div class="hero__meta">
-        <img src="~/assets/mascot-baigi-reading.png" alt="" class="hero__mascot" />
-        <span class="hero__salute">{{ greeting }}, {{ firstName }}.</span>
-      </div>
-      <h1 class="hero__headline hero__headline--sm">Crie seus<span class="hero__unit"> primeiros cards.</span></h1>
+  <section v-else-if="totalUserCards === 0" class="hero-card">
+    <div class="hero-card__greeting">
+      <img src="~/assets/mascot-baigi-reading.png" alt="" class="hero-card__mascot" />
+      <span class="hero-card__salute">{{ greeting }}, {{ firstName }}.</span>
     </div>
-    <div class="hero__right">
-      <p class="hero__session">Importe um PDF ou crie um caderno pra começar.</p>
-      <NuxtLink to="/cadernos" class="hero__cta">Criar caderno</NuxtLink>
-      <NuxtLink to="/importar" class="hero__secondary">Importar Anki →</NuxtLink>
+    <div class="hero-card__headline">
+      <h1 class="hero-card__number hero-card__number--sm">Crie seus primeiros cards.</h1>
+      <p class="hero-card__info">Importe um PDF ou crie um caderno pra começar.</p>
+    </div>
+    <div class="hero-card__action">
+      <NuxtLink to="/cadernos" class="hero-card__cta">Criar caderno</NuxtLink>
+      <NuxtLink to="/importar" class="hero-card__link">Importar Anki →</NuxtLink>
     </div>
   </section>
 
   <!-- Hero: tudo em dia -->
-  <section v-else class="hero">
-    <div class="hero__left">
-      <div class="hero__meta">
-        <img src="~/assets/mascot-baigi-celebrating.png" alt="" class="hero__mascot" />
-        <span class="hero__salute">{{ greeting }}, {{ firstName }}.</span>
-      </div>
-      <h1 class="hero__headline hero__headline--sm">Tudo em dia! 🎉</h1>
+  <section v-else class="hero-card">
+    <div class="hero-card__greeting">
+      <img src="~/assets/mascot-baigi-celebrating.png" alt="" class="hero-card__mascot" />
+      <span class="hero-card__salute">{{ greeting }}, {{ firstName }}.</span>
     </div>
-    <div class="hero__right">
-      <p class="hero__session">{{ subtitle }}</p>
-      <NuxtLink to="/cadernos" class="hero__cta hero__cta--secondary">Ir pra Cadernos</NuxtLink>
+    <div class="hero-card__headline">
+      <h1 class="hero-card__number hero-card__number--sm">Tudo em dia! 🎉</h1>
+      <p class="hero-card__info">{{ subtitle }}</p>
+    </div>
+    <div class="hero-card__action">
+      <NuxtLink to="/cadernos" class="hero-card__cta hero-card__cta--outline">Ir pra Cadernos</NuxtLink>
     </div>
   </section>
 </template>
@@ -95,175 +96,166 @@ const subtitle = computed(() => {
 </script>
 
 <style scoped>
-.hero {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 20px;
-  padding: 20px 0 0;
-  align-items: end;
-}
-@media (min-width: 768px) {
-  .hero {
-    grid-template-columns: 1fr auto;
-    gap: 48px;
-    padding: 28px 0 0;
-  }
+.hero-card {
+  background: color-mix(in srgb, var(--color-primary-500) 1.5%, var(--bg-card));
+  border: 1px solid color-mix(in srgb, var(--color-primary-500) 5%, var(--border-base));
+  border-radius: 18px;
+  padding: 30px 32px 28px;
 }
 
-/* LEFT — metric and identity */
-.hero__left {
-  min-width: 0;
-}
-
-.hero__meta {
+/* Greeting */
+.hero-card__greeting {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 9px;
+  margin-bottom: 22px;
 }
-.hero__mascot {
-  width: 28px;
-  height: 28px;
+.hero-card__mascot {
+  width: 30px;
+  height: 30px;
   object-fit: contain;
   border-radius: 6px;
 }
-.hero__salute {
-  font-size: 14px;
-  font-weight: 400;
+.hero-card__salute {
+  font-size: 15px;
+  font-weight: 450;
   color: var(--color-text-muted);
 }
 
-.hero__lead {
+/* Headline block */
+.hero-card__headline {
+  margin-bottom: 22px;
+}
+.hero-card__lead {
   font-size: 14px;
   font-weight: 400;
   color: var(--color-text-secondary);
-  margin-bottom: 2px;
+  margin-bottom: 4px;
 }
-
-.hero__headline {
-  font-size: 4rem;
-  font-weight: 750;
-  line-height: 0.92;
+.hero-card__number {
+  font-size: 3.5rem;
+  font-weight: 730;
+  line-height: 0.95;
   color: var(--color-text-primary);
-  letter-spacing: -0.04em;
-  white-space: nowrap;
+  letter-spacing: -0.035em;
 }
-.hero__headline--sm {
-  font-size: 2.5rem;
-  letter-spacing: -0.025em;
-  line-height: 1;
+.hero-card__number--sm {
+  font-size: 2rem;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
 }
-@media (min-width: 768px) {
-  .hero__headline {
-    font-size: 4.5rem;
+@media (min-width: 640px) {
+  .hero-card__number {
+    font-size: 4rem;
   }
 }
-.hero__unit {
-  font-weight: 500;
-  opacity: 0.55;
+.hero-card__value {
+  color: var(--color-primary-500, var(--color-accent-primary));
+}
+.hero-card__info {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--color-text-muted);
+  margin-top: 10px;
 }
 
-/* RIGHT — session info + action */
-.hero__right {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 10px;
-}
-@media (min-width: 768px) {
-  .hero__right {
-    align-items: flex-end;
-    text-align: right;
-    padding-bottom: 4px;
-  }
-}
-
-.hero__badge {
+.hero-card__badge {
+  display: inline-flex;
+  align-items: center;
   font-size: 11px;
   font-weight: 500;
   color: var(--color-warning);
   padding: 2px 8px;
   border-radius: 4px;
   background: color-mix(in srgb, var(--color-warning) 6%, transparent);
+  margin-bottom: 6px;
 }
 
-.hero__session {
-  font-size: 14px;
-  font-weight: 400;
-  color: var(--color-text-secondary);
+/* Action row */
+.hero-card__action {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+@media (max-width: 639px) {
+  .hero-card__action {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+  }
 }
 
-.hero__cta {
+.hero-card__cta {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 44px;
-  padding: 0 26px;
-  font-size: 14px;
+  height: 46px;
+  padding: 0 28px;
+  font-size: 14.5px;
   font-weight: 600;
   color: #fff;
   background: var(--color-primary-500, var(--color-accent-primary));
-  border-radius: 10px;
+  border-radius: 11px;
   transition: all 180ms ease-out;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 14px rgba(111, 63, 245, 0.10);
   white-space: nowrap;
-  margin-top: 2px;
+  flex-shrink: 0;
 }
-.hero__cta:hover {
+.hero-card__cta:hover {
   transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(111, 63, 245, 0.14);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06), 0 8px 20px rgba(111, 63, 245, 0.14);
   background: var(--color-primary-600, var(--color-accent-primary));
 }
-.hero__cta--secondary {
+.hero-card__cta--outline {
   background: transparent;
   color: var(--color-primary-500, var(--color-accent-primary));
   border: 1px solid color-mix(in srgb, var(--color-primary-500) 20%, var(--border-base));
   box-shadow: none;
 }
-.hero__cta--secondary:hover {
+.hero-card__cta--outline:hover {
   background: color-mix(in srgb, var(--color-primary-500) 4%, transparent);
   transform: none;
   box-shadow: none;
 }
 
-.hero__secondary {
-  font-size: 13px;
+.hero-card__link {
+  font-size: 13.5px;
   font-weight: 500;
   color: var(--color-primary-500, var(--color-accent-primary));
   transition: opacity 150ms;
 }
-.hero__secondary:hover {
+.hero-card__link:hover {
   opacity: 0.7;
 }
 
 /* Progress */
-.hero__progress {
+.hero-card__progress {
   display: flex;
   align-items: center;
   gap: 10px;
-  width: 180px;
+  width: 200px;
 }
-@media (max-width: 767px) {
-  .hero__progress {
-    width: 160px;
+@media (max-width: 639px) {
+  .hero-card__progress {
+    width: 100%;
   }
 }
-.hero__bar {
+.hero-card__track {
   flex: 1;
-  height: 3px;
+  height: 4px;
   border-radius: 99px;
-  background: color-mix(in srgb, var(--color-primary-500) 8%, var(--bg-soft));
+  background: color-mix(in srgb, var(--color-primary-500) 7%, var(--bg-soft));
   overflow: hidden;
 }
-.hero__bar-fill {
+.hero-card__fill {
   height: 100%;
   border-radius: 99px;
   background: var(--color-primary-500, var(--color-accent-primary));
   opacity: 0.7;
   transition: width 600ms cubic-bezier(0.4, 0, 0.2, 1);
 }
-.hero__bar-label {
-  font-size: 12px;
+.hero-card__count {
+  font-size: 13px;
   font-weight: 500;
   color: var(--color-text-muted);
   font-variant-numeric: tabular-nums;

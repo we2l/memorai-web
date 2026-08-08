@@ -1,20 +1,6 @@
 <template>
   <div>
-    <!-- Upload area (compact) -->
-    <label
-      class="flex items-center gap-3 px-4 py-3 rounded-xl border-2 border-dashed cursor-pointer transition-all"
-      :class="uploading ? 'opacity-50 pointer-events-none border-base bg-[var(--bg-card)]' : 'border-[var(--color-accent-primary)]/30 bg-[var(--color-primary-50)] hover:border-[var(--color-accent-primary)]/50 hover:bg-[var(--color-primary-100)]'"
-      title="Aceita PDF de até 50MB (Free) ou 100MB (Pro). A IA lê o documento e cria uma nota estruturada com conceitos, pegadinhas e pontos-chave."
-    >
-      <Upload :size="18" class="text-accent-primary shrink-0" />
-      <div class="flex-1 min-w-0">
-        <p class="text-sm font-medium text-accent-primary">{{ uploading ? `Enviando ${uploadProgress}%...` : 'Adicionar PDF' }}</p>
-        <p v-if="!uploading" class="text-micro text-base-muted">Suba apostilas, livros ou slides — a IA gera resumo e cards pra você</p>
-      </div>
-      <input type="file" accept=".pdf" class="hidden" @change="onFileSelect" />
-    </label>
-
-    <!-- Documents list (compact cards) -->
+    <!-- Documents list (compact cards) — upload area is now in MaterialInput -->
     <div v-if="documents.length" class="space-y-2 mt-3">
       <div
         v-for="doc in documents"

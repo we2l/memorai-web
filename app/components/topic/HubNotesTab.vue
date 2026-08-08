@@ -2,21 +2,14 @@
   <div class="flex flex-col h-full">
     <!-- View: Material list (when no note is being edited) -->
     <div v-if="!activeNote" class="flex-1 overflow-y-auto p-4">
-      <!-- Quick input -->
-      <div class="mb-4 rounded-2xl bg-[var(--bg-card)] border border-base p-4 shadow-sm transition-all duration-150 focus-within:ring-2 focus-within:ring-[var(--color-accent-primary)]/30 focus-within:shadow-md" data-tour="quick-input">
-        <form class="flex gap-2" @submit.prevent="handleQuickInput">
-          <input
-            v-model="quickText"
-            class="input-base flex-1 !text-small !border-0 !shadow-none !bg-transparent !p-0 !min-h-0"
-            placeholder="Cole texto, resumo ou anotações de aula..."
-            @keydown.stop
-          />
-          <button type="submit" class="btn-primary !py-1.5 !px-3 !min-h-0 text-small shrink-0" :disabled="!quickText.trim()">
-            Salvar
-          </button>
-        </form>
-        <p class="text-micro text-base-muted mt-2 pl-0.5">A IA transforma em notas, flashcards, quiz e podcast</p>
-      </div>
+      <!-- Material input (unified: text + PDF) -->
+      <TopicMaterialInput
+        :uploading="false"
+        :upload-progress="0"
+        class="mb-4"
+        @submit-text="handleQuickInput"
+        @select-file="$emit('select-file', $event)"
+      />
 
       <!-- Generate suggestion banner -->
       <div v-if="suggestGenerate" class="mb-4 px-4 py-3 rounded-xl bg-accent-primary-subtle/10 backdrop-blur-sm border border-base flex items-center justify-between gap-3">
@@ -226,11 +219,11 @@ const emit = defineEmits<{
   (e: 'delete-note'): void
   (e: 'save-title'): void
   (e: 'update:noteTitle', value: string): void
+  (e: 'select-file', file: File): void
 }>()
 
 const showMenu = ref(false)
 const showMindMap = ref(false)
-const quickText = ref('')
 const suggestGenerate = ref(false)
 const titleRef = ref<HTMLElement>()
 
@@ -306,10 +299,9 @@ onUnmounted(() => {
   if (wordCountInterval) clearInterval(wordCountInterval)
 })
 
-function handleQuickInput() {
-  if (!quickText.value.trim()) return
-  emit('quick-add', quickText.value.trim())
-  quickText.value = ''
+function handleQuickInput(text: string) {
+  if (!text) return
+  emit('quick-add', text)
   suggestGenerate.value = true
 }
 

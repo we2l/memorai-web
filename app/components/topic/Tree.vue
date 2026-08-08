@@ -59,7 +59,7 @@ import type { Topic } from '~/types'
 defineProps<{
   topics: Topic[]
   selectedId?: string | null
-  progressMap?: Record<string, number>
+  progressMap?: Record<string, { progress: number; pending_count: number; last_reviewed_at: string | null; color: string | null }>
   forceExpand?: boolean
 }>()
 

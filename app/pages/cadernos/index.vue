@@ -465,6 +465,23 @@
       <form @submit.prevent="handleCreateTopic" class="flex flex-col gap-4">
         <input v-model="newTopicName" type="text" class="input-base w-full" :placeholder="createParentId ? 'Nome do tópico' : 'Nome do caderno'" autofocus />
 
+        <!-- Color picker (only for root cadernos) -->
+        <div v-if="!createParentId" class="space-y-2">
+          <label class="text-small font-medium text-base-secondary">Cor</label>
+          <div class="flex items-center gap-2">
+            <button
+              v-for="c in NOTEBOOK_COLORS"
+              :key="c.value"
+              type="button"
+              class="w-7 h-7 rounded-full transition-all border-2"
+              :class="newTopicColor === c.value ? 'border-[var(--color-accent-primary)] scale-110' : 'border-transparent hover:scale-105'"
+              :style="{ backgroundColor: c.hex }"
+              :title="c.label"
+              @click="newTopicColor = c.value"
+            />
+          </div>
+        </div>
+
         <!-- Learning mode selector (only for root topics/cadernos) -->
         <div v-if="!createParentId" class="space-y-2">
           <label class="text-small font-medium text-base-secondary">Modo de estudo</label>
@@ -525,6 +542,24 @@
       <h2 class="text-headline mb-4">{{ editTopicIsRoot ? 'Editar caderno' : 'Editar tópico' }}</h2>
       <form @submit.prevent="handleEditTopic" class="flex flex-col gap-4">
         <input v-model="editTopicName" type="text" class="input-base w-full" autofocus />
+
+        <!-- Color picker (only for root cadernos) -->
+        <div v-if="editTopicIsRoot" class="space-y-2">
+          <label class="text-small font-medium text-base-secondary">Cor</label>
+          <div class="flex items-center gap-2">
+            <button
+              v-for="c in NOTEBOOK_COLORS"
+              :key="c.value"
+              type="button"
+              class="w-7 h-7 rounded-full transition-all border-2"
+              :class="editTopicColor === c.value ? 'border-[var(--color-accent-primary)] scale-110' : 'border-transparent hover:scale-105'"
+              :style="{ backgroundColor: c.hex }"
+              :title="c.label"
+              @click="editTopicColor = c.value"
+            />
+          </div>
+        </div>
+
         <div class="flex gap-3 justify-end">
           <button type="button" class="btn-secondary" @click="showEditTopic = false">Cancelar</button>
           <button type="submit" class="btn-primary" :disabled="!editTopicName.trim()">Salvar</button>
@@ -594,6 +629,7 @@
 <script setup lang="ts">
 import { Plus, Search, PanelLeftClose, PanelLeftOpen, X, Link2, Brain, Zap, Headphones, ClipboardList, Sparkles } from 'lucide-vue-next'
 import type { Topic, Note } from '~/types'
+import { NOTEBOOK_COLORS } from '~/utils/colors'
 
 const topicStore = useTopicStore()
 const noteStore = useNoteStore()
@@ -740,8 +776,10 @@ const createParentId = ref<string | null>(null)
 const editTopicId = ref<string | null>(null)
 const deleteTopicId = ref<string | null>(null)
 const newTopicMode = ref(auth.user?.default_learning_mode || 'general')
+const newTopicColor = ref('')
 const newTopicTargetLang = ref('')
 const newTopicLangLevel = ref('')
+const editTopicColor = ref('')
 
 const learningModeOptions = [
   { value: 'exam', icon: '📚', label: 'Concurso' },
@@ -784,7 +822,7 @@ function noteNameById(noteId: string): string {
 }
 
 function chipStyle(topicId: string): Record<string, string> {
-  const p = progressMap.value[topicId] ?? 0
+  const p = progressMap.value[topicId]?.progress ?? 0
   // Opacity from 0.08 (no progress) to 0.35 (full progress)
   const bgOpacity = 0.08 + p * 0.27
   const borderOpacity = bgOpacity + 0.12
@@ -968,6 +1006,7 @@ const editTopicIsRoot = ref(false)
 function openEdit(topic: Topic) {
   editTopicId.value = topic.id
   editTopicName.value = topic.name
+  editTopicColor.value = topic.color ?? ''
   editTopicIsRoot.value = !topic.parent_id
   showEditTopic.value = true
 }
@@ -979,16 +1018,20 @@ function openDelete(topic: Topic) {
 
 async function handleCreateTopic() {
   const body: Record<string, any> = { name: newTopicName.value, parent_id: createParentId.value }
-  if (!createParentId.value && newTopicMode.value) {
-    body.learning_mode = newTopicMode.value
-    if (newTopicMode.value === 'language') {
-      body.target_language = newTopicTargetLang.value || null
-      body.language_level = newTopicLangLevel.value || null
+  if (!createParentId.value) {
+    if (newTopicColor.value) body.color = newTopicColor.value
+    if (newTopicMode.value) {
+      body.learning_mode = newTopicMode.value
+      if (newTopicMode.value === 'language') {
+        body.target_language = newTopicTargetLang.value || null
+        body.language_level = newTopicLangLevel.value || null
+      }
     }
   }
   await topicStore.create(body)
   showCreateTopic.value = false
   newTopicMode.value = auth.user?.default_learning_mode || 'general'
+  newTopicColor.value = ''
   newTopicTargetLang.value = ''
   newTopicLangLevel.value = ''
   toast.show('Caderno criado!', 'success')
@@ -996,7 +1039,11 @@ async function handleCreateTopic() {
 
 async function handleEditTopic() {
   if (!editTopicId.value) return
-  await topicStore.update(editTopicId.value, { name: editTopicName.value })
+  const body: Record<string, any> = { name: editTopicName.value }
+  if (editTopicIsRoot.value && editTopicColor.value) {
+    body.color = editTopicColor.value
+  }
+  await topicStore.update(editTopicId.value, body)
   showEditTopic.value = false
   toast.show('Salvo!', 'success')
 }
@@ -1066,7 +1113,7 @@ function formatDate(date: string) {
   return new Date(date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
 }
 
-const progressMap = ref<Record<string, number>>({})
+const progressMap = ref<Record<string, { progress: number; pending_count: number; last_reviewed_at: string | null; color: string | null }>>({})
 
 watch(mapSubView, (val) => {
   if (import.meta.client) localStorage.setItem('baigi-map-subview', val)
@@ -1079,7 +1126,12 @@ onMounted(async () => {
   try {
     const res = await $api<any>('/topics/progress')
     for (const tp of res.data) {
-      progressMap.value[tp.id] = tp.progress
+      progressMap.value[tp.id] = {
+        progress: tp.progress,
+        pending_count: tp.pending_count,
+        last_reviewed_at: tp.last_reviewed_at,
+        color: tp.color,
+      }
     }
   } catch {}
   if (route.query.view === 'graph') {

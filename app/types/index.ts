@@ -82,6 +82,7 @@ export interface Topic {
   description: string | null
   parent_id: string | null
   position: number
+  color: string | null
   learning_mode: string | null
   target_language: string | null
   source_language: string | null

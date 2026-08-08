@@ -272,7 +272,7 @@
           </div>
 
           <!-- Tab: Mapa -->
-          <div v-if="activeTab === 'map'" class="flex flex-col h-full">
+          <div v-if="activeTab === 'map'" class="flex flex-col h-full tab-fade-in">
             <!-- Toggle: Cadernos | Mapa Mental -->
             <div class="flex items-center gap-2 px-4 pt-3 pb-2">
               <div class="inline-flex rounded-lg border border-base p-0.5 bg-surface-secondary">
@@ -308,8 +308,8 @@
           </div>
 
           <!-- Tab: Material (list only, no editor here) -->
+          <div v-if="activeTab === 'notes'" class="tab-fade-in">
           <TopicHubNotesTab
-            v-if="activeTab === 'notes'"
             :notes="noteStore.notes"
             :active-note="null"
             :note-title="''"
@@ -341,9 +341,10 @@
               />
             </template>
           </TopicHubNotesTab>
+          </div>
 
           <!-- Tab: Cards -->
-          <div v-if="activeTab === 'cards'">
+          <div v-if="activeTab === 'cards'" class="tab-fade-in">
             <!-- Card Workshop (inline above card list) -->
             <div v-if="cardWorkshop.state.value !== 'idle'" class="px-4 pt-4">
               <TopicCardWorkshop
@@ -594,6 +595,9 @@
 
     <TopicGraphOverlay v-model="showGraph" />
 
+    <!-- Confetti celebration (triggers when pendentes goes to 0) -->
+    <UiConfetti :trigger="showConfetti" />
+
     <!-- Upload modal for import PDF (learning mode selection) -->
     <TopicUploadModal
       v-model="showImportUploadModal"
@@ -625,6 +629,14 @@ const mapSubView = ref<'graph' | 'mindmap'>(
 )
 const searchQuery = ref('')
 const { topicCards, showDeleteCard, deleteCardId, memorizeProgress, dueCardsCount, newCardsCount, pendingCount, setCards, cardsFromNote, confirmDeleteCard, handleDeleteCard } = useTopicCards()
+
+// Confetti when pending goes from >0 to 0
+const showConfetti = ref(false)
+watch(pendingCount, (curr, prev) => {
+  if (prev > 0 && curr === 0) {
+    showConfetti.value = true
+  }
+})
 const { noteTitle, noteContent, editingNote, selectedText, showDeleteNote, flushPendingSave, debouncedSave, saveTitle, selectNote, openNoteEditor, closeEditor, handleQuickAdd, createNote, handleDeleteNote } = useNoteEditor(selectedTopicId)
 const noteImprove = useNoteImprove(selectedTopicId)
 const errorPatterns = ref<any>(null)

@@ -66,17 +66,6 @@ export function useNoteEditor(topicId: Ref<string | null>) {
     noteStore.current = null
   }
 
-  async function handleQuickAdd(text: string) {
-    if (!topicId.value) return
-    const title = text.substring(0, 50).split('\n')[0] || 'Material'
-    const note = await noteStore.create(topicId.value, {
-      title,
-      content: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text }] }] },
-    })
-    openNoteEditor(note)
-    await topicStore.fetchTree()
-  }
-
   async function createNote() {
     if (!topicId.value) return
     const note = await noteStore.create(topicId.value, { title: 'Novo material' })
@@ -108,7 +97,6 @@ export function useNoteEditor(topicId: Ref<string | null>) {
     selectNote,
     openNoteEditor,
     closeEditor,
-    handleQuickAdd,
     createNote,
     handleDeleteNote,
   }

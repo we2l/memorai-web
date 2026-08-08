@@ -108,7 +108,6 @@
           :cards-ai-limit="cardsAiLimit"
           @open-note="openNoteEditor"
           @close-editor="closeEditor"
-          @quick-add="handleQuickAdd"
           @create-note="createNote"
           @generate-from-note="handleGenerateFromNote"
           @improve-note="openChatForNote"
@@ -201,7 +200,7 @@
                 </button>
                 <div class="min-w-0">
                   <h1 class="font-heading font-bold text-3xl text-base-primary truncate">{{ selectedTopicName }}</h1>
-                  <p class="text-small text-base-muted mt-1">
+                  <p class="text-small text-base-muted mt-2.5">
                     {{ topicCards.length }} card{{ topicCards.length !== 1 ? 's' : '' }}{{ pendingCount > 0 ? ` · ${pendingCount} pendente${pendingCount !== 1 ? 's' : ''} hoje` : '' }}
                   </p>
                 </div>
@@ -321,8 +320,8 @@
             :cards-ai-limit="cardsAiLimit"
             @open-note="openNoteEditor"
             @close-editor="closeEditor"
-            @quick-add="handleQuickAdd"
             @create-note="createNote"
+            @select-file="handleStartCardFile"
             @generate-from-note="handleGenerateFromNote"
             @improve-note="openChatForNote"
             @delete-note="showDeleteNote = true"
@@ -637,7 +636,7 @@ watch(pendingCount, (curr, prev) => {
     showConfetti.value = true
   }
 })
-const { noteTitle, noteContent, editingNote, selectedText, showDeleteNote, flushPendingSave, debouncedSave, saveTitle, selectNote, openNoteEditor, closeEditor, handleQuickAdd, createNote, handleDeleteNote } = useNoteEditor(selectedTopicId)
+const { noteTitle, noteContent, editingNote, selectedText, showDeleteNote, flushPendingSave, debouncedSave, saveTitle, selectNote, openNoteEditor, closeEditor, createNote, handleDeleteNote } = useNoteEditor(selectedTopicId)
 const noteImprove = useNoteImprove(selectedTopicId)
 const errorPatterns = ref<any>(null)
 
@@ -988,6 +987,24 @@ async function onImportModalConfirm(data: { learning_mode: string; target_langua
     await topicStore.fetchTree()
     selectTopic(structureStore.topicId)
   }
+}
+
+// Handle file selected from StartCard — upload PDF to current topic
+async function handleStartCardFile(file: File) {
+  if (!selectedTopicId.value) return
+  const maxSize = (auth.user?.plan === 'pro' ? 100 : 50) * 1024 * 1024
+  if (file.size > maxSize) { toast.show(`Máximo ${auth.user?.plan === 'pro' ? '100' : '50'}MB`, 'error'); return }
+  if (!file.name.endsWith('.pdf')) { toast.show('Apenas PDF', 'error'); return }
+
+  // If topic has no learning mode, open upload modal (user re-selects file there)
+  if (!selectedTopicLearningMode.value) {
+    showImportUploadModal.value = true
+    return
+  }
+
+  const { upload } = useDocumentUpload()
+  const success = await upload(file, selectedTopicId.value)
+  if (success) await docStore.fetchForTopic(selectedTopicId.value, true)
 }
 
 const editTopicIsRoot = ref(false)

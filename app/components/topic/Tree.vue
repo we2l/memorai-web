@@ -1,18 +1,18 @@
 <template>
-  <div class="space-y-1">
-    <TopicTreeItem
-      v-for="topic in topics"
-      :key="topic.id"
-      :topic="topic"
-      :depth="0"
-      :selected-id="selectedId"
-      :progress-map="progressMap"
-      :force-expand="forceExpand"
-      @select="$emit('select', $event)"
-      @edit="$emit('edit', $event)"
-      @delete="$emit('delete', $event)"
-      @add-child="$emit('add-child', $event)"
-    />
+  <div class="space-y-0.5">
+    <div v-for="topic in topics" :key="topic.id" class="group">
+      <TopicTreeItem
+        :topic="topic"
+        :depth="0"
+        :selected-id="selectedId"
+        :progress-map="progressMap"
+        :force-expand="forceExpand"
+        @select="$emit('select', $event)"
+        @edit="$emit('edit', $event)"
+        @delete="$emit('delete', $event)"
+        @add-child="$emit('add-child', $event)"
+      />
+    </div>
     <div v-if="!topics.length" class="px-3 py-6 flex flex-col items-center gap-4">
       <BookOpen :size="48" class="text-base-muted opacity-40" />
       <p class="text-body font-medium text-base-primary">Comece sua jornada</p>

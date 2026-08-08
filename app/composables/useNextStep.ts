@@ -78,16 +78,16 @@ export function useNextStep({ topicId, notes, flashcardsCount, dueCardsCount, ed
       return 'improve'
     }
 
-    // Priority 2: Generate cards (low coverage or dirty notes)
+    // Priority 2: Generate cards (low coverage)
     const hasMatureNote = notes.value.some(n => extractWordCount(n.content) >= 200)
     if (hasMatureNote && coverage.value < 0.6) {
       return 'cards'
     }
 
-    // Check for "dirty" notes (updated after cards were generated)
-    if (hasMatureNote) {
+    // Check for "dirty" notes (updated after cards were generated) — only if coverage is still moderate
+    if (hasMatureNote && coverage.value < 1.2) {
       const hasDirtyNote = notes.value.some((n) => {
-        if (!n.cards_generated_at) return true // never generated = dirty
+        if (!n.cards_generated_at) return false // never generated via pipeline = not dirty (legacy data)
         return new Date(n.updated_at) > new Date(n.cards_generated_at)
       })
       if (hasDirtyNote) {

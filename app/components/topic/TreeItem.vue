@@ -62,29 +62,25 @@
       </span>
     </button>
 
-    <!-- Progress meta block for root cadernos (ALWAYS shown when root, even collapsed) -->
+    <!-- Progress meta block for root cadernos (ALWAYS shown) -->
     <div
       v-if="isRoot && (topicCards > 0 || pendingCount > 0)"
-      class="px-3 pt-0.5 pb-2.5"
+      class="px-3 pt-0.5 pb-3"
       :style="{ paddingLeft: `${depth * 16 + 36}px` }"
     >
-      <!-- Progress percentage + bar -->
-      <div class="flex items-center gap-2">
-        <div class="flex-1 max-w-[5rem] h-1.5 rounded-full bg-surface-secondary overflow-hidden">
-          <div
-            class="h-1.5 rounded-full transition-all duration-500"
-            :class="progressBarColor"
-            :style="{ width: progressPercent + '%' }"
-          />
-        </div>
-        <span class="text-micro font-semibold" :class="progressTextColor">{{ progressPercent }}%</span>
+      <!-- Full-width progress bar -->
+      <div class="w-full max-w-[7rem] h-[5px] rounded-full bg-surface-secondary overflow-hidden">
+        <div
+          class="h-full rounded-full transition-all duration-500"
+          :class="progressBarColor"
+          :style="{ width: progressPercent + '%' }"
+        />
       </div>
-      <!-- Pending info -->
-      <p v-if="pendingCount > 0" class="text-micro text-[var(--color-accent-soft)] font-medium mt-0.5">
-        {{ pendingCount }} pendentes hoje
-      </p>
-      <p v-else-if="topicCards > 0 && pendingCount === 0" class="text-micro text-emerald-500 mt-0.5">
-        Em dia ✓
+      <!-- Stats line -->
+      <p class="text-micro text-base-muted mt-1">
+        {{ topicCards }} cards
+        <span v-if="pendingCount > 0" class="text-[var(--color-accent-soft)] font-medium"> · {{ pendingCount }} pendentes</span>
+        <span v-else-if="topicProgress > 0"> · <span class="text-emerald-500">em dia</span></span>
       </p>
     </div>
 

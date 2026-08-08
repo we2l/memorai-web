@@ -37,35 +37,37 @@
         >
           <div class="flex gap-4">
             <!-- Visual placeholder (document icon area) -->
-            <div class="hidden sm:flex w-16 h-20 shrink-0 rounded-lg bg-surface-secondary/60 border border-base items-center justify-center">
-              <FileText :size="24" class="text-base-muted/40" />
+            <div class="hidden sm:flex w-14 h-16 shrink-0 rounded-lg bg-surface-secondary/60 border border-base items-center justify-center">
+              <FileText :size="20" class="text-base-muted/40" />
             </div>
 
             <div class="flex-1 min-w-0">
-              <!-- Title -->
-              <h4 class="text-lg font-semibold text-base-primary truncate">{{ note.title }}</h4>
-
-              <!-- Date -->
-              <p class="text-small text-base-muted mt-0.5">{{ formatDate(note.updated_at) }}</p>
+              <!-- Title + meta inline -->
+              <h4 class="text-body font-semibold text-base-primary truncate">{{ note.title }}</h4>
+              <p class="text-micro text-base-muted mt-0.5">
+                {{ formatDate(note.updated_at) }}
+                <span v-if="note.plain_preview"> · {{ estimateWords(note) }} palavras</span>
+                <span v-if="note.flashcards_count > 0"> · {{ note.flashcards_count }} cards</span>
+              </p>
 
               <!-- Badges row -->
-              <div class="flex items-center gap-2 mt-2">
+              <div class="flex items-center gap-1.5 mt-1.5 flex-wrap">
                 <span v-if="note.flashcards_count > 0" class="inline-flex items-center gap-1 text-micro font-medium px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600">
                   <Check :size="10" /> Estudado
                 </span>
                 <span v-if="note.source_document_id" class="inline-flex items-center gap-1 text-micro font-medium px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-600">
-                  <Sparkles :size="10" /> AI melhoria
+                  <Sparkles :size="10" /> IA
                 </span>
-                <span v-if="!note.flashcards_count && noteMature(note)" class="inline-flex items-center gap-1 text-micro font-medium px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600">
-                  <Sparkles :size="10" /> AI sugestão
+                <span v-if="!note.flashcards_count && noteMature(note)" class="inline-flex items-center gap-1 text-micro font-medium px-2 py-0.5 rounded-full bg-[var(--color-accent-primary)]/10 text-[var(--color-accent-soft)]">
+                  <Sparkles :size="10" /> Gerar cards
                 </span>
                 <span v-if="noteOutdated(note)" class="inline-flex items-center gap-1 text-micro font-medium px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600">
                   Atualizar
                 </span>
               </div>
 
-              <!-- Preview text -->
-              <p v-if="note.plain_preview" class="text-small text-base-muted mt-2 line-clamp-3">
+              <!-- Preview text (always show, 2 lines) -->
+              <p v-if="note.plain_preview" class="text-small text-base-muted/80 mt-2 line-clamp-2 leading-relaxed">
                 {{ note.plain_preview }}
               </p>
             </div>
@@ -227,14 +229,19 @@ const suggestGenerate = ref(false)
 const titleRef = ref<HTMLElement>()
 
 function noteMature(note: Note): boolean {
-  // Note has enough content for AI (estimated 200+ words)
   if (!note.plain_preview) return false
-  // If preview is exactly 150 chars (truncated), note is likely long enough
   return note.plain_preview.length >= 148
 }
 
 function noteOutdated(note: Note): boolean {
   return !!(note.flashcards_count > 0 && note.cards_generated_at && note.updated_at > note.cards_generated_at)
+}
+
+function estimateWords(note: Note): number {
+  if (!note.plain_preview) return 0
+  const previewWords = note.plain_preview.split(/\s+/).length
+  // If preview is truncated (150 chars), estimate real total
+  return note.plain_preview.length >= 148 ? previewWords * 3 : previewWords
 }
 
 // Set title text on mount / note change

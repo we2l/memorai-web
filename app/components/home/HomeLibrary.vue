@@ -1,7 +1,7 @@
 <template>
   <section v-if="sortedTopics.length" class="library">
     <p class="library__label">Continuar estudando</p>
-    <div class="library__grid">
+    <div class="library__list">
       <HomeLibraryCard v-for="tp in sortedTopics" :key="tp.id" :topic="tp" />
     </div>
   </section>
@@ -24,20 +24,15 @@ const sortedTopics = computed(() =>
 <style scoped>
 .library__label {
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--color-text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  margin-bottom: 10px;
+  letter-spacing: 0.05em;
+  margin-bottom: 12px;
 }
-.library__grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-}
-@media (max-width: 639px) {
-  .library__grid {
-    grid-template-columns: 1fr;
-  }
+.library__list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 </style>

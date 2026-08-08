@@ -32,63 +32,58 @@
         <div
           v-for="note in notes"
           :key="note.id"
-          class="group relative w-full text-left p-6 rounded-3xl bg-[var(--bg-card)] border border-base shadow-md transition-all duration-150 hover:border-[var(--color-accent-primary)]/30 hover:shadow-xl hover:translate-y-[-2px] cursor-pointer"
+          class="group relative w-full text-left p-5 rounded-2xl bg-[var(--bg-card)] border border-base shadow-sm transition-all duration-150 hover:border-[var(--color-accent-primary)]/30 hover:shadow-lg hover:translate-y-[-1px] cursor-pointer"
           @click="$emit('open-note', note)"
         >
-          <div class="flex gap-5">
-            <div class="flex-1 min-w-0">
-              <!-- Title (large, bold like Stitch) -->
-              <h4 class="text-xl font-bold text-base-primary leading-tight line-clamp-2">{{ note.title }}</h4>
+          <div class="flex gap-4">
+            <!-- LEFT: document thumbnail skeleton (like Stitch) -->
+            <div class="hidden sm:flex w-[110px] h-[130px] shrink-0 rounded-xl bg-[var(--border-base)]/20 border border-[var(--border-base)] p-3 flex-col justify-center gap-[5px]">
+              <div class="h-[4px] w-full rounded-full bg-[var(--border-base)]" />
+              <div class="h-[4px] w-[80%] rounded-full bg-[var(--border-base)]" />
+              <div class="h-[4px] w-full rounded-full bg-[var(--border-base)]" />
+              <div class="h-[4px] w-[65%] rounded-full bg-[var(--border-base)]" />
+              <div class="h-[4px] w-full rounded-full bg-[var(--border-base)]/70" />
+              <div class="h-[4px] w-[90%] rounded-full bg-[var(--border-base)]/70" />
+              <div class="h-[4px] w-full rounded-full bg-[var(--border-base)]/50" />
+              <div class="h-[4px] w-[50%] rounded-full bg-[var(--border-base)]/50" />
+            </div>
 
-              <!-- Date meta -->
+            <!-- RIGHT: content -->
+            <div class="flex-1 min-w-0">
+              <!-- Title -->
+              <h4 class="text-lg font-bold text-base-primary leading-tight line-clamp-2">{{ note.title }}</h4>
+
+              <!-- Date -->
               <p class="text-small text-base-muted mt-1">{{ formatDate(note.updated_at) }}.</p>
 
-              <!-- Badges row (prominent, colorful — like Stitch) -->
-              <div class="flex items-center gap-2 mt-2.5 flex-wrap">
-                <span v-if="note.flashcards_count > 0" class="inline-flex items-center gap-1.5 text-small font-semibold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600">
+              <!-- Badges -->
+              <div v-if="hasCards(note) || note.source_document_id || noteMature(note) || noteOutdated(note)" class="flex items-center gap-2 mt-2 flex-wrap">
+                <span v-if="hasCards(note)" class="inline-flex items-center gap-1.5 text-small font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600">
                   <Check :size="12" /> Estudado
                 </span>
-                <span v-if="note.source_document_id" class="inline-flex items-center gap-1.5 text-small font-semibold px-2.5 py-1 rounded-full bg-purple-500/10 text-purple-600">
+                <span v-if="note.source_document_id" class="inline-flex items-center gap-1.5 text-small font-semibold px-2.5 py-0.5 rounded-full bg-purple-500/10 text-purple-600">
                   <Sparkles :size="12" /> AI melhoria
                 </span>
-                <span v-if="!note.flashcards_count && !note.source_document_id && noteMature(note)" class="inline-flex items-center gap-1.5 text-small font-semibold px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600">
+                <span v-if="!hasCards(note) && !note.source_document_id && noteMature(note)" class="inline-flex items-center gap-1.5 text-small font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600">
                   <Sparkles :size="12" /> AI sugestão
                 </span>
-                <span v-if="noteOutdated(note)" class="inline-flex items-center gap-1.5 text-small font-semibold px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600">
+                <span v-if="noteOutdated(note)" class="inline-flex items-center gap-1.5 text-small font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600">
                   Atualizar
                 </span>
               </div>
 
-              <!-- Preview text (3 lines, body text — the actual content) -->
-              <p v-if="note.plain_preview" class="text-body text-base-secondary mt-3 line-clamp-3 leading-relaxed">
+              <!-- Preview -->
+              <p v-if="note.plain_preview" class="text-body text-base-secondary mt-2.5 line-clamp-3 leading-relaxed">
                 {{ note.plain_preview }}
               </p>
-              <p v-else class="text-body text-base-muted/50 mt-3 italic">Nota vazia — clique para editar</p>
             </div>
 
-            <!-- Right side: document skeleton preview (like Stitch) -->
-            <div class="hidden sm:block w-[130px] h-[140px] shrink-0 rounded-xl bg-surface-secondary/50 border border-base overflow-hidden p-3">
-              <!-- Simulated document content (skeleton lines like a real page) -->
-              <div class="space-y-2">
-                <div class="h-2 w-11/12 rounded bg-base-muted/20" />
-                <div class="h-2 w-full rounded bg-base-muted/20" />
-                <div class="h-2 w-9/12 rounded bg-base-muted/20" />
-                <div class="h-2 w-full rounded bg-base-muted/20" />
-                <div class="h-2 w-10/12 rounded bg-base-muted/20" />
-                <div class="h-2 w-7/12 rounded bg-base-muted/20" />
-                <div class="h-2 w-full rounded bg-base-muted/15" />
-                <div class="h-2 w-8/12 rounded bg-base-muted/15" />
-                <div class="h-2 w-full rounded bg-base-muted/10" />
-                <div class="h-2 w-5/12 rounded bg-base-muted/10" />
-              </div>
-            </div>
-
-            <!-- 3 dots menu (hover, top-right) -->
+            <!-- 3 dots (hover) -->
             <button
-              class="absolute top-5 right-5 p-2 rounded-xl text-base-muted hover:text-base-primary hover:bg-surface-secondary opacity-0 group-hover:opacity-100 transition-opacity"
+              class="absolute top-4 right-4 p-1.5 rounded-lg text-base-muted hover:text-base-primary hover:bg-surface-secondary opacity-0 group-hover:opacity-100 transition-opacity"
               @click.stop
             >
-              <MoreHorizontal :size="18" />
+              <MoreHorizontal :size="16" />
             </button>
           </div>
         </div>
@@ -246,6 +241,10 @@ function noteMature(note: Note): boolean {
 
 function noteOutdated(note: Note): boolean {
   return !!(note.flashcards_count > 0 && note.cards_generated_at && note.updated_at > note.cards_generated_at)
+}
+
+function hasCards(note: Note): boolean {
+  return (note.flashcards_count > 0) || (props.cardsFromNote(note.id) > 0)
 }
 
 function estimateWords(note: Note): number {

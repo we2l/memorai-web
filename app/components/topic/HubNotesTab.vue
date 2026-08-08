@@ -25,64 +25,60 @@
         <div
           v-for="note in notes"
           :key="note.id"
-          class="group relative w-full text-left p-5 rounded-2xl bg-[var(--bg-card)] border border-base shadow-sm transition-all duration-150 hover:border-[var(--color-accent-primary)]/30 hover:shadow-lg hover:translate-y-[-1px] cursor-pointer"
+          class="note-card group"
           @click="$emit('open-note', note)"
         >
-          <div class="flex gap-4">
-            <!-- LEFT: document thumbnail (larger, more document-like) -->
-            <div class="hidden sm:flex w-[120px] h-[140px] shrink-0 rounded-xl bg-[var(--border-base)]/10 border border-[var(--border-base)]/60 p-3.5 flex-col justify-between">
-              <div class="space-y-[5px]">
-                <div class="h-[4px] w-full rounded-full bg-[var(--border-base)]/80" />
-                <div class="h-[4px] w-[75%] rounded-full bg-[var(--border-base)]/80" />
-                <div class="h-[4px] w-full rounded-full bg-[var(--border-base)]/60" />
-                <div class="h-[4px] w-[60%] rounded-full bg-[var(--border-base)]/60" />
-              </div>
-              <div class="space-y-[5px]">
-                <div class="h-[4px] w-full rounded-full bg-[var(--border-base)]/40" />
-                <div class="h-[4px] w-[85%] rounded-full bg-[var(--border-base)]/40" />
-                <div class="h-[4px] w-full rounded-full bg-[var(--border-base)]/25" />
-                <div class="h-[4px] w-[45%] rounded-full bg-[var(--border-base)]/25" />
-              </div>
+          <!-- Document thumbnail (mini page with fake text lines) -->
+          <div class="note-card__thumb">
+            <div class="note-card__page">
+              <div class="note-card__line w-full" />
+              <div class="note-card__line w-[80%]" />
+              <div class="note-card__line w-full" />
+              <div class="note-card__line w-[60%]" />
+              <div class="note-card__line w-full opacity-60" />
+              <div class="note-card__line w-[75%] opacity-60" />
+              <div class="note-card__line w-full opacity-40" />
             </div>
-
-            <!-- RIGHT: content -->
-            <div class="flex-1 min-w-0">
-              <!-- Title -->
-              <h4 class="text-[17px] font-bold text-base-primary leading-snug line-clamp-2">{{ note.title }}</h4>
-
-              <!-- Date -->
-              <p class="text-[12px] text-base-muted mt-1.5">{{ formatDate(note.updated_at) }}</p>
-
-              <!-- Badges -->
-              <div v-if="hasCards(note) || note.source_document_id || noteMature(note) || noteOutdated(note)" class="flex items-center gap-2 mt-2.5 flex-wrap">
-                <span v-if="hasCards(note)" class="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-[3px] rounded-full bg-emerald-500/10 text-emerald-600">
-                  <Check :size="11" /> Estudado
-                </span>
-                <span v-if="note.source_document_id" class="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-[3px] rounded-full bg-purple-500/10 text-purple-600">
-                  <Sparkles :size="11" /> AI melhoria
-                </span>
-                <span v-if="!hasCards(note) && !note.source_document_id && noteMature(note)" class="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-[3px] rounded-full bg-[var(--color-accent-primary)]/10 text-[var(--color-accent-soft)]">
-                  <Sparkles :size="11" /> AI sugestão
-                </span>
-                <span v-if="noteOutdated(note)" class="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-[3px] rounded-full bg-amber-500/10 text-amber-600">
-                  Atualizar
-                </span>
-              </div>
-
-              <!-- Preview (always visible, gives life to the card) -->
-              <p v-if="note.plain_preview" class="text-[13px] text-base-secondary/80 mt-3 line-clamp-2 leading-relaxed">
-                {{ note.plain_preview }}
-              </p>
-            </div>
-
-            <!-- 3 dots (hover) -->
-            <button
-              class="absolute top-4 right-4 p-1.5 rounded-lg text-base-muted hover:text-base-primary hover:bg-surface-secondary opacity-0 group-hover:opacity-100 transition-opacity"
-              @click.stop
-            >
-              <MoreHorizontal :size="16" />
-            </button>
           </div>
+
+          <!-- Content -->
+          <div class="flex-1 min-w-0 py-1">
+            <!-- Title -->
+            <h4 class="text-[16px] font-semibold text-base-primary leading-snug line-clamp-2">{{ note.title }}</h4>
+
+            <!-- Meta line: date • words • cards -->
+            <p class="text-[11.5px] text-base-muted mt-1.5">
+              {{ formatDate(note.updated_at) }}
+              <span v-if="note.plain_preview"> • {{ estimateWords(note) }} palavras</span>
+              <span v-if="hasCards(note)"> • {{ note.flashcards_count || cardsFromNote(note.id) }} cards</span>
+            </p>
+
+            <!-- Badge -->
+            <div v-if="hasCards(note) || note.source_document_id || noteMature(note)" class="mt-2">
+              <span v-if="hasCards(note)" class="note-badge note-badge--green">
+                <Check :size="10" /> Estudado
+              </span>
+              <span v-else-if="note.source_document_id" class="note-badge note-badge--purple">
+                <Sparkles :size="10" /> AI melhoria
+              </span>
+              <span v-else-if="noteMature(note)" class="note-badge note-badge--accent">
+                <Sparkles :size="10" /> AI sugestão
+              </span>
+            </div>
+
+            <!-- Preview (always 2 lines) -->
+            <p v-if="note.plain_preview" class="text-[13px] text-base-secondary/70 mt-2.5 line-clamp-2 leading-[1.6]">
+              {{ note.plain_preview }}
+            </p>
+          </div>
+
+          <!-- 3 dots (hover only) -->
+          <button
+            class="absolute top-4 right-4 p-1.5 rounded-lg text-base-muted/50 hover:text-base-primary hover:bg-surface-secondary opacity-0 group-hover:opacity-100 transition-all duration-150"
+            @click.stop
+          >
+            <MoreHorizontal :size="15" />
+          </button>
         </div>
 
         <!-- PDFs -->
@@ -359,5 +355,84 @@ onBeforeUnmount(() => {
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* === Note card — document-like, premium === */
+.note-card {
+  position: relative;
+  display: flex;
+  gap: 16px;
+  padding: 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-base);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 150ms ease-out;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.note-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--color-accent-primary) 20%, var(--border-base));
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+/* Document thumbnail */
+.note-card__thumb {
+  display: none;
+  width: 100px;
+  height: 120px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--border-base) 30%, var(--bg-card));
+  border: 1px solid var(--border-base);
+  padding: 14px 12px;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (min-width: 640px) {
+  .note-card__thumb {
+    display: flex;
+  }
+}
+
+.note-card__page {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.note-card__line {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border-base);
+}
+
+/* Badges */
+.note-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 100px;
+}
+
+.note-badge--green {
+  background: color-mix(in srgb, #16A34A 8%, transparent);
+  color: #16A34A;
+}
+
+.note-badge--purple {
+  background: color-mix(in srgb, #6F3FF5 8%, transparent);
+  color: #6F3FF5;
+}
+
+.note-badge--accent {
+  background: color-mix(in srgb, var(--color-accent-primary) 8%, transparent);
+  color: var(--color-accent-soft);
 }
 </style>

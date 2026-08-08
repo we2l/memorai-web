@@ -9,41 +9,55 @@
     @dragleave="isDragging = false"
     @drop.prevent="handleDrop"
   >
-    <!-- Text input area -->
-    <form class="flex items-start gap-3" @submit.prevent="handleSubmit">
+    <!-- Text input section -->
+    <div class="px-5 pt-5 pb-4">
+      <form class="flex items-start gap-3" @submit.prevent="handleSubmit">
+        <div class="flex-1 min-w-0">
+          <input
+            v-model="text"
+            class="w-full bg-transparent border-0 outline-none text-[15px] text-base-primary placeholder:text-base-muted/50"
+            placeholder="Cole texto, resumo ou anotações..."
+            @focus="isFocused = true"
+            @blur="isFocused = false"
+            @keydown.stop
+          />
+          <p class="text-[11.5px] text-base-muted/60 mt-2 leading-relaxed">
+            A IA transforma seu material em notas, flashcards, simulados e podcast.
+          </p>
+        </div>
+        <button
+          v-if="text.trim()"
+          type="submit"
+          class="btn-primary !py-1.5 !px-3.5 !min-h-0 text-small shrink-0"
+        >
+          Salvar
+        </button>
+      </form>
+    </div>
+
+    <!-- Divider -->
+    <div class="mx-5 border-t border-[var(--border-base)]/30" />
+
+    <!-- PDF import section (same weight as text input) -->
+    <label
+      class="import-action"
+      :class="{
+        'import-action--drag': isDragging,
+        'opacity-50 pointer-events-none': uploading,
+      }"
+    >
+      <div class="import-action__icon">
+        <FileUp :size="16" />
+      </div>
       <div class="flex-1 min-w-0">
-        <input
-          v-model="text"
-          class="w-full bg-transparent border-0 outline-none text-body text-base-primary placeholder:text-base-muted/60"
-          placeholder="Comece escrevendo..."
-          @focus="isFocused = true"
-          @blur="isFocused = false"
-          @keydown.stop
-        />
-        <p class="text-[11px] text-base-muted/70 mt-1 leading-relaxed">
-          {{ isDragging ? 'Solte o PDF para começar' : 'Cole texto ou importe um PDF. A IA organiza o restante.' }}
+        <p class="text-[13.5px] font-medium text-base-primary">
+          {{ isDragging ? 'Solte o arquivo para começar' : 'Importar material' }}
+        </p>
+        <p v-if="uploading" class="text-[11px] text-base-muted mt-0.5">Enviando {{ uploadProgress }}%...</p>
+        <p v-else class="text-[11px] text-base-muted/70 mt-0.5">
+          PDFs, apostilas, livros ou slides. A IA organiza tudo.
         </p>
       </div>
-      <button
-        v-if="text.trim()"
-        type="submit"
-        class="btn-primary !py-1.5 !px-3 !min-h-0 text-small shrink-0 mt-0.5"
-      >
-        Salvar
-      </button>
-    </form>
-
-    <!-- Divider (almost invisible) -->
-    <div class="border-t border-[var(--border-base)]/25 my-2.5" />
-
-    <!-- PDF import (inline action, not a button) -->
-    <label
-      class="flex items-center gap-2 cursor-pointer -mx-1 px-1 py-1 rounded-md transition-colors hover:bg-[var(--border-base)]/10"
-      :class="{ 'opacity-50 pointer-events-none': uploading }"
-    >
-      <FileUp :size="13" class="text-base-muted/60 shrink-0" />
-      <p v-if="uploading" class="text-[12px] text-base-muted">Enviando {{ uploadProgress }}%...</p>
-      <p v-else class="text-[12px] text-base-muted/80">Importar PDF, slides ou apostilas</p>
       <input type="file" accept=".pdf" class="hidden" @change="handleFileSelect" />
     </label>
   </div>
@@ -95,25 +109,61 @@ function handleDrop(event: DragEvent) {
   background: var(--bg-card);
   border: 1px solid var(--border-base);
   border-radius: 16px;
-  padding: 16px 20px;
+  overflow: hidden;
   transition: all 150ms ease-out;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
 }
 
 .material-input:hover {
-  border-color: color-mix(in srgb, var(--color-accent-primary) 20%, var(--border-base));
+  border-color: color-mix(in srgb, var(--color-accent-primary) 15%, var(--border-base));
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .material-input--focus {
-  border-color: color-mix(in srgb, var(--color-accent-primary) 40%, transparent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent-primary) 8%, transparent),
-              0 2px 8px rgba(0, 0, 0, 0.04);
+  border-color: color-mix(in srgb, var(--color-accent-primary) 35%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent-primary) 6%, transparent),
+              0 2px 8px rgba(0, 0, 0, 0.03);
 }
 
 .material-input--drag {
   border-color: var(--color-accent-primary);
-  background: color-mix(in srgb, var(--color-accent-primary) 3%, var(--bg-card));
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent-primary) 10%, transparent);
+  background: color-mix(in srgb, var(--color-accent-primary) 2%, var(--bg-card));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent-primary) 8%, transparent);
+}
+
+/* Import action — same visual weight as text area */
+.import-action {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  cursor: pointer;
+  transition: all 150ms ease-out;
+}
+
+.import-action:hover {
+  background: color-mix(in srgb, var(--color-accent-primary) 3%, transparent);
+}
+
+.import-action:hover .import-action__icon {
+  transform: scale(1.05);
+  background: color-mix(in srgb, var(--color-accent-primary) 12%, transparent);
+}
+
+.import-action--drag {
+  background: color-mix(in srgb, var(--color-accent-primary) 4%, transparent);
+}
+
+.import-action__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--color-accent-primary) 7%, transparent);
+  color: var(--color-accent-soft);
+  transition: all 150ms ease-out;
+  flex-shrink: 0;
 }
 </style>

@@ -97,10 +97,10 @@ const subtitle = computed(() => {
 
 <style scoped>
 .hero-card {
-  background: color-mix(in srgb, var(--color-primary-500) 1.5%, var(--bg-card));
-  border: 1px solid color-mix(in srgb, var(--color-primary-500) 5%, var(--border-base));
-  border-radius: 18px;
-  padding: 30px 32px 28px;
+  background: color-mix(in srgb, var(--color-primary-500) 1%, var(--bg-card));
+  border: 1px solid color-mix(in srgb, var(--border-base) 65%, transparent);
+  border-radius: 16px;
+  padding: 24px 28px 22px;
 }
 
 /* Greeting */
@@ -108,32 +108,32 @@ const subtitle = computed(() => {
   display: flex;
   align-items: center;
   gap: 9px;
-  margin-bottom: 22px;
+  margin-bottom: 18px;
 }
 .hero-card__mascot {
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
   object-fit: contain;
   border-radius: 6px;
 }
 .hero-card__salute {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 450;
   color: var(--color-text-muted);
 }
 
 /* Headline block */
 .hero-card__headline {
-  margin-bottom: 22px;
+  margin-bottom: 18px;
 }
 .hero-card__lead {
   font-size: 14px;
   font-weight: 400;
   color: var(--color-text-secondary);
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 }
 .hero-card__number {
-  font-size: 3.5rem;
+  font-size: 3.25rem;
   font-weight: 730;
   line-height: 0.95;
   color: var(--color-text-primary);
@@ -146,17 +146,17 @@ const subtitle = computed(() => {
 }
 @media (min-width: 640px) {
   .hero-card__number {
-    font-size: 4rem;
+    font-size: 3.75rem;
   }
 }
 .hero-card__value {
   color: var(--color-primary-500, var(--color-accent-primary));
 }
 .hero-card__info {
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 400;
   color: var(--color-text-muted);
-  margin-top: 10px;
+  margin-top: 8px;
 }
 
 .hero-card__badge {
@@ -175,7 +175,7 @@ const subtitle = computed(() => {
 .hero-card__action {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 20px;
 }
 @media (max-width: 639px) {
   .hero-card__action {
@@ -189,37 +189,37 @@ const subtitle = computed(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 46px;
-  padding: 0 28px;
-  font-size: 14.5px;
+  height: 44px;
+  padding: 0 26px;
+  font-size: 14px;
   font-weight: 600;
   color: #fff;
   background: var(--color-primary-500, var(--color-accent-primary));
-  border-radius: 11px;
+  border-radius: 10px;
   transition: all 180ms ease-out;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 14px rgba(111, 63, 245, 0.10);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03), 0 3px 10px rgba(111, 63, 245, 0.08);
   white-space: nowrap;
   flex-shrink: 0;
 }
 .hero-card__cta:hover {
   transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06), 0 8px 20px rgba(111, 63, 245, 0.14);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04), 0 6px 16px rgba(111, 63, 245, 0.12);
   background: var(--color-primary-600, var(--color-accent-primary));
 }
 .hero-card__cta--outline {
   background: transparent;
   color: var(--color-primary-500, var(--color-accent-primary));
-  border: 1px solid color-mix(in srgb, var(--color-primary-500) 20%, var(--border-base));
+  border: 1px solid color-mix(in srgb, var(--color-primary-500) 18%, var(--border-base));
   box-shadow: none;
 }
 .hero-card__cta--outline:hover {
-  background: color-mix(in srgb, var(--color-primary-500) 4%, transparent);
+  background: color-mix(in srgb, var(--color-primary-500) 3%, transparent);
   transform: none;
   box-shadow: none;
 }
 
 .hero-card__link {
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 500;
   color: var(--color-primary-500, var(--color-accent-primary));
   transition: opacity 150ms;
@@ -233,7 +233,7 @@ const subtitle = computed(() => {
   display: flex;
   align-items: center;
   gap: 10px;
-  width: 200px;
+  width: 180px;
 }
 @media (max-width: 639px) {
   .hero-card__progress {
@@ -242,20 +242,20 @@ const subtitle = computed(() => {
 }
 .hero-card__track {
   flex: 1;
-  height: 4px;
+  height: 3px;
   border-radius: 99px;
-  background: color-mix(in srgb, var(--color-primary-500) 7%, var(--bg-soft));
+  background: color-mix(in srgb, var(--color-primary-500) 6%, var(--bg-soft));
   overflow: hidden;
 }
 .hero-card__fill {
   height: 100%;
   border-radius: 99px;
   background: var(--color-primary-500, var(--color-accent-primary));
-  opacity: 0.7;
+  opacity: 0.65;
   transition: width 600ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 .hero-card__count {
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 500;
   color: var(--color-text-muted);
   font-variant-numeric: tabular-nums;

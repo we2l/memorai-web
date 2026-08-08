@@ -3,7 +3,7 @@
     <!-- === ROOT CADERNO (matéria) === -->
     <template v-if="isRoot">
       <div
-        class="root-caderno"
+        class="root-caderno group"
         :class="{ 'root-caderno--active': isSelected }"
         @click="$emit('select', topic.id)"
       >

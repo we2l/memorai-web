@@ -29,44 +29,48 @@
           @click="$emit('open-note', note)"
         >
           <div class="flex gap-4">
-            <!-- LEFT: document thumbnail skeleton (like Stitch) -->
-            <div class="hidden sm:flex w-[110px] h-[130px] shrink-0 rounded-xl bg-[var(--border-base)]/20 border border-[var(--border-base)] p-3 flex-col justify-center gap-[5px]">
-              <div class="h-[4px] w-full rounded-full bg-[var(--border-base)]" />
-              <div class="h-[4px] w-[80%] rounded-full bg-[var(--border-base)]" />
-              <div class="h-[4px] w-full rounded-full bg-[var(--border-base)]" />
-              <div class="h-[4px] w-[65%] rounded-full bg-[var(--border-base)]" />
-              <div class="h-[4px] w-full rounded-full bg-[var(--border-base)]/70" />
-              <div class="h-[4px] w-[90%] rounded-full bg-[var(--border-base)]/70" />
-              <div class="h-[4px] w-full rounded-full bg-[var(--border-base)]/50" />
-              <div class="h-[4px] w-[50%] rounded-full bg-[var(--border-base)]/50" />
+            <!-- LEFT: document thumbnail (larger, more document-like) -->
+            <div class="hidden sm:flex w-[120px] h-[140px] shrink-0 rounded-xl bg-[var(--border-base)]/10 border border-[var(--border-base)]/60 p-3.5 flex-col justify-between">
+              <div class="space-y-[5px]">
+                <div class="h-[4px] w-full rounded-full bg-[var(--border-base)]/80" />
+                <div class="h-[4px] w-[75%] rounded-full bg-[var(--border-base)]/80" />
+                <div class="h-[4px] w-full rounded-full bg-[var(--border-base)]/60" />
+                <div class="h-[4px] w-[60%] rounded-full bg-[var(--border-base)]/60" />
+              </div>
+              <div class="space-y-[5px]">
+                <div class="h-[4px] w-full rounded-full bg-[var(--border-base)]/40" />
+                <div class="h-[4px] w-[85%] rounded-full bg-[var(--border-base)]/40" />
+                <div class="h-[4px] w-full rounded-full bg-[var(--border-base)]/25" />
+                <div class="h-[4px] w-[45%] rounded-full bg-[var(--border-base)]/25" />
+              </div>
             </div>
 
             <!-- RIGHT: content -->
             <div class="flex-1 min-w-0">
               <!-- Title -->
-              <h4 class="text-lg font-bold text-base-primary leading-tight line-clamp-2">{{ note.title }}</h4>
+              <h4 class="text-[17px] font-bold text-base-primary leading-snug line-clamp-2">{{ note.title }}</h4>
 
               <!-- Date -->
-              <p class="text-small text-base-muted mt-1">{{ formatDate(note.updated_at) }}.</p>
+              <p class="text-[12px] text-base-muted mt-1.5">{{ formatDate(note.updated_at) }}</p>
 
               <!-- Badges -->
-              <div v-if="hasCards(note) || note.source_document_id || noteMature(note) || noteOutdated(note)" class="flex items-center gap-2 mt-2 flex-wrap">
-                <span v-if="hasCards(note)" class="inline-flex items-center gap-1.5 text-small font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600">
-                  <Check :size="12" /> Estudado
+              <div v-if="hasCards(note) || note.source_document_id || noteMature(note) || noteOutdated(note)" class="flex items-center gap-2 mt-2.5 flex-wrap">
+                <span v-if="hasCards(note)" class="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-[3px] rounded-full bg-emerald-500/10 text-emerald-600">
+                  <Check :size="11" /> Estudado
                 </span>
-                <span v-if="note.source_document_id" class="inline-flex items-center gap-1.5 text-small font-semibold px-2.5 py-0.5 rounded-full bg-purple-500/10 text-purple-600">
-                  <Sparkles :size="12" /> AI melhoria
+                <span v-if="note.source_document_id" class="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-[3px] rounded-full bg-purple-500/10 text-purple-600">
+                  <Sparkles :size="11" /> AI melhoria
                 </span>
-                <span v-if="!hasCards(note) && !note.source_document_id && noteMature(note)" class="inline-flex items-center gap-1.5 text-small font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600">
-                  <Sparkles :size="12" /> AI sugestão
+                <span v-if="!hasCards(note) && !note.source_document_id && noteMature(note)" class="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-[3px] rounded-full bg-[var(--color-accent-primary)]/10 text-[var(--color-accent-soft)]">
+                  <Sparkles :size="11" /> AI sugestão
                 </span>
-                <span v-if="noteOutdated(note)" class="inline-flex items-center gap-1.5 text-small font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600">
+                <span v-if="noteOutdated(note)" class="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-[3px] rounded-full bg-amber-500/10 text-amber-600">
                   Atualizar
                 </span>
               </div>
 
-              <!-- Preview -->
-              <p v-if="note.plain_preview" class="text-body text-base-secondary mt-2.5 line-clamp-3 leading-relaxed">
+              <!-- Preview (always visible, gives life to the card) -->
+              <p v-if="note.plain_preview" class="text-[13px] text-base-secondary/80 mt-3 line-clamp-2 leading-relaxed">
                 {{ note.plain_preview }}
               </p>
             </div>

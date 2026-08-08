@@ -14,14 +14,14 @@
       <div class="flex-1 min-w-0">
         <input
           v-model="text"
-          class="w-full bg-transparent border-0 outline-none text-body text-base-primary placeholder:text-base-muted/70"
-          placeholder="Cole texto, resumo ou anotações de aula..."
+          class="w-full bg-transparent border-0 outline-none text-body text-base-primary placeholder:text-base-muted/60"
+          placeholder="Comece escrevendo..."
           @focus="isFocused = true"
           @blur="isFocused = false"
           @keydown.stop
         />
-        <p class="text-[11px] text-base-muted mt-1.5 leading-relaxed">
-          {{ isDragging ? 'Solte o PDF para começar' : 'A IA transforma seu material em notas, flashcards, simulados e podcast.' }}
+        <p class="text-[11px] text-base-muted/70 mt-1 leading-relaxed">
+          {{ isDragging ? 'Solte o PDF para começar' : 'Cole texto ou importe um PDF. A IA organiza o restante.' }}
         </p>
       </div>
       <button
@@ -33,21 +33,17 @@
       </button>
     </form>
 
-    <!-- Divider -->
-    <div class="border-t border-[var(--border-base)]/50 my-3" />
+    <!-- Divider (almost invisible) -->
+    <div class="border-t border-[var(--border-base)]/25 my-2.5" />
 
-    <!-- PDF import row (part of the same card, not separate) -->
+    <!-- PDF import (inline action, not a button) -->
     <label
-      class="flex items-center gap-2.5 cursor-pointer rounded-lg px-2 py-1.5 -mx-2 transition-colors hover:bg-surface-secondary"
+      class="flex items-center gap-2 cursor-pointer -mx-1 px-1 py-1 rounded-md transition-colors hover:bg-[var(--border-base)]/10"
       :class="{ 'opacity-50 pointer-events-none': uploading }"
     >
-      <div class="w-7 h-7 rounded-lg bg-[var(--color-accent-primary)]/8 flex items-center justify-center shrink-0">
-        <FileUp :size="14" class="text-[var(--color-accent-soft)]" />
-      </div>
-      <div class="flex-1 min-w-0">
-        <p v-if="uploading" class="text-small text-base-primary">Enviando {{ uploadProgress }}%...</p>
-        <p v-else class="text-small text-base-secondary">Importar PDF, slides ou apostilas</p>
-      </div>
+      <FileUp :size="13" class="text-base-muted/60 shrink-0" />
+      <p v-if="uploading" class="text-[12px] text-base-muted">Enviando {{ uploadProgress }}%...</p>
+      <p v-else class="text-[12px] text-base-muted/80">Importar PDF, slides ou apostilas</p>
       <input type="file" accept=".pdf" class="hidden" @change="handleFileSelect" />
     </label>
   </div>

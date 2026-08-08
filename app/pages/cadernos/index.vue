@@ -108,7 +108,6 @@
           :cards-ai-limit="cardsAiLimit"
           @open-note="openNoteEditor"
           @close-editor="closeEditor"
-          @quick-add="handleQuickAdd"
           @create-note="createNote"
           @generate-from-note="handleGenerateFromNote"
           @improve-note="openChatForNote"
@@ -180,7 +179,7 @@
 
         <!-- When editor is NOT open: topic hub view -->
         <template v-else>
-          <!-- Topic header -->
+          <!-- Topic header (simplified) -->
           <div ref="headerRef" class="p-5 border-b border-base">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2 min-w-0">
@@ -200,66 +199,43 @@
                   <PanelLeftOpen :size="16" />
                 </button>
                 <div class="min-w-0">
-                  <h2 class="font-heading font-bold text-xl text-base-primary truncate">{{ selectedTopicName }}</h2>
-                  <p v-if="topicCards.length" class="text-small text-base-muted mt-0.5">
-                    {{ memorizeProgress > 0 ? memorizeProgress + '% em dia · ' : '' }}{{ topicCards.length }} card{{ topicCards.length !== 1 ? 's' : '' }}
+                  <h1 class="font-heading font-bold text-3xl text-base-primary truncate">{{ selectedTopicName }}</h1>
+                  <p class="text-small text-base-muted mt-2.5">
+                    {{ topicCards.length }} card{{ topicCards.length !== 1 ? 's' : '' }}{{ pendingCount > 0 ? ` · ${pendingCount} pendente${pendingCount !== 1 ? 's' : ''} hoje` : '' }}
                   </p>
                 </div>
               </div>
-            </div>
 
-            <!-- Progress bar -->
-            <div v-if="topicCards.length" class="mt-3">
-              <div class="flex items-center gap-3">
-                <div class="flex-1 h-1 rounded-full bg-surface-secondary overflow-hidden">
-                  <div
-                    class="h-1 rounded-full bg-[var(--color-accent-primary)] transition-all duration-500"
-                    :style="{ width: memorizeProgress + '%' }"
-                  />
-                </div>
-                <span class="text-small text-base-muted shrink-0">{{ memorizeProgress }}%</span>
+              <!-- CTA contextual -->
+              <div class="shrink-0">
+                <NuxtLink v-if="pendingCount > 0" :to="`/revisar?topic_id=${selectedTopicId}`" class="btn-primary !py-3 !px-6 !text-base font-semibold">
+                  Revisar {{ pendingCount }} cards
+                </NuxtLink>
+                <button v-else-if="topicCards.length === 0 && noteStore.notes.length > 0" class="btn-primary !py-3 !px-6 !text-base font-semibold" @click="cardWorkshop.generate('notes')">
+                  Transformar em flashcards
+                </button>
+                <span v-else-if="topicCards.length > 0" class="text-small text-emerald-500 font-medium">Tudo em dia ✓</span>
               </div>
             </div>
 
-          </div>
-
-          <!-- HERO — simple: pending cards + review button -->
-          <div v-if="pendingCount > 0" class="mx-4 mt-5 mb-3 px-6 py-5 rounded-2xl bg-[var(--bg-card)] border border-base flex items-center justify-between gap-4">
-            <div>
-              <p class="font-heading font-semibold text-xl text-base-primary">{{ pendingCount }} card{{ pendingCount !== 1 ? 's' : '' }} pendente{{ pendingCount !== 1 ? 's' : '' }}</p>
-              <p class="text-small text-base-muted mt-1">Continue seu progresso de hoje</p>
-            </div>
-            <div class="flex items-center gap-2 shrink-0">
-              <NuxtLink :to="`/revisar?mode=blitz&topic_id=${selectedTopicId}`" class="btn-secondary !py-3 !px-4 text-small"><Zap :size="14" /> Rápida</NuxtLink>
-              <NuxtLink :to="`/revisar?topic_id=${selectedTopicId}`" class="btn-primary !py-3 !px-6">
-                Revisar agora
-              </NuxtLink>
+            <!-- Progress bar (visual separator, always visible) -->
+            <div class="mt-3">
+              <div class="h-1 rounded-full bg-surface-secondary overflow-hidden">
+                <div
+                  v-if="topicCards.length"
+                  class="h-1 rounded-full bg-[var(--color-accent-primary)] transition-all duration-500"
+                  :style="{ width: memorizeProgress + '%' }"
+                />
+              </div>
             </div>
           </div>
 
-          <!-- Podcast generate button -->
-          <div v-if="selectedTopicId" class="mx-4 mb-3" :class="pendingCount <= 0 ? 'mt-5' : ''">
-            <button class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-[var(--bg-card)] border border-[var(--color-accent-primary)]/15 hover:border-[var(--color-accent-primary)]/20 hover:bg-surface-secondary transition-all text-left" @click="showPodcastSheet = true">
-              <Headphones :size="20" class="text-[var(--color-accent-soft)] shrink-0" />
-              <div class="flex-1">
-                <p class="text-sm text-base-primary font-medium">Revisar ouvindo seus erros</p>
-                <p class="text-xs text-base-muted">Podcast personalizado baseado no que você errou</p>
-              </div>
-              <span class="text-base-primary/30 text-sm">→</span>
-            </button>
-          </div>
-
-          <!-- Simulado button -->
-          <div v-if="selectedTopicId" class="mx-4 mb-3">
-            <NuxtLink :to="`/simulados?topic_id=${selectedTopicId}`" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-[var(--bg-card)] border border-base hover:border-[var(--color-accent-primary)]/20 hover:bg-surface-secondary transition-all text-left">
-              <ClipboardList :size="20" class="text-[var(--color-accent-soft)] shrink-0" />
-              <div class="flex-1">
-                <p class="text-sm text-base-primary font-medium">Testar com simulado</p>
-                <p class="text-xs text-base-muted">Questões geradas pela IA das suas notas</p>
-              </div>
-              <span class="text-base-primary/30 text-sm">→</span>
-            </NuxtLink>
-          </div>
+          <!-- AI Tools collapsible (podcast, simulado, mapa) -->
+          <TopicAiToolsCollapsible
+            v-if="selectedTopicId"
+            @podcast="showPodcastSheet = true"
+            @quiz="navigateTo(`/simulados?topic_id=${selectedTopicId}`)"
+          />
 
           <PodcastGenerateSheet
             v-if="selectedTopicId"
@@ -295,7 +271,7 @@
           </div>
 
           <!-- Tab: Mapa -->
-          <div v-if="activeTab === 'map'" class="flex flex-col h-full">
+          <div v-if="activeTab === 'map'" class="flex flex-col h-full tab-fade-in">
             <!-- Toggle: Cadernos | Mapa Mental -->
             <div class="flex items-center gap-2 px-4 pt-3 pb-2">
               <div class="inline-flex rounded-lg border border-base p-0.5 bg-surface-secondary">
@@ -331,8 +307,8 @@
           </div>
 
           <!-- Tab: Material (list only, no editor here) -->
+          <div v-if="activeTab === 'notes'" class="tab-fade-in">
           <TopicHubNotesTab
-            v-if="activeTab === 'notes'"
             :notes="noteStore.notes"
             :active-note="null"
             :note-title="''"
@@ -344,8 +320,8 @@
             :cards-ai-limit="cardsAiLimit"
             @open-note="openNoteEditor"
             @close-editor="closeEditor"
-            @quick-add="handleQuickAdd"
             @create-note="createNote"
+            @select-file="handleStartCardFile"
             @generate-from-note="handleGenerateFromNote"
             @improve-note="openChatForNote"
             @delete-note="showDeleteNote = true"
@@ -364,9 +340,10 @@
               />
             </template>
           </TopicHubNotesTab>
+          </div>
 
           <!-- Tab: Cards -->
-          <div v-if="activeTab === 'cards'">
+          <div v-if="activeTab === 'cards'" class="tab-fade-in">
             <!-- Card Workshop (inline above card list) -->
             <div v-if="cardWorkshop.state.value !== 'idle'" class="px-4 pt-4">
               <TopicCardWorkshop
@@ -465,6 +442,23 @@
       <form @submit.prevent="handleCreateTopic" class="flex flex-col gap-4">
         <input v-model="newTopicName" type="text" class="input-base w-full" :placeholder="createParentId ? 'Nome do tópico' : 'Nome do caderno'" autofocus />
 
+        <!-- Color picker (only for root cadernos) -->
+        <div v-if="!createParentId" class="space-y-2">
+          <label class="text-small font-medium text-base-secondary">Cor</label>
+          <div class="flex items-center gap-2">
+            <button
+              v-for="c in NOTEBOOK_COLORS"
+              :key="c.value"
+              type="button"
+              class="w-7 h-7 rounded-full transition-all border-2"
+              :class="newTopicColor === c.value ? 'border-[var(--color-accent-primary)] scale-110' : 'border-transparent hover:scale-105'"
+              :style="{ backgroundColor: c.hex }"
+              :title="c.label"
+              @click="newTopicColor = c.value"
+            />
+          </div>
+        </div>
+
         <!-- Learning mode selector (only for root topics/cadernos) -->
         <div v-if="!createParentId" class="space-y-2">
           <label class="text-small font-medium text-base-secondary">Modo de estudo</label>
@@ -525,6 +519,24 @@
       <h2 class="text-headline mb-4">{{ editTopicIsRoot ? 'Editar caderno' : 'Editar tópico' }}</h2>
       <form @submit.prevent="handleEditTopic" class="flex flex-col gap-4">
         <input v-model="editTopicName" type="text" class="input-base w-full" autofocus />
+
+        <!-- Color picker (only for root cadernos) -->
+        <div v-if="editTopicIsRoot" class="space-y-2">
+          <label class="text-small font-medium text-base-secondary">Cor</label>
+          <div class="flex items-center gap-2">
+            <button
+              v-for="c in NOTEBOOK_COLORS"
+              :key="c.value"
+              type="button"
+              class="w-7 h-7 rounded-full transition-all border-2"
+              :class="editTopicColor === c.value ? 'border-[var(--color-accent-primary)] scale-110' : 'border-transparent hover:scale-105'"
+              :style="{ backgroundColor: c.hex }"
+              :title="c.label"
+              @click="editTopicColor = c.value"
+            />
+          </div>
+        </div>
+
         <div class="flex gap-3 justify-end">
           <button type="button" class="btn-secondary" @click="showEditTopic = false">Cancelar</button>
           <button type="submit" class="btn-primary" :disabled="!editTopicName.trim()">Salvar</button>
@@ -582,6 +594,9 @@
 
     <TopicGraphOverlay v-model="showGraph" />
 
+    <!-- Confetti celebration (triggers when pendentes goes to 0) -->
+    <UiConfetti :trigger="showConfetti" />
+
     <!-- Upload modal for import PDF (learning mode selection) -->
     <TopicUploadModal
       v-model="showImportUploadModal"
@@ -592,8 +607,9 @@
 </template>
 
 <script setup lang="ts">
-import { Plus, Search, PanelLeftClose, PanelLeftOpen, X, Link2, Brain, Zap, Headphones, ClipboardList, Sparkles } from 'lucide-vue-next'
+import { Plus, Search, PanelLeftClose, PanelLeftOpen, X, Link2, Brain, Zap, Sparkles } from 'lucide-vue-next'
 import type { Topic, Note } from '~/types'
+import { NOTEBOOK_COLORS } from '~/utils/colors'
 
 const topicStore = useTopicStore()
 const noteStore = useNoteStore()
@@ -612,7 +628,15 @@ const mapSubView = ref<'graph' | 'mindmap'>(
 )
 const searchQuery = ref('')
 const { topicCards, showDeleteCard, deleteCardId, memorizeProgress, dueCardsCount, newCardsCount, pendingCount, setCards, cardsFromNote, confirmDeleteCard, handleDeleteCard } = useTopicCards()
-const { noteTitle, noteContent, editingNote, selectedText, showDeleteNote, flushPendingSave, debouncedSave, saveTitle, selectNote, openNoteEditor, closeEditor, handleQuickAdd, createNote, handleDeleteNote } = useNoteEditor(selectedTopicId)
+
+// Confetti when pending goes from >0 to 0
+const showConfetti = ref(false)
+watch(pendingCount, (curr, prev) => {
+  if (prev > 0 && curr === 0) {
+    showConfetti.value = true
+  }
+})
+const { noteTitle, noteContent, editingNote, selectedText, showDeleteNote, flushPendingSave, debouncedSave, saveTitle, selectNote, openNoteEditor, closeEditor, createNote, handleDeleteNote } = useNoteEditor(selectedTopicId)
 const noteImprove = useNoteImprove(selectedTopicId)
 const errorPatterns = ref<any>(null)
 
@@ -740,8 +764,10 @@ const createParentId = ref<string | null>(null)
 const editTopicId = ref<string | null>(null)
 const deleteTopicId = ref<string | null>(null)
 const newTopicMode = ref(auth.user?.default_learning_mode || 'general')
+const newTopicColor = ref('')
 const newTopicTargetLang = ref('')
 const newTopicLangLevel = ref('')
+const editTopicColor = ref('')
 
 const learningModeOptions = [
   { value: 'exam', icon: '📚', label: 'Concurso' },
@@ -784,7 +810,7 @@ function noteNameById(noteId: string): string {
 }
 
 function chipStyle(topicId: string): Record<string, string> {
-  const p = progressMap.value[topicId] ?? 0
+  const p = progressMap.value[topicId]?.progress ?? 0
   // Opacity from 0.08 (no progress) to 0.35 (full progress)
   const bgOpacity = 0.08 + p * 0.27
   const borderOpacity = bgOpacity + 0.12
@@ -963,11 +989,30 @@ async function onImportModalConfirm(data: { learning_mode: string; target_langua
   }
 }
 
+// Handle file selected from StartCard — upload PDF to current topic
+async function handleStartCardFile(file: File) {
+  if (!selectedTopicId.value) return
+  const maxSize = (auth.user?.plan === 'pro' ? 100 : 50) * 1024 * 1024
+  if (file.size > maxSize) { toast.show(`Máximo ${auth.user?.plan === 'pro' ? '100' : '50'}MB`, 'error'); return }
+  if (!file.name.endsWith('.pdf')) { toast.show('Apenas PDF', 'error'); return }
+
+  // If topic has no learning mode, open upload modal (user re-selects file there)
+  if (!selectedTopicLearningMode.value) {
+    showImportUploadModal.value = true
+    return
+  }
+
+  const { upload } = useDocumentUpload()
+  const success = await upload(file, selectedTopicId.value)
+  if (success) await docStore.fetchForTopic(selectedTopicId.value, true)
+}
+
 const editTopicIsRoot = ref(false)
 
 function openEdit(topic: Topic) {
   editTopicId.value = topic.id
   editTopicName.value = topic.name
+  editTopicColor.value = topic.color ?? ''
   editTopicIsRoot.value = !topic.parent_id
   showEditTopic.value = true
 }
@@ -979,16 +1024,20 @@ function openDelete(topic: Topic) {
 
 async function handleCreateTopic() {
   const body: Record<string, any> = { name: newTopicName.value, parent_id: createParentId.value }
-  if (!createParentId.value && newTopicMode.value) {
-    body.learning_mode = newTopicMode.value
-    if (newTopicMode.value === 'language') {
-      body.target_language = newTopicTargetLang.value || null
-      body.language_level = newTopicLangLevel.value || null
+  if (!createParentId.value) {
+    if (newTopicColor.value) body.color = newTopicColor.value
+    if (newTopicMode.value) {
+      body.learning_mode = newTopicMode.value
+      if (newTopicMode.value === 'language') {
+        body.target_language = newTopicTargetLang.value || null
+        body.language_level = newTopicLangLevel.value || null
+      }
     }
   }
   await topicStore.create(body)
   showCreateTopic.value = false
   newTopicMode.value = auth.user?.default_learning_mode || 'general'
+  newTopicColor.value = ''
   newTopicTargetLang.value = ''
   newTopicLangLevel.value = ''
   toast.show('Caderno criado!', 'success')
@@ -996,7 +1045,11 @@ async function handleCreateTopic() {
 
 async function handleEditTopic() {
   if (!editTopicId.value) return
-  await topicStore.update(editTopicId.value, { name: editTopicName.value })
+  const body: Record<string, any> = { name: editTopicName.value }
+  if (editTopicIsRoot.value && editTopicColor.value) {
+    body.color = editTopicColor.value
+  }
+  await topicStore.update(editTopicId.value, body)
   showEditTopic.value = false
   toast.show('Salvo!', 'success')
 }
@@ -1066,7 +1119,7 @@ function formatDate(date: string) {
   return new Date(date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
 }
 
-const progressMap = ref<Record<string, number>>({})
+const progressMap = ref<Record<string, { progress: number; pending_count: number; last_reviewed_at: string | null; color: string | null }>>({})
 
 watch(mapSubView, (val) => {
   if (import.meta.client) localStorage.setItem('baigi-map-subview', val)
@@ -1079,7 +1132,12 @@ onMounted(async () => {
   try {
     const res = await $api<any>('/topics/progress')
     for (const tp of res.data) {
-      progressMap.value[tp.id] = tp.progress
+      progressMap.value[tp.id] = {
+        progress: tp.progress,
+        pending_count: tp.pending_count,
+        last_reviewed_at: tp.last_reviewed_at,
+        color: tp.color,
+      }
     }
   } catch {}
   if (route.query.view === 'graph') {

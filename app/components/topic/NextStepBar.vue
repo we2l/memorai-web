@@ -74,10 +74,11 @@ defineEmits<{
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.625rem 1rem;
+  padding: 0.875rem 1.25rem;
   border-radius: 0.75rem;
-  margin-bottom: 0.75rem;
+  margin-bottom: 1rem;
   background: var(--color-primary-50, #F5F2FF);
+  border: 1px solid color-mix(in srgb, var(--color-accent-primary) 15%, transparent);
 }
 
 :root.dark .next-step-bar {

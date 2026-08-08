@@ -82,6 +82,7 @@ export interface Topic {
   description: string | null
   parent_id: string | null
   position: number
+  color: string | null
   learning_mode: string | null
   target_language: string | null
   source_language: string | null
@@ -98,6 +99,8 @@ export interface Note {
   topic_id: string
   title: string
   content: Record<string, any> | null
+  plain_preview: string | null
+  flashcards_count: number
   last_ai_transform_at: string | null
   cards_generated_at: string | null
   created_at: string

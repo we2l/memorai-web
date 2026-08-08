@@ -1,10 +1,11 @@
 <template>
   <NuxtLink :to="item.url" class="feed-item group">
-    <span class="feed-item__icon" :class="iconVariant">{{ item.icon }}</span>
+    <div class="feed-item__icon" :class="iconVariant">
+      <span class="feed-item__emoji">{{ item.icon }}</span>
+    </div>
     <div class="feed-item__content">
       <p class="feed-item__title">{{ item.label }}</p>
-      <p v-if="item.description" class="feed-item__desc">{{ item.description }}</p>
-      <p class="feed-item__action">{{ item.action_label }} →</p>
+      <NuxtLink :to="item.url" class="feed-item__action">{{ item.action_label }} <span class="feed-item__arrow">→</span></NuxtLink>
     </div>
   </NuxtLink>
 </template>
@@ -34,33 +35,30 @@ const iconVariant = computed(() => {
 .feed-item {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  padding: 10px 8px;
-  border-radius: 8px;
-  transition: background 120ms ease-out;
-}
-.feed-item:hover {
-  background: var(--bg-soft);
+  gap: 14px;
+  padding: 4px 0;
 }
 
 .feed-item__icon {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
   flex-shrink: 0;
 }
+.feed-item__emoji {
+  font-size: 16px;
+}
 .feed-item__icon--doc {
-  background: color-mix(in srgb, var(--color-primary-500) 8%, transparent);
+  background: color-mix(in srgb, var(--color-primary-500) 6%, var(--bg-soft));
 }
 .feed-item__icon--weak {
-  background: color-mix(in srgb, var(--color-danger) 8%, transparent);
+  background: color-mix(in srgb, var(--color-danger) 8%, var(--bg-soft));
 }
 .feed-item__icon--podcast {
-  background: color-mix(in srgb, var(--color-success) 8%, transparent);
+  background: color-mix(in srgb, var(--color-success) 6%, var(--bg-soft));
 }
 .feed-item__icon--default {
   background: var(--bg-soft);
@@ -69,22 +67,29 @@ const iconVariant = computed(() => {
 .feed-item__content {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
 }
 .feed-item__title {
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 400;
   color: var(--color-text-primary);
-  line-height: 1.3;
-}
-.feed-item__desc {
-  font-size: 12px;
-  color: var(--color-text-muted);
-  margin-top: 1px;
+  line-height: 1.4;
 }
 .feed-item__action {
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 600;
   color: var(--color-primary-500, var(--color-accent-primary));
-  margin-top: 3px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: opacity 150ms ease-out;
+}
+.feed-item__action:hover {
+  text-decoration: underline;
+}
+.feed-item__arrow {
+  font-size: 12px;
 }
 </style>

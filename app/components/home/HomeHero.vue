@@ -9,7 +9,7 @@
     <div class="hero__mission">
       <p v-if="nextExam" class="hero__exam-badge">📋 Prova em {{ nextExam.days_remaining }} dias</p>
       <p class="hero__subtitle">Hoje faltam apenas</p>
-      <p class="hero__number">{{ totalCards }} cards.</p>
+      <h1 class="hero__number">{{ totalCards }} cards.</h1>
       <p class="hero__context">≈{{ estimatedMinutes }} min · {{ mainTopicName }}</p>
     </div>
 
@@ -26,13 +26,14 @@
   <!-- Hero: novo usuário (0 cards) -->
   <section v-else-if="totalUserCards === 0" class="hero">
     <div class="hero__greeting">
-      <img src="~/assets/mascot-baigi-reading.png" alt="" class="w-11 h-11 object-contain shrink-0" />
+      <img src="~/assets/mascot-baigi-reading.png" alt="" class="hero__mascot hero__mascot--lg" />
       <div>
-        <p class="text-xl font-bold text-base-primary">Comece por aqui.</p>
-        <p class="text-[13px] text-base-muted mt-1">Importe um PDF ou crie um caderno pra gerar seus cards.</p>
+        <p class="hero__subtitle" style="margin-bottom: 0">Hora de começar.</p>
+        <h1 class="hero__number" style="font-size: 2rem">Crie seus primeiros cards.</h1>
+        <p class="hero__context">Importe um PDF ou crie um caderno pra gerar seus cards.</p>
       </div>
     </div>
-    <div class="flex gap-3 mt-5">
+    <div class="flex gap-3 mt-6">
       <NuxtLink to="/cadernos" class="hero__cta">Criar caderno</NuxtLink>
       <NuxtLink to="/importar" class="btn-secondary">Importar Anki</NuxtLink>
     </div>
@@ -41,13 +42,14 @@
   <!-- Hero: tudo em dia -->
   <section v-else class="hero">
     <div class="hero__greeting">
-      <img src="~/assets/mascot-baigi-celebrating.png" alt="" class="w-10 h-10 object-contain shrink-0" />
-      <div>
-        <p class="text-xl font-bold text-base-primary">Tudo em dia! 🎉</p>
-        <p class="text-[13px] text-base-muted mt-1">{{ subtitle }}</p>
-      </div>
+      <img src="~/assets/mascot-baigi-celebrating.png" alt="" class="hero__mascot hero__mascot--lg" />
+      <span class="hero__greeting-text">{{ greeting }}, {{ firstName }}.</span>
     </div>
-    <NuxtLink to="/cadernos" class="btn-secondary mt-5 inline-flex">Ir pra Cadernos</NuxtLink>
+    <div class="hero__mission">
+      <h1 class="hero__number" style="font-size: 2rem">Tudo em dia! 🎉</h1>
+      <p class="hero__context">{{ subtitle }}</p>
+    </div>
+    <NuxtLink to="/cadernos" class="btn-secondary mt-6 inline-flex">Ir pra Cadernos</NuxtLink>
   </section>
 </template>
 
@@ -92,58 +94,64 @@ const subtitle = computed(() => {
 
 <style scoped>
 .hero {
-  padding-top: 8px;
+  padding-top: 12px;
 }
 
 .hero__greeting {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+  margin-bottom: 8px;
 }
 .hero__mascot {
   width: 32px;
   height: 32px;
   object-fit: contain;
+  border-radius: 6px;
+}
+.hero__mascot--lg {
+  width: 40px;
+  height: 40px;
 }
 .hero__greeting-text {
-  font-size: 14px;
+  font-size: 16px;
   color: var(--color-text-secondary);
 }
 
 .hero__mission {
-  margin-top: 16px;
+  margin-top: 4px;
 }
 .hero__subtitle {
-  font-size: 14px;
+  font-size: 16px;
   color: var(--color-text-secondary);
-  margin-bottom: 2px;
+  margin-bottom: 4px;
 }
 .hero__number {
-  font-size: 2.75rem;
-  font-weight: 800;
-  line-height: 1.1;
+  font-size: 3rem;
+  font-weight: 700;
+  line-height: 1.15;
   color: var(--color-text-primary);
-  letter-spacing: -0.03em;
+  letter-spacing: -0.02em;
 }
 @media (min-width: 640px) {
-  .hero__number { font-size: 3.25rem; }
+  .hero__number { font-size: 3.5rem; }
 }
 .hero__context {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--color-text-muted);
-  margin-top: 6px;
+  margin-top: 8px;
 }
 
 .hero__exam-badge {
   display: inline-flex;
   align-items: center;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--color-warning);
-  padding: 3px 10px;
-  border-radius: 99px;
+  padding: 4px 12px;
+  border-radius: 6px;
   background: color-mix(in srgb, var(--color-warning) 8%, transparent);
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .hero__cta {
@@ -151,46 +159,46 @@ const subtitle = computed(() => {
   align-items: center;
   justify-content: center;
   margin-top: 24px;
-  padding: 13px 32px;
+  padding: 12px 32px;
   font-size: 15px;
   font-weight: 600;
   color: #fff;
   background: var(--color-primary-500, var(--color-accent-primary));
-  border-radius: 14px;
+  border-radius: 10px;
   transition: all 150ms ease-out;
-  box-shadow: 0 4px 16px rgba(111, 63, 245, 0.22);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02), 0 8px 24px rgba(111, 63, 245, 0.12);
 }
 .hero__cta:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(111, 63, 245, 0.3);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02), 0 12px 32px rgba(111, 63, 245, 0.18);
   background: var(--color-primary-600, var(--color-accent-primary));
 }
 
 .hero__progress {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-top: 20px;
-  max-width: 280px;
+  gap: 16px;
+  margin-top: 32px;
+  max-width: 320px;
 }
 .hero__progress-track {
   flex: 1;
   height: 4px;
   border-radius: 99px;
-  background: var(--bg-soft);
+  background: color-mix(in srgb, var(--border-base) 60%, transparent);
   overflow: hidden;
 }
 .hero__progress-fill {
   height: 100%;
   border-radius: 99px;
   background: var(--color-primary-500, var(--color-accent-primary));
-  opacity: 0.6;
   transition: width 500ms ease-out;
 }
 .hero__progress-label {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--color-text-muted);
   font-variant-numeric: tabular-nums;
+  font-family: 'Geist', ui-monospace, monospace;
   flex-shrink: 0;
 }
 </style>

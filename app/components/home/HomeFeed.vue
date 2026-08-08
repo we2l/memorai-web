@@ -16,22 +16,31 @@ defineProps<{
 </script>
 
 <style scoped>
+.feed {
+  padding-left: 24px;
+  border-left: 1px solid var(--border-base);
+}
+@media (max-width: 767px) {
+  .feed {
+    border-left: none;
+    border-top: 1px solid var(--border-base);
+    padding-left: 0;
+    padding-top: 24px;
+    margin-top: 24px;
+  }
+}
+
 .feed__label {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--color-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  margin-bottom: 8px;
+  margin-bottom: 16px;
 }
 .feed__list {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-}
-@media (max-width: 767px) {
-  .feed {
-    margin-top: 24px;
-  }
+  gap: 20px;
 }
 </style>

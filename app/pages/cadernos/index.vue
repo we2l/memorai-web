@@ -180,7 +180,7 @@
 
         <!-- When editor is NOT open: topic hub view -->
         <template v-else>
-          <!-- Topic header -->
+          <!-- Topic header (simplified) -->
           <div ref="headerRef" class="p-5 border-b border-base">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2 min-w-0">
@@ -201,10 +201,21 @@
                 </button>
                 <div class="min-w-0">
                   <h2 class="font-heading font-bold text-xl text-base-primary truncate">{{ selectedTopicName }}</h2>
-                  <p v-if="topicCards.length" class="text-small text-base-muted mt-0.5">
-                    {{ memorizeProgress > 0 ? memorizeProgress + '% em dia · ' : '' }}{{ topicCards.length }} card{{ topicCards.length !== 1 ? 's' : '' }}
+                  <p class="text-small text-base-muted mt-0.5">
+                    {{ topicCards.length }} card{{ topicCards.length !== 1 ? 's' : '' }}{{ pendingCount > 0 ? ` · ${pendingCount} pendente${pendingCount !== 1 ? 's' : ''} hoje` : '' }}
                   </p>
                 </div>
+              </div>
+
+              <!-- CTA contextual -->
+              <div class="shrink-0">
+                <NuxtLink v-if="pendingCount > 0" :to="`/revisar?topic_id=${selectedTopicId}`" class="btn-primary !py-2.5 !px-4">
+                  Revisar {{ pendingCount }}
+                </NuxtLink>
+                <button v-else-if="topicCards.length === 0 && noteStore.notes.length > 0" class="btn-primary !py-2.5 !px-4" @click="cardWorkshop.generate('notes')">
+                  Transformar em flashcards
+                </button>
+                <span v-else-if="topicCards.length > 0" class="text-small text-emerald-500 font-medium">Tudo em dia ✓</span>
               </div>
             </div>
 
@@ -220,46 +231,17 @@
                 <span class="text-small text-base-muted shrink-0">{{ memorizeProgress }}%</span>
               </div>
             </div>
-
           </div>
 
-          <!-- HERO — simple: pending cards + review button -->
-          <div v-if="pendingCount > 0" class="mx-4 mt-5 mb-3 px-6 py-5 rounded-2xl bg-[var(--bg-card)] border border-base flex items-center justify-between gap-4">
-            <div>
-              <p class="font-heading font-semibold text-xl text-base-primary">{{ pendingCount }} card{{ pendingCount !== 1 ? 's' : '' }} pendente{{ pendingCount !== 1 ? 's' : '' }}</p>
-              <p class="text-small text-base-muted mt-1">Continue seu progresso de hoje</p>
-            </div>
-            <div class="flex items-center gap-2 shrink-0">
-              <NuxtLink :to="`/revisar?mode=blitz&topic_id=${selectedTopicId}`" class="btn-secondary !py-3 !px-4 text-small"><Zap :size="14" /> Rápida</NuxtLink>
-              <NuxtLink :to="`/revisar?topic_id=${selectedTopicId}`" class="btn-primary !py-3 !px-6">
-                Revisar agora
-              </NuxtLink>
-            </div>
-          </div>
-
-          <!-- Podcast generate button -->
-          <div v-if="selectedTopicId" class="mx-4 mb-3" :class="pendingCount <= 0 ? 'mt-5' : ''">
-            <button class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-[var(--bg-card)] border border-[var(--color-accent-primary)]/15 hover:border-[var(--color-accent-primary)]/20 hover:bg-surface-secondary transition-all text-left" @click="showPodcastSheet = true">
-              <Headphones :size="20" class="text-[var(--color-accent-soft)] shrink-0" />
-              <div class="flex-1">
-                <p class="text-sm text-base-primary font-medium">Revisar ouvindo seus erros</p>
-                <p class="text-xs text-base-muted">Podcast personalizado baseado no que você errou</p>
-              </div>
-              <span class="text-base-primary/30 text-sm">→</span>
-            </button>
-          </div>
-
-          <!-- Simulado button -->
-          <div v-if="selectedTopicId" class="mx-4 mb-3">
-            <NuxtLink :to="`/simulados?topic_id=${selectedTopicId}`" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-[var(--bg-card)] border border-base hover:border-[var(--color-accent-primary)]/20 hover:bg-surface-secondary transition-all text-left">
-              <ClipboardList :size="20" class="text-[var(--color-accent-soft)] shrink-0" />
-              <div class="flex-1">
-                <p class="text-sm text-base-primary font-medium">Testar com simulado</p>
-                <p class="text-xs text-base-muted">Questões geradas pela IA das suas notas</p>
-              </div>
-              <span class="text-base-primary/30 text-sm">→</span>
-            </NuxtLink>
-          </div>
+          <!-- AI Tools collapsible (podcast, simulado, mapa) -->
+          <TopicAiToolsCollapsible
+            v-if="selectedTopicId"
+            :storage-key="`baigi-ai-tools-${selectedTopicId}`"
+            class="mt-3"
+            @podcast="showPodcastSheet = true"
+            @quiz="navigateTo(`/simulados?topic_id=${selectedTopicId}`)"
+            @mindmap="activeTab = 'map'; mapSubView = 'mindmap'"
+          />
 
           <PodcastGenerateSheet
             v-if="selectedTopicId"
@@ -627,7 +609,7 @@
 </template>
 
 <script setup lang="ts">
-import { Plus, Search, PanelLeftClose, PanelLeftOpen, X, Link2, Brain, Zap, Headphones, ClipboardList, Sparkles } from 'lucide-vue-next'
+import { Plus, Search, PanelLeftClose, PanelLeftOpen, X, Link2, Brain, Zap, Sparkles } from 'lucide-vue-next'
 import type { Topic, Note } from '~/types'
 import { NOTEBOOK_COLORS } from '~/utils/colors'
 

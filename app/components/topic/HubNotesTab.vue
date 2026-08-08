@@ -32,18 +32,27 @@
         <button
           v-for="note in notes"
           :key="note.id"
-          class="w-full text-left px-4 py-3 rounded-xl bg-[var(--bg-card)] border border-base shadow-sm transition-all flex items-center gap-3 hover:border-[var(--color-accent-primary)]/30 hover:shadow-md"
+          class="w-full text-left px-4 py-3 rounded-xl bg-[var(--bg-card)] border border-base shadow-sm transition-all flex items-start gap-3 hover:border-[var(--color-accent-primary)]/30 hover:shadow-md"
           @click="$emit('open-note', note)"
         >
-          <FileText :size="16" class="shrink-0 opacity-60 text-base-muted" />
+          <FileText :size="16" class="shrink-0 opacity-60 text-base-muted mt-0.5" />
           <div class="flex-1 min-w-0">
-            <p class="text-body font-medium truncate text-base-primary">
-              {{ note.title }}
-              <span v-if="note.source_document_id" class="text-micro font-semibold text-accent-primary ml-1 inline-flex items-center gap-0.5"><Sparkles :size="10" /> IA</span>
+            <div class="flex items-center gap-2">
+              <p class="text-body font-medium truncate text-base-primary">
+                {{ note.title }}
+              </p>
+              <span v-if="note.source_document_id" class="text-micro font-semibold text-accent-primary inline-flex items-center gap-0.5 shrink-0"><Sparkles :size="10" /> IA</span>
+            </div>
+            <!-- Preview text -->
+            <p v-if="note.plain_preview" class="text-small text-base-muted mt-0.5 line-clamp-2">
+              {{ note.plain_preview }}
             </p>
-            <div class="flex items-center gap-2 text-small text-base-muted">
-              <span>{{ formatDate(note.updated_at) }}</span>
-              <span v-if="cardsFromNote(note.id) > 0" class="text-accent-primary">· {{ cardsFromNote(note.id) }} cards</span>
+            <!-- Meta row: date + badge -->
+            <div class="flex items-center gap-2 mt-1.5">
+              <span class="text-micro text-base-muted">{{ formatDate(note.updated_at) }}</span>
+              <span v-if="getNoteBadge(note)" class="text-micro font-medium px-1.5 py-0.5 rounded-full" :class="badgeClass(getNoteBadge(note)!)">
+                {{ getNoteBadge(note)!.label }}
+              </span>
             </div>
           </div>
         </button>
@@ -52,17 +61,11 @@
         <slot name="documents" />
       </div>
       <div v-else class="py-6">
-        <div class="text-center mb-4">
-          <img src="~/assets/mascot-baigi-reading.png" alt="Baigi lendo" class="w-20 h-20 object-contain mx-auto mb-3" />
-          <p class="text-headline text-base-primary mb-2">Pare de esquecer o que estuda</p>
-          <p class="text-small text-base-muted">Cole um texto, suba um PDF — a IA transforma em flashcards em segundos.</p>
-        </div>
-        <div class="space-y-2">
-          <slot name="documents" />
-          <button class="btn-secondary w-full !py-3 text-small" @click="$emit('create-note')">
-            <FileText :size="16" /> Criar nota manualmente
-          </button>
-        </div>
+        <TopicEmptyStateOnboarding
+          @paste="$emit('create-note')"
+          @upload-pdf="$emit('create-note')"
+          @import-anki="navigateTo('/importar')"
+        />
       </div>
     </div>
 
@@ -85,15 +88,6 @@
           </nav>
         </div>
         <div class="flex items-center gap-1">
-          <!-- Quick actions (visible) -->
-          <button
-            class="p-1.5 rounded-lg text-base-muted hover:text-accent-primary hover:bg-[var(--color-primary-50)] transition-colors flex items-center gap-1"
-            title="Gerar cards com IA"
-            @click="showGeneratePanel = !showGeneratePanel"
-          >
-            <Zap :size="16" />
-            <span class="text-small hidden lg:inline">Cards IA</span>
-          </button>
           <button
             class="p-1.5 rounded-lg text-base-muted hover:text-accent-primary hover:bg-[var(--color-primary-50)] transition-colors flex items-center gap-1"
             title="Mapa mental"
@@ -127,36 +121,6 @@
         </div>
       </div>
 
-      <!-- Generate cards panel (collapsible) -->
-      <div v-if="showGeneratePanel" class="px-4 py-3 bg-surface-secondary/50 border-b border-base">
-        <div class="max-w-[720px] mx-auto">
-          <div class="flex items-center gap-2 mb-2">
-            <span class="text-small text-base-primary">Quantos cards?</span>
-            <button
-              v-for="n in [3, 5, 10]"
-              :key="n"
-              class="px-3 py-1.5 rounded-lg text-small font-medium transition-colors border"
-              :class="generateCount === n ? 'bg-accent-primary-subtle text-accent-primary border-accent-primary/40' : 'bg-[var(--border-divider)] text-base-secondary border-transparent hover:bg-[var(--border-divider)]/80'"
-              @click="generateCount = n"
-            >
-              {{ n }}
-            </button>
-          </div>
-          <div class="flex items-center justify-between">
-            <span v-if="cardsAiRemaining !== null" class="text-micro text-base-muted">
-              Restam {{ cardsAiRemaining }}/{{ cardsAiLimit }} este mês
-            </span>
-            <span v-else class="text-micro text-base-muted">Ilimitado</span>
-            <div class="flex gap-2">
-              <button class="btn-secondary !py-1.5 !px-3 !min-h-0 text-small" @click="showGeneratePanel = false">Cancelar</button>
-              <button class="btn-primary !py-1.5 !px-3 !min-h-0 text-small" @click="$emit('generate-from-note', generateCount); showGeneratePanel = false">
-                <Zap :size="12" /> Gerar {{ generateCount }}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- Generating banner (fixed above editor, does not scroll) -->
       <slot name="generating-banner" />
 
@@ -182,11 +146,13 @@
         </div>
       </div>
 
-      <!-- Footer: word count -->
+      <!-- Footer: intelligent word count + concepts -->
       <div class="px-4 py-2 border-t border-base flex items-center justify-between text-micro text-base-muted shrink-0">
-        <span>{{ wordCount }} palavras</span>
-        <span v-if="wordCount >= 150" class="text-success">Material suficiente pra IA</span>
-        <span v-else-if="wordCount > 0">Adicione mais conteúdo pra cards melhores</span>
+        <span v-if="wordCount >= 200">{{ wordCount }} palavras · ~{{ conceptCount }} conceitos encontrados</span>
+        <span v-else-if="wordCount >= 100">{{ wordCount }} palavras · Quase lá — mais um pouco pra IA funcionar</span>
+        <span v-else-if="wordCount > 0">{{ wordCount }} palavras · Continue escrevendo...</span>
+        <span v-else>0 palavras</span>
+        <span v-if="wordCount >= 200" class="text-emerald-500 font-medium">Material suficiente ✓</span>
       </div>
 
       <!-- Selection toolbar (create card from selection) -->
@@ -206,6 +172,7 @@
 <script setup lang="ts">
 import { FileText, ArrowLeft, ChevronRight, MoreHorizontal, Zap, Trash2, Brain, Sparkles } from 'lucide-vue-next'
 import type { Note } from '~/types'
+import { useNoteBadge, type NoteBadge } from '~/composables/useNoteBadge'
 
 const props = defineProps<{
   notes: Note[]
@@ -224,20 +191,32 @@ const emit = defineEmits<{
   (e: 'close-editor'): void
   (e: 'quick-add', text: string): void
   (e: 'create-note'): void
-  (e: 'generate-from-note', count: number): void
+  (e: 'generate-from-note', count?: number): void
   (e: 'improve-note'): void
   (e: 'delete-note'): void
   (e: 'save-title'): void
   (e: 'update:noteTitle', value: string): void
 }>()
 
-const showGeneratePanel = ref(false)
-const generateCount = ref(5)
 const showMenu = ref(false)
 const showMindMap = ref(false)
 const quickText = ref('')
 const suggestGenerate = ref(false)
 const titleRef = ref<HTMLElement>()
+
+function getNoteBadge(note: Note): NoteBadge | null {
+  return useNoteBadge(note)
+}
+
+function badgeClass(badge: NoteBadge): string {
+  switch (badge.color) {
+    case 'green': return 'bg-emerald-500/10 text-emerald-600'
+    case 'gray': return 'bg-[var(--border-base)]/30 text-base-muted'
+    case 'amber': return 'bg-amber-500/10 text-amber-600'
+    case 'purple': return 'bg-purple-500/10 text-purple-600'
+    default: return ''
+  }
+}
 
 // Set title text on mount / note change
 watch(() => props.activeNote?.id, () => {
@@ -262,12 +241,12 @@ function onTitleInput(event: Event) {
 }
 
 function focusEditor() {
-  // Focus the Tiptap editor (first .tiptap element)
   const tiptap = document.querySelector('.notion-editor .tiptap') as HTMLElement
   tiptap?.focus()
 }
 
 const wordCount = ref(0)
+const conceptCount = computed(() => Math.floor(wordCount.value / 45))
 let wordCountInterval: ReturnType<typeof setInterval> | null = null
 
 function updateWordCount() {
@@ -334,5 +313,12 @@ onBeforeUnmount(() => {
   color: var(--color-text-muted, #8A90A8);
   opacity: 0.6;
   pointer-events: none;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 </style>

@@ -92,7 +92,7 @@
                 class="inline-flex items-center gap-1.5 text-small text-accent-primary font-medium hover:underline transition-colors"
                 @click="openGenerateCards(doc)"
               >
-                <Sparkles :size="13" /> Gerar cards
+                <Sparkles :size="13" /> Transformar em flashcards
               </button>
             </div>
 

@@ -98,6 +98,8 @@ export interface Note {
   topic_id: string
   title: string
   content: Record<string, any> | null
+  last_ai_transform_at: string | null
+  cards_generated_at: string | null
   created_at: string
   updated_at: string
 }

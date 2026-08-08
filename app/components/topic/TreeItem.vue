@@ -67,9 +67,10 @@
       v-if="isRoot && (topicCards > 0 || pendingCount > 0)"
       class="px-3 pt-0.5 pb-3"
       :style="{ paddingLeft: `${depth * 16 + 36}px` }"
+      :class="topic.id === selectedId ? 'bg-accent-primary-subtle/10 rounded-lg -mx-1 px-4' : ''"
     >
       <!-- Full-width progress bar -->
-      <div class="w-full max-w-[7rem] h-[5px] rounded-full bg-surface-secondary overflow-hidden">
+      <div class="w-full h-[6px] rounded-full bg-surface-secondary overflow-hidden">
         <div
           class="h-full rounded-full transition-all duration-500"
           :class="progressBarColor"
@@ -77,10 +78,16 @@
         />
       </div>
       <!-- Stats line -->
-      <p class="text-micro text-base-muted mt-1">
-        {{ topicCards }} cards
-        <span v-if="pendingCount > 0" class="text-[var(--color-accent-soft)] font-medium"> · {{ pendingCount }} pendentes</span>
-        <span v-else-if="topicProgress > 0"> · <span class="text-emerald-500">em dia</span></span>
+      <p class="text-micro text-base-muted mt-1.5">
+        <template v-if="pendingCount > 0">
+          {{ topicCards }} cards · <span class="text-[var(--color-accent-soft)] font-semibold">{{ pendingCount }} pendentes</span>
+        </template>
+        <template v-else-if="topicProgress > 0">
+          {{ progressPercent }}% · <span class="text-emerald-500 font-medium">em dia ✓</span>
+        </template>
+        <template v-else>
+          {{ topicCards }} cards
+        </template>
       </p>
     </div>
 

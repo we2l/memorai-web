@@ -3,19 +3,19 @@
     <!-- View: Material list (when no note is being edited) -->
     <div v-if="!activeNote" class="flex-1 overflow-y-auto p-4">
       <!-- Quick input -->
-      <div class="mb-4 rounded-xl bg-[var(--bg-card)] border border-base p-3 shadow-sm" data-tour="quick-input">
+      <div class="mb-4 rounded-2xl bg-[var(--bg-card)] border border-base p-4 shadow-sm transition-all duration-150 focus-within:ring-2 focus-within:ring-[var(--color-accent-primary)]/30 focus-within:shadow-md" data-tour="quick-input">
         <form class="flex gap-2" @submit.prevent="handleQuickInput">
           <input
             v-model="quickText"
             class="input-base flex-1 !text-small !border-0 !shadow-none !bg-transparent !p-0 !min-h-0"
-            placeholder="Cole texto, resumo, anotação de aula..."
+            placeholder="Cole texto, resumo ou anotações de aula..."
             @keydown.stop
           />
           <button type="submit" class="btn-primary !py-1.5 !px-3 !min-h-0 text-small shrink-0" :disabled="!quickText.trim()">
             Salvar
           </button>
         </form>
-        <p class="text-micro text-base-muted mt-2 pl-0.5">Suas notas viram contexto pra IA gerar cards, quiz e podcast</p>
+        <p class="text-micro text-base-muted mt-2 pl-0.5">A IA transforma em notas, flashcards, quiz e podcast</p>
       </div>
 
       <!-- Generate suggestion banner -->
@@ -32,7 +32,7 @@
         <div
           v-for="note in notes"
           :key="note.id"
-          class="group relative w-full text-left px-5 py-4 rounded-2xl bg-[var(--bg-card)] border border-base shadow-sm transition-all hover:border-[var(--color-accent-primary)]/30 hover:shadow-md cursor-pointer"
+          class="group relative w-full text-left px-5 py-4 rounded-2xl bg-[var(--bg-card)] border border-base shadow-sm transition-all duration-150 hover:border-[var(--color-accent-primary)]/30 hover:shadow-lg hover:translate-y-[-1px] cursor-pointer"
           @click="$emit('open-note', note)"
         >
           <div class="flex gap-4">

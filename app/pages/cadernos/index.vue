@@ -219,10 +219,11 @@
               </div>
             </div>
 
-            <!-- Progress bar (thin accent line, like Stitch separator) -->
-            <div v-if="topicCards.length" class="mt-3">
+            <!-- Progress bar (visual separator, always visible) -->
+            <div class="mt-3">
               <div class="h-1 rounded-full bg-surface-secondary overflow-hidden">
                 <div
+                  v-if="topicCards.length"
                   class="h-1 rounded-full bg-[var(--color-accent-primary)] transition-all duration-500"
                   :style="{ width: memorizeProgress + '%' }"
                 />

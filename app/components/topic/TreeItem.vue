@@ -29,15 +29,18 @@
             <ChevronRight :size="12" class="transition-transform duration-150" :class="{ 'rotate-90': expanded }" />
           </button>
 
-          <!-- 3 dots (hover) -->
-          <div class="relative opacity-0 group-hover:opacity-100 transition-opacity duration-150" @click.stop>
+          <!-- 3 dots (visible on hover, menu opens on click) -->
+          <div class="relative opacity-0 group-hover:opacity-100 transition-opacity duration-150" :class="{ '!opacity-100': showMenu }" @click.stop>
             <button
               class="p-1 rounded text-base-muted/50 hover:text-base-primary hover:bg-surface-secondary transition-colors"
-              @click="showMenu = !showMenu"
+              @click="toggleMenu"
             >
               <MoreHorizontal :size="12" />
             </button>
-            <div v-if="showMenu" class="absolute right-0 top-full mt-1 w-40 bg-[var(--bg-card)] border border-base rounded-lg shadow-lg py-1 z-30">
+            <Teleport to="body">
+              <div v-if="showMenu" class="fixed inset-0 z-40" @click="showMenu = false" />
+            </Teleport>
+            <div v-if="showMenu" class="absolute right-0 top-full mt-1 w-40 bg-[var(--bg-card)] border border-base rounded-lg shadow-lg py-1 z-50">
               <button class="w-full text-left px-3 py-2 text-small text-base-primary hover:bg-surface-secondary transition-colors" @click="showMenu = false; $emit('add-child', topic.id)">
                 Adicionar matéria
               </button>
@@ -178,6 +181,10 @@ const progressBarColor = computed(() => {
 
 const expanded = ref(props.depth === 0)
 const showMenu = ref(false)
+
+function toggleMenu() {
+  showMenu.value = !showMenu.value
+}
 
 const isExpanded = computed(() => {
   if (props.forceExpand) return true

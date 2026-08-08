@@ -171,7 +171,7 @@ watch(() => route.fullPath, () => {
   display: grid;
   grid-template-columns: 1fr;
   gap: 24px;
-  margin-top: 24px;
+  margin-top: 28px;
 }
 @media (min-width: 768px) {
   .home-grid {

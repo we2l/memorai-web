@@ -1,6 +1,6 @@
 <template>
   <section v-if="totalCards > 0" class="review-modes">
-    <p class="review-modes__label">Outras formas de revisar</p>
+    <p class="review-modes__label">Mais formas de revisar</p>
     <div class="review-modes__chips">
       <UiDisabledFeature :enabled="totalCards > 0" tooltip="Nenhum card">
         <NuxtLink to="/revisar?mode=blitz" class="review-chip">

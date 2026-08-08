@@ -45,7 +45,7 @@ defineEmits<{
   border-radius: 10px;
   background: color-mix(in srgb, var(--color-warning) 5%, var(--bg-card));
   border: 1px solid color-mix(in srgb, var(--color-warning) 15%, transparent);
-  margin-bottom: 12px;
+  margin-bottom: 16px;
   font-size: 13px;
   color: var(--color-text-primary);
 }

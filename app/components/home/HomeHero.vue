@@ -11,7 +11,7 @@
 
     <div class="hero__body">
       <p v-if="nextExam" class="inline-flex items-center text-xs text-warning font-medium px-2 py-0.5 rounded-full bg-warning/10 mb-2">📋 Prova em {{ nextExam.days_remaining }} dias</p>
-      <p class="text-sm text-base-secondary">Hoje faltam apenas</p>
+      <p class="text-sm text-base-secondary">{{ heroSubtitle }}</p>
       <p class="hero__number">{{ totalCards }} cards.</p>
       <p class="text-sm text-base-muted mt-1">≈{{ estimatedMinutes }} min · {{ mainTopicName }}</p>
     </div>
@@ -86,6 +86,13 @@ const estimatedMinutes = computed(() => props.backlog?.estimated_minutes ?? Math
 const progressPercent = computed(() => {
   if (!totalDue.value) return 0
   return Math.round((reviewedToday.value / totalDue.value) * 100)
+})
+
+const heroSubtitle = computed(() => {
+  const h = new Date().getHours()
+  if (h < 12) return 'Vamos manter o ritmo.'
+  if (h < 18) return `Faltam só ${totalCards.value} cards.`
+  return 'Última chance do dia. Bora?'
 })
 
 const subtitle = computed(() => {

@@ -1,12 +1,11 @@
 <template>
-  <NuxtLink :to="item.url" class="feed-item">
-    <div class="feed-item__icon" :class="iconVariant">
-      <span class="feed-item__emoji">{{ item.icon }}</span>
+  <NuxtLink :to="item.url" class="event">
+    <span class="event__icon">{{ item.icon }}</span>
+    <div class="event__body">
+      <p class="event__title">{{ item.label }}</p>
+      <p v-if="item.description" class="event__desc">{{ item.description }}</p>
     </div>
-    <div class="feed-item__content">
-      <p class="feed-item__title">{{ item.label }}</p>
-      <span class="feed-item__action">{{ item.action_label }} <span class="feed-item__arrow">→</span></span>
-    </div>
+    <span class="event__action">{{ item.action_label }} →</span>
   </NuxtLink>
 </template>
 
@@ -19,80 +18,77 @@ export interface FeedItemData {
   url: string
 }
 
-const props = defineProps<{
+defineProps<{
   item: FeedItemData
 }>()
-
-const iconVariant = computed(() => {
-  if (props.item.icon === '📄') return 'feed-item__icon--doc'
-  if (props.item.icon === '🧠') return 'feed-item__icon--weak'
-  if (props.item.icon === '🎧') return 'feed-item__icon--podcast'
-  return 'feed-item__icon--default'
-})
 </script>
 
 <style scoped>
-.feed-item {
+.event {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  transition: background 150ms ease-out;
+  background: var(--bg-card, #FFFFFF);
+  border: 1px solid transparent;
+}
+.event:hover {
+  background: color-mix(in srgb, var(--color-primary-500) 3%, var(--bg-card, #FFFFFF));
+  border-color: #E8E2F4;
+}
+.dark .event:hover {
+  border-color: color-mix(in srgb, var(--color-accent-primary) 10%, var(--border-base));
 }
 
-.feed-item__icon {
+.event__icon {
+  font-size: 16px;
+  flex-shrink: 0;
   width: 28px;
   height: 28px;
-  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  margin-top: 1px;
+  border-radius: 8px;
+  background: #F6F3FC;
 }
-.feed-item__emoji {
-  font-size: 13px;
-}
-.feed-item__icon--doc {
-  background: color-mix(in srgb, var(--color-primary-500) 5%, var(--bg-soft));
-}
-.feed-item__icon--weak {
-  background: color-mix(in srgb, var(--color-danger) 6%, var(--bg-soft));
-}
-.feed-item__icon--podcast {
-  background: color-mix(in srgb, var(--color-success) 5%, var(--bg-soft));
-}
-.feed-item__icon--default {
-  background: var(--bg-soft);
+.dark .event__icon {
+  background: color-mix(in srgb, var(--color-accent-primary) 8%, var(--bg-soft));
 }
 
-.feed-item__content {
+.event__body {
   flex: 1;
   min-width: 0;
 }
-.feed-item__title {
+.event__title {
   font-size: 13px;
+  font-weight: 500;
+  color: var(--text-heading);
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.event__desc {
+  font-size: 11.5px;
   font-weight: 400;
-  color: var(--color-text-primary);
-  line-height: 1.45;
-  letter-spacing: 0.005em;
+  color: var(--text-muted);
+  margin-top: 1px;
 }
-.feed-item__action {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  font-size: 12.5px;
-  font-weight: 550;
-  color: var(--color-primary-500, var(--color-accent-primary));
-  margin-top: 2px;
-  transition: opacity 150ms ease-out;
+
+.event__action {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--color-primary-500);
+  flex-shrink: 0;
+  white-space: nowrap;
 }
-.feed-item:hover .feed-item__action {
-  opacity: 0.75;
+.dark .event__action {
+  color: var(--color-accent-primary);
 }
-.feed-item__arrow {
-  font-size: 11px;
-  transition: transform 150ms ease-out;
-}
-.feed-item:hover .feed-item__arrow {
-  transform: translateX(2px);
+.event:hover .event__action {
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 </style>

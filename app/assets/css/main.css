@@ -72,21 +72,21 @@
 
 :root {
   /* Backgrounds */
-  --bg-base: #FAFBFD;
-  --bg-soft: #F6F3FF;
+  --bg-base: #F9FAFD;
+  --bg-soft: #F5F2FF;
   --bg-card: #FFFFFF;
   --bg-hero: #FCFBFF;
 
   /* Text */
-  --text-heading: #252B48;
+  --text-heading: #1E2240;
   --text-body: #3C4257;
   --text-muted: #6B7294;
   --text-disabled: #A3A8BE;
 
   /* Borders */
-  --border-base: #E9E5F5;
+  --border-base: #E5E1F0;
   --border-hover: #DDD8EE;
-  --border-divider: #F0ECFA;
+  --border-divider: #EDEAF7;
 
   /* Accent (primary mapped) */
   --color-accent-primary: #6F3FF5;

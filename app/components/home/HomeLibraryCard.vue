@@ -1,15 +1,16 @@
 <template>
   <NuxtLink
     :to="`/cadernos?topic=${topic.id}`"
-    class="library-card"
-    :style="{ '--nb-color': topic.color || 'var(--color-primary-500, var(--color-accent-primary))' }"
+    class="card"
+    :style="{ '--nb-color': topic.color || 'var(--color-primary-500)' }"
   >
-    <div class="library-card__header">
-      <h3 class="library-card__name">{{ topic.name }}</h3>
-      <span class="library-card__badge" :class="badgeClass">{{ state.text }}</span>
-    </div>
-    <div class="library-card__footer">
-      <span class="library-card__meta">{{ topic.flashcards_count }} cards</span>
+    <div class="card__bar" />
+    <div class="card__body">
+      <h3 class="card__title">{{ topic.name }}</h3>
+      <div class="card__footer">
+        <span class="card__count">{{ topic.flashcards_count }} cards</span>
+        <span class="card__badge" :class="badgeClass">{{ state.text }}</span>
+      </div>
     </div>
   </NuxtLink>
 </template>
@@ -34,85 +35,104 @@ const state = computed(() => {
   return { text: 'Novo', variant: 'muted' }
 })
 
-const badgeClass = computed(() => `library-card__badge--${state.value.variant}`)
+const badgeClass = computed(() => `card__badge--${state.value.variant}`)
 </script>
 
 <style scoped>
-.library-card {
-  position: relative;
-  padding: 13px 14px 11px 18px;
-  background: var(--bg-card);
-  border: 1px solid color-mix(in srgb, var(--border-base) 70%, transparent);
-  border-radius: 9px;
-  transition: all 180ms ease-out;
+.card {
+  display: flex;
+  align-items: stretch;
+  min-height: 76px;
+  background: #FFFFFF;
+  border: 1px solid #E2DDEF;
+  border-radius: 12px;
   overflow: hidden;
+  transition: all 180ms ease-out;
+  box-shadow: 0 1px 3px rgba(111, 63, 245, 0.03);
 }
-.library-card::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 3px;
+.dark .card {
+  background: var(--bg-card);
+  border-color: var(--border-base);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+.card:hover {
+  border-color: color-mix(in srgb, var(--nb-color) 35%, #D8D0EA);
+  box-shadow:
+    0 4px 12px color-mix(in srgb, var(--nb-color) 8%, transparent),
+    0 1px 3px rgba(0, 0, 0, 0.03);
+  transform: translateY(-2px);
+}
+.dark .card:hover {
+  border-color: color-mix(in srgb, var(--nb-color) 30%, var(--border-base));
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.card__bar {
+  width: 4px;
+  flex-shrink: 0;
   background: var(--nb-color);
-  opacity: 0.65;
+  opacity: 0.6;
   transition: opacity 180ms ease-out;
 }
-.library-card:hover {
-  border-color: color-mix(in srgb, var(--nb-color) 20%, var(--border-base));
-  background: color-mix(in srgb, var(--nb-color) 2%, var(--bg-card));
-}
-.library-card:hover::before {
+.card:hover .card__bar {
   opacity: 1;
 }
 
-.library-card__header {
+.card__body {
+  flex: 1;
+  min-width: 0;
+  padding: 14px 16px 12px 14px;
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
 }
 
-.library-card__name {
-  font-size: 14px;
-  font-weight: 550;
-  color: var(--color-text-primary);
+.card__title {
+  font-size: 14.5px;
+  font-weight: 580;
+  color: var(--text-heading);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  min-width: 0;
   letter-spacing: -0.01em;
+  line-height: 1.3;
 }
 
-.library-card__badge {
-  font-size: 11px;
-  font-weight: 500;
-  padding: 1px 7px;
-  border-radius: 4px;
-  flex-shrink: 0;
-  letter-spacing: 0.01em;
-}
-.library-card__badge--pending {
-  color: var(--color-primary-500, var(--color-accent-primary));
-  background: color-mix(in srgb, var(--color-primary-500, var(--color-accent-primary)) 6%, transparent);
-}
-.library-card__badge--success {
-  color: var(--color-success);
-  background: color-mix(in srgb, var(--color-success) 6%, transparent);
-}
-.library-card__badge--muted {
-  color: var(--color-text-muted);
-  background: color-mix(in srgb, var(--color-text-muted) 6%, transparent);
+.card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 
-.library-card__footer {
-  margin-top: 6px;
-}
-
-.library-card__meta {
+.card__count {
   font-size: 12px;
   font-weight: 400;
-  color: color-mix(in srgb, var(--color-text-muted) 80%, transparent);
+  color: var(--text-muted);
+}
+
+.card__badge {
+  font-size: 11px;
+  font-weight: 560;
+  padding: 2px 9px;
+  border-radius: 10px;
   letter-spacing: 0.01em;
+}
+.card__badge--pending {
+  color: var(--color-primary-600);
+  background: #EDE6FC;
+}
+.dark .card__badge--pending {
+  color: var(--color-accent-primary);
+  background: color-mix(in srgb, var(--color-accent-primary) 12%, transparent);
+}
+.card__badge--success {
+  color: #16A34A;
+  background: #ECFDF5;
+}
+.card__badge--muted {
+  color: var(--text-muted);
+  background: #F4F3F8;
 }
 </style>

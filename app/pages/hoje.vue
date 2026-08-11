@@ -19,8 +19,8 @@
       :user-name="auth.user?.name ?? 'estudante'"
     />
 
-    <!-- Grid: Cadernos (esquerda) + Feed (direita) -->
-    <div v-if="topicProgress.length || feedItems.length" class="home-grid">
+    <!-- Content: Cadernos + Feed -->
+    <div v-if="topicProgress.length || feedItems.length" class="home__content">
       <HomeLibrary :topics="topicProgress" />
       <HomeFeed :items="feedItems" />
     </div>
@@ -33,7 +33,7 @@
     />
 
     <!-- Activation (new users only) -->
-    <section v-if="stats && isNewUser" class="mt-6">
+    <section v-if="stats && isNewUser" class="home__activation">
       <UiActivationChecklist
         :has-topics="Number(stats.total_decks) > 0"
         :has-material="Number(stats.total_decks) > 0"
@@ -160,23 +160,37 @@ watch(() => route.fullPath, () => {
 
 <style scoped>
 .home {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 16px 16px 80px;
+  padding: 24px 32px 40px;
+  min-height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
 }
-@media (min-width: 768px) {
-  .home { padding: 32px 40px 40px; }
+@media (min-width: 1280px) {
+  .home {
+    padding: 28px 48px 40px;
+  }
+}
+@media (min-width: 1600px) {
+  .home {
+    padding: 32px 64px 48px;
+  }
 }
 
-.home-grid {
+.home__content {
   display: grid;
   grid-template-columns: 1fr;
   gap: 24px;
-  margin-top: 32px;
+  margin-top: 36px;
+  flex: 1;
 }
 @media (min-width: 1024px) {
-  .home-grid {
-    grid-template-columns: 8fr 4fr;
+  .home__content {
+    grid-template-columns: 1fr 280px;
+    gap: 48px;
   }
+}
+
+.home__activation {
+  margin-top: 24px;
 }
 </style>

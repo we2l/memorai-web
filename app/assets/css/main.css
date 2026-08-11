@@ -72,21 +72,21 @@
 
 :root {
   /* Backgrounds */
-  --bg-base: #FAFBFD;
-  --bg-soft: #F6F3FF;
+  --bg-base: #F9FAFD;
+  --bg-soft: #F5F2FF;
   --bg-card: #FFFFFF;
   --bg-hero: #FCFBFF;
 
   /* Text */
-  --text-heading: #252B48;
+  --text-heading: #1E2240;
   --text-body: #3C4257;
   --text-muted: #6B7294;
   --text-disabled: #A3A8BE;
 
   /* Borders */
-  --border-base: #E9E5F5;
+  --border-base: #E5E1F0;
   --border-hover: #DDD8EE;
-  --border-divider: #F0ECFA;
+  --border-divider: #EDEAF7;
 
   /* Accent (primary mapped) */
   --color-accent-primary: #6F3FF5;
@@ -942,4 +942,53 @@ button {
     background: linear-gradient(135deg, rgba(217, 119, 6, 0.1) 0%, rgba(217, 119, 6, 0.05) 100%);
     border-color: #D97706;
   }
+}
+
+/* ============================================
+   Microinteractions — Tab fade, card expand
+   ============================================ */
+
+@keyframes tab-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tab-fade-in {
+  animation: tab-fade-in 150ms ease-out;
+}
+
+/* Confetti celebration */
+@keyframes confetti-fall {
+  0% {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(120px) rotate(720deg) scale(0.3);
+  }
+}
+
+@keyframes confetti-spread {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(var(--confetti-x, 20px));
+  }
+}
+
+.confetti-particle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  animation: confetti-fall 1.5s ease-out forwards, confetti-spread 1.5s ease-out forwards;
+  pointer-events: none;
 }

@@ -1,212 +1,39 @@
 <template>
-  <div class="p-4 sm:p-6 pb-20 lg:pb-6 max-w-5xl mx-auto">
-    <!-- Greeting + Streak -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-      <div class="flex items-center gap-3">
-        <img src="~/assets/mascot-baigi-bust.png" alt="Baigi" class="w-14 h-14 object-contain" />
-        <div>
-        <h1 class="font-heading font-bold text-3xl text-base-primary">
-          {{ greeting }}, <span class="text-accent-primary opacity-85">{{ auth.user?.name?.split(' ')[0] ?? 'estudante' }}</span>
-        </h1>
-        <p class="text-base-muted mt-1">Vamos manter seu ritmo hoje.</p>
-        </div>
-      </div>
-      <div class="flex items-center gap-2 shrink-0 px-3 py-2 rounded-xl bg-surface-secondary">
-        <span class="text-2xl font-semibold text-accent-primary leading-none">{{ stats?.streak ?? 0 }}</span>
-        <div class="flex flex-col items-start">
-          <span class="text-xs text-base-muted">dias 🔥</span>
-          <UiSparkline v-if="sparklineData.length" :data="sparklineData" :width="60" :height="18" />
-        </div>
-      </div>
+  <div class="home">
+    <!-- Banners -->
+    <HomeBanner
+      :retention-suggestion="retentionSuggestion"
+      :survival-active="survivalActive"
+      :backlog="backlog"
+      @apply-retention="applyRetention"
+      @dismiss-retention="dismissRetention"
+      @toggle-survival="toggleSurvivalMode"
+    />
+
+    <!-- Hero -->
+    <HomeHero
+      :stats="stats"
+      :backlog="backlog"
+      :topic-progress="topicProgress"
+      :next-exam="nextExam"
+      :user-name="auth.user?.name ?? 'estudante'"
+    />
+
+    <!-- Content: Cadernos + Feed -->
+    <div v-if="topicProgress.length || feedItems.length" class="home__content">
+      <HomeLibrary :topics="topicProgress" />
+      <HomeFeed :items="feedItems" />
     </div>
 
-    <!-- Retention suggestion banner -->
-    <div v-if="retentionSuggestion?.has_suggestion" class="mt-4 p-4 rounded-xl bg-warning/10 border border-warning/30 flex items-start gap-3">
-      <TrendingDown :size="20" class="text-warning shrink-0 mt-0.5" />
-      <div class="flex-1">
-        <p class="text-small text-base-primary">Muitas reviews acumulando? Reduzir retenção de {{ Math.round(retentionSuggestion.current_retention * 100) }}% pra {{ Math.round(retentionSuggestion.suggested_retention * 100) }}% eliminaria ~{{ retentionSuggestion.cards_eliminated }} cards hoje.</p>
-        <div class="flex gap-2 mt-2">
-          <button class="btn-primary !py-1 !px-3 !min-h-[2.75rem] !text-small" @click="applyRetention">Ajustar</button>
-          <button class="btn-secondary !py-1 !px-3 !min-h-[2.75rem] !text-small" @click="dismissRetention">Ignorar</button>
-        </div>
-      </div>
-    </div>
+    <!-- Outras Formas de Revisar -->
+    <HomeReviewModes
+      :total-cards="totalCards"
+      :has-lapsed-cards="hasLapsedCards"
+      :survival-available="survivalAvailable"
+    />
 
-    <!-- Survival mode -->
-    <div v-if="survivalActive" class="mt-4 p-4 rounded-xl bg-warning/10 border border-warning/30 flex items-center gap-3">
-      <ShieldAlert :size="20" class="text-warning shrink-0" />
-      <p class="text-small text-base-primary flex-1"><AlertOctagon :size="16" class="text-warning inline" /> Modo Sobrevivência ativo — apenas os 20 cards mais urgentes.</p>
-      <button class="btn-secondary !py-1 !px-3 !min-h-[2.75rem] !text-small" @click="toggleSurvivalMode(false)">Desativar</button>
-    </div>
-    <div v-else-if="backlog?.suggest_survival_mode" class="mt-4 p-4 rounded-xl bg-danger/10 border border-danger/30 flex items-center gap-3">
-      <ShieldAlert :size="20" class="text-danger shrink-0" />
-      <p class="text-small text-base-primary flex-1">Backlog grande ({{ backlog.overdue_count }} cards)? Ative o Modo Sobrevivência.</p>
-      <button class="btn-primary !py-1 !px-3 !min-h-[2.75rem] !text-small" @click="toggleSurvivalMode(true)">Ativar</button>
-    </div>
-
-    <!-- Upcoming Exams -->
-    <div v-if="examStore.upcoming.length > 0" class="mt-4 space-y-2">
-      <h2 class="text-sm font-medium text-base-muted flex items-center gap-1.5">
-        <CalendarClock :size="14" /> Próximas Provas
-      </h2>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-        <NuxtLink
-          v-for="exam in examStore.upcoming"
-          :key="exam.id"
-          to="/provas"
-          class="p-3 rounded-xl bg-[var(--bg-card)] border border-base hover:border-[var(--color-accent-primary)]/30 transition-colors"
-        >
-          <div class="flex items-center justify-between mb-1">
-            <span class="font-medium text-sm text-base-primary truncate">{{ exam.title }}</span>
-            <span
-              class="text-xs px-2 py-0.5 rounded-full font-semibold shrink-0 ml-2"
-              :class="{
-                'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400': exam.urgency_color === 'red',
-                'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400': exam.urgency_color === 'yellow',
-                'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400': exam.urgency_color === 'green',
-              }"
-            >
-              {{ exam.days_remaining }}d
-            </span>
-          </div>
-          <p class="text-xs text-base-muted">~{{ exam.cards_per_day }} cards/dia · {{ exam.cards_weak }} fracos</p>
-          <div class="flex flex-wrap gap-1 mt-1.5">
-            <span v-if="exam.days_remaining <= 14" class="text-[10px] px-1.5 py-0.5 rounded-full bg-success/10 text-success font-medium">Boost ativo</span>
-            <span v-if="exam.reta_final_active" class="text-[10px] px-1.5 py-0.5 rounded-full bg-red-500 text-white font-medium">Reta Final</span>
-          </div>
-        </NuxtLink>
-      </div>
-    </div>
-
-    <!-- CTA Hero -->
-    <div v-if="(stats?.due_today ?? 0) > 0 || (backlog?.overdue_count ?? 0) > 0" class="card-warm mt-6 py-5 px-5">
-      <div class="flex items-center justify-between mb-3">
-        <p class="font-heading font-semibold text-2xl text-base-primary"><Target :size="16" class="inline text-[var(--color-accent-soft)]" /> {{ totalCards }} cards para revisar<span class="text-sm text-base-muted font-normal"> · {{ mainTopicName }}</span></p>
-        <span class="text-xs text-base-muted">~{{ backlog?.estimated_minutes ?? Math.ceil(totalCards * 0.25) }} min</span>
-      </div>
-      <div class="border-t border-base pt-3 mb-3">
-        <div class="h-1.5 rounded-full bg-[var(--bg-soft)] overflow-hidden">
-          <div
-            class="h-1.5 rounded-full bg-[var(--color-accent-soft)] transition-all duration-500 ease-out"
-            :style="{ width: progressPercent + '%' }"
-          />
-        </div>
-      </div>
-      <div class="flex items-center justify-between">
-        <span class="text-micro text-base-secondary">{{ stats?.reviewed_today ?? 0 }} revisados hoje</span>
-        <NuxtLink to="/revisar" class="btn-primary glow-primary">Começar revisão</NuxtLink>
-      </div>
-    </div>
-
-    <!-- Empty state: no cards at all -->
-    <div v-else-if="!stats?.total_cards" class="card mt-6 text-center py-10">
-      <img src="~/assets/mascot-baigi-reading.png" alt="Baigi lendo" class="w-24 h-24 object-contain mx-auto mb-4" />
-      <p class="text-title text-base-secondary mb-2">Hora de criar seus primeiros cards</p>
-      <p class="text-small text-base-muted mb-4">Vá até um caderno, cole seu material e a IA gera flashcards em segundos. Ou importe do Anki.</p>
-      <div class="flex gap-3 justify-center">
-        <NuxtLink to="/cadernos" class="btn-primary">Ir pra Cadernos</NuxtLink>
-        <NuxtLink to="/importar" class="btn-secondary">Importar Anki</NuxtLink>
-      </div>
-    </div>
-
-    <!-- All caught up -->
-    <div v-else class="card mt-6 text-center py-8">
-      <p class="text-title text-base-secondary">Tudo em dia! 🎉</p>
-      <p class="text-small text-base-muted mt-1">Que tal gerar novos cards?</p>
-      <NuxtLink to="/cadernos" class="btn-primary mt-4 inline-flex">Ir pra Cadernos</NuxtLink>
-    </div>
-
-    <!-- Modos de revisão -->
-    <div v-if="stats" class="mt-6">
-      <p class="text-label mb-3">Como quer revisar?</p>
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <UiDisabledFeature :enabled="totalCards > 0" tooltip="Nenhum card pra revisar hoje">
-          <NuxtLink to="/revisar" class="review-mode-card">
-            <PlayCircle :size="20" class="text-[var(--color-accent-soft)]" />
-            <span class="review-mode-label">Normal</span>
-            <span class="review-mode-desc">Todos os cards pendentes</span>
-          </NuxtLink>
-        </UiDisabledFeature>
-
-        <UiDisabledFeature :enabled="totalCards > 0" tooltip="Nenhum card pra revisar hoje">
-          <NuxtLink to="/revisar?mode=blitz" class="review-mode-card">
-            <Zap :size="20" class="text-[var(--color-accent-soft)]" />
-            <span class="review-mode-label">Relâmpago</span>
-            <span class="review-mode-desc">5 min, só urgentes</span>
-          </NuxtLink>
-        </UiDisabledFeature>
-
-        <UiDisabledFeature :enabled="hasLapsedCards" tooltip="Aparece quando errar cards na revisão">
-          <NuxtLink to="/revisar?errors_only=1" class="review-mode-card">
-            <XCircle :size="20" class="text-[var(--color-accent-soft)]" />
-            <span class="review-mode-label">Só erros</span>
-            <span class="review-mode-desc">Cards com mais erros</span>
-          </NuxtLink>
-        </UiDisabledFeature>
-
-        <UiDisabledFeature :enabled="survivalAvailable" tooltip="Ativa com 100+ cards atrasados">
-          <NuxtLink to="/revisar?survival=1" class="review-mode-card">
-            <LifeBuoy :size="20" class="text-[var(--color-accent-soft)]" />
-            <span class="review-mode-label">Sobrevivência</span>
-            <span class="review-mode-desc">20 mais urgentes</span>
-          </NuxtLink>
-        </UiDisabledFeature>
-      </div>
-    </div>
-
-    <!-- Podcast card -->
-    <div v-if="auth.user?.plan !== 'free' && (stats?.reviewed_today ?? 0) > 0" class="mt-6">
-      <NuxtLink to="/podcasts" class="card flex items-center gap-4 hover:border-accent-primary/30 transition-colors">
-        <Headphones :size="24" class="text-[var(--color-accent-soft)]" />
-        <div class="flex-1">
-          <p class="text-small font-medium text-base-primary">Ouça seus pontos fracos</p>
-          <p class="text-micro text-base-muted">Gere um podcast dentro de um caderno</p>
-        </div>
-        <span class="text-accent-primary text-small">→</span>
-      </NuxtLink>
-    </div>
-
-    <!-- Pra hoje (max 3 actions) -->
-    <div v-if="pendingActions.length" class="mt-10">
-      <p class="text-label mb-3">Pra hoje</p>
-      <div class="space-y-2">
-        <div v-for="action in pendingActions" :key="action.label" class="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-[var(--bg-card)] border border-base shadow-sm">
-          <span class="text-small text-base-primary truncate min-w-0">{{ action.label }}</span>
-          <NuxtLink :to="action.url" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-accent-primary-subtle text-accent-primary text-small font-medium hover:bg-[var(--color-accent-primary-subtle)] transition-colors shrink-0">
-            {{ action.action_label }}
-          </NuxtLink>
-        </div>
-      </div>
-    </div>
-
-    <!-- Continuar estudando -->
-    <div v-if="topicProgress.length" class="mt-10">
-      <p class="text-label mb-3">Continuar estudando</p>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <NuxtLink
-          v-for="tp in topicProgress.slice(0, 4)"
-          :key="tp.id"
-          :to="`/cadernos?topic=${tp.id}`"
-          class="card-interactive"
-        >
-          <p class="text-small font-medium text-base-primary truncate">{{ tp.name }}</p>
-          <div class="flex items-center gap-2 mt-2">
-            <div class="flex-1 h-1 rounded-full bg-surface-secondary">
-              <div
-                class="h-1 rounded-full bg-[var(--color-accent-soft)] transition-all"
-                :style="{ width: Math.round(tp.progress * 100) + '%' }"
-              />
-            </div>
-            <span class="text-xs text-base-muted">{{ Math.round(tp.progress * 100) }}%</span>
-          </div>
-          <p class="text-micro text-base-muted mt-1">{{ tp.flashcards_count }} cards</p>
-        </NuxtLink>
-      </div>
-    </div>
-
-    <!-- Activation checklist -->
-    <div v-if="stats" class="mt-10">
-      <!-- debug -->
+    <!-- Activation (new users only) -->
+    <section v-if="stats && isNewUser" class="home__activation">
       <UiActivationChecklist
         :has-topics="Number(stats.total_decks) > 0"
         :has-material="Number(stats.total_decks) > 0"
@@ -214,29 +41,11 @@
         :has-reviewed="Number(stats.cards_reviewed_today) > 0 || Number(stats.streak) > 0"
         :streak="Number(stats.streak)"
       />
-    </div>
-
-    <!-- AI Usage -->
-    <div v-if="featureUsage.usage.value && hasLimitedFeatures" class="mt-10">
-      <p class="text-label mb-3">Uso de IA este mês</p>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <div v-for="(data, key) in limitedFeatures" :key="key" class="card py-3 px-4">
-          <p class="text-micro text-base-muted mb-1">{{ featureLabels[key] }}</p>
-          <p class="text-title text-base-primary">{{ data.used }}/{{ data.limit }}</p>
-          <div class="h-1 rounded-full bg-surface-secondary mt-2 overflow-hidden">
-            <div
-              class="h-1 rounded-full bg-[var(--color-accent-soft)] transition-all"
-              :style="{ width: Math.min(100, (data.used / data.limit) * 100) + '%' }"
-            />
-          </div>
-        </div>
-      </div>
-    </div>
+    </section>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ShieldAlert, TrendingDown, CalendarClock, AlertOctagon, Target, Headphones, PlayCircle, Zap, XCircle, LifeBuoy } from 'lucide-vue-next'
 import type { Stats, TopicProgress, BacklogStats } from '~/types'
 
 const auth = useAuthStore()
@@ -244,72 +53,68 @@ const examStore = useExamStore()
 const featureUsage = useFeatureUsage()
 const { $api } = useNuxtApp()
 
-const featureLabels: Record<string, string> = {
-  cards_ai: 'Gerar cards',
-  pdf_upload: 'Uploads PDF',
-  pdf_to_note: 'Processar PDF',
-  agent_chat: 'Tira-dúvidas',
-  podcast: 'Revisão em áudio',
-  quiz_ai: 'Simulados',
-  study_structure: 'Importar PDF',
-}
-
-const limitedFeatures = computed(() => {
-  if (!featureUsage.usage.value) return {}
-  const result: Record<string, any> = {}
-  for (const [key, data] of Object.entries(featureUsage.usage.value.features)) {
-    if (data.limit !== null && data.limit > 0) {
-      result[key] = data
-    }
-  }
-  return result
-})
-
-const hasLimitedFeatures = computed(() => Object.keys(limitedFeatures.value).length > 0)
-
 const stats = ref<Stats | null>(null)
 const topicProgress = ref<TopicProgress[]>([])
 const backlog = ref<BacklogStats | null>(null)
 const retentionSuggestion = ref<any>(null)
 const survivalActive = ref(false)
-const sparklineData = ref<number[]>([])
 const pendingActions = ref<any[]>([])
-
-const greeting = computed(() => {
-  const h = new Date().getHours()
-  if (h < 12) return 'Bom dia'
-  if (h < 18) return 'Boa tarde'
-  return 'Boa noite'
-})
 
 const totalCards = computed(() => (stats.value?.due_today ?? 0) + (backlog.value?.overdue_count ?? 0))
 
-const hasLapsedCards = computed(() => (stats.value?.total_cards ?? 0) > 0 && (stats.value?.reviewed_today ?? 0) > 0 || (stats.value?.ratings_today?.again ?? 0) > 0 || (stats.value?.streak ?? 0) > 0)
+const hasLapsedCards = computed(() =>
+  (stats.value?.total_cards ?? 0) > 0 &&
+  ((stats.value?.reviewed_today ?? 0) > 0 || (stats.value?.ratings_today?.again ?? 0) > 0 || (stats.value?.streak ?? 0) > 0),
+)
 
 const survivalAvailable = computed(() => (backlog.value?.overdue_count ?? 0) >= 100)
 
-const mainTopicName = computed(() => {
-  if (!topicProgress.value.length) return ''
-  return topicProgress.value[0]?.name ?? ''
+const nextExam = computed(() => {
+  const exam = examStore.upcoming[0]
+  if (!exam || exam.days_remaining > 14) return null
+  return exam
 })
 
-const totalDue = computed(() =>
-  (stats.value?.due_today ?? 0) + (stats.value?.reviewed_today ?? 0)
-)
-
-const progressPercent = computed(() => {
-  if (!totalDue.value) return 0
-  return Math.round(((stats.value?.reviewed_today ?? 0) / totalDue.value) * 100)
+const isNewUser = computed(() => {
+  if (!auth.user?.created_at) return false
+  return Date.now() - new Date(auth.user.created_at).getTime() < 7 * 24 * 60 * 60 * 1000
 })
+
+const feedItems = computed(() => {
+  const items = [...pendingActions.value]
+  if (auth.user?.plan !== 'free' && (stats.value?.reviewed_today ?? 0) > 0) {
+    if (!items.some(i => i.url?.includes('podcast'))) {
+      items.push({ icon: '🎧', label: 'Podcast disponível', description: 'Seus pontos fracos', action_label: 'Ouvir', url: '/podcasts' })
+    }
+  }
+  return items.slice(0, 4).map(item => ({
+    ...item,
+    icon: item.icon || guessIcon(item.label),
+    description: item.description || guessDescription(item.label),
+  }))
+})
+
+function guessIcon(label: string): string {
+  if (label.includes('PDF') || label.includes('material')) return '📄'
+  if (label.includes('esquecendo') || label.includes('evisar') || label.includes('fraco')) return '🧠'
+  if (label.includes('podcast') || label.includes('Podcast')) return '🎧'
+  if (label.includes('quiz') || label.includes('simulado')) return '📝'
+  return '✨'
+}
+
+function guessDescription(label: string): string {
+  if (label.includes('PDF') || label.includes('processado')) return 'Conceitos encontrados'
+  if (label.includes('esquecendo') || label.includes('fraco')) return 'Cards pendentes'
+  return ''
+}
 
 async function loadData() {
-  const [statsRes, progressRes, backlogRes, retRes, settingsRes, sparkRes, actionsRes] = await Promise.all([
+  const [statsRes, progressRes, backlogRes, retRes, settingsRes, actionsRes] = await Promise.all([
     $api<any>('/stats'),
     $api<any>('/topics/progress'),
     $api<any>('/review/backlog-stats'),
     $api<any>('/review/retention-suggestion').catch(() => ({ data: { has_suggestion: false } })),
     $api<any>('/settings'),
-    $api<any>('/stats/sparkline').catch(() => ({ data: [] })),
     $api<any>('/stats/pending-actions').catch(() => ({ data: [] })),
   ])
   stats.value = statsRes.data
@@ -317,7 +122,6 @@ async function loadData() {
   backlog.value = backlogRes.data
   retentionSuggestion.value = retRes.data
   survivalActive.value = settingsRes.data.survival_mode ?? false
-  sparklineData.value = sparkRes.data
   pendingActions.value = actionsRes.data
   featureUsage.fetchUsage()
   examStore.fetchUpcoming()
@@ -350,6 +154,43 @@ onMounted(loadData)
 
 const route = useRoute()
 watch(() => route.fullPath, () => {
-  if (route.path === '/today') loadData()
+  if (route.path === '/hoje') loadData()
 })
 </script>
+
+<style scoped>
+.home {
+  padding: 24px 32px 40px;
+  min-height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
+}
+@media (min-width: 1280px) {
+  .home {
+    padding: 28px 48px 40px;
+  }
+}
+@media (min-width: 1600px) {
+  .home {
+    padding: 32px 64px 48px;
+  }
+}
+
+.home__content {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  margin-top: 36px;
+  flex: 1;
+}
+@media (min-width: 1024px) {
+  .home__content {
+    grid-template-columns: 1fr 280px;
+    gap: 48px;
+  }
+}
+
+.home__activation {
+  margin-top: 24px;
+}
+</style>

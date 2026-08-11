@@ -1,20 +1,6 @@
 <template>
   <div>
-    <!-- Upload area (compact) -->
-    <label
-      class="flex items-center gap-3 px-4 py-3 rounded-xl border-2 border-dashed cursor-pointer transition-all"
-      :class="uploading ? 'opacity-50 pointer-events-none border-base bg-[var(--bg-card)]' : 'border-[var(--color-accent-primary)]/30 bg-[var(--color-primary-50)] hover:border-[var(--color-accent-primary)]/50 hover:bg-[var(--color-primary-100)]'"
-      title="Aceita PDF de até 50MB (Free) ou 100MB (Pro). A IA lê o documento e cria uma nota estruturada com conceitos, pegadinhas e pontos-chave."
-    >
-      <Upload :size="18" class="text-accent-primary shrink-0" />
-      <div class="flex-1 min-w-0">
-        <p class="text-sm font-medium text-accent-primary">{{ uploading ? `Enviando ${uploadProgress}%...` : 'Adicionar PDF' }}</p>
-        <p v-if="!uploading" class="text-micro text-base-muted">Suba apostilas, livros ou slides — a IA gera resumo e cards pra você</p>
-      </div>
-      <input type="file" accept=".pdf" class="hidden" @change="onFileSelect" />
-    </label>
-
-    <!-- Documents list (compact cards) -->
+    <!-- Documents list (compact cards) — upload area is now in MaterialInput -->
     <div v-if="documents.length" class="space-y-2 mt-3">
       <div
         v-for="doc in documents"
@@ -259,8 +245,9 @@ function openUpgrade() {
   }))
 }
 
-const uploading = ref(false)
-const uploadProgress = ref(0)
+const docUpload = useDocumentUpload()
+const uploading = docUpload.uploading
+const uploadProgress = docUpload.uploadProgress
 const completedDoc = ref<Document | null>(null)
 const dismissedLanguageBanners = ref(new Set<string>())
 
@@ -417,38 +404,8 @@ async function onUploadModalConfirm(data: { learning_mode: string; target_langua
 }
 
 async function doUpload(file: File) {
-  uploading.value = true
-  uploadProgress.value = 0
-
-  try {
-    const config = useRuntimeConfig()
-    const token = useCookie('auth_token').value
-
-    await new Promise<void>((resolve, reject) => {
-      const xhr = new XMLHttpRequest()
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('topic_id', props.topicId)
-
-      xhr.upload.onprogress = (e) => {
-        if (e.lengthComputable) uploadProgress.value = Math.round((e.loaded / e.total) * 100)
-      }
-      xhr.onload = () => xhr.status < 400 ? resolve() : reject(new Error('Erro ao enviar'))
-      xhr.onerror = () => reject(new Error('Erro de rede'))
-      xhr.open('POST', `${config.public.apiBase}/documents`)
-      xhr.setRequestHeader('Accept', 'application/json')
-      if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`)
-      xhr.send(formData)
-    })
-
-    toast.show('PDF enviado!')
-    await docStore.fetchForTopic(props.topicId, true)
-  } catch (e: any) {
-    toast.show(e?.message || 'Erro ao enviar', 'error')
-  } finally {
-    uploading.value = false
-    uploadProgress.value = 0
-  }
+  const success = await docUpload.upload(file, props.topicId)
+  if (success) await docStore.fetchForTopic(props.topicId, true)
 }
 
 // Watch store documents for completion events (toasts + emits)

@@ -125,8 +125,10 @@ test.describe('Planos (/planos)', () => {
 
   test('exibe planos Grátis e Pro', async ({ page }) => {
     await expect(page.getByRole('heading', { name: /Escolha seu plano/i })).toBeVisible()
-    await expect(page.getByText('Grátis', { exact: true })).toBeVisible()
-    await expect(page.getByText('R$14')).toBeVisible()
+    const main = page.getByRole('main')
+    await expect(main.getByText('Grátis', { exact: true })).toBeVisible()
+    // Price comes from GET /api/plans
+    await expect(main.getByText('R$ 29,90')).toBeVisible()
   })
 
   test('mostra plano atual como desabilitado', async ({ page }) => {

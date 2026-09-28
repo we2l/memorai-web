@@ -72,6 +72,7 @@ export default defineNuxtConfig({
     '/': { ssr: true, prerender: true },
     '/entrar': { ssr: true, prerender: true },
     '/criar-conta': { ssr: true, prerender: true },
+    '/esqueci-senha': { ssr: true, prerender: true },
     '/redefinir-senha': { ssr: false },
     '/auth/**': { ssr: false },
   },

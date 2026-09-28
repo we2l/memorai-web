@@ -64,26 +64,6 @@ export const usePodcastStore = defineStore('podcast', {
       }
     },
 
-    async generateSession(config: {
-      topic_id: string
-      content_mode?: PodcastContentMode
-      episode_count?: number
-      tone?: PodcastTone
-      format?: PodcastFormat
-      speaker_config?: PodcastSpeakerConfig
-    }) {
-      this.generating = true
-      try {
-        const { $api } = useNuxtApp()
-        const res = await $api<any>('/podcasts/session', { method: 'POST', body: config })
-        const episodes = res.data.episodes as Podcast[]
-        this.podcasts.unshift(...episodes)
-        return res.data as { session_id: string; episodes: Podcast[] }
-      } finally {
-        this.generating = false
-      }
-    },
-
     startPolling() {
       const interval = setInterval(async () => {
         if (!this.hasPending) {

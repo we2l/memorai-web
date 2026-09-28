@@ -28,14 +28,10 @@
           v-for="m in modes"
           :key="m.value"
           class="p-3 rounded-xl border text-center transition-all"
-          :class="[
-            contentMode === m.value
-              ? 'border-[var(--color-accent-soft)] bg-[var(--color-accent-soft)]/10 ring-2 ring-[var(--color-accent-soft)]/20'
-              : 'border-base bg-[var(--bg-card)] hover:bg-[var(--bg-soft)] hover:border-[var(--color-accent-soft)]/40',
-            retaFinalMode && m.value !== 'pre_exam' ? 'opacity-40 cursor-not-allowed' : '',
-          ]"
-          :disabled="retaFinalMode && m.value !== 'pre_exam'"
-          @click="!retaFinalMode && selectMode(m.value)"
+          :class="contentMode === m.value
+            ? 'border-[var(--color-accent-soft)] bg-[var(--color-accent-soft)]/10 ring-2 ring-[var(--color-accent-soft)]/20'
+            : 'border-base bg-[var(--bg-card)] hover:bg-[var(--bg-soft)] hover:border-[var(--color-accent-soft)]/40'"
+          @click="selectMode(m.value)"
         >
           <p class="text-small font-medium" :class="contentMode === m.value ? 'text-accent-primary' : 'text-base-primary'">{{ m.label }}</p>
           <p class="text-micro text-base-muted">{{ m.desc }}</p>
@@ -49,41 +45,23 @@
         <button
           class="p-4 rounded-xl border text-center transition-all relative w-full"
           :class="[
-            !retaFinalMode && duration === d.value
+            !isFree && duration === d.value
               ? 'border-[var(--color-accent-soft)] bg-[var(--color-accent-soft)]/10 ring-2 ring-[var(--color-accent-soft)]/20'
               : 'border-base bg-[var(--bg-card)]',
-            retaFinalMode || (isFree && d.value !== 'short') ? 'opacity-40 cursor-not-allowed' : 'hover:bg-[var(--bg-soft)] hover:border-[var(--color-accent-soft)]/40',
+            isFree ? 'opacity-40 cursor-not-allowed' : 'hover:bg-[var(--bg-soft)] hover:border-[var(--color-accent-soft)]/40',
           ]"
-          :disabled="retaFinalMode || (isFree && d.value !== 'short')"
-          @click="!retaFinalMode && (isFree && d.value !== 'short' ? openUpgrade() : (duration = d.value))"
+          :aria-disabled="isFree"
+          @click="isFree ? openUpgrade() : (duration = d.value)"
         >
           <p class="text-small font-medium text-base-primary">{{ d.label }}</p>
           <p class="text-micro text-base-muted">{{ d.time }}</p>
           <p class="text-micro mt-1" :class="d.value === recommended ? 'text-accent-primary' : 'invisible'">Recomendado</p>
-          <span v-if="isFree && d.value !== 'short'" class="text-micro text-accent-primary"><Lock :size="10" class="inline" /> Pro</span>
+          <span v-if="isFree" class="text-micro text-accent-primary"><Lock :size="10" class="inline" /> Pro</span>
         </button>
       </UiTooltip>
     </div>
 
-    <!-- Reta Final -->
-    <button
-      class="w-full p-4 rounded-xl border text-left transition-all mb-5 flex items-center justify-between"
-      :class="[
-        retaFinalMode
-          ? 'border-[var(--color-accent-soft)] bg-[var(--color-accent-soft)]/10 ring-2 ring-[var(--color-accent-soft)]/20'
-          : 'border-base bg-[var(--bg-card)]',
-        !hasRetaFinal ? 'opacity-60 cursor-not-allowed' : 'hover:bg-[var(--bg-soft)] hover:border-[var(--color-accent-soft)]/40',
-      ]"
-      :disabled="false"
-      @click="hasRetaFinal ? toggleRetaFinal() : openRetaFinalCheckout()"
-    >
-      <div>
-        <p class="text-small font-medium text-base-primary"><Flame :size="14" class="inline text-warning" /> Reta Final <span class="text-micro text-base-muted">· Longo</span></p>
-        <p class="text-micro text-base-muted">30+ min · debate · modo pré-prova intensivo</p>
-      </div>
-      <span v-if="!hasRetaFinal" class="text-micro text-base-muted flex items-center gap-1"><Lock :size="10" class="inline" /> R$14,90</span>
-      <span v-else-if="retaFinalMode" class="text-micro text-accent-primary font-medium">Ativo</span>
-    </button>
+    <p v-if="isFree" class="text-micro text-base-muted mb-5">No plano Grátis você ouve uma prévia curta do podcast.</p>
 
     <!-- Customize toggle (hidden for now) -->
     <template v-if="false">
@@ -180,7 +158,7 @@
 </template>
 
 <script setup lang="ts">
-import { User, Users, ChevronDown, Loader2, Lock, Flame, Mic } from 'lucide-vue-next'
+import { User, Users, ChevronDown, Loader2, Lock, Mic } from 'lucide-vue-next'
 import type { PodcastContentMode, PodcastDuration, PodcastTone, PodcastFormat } from '~/types'
 
 const props = defineProps<{
@@ -204,7 +182,7 @@ const generating = computed(() => podcastStore.generating)
 const usageText = computed(() => props.usage ? `${props.usage.used}/${props.usage.limit} este mês` : null)
 
 const estimatedTime = computed(() => {
-  if (retaFinalMode.value) return '~10-12 min para gerar'
+  if (isFree.value) return '~1 min para gerar'
   const isDebate = format.value === 'debate'
   if (duration.value === 'short') return isDebate ? '~4-5 min para gerar' : '~3-4 min para gerar'
   return isDebate ? '~7-9 min para gerar' : '~5-6 min para gerar'
@@ -212,47 +190,8 @@ const estimatedTime = computed(() => {
 
 function openUpgrade() {
   window.dispatchEvent(new CustomEvent('feature-limit-reached', {
-    detail: { feature: 'Podcasts personalizados — duração, tom, formato debate e 6 vozes diferentes', planRequired: 'pro' },
+    detail: { feature: 'podcast', planRequired: 'pro' },
   }))
-}
-
-const retaFinalMode = ref(false)
-const { usage: featureUsage, fetchUsage } = useFeatureUsage()
-
-watch(model, (val) => {
-  if (val) fetchUsage()
-}, { immediate: true })
-
-const hasRetaFinal = computed(() => {
-  if (!featureUsage.value) return false
-  const podcastLong = featureUsage.value.features['podcast_long']
-  if (!podcastLong) return false
-  return podcastLong.limit > 0 && (podcastLong.remaining ?? 0) > 0
-})
-
-function activateRetaFinal() {
-  retaFinalMode.value = true
-  duration.value = 'long' as any
-  contentMode.value = 'pre_exam'
-  format.value = 'debate'
-  tone.value = 'motivational'
-}
-
-function toggleRetaFinal() {
-  if (retaFinalMode.value) {
-    retaFinalMode.value = false
-    duration.value = 'medium'
-    contentMode.value = 'weak_points'
-    format.value = 'expository'
-    tone.value = 'conversational'
-  } else {
-    activateRetaFinal()
-  }
-}
-
-function openRetaFinalCheckout() {
-  const subscriptionStore = useSubscriptionStore()
-  subscriptionStore.checkoutAddon('reta_final')
 }
 
 // Topic selector for library mode
@@ -294,12 +233,11 @@ watch(selectedTopicId, async (id) => {
 const recommended = computed<PodcastDuration>(() => {
   const count = props.weakCardsCount ?? fetchedWeakCount.value
   if (count <= 5) return 'short'
-  if (count <= 15) return 'medium'
-  return 'long'
+  return 'medium'
 })
 
 watchEffect(() => { if (!isFree.value) duration.value = recommended.value })
-watchEffect(() => { if (isFree.value) duration.value = 'short' })
+watchEffect(() => { if (isFree.value) duration.value = 'short' }) // the API turns Free into the teaser
 
 const durations = [
   { value: 'short' as const, label: 'Curto', time: '3-5 min' },
@@ -366,13 +304,13 @@ async function handleGenerate() {
   try {
     await podcastStore.generate({
       topic_id: topicIdToUse,
-      content_mode: retaFinalMode.value ? 'pre_exam' : contentMode.value,
-      duration: retaFinalMode.value ? 'long' : duration.value,
-      tone: retaFinalMode.value ? 'motivational' : tone.value,
-      format: retaFinalMode.value ? 'debate' : format.value,
+      content_mode: contentMode.value,
+      duration: duration.value,
+      tone: tone.value,
+      format: format.value,
       speaker_config: {
         host1: { name: host1Name.value, voice: host1Voice.value },
-        ...(retaFinalMode.value || format.value === 'debate' ? { host2: { name: host2Name.value, voice: host2Voice.value } } : {}),
+        ...(format.value === 'debate' ? { host2: { name: host2Name.value, voice: host2Voice.value } } : {}),
       },
     })
     toast.show('Podcast sendo gerado! Aguarde...', 'success')

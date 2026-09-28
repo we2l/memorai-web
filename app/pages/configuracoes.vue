@@ -16,8 +16,21 @@
         </div>
         <div>
           <p class="text-label">Plano</p>
-          <div class="flex items-center gap-3 mt-1">
+          <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
             <UiPlanBadge :plan="auth.user?.plan" />
+            <span v-if="planSummary" class="text-small text-base-muted" data-testid="plan-summary">{{ planSummary }}</span>
+          </div>
+          <p
+            v-if="subscription.inGracePeriod && !subscription.info?.monthly_scheduled"
+            class="mt-3 text-small text-amber-700 dark:text-amber-400 bg-amber-500/10 rounded-lg px-3 py-2"
+            role="status"
+          >
+            Seu anual venceu em {{ formatBillingDayMonth(subscription.info?.plan_expires_at) }}.
+            Renove até {{ formatBillingDayMonth(subscription.info?.grace_ends_at) }} para não perder o Pro.
+          </p>
+          <div v-if="showRenew || showPortal" class="flex flex-wrap gap-2 mt-3">
+            <NuxtLink v-if="showRenew" :to="ANNUAL_RENEWAL_PATH" class="btn-primary">Renovar</NuxtLink>
+            <button v-if="showPortal" class="btn-secondary" @click="subscription.openPortal()">Gerenciar assinatura</button>
           </div>
         </div>
       </div>
@@ -168,7 +181,24 @@ import { Moon, Sun, LogOut, AlertTriangle, Lightbulb, Info } from 'lucide-vue-ne
 import type { UserSettings } from '~/types'
 
 const auth = useAuthStore()
+const subscription = useSubscriptionStore()
+const { fetchPlans, limitOf, formatPrice } = usePlans()
 const featureUsage = useFeatureUsage()
+
+// Plan section (RF-23): annual validity, scheduled monthly, portal only for the monthly (RN-12)
+const planSummary = computed(() => {
+  const info = subscription.info
+  if (!info?.billing) return ''
+  if (info.billing === 'monthly') return 'Pro mensal'
+  const until = formatBillingDate(info.plan_expires_at)
+  if (info.monthly_scheduled) {
+    const monthly = limitOf('pro')?.prices.monthly
+    return `Pro anual até ${until}` + (monthly ? ` · depois, mensal ${formatPrice(monthly.amount_cents)}` : ' · depois, mensal')
+  }
+  return `Pro anual · válido até ${until}`
+})
+const showRenew = computed(() => subscription.isAnnual && !!subscription.info?.can_renew_annual && !subscription.info?.monthly_scheduled)
+const showPortal = computed(() => !!subscription.info?.has_subscription)
 const { colorMode, set } = useColorMode()
 
 const settingsFeatureLabels: Record<string, string> = {
@@ -240,6 +270,8 @@ async function handleLogout() {
 }
 
 onMounted(async () => {
+  subscription.fetchStatus().catch(() => {})
+  fetchPlans()
   await loadSettings()
   featureUsage.fetchUsage()
   if (!auth.user) await auth.fetchMe()

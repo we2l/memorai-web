@@ -122,11 +122,7 @@ async function handleRegister() {
   loading.value = true
 
   try {
-    const res = await $api<any>('/register', {
-      method: 'POST',
-      body: { ...form, device_name: 'web' },
-    })
-    auth.setAuth(res.data.user, res.data.token)
+    await auth.register({ ...form })
     await navigateTo('/hoje')
   } catch (e: any) {
     const data = e.data

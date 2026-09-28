@@ -2,6 +2,7 @@ export interface User {
   id: string
   name: string
   email: string
+  email_verified: boolean
   plan: string
   default_learning_mode: string
   subscription_status?: string | null

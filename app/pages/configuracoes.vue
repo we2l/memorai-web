@@ -234,13 +234,7 @@ function setMode(mode: 'light' | 'dark') {
 }
 
 async function handleLogout() {
-  try {
-    const { $api } = useNuxtApp()
-    await $api('/logout', { method: 'POST' })
-  } catch {
-    // Ignore — clear auth anyway
-  }
-  auth.clearAuth()
+  await auth.logout()
   toast.show('Até logo!', 'success')
   await navigateTo('/entrar')
 }
@@ -248,14 +242,6 @@ async function handleLogout() {
 onMounted(async () => {
   await loadSettings()
   featureUsage.fetchUsage()
-  if (!auth.user && auth.token) {
-    try {
-      const { $api } = useNuxtApp()
-      const res = await $api<any>('/me')
-      auth.user = res.data
-    } catch {
-      // Token invalid
-    }
-  }
+  if (!auth.user) await auth.fetchMe()
 })
 </script>

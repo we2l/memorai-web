@@ -71,6 +71,8 @@ definePageMeta({ layout: 'auth' })
 
 const { $api } = useNuxtApp()
 const auth = useAuthStore()
+const route = useRoute()
+const toast = useToast()
 
 const form = reactive({ email: '', password: '' })
 const errors = reactive<Record<string, string>>({})
@@ -92,12 +94,8 @@ async function handleLogin() {
   loading.value = true
 
   try {
-    const res = await $api<any>('/login', {
-      method: 'POST',
-      body: { ...form, device_name: 'web' },
-    })
-    auth.setAuth(res.data.user, res.data.token)
-    await navigateTo('/hoje')
+    await auth.login(form.email, form.password)
+    await navigateTo(safeRedirect(route.query.redirect))
   } catch (e: any) {
     const data = e.data
     if ((e.status ?? e.statusCode) === 429) {
@@ -111,4 +109,14 @@ async function handleLogin() {
     loading.value = false
   }
 }
+
+// Client-only notices (the page is prerendered)
+onMounted(() => {
+  try {
+    if (sessionStorage.getItem('relogin')) {
+      sessionStorage.removeItem('relogin')
+      toast.show('Atualizamos a segurança do login. Entre novamente.', 'info', 5000)
+    }
+  } catch {}
+})
 </script>

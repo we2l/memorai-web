@@ -353,6 +353,8 @@ async function generateFromTopic() {
   }
 }
 
+const { upload: uploadDocument } = useDocumentUpload()
+
 async function handlePdf(e: Event) {
   const file = (e.target as HTMLInputElement).files?.[0]
   if (!file) return
@@ -365,21 +367,10 @@ async function handlePdf(e: Event) {
     const topicRes = await $api<any>('/topics', { method: 'POST', body: { name } })
     createdTopicId.value = topicRes.data.id
 
-    const config = useRuntimeConfig()
-    const token = useCookie('auth_token').value
-    const formData = new FormData()
-    formData.append('file', file)
-    formData.append('topic_id', createdTopicId.value)
-
-    await new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest()
-      xhr.onload = () => xhr.status < 400 ? resolve(JSON.parse(xhr.responseText)) : reject()
-      xhr.onerror = () => reject()
-      xhr.open('POST', `${config.public.apiBase}/documents`)
-      xhr.setRequestHeader('Accept', 'application/json')
-      if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`)
-      xhr.send(formData)
-    })
+    if (!await uploadDocument(file, createdTopicId.value!)) {
+      step.value = 1
+      return
+    }
 
     step.value = 4
   } catch {

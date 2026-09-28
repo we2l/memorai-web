@@ -151,7 +151,7 @@ onMounted(async () => {
   try {
     const { $api } = useNuxtApp()
     const res = await $api<{ data: any }>('/me')
-    if (res.data) auth.setAuth(res.data, auth.token!)
+    if (res.data) auth.setUser(res.data)
   } catch {}
 
   if (route.query.success === '1') {

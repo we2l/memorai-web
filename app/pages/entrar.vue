@@ -6,6 +6,14 @@
     <p class="text-base-muted text-center mb-1">Volte para o seu estudo</p>
     <p class="text-micro text-base-muted text-center mb-10">Revise no tempo certo e pare de esquecer</p>
 
+    <p
+      v-if="notice"
+      role="status"
+      class="text-small text-base-primary text-center rounded-xl px-4 py-3 mb-6 bg-[var(--badge-warning-bg)]"
+    >
+      {{ notice }}
+    </p>
+
     <!-- Google OAuth -->
     <button
       type="button"
@@ -77,6 +85,7 @@ const toast = useToast()
 const form = reactive({ email: '', password: '' })
 const errors = reactive<Record<string, string>>({})
 const loading = ref(false)
+const notice = ref('')
 const googleLoading = ref(false)
 
 async function loginWithGoogle() {
@@ -112,6 +121,9 @@ async function handleLogin() {
 
 // Client-only notices (the page is prerendered)
 onMounted(() => {
+  if (route.query.verificacao === 'expirada') {
+    notice.value = 'Link de verificação expirado. Entre para reenviar.'
+  }
   try {
     if (sessionStorage.getItem('relogin')) {
       sessionStorage.removeItem('relogin')

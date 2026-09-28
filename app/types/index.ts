@@ -5,7 +5,7 @@ export interface User {
   email_verified: boolean
   plan: string
   default_learning_mode: string
-  subscription_status?: string | null
+  subscription_status?: SubscriptionStatus | null
   onboarding_completed: boolean
 }
 
@@ -318,7 +318,7 @@ export interface Podcast {
   script?: string
   audio_url?: string | null
   duration_seconds?: number | null
-  duration_target?: PodcastDuration | null
+  duration_target?: PodcastDuration | 'long' | null
   tone?: PodcastTone | null
   format?: PodcastFormat | null
   is_teaser?: boolean
@@ -333,7 +333,8 @@ export interface Podcast {
 }
 
 export type PodcastContentMode = 'weak_points' | 'general_review' | 'pre_exam'
-export type PodcastDuration = 'short' | 'medium' | 'long'
+// 'teaser' is set by the API for Free; 'long' only exists in legacy rows
+export type PodcastDuration = 'teaser' | 'short' | 'medium'
 export type PodcastTone = 'formal' | 'conversational' | 'motivational' | 'didactic'
 export type PodcastFormat = 'expository' | 'debate'
 
@@ -342,9 +343,14 @@ export interface PodcastSpeakerConfig {
   host2?: { name: string; voice: string }
 }
 
+// The 8 Stripe subscription statuses (backend SubscriptionStatus enum)
+export type SubscriptionStatus =
+  | 'active' | 'past_due' | 'unpaid' | 'canceled'
+  | 'incomplete' | 'incomplete_expired' | 'trialing' | 'paused'
+
 export interface SubscriptionInfo {
   plan: string
-  subscription_status: string | null
+  subscription_status: SubscriptionStatus | null
   subscription_ends_at: string | null
   has_subscription: boolean
 }
@@ -452,4 +458,62 @@ export interface RetaFinalInfo {
   active: boolean
   exam_titles: string[]
   extra_count: number
+}
+
+// Offer catalog — GET /api/plans (single source of limits and prices, RN-01)
+export type PlanKey = 'free' | 'pro'
+
+export interface PlanPrice {
+  amount_cents: number
+  label: string
+  monthly_equivalent_cents?: number
+  installments_max?: number
+  savings_cents?: number
+}
+
+export interface CatalogPlan {
+  key: PlanKey
+  name: string
+  prices: { monthly: PlanPrice | null; annual: PlanPrice | null }
+  /** null = unlimited, 0 = not included in the plan */
+  limits: Record<string, number | null>
+  extras: {
+    pdf_pages_per_note: number
+    rag_max_pages: number
+    upload_max_mb: number
+    pdf_pages_monthly_cap: number
+    quiz_max_questions: number
+    quiz_short_answer: boolean
+    podcast_format: 'teaser' | 'full'
+    podcast_max_minutes: number
+  }
+}
+
+export interface CatalogFeature {
+  label: string
+  unit: string
+  pro_benefit: string
+}
+
+export interface PlanCatalog {
+  currency: string
+  period: string
+  period_timezone: string
+  plans: CatalogPlan[]
+  features: Record<string, CatalogFeature>
+}
+
+/** Detail of the `feature-limit-reached` event (402 payload, PRD §4.1). */
+export interface FeatureLimitDetail {
+  feature: string
+  used?: number | null
+  limit?: number | null
+  planRequired?: PlanKey | null
+  resetsAt?: string | null
+}
+
+/** `auto_generation` of POST /documents (PRD §4.3) */
+export interface DocumentAutoGeneration {
+  dispatched: boolean
+  blocked_reason: 'feature_limit' | 'pages_cap' | 'in_progress' | null
 }

@@ -75,13 +75,13 @@ async function generate() {
   if (!props.document) return
   generating.value = true
   try {
-    await $api(`/documents/${props.document.id}/generate-note`, { method: 'POST' })
-    toast.show('Processamento iniciado! A nota aparecerá em 1-3 minutos.')
+    const res = await $api<{ message: string }>(`/documents/${props.document.id}/generate-note`, { method: 'POST' })
+    toast.show(res.message)
     open.value = false
     emit('generated')
   } catch (e: any) {
-    const msg = e?.data?.message || 'Erro ao processar PDF.'
-    toast.show(msg, 'error')
+    // 402 opens the UpgradeModal (api plugin); 409/429 carry a user-facing message (RF-64)
+    if (e?.response?.status !== 402) toast.show(e?.data?.message || 'Erro ao processar PDF.', 'error')
   } finally {
     generating.value = false
   }

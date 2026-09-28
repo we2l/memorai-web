@@ -29,13 +29,18 @@
 
     <UiUpgradeModal
       v-model="showUpgrade"
-      :feature="upgradeFeature"
-      :plan-required="upgradePlan"
+      :feature="upgradeDetail.feature"
+      :used="upgradeDetail.used"
+      :limit="upgradeDetail.limit"
+      :plan-required="upgradeDetail.planRequired"
+      :resets-at="upgradeDetail.resetsAt"
     />
   </div>
 </template>
 
 <script setup lang="ts">
+import type { FeatureLimitDetail } from '~/types'
+
 const toast = useToast()
 const route = useRoute()
 const auth = useAuthStore()
@@ -53,8 +58,7 @@ const sidebarCollapsed = computed(() => route.path.startsWith('/cadernos'))
 const mainMargin = computed(() => sidebarCollapsed.value ? 'lg:ml-16' : 'lg:ml-[240px]')
 
 const showUpgrade = ref(false)
-const upgradeFeature = ref('')
-const upgradePlan = ref('pro')
+const upgradeDetail = ref<FeatureLimitDetail>({ feature: '' })
 
 const subscription = useSubscriptionStore()
 
@@ -62,8 +66,15 @@ onMounted(() => {
   subscription.fetchStatus().catch(() => {})
 
   window.addEventListener('feature-limit-reached', ((e: CustomEvent) => {
-    upgradeFeature.value = e.detail?.feature || ''
-    upgradePlan.value = e.detail?.planRequired || 'pro'
+    // Full 402 detail: planRequired null means a Pro at the limit (no upgrade CTA)
+    const detail = (e.detail ?? {}) as Partial<FeatureLimitDetail>
+    upgradeDetail.value = {
+      feature: detail.feature || '',
+      used: detail.used ?? null,
+      limit: detail.limit ?? null,
+      planRequired: detail.planRequired === undefined ? 'pro' : detail.planRequired,
+      resetsAt: detail.resetsAt ?? null,
+    }
     showUpgrade.value = true
   }) as EventListener)
 })

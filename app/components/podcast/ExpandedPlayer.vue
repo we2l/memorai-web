@@ -149,7 +149,7 @@
           class="px-6 py-4 bg-accent-primary-subtle border-t border-accent-primary/20"
         >
           <p class="text-small font-medium text-accent-primary text-center mb-2">Gostou? Essa foi só a prévia.</p>
-          <p class="text-micro text-base-muted text-center mb-3">Assine o Pro pra ouvir podcasts completos de até 15 min.</p>
+          <p v-if="podcastBenefit" class="text-micro text-base-muted text-center mb-3">No Pro: {{ podcastBenefit }}.</p>
           <NuxtLink to="/planos" class="btn-primary w-full justify-center" @click="player.collapse()">
             Ver planos
           </NuxtLink>
@@ -185,6 +185,13 @@ import { Headphones, Play, Pause, RotateCcw, RotateCw, Download, X, SkipBack, Sk
 
 const { sanitize } = useSanitize()
 const player = usePlayerStore()
+
+// Teaser CTA copy comes from the offer catalog (RF-62)
+const plans = usePlans()
+const podcastBenefit = computed(() => plans.feature('podcast')?.pro_benefit ?? null)
+watch(() => player.currentPodcast?.is_teaser, (isTeaser) => {
+  if (isTeaser) plans.fetchPlans()
+}, { immediate: true })
 
 function onKeydown(e: KeyboardEvent) {
   if (e.key === 'Escape' && player.expanded) player.collapse()

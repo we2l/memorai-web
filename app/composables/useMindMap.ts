@@ -1,4 +1,5 @@
 import type { Ref } from 'vue'
+import { escapeHtml } from '~/utils/escapeHtml'
 
 export interface MindMapNode {
   content: string
@@ -73,7 +74,8 @@ export function useMindMap(
       lineWidth: (node: any) => Math.max(1, 2.5 - node.state.depth * 0.4),
     })
 
-    await mm.setData(data)
+    // markmap renders `content` as HTML: escape user/AI text, keep the original in payload.raw
+    await mm.setData(escapeTree(data))
     mm.fit()
 
     // Add click listeners for nodes (Nível 2 actions)
@@ -102,8 +104,17 @@ export function useMindMap(
   return { render, fit, destroy }
 }
 
+export function escapeTree(node: MindMapNode): MindMapNode {
+  return {
+    content: escapeHtml(node.content),
+    payload: { ...node.payload, raw: node.content },
+    children: node.children.map(escapeTree),
+  }
+}
+
 function findNodeByContent(root: MindMapNode, content: string): MindMapNode | null {
-  if (root.content === content) return root
+  const raw = (root.payload?.raw as string | undefined) ?? root.content
+  if (raw === content) return root
   for (const child of root.children) {
     const found = findNodeByContent(child, content)
     if (found) return found

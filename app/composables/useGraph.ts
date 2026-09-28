@@ -169,8 +169,11 @@ export function useGraph(
 
     node.on('mouseenter', (event, d) => {
       const pct = d.flashcards_count > 0 ? Math.round(d.progress * 100) : 0
+      tooltip.html('')
+      tooltip.append('strong').text(d.name)
+      tooltip.append('br')
+      tooltip.append('span').text(`${d.flashcards_count} cards · ${d.notes_count} notas · ${pct}% dominado`)
       tooltip
-        .html(`<strong>${d.name}</strong><br>${d.flashcards_count} cards · ${d.notes_count} notas · ${pct}% dominado`)
         .style('left', `${event.offsetX + 12}px`)
         .style('top', `${event.offsetY - 10}px`)
         .style('opacity', '1')

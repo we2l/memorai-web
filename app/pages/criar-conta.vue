@@ -110,6 +110,8 @@ const googleLoading = ref(false)
 async function registerWithGoogle() {
   googleLoading.value = true
   try {
+    // The OAuth state is kept in the API session: make sure it exists first.
+    await ensureCsrfCookie()
     const res = await $api<any>('/auth/google/redirect')
     window.location.href = res.data.url
   } catch {

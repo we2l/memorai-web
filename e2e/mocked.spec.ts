@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { login } from './helpers'
+import { login, sharedPage, json } from './helpers'
 
 /**
  * Testes com mock de API — simula respostas da IA e estados extremos.
@@ -288,5 +288,99 @@ test.describe('/cadernos sob demanda (prd-performance-frontend RF-02)', () => {
       const app = (document.querySelector('#__nuxt') as any).__vue_app__
       await app.config.globalProperties.$api(`/topics/${id}`, { method: 'DELETE' }).catch(() => {})
     }, topicId)
+  })
+})
+
+// ─── prd-ux-critica ────────────────────────────────────────────────────────────
+
+const intervals = { again: '1min', hard: '6min', good: '10min', easy: '4d' }
+const mkCard = (i: number) => ({
+  id: `00000000-0000-4000-8000-00000000000${i}`,
+  front: `<p>Pergunta ${i}</p>`,
+  back: `<p>Resposta ${i}</p>`,
+  type: 'basic', state: 'review', due: null, lapses: 0, reps: 3, is_learning: false,
+  topic_id: null, topic_name: 'Caderno', source_note_id: null, cloze_index: null,
+  next_intervals: intervals,
+})
+
+test.describe('Revisão rápida (RF-F2.1–F2.4)', () => {
+  test.describe.configure({ mode: 'serial' })
+  let page: import('@playwright/test').Page
+
+  test.beforeAll(async ({ browser }) => {
+    page = await sharedPage(browser)
+  })
+  test.afterAll(async () => { await page.context().close() })
+
+  test.beforeEach(async () => {
+    await page.unrouteAll({ behavior: 'ignoreErrors' })
+    await page.route('**/api/settings', r => r.fulfill(json({ data: { survival_mode: false, session_time_limit: null, error_diary_mode: 'never' } })))
+    await page.route('**/api/review/session*', r => r.fulfill(json({ data: [1, 2, 3, 4, 5, 6, 7].map(mkCard), total: 7 })))
+  })
+
+  test('Espaço + 3 cinco vezes avançam 5 cards em < 1s mesmo com a API a 2s', async () => {
+    await page.route(/\/api\/review$/, async (route) => {
+      const body = route.request().postDataJSON()
+      await new Promise(r => setTimeout(r, 2000))
+      await route.fulfill(json({ data: { review: { id: crypto.randomUUID(), undoable: true }, flashcard: { ...mkCard(1), id: body.flashcard_id }, next_intervals: intervals } }))
+    })
+    await page.goto('/revisar')
+    await expect(page.getByText('Pergunta 1')).toBeVisible()
+
+    const t0 = Date.now()
+    for (let i = 0; i < 5; i++) {
+      await page.keyboard.press('Space')
+      await page.keyboard.press('3')
+    }
+    await expect(page.getByText('Pergunta 6')).toBeVisible()
+    expect(Date.now() - t0).toBeLessThan(1000)
+    await expect(page.getByRole('button', { name: 'Desfazer' })).toBeVisible()
+  })
+
+  test('offline → faixa de pendências → online + "Tentar de novo" esvazia a fila', async () => {
+    test.setTimeout(45_000)
+    let online = false
+    await page.route(/\/api\/review$/, async (route) => {
+      if (!online) return route.abort('internetdisconnected')
+      const body = route.request().postDataJSON()
+      await route.fulfill(json({ data: { review: { id: crypto.randomUUID() }, flashcard: { ...mkCard(1), id: body.flashcard_id }, next_intervals: intervals } }))
+    })
+    await page.goto('/revisar')
+    await expect(page.getByText('Pergunta 1')).toBeVisible()
+    await page.keyboard.press('Space')
+    await page.keyboard.press('3')
+    await expect(page.getByText('Pergunta 2')).toBeVisible()
+
+    const banner = page.getByRole('alert').filter({ hasText: /não enviada/ })
+    await expect(banner).toBeVisible({ timeout: 15_000 })
+
+    online = true
+    await banner.getByRole('button', { name: 'Tentar de novo' }).click()
+    await expect(banner).toBeHidden()
+  })
+
+  test('U desfaz localmente enquanto o envio está na fila', async () => {
+    await page.route(/\/api\/review$/, () => { /* never answers */ })
+    await page.goto('/revisar')
+    await expect(page.getByText('Pergunta 1')).toBeVisible()
+    await page.keyboard.press('Space')
+    await page.keyboard.press('4')
+    await page.keyboard.press('Space')
+    await page.keyboard.press('4')
+    await expect(page.getByText('Pergunta 3')).toBeVisible()
+    await page.keyboard.press('u')
+    await expect(page.getByText('Pergunta 2')).toBeVisible()
+  })
+
+  test('erro 500 na sessão mostra "Tentar de novo" e nunca "Tudo em dia!"', async () => {
+    let fail = true
+    await page.unroute('**/api/review/session*')
+    await page.route('**/api/review/session*', r => fail ? r.fulfill(json({ message: 'x' }, 500)) : r.fulfill(json({ data: [mkCard(1)], total: 1 })))
+    await page.goto('/revisar')
+    await expect(page.getByText('Não foi possível carregar sua revisão')).toBeVisible()
+    await expect(page.getByText('Tudo em dia!')).toHaveCount(0)
+    fail = false
+    await page.getByRole('button', { name: 'Tentar de novo' }).click()
+    await expect(page.getByText('Pergunta 1')).toBeVisible()
   })
 })

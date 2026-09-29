@@ -1,21 +1,48 @@
 <template>
-  <div class="review-bg h-[calc(100vh-56px)] flex flex-col overflow-hidden">
+  <div class="review-bg review-shell flex flex-col overflow-hidden">
     <!-- Top bar — minimal -->
-    <div v-show="!dive.active.value" class="flex items-center justify-between px-4 py-3">
-      <NuxtLink to="/hoje" class="text-sm text-base-muted hover:text-base-primary transition-opacity">
-        ← Voltar
-      </NuxtLink>
-      <div class="flex items-center gap-3 text-small text-base-secondary">
-        <span v-if="isSurvivalMode" class="px-2 py-0.5 rounded-full text-micro uppercase tracking-wide font-medium bg-warning/15 text-warning">Sobrevivência</span>
-        <span v-if="isBlitz" class="px-2 py-0.5 rounded-full text-micro uppercase tracking-wide font-medium bg-accent-primary/15 text-accent-primary inline-flex items-center gap-1"><Zap :size="10" /> Relâmpago</span>
-        <span v-if="sessionTimer > 0" class="font-mono" :class="sessionTimer <= 60 ? 'text-danger' : ''" aria-live="polite" :aria-label="`${formatTime(sessionTimer)} restantes`">
+    <div v-show="!dive.active.value" class="flex items-center justify-between gap-2 px-4 py-2">
+      <div class="flex items-center gap-1">
+        <NuxtLink to="/hoje" class="inline-flex items-center min-h-[44px] px-1 text-sm text-base-muted hover:text-base-primary transition-opacity">
+          ← Voltar
+        </NuxtLink>
+        <button
+          v-if="review.canUndo"
+          type="button"
+          class="inline-flex items-center gap-1.5 min-h-[44px] px-3 rounded-full text-small text-base-secondary hover:text-base-primary hover:bg-[var(--border-divider)] transition-colors"
+          aria-keyshortcuts="U Control+Z"
+          @click="handleUndo"
+        >
+          <Undo2 :size="16" aria-hidden="true" />
+          Desfazer
+        </button>
+      </div>
+      <div class="flex items-center gap-3 text-small text-base-secondary min-w-0">
+        <span v-if="isSurvivalMode" class="px-2 py-0.5 rounded-full text-micro uppercase tracking-wide font-medium bg-[var(--badge-warning-bg)] text-[var(--badge-warning-text)]">Sobrevivência</span>
+        <span v-if="isBlitz" class="px-2 py-0.5 rounded-full text-micro uppercase tracking-wide font-medium bg-[var(--badge-primary-bg)] text-[var(--badge-primary-text)] inline-flex items-center gap-1"><Zap :size="10" aria-hidden="true" /> Relâmpago</span>
+        <span v-if="sessionTimer > 0" class="font-mono" :class="sessionTimer <= 60 ? 'text-[var(--badge-danger-text)]' : ''" aria-live="polite" :aria-label="`${formatTime(sessionTimer)} restantes`">
           {{ formatTime(sessionTimer) }}
         </span>
         <span v-if="review.currentCard" class="font-medium text-base-primary">{{ review.remaining <= 1 ? 'Último!' : `${review.remaining - 1} restante${review.remaining - 1 !== 1 ? 's' : ''}` }}</span>
-        <span class="text-micro text-base-muted">{{ reviewMood }}</span>
+        <span class="hidden min-[400px]:inline text-micro text-base-muted">{{ reviewMood }}</span>
       </div>
-      <button class="px-3 py-1.5 rounded-full text-micro font-medium bg-accent-primary-subtle0/10 text-accent-primary border border-[var(--color-accent-primary)]/20 hover:bg-accent-primary-subtle0/20 transition-colors" @click="dive.start()">
+      <button class="min-h-[44px] px-3 rounded-full text-micro font-medium bg-accent-primary-subtle text-accent-primary border border-[var(--color-accent-primary)]/20 hover:bg-[var(--badge-primary-bg)] transition-colors" @click="dive.start()">
         Mergulhar
+      </button>
+    </div>
+
+    <!-- Screen reader announcements (undo) -->
+    <p class="sr-only" aria-live="polite">{{ review.undoAnnouncement }}</p>
+
+    <!-- Unsent ratings (RF-F2.4) -->
+    <div
+      v-if="review.queuePaused"
+      role="alert"
+      class="flex items-center justify-center gap-3 px-4 py-2 bg-[var(--badge-warning-bg)] text-[var(--badge-warning-text)] text-small font-medium"
+    >
+      <span>{{ review.pendingCount }} avaliaç{{ review.pendingCount === 1 ? 'ão não enviada' : 'ões não enviadas' }}</span>
+      <button type="button" class="min-h-[44px] px-3 underline underline-offset-2 font-semibold" @click="review.retryQueue()">
+        Tentar de novo
       </button>
     </div>
 
@@ -36,7 +63,7 @@
     </Transition>
 
     <!-- Insight banners -->
-    <div v-if="!review.loading && !review.finished" class="px-4 space-y-2 mt-2">
+    <div v-if="!review.loading && !review.finished && !review.sessionError" class="px-4 space-y-2 mt-2">
       <UiInsightBanner
         v-if="review.retaFinal?.active"
         :icon="Flame"
@@ -71,6 +98,26 @@
         </div>
       </div>
       <p class="text-small text-base-muted animate-pulse">Carregando sessão...</p>
+    </div>
+
+    <!-- Load error: never "Tudo em dia" (RN-UX-03) -->
+    <div v-else-if="review.sessionError" class="flex-1 flex flex-col items-center justify-center px-4">
+      <UiErrorState
+        variant="page"
+        title="Não foi possível carregar sua revisão"
+        description="Verifique sua conexão e tente de novo."
+        @retry="loadSession"
+      >
+        <template #actions>
+          <NuxtLink to="/hoje" class="btn-ghost min-h-[44px]">Voltar</NuxtLink>
+        </template>
+      </UiErrorState>
+    </div>
+
+    <!-- Queue still draining -->
+    <div v-else-if="review.saving && !review.showErrorDiary" class="flex-1 flex flex-col items-center justify-center px-4 text-center" role="status">
+      <div class="w-8 h-8 border-2 border-[var(--color-accent-primary)] border-t-transparent rounded-full animate-spin mb-4" aria-hidden="true" />
+      <p class="text-body text-base-secondary">Salvando suas avaliações…</p>
     </div>
 
     <!-- Finished -->
@@ -130,73 +177,79 @@
     </div>
 
     <!-- Review -->
-    <div v-else-if="review.currentCard" class="flex-1 flex flex-col items-center justify-center px-4 gap-4">
-      <!-- State badge -->
-      <div v-if="review.currentCard.is_learning || review.currentCard.state === 'new'" class="flex items-center gap-2">
-        <span
-          class="px-3 py-1 rounded-full text-xs tracking-wide uppercase font-medium bg-surface-secondary border border-base text-base-muted"
-        >
-          {{ review.currentCard.state === 'relearning' ? 'Reaprendendo' : review.currentCard.state === 'new' ? 'Novo' : 'Aprendendo' }}
-        </span>
-      </div>
+    <template v-else-if="review.currentCard">
+      <div class="flex-1 min-h-0 overflow-y-auto">
+        <div class="min-h-full flex flex-col items-center justify-center px-4 py-4 gap-4">
+          <!-- State badge -->
+          <div v-if="review.currentCard.is_learning || review.currentCard.state === 'new'" class="flex items-center gap-2">
+            <span class="px-3 py-1 rounded-full text-xs tracking-wide uppercase font-medium bg-surface-secondary border border-base text-base-muted">
+              {{ review.currentCard.state === 'relearning' ? 'Reaprendendo' : review.currentCard.state === 'new' ? 'Novo' : 'Aprendendo' }}
+            </span>
+          </div>
 
-      <!-- Context badge -->
-      <UiTooltip v-if="contextBadge" :text="contextBadge.tooltip">
-        <span class="px-3 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1.5" :class="contextBadge.classes">
-          <component :is="contextBadge.icon" :size="12" />
-          {{ contextBadge.label }}
-        </span>
-      </UiTooltip>
+          <!-- Context badge -->
+          <UiTooltip v-if="contextBadge" :text="contextBadge.tooltip">
+            <span class="px-3 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1.5" :class="contextBadge.classes">
+              <component :is="contextBadge.icon" :size="12" aria-hidden="true" />
+              {{ contextBadge.label }}
+            </span>
+          </UiTooltip>
 
-      <FlashcardCard
-        :card="review.currentCard"
-        :flipped="review.flipped"
-        :feedback="cardFeedback"
-        @flip="review.flip()"
-      />
+          <FlashcardCard
+            :card="review.showErrorDiary && review.diary ? review.diary.card : review.currentCard"
+            :flipped="review.flipped || review.showErrorDiary"
+            :feedback="cardFeedback"
+            @flip="review.flip()"
+          />
 
-      <FlashcardButtons
-        v-if="review.flipped && !review.showErrorDiary"
-        class="mt-4"
-        :disabled="review.submitting"
-        :intervals="review.currentIntervals"
-        @rate="handleRate"
-      />
+          <p v-if="!review.flipped && !review.showErrorDiary" class="kbd-only text-micro text-base-muted">
+            <kbd class="kbd">Espaço</kbd> para virar
+          </p>
+          <p v-if="showShortcutTip && !review.flipped" class="kbd-only text-micro text-base-muted">
+            Pressione <kbd class="kbd">?</kbd> para ver atalhos
+          </p>
 
-      <!-- Error diary (replaces buttons after error) -->
-      <div v-if="review.showErrorDiary" class="w-full max-w-lg mt-8 space-y-3">
-        <FlashcardErrorDiary
-          :visible="true"
-          :flashcard-id="lastErrorCardId"
-          :review-id="review.lastReviewId ?? ''"
-          @saved="dismissErrorDiary"
-          @skipped="dismissErrorDiary"
-        />
-        <!-- Note snippet -->
-        <div v-if="review.noteSnippet" class="p-3 rounded-lg bg-surface-secondary border border-base">
-          <p class="text-xs text-accent-primary font-medium mb-1">Da sua nota: {{ review.noteSnippet.title }}</p>
-          <p class="text-sm text-base-secondary">{{ review.noteSnippet.snippet }}</p>
-        </div>
-        <!-- Actions -->
-        <div class="flex gap-2 justify-center">
-          <button class="btn-secondary !py-1.5 !px-3 !min-h-0 text-sm" @click="openChatForError">
-            Me explica esse erro
-          </button>
-        </div>
-      </div>
+          <!-- Error diary (replaces buttons after error) -->
+          <div v-if="review.showErrorDiary" class="w-full max-w-lg space-y-3">
+            <FlashcardErrorDiary
+              :visible="true"
+              :flashcard-id="review.diary?.flashcard_id ?? ''"
+              :review-id="review.diary?.review_id ?? ''"
+              @saved="dismissErrorDiary"
+              @skipped="dismissErrorDiary"
+            />
+            <!-- Note snippet -->
+            <div v-if="review.noteSnippet" class="p-3 rounded-lg bg-surface-secondary border border-base">
+              <p class="text-xs text-accent-primary font-medium mb-1">Da sua nota: {{ review.noteSnippet.title }}</p>
+              <p class="text-sm text-base-secondary">{{ review.noteSnippet.snippet }}</p>
+            </div>
+            <!-- Actions -->
+            <div class="flex gap-2 justify-center">
+              <button class="btn-secondary min-h-[44px] !py-1.5 !px-3 text-sm" @click="openChatForError">
+                Me explica esse erro
+              </button>
+            </div>
+          </div>
 
-      <!-- Weak connection suggestion -->
-      <div v-if="review.weakSuggestion?.length && !review.showErrorDiary" class="w-full max-w-lg px-4">
-        <div class="card border border-warning/30 text-center">
-          <p class="text-small text-base-muted mb-2">Caderno conectado também está fraco:</p>
-          <div v-for="w in review.weakSuggestion" :key="w.id" class="flex items-center justify-center gap-2 text-small">
-            <AlertTriangle :size="14" class="text-warning" />
-            <span class="text-base-primary font-medium">{{ w.name }}</span>
-            <span class="text-base-muted">({{ Math.round(w.progress * 100) }}%)</span>
+          <!-- Weak connection suggestion -->
+          <div v-if="review.weakSuggestion?.length && !review.showErrorDiary" class="w-full max-w-lg px-4">
+            <div class="card border border-warning/30 text-center">
+              <p class="text-small text-base-muted mb-2">Caderno conectado também está fraco:</p>
+              <div v-for="w in review.weakSuggestion" :key="w.id" class="flex items-center justify-center gap-2 text-small">
+                <AlertTriangle :size="14" class="text-[var(--badge-warning-text)]" aria-hidden="true" />
+                <span class="text-base-primary font-medium">{{ w.name }}</span>
+                <span class="text-base-muted">({{ Math.round(w.progress * 100) }}%)</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+
+      <!-- Rating footer (fixed inside the shell, safe-area aware) -->
+      <div v-if="review.flipped && !review.showErrorDiary" class="review-footer shrink-0 px-4 pt-3 border-t border-base bg-[var(--bg-base)]">
+        <FlashcardButtons :intervals="review.currentIntervals" @rate="handleRate" />
+      </div>
+    </template>
 
     <!-- No cards -->
     <div v-else-if="!review.showErrorDiary" class="flex-1 flex flex-col items-center justify-center px-4 text-center">
@@ -209,7 +262,7 @@
     <UiModal v-model="showTimerModal" size="sm" aria-label="Tempo esgotado">
       <div class="text-center">
         <p class="text-4xl mb-4"></p>
-        <h2 class="text-title font-serif">{{ isBlitz ? 'Revisão rápida concluída!' : 'Tempo esgotado!' }}</h2>
+        <h2 class="text-title">{{ isBlitz ? 'Revisão relâmpago concluída!' : 'Tempo esgotado!' }}</h2>
         <p class="text-base-muted text-small mt-2">
           Você revisou <span class="text-accent-primary font-medium">{{ review.reviewed }}</span> card{{ review.reviewed !== 1 ? 's' : '' }}{{ isBlitz ? ' em 5 min' : '' }}.
         </p>
@@ -219,11 +272,22 @@
         </div>
       </div>
     </UiModal>
+
+    <!-- Shortcuts help (?) -->
+    <UiModal v-model="showShortcuts" size="sm">
+      <h2 class="text-title mb-4">Atalhos da revisão</h2>
+      <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-small">
+        <template v-for="s in shortcutList" :key="s.keys">
+          <dt><kbd class="kbd">{{ s.keys }}</kbd></dt>
+          <dd class="text-base-secondary">{{ s.label }}</dd>
+        </template>
+      </dl>
+    </UiModal>
   </div>
 </template>
 
 <script setup lang="ts">
-import { Flame, AlertOctagon, Timer, Zap, CalendarClock, GitBranch, FastForward } from 'lucide-vue-next'
+import { Flame, AlertOctagon, AlertTriangle, Timer, Zap, CalendarClock, GitBranch, FastForward, Undo2 } from 'lucide-vue-next'
 
 definePageMeta({ chrome: 'focus' })
 
@@ -233,12 +297,9 @@ const chat = useChatStore()
 const examStore = useExamStore()
 const route = useRoute()
 const dive = useDiveMode()
-const toast = useToast()
-const lastErrorCardId = ref('')
 const lastErrorCard = ref<any>(null)
 const cardFeedback = ref<'success' | 'error' | null>(null)
 const correctStreak = ref(0)
-const remaining = computed(() => review.remaining)
 const rewardMessage = ref('')
 const progressPulse = ref(false)
 const errorsByTopic = ref<Record<string, { name: string; count: number; id: string }>>({})
@@ -305,13 +366,17 @@ const contextBadge = computed(() => {
   return null
 })
 
-async function handleRate(rating: number) {
-  const cardId = review.currentCard?.id ?? ''
-  const cardSnapshot = review.currentCard ? { ...review.currentCard } : null
+let feedbackTimeout: ReturnType<typeof setTimeout> | null = null
+
+function handleRate(rating: number) {
+  const card = review.currentCard
+  if (!card || review.showErrorDiary) return
   showAllHints.value = false
 
-  // Micro feedback
+  // Visual feedback only (150ms via CSS) — never blocks the next card
   cardFeedback.value = rating >= 3 ? 'success' : 'error'
+  if (feedbackTimeout) clearTimeout(feedbackTimeout)
+  feedbackTimeout = setTimeout(() => { cardFeedback.value = null }, 150)
 
   // Micro reaction
   if (rating === 4) showReward('Fácil demais — esse você dominou')
@@ -328,8 +393,7 @@ async function handleRate(rating: number) {
   } else {
     correctStreak.value = 0
     // Track errors by topic for post-session suggestion
-    const card = review.currentCard
-    if (card?.topic_id) {
+    if (card.topic_id) {
       const key = card.topic_id
       if (!errorsByTopic.value[key]) {
         errorsByTopic.value[key] = { id: card.topic_id, name: card.topic_name ?? 'Caderno', count: 0 }
@@ -337,28 +401,76 @@ async function handleRate(rating: number) {
       errorsByTopic.value[key].count++
     }
   }
+  if (rating <= 2) lastErrorCard.value = { ...card }
 
   // Progress pulse
   progressPulse.value = true
   setTimeout(() => { progressPulse.value = false }, 600)
 
-  // Let feedback show briefly before advancing
-  await new Promise(r => setTimeout(r, 450))
-  cardFeedback.value = null
+  review.rate(rating as 1 | 2 | 3 | 4)
+}
 
-  try {
-    await review.submitReview(rating as 1 | 2 | 3 | 4)
-    if (rating <= 2) {
-      lastErrorCardId.value = cardId
-      lastErrorCard.value = cardSnapshot
-    }
-    if (!review.showErrorDiary && (review.finished || (!review.currentCard && review.pendingLearning > 0))) {
-      toast.show('Sessão concluída! 🎉', 'success')
-    }
-  } catch {
-    toast.show('Erro ao enviar revisão.', 'error')
+async function handleUndo() {
+  const entry = review.undoStack[review.undoStack.length - 1]
+  const ok = await review.undo()
+  if (ok && entry && entry.rating <= 2 && entry.cardSnapshot.topic_id) {
+    const e = errorsByTopic.value[entry.cardSnapshot.topic_id]
+    if (e) e.count = Math.max(0, e.count - 1)
   }
 }
+
+// Shortcuts (RF-F2.1) + help overlay
+const showShortcuts = ref(false)
+const shortcutList = [
+  { keys: 'Espaço / Enter', label: 'Virar; com o card virado, "Lembrei"' },
+  { keys: '1 2 3 4', label: 'Não lembrei · Quase · Lembrei · Fácil demais' },
+  { keys: 'U / Ctrl+Z', label: 'Desfazer a última avaliação' },
+  { keys: '?', label: 'Mostrar ou esconder os atalhos' },
+  { keys: 'Esc', label: 'Fechar o diário; senão, voltar para Hoje' },
+]
+
+useReviewShortcuts({
+  flip: () => { if (review.currentCard && !review.showErrorDiary) review.flip() },
+  rate: (r) => { if (review.flipped && !review.showErrorDiary) handleRate(r) },
+  undo: () => { if (review.canUndo) void handleUndo() },
+  toggleHelp: () => { showShortcuts.value = !showShortcuts.value },
+  escape: () => {
+    if (review.showErrorDiary) dismissErrorDiary()
+    else navigateTo('/hoje')
+  },
+  isFlipped: () => review.flipped,
+  isSuspended: () => showTimerModal.value,
+})
+
+// "Press ? for shortcuts" tip on the first 3 sessions (pointer: fine only, via CSS)
+const showShortcutTip = ref(false)
+onMounted(() => {
+  try {
+    const n = Number(localStorage.getItem('review-shortcut-tip') ?? '0')
+    if (n < 3) {
+      showShortcutTip.value = true
+      localStorage.setItem('review-shortcut-tip', String(n + 1))
+    }
+  } catch {
+    // intencional: localStorage indisponível (modo privado) — só não mostra a dica
+  }
+})
+
+// Leaving with unsent ratings asks first (RF-F2.4)
+function onBeforeUnload(e: BeforeUnloadEvent) {
+  if (review.pendingCount > 0) {
+    e.preventDefault()
+    e.returnValue = ''
+  }
+}
+onMounted(() => window.addEventListener('beforeunload', onBeforeUnload))
+onUnmounted(() => window.removeEventListener('beforeunload', onBeforeUnload))
+onBeforeRouteLeave(() => {
+  if (review.pendingCount > 0) {
+    return window.confirm(`${review.pendingCount} avaliação(ões) ainda não foram enviadas. Sair mesmo assim?`)
+  }
+  return true
+})
 
 async function loadSession() {
   errorsByTopic.value = {}
@@ -417,7 +529,9 @@ async function loadSessionTimer() {
         if (sessionTimer.value > 0) sessionTimer.value--
       }, 1000)
     }
-  } catch {}
+  } catch (e) {
+    reportApiError(e, { silent: true })
+  }
 }
 
 watch(sessionTimer, (val, oldVal) => {
@@ -439,15 +553,11 @@ function continueAfterTimer() {
 }
 
 function dismissErrorDiary() {
-  review.showErrorDiary = false
-  if (review._pendingAdvance) {
-    review._pendingAdvance()
-    review._pendingAdvance = null
-  }
+  review.dismissDiary()
 }
 
 function openChatForError() {
-  const card = lastErrorCard.value
+  const card = review.diary?.card ?? lastErrorCard.value
   if (!card) return
   chat.newConversation()
   chat.open({
@@ -472,15 +582,6 @@ function showReward(msg: string) {
   rewardTimeout = setTimeout(() => { rewardMessage.value = '' }, 1800)
 }
 
-const progressLabel = computed(() => {
-  const pct = review.progress
-  if (pct === 0) return 'começando'
-  if (pct < 25) return 'aquecendo'
-  if (pct < 70) return 'no ritmo'
-  if (pct < 100) return 'quase lá'
-  return 'concluído'
-})
-
 const reviewMood = computed(() => {
   const pct = review.progress
   if (pct === 0) return ''
@@ -503,6 +604,7 @@ onMounted(() => {
 onUnmounted(() => {
   if (tickInterval) clearInterval(tickInterval)
   if (timerInterval) clearInterval(timerInterval)
+  if (feedbackTimeout) clearTimeout(feedbackTimeout)
   if (rewardTimeout) clearTimeout(rewardTimeout)
 })
 
@@ -512,6 +614,34 @@ watch(() => route.query, (newQ, oldQ) => {
 </script>
 
 <style scoped>
+.review-shell {
+  height: 100vh;
+}
+@supports (height: 100dvh) {
+  .review-shell {
+    height: 100dvh;
+  }
+}
+.review-footer {
+  padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+}
+.kbd-only {
+  display: none;
+}
+@media (pointer: fine) {
+  .kbd-only {
+    display: block;
+  }
+}
+.kbd {
+  display: inline-block;
+  padding: 0 0.35rem;
+  border-radius: 0.25rem;
+  border: 1px solid var(--border-hover);
+  font-family: ui-monospace, monospace;
+  font-size: 0.75rem;
+  color: var(--text-body);
+}
 .review-bg {
   background: var(--bg-base);
   color: var(--text-heading);

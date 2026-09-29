@@ -25,3 +25,16 @@ export async function login(page: Page) {
 
   await page.waitForURL('**/hoje', { timeout: 15000 })
 }
+
+/**
+ * One login per describe (the login throttle is 5/min): create the page in
+ * beforeAll with `sharedPage(browser)` and reuse it in serial tests.
+ */
+export async function sharedPage(browser: import('@playwright/test').Browser, opts: import('@playwright/test').BrowserContextOptions = {}) {
+  const context = await browser.newContext({ baseURL: 'http://localhost:3000', ...opts })
+  const page = await context.newPage()
+  await login(page)
+  return page
+}
+
+export const json = (data: unknown, status = 200) => ({ status, contentType: 'application/json', body: JSON.stringify(data) })

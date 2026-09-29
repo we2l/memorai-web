@@ -43,8 +43,8 @@ const badgeClass = computed(() => `card__badge--${state.value.variant}`)
   display: flex;
   align-items: stretch;
   min-height: 76px;
-  background: #FFFFFF;
-  border: 1px solid #E2DDEF;
+  background: var(--bg-card);
+  border: 1px solid var(--border-base);
   border-radius: 12px;
   overflow: hidden;
   transition: all 180ms ease-out;
@@ -56,7 +56,7 @@ const badgeClass = computed(() => `card__badge--${state.value.variant}`)
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 .card:hover {
-  border-color: color-mix(in srgb, var(--nb-color) 35%, #D8D0EA);
+  border-color: color-mix(in srgb, var(--nb-color) 35%, var(--border-hover));
   box-shadow:
     0 4px 12px color-mix(in srgb, var(--nb-color) 8%, transparent),
     0 1px 3px rgba(0, 0, 0, 0.03);
@@ -121,18 +121,18 @@ const badgeClass = computed(() => `card__badge--${state.value.variant}`)
 }
 .card__badge--pending {
   color: var(--color-primary-600);
-  background: #EDE6FC;
+  background: var(--badge-primary-bg);
 }
 .dark .card__badge--pending {
   color: var(--color-accent-primary);
   background: color-mix(in srgb, var(--color-accent-primary) 12%, transparent);
 }
 .card__badge--success {
-  color: #16A34A;
-  background: #ECFDF5;
+  color: var(--badge-success-text);
+  background: var(--badge-success-bg);
 }
 .card__badge--muted {
   color: var(--text-muted);
-  background: #F4F3F8;
+  background: var(--badge-muted-bg);
 }
 </style>

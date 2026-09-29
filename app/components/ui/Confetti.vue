@@ -1,3 +1,4 @@
+<!-- tokens-allow-file: ilustração com paleta própria da marca -->
 <template>
   <Teleport to="body">
     <div v-if="show" class="fixed inset-0 pointer-events-none z-[100] overflow-hidden">

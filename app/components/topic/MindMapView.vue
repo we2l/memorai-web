@@ -151,11 +151,11 @@ const selectedNode = ref<MindMapNode | null>(null)
 const isPro = computed(() => !!auth.user && auth.user.plan !== 'free')
 
 const typeColors: Record<string, string> = {
-  conceito: '#6F3FF5',
-  definição: '#3B82F6',
-  exemplo: '#22C55E',
-  exceção: '#EF4444',
-  referência: '#8A90A8',
+  conceito: 'var(--color-accent-primary)',
+  definição: 'var(--color-info)',
+  exemplo: 'var(--color-success)',
+  exceção: 'var(--color-danger)',
+  referência: 'var(--text-muted)',
 }
 
 async function fetchData() {

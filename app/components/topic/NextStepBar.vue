@@ -77,7 +77,7 @@ defineEmits<{
   padding: 0.875rem 1.25rem;
   border-radius: 0.75rem;
   margin-bottom: 1rem;
-  background: var(--color-primary-50, #F5F2FF);
+  background: var(--badge-primary-bg);
   border: 1px solid color-mix(in srgb, var(--color-accent-primary) 15%, transparent);
 }
 

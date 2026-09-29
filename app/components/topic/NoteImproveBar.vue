@@ -71,7 +71,7 @@ defineEmits<{
 const stateClass = computed(() => ({
   'bg-[var(--color-primary-50)]': props.state === 'idle' || props.state === 'preview',
   'bg-[var(--color-primary-50)]/50': props.state === 'loading',
-  'bg-[var(--color-warning-50,#fef3c7)]': props.state === 'paywall',
+  'bg-[var(--badge-warning-bg)]': props.state === 'paywall',
 }))
 </script>
 

@@ -40,7 +40,7 @@
           </div>
           <p
             v-if="subscription.inGracePeriod && !subscription.info?.monthly_scheduled"
-            class="mt-3 text-small text-amber-700 dark:text-amber-400 bg-amber-500/10 rounded-lg px-3 py-2"
+            class="mt-3 text-small text-[var(--badge-warning-text)] bg-[var(--badge-warning-bg)] rounded-lg px-3 py-2"
             role="status"
           >
             Seu anual venceu em {{ formatBillingDayMonth(subscription.info?.plan_expires_at) }}.

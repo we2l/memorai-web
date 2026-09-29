@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen" :class="colorMode === 'dark' ? 'bg-[#0F001F]' : 'bg-[linear-gradient(180deg,#FFFFFF,#F9F7FF)]'">
+  <div class="min-h-screen bg-[var(--bg-base)]">
     <UiPaymentBanner />
     <UiSidebar v-show="!dive.active.value" :collapsed="sidebarCollapsed" />
     <UiBottomNav v-show="!dive.active.value && !focusChrome" />
@@ -42,7 +42,6 @@ import type { FeatureLimitDetail } from '~/types'
 const route = useRoute()
 const auth = useAuthStore()
 const dive = useDiveMode()
-const { colorMode } = useColorMode()
 
 const player = usePlayerStore()
 const hasMiniplayer = computed(() => !!player.currentPodcast)

@@ -219,7 +219,7 @@
                 <button v-else-if="topicCards.length === 0 && noteStore.notes.length > 0" class="btn-primary !py-3 !px-6 !text-base font-semibold" @click="cardWorkshop.generate('notes')">
                   Gerar cards
                 </button>
-                <span v-else-if="topicCards.length > 0" class="text-small text-emerald-500 font-medium">Tudo em dia ✓</span>
+                <span v-else-if="topicCards.length > 0" class="text-small text-[var(--badge-success-text)] font-medium">Tudo em dia ✓</span>
               </div>
             </div>
 

@@ -8,7 +8,7 @@
         <span class="text-micro opacity-50">{{ intervals.again }}</span>
         <kbd class="kbd-hint" aria-hidden="true">1</kbd>
       </button>
-      <button class="btn-good ring-1 ring-[#6A994E]/30" :disabled="disabled" @click="onRate(3)" :aria-label="`Lembrei — ${intervals.good}`">
+      <button class="btn-good ring-1 ring-[var(--badge-success-text)]/30" :disabled="disabled" @click="onRate(3)" :aria-label="`Lembrei — ${intervals.good}`">
         <CheckCircle2 :size="18" class="text-[var(--badge-success-text)]" aria-hidden="true" />
         <span>Lembrei</span>
         <span class="text-micro opacity-50">{{ intervals.good }}</span>
@@ -42,7 +42,7 @@
         <span class="text-micro opacity-50">{{ intervals.hard }}</span>
         <kbd class="kbd-hint" aria-hidden="true">2</kbd>
       </button>
-      <button class="btn-good ring-1 ring-[#6A994E]/30" :disabled="disabled" @click="onRate(3)" :aria-label="`Lembrei — ${intervals.good}`">
+      <button class="btn-good ring-1 ring-[var(--badge-success-text)]/30" :disabled="disabled" @click="onRate(3)" :aria-label="`Lembrei — ${intervals.good}`">
         <CheckCircle2 :size="18" class="text-[var(--badge-success-text)]" aria-hidden="true" />
         <span>Lembrei</span>
         <span class="text-micro opacity-50">{{ intervals.good }}</span>

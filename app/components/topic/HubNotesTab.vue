@@ -188,7 +188,7 @@
         <span v-else-if="wordCount >= 100" class="text-small text-base-muted">{{ wordCount }} palavras · Quase lá — mais um pouco pra IA funcionar</span>
         <span v-else-if="wordCount > 0" class="text-small text-base-muted">{{ wordCount }} palavras · Continue escrevendo...</span>
         <span v-else class="text-small text-base-muted">0 palavras</span>
-        <span v-if="wordCount >= 200" class="text-small font-medium text-emerald-600 bg-emerald-500/10 px-2.5 py-1 rounded-full">Material suficiente pra flashcards ✓</span>
+        <span v-if="wordCount >= 200" class="text-small font-medium text-[var(--badge-success-text)] bg-[var(--badge-success-bg)] px-2.5 py-1 rounded-full">Material suficiente pra flashcards ✓</span>
       </div>
 
       <!-- Selection toolbar (create card from selection) -->
@@ -403,14 +403,14 @@ onBeforeUnmount(() => {
   font-size: 2.5rem;
   font-weight: 700;
   line-height: 1.2;
-  color: var(--color-text-heading, #1F2343);
+  color: var(--text-heading);
   outline: none;
   word-break: break-word;
 }
 
 .notion-title:empty::before {
   content: attr(data-placeholder);
-  color: var(--color-text-muted, #8A90A8);
+  color: var(--text-muted);
   opacity: 0.6;
   pointer-events: none;
 }
@@ -457,7 +457,7 @@ onBeforeUnmount(() => {
   height: 140px;
   flex-shrink: 0;
   border-radius: 8px;
-  background: #fff;
+  background: var(--bg-card);
   border: 1px solid var(--border-base);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   padding: 14px 11px;
@@ -650,13 +650,13 @@ onBeforeUnmount(() => {
 }
 
 .note-badge--green {
-  background: color-mix(in srgb, #16A34A 6%, transparent);
-  color: #16A34A;
+  background: color-mix(in srgb, var(--badge-success-text) 6%, transparent);
+  color: var(--badge-success-text);
 }
 
 .note-badge--purple {
-  background: color-mix(in srgb, #6F3FF5 6%, transparent);
-  color: #6F3FF5;
+  background: color-mix(in srgb, var(--color-accent-primary) 6%, transparent);
+  color: var(--color-accent-primary);
 }
 
 .note-badge--accent {

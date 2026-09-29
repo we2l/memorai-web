@@ -25,7 +25,7 @@
         </div>
         <div class="mt-1.5 pt-1.5 border-t border-base">
           <p class="text-micro text-base-muted mb-0.5">Verso</p>
-          <div class="text-small text-base-muted line-clamp-2 card-front-preview" v-html="sanitize(stripMedia(card.back))" />
+          <div class="text-[1rem] leading-relaxed text-base-secondary line-clamp-2 card-front-preview" v-html="sanitize(stripMedia(card.back))" />
           <div class="flex items-center gap-1.5 mt-1" v-if="hasImage(card.back)">
             <span class="text-micro px-1.5 py-0.5 rounded bg-[var(--border-divider)] text-base-muted">🖼 imagem</span>
           </div>

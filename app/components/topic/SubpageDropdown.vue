@@ -152,8 +152,8 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', onClickOutside))
 .subpage-dropdown {
   z-index: 50;
   width: 280px;
-  background: var(--bg-card, #fff);
-  border: 1px solid var(--border-base, #e5e7eb);
+  background: var(--bg-card);
+  border: 1px solid var(--border-base);
   border-radius: 0.75rem;
   box-shadow: var(--shadow-dropdown, 0 8px 24px rgba(0, 0, 0, 0.12));
   overflow: hidden;
@@ -172,6 +172,6 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', onClickOutside))
 }
 
 .subpage-dropdown-item:hover {
-  background: var(--bg-surface-secondary, #f9fafb);
+  background: var(--bg-soft);
 }
 </style>

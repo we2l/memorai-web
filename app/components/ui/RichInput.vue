@@ -30,7 +30,7 @@
 
     <EditorContent
       :editor="editor"
-      class="rich-input px-3 py-2 text-small text-base-primary overflow-y-auto"
+      class="rich-input px-3 py-2 text-[1rem] leading-relaxed text-base-primary overflow-y-auto"
       :style="{ minHeight: minHeight + 'px', maxHeight: maxHeight + 'px' }"
     />
 

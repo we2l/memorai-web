@@ -98,7 +98,7 @@
 
                 <button
                   v-if="!acceptedIndexes.has(index)"
-                  class="p-1.5 rounded-lg text-base-muted hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+                  class="p-1.5 rounded-lg text-base-muted hover:text-[var(--badge-danger-text)] hover:bg-[var(--badge-danger-bg)] transition-colors"
                   title="Descartar"
                   @click="$emit('remove-card', index)"
                  aria-label="Descartar">
@@ -184,7 +184,7 @@ function confirmEdit(index: number) {
 }
 
 .card-item {
-  background: var(--bg-base, #fafbfd);
+  background: var(--bg-base);
   border: 1px solid var(--border-divider);
   border-radius: 0.625rem;
   transition: box-shadow 0.15s ease, border-color 0.15s ease;

@@ -37,7 +37,7 @@
               </span>
               <span v-else>Preparando material de estudo...</span>
             </div>
-            <div v-if="doc.note_total_batches" class="w-full h-2 bg-[#e5e7eb] rounded-full overflow-hidden mt-1.5">
+            <div v-if="doc.note_total_batches" class="w-full h-2 bg-[var(--border-base)] rounded-full overflow-hidden mt-1.5">
               <div
                 class="h-full bg-[var(--color-accent-primary)] rounded-full transition-all duration-700 ease-out"
                 :style="{ width: `${Math.max(5, Math.round((doc.note_generation_progress / doc.note_total_batches) * 100))}%` }"
@@ -117,7 +117,7 @@
             <!-- Re-generation banner (mode changed after note was generated) -->
             <div
               v-if="doc.learning_mode_used && props.topicLearningMode && doc.learning_mode_used !== props.topicLearningMode"
-              class="mt-2 px-3 py-2 rounded-lg bg-[var(--color-warning-50,#fef3c7)] border border-[var(--color-warning-200,#fde68a)]"
+              class="mt-2 px-3 py-2 rounded-lg bg-[var(--badge-warning-bg)] border border-[var(--badge-warning-text)]"
             >
               <p class="text-small text-base-primary mb-1.5">⚠️ Esta nota foi criada com modo diferente do caderno.</p>
               <button

@@ -64,7 +64,7 @@
             <!-- Status icon -->
             <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" :class="statusBg(podcast.status)">
               <Loader2 v-if="isGenerating(podcast.status)" :size="18" class="animate-spin text-base-muted" />
-              <AlertCircle v-else-if="podcast.status === 'failed'" :size="18" class="text-red-400" />
+              <AlertCircle v-else-if="podcast.status === 'failed'" :size="18" class="text-[var(--badge-danger-text)]" />
               <button v-else :aria-label="player.currentPodcast?.id === podcast.id && player.isPlaying ? `Pausar ${podcast.title}` : `Tocar ${podcast.title}`" @click="playPodcast(podcast)" class="w-full h-full flex items-center justify-center">
                 <Pause v-if="player.currentPodcast?.id === podcast.id && player.isPlaying" :size="18" :class="statusText(podcast.status)" aria-hidden="true" />
                 <Headphones v-else :size="18" :class="statusText(podcast.status)" aria-hidden="true" />
@@ -90,7 +90,7 @@
               </span>
               <button
                 @click.stop="confirmDelete(podcast)"
-                class="w-8 h-8 rounded-lg flex items-center justify-center text-base-muted hover:text-[var(--badge-danger-text)] hover:bg-red-500/10 transition-colors"
+                class="w-8 h-8 rounded-lg flex items-center justify-center text-base-muted hover:text-[var(--badge-danger-text)] hover:bg-[var(--badge-danger-bg)] transition-colors"
                 title="Excluir podcast"
                aria-label="Excluir podcast">
                 <Trash2 :size="14" aria-hidden="true" />
@@ -174,7 +174,7 @@ function isGenerating(status: string) {
 
 function statusBg(status: string) {
   if (status === 'ready') return 'bg-accent-primary-subtle'
-  if (status === 'failed') return 'bg-red-500/10'
+  if (status === 'failed') return 'bg-[var(--badge-danger-bg)]'
   return 'bg-surface-secondary'
 }
 

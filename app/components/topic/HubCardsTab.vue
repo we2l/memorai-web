@@ -87,8 +87,8 @@
           <div
             class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 text-base font-semibold"
             :class="{
-              'bg-emerald-500/10 text-emerald-500': card.state === 'review',
-              'bg-amber-500/10 text-amber-500': card.state === 'learning' || card.state === 'relearning',
+              'bg-[var(--badge-success-bg)] text-[var(--badge-success-text)]': card.state === 'review',
+              'bg-[var(--badge-warning-bg)] text-[var(--badge-warning-text)]': card.state === 'learning' || card.state === 'relearning',
               'bg-[var(--border-base)]/40 text-base-muted': card.state === 'new',
             }"
           >
@@ -100,14 +100,14 @@
               <span
                 class="text-micro font-medium px-2 py-0.5 rounded-full"
                 :class="{
-                  'bg-emerald-500/10 text-emerald-600': card.state === 'review',
-                  'bg-amber-500/10 text-amber-600': card.state === 'learning' || card.state === 'relearning',
+                  'bg-[var(--badge-success-bg)] text-[var(--badge-success-text)]': card.state === 'review',
+                  'bg-[var(--badge-warning-bg)] text-[var(--badge-warning-text)]': card.state === 'learning' || card.state === 'relearning',
                   'bg-[var(--border-base)]/40 text-base-muted': card.state === 'new',
                 }"
               >
                 {{ stateLabel(card.state) }}
               </span>
-              <span v-if="card.lapses > 0" class="text-micro text-red-400">{{ card.lapses }}x errado</span>
+              <span v-if="card.lapses > 0" class="text-micro text-[var(--badge-danger-text)]">{{ card.lapses }}x errado</span>
               <span v-if="card.source_note_id" class="text-micro text-base-muted">· {{ noteNameById(card.source_note_id) }}</span>
             </div>
             <!-- Verso (expandable with transition) -->
@@ -115,7 +115,7 @@
               <div class="overflow-hidden">
                 <div class="mt-3 pt-3 border-t border-base">
                   <p class="text-micro text-base-muted mb-1">Verso</p>
-                  <div class="text-small text-base-secondary card-front-preview" v-html="card.backHtml" />
+                  <div class="text-[1rem] leading-relaxed text-base-secondary card-front-preview" v-html="card.backHtml" />
                 </div>
               </div>
             </div>

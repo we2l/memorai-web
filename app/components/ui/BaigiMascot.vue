@@ -1,3 +1,4 @@
+<!-- tokens-allow-file: ilustração com paleta própria da marca -->
 <template>
   <div class="baigi-mascot" :class="[`baigi--${state}`, { 'baigi--visible': visible }]">
     <svg

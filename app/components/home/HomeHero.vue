@@ -1,3 +1,4 @@
+<!-- tokens-allow-file: ilustração com paleta própria da marca -->
 <template>
   <!-- Loading: same footprint as the hero (no layout shift) -->
   <section v-if="loading && !stats" class="hero hero--skeleton" aria-busy="true" aria-label="Carregando resumo de hoje">

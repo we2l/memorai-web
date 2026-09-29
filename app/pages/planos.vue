@@ -23,7 +23,7 @@
           </button>
           <span :class="isYearly ? 'text-base-primary font-medium' : 'text-base-muted'" class="text-small">
             Anual
-            <span v-if="pro.prices.annual.savings_cents" class="inline-block ml-1 text-micro bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 px-1.5 py-0.5 rounded-full font-medium">
+            <span v-if="pro.prices.annual.savings_cents" class="inline-block ml-1 text-micro bg-[var(--badge-success-bg)] text-[var(--badge-success-text)] px-1.5 py-0.5 rounded-full font-medium">
               Economize {{ formatPrice(pro.prices.annual.savings_cents) }}
             </span>
           </span>
@@ -52,11 +52,11 @@
           <div v-else class="h-[42px] mb-6" />
 
           <ul class="space-y-3 text-small">
-            <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> Flashcards e revisão espaçada ilimitados</li>
-            <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> Notas, cadernos e grafo</li>
-            <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> Importar Anki</li>
-            <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> Upload de PDFs</li>
-            <li v-for="line in freeLines" :key="line" class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> {{ line }}</li>
+            <li class="flex gap-2.5"><Check :size="16" class="text-[var(--badge-success-text)] shrink-0 mt-0.5" /> Flashcards e revisão espaçada ilimitados</li>
+            <li class="flex gap-2.5"><Check :size="16" class="text-[var(--badge-success-text)] shrink-0 mt-0.5" /> Notas, cadernos e grafo</li>
+            <li class="flex gap-2.5"><Check :size="16" class="text-[var(--badge-success-text)] shrink-0 mt-0.5" /> Importar Anki</li>
+            <li class="flex gap-2.5"><Check :size="16" class="text-[var(--badge-success-text)] shrink-0 mt-0.5" /> Upload de PDFs</li>
+            <li v-for="line in freeLines" :key="line" class="flex gap-2.5"><Check :size="16" class="text-[var(--badge-success-text)] shrink-0 mt-0.5" /> {{ line }}</li>
           </ul>
         </div>
 
@@ -127,7 +127,7 @@
 
           <ul class="space-y-3 text-small">
             <li class="flex gap-2.5 font-medium text-base-primary"><Zap :size="16" class="text-accent-primary shrink-0 mt-0.5" /> Tudo do Grátis, mais:</li>
-            <li v-for="line in proLines" :key="line" class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> {{ line }}</li>
+            <li v-for="line in proLines" :key="line" class="flex gap-2.5"><Check :size="16" class="text-[var(--badge-success-text)] shrink-0 mt-0.5" /> {{ line }}</li>
           </ul>
         </div>
       </div>

@@ -178,9 +178,9 @@ const progressPercent = computed(() => Math.round(topicProgress.value * 100))
 const progressBarColor = computed(() => {
   const p = topicProgress.value
   if (p === 0 && pendingCount.value > 0) return 'bg-[var(--color-accent-primary)]'
-  if (p < 0.3) return 'bg-red-400'
+  if (p < 0.3) return 'bg-[var(--color-danger)]'
   if (p < 0.7) return 'bg-[var(--color-accent-primary)]'
-  return 'bg-emerald-400'
+  return 'bg-[var(--color-success)]'
 })
 
 const expanded = ref(props.depth === 0)

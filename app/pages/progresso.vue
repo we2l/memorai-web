@@ -37,14 +37,14 @@
           />
           <div
             v-if="data.card_states.new"
-            class="bg-[#A8A29E] transition-all"
+            class="bg-[var(--badge-muted-text)] transition-all"
             :style="{ width: pct(data.card_states.new) }"
           />
         </div>
         <div class="flex justify-center gap-4 mt-3 text-micro text-base-muted">
           <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-success inline-block" /> Dominados ({{ data.card_states.mature }})</span>
           <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-warning inline-block" /> Aprendendo ({{ data.card_states.learning }})</span>
-          <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#A8A29E] inline-block" /> Novos ({{ data.card_states.new }})</span>
+          <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[var(--badge-muted-text)] inline-block" /> Novos ({{ data.card_states.new }})</span>
         </div>
       </div>
 

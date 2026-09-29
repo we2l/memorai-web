@@ -84,7 +84,7 @@ const minDate = computed(() => {
   <UiModal :model-value="true" size="md" @update:model-value="emit('close')">
     <template #header>
       <div class="flex items-center gap-2">
-        <CalendarPlus class="w-5 h-5 text-amber-500" />
+        <CalendarPlus class="w-5 h-5 text-[var(--badge-warning-text)]" />
         <span class="font-semibold text-base-primary">Nova prova</span>
       </div>
     </template>

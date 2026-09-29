@@ -92,13 +92,13 @@ function navigateToTopic() {
   gap: 0.625rem;
   padding: 0.625rem 0.875rem;
   border-radius: 0.5rem;
-  border: 1px solid var(--border-base, #e5e7eb);
-  background: var(--bg-card, #fff);
+  border: 1px solid var(--border-base);
+  background: var(--bg-card);
   transition: all 0.15s ease;
 }
 
 .subpage-node-wrapper.selected .subpage-card {
-  border-color: var(--color-accent-primary, #6366f1);
+  border-color: var(--color-accent-primary);
   box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
 }
 </style>

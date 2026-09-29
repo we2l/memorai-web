@@ -144,7 +144,7 @@
 
         <!-- Legend -->
         <div v-if="graphStore.data?.nodes.length" class="absolute bottom-20 lg:bottom-4 left-3 right-3 sm:left-4 sm:right-auto flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2 rounded-lg bg-surface-secondary/90 backdrop-blur text-small text-base-muted border border-base">
-          <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-[#6B7280] inline-block" /> Sem cards</span>
+          <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-[var(--text-muted)] inline-block" /> Sem cards</span>
           <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-danger inline-block" /> &lt; 30%</span>
           <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-warning inline-block" /> 30-70%</span>
           <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-success inline-block" /> &gt; 70%</span>

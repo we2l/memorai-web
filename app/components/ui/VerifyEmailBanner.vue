@@ -90,7 +90,7 @@ async function resend() {
 
 function dismiss() {
   dismissed.value = true
-  try { sessionStorage.setItem(DISMISS_KEY, '1') } catch {}
+  try { sessionStorage.setItem(DISMISS_KEY, '1') } catch { /* intencional: sessionStorage indisponível */ }
 }
 
 function onUnverified() {
@@ -98,7 +98,7 @@ function onUnverified() {
 }
 
 onMounted(() => {
-  try { dismissed.value = sessionStorage.getItem(DISMISS_KEY) === '1' } catch {}
+  try { dismissed.value = sessionStorage.getItem(DISMISS_KEY) === '1' } catch { /* intencional: sessionStorage indisponível */ }
   window.addEventListener('email-unverified', onUnverified)
 })
 

@@ -17,7 +17,8 @@
     "budget": "node scripts/check-bundle-budget.mjs",
     "test:build": "vitest run tests/scripts",
     "images": "node scripts/optimize-images.mjs",
-    "lint:copy": "node scripts/check-copy.mjs"
+    "lint:copy": "node scripts/check-copy.mjs",
+    "lint:catch": "node scripts/check-empty-catch.mjs"
   },
   "keywords": [],
   "author": "",

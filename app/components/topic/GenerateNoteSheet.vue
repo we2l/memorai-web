@@ -68,7 +68,9 @@ watch(open, async (val) => {
     const feature = res.data?.features?.pdf_to_note
     limit.value = feature?.limit ?? null
     used.value = feature?.used ?? 0
-  } catch {}
+  } catch (e) {
+    reportApiError(e, { silent: true })
+  }
 })
 
 async function generate() {

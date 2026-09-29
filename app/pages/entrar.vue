@@ -140,6 +140,6 @@ onMounted(() => {
       sessionStorage.removeItem('relogin')
       toast.show('Atualizamos a segurança do login. Entre novamente.', 'info', 5000)
     }
-  } catch {}
+  } catch { /* intencional: sessionStorage indisponível */ }
 })
 </script>

@@ -84,7 +84,7 @@ const upgradeLoaded = useLoadedOnce(() => showUpgrade.value)
 const subscription = useSubscriptionStore()
 
 onMounted(() => {
-  subscription.fetchStatus().catch(() => {})
+  subscription.fetchStatus().catch((e: unknown) => reportApiError(e, { silent: true }))
 
   window.addEventListener('feature-limit-reached', ((e: CustomEvent) => {
     // Full 402 detail: planRequired null means a Pro at the limit (no upgrade CTA)

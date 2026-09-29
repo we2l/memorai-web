@@ -53,7 +53,7 @@ export const useAuthStore = defineStore('auth', {
       try {
         await $api('/logout', { method: 'POST' })
       } catch {
-        // Session may already be gone — local state is cleared anyway
+        // intencional: a sessão pode já ter acabado — o estado local é limpo de qualquer forma
       }
       this.clearAuth()
     },

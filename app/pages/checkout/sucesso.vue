@@ -162,7 +162,9 @@ async function refreshUser() {
     const { $api } = useNuxtApp()
     const res = await $api<{ data: any }>('/me')
     if (res.data) auth.setUser(res.data)
-  } catch {}
+  } catch (e) {
+    reportApiError(e, { silent: true })
+  }
 }
 
 async function copyPixCode() {

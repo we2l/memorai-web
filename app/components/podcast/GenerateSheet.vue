@@ -204,7 +204,9 @@ watch(model, async (val) => {
       const { $api } = useNuxtApp()
       const res = await $api<any>('/topics')
       topics.value = (res.data ?? []).filter((t: any) => !t.parent_id && (t.flashcards_count ?? 0) >= 5)
-    } catch {}
+    } catch (e) {
+      reportApiError(e, { silent: true })
+    }
   }
 }, { immediate: true }) // lazy-mounted already open
 

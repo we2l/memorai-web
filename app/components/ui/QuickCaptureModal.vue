@@ -61,7 +61,9 @@ async function fetchTopics() {
     // API returns tree — root topics are the top level items
     rootTopics.value = (res.data ?? []).map((t: any) => ({ id: t.id, name: t.name, parent_id: t.parent_id }))
     if (rootTopics.value.length === 1) selectedTopicId.value = rootTopics.value[0].id
-  } catch {}
+  } catch (e) {
+    reportApiError(e, { silent: true })
+  }
 }
 
 watch(isOpen, (open) => {

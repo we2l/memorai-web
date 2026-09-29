@@ -174,7 +174,7 @@ async function fetchData() {
       aiMapId.value = aiRes.meta.id
     }
   } catch (e) {
-    // silent
+    reportApiError(e, { error: 'Não foi possível carregar o mapa mental.' })
   } finally {
     loading.value = false
   }

@@ -212,8 +212,8 @@ async function downloadPodcast() {
     a.href = url
     a.download = `${podcast.title || 'podcast'}.mp3`
     a.click()
-  } catch {
-    // silent fail
+  } catch (e) {
+    reportApiError(e, { error: 'Não foi possível baixar o áudio.' })
   } finally {
     downloading.value = false
   }
@@ -247,7 +247,9 @@ watch(() => player.currentPodcast?.id, async (id) => {
       }),
     )
     linkedCards.value = cards.filter(Boolean) as LinkedCard[]
-  } catch {}
+  } catch (e) {
+    reportApiError(e, { silent: true })
+  }
 }, { immediate: true })
 
 // Sync logic

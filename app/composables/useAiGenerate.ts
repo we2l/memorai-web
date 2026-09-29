@@ -29,7 +29,7 @@ export function useAiGenerate({ topicId, topicCards, activeTab, onReload }: AiGe
           deck_id: generatingDeckId.value,
           cards: generatedCards.value.map(c => ({ ...c, topic_id: topicId.value })),
         },
-      }).catch(() => {})
+      }).catch((e: unknown) => reportApiError(e, { silent: true }))
       generatedCards.value = []
     }
   }

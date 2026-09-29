@@ -121,8 +121,8 @@ async function fetchMap() {
       mapData.value = res.data
       mapId.value = res.meta.id
     }
-  } catch {
-    // silent
+  } catch (e) {
+    reportApiError(e, { error: 'Não foi possível carregar o mapa mental da nota.' })
   } finally {
     loading.value = false
   }

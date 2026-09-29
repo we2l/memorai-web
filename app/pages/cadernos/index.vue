@@ -941,7 +941,10 @@ async function loadTopicData(id: string) {
         setTimeout(() => { highlightCardId.value = '' }, 3000)
       }, 300)
     }
-  } catch {}
+  } catch (e) {
+    // Selection restore is best-effort (RF-F3b: S)
+    reportApiError(e, { silent: true })
+  }
 }
 
 function openCreate(parentId: string | null) {

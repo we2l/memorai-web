@@ -250,7 +250,9 @@ async function loadTopics() {
   try {
     const res = await $api<any>('/topics')
     topics.value = flattenTopics(res.data)
-  } catch {}
+  } catch (e) {
+    reportApiError(e, { silent: true })
+  }
 }
 
 async function uploadAudio(blob: Blob): Promise<string> {

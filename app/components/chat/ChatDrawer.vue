@@ -33,15 +33,15 @@
               class="p-2.5 rounded-lg text-base-muted hover:text-base-secondary hover:bg-[var(--border-divider)] transition-colors"
               title="Histórico"
               @click="showHistory = !showHistory"
-            >
-              <Clock :size="16" />
+             aria-label="Histórico">
+              <Clock :size="16" aria-hidden="true" />
             </button>
             <button
               class="p-2.5 rounded-lg text-base-muted hover:text-base-secondary hover:bg-[var(--border-divider)] transition-colors"
               title="Nova conversa"
               @click="chat.newConversation()"
-            >
-              <Plus :size="16" />
+             aria-label="Nova conversa">
+              <Plus :size="16" aria-hidden="true" />
             </button>
             <button
               class="p-2.5 rounded-lg text-base-muted hover:text-base-secondary hover:bg-[var(--border-divider)] transition-colors"
@@ -219,6 +219,9 @@ watch(() => chat.messages.length, async () => {
 })
 
 
+
+// Focus trap + scroll lock (RF-F9.2)
+useOverlayA11y(() => chat.isOpen, drawerRef)
 </script>
 
 <style scoped>

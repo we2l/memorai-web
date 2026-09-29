@@ -17,7 +17,7 @@
         class="flex items-center rounded-xl text-small transition-all duration-150"
         :class="[
           collapsed ? 'justify-center px-0 py-2.5' : 'gap-3 px-3 py-2.5',
-          isNavActive(route.path, item.to) ? 'bg-accent-primary-subtle text-[var(--color-accent-soft)] font-medium' + (collapsed ? '' : ' border-l-3 border-l-[var(--color-accent-soft)]') : 'text-base-secondary hover:text-[var(--color-accent-soft)] hover:bg-accent-primary-subtle',
+          isNavActive(route.path, item.to) ? 'bg-accent-primary-subtle text-[var(--badge-primary-text)] font-medium' + (collapsed ? '' : ' border-l-3 border-l-[var(--color-accent-soft)]') : 'text-base-secondary hover:text-[var(--badge-primary-text)] hover:bg-accent-primary-subtle',
         ]"
         :aria-current="isNavActive(route.path, item.to) ? 'page' : undefined"
         :title="collapsed ? item.label : undefined"
@@ -34,7 +34,7 @@
       <button
         @click="toggleMode"
         class="flex items-center rounded-xl text-small transition-all duration-150 w-full"
-        :class="collapsed ? 'justify-center px-0 py-2.5 text-base-muted hover:text-[var(--color-accent-soft)] hover:bg-accent-primary-subtle' : 'gap-3 px-3 py-2.5 text-base-muted hover:text-[var(--color-accent-soft)] hover:bg-accent-primary-subtle'"
+        :class="collapsed ? 'justify-center px-0 py-2.5 text-base-muted hover:text-[var(--badge-primary-text)] hover:bg-accent-primary-subtle' : 'gap-3 px-3 py-2.5 text-base-muted hover:text-[var(--badge-primary-text)] hover:bg-accent-primary-subtle'"
         :title="collapsed ? (colorMode === 'light' ? 'Modo escuro' : 'Modo claro') : undefined"
         :aria-label="collapsed ? (colorMode === 'light' ? 'Modo escuro' : 'Modo claro') : undefined"
       >
@@ -46,7 +46,7 @@
         v-for="item in accountNavOrdered"
         :key="item.to"
         :to="item.to"
-        class="flex items-center rounded-xl text-small text-base-muted hover:text-[var(--color-accent-soft)] hover:bg-accent-primary-subtle transition-all duration-150"
+        class="flex items-center rounded-xl text-small text-base-muted hover:text-[var(--badge-primary-text)] hover:bg-accent-primary-subtle transition-all duration-150"
         :class="collapsed ? 'justify-center px-0 py-2.5' : 'gap-3 px-3 py-2.5'"
         :title="collapsed ? item.label : undefined"
         :aria-label="collapsed ? item.label : undefined"
@@ -57,7 +57,7 @@
       </NuxtLink>
       <button
         @click="handleLogout"
-        class="flex items-center rounded-xl text-small text-danger hover:bg-danger/5 transition-all duration-150 w-full mt-1"
+        class="flex items-center rounded-xl text-small text-[var(--badge-danger-text)] hover:bg-danger/5 transition-all duration-150 w-full mt-1"
         :class="collapsed ? 'justify-center px-0 py-2.5' : 'gap-3 px-3 py-2.5'"
         :title="collapsed ? 'Sair' : undefined"
         :aria-label="collapsed ? 'Sair' : undefined"

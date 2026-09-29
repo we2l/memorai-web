@@ -383,7 +383,7 @@ const contextBadge = computed(() => {
         icon: CalendarClock,
         label: `Prova em ${exam.days_remaining}d`,
         tooltip: `Priorizado porque você tem prova de "${exam.title}" em ${exam.days_remaining} dias`,
-        classes: 'bg-warning/15 text-warning border border-warning/20',
+        classes: 'bg-warning/15 text-[var(--badge-warning-text)] border border-warning/20',
       }
     }
   }

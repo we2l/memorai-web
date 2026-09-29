@@ -13,11 +13,11 @@
         <div class="flex items-center justify-between mb-3">
           <h2 class="text-sm font-semibold text-base-primary">Cadernos</h2>
           <div class="flex items-center gap-1">
-            <button class="p-1 rounded-lg text-base-muted hover:text-base-primary hover:bg-surface-secondary transition-colors lg:hidden" title="Fechar" @click="sidebarOpen = false">
-              <X :size="16" />
+            <button class="p-1 rounded-lg text-base-muted hover:text-base-primary hover:bg-surface-secondary transition-colors lg:hidden" title="Fechar" @click="sidebarOpen = false" aria-label="Fechar">
+              <X :size="16" aria-hidden="true" />
             </button>
-            <button class="p-1 rounded-lg text-base-muted hover:text-base-primary hover:bg-surface-secondary transition-colors max-lg:hidden" title="Recolher painel" @click="sidebarCollapsed = true">
-              <PanelLeftClose :size="16" />
+            <button class="p-1 rounded-lg text-base-muted hover:text-base-primary hover:bg-surface-secondary transition-colors max-lg:hidden" title="Recolher painel" @click="sidebarCollapsed = true" aria-label="Recolher painel">
+              <PanelLeftClose :size="16" aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -58,9 +58,10 @@
             <button
               v-if="searchQuery"
               class="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded text-base-muted hover:text-base-primary"
+              aria-label="Limpar busca"
               @click="searchQuery = ''"
             >
-              <X :size="12" />
+              <X :size="12" aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -191,16 +192,16 @@
                   class="btn-secondary !p-1.5 !min-h-[2.75rem] shrink-0 lg:hidden"
                   title="Ver cadernos"
                   @click="sidebarOpen = true"
-                >
-                  <PanelLeftOpen :size="16" />
+                 aria-label="Ver cadernos">
+                  <PanelLeftOpen :size="16" aria-hidden="true" />
                 </button>
                 <button
                   v-if="sidebarCollapsed"
                   class="btn-secondary !p-1.5 !min-h-[2.75rem] shrink-0 max-lg:hidden"
                   title="Expandir cadernos"
                   @click="sidebarCollapsed = false"
-                >
-                  <PanelLeftOpen :size="16" />
+                 aria-label="Expandir cadernos">
+                  <PanelLeftOpen :size="16" aria-hidden="true" />
                 </button>
                 <div class="min-w-0">
                   <h1 class="font-heading font-bold text-3xl text-base-primary truncate">{{ selectedTopicName }}</h1>
@@ -281,14 +282,14 @@
               <div class="inline-flex rounded-lg border border-base p-0.5 bg-surface-secondary">
                 <button
                   class="px-3 py-1.5 text-small rounded-md transition-colors flex items-center gap-1.5"
-                  :class="mapSubView === 'graph' ? 'bg-[var(--bg-card)] shadow text-[var(--color-accent-soft)] font-medium' : 'text-base-muted hover:text-base-primary'"
+                  :class="mapSubView === 'graph' ? 'bg-[var(--bg-card)] shadow text-[var(--badge-primary-text)] font-medium' : 'text-base-muted hover:text-base-primary'"
                   @click="mapSubView = 'graph'"
                 >
                   <Link2 :size="14" /> Cadernos
                 </button>
                 <button
                   class="px-3 py-1.5 text-small rounded-md transition-colors flex items-center gap-1.5"
-                  :class="mapSubView === 'mindmap' ? 'bg-[var(--bg-card)] shadow text-[var(--color-accent-soft)] font-medium' : 'text-base-muted hover:text-base-primary'"
+                  :class="mapSubView === 'mindmap' ? 'bg-[var(--bg-card)] shadow text-[var(--badge-primary-text)] font-medium' : 'text-base-muted hover:text-base-primary'"
                   @click="mapSubView = 'mindmap'"
                 >
                   <Brain :size="14" /> Mapa Mental

@@ -155,9 +155,9 @@ function pct(count: number) {
 
 function retentionColor(val: number | null) {
   if (val == null) return 'text-base-muted'
-  if (val >= 80) return 'text-success'
-  if (val >= 60) return 'text-warning'
-  return 'text-danger'
+  if (val >= 80) return 'text-[var(--badge-success-text)]'
+  if (val >= 60) return 'text-[var(--badge-warning-text)]'
+  return 'text-[var(--badge-danger-text)]'
 }
 
 const heatmapDays = computed(() => {

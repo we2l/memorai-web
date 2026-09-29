@@ -31,7 +31,7 @@
         <!-- Atalhos de teclado -->
         <section>
           <h2 class="font-heading font-semibold text-xl text-base-primary mb-4 flex items-center gap-2">
-            <Keyboard :size="20" class="text-[var(--color-accent-soft)]" />
+            <Keyboard :size="20" class="text-[var(--badge-primary-text)]" />
             Atalhos de teclado
           </h2>
           <div class="card-base overflow-hidden">
@@ -63,12 +63,12 @@
         <!-- Dicas rápidas -->
         <section>
           <h2 class="font-heading font-semibold text-xl text-base-primary mb-4 flex items-center gap-2">
-            <Lightbulb :size="20" class="text-[var(--color-accent-soft)]" />
+            <Lightbulb :size="20" class="text-[var(--badge-primary-text)]" />
             Dicas rápidas
           </h2>
           <div class="grid gap-3">
             <div v-for="tip in tips" :key="tip.title" class="card-base p-4 flex gap-3">
-              <component :is="tip.icon" :size="20" class="text-[var(--color-accent-soft)] shrink-0 mt-0.5" />
+              <component :is="tip.icon" :size="20" class="text-[var(--badge-primary-text)] shrink-0 mt-0.5" />
               <div>
                 <p class="font-medium text-[var(--text-heading)] text-sm">{{ tip.title }}</p>
                 <p class="text-[var(--text-muted)] text-sm mt-0.5">{{ tip.description }}</p>
@@ -80,7 +80,7 @@
         <!-- Editor -->
         <section>
           <h2 class="font-heading font-semibold text-xl text-base-primary mb-4 flex items-center gap-2">
-            <PenTool :size="20" class="text-[var(--color-accent-soft)]" />
+            <PenTool :size="20" class="text-[var(--badge-primary-text)]" />
             Editor de notas
           </h2>
           <div class="card-base overflow-hidden">
@@ -94,7 +94,7 @@
               <tbody>
                 <tr v-for="cmd in editorCommands" :key="cmd.command" class="border-b border-[var(--border-divider)] last:border-0">
                   <td class="px-5 py-3">
-                    <code class="px-2 py-0.5 text-xs bg-[var(--bg-soft)] text-[var(--color-accent-soft)] rounded">{{ cmd.command }}</code>
+                    <code class="px-2 py-0.5 text-xs bg-[var(--bg-soft)] text-[var(--badge-primary-text)] rounded">{{ cmd.command }}</code>
                   </td>
                   <td class="px-5 py-3 text-[var(--text-body)]">{{ cmd.description }}</td>
                 </tr>
@@ -106,7 +106,7 @@
         <!-- Suporte -->
         <section>
           <h2 class="font-heading font-semibold text-xl text-base-primary mb-4 flex items-center gap-2">
-            <MessageCircle :size="20" class="text-[var(--color-accent-soft)]" />
+            <MessageCircle :size="20" class="text-[var(--badge-primary-text)]" />
             Suporte
           </h2>
           <div class="card-base p-5">

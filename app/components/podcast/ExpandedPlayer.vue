@@ -1,7 +1,7 @@
 <template>
   <Teleport to="body">
     <Transition name="slide-up">
-      <div v-if="player.expanded && player.currentPodcast" class="fixed inset-0 z-50 bg-surface flex flex-col">
+      <div v-if="player.expanded && player.currentPodcast" ref="overlayRoot" role="dialog" aria-modal="true" aria-label="Player do podcast" class="fixed inset-0 z-50 bg-surface flex flex-col">
         <!-- Header -->
         <div class="flex items-center justify-between px-4 py-3">
           <div class="w-10" />
@@ -292,6 +292,10 @@ function onSeek(e: Event) {
 function formatDate(date: string): string {
   return new Date(date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' })
 }
+
+// Focus trap + scroll lock (RF-F9.2)
+const overlayRoot = ref<HTMLElement | null>(null)
+useOverlayA11y(() => player.expanded && !!player.currentPodcast, overlayRoot)
 </script>
 
 <style scoped>

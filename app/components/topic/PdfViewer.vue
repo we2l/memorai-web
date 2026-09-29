@@ -15,7 +15,7 @@
           <p class="text-base-muted">Carregando PDF...</p>
         </div>
         <div v-if="error" class="flex items-center justify-center h-full">
-          <p class="text-danger text-small">{{ error }}</p>
+          <p class="text-[var(--badge-danger-text)] text-small">{{ error }}</p>
         </div>
         <div
           v-for="page in renderedPages"

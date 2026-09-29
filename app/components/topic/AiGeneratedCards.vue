@@ -8,7 +8,7 @@
   <!-- Cards for review -->
   <div v-else-if="cards.length" class="mb-4">
     <div class="flex items-center justify-between mb-3">
-      <p class="text-small text-accent-primary font-medium"><Sparkles :size="14" class="inline text-[var(--color-accent-soft)]" /> {{ cards.length }} cards gerados — revise antes de aceitar</p>
+      <p class="text-small text-accent-primary font-medium"><Sparkles :size="14" class="inline text-[var(--badge-primary-text)]" /> {{ cards.length }} cards gerados — revise antes de aceitar</p>
       <button class="btn-primary !py-2 !px-3.5 !min-h-[2.75rem] text-small" @click="$emit('accept-all')">
         Aceitar todos
       </button>
@@ -33,7 +33,7 @@
         <div class="flex items-center gap-2 mt-2 pt-2 border-t border-base">
           <button class="btn-primary !py-1.5 !px-3 !min-h-0 text-small" @click="$emit('accept', i)">✓ Aceitar</button>
           <button class="btn-secondary !py-1.5 !px-3 !min-h-0 text-small" @click="$emit('edit', i)"><PenLine :size="12" class="inline" /> Editar</button>
-          <button class="btn-secondary !py-1.5 !px-3 !min-h-0 text-small text-danger" @click="$emit('discard', i)"><X :size="12" class="inline" /> Descartar</button>
+          <button class="btn-secondary !py-1.5 !px-3 !min-h-0 text-small text-[var(--badge-danger-text)]" @click="$emit('discard', i)"><X :size="12" class="inline" /> Descartar</button>
         </div>
       </div>
     </div>

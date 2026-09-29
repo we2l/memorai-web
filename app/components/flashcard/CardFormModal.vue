@@ -11,7 +11,7 @@
           class="w-full mb-4 px-3 py-2.5 rounded-lg bg-accent-primary-subtle/50 flex items-center gap-2 text-left hover:bg-accent-primary-subtle transition-colors"
           @click="openUpgrade"
         >
-          <Lightbulb :size="14" class="text-[var(--color-accent-soft)]" />
+          <Lightbulb :size="14" class="text-[var(--badge-primary-text)]" />
           <p class="text-small text-accent-primary flex-1">A IA pode criar cards automaticamente</p>
           <span class="text-micro text-accent-primary font-medium">Pro →</span>
         </button>

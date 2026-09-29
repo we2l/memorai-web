@@ -21,8 +21,8 @@
       class="shrink-0 p-1 rounded-md opacity-60 hover:opacity-100 transition-opacity"
       title="Fechar"
       @click="dismiss"
-    >
-      <X :size="14" />
+     aria-label="Fechar">
+      <X :size="14" aria-hidden="true" />
     </button>
   </div>
 </template>

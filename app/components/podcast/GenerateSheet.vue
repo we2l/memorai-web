@@ -6,7 +6,7 @@
     <!-- Topic selector (only when no topicId prop) -->
     <div v-if="!topicId" class="mb-5">
       <div class="flex items-center gap-1.5 mb-2">
-        <p class="text-small font-medium text-base-primary">Caderno <span class="text-danger">*</span></p>
+        <p class="text-small font-medium text-base-primary">Caderno <span class="text-[var(--badge-danger-text)]">*</span></p>
         <UiTooltip text="Só aparecem cadernos com pelo menos 5 cards revisados. Revise mais cards pra desbloquear os outros.">
           <span class="w-4 h-4 rounded-full bg-[var(--border-divider)] text-base-muted flex items-center justify-center text-micro cursor-help">?</span>
         </UiTooltip>
@@ -81,7 +81,7 @@
             class="px-3 py-1.5 rounded-full text-small border transition-all"
             :class="[
               tone === t.value
-                ? 'border-[var(--color-accent-soft)] bg-[var(--color-accent-soft)]/10 text-[var(--color-accent-soft)]'
+                ? 'border-[var(--color-accent-soft)] bg-[var(--color-accent-soft)]/10 text-[var(--badge-primary-text)]'
                 : 'border-base text-base-muted bg-[var(--bg-card)] hover:bg-[var(--bg-soft)] hover:border-[var(--color-accent-soft)]/40 hover:text-base-primary',
               isFree && t.value !== 'conversational' ? 'opacity-60' : '',
             ]"
@@ -109,8 +109,8 @@
             ]"
             @click="isFree && f.value !== 'expository' ? openUpgrade() : (format = f.value)"
           >
-            <component :is="f.icon" :size="24" class="mx-auto mb-1" :class="format === f.value ? 'text-[var(--color-accent-soft)]' : 'text-base-muted'" />
-            <p class="text-small" :class="format === f.value ? 'text-[var(--color-accent-soft)]' : 'text-base-muted'">{{ f.label }}</p>
+            <component :is="f.icon" :size="24" class="mx-auto mb-1" :class="format === f.value ? 'text-[var(--badge-primary-text)]' : 'text-base-muted'" />
+            <p class="text-small" :class="format === f.value ? 'text-[var(--badge-primary-text)]' : 'text-base-muted'">{{ f.label }}</p>
             <span v-if="isFree && f.value !== 'expository'" class="text-micro text-accent-primary"><Lock :size="10" class="inline" /> Pro</span>
           </button>
         </div>

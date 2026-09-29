@@ -18,11 +18,11 @@
           </button>
           <span v-if="doc.pages_count" class="text-micro text-base-muted shrink-0">{{ doc.pages_count }} pág</span>
           <button
-            class="p-1.5 rounded-lg text-base-muted hover:text-danger hover:bg-danger/10 transition-colors shrink-0"
+            class="p-1.5 rounded-lg text-base-muted hover:text-[var(--badge-danger-text)] hover:bg-danger/10 transition-colors shrink-0"
             title="Remover PDF"
             @click="confirmDelete(doc)"
-          >
-            <Trash2 :size="14" />
+           aria-label="Remover PDF">
+            <Trash2 :size="14" aria-hidden="true" />
           </button>
         </div>
 
@@ -48,16 +48,16 @@
 
           <!-- Failed -->
           <div v-else-if="doc.note_generation_status === 'failed'" class="flex items-center gap-2 text-small">
-            <XCircle :size="14" class="text-danger shrink-0" />
-            <span class="text-danger">Falhou.</span>
+            <XCircle :size="14" class="text-[var(--badge-danger-text)] shrink-0" />
+            <span class="text-[var(--badge-danger-text)]">Falhou.</span>
             <button class="text-accent-primary hover:underline" @click="openGenerateNote(doc)">Tentar novamente</button>
           </div>
 
           <!-- Completed: resumo pronto -->
           <div v-else-if="doc.has_generated_note">
             <div class="flex items-center gap-2 flex-wrap">
-              <CheckCircle :size="14" class="text-success shrink-0" />
-              <span class="text-small text-success font-medium">Resumo pronto</span>
+              <CheckCircle :size="14" class="text-[var(--badge-success-text)] shrink-0" />
+              <span class="text-small text-[var(--badge-success-text)] font-medium">Resumo pronto</span>
               <span v-if="doc.processed_pages && doc.pages_count && doc.processed_pages < doc.pages_count" class="text-micro text-base-muted">
                 ({{ doc.processed_pages }}/{{ doc.pages_count }} pág)
               </span>
@@ -187,7 +187,7 @@
       class="w-full mt-3 px-4 py-3 rounded-xl bg-accent-primary-subtle border border-accent-primary/20 flex items-center gap-3 text-left hover:bg-accent-primary/10 transition-colors"
       @click="openUpgrade"
     >
-      <Sparkles :size="16" class="text-[var(--color-accent-soft)]" />
+      <Sparkles :size="16" class="text-[var(--badge-primary-text)]" />
       <div class="flex-1">
         <p class="text-small font-medium text-accent-primary">Gerar cards</p>
         <p class="text-micro text-base-muted">Sua cota acabou este mês</p>
@@ -198,7 +198,7 @@
     <!-- Success banner after note generation -->
     <div v-if="completedDoc" class="mt-3 p-4 rounded-xl bg-accent-primary-subtle/50 border border-[var(--color-accent-primary)]/10">
       <div class="flex items-center gap-2 mb-2">
-        <CheckCircle :size="16" class="text-success" />
+        <CheckCircle :size="16" class="text-[var(--badge-success-text)]" />
         <p class="text-body font-semibold text-base-primary">Resumo pronto!</p>
       </div>
       <p v-if="completedDoc.note_stats" class="text-small text-base-secondary mb-3">

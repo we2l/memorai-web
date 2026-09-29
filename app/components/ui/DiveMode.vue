@@ -58,7 +58,7 @@
       <span v-if="dive.externalCountdown.value != null" class="font-mono text-sm text-accent-primary">
         {{ dive.formatElapsed(dive.externalCountdown.value) }}
       </span>
-      <span v-else class="font-mono text-sm text-[var(--color-accent-soft)]">{{ dive.formatElapsed(dive.elapsed.value) }}</span>
+      <span v-else class="font-mono text-sm text-[var(--badge-primary-text)]">{{ dive.formatElapsed(dive.elapsed.value) }}</span>
     </div>
     <button class="dive-exit" @click="exitDive">
       Emergir

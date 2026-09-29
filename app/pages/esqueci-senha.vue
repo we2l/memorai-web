@@ -26,7 +26,7 @@
           :aria-invalid="!!error"
           :aria-describedby="error ? 'email-error' : undefined"
         />
-        <p v-if="error" id="email-error" role="alert" class="text-danger text-micro mt-1">{{ error }}</p>
+        <p v-if="error" id="email-error" role="alert" class="text-[var(--badge-danger-text)] text-micro mt-1">{{ error }}</p>
       </div>
 
       <button type="submit" class="btn-primary w-full mt-2" :disabled="loading">

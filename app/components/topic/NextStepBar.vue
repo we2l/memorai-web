@@ -4,15 +4,15 @@
       <!-- Improve -->
       <template v-if="step === 'improve'">
         <div class="flex items-center gap-2 flex-1 min-w-0">
-          <Sparkles :size="16" class="text-[var(--color-accent-soft)] shrink-0" />
+          <Sparkles :size="16" class="text-[var(--badge-primary-text)] shrink-0" />
           <p class="text-small text-base-primary truncate">💡 {{ copyText }}</p>
         </div>
         <div class="flex items-center gap-2 shrink-0">
           <button class="btn-primary !py-1.5 !px-3 !min-h-0 text-small" @click="$emit('improve')">
             Estruturar nota
           </button>
-          <button class="p-1 rounded text-base-muted hover:text-base-primary transition-colors" @click="$emit('dismiss')" title="Dispensar">
-            <X :size="14" />
+          <button class="p-1 rounded text-base-muted hover:text-base-primary transition-colors" @click="$emit('dismiss')" title="Dispensar" aria-label="Dispensar">
+            <X :size="14" aria-hidden="true" />
           </button>
         </div>
       </template>
@@ -20,15 +20,15 @@
       <!-- Cards -->
       <template v-else-if="step === 'cards'">
         <div class="flex items-center gap-2 flex-1 min-w-0">
-          <Sparkles :size="16" class="text-[var(--color-accent-soft)] shrink-0" />
+          <Sparkles :size="16" class="text-[var(--badge-primary-text)] shrink-0" />
           <p class="text-small text-base-primary truncate">💡 {{ copyText }}</p>
         </div>
         <div class="flex items-center gap-2 shrink-0">
           <button class="btn-primary !py-1.5 !px-3 !min-h-0 text-small" @click="$emit('generate-cards')">
             Gerar cards
           </button>
-          <button class="p-1 rounded text-base-muted hover:text-base-primary transition-colors" @click="$emit('dismiss')" title="Dispensar">
-            <X :size="14" />
+          <button class="p-1 rounded text-base-muted hover:text-base-primary transition-colors" @click="$emit('dismiss')" title="Dispensar" aria-label="Dispensar">
+            <X :size="14" aria-hidden="true" />
           </button>
         </div>
       </template>
@@ -36,15 +36,15 @@
       <!-- Review -->
       <template v-else-if="step === 'review'">
         <div class="flex items-center gap-2 flex-1 min-w-0">
-          <Sparkles :size="16" class="text-[var(--color-accent-soft)] shrink-0" />
+          <Sparkles :size="16" class="text-[var(--badge-primary-text)] shrink-0" />
           <p class="text-small text-base-primary truncate">💡 {{ copyText }}</p>
         </div>
         <div class="flex items-center gap-2 shrink-0">
           <button class="btn-primary !py-1.5 !px-3 !min-h-0 text-small" @click="$emit('review')">
             Revisar agora
           </button>
-          <button class="p-1 rounded text-base-muted hover:text-base-primary transition-colors" @click="$emit('dismiss')" title="Dispensar">
-            <X :size="14" />
+          <button class="p-1 rounded text-base-muted hover:text-base-primary transition-colors" @click="$emit('dismiss')" title="Dispensar" aria-label="Dispensar">
+            <X :size="14" aria-hidden="true" />
           </button>
         </div>
       </template>

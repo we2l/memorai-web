@@ -23,6 +23,8 @@ const props = defineProps<{
 }>()
 
 const show = ref(false)
+// No confetti for people who asked the OS for less motion (RF-F9.4)
+const reducedMotion = useReducedMotion()
 
 const colors = [
   '#6F3FF5', // accent
@@ -34,7 +36,7 @@ const colors = [
 ]
 
 watch(() => props.trigger, (val) => {
-  if (val) {
+  if (val && !reducedMotion.value) {
     show.value = true
     setTimeout(() => {
       show.value = false

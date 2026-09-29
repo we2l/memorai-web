@@ -11,7 +11,7 @@
 
       <!-- Pro active -->
       <template v-else-if="state === 'active'">
-        <CheckCircle2 :size="40" class="mx-auto mb-4 text-success" aria-hidden="true" />
+        <CheckCircle2 :size="40" class="mx-auto mb-4 text-[var(--badge-success-text)]" aria-hidden="true" />
         <h1 class="text-headline mb-2">Pro ativado até {{ formatBillingDate(session?.plan_expires_at) }}</h1>
         <p class="text-small text-base-muted mb-6">Obrigado! Enviamos o recibo para o seu e-mail.</p>
         <NuxtLink to="/hoje" class="btn-primary w-full justify-center">Ir para Hoje</NuxtLink>
@@ -55,7 +55,7 @@
 
       <!-- Pix expired -->
       <template v-else-if="state === 'expired'">
-        <Clock :size="36" class="mx-auto mb-4 text-warning" aria-hidden="true" />
+        <Clock :size="36" class="mx-auto mb-4 text-[var(--badge-warning-text)]" aria-hidden="true" />
         <h1 class="text-headline mb-2">O código Pix expirou</h1>
         <p class="text-small text-base-muted mb-6">Nada foi cobrado. Gere um novo código para concluir.</p>
         <button class="btn-primary w-full justify-center" :disabled="restarting" @click="newPix">
@@ -65,7 +65,7 @@
 
       <!-- Not found / error -->
       <template v-else>
-        <AlertCircle :size="36" class="mx-auto mb-4 text-danger" aria-hidden="true" />
+        <AlertCircle :size="36" class="mx-auto mb-4 text-[var(--badge-danger-text)]" aria-hidden="true" />
         <h1 class="text-headline mb-2">Não encontramos este pagamento</h1>
         <p class="text-small text-base-muted mb-6">Se você já pagou, o Pro aparece em instantes na sua conta.</p>
         <NuxtLink to="/planos" class="btn-secondary w-full justify-center">Voltar para os planos</NuxtLink>

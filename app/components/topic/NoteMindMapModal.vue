@@ -1,7 +1,7 @@
 <template>
   <UiModal v-model="modelValue" size="lg">
     <div class="flex items-center justify-between mb-4">
-      <h2 class="text-headline inline-flex items-center gap-2"><Brain :size="20" class="text-[var(--color-accent-soft)]" /> Mapa Mental</h2>
+      <h2 class="text-headline inline-flex items-center gap-2"><Brain :size="20" class="text-[var(--badge-primary-text)]" /> Mapa Mental</h2>
       <span v-if="noteTitle" class="text-small text-base-muted truncate max-w-[200px]">{{ noteTitle }}</span>
     </div>
 
@@ -24,7 +24,7 @@
     <!-- No map, Pro user -->
     <div v-else-if="!mapData && canGenerate && !generating" class="flex flex-col items-center justify-center h-64 gap-3 text-center">
       <div class="w-14 h-14 rounded-2xl bg-accent-primary-subtle flex items-center justify-center">
-        <Brain :size="28" class="text-[var(--color-accent-soft)]" />
+        <Brain :size="28" class="text-[var(--badge-primary-text)]" />
       </div>
       <p class="text-body text-base-secondary">Extraia conceitos, definições e exemplos desta nota em um mapa mental</p>
       <button class="btn-primary !py-2 !px-4 text-small" @click="generate">

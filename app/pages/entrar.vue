@@ -46,7 +46,7 @@
           :aria-invalid="!!errors.email"
           :aria-describedby="errors.email ? 'email-error' : undefined"
         />
-        <p v-if="errors.email" id="email-error" role="alert" class="text-danger text-micro mt-1">{{ errors.email }}</p>
+        <p v-if="errors.email" id="email-error" role="alert" class="text-[var(--badge-danger-text)] text-micro mt-1">{{ errors.email }}</p>
       </div>
 
       <div>
@@ -60,7 +60,7 @@
           :aria-invalid="!!errors.password"
           :aria-describedby="errors.password ? 'password-error' : undefined"
         />
-        <p v-if="errors.password" id="password-error" role="alert" class="text-danger text-micro mt-1">{{ errors.password }}</p>
+        <p v-if="errors.password" id="password-error" role="alert" class="text-[var(--badge-danger-text)] text-micro mt-1">{{ errors.password }}</p>
         <div class="flex justify-end mt-2">
           <NuxtLink to="/esqueci-senha" class="text-accent-primary text-micro hover:underline">Esqueci minha senha</NuxtLink>
         </div>
@@ -70,7 +70,7 @@
         {{ loading ? 'Entrando...' : 'Entrar' }}
       </button>
 
-      <p v-if="errors.general" role="alert" class="text-danger text-small text-center">{{ errors.general }}</p>
+      <p v-if="errors.general" role="alert" class="text-[var(--badge-danger-text)] text-small text-center">{{ errors.general }}</p>
     </form>
 
     <p class="text-base-muted text-small text-center mt-6">

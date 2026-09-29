@@ -3,15 +3,15 @@
     <!-- Idle: suggestion -->
     <template v-if="state === 'idle'">
       <div class="flex items-center gap-2 flex-1 min-w-0">
-        <Sparkles :size="16" class="text-[var(--color-accent-soft)] shrink-0" />
+        <Sparkles :size="16" class="text-[var(--badge-primary-text)] shrink-0" />
         <p class="text-small text-base-primary truncate">Essa nota pode ficar mais organizada</p>
       </div>
       <div class="flex items-center gap-2 shrink-0">
         <button class="btn-primary !py-1.5 !px-3 !min-h-0 text-small" @click="$emit('improve')">
           Melhorar com IA
         </button>
-        <button class="p-1 rounded text-base-muted hover:text-base-primary" @click="$emit('dismiss')">
-          <X :size="14" />
+        <button class="p-1 rounded text-base-muted hover:text-base-primary" aria-label="Dispensar sugestão" @click="$emit('dismiss')">
+          <X :size="14" aria-hidden="true" />
         </button>
       </div>
     </template>
@@ -19,7 +19,7 @@
     <!-- Loading -->
     <template v-if="state === 'loading'">
       <div class="flex items-center gap-2 flex-1">
-        <Loader2 :size="16" class="text-[var(--color-accent-soft)] animate-spin shrink-0" />
+        <Loader2 :size="16" class="text-[var(--badge-primary-text)] animate-spin shrink-0" />
         <p class="text-small text-base-primary">Gerando nota melhorada...</p>
       </div>
     </template>
@@ -27,7 +27,7 @@
     <!-- Preview -->
     <template v-if="state === 'preview'">
       <div class="flex items-center gap-2 flex-1 min-w-0">
-        <Sparkles :size="16" class="text-[var(--color-accent-soft)] shrink-0" />
+        <Sparkles :size="16" class="text-[var(--badge-primary-text)] shrink-0" />
         <p class="text-small text-base-primary">Nota melhorada!</p>
       </div>
       <div class="flex items-center gap-2 shrink-0">
@@ -43,7 +43,7 @@
     <!-- Paywall -->
     <template v-if="state === 'paywall'">
       <div class="flex items-center gap-2 flex-1 min-w-0">
-        <Sparkles :size="16" class="text-[var(--color-accent-soft)] shrink-0" />
+        <Sparkles :size="16" class="text-[var(--badge-primary-text)] shrink-0" />
         <p class="text-small text-base-primary">Melhore suas notas com IA</p>
       </div>
       <NuxtLink to="/planos" class="btn-primary !py-1.5 !px-3 !min-h-0 text-small shrink-0">

@@ -38,7 +38,7 @@
           :aria-invalid="!!errors.name"
           :aria-describedby="errors.name ? 'name-error' : undefined"
         />
-        <p v-if="errors.name" id="name-error" role="alert" class="text-danger text-micro mt-1">{{ errors.name }}</p>
+        <p v-if="errors.name" id="name-error" role="alert" class="text-[var(--badge-danger-text)] text-micro mt-1">{{ errors.name }}</p>
       </div>
 
       <div>
@@ -52,7 +52,7 @@
           :aria-invalid="!!errors.email"
           :aria-describedby="errors.email ? 'email-error' : undefined"
         />
-        <p v-if="errors.email" id="email-error" role="alert" class="text-danger text-micro mt-1">{{ errors.email }}</p>
+        <p v-if="errors.email" id="email-error" role="alert" class="text-[var(--badge-danger-text)] text-micro mt-1">{{ errors.email }}</p>
       </div>
 
       <div>
@@ -66,7 +66,7 @@
           :aria-invalid="!!errors.password"
           :aria-describedby="errors.password ? 'password-error' : undefined"
         />
-        <p v-if="errors.password" id="password-error" role="alert" class="text-danger text-micro mt-1">{{ errors.password }}</p>
+        <p v-if="errors.password" id="password-error" role="alert" class="text-[var(--badge-danger-text)] text-micro mt-1">{{ errors.password }}</p>
       </div>
 
       <div>
@@ -102,7 +102,7 @@
         {{ loading ? 'Criando...' : 'Criar conta' }}
       </button>
 
-      <p v-if="errors.general" role="alert" class="text-danger text-small text-center">{{ errors.general }}</p>
+      <p v-if="errors.general" role="alert" class="text-[var(--badge-danger-text)] text-small text-center">{{ errors.general }}</p>
     </form>
 
     <p class="text-base-muted text-small text-center mt-6">

@@ -4,7 +4,7 @@
       class="subpage-card cursor-pointer hover:border-[var(--color-accent-primary)]/40 hover:bg-[var(--color-primary-50)]"
       @click="handleClick"
     >
-      <FolderOpen :size="16" class="shrink-0 text-[var(--color-accent-soft)]" />
+      <FolderOpen :size="16" class="shrink-0 text-[var(--badge-primary-text)]" />
       <span class="flex-1 truncate text-body font-medium text-base-primary">
         {{ displayName }}
       </span>

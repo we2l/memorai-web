@@ -4,10 +4,11 @@
       type="button"
       class="w-7 h-7 rounded-full flex items-center justify-center transition-colors shrink-0"
       :class="playing ? 'bg-danger text-base-primary' : 'bg-accent-primary-subtle text-accent-primary'"
+      :aria-label="playing ? 'Pausar áudio' : 'Tocar áudio'"
       @click="toggle"
     >
-      <Pause v-if="playing" :size="14" />
-      <Play v-else :size="14" class="ml-0.5" />
+      <Pause v-if="playing" :size="14" aria-hidden="true" />
+      <Play v-else :size="14" class="ml-0.5" aria-hidden="true" />
     </button>
     <div class="flex-1 flex items-center gap-2 min-w-0">
       <div
@@ -24,10 +25,11 @@
     <button
       v-if="removable"
       type="button"
-      class="p-0.5 text-base-muted hover:text-danger transition-colors"
+      class="p-0.5 text-base-muted hover:text-[var(--badge-danger-text)] transition-colors"
+      aria-label="Remover áudio"
       @click="$emit('remove')"
     >
-      <X :size="12" />
+      <X :size="12" aria-hidden="true" />
     </button>
   </div>
 </template>

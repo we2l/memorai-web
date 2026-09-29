@@ -4,7 +4,7 @@
     <div class="flex items-center gap-2 mb-3 flex-wrap">
       <button
         class="btn-secondary !py-1.5 !px-3 !min-h-0 text-small"
-        :class="showOnlyWeak && 'bg-danger/10 text-danger border-danger/30'"
+        :class="showOnlyWeak && 'bg-danger/10 text-[var(--badge-danger-text)] border-danger/30'"
         :disabled="!graphStore.data?.nodes.length"
         @click="showOnlyWeak = !showOnlyWeak"
       >
@@ -25,8 +25,8 @@
         class="btn-secondary !py-1.5 !px-3 !min-h-0 text-small ml-auto"
         title="Expandir"
         @click="$emit('expand')"
-      >
-        <Maximize2 :size="14" />
+       aria-label="Expandir">
+        <Maximize2 :size="14" aria-hidden="true" />
       </button>
     </div>
 
@@ -52,8 +52,8 @@
         class="absolute bottom-3 right-3 p-2 rounded-lg bg-[var(--bg-card)] border border-base shadow text-base-muted hover:text-base-primary transition-colors"
         title="Recentralizar"
         @click="recenter"
-      >
-        <Maximize2 :size="16" />
+       aria-label="Recentralizar">
+        <Maximize2 :size="16" aria-hidden="true" />
       </button>
     </div>
 
@@ -61,8 +61,8 @@
     <div v-if="graphStore.selectedNode" class="mt-3 p-3 rounded-xl bg-[var(--bg-card)] border border-base">
       <div class="flex items-center justify-between mb-2">
         <h3 class="text-body font-medium truncate">{{ graphStore.selectedNode.name }}</h3>
-        <button class="p-1 rounded hover:bg-surface-secondary" @click="graphStore.clearSelection()">
-          <X :size="14" class="text-base-muted" />
+        <button class="p-1 rounded hover:bg-surface-secondary" aria-label="Fechar detalhes" @click="graphStore.clearSelection()">
+          <X :size="14" class="text-base-muted" aria-hidden="true" />
         </button>
       </div>
       <div class="flex items-center gap-2 mb-2">

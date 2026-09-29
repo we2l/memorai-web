@@ -6,7 +6,7 @@
         <p class="text-base-muted">Conectando com Google...</p>
       </template>
       <template v-else>
-        <p role="alert" class="text-danger text-small mb-4">{{ error }}</p>
+        <p role="alert" class="text-[var(--badge-danger-text)] text-small mb-4">{{ error }}</p>
         <NuxtLink to="/entrar" class="btn-secondary inline-block">Voltar para entrar</NuxtLink>
       </template>
     </div>

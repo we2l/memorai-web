@@ -8,7 +8,7 @@
     <!-- Empty state: < 3 notes -->
     <div v-else-if="meta?.min_notes_required" class="flex-1 flex flex-col items-center justify-center gap-3 text-center">
       <div class="w-14 h-14 rounded-2xl bg-accent-primary-subtle flex items-center justify-center">
-        <Brain :size="28" class="text-[var(--color-accent-soft)]" />
+        <Brain :size="28" class="text-[var(--badge-primary-text)]" />
       </div>
       <p class="text-body text-base-secondary">Adicione pelo menos 3 notas com conteúdo para ver o mapa mental</p>
       <button class="btn-primary !py-2 !px-4 text-small" @click="$emit('create-note')">
@@ -74,7 +74,7 @@
         <template v-else-if="!aiMap && !generating">
           <div class="flex-1 flex flex-col items-center justify-center gap-3 text-center">
             <div class="w-14 h-14 rounded-2xl bg-accent-primary-subtle flex items-center justify-center">
-              <Brain :size="28" class="text-[var(--color-accent-soft)]" />
+              <Brain :size="28" class="text-[var(--badge-primary-text)]" />
             </div>
             <p class="text-body text-base-secondary">Gere um mapa mental detalhado com conceitos, definições e exemplos extraídos por IA</p>
             <button class="btn-primary !py-2 !px-4 text-small" @click="generateAiMap">

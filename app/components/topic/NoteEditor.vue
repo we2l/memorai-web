@@ -14,7 +14,7 @@
         :class="{ active: btn.active?.() }"
         :title="btn.label"
         @mousedown.prevent="btn.action"
-      >
+       :aria-label="btn.label">
         <component :is="btn.icon" :size="16" />
       </button>
       <span class="bubble-separator" />

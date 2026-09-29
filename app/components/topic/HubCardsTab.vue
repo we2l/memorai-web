@@ -126,15 +126,15 @@
               class="p-1.5 rounded text-base-muted hover:text-accent-primary transition-colors"
               title="Editar card"
               @click="$emit('edit-card', card)"
-            >
-              <Pencil :size="14" />
+             aria-label="Editar card">
+              <Pencil :size="14" aria-hidden="true" />
             </button>
             <button
-              class="p-1.5 rounded text-base-muted hover:text-danger transition-colors"
+              class="p-1.5 rounded text-base-muted hover:text-[var(--badge-danger-text)] transition-colors"
               title="Excluir card"
               @click="$emit('delete-card', card.id)"
-            >
-              <Trash2 :size="14" />
+             aria-label="Excluir card">
+              <Trash2 :size="14" aria-hidden="true" />
             </button>
           </div>
         </div>

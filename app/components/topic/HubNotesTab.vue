@@ -85,11 +85,11 @@
 
           <!-- Delete button (hover only) -->
           <button
-            class="absolute top-4 right-4 p-1.5 rounded-lg text-base-muted/40 hover:text-danger hover:bg-danger/10 opacity-0 group-hover:opacity-100 transition-all duration-150 z-10"
+            class="absolute top-4 right-4 p-1.5 rounded-lg text-base-muted/40 hover:text-[var(--badge-danger-text)] hover:bg-danger/10 opacity-0 group-hover:opacity-100 transition-all duration-150 z-10"
             title="Excluir nota"
             @click.stop="noteToDelete = note"
-          >
-            <Trash2 :size="14" />
+           aria-label="Excluir nota">
+            <Trash2 :size="14" aria-hidden="true" />
           </button>
         </div>
 
@@ -114,8 +114,8 @@
             class="p-1.5 rounded-lg text-base-muted hover:text-base-primary hover:bg-surface-secondary transition-colors"
             title="Voltar"
             @click="$emit('close-editor')"
-          >
-            <ArrowLeft :size="16" />
+           aria-label="Voltar">
+            <ArrowLeft :size="16" aria-hidden="true" />
           </button>
           <nav class="flex items-center gap-1 text-small text-base-muted min-w-0">
             <span class="truncate max-w-[120px]">{{ breadcrumbTopic }}</span>
@@ -139,17 +139,17 @@
               class="p-1.5 rounded-lg text-base-muted hover:text-base-primary hover:bg-surface-secondary transition-colors"
               title="Mais opções"
               @click="showMenu = !showMenu"
-            >
-              <MoreHorizontal :size="16" />
+             aria-label="Mais opções">
+              <MoreHorizontal :size="16" aria-hidden="true" />
             </button>
             <div v-if="showMenu" class="absolute right-0 top-full mt-1 w-48 bg-[var(--bg-card)] border border-base rounded-xl shadow-lg py-1 z-30">
               <button class="w-full text-left px-3 py-2 text-small text-base-primary hover:bg-surface-secondary transition-colors flex items-center gap-2" @click="showMenu = false; $emit('improve-note')">
-                <Sparkles :size="14" class="text-[var(--color-accent-soft)]" /> Melhorar com IA
+                <Sparkles :size="14" class="text-[var(--badge-primary-text)]" /> Melhorar com IA
               </button>
               <button class="w-full text-left px-3 py-2 text-small text-base-primary hover:bg-surface-secondary transition-colors flex items-center gap-2" @click="showMenu = false; $emit('generate-from-note')">
-                <Zap :size="14" class="text-[var(--color-accent-soft)]" /> Gerar cards
+                <Zap :size="14" class="text-[var(--badge-primary-text)]" /> Gerar cards
               </button>
-              <button class="w-full text-left px-3 py-2 text-small text-danger hover:bg-danger/5 transition-colors flex items-center gap-2" @click="showMenu = false; $emit('delete-note')">
+              <button class="w-full text-left px-3 py-2 text-small text-[var(--badge-danger-text)] hover:bg-danger/5 transition-colors flex items-center gap-2" @click="showMenu = false; $emit('delete-note')">
                 <Trash2 :size="14" /> Excluir nota
               </button>
             </div>

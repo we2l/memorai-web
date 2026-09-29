@@ -10,7 +10,7 @@
     <div class="flex items-center gap-3 px-4 py-2.5">
       <UiBaigiMascot state="subtle" :visible="player.isPlaying" :size="28" />
       <div v-show="!player.isPlaying" class="w-8 h-8 rounded-lg bg-accent-primary-subtle flex items-center justify-center shrink-0">
-        <Headphones :size="16" class="text-[var(--color-accent-soft)]" />
+        <Headphones :size="16" class="text-[var(--badge-primary-text)]" />
       </div>
       <div class="flex-1 min-w-0">
         <p class="text-small text-base-primary truncate">
@@ -33,7 +33,7 @@
       <button class="p-1.5 text-base-muted hover:text-base-primary" aria-label="Expandir player" @click="player.expand()">
         <ChevronUp :size="18" />
       </button>
-      <button class="p-1.5 text-base-muted hover:text-danger" aria-label="Fechar player" @click="player.stop()">
+      <button class="p-1.5 text-base-muted hover:text-[var(--badge-danger-text)]" aria-label="Fechar player" @click="player.stop()">
         <X :size="16" />
       </button>
     </div>

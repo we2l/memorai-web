@@ -90,3 +90,21 @@ test.describe('Visual regression — Login', () => {
     })
   })
 })
+
+test.describe('Visual regression — Provas light/dark (RF-F10.1)', () => {
+  for (const theme of ['light', 'dark'] as const) {
+    test(`provas (${theme})`, async ({ page }) => {
+      await page.addInitScript((t) => { try { localStorage.setItem('color-mode', t) } catch {} }, theme)
+      await login(page)
+      await page.goto('/provas')
+      await page.waitForLoadState('networkidle')
+      await page.waitForTimeout(1000)
+      // The calendar shows the current month: mask it so the snapshot is stable over time
+      await expect(page).toHaveScreenshot(`provas-${theme}.png`, {
+        maxDiffPixelRatio: 0.02,
+        fullPage: true,
+        mask: [page.locator('h2').first()],
+      })
+    })
+  }
+})

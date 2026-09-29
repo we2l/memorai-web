@@ -28,7 +28,7 @@
         @mouseenter="selectedIndex = index"
         @mousedown.prevent="selectExisting(child.id)"
       >
-        <FolderOpen :size="14" class="text-[var(--color-accent-soft)] shrink-0" />
+        <FolderOpen :size="14" class="text-[var(--badge-primary-text)] shrink-0" />
         <span class="truncate text-base-primary">{{ child.name }}</span>
       </button>
 
@@ -40,8 +40,8 @@
         @mouseenter="selectedIndex = filteredChildren.length"
         @mousedown.prevent="createNew"
       >
-        <Plus :size="14" class="text-[var(--color-accent-soft)] shrink-0" />
-        <span class="text-base-primary">Criar "<strong class="text-[var(--color-accent-soft)]">{{ query }}</strong>"</span>
+        <Plus :size="14" class="text-[var(--badge-primary-text)] shrink-0" />
+        <span class="text-base-primary">Criar "<strong class="text-[var(--badge-primary-text)]">{{ query }}</strong>"</span>
       </button>
 
       <!-- Empty state -->

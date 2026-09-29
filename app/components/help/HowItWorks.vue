@@ -43,7 +43,7 @@
         <!-- Fluxo de erros -->
         <div class="mt-6 pt-6 border-t border-base text-center">
           <p class="text-small text-base-muted">
-            <span class="text-danger font-medium">Erros na revisão</span> → alimentam o podcast + detectam padrões → <span class="text-success font-medium">melhoria contínua</span>
+            <span class="text-[var(--badge-danger-text)] font-medium">Erros na revisão</span> → alimentam o podcast + detectam padrões → <span class="text-[var(--badge-success-text)] font-medium">melhoria contínua</span>
           </p>
         </div>
       </div>
@@ -56,7 +56,7 @@
         <div v-for="item in features" :key="item.title" class="card-base p-5">
           <div class="flex items-start gap-3">
             <div class="w-10 h-10 rounded-xl bg-accent-primary-subtle flex items-center justify-center shrink-0">
-              <component :is="item.icon" :size="20" class="text-[var(--color-accent-soft)]" />
+              <component :is="item.icon" :size="20" class="text-[var(--badge-primary-text)]" />
             </div>
             <div>
               <h3 class="font-medium text-base-primary text-sm">{{ item.title }}</h3>

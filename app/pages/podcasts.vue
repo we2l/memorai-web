@@ -65,9 +65,9 @@
             <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" :class="statusBg(podcast.status)">
               <Loader2 v-if="isGenerating(podcast.status)" :size="18" class="animate-spin text-base-muted" />
               <AlertCircle v-else-if="podcast.status === 'failed'" :size="18" class="text-red-400" />
-              <button v-else @click="playPodcast(podcast)" class="w-full h-full flex items-center justify-center">
-                <Pause v-if="player.currentPodcast?.id === podcast.id && player.isPlaying" :size="18" :class="statusText(podcast.status)" />
-                <Headphones v-else :size="18" :class="statusText(podcast.status)" />
+              <button v-else :aria-label="player.currentPodcast?.id === podcast.id && player.isPlaying ? `Pausar ${podcast.title}` : `Tocar ${podcast.title}`" @click="playPodcast(podcast)" class="w-full h-full flex items-center justify-center">
+                <Pause v-if="player.currentPodcast?.id === podcast.id && player.isPlaying" :size="18" :class="statusText(podcast.status)" aria-hidden="true" />
+                <Headphones v-else :size="18" :class="statusText(podcast.status)" aria-hidden="true" />
               </button>
             </div>
 
@@ -78,7 +78,7 @@
                 <span v-if="podcast.status === 'ready' && podcast.duration_seconds">{{ formatDuration(podcast.duration_seconds) }}</span>
                 <span v-if="podcast.status === 'ready' && podcast.format" class="px-1.5 py-0.5 rounded bg-[var(--border-divider)] text-micro">{{ podcast.format === 'debate' ? 'Debate' : 'Expositivo' }}</span>
                 <span v-if="isGenerating(podcast.status)">{{ statusLabel(podcast.status) }}</span>
-                <span v-if="podcast.status === 'failed'" class="text-danger">Falhou</span>
+                <span v-if="podcast.status === 'failed'" class="text-[var(--badge-danger-text)]">Falhou</span>
                 <span>{{ timeAgo(podcast.created_at) }}</span>
               </div>
             </div>
@@ -90,10 +90,10 @@
               </span>
               <button
                 @click.stop="confirmDelete(podcast)"
-                class="w-8 h-8 rounded-lg flex items-center justify-center text-base-muted hover:text-danger hover:bg-red-500/10 transition-colors"
+                class="w-8 h-8 rounded-lg flex items-center justify-center text-base-muted hover:text-[var(--badge-danger-text)] hover:bg-red-500/10 transition-colors"
                 title="Excluir podcast"
-              >
-                <Trash2 :size="14" />
+               aria-label="Excluir podcast">
+                <Trash2 :size="14" aria-hidden="true" />
               </button>
             </div>
           </div>

@@ -94,7 +94,7 @@
                 :style="{ width: Math.min(100, (data.used / Math.max(1, data.limit)) * 100) + '%' }"
               />
             </div>
-            <div v-else class="text-micro text-success">∞ ilimitado</div>
+            <div v-else class="text-micro text-[var(--badge-success-text)]">∞ ilimitado</div>
           </div>
           <p class="text-micro text-base-muted w-20 text-right shrink-0">
             {{ data.limit !== null ? `${data.used}/${data.limit}` : `${data.used} usados` }}
@@ -149,8 +149,8 @@
           <input v-if="settings.daily_new_cards_limit !== null" v-model.number="settings.daily_new_cards_limit" type="number" min="1" max="999" class="input-base w-32 mb-4" />
           <div class="text-small text-base-muted leading-relaxed space-y-2">
             <p>Controla quantos cards <strong class="text-base-secondary">que você nunca estudou</strong> vão aparecer por dia. Se você colocar 5, o app vai te mostrar no máximo 5 cards totalmente novos — o resto fica guardado pra depois.</p>
-            <p class="text-warning inline-flex items-center gap-1"><AlertTriangle :size="14" /> Cada card novo gera cerca de 7 revisões nas semanas seguintes. Se colocar 20 novos/dia, em um mês você terá ~150 revisões diárias.</p>
-            <p class="inline-flex items-center gap-1"><Lightbulb :size="14" class="text-[var(--color-accent-soft)] shrink-0" /> Recomendado: comece com <strong class="text-base-secondary">5</strong> e aumente conforme se sentir confortável.</p>
+            <p class="text-[var(--badge-warning-text)] inline-flex items-center gap-1"><AlertTriangle :size="14" /> Cada card novo gera cerca de 7 revisões nas semanas seguintes. Se colocar 20 novos/dia, em um mês você terá ~150 revisões diárias.</p>
+            <p class="inline-flex items-center gap-1"><Lightbulb :size="14" class="text-[var(--badge-primary-text)] shrink-0" /> Recomendado: comece com <strong class="text-base-secondary">5</strong> e aumente conforme se sentir confortável.</p>
           </div>
         </div>
 
@@ -166,7 +166,7 @@
           <div class="text-small text-base-muted leading-relaxed space-y-2">
             <p>O <strong class="text-base-secondary">total de cards</strong> que você vai estudar no dia — inclui novos e revisões de cards antigos.</p>
             <p>Exemplo: se você colocar 30, o app vai te mostrar no máximo 30 cards por dia, mesmo que tenha 100 pendentes. Os que sobrarem aparecem nos dias seguintes.</p>
-            <p class="inline-flex items-center gap-1"><Lightbulb :size="14" class="text-[var(--color-accent-soft)] shrink-0" /> Pouco tempo? Coloque <strong class="text-base-secondary">20–30</strong> (~10 min de estudo). Quer estudar bastante? Deixe ilimitado.</p>
+            <p class="inline-flex items-center gap-1"><Lightbulb :size="14" class="text-[var(--badge-primary-text)] shrink-0" /> Pouco tempo? Coloque <strong class="text-base-secondary">20–30</strong> (~10 min de estudo). Quer estudar bastante? Deixe ilimitado.</p>
           </div>
         </div>
 
@@ -177,7 +177,7 @@
           </div>
           <div class="text-small text-base-muted leading-relaxed space-y-2">
             <p>Define um cronômetro para sua sessão de estudo. Quando o tempo acabar, o app te avisa — mas não interrompe no meio de um card. Você escolhe se quer continuar ou parar.</p>
-            <p class="inline-flex items-center gap-1"><Lightbulb :size="14" class="text-[var(--color-accent-soft)] shrink-0" /> Útil pra quem estuda no ônibus, no intervalo do trabalho, ou quer sessões curtas e focadas.</p>
+            <p class="inline-flex items-center gap-1"><Lightbulb :size="14" class="text-[var(--badge-primary-text)] shrink-0" /> Útil pra quem estuda no ônibus, no intervalo do trabalho, ou quer sessões curtas e focadas.</p>
           </div>
         </div>
 

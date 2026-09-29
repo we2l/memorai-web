@@ -9,8 +9,8 @@ const s3Origin = process.env.CSP_S3_ORIGIN || 'https://*.amazonaws.com'
 const CSP = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com",
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  "font-src 'self' https://fonts.gstatic.com",
+  "style-src 'self' 'unsafe-inline'",
+  "font-src 'self'",
   `img-src 'self' data: blob: ${s3Origin} ${apiOrigin} https://lh3.googleusercontent.com`,
   `media-src 'self' blob: ${s3Origin} ${apiOrigin}`,
   `connect-src 'self' ${apiOrigin} ${s3Origin}`,
@@ -34,7 +34,15 @@ const SECURITY_HEADERS = {
 export default defineNuxtConfig({
   future: { compatibilityVersion: 4 },
 
-  modules: ['@pinia/nuxt', '@vite-pwa/nuxt'],
+  modules: ['@pinia/nuxt', '@vite-pwa/nuxt', '@nuxt/fonts'],
+
+  // Self-hosted at build time (/_fonts), font-display swap + metric fallback (RF-07)
+  fonts: {
+    families: [
+      { name: 'Inter', weights: [400, 500, 600, 700], subsets: ['latin', 'latin-ext'], provider: 'google' },
+      { name: 'Fredoka', weights: [600, 700], subsets: ['latin', 'latin-ext'], provider: 'google' },
+    ],
+  },
 
   css: ['~/assets/css/main.css'],
 
@@ -133,9 +141,6 @@ export default defineNuxtConfig({
       link: [
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
         { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
-        { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
-        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
-        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Inter:wght@400;500;600;700&display=swap' },
       ],
     },
   },

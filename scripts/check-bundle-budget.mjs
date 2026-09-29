@@ -90,6 +90,14 @@ async function main() {
   const layoutFiles = jsFiles(manifest, closure(manifest, layoutKey))
   push('entrada+layout (gz)', sumGz(new Set([...entryFiles, ...layoutFiles])), budget.entryLayoutGzKb * KB)
 
+  // Libraries that must not ship with entry+layout (e.g. dompurify — RF-03), detected
+  // by a signature string of the minified code: { "dompurify": "SAFE_FOR_TEMPLATES" }
+  const eagerFiles = new Set([...entryFiles, ...layoutFiles])
+  for (const [lib, signature] of Object.entries(budget.entryLayoutForbidden ?? {})) {
+    const hits = [...eagerFiles].filter(f => readFileSync(join(nuxtDir, f), 'utf8').includes(signature)).length
+    rows.push({ name: `entrada+layout sem ${lib}`, actual: hits, limit: 0, ok: hits === 0, unit: 'chunks' })
+  }
+
   // Route chunks: the page chunk itself (gate of the PRD) and its static closure
   // minus what the entry already ships (what navigating to the route downloads).
   for (const [route, src] of Object.entries(budget.routes ?? {})) {
@@ -117,7 +125,8 @@ async function main() {
     const fmt = n => `${(n / KB).toFixed(1)} KB`
     console.log('| item | atual | budget | ok |')
     console.log('|---|---:|---:|:-:|')
-    for (const r of rows) console.log(`| ${r.name} | ${fmt(r.actual)} | ${fmt(r.limit)} | ${r.ok ? 'sim' : 'NÃO'} |`)
+    const show = (r, n) => (r.unit ? `${n} ${r.unit}` : fmt(n))
+    for (const r of rows) console.log(`| ${r.name} | ${show(r, r.actual)} | ${show(r, r.limit)} | ${r.ok ? 'sim' : 'NÃO'} |`)
   }
 
   const failed = rows.filter(r => !r.ok)

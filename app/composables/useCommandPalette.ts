@@ -44,8 +44,13 @@ const CATEGORY_LABELS: Record<string, string> = {
 const MAX_RESULTS_PER_CATEGORY = 4
 const MAX_TOTAL_RESULTS = 12
 
+/** Open state shared by the shortcuts plugin, the layout (lazy mount) and the palette. */
+export function useCommandPaletteOpen() {
+  return useState('command-palette-open', () => false)
+}
+
 export function useCommandPalette() {
-  const isOpen = ref(false)
+  const isOpen = useCommandPaletteOpen()
   const query = ref('')
   const selectedIndex = ref(0)
 
@@ -219,51 +224,6 @@ export function useCommandPalette() {
   // Reset selected index when results change
   watch(query, () => {
     selectedIndex.value = 0
-  })
-
-  // Global keyboard shortcuts
-  function handleGlobalKeydown(e: KeyboardEvent) {
-    if (!auth.isAuthenticated) return
-
-    // Don't fire when typing in input/textarea/contenteditable
-    const target = e.target as HTMLElement
-    const isEditable = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable
-
-    // Ctrl+K / ⌘K — always capture (even in inputs)
-    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-      e.preventDefault()
-      toggle()
-      return
-    }
-
-    // Don't fire other shortcuts when in editable fields
-    if (isEditable) return
-
-    // Alt+R — go to review
-    if (e.altKey && e.key === 'r') {
-      e.preventDefault()
-      navigateTo('/revisar')
-      return
-    }
-
-    // Alt+N — new note
-    if (e.altKey && e.key === 'n') {
-      e.preventDefault()
-      navigateTo('/cadernos?action=new-note')
-      return
-    }
-  }
-
-  onMounted(() => {
-    if (import.meta.client) {
-      document.addEventListener('keydown', handleGlobalKeydown)
-    }
-  })
-
-  onUnmounted(() => {
-    if (import.meta.client) {
-      document.removeEventListener('keydown', handleGlobalKeydown)
-    }
   })
 
   return {

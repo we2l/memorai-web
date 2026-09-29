@@ -218,3 +218,38 @@ test.describe('Mock: Sugestão de retenção', () => {
     // Se não apareceu, é porque o dashboard não chama esse endpoint automaticamente — ok
   })
 })
+
+test.describe('Layout lazy (prd-performance-frontend RF-03)', () => {
+  test('⌘K abre a paleta mesmo com ela carregada sob demanda', async ({ page }) => {
+    await login(page)
+    await page.waitForLoadState('networkidle')
+    await page.keyboard.press('Control+k')
+    await expect(page.getByRole('dialog', { name: 'Busca rápida' })).toBeVisible()
+    await expect(page.getByPlaceholder('Buscar cadernos, notas, ações...')).toBeFocused()
+    await page.keyboard.press('Escape')
+    await expect(page.getByRole('dialog', { name: 'Busca rápida' })).toBeHidden()
+  })
+
+  test('FAB de captura abre o modal', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 })
+    await login(page)
+    await page.getByTitle('Anotar rapidamente (Ctrl+N)').click()
+    await expect(page.getByText('Anotação rápida')).toBeVisible()
+    await expect(page.getByPlaceholder('Escreva uma ideia, conceito ou anotação...')).toBeFocused()
+  })
+
+  test('402 mockado abre o UpgradeModal', async ({ page }) => {
+    await login(page)
+    await page.route('**/api/ai/generate*', route => route.fulfill({
+      status: 402,
+      contentType: 'application/json',
+      body: JSON.stringify({ message: 'Limite atingido.', feature: 'cards_ai', used: 10, limit: 10, plan_required: 'pro' }),
+    }))
+    await page.evaluate(async () => {
+      const app = (document.querySelector('#__nuxt') as any).__vue_app__
+      await app.config.globalProperties.$api('/ai/generate', { method: 'POST', body: {} }).catch(() => {})
+    })
+    await expect(page.getByRole('dialog', { name: 'Limite do plano' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Ver planos' })).toBeVisible()
+  })
+})

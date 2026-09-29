@@ -604,8 +604,7 @@
     <LazyUiConfetti v-if="confettiLoaded" :trigger="showConfetti" />
 
     <!-- Upload modal for import PDF (learning mode selection) -->
-    <LazyTopicUploadModal
-      v-if="uploadModalLoaded"
+    <TopicUploadModal
       v-model="showImportUploadModal"
       :default-mode="auth.user?.default_learning_mode || 'general'"
       @confirm="onImportModalConfirm"
@@ -979,7 +978,6 @@ const importingInSelectedTopic = computed(() =>
 
 const importPdfInput = ref<HTMLInputElement | null>(null)
 const showImportUploadModal = ref(false)
-const uploadModalLoaded = useLoadedOnce(() => showImportUploadModal.value)
 
 async function onImportModalConfirm(data: { learning_mode: string; target_language?: string; language_level?: string; file: File }) {
   const structureStore = useStructureStore()

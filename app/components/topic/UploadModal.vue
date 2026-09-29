@@ -128,5 +128,5 @@ watch(() => props.modelValue, (v) => {
     targetLang.value = ''
     langLevel.value = ''
   }
-}, { immediate: true }) // lazy-mounted already open
+})
 </script>

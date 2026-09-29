@@ -70,7 +70,8 @@ watch(isOpen, (open) => {
     return
   }
   if (!rootTopics.value.length) fetchTopics()
-  nextTick(() => inputRef.value?.focus())
+  // rAF: on the first (lazy) mount the element is only in the document after the frame
+  nextTick(() => requestAnimationFrame(() => inputRef.value?.focus()))
 }, { immediate: true })
 
 function close() {

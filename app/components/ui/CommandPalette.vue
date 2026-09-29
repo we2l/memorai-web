@@ -160,9 +160,8 @@ watch(isOpen, (val) => {
   if (val) {
     query.value = ''
     selectedIndex.value = 0
-    nextTick(() => {
-      inputRef.value?.focus()
-    })
+    // rAF: on the first (lazy) mount the element is only in the document after the frame
+    nextTick(() => requestAnimationFrame(() => inputRef.value?.focus()))
   }
 }, { immediate: true }) // lazy-mounted already open (layout)
 

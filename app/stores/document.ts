@@ -16,6 +16,7 @@ export const useDocumentStore = defineStore('document', () => {
     try {
       const { $api } = useNuxtApp()
       const res = await $api<{ data: Document[] }>('/documents', { params: { topic_id: topicId }, signal })
+      announceAutoCards(documents.value, res.data)
       documents.value = res.data // filtered by topic_id on the server
       currentTopicId.value = topicId
       error.value = null
@@ -46,9 +47,24 @@ export const useDocumentStore = defineStore('document', () => {
   const needsPolling = computed(() =>
     documents.value.some(d =>
       d.note_generation_status === 'generating' ||
-      d.status === 'processing',
+      d.status === 'processing' ||
+      d.auto_cards_status === 'pending' ||
+      d.auto_cards_status === 'generating',
     ),
   )
+
+  /** Toast when a PDF's automatic cards finish during the session (RF-F5.3). */
+  function announceAutoCards(previous: Document[], next: Document[]) {
+    for (const doc of next) {
+      const before = previous.find(d => d.id === doc.id)
+      const wasRunning = before?.auto_cards_status === 'pending' || before?.auto_cards_status === 'generating'
+      if (!wasRunning || doc.auto_cards_status !== 'completed') continue
+      const topicId = doc.topic_id
+      useToast().show(`${doc.auto_cards_count ?? 0} cards prontos de "${doc.original_name}"`, 'success', {
+        action: { label: 'Revisar agora', onClick: () => navigateTo(topicId ? `/revisar?topic_id=${topicId}` : '/revisar') },
+      })
+    }
+  }
 
   function startPolling() {
     if (!currentTopicId.value) return

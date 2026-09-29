@@ -127,6 +127,7 @@
               @note-ready="noteStore.fetchForTopic(selectedTopicId!)"
               @generate-cards="() => cardWorkshop.generate('notes')"
               @structure-ready="topicStore.fetchTree()"
+              @view-cards="activeTab = 'cards'"
             />
           </template>
           <template #generating-banner>
@@ -343,6 +344,7 @@
                 @note-ready="noteStore.fetchForTopic(selectedTopicId!)"
                 @generate-cards="() => cardWorkshop.generate('notes')"
                 @structure-ready="topicStore.fetchTree()"
+              @view-cards="activeTab = 'cards'"
               />
             </template>
           </TopicHubNotesTab>

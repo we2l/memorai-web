@@ -530,3 +530,24 @@ test.describe('Onboarding sem armadilhas (RF-F4)', () => {
     await expect.poll(() => calls).toEqual(['topics', 'exams'])
   })
 })
+
+test.describe('PDF → cards automático (RF-F5.2)', () => {
+  test('polling pending → completed mostra "Revisar 12 cards"', async ({ page }) => {
+    test.setTimeout(45_000)
+    await login(page)
+    const topic = { id: '00000000-0000-4000-8000-0000000000bb', name: 'Constitucional', parent_id: null, children: [], color: null, flashcards_count: 0, position: 0, learning_mode: 'exam' }
+    const doc = (status: string, count = 0) => ({
+      id: '00000000-0000-4000-8000-0000000000dd', original_name: 'apostila.pdf', file_size: 1000, pages_count: 20, processed_pages: 20,
+      status: 'completed', topic_id: topic.id, has_generated_note: true, note_generation_status: 'completed',
+      note_id: 'n1', auto_cards: true, auto_cards_status: status, auto_cards_count: count, created_at: '2026-09-29T10:00:00Z',
+    })
+    let calls = 0
+    await page.route(/\/api\/topics$/, r => r.request().method() === 'GET' ? r.fulfill(json({ data: [topic] })) : r.continue())
+    await page.route(`**/api/topics/${topic.id}/notes`, r => r.fulfill(json({ data: [] })))
+    await page.route(/\/api\/documents\?/, r => { calls++; return r.fulfill(json({ data: [calls < 2 ? doc('generating') : doc('completed', 12)] })) })
+    await page.goto(`/cadernos?topic=${topic.id}`)
+    await expect(page.getByText('Resumo pronto · Criando cards…')).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Revisar 12 cards' })).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByRole('link', { name: 'Revisar 12 cards' })).toHaveAttribute('href', `/revisar?topic_id=${topic.id}`)
+  })
+})

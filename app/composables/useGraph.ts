@@ -1,7 +1,10 @@
-import * as d3 from 'd3'
+import { select, type Selection } from 'd3-selection'
+import { zoom } from 'd3-zoom'
+import { drag } from 'd3-drag'
+import { forceSimulation, forceLink, forceManyBody, forceCenter, forceCollide, type Simulation, type SimulationNodeDatum, type SimulationLinkDatum } from 'd3-force'
 import type { GraphNode, GraphEdge } from '~/types'
 
-interface D3Node extends d3.SimulationNodeDatum {
+interface D3Node extends SimulationNodeDatum {
   id: string
   name: string
   parent_id: string | null
@@ -11,7 +14,7 @@ interface D3Node extends d3.SimulationNodeDatum {
   progress: number
 }
 
-interface D3Link extends d3.SimulationLinkDatum<D3Node> {
+interface D3Link extends SimulationLinkDatum<D3Node> {
   id?: string
   type: 'hierarchy' | 'connection'
   label?: string | null
@@ -55,15 +58,15 @@ export function useGraph(
     onNodeRightClick?: (id: string, event: MouseEvent) => void
   } = {},
 ) {
-  let simulation: d3.Simulation<D3Node, D3Link> | null = null
-  let svg: d3.Selection<SVGSVGElement, unknown, null, undefined> | null = null
+  let simulation: Simulation<D3Node, D3Link> | null = null
+  let svg: Selection<SVGSVGElement, unknown, null, undefined> | null = null
 
   function render() {
     const container = containerRef.value
     if (!container || !nodes.value.length) return
 
     // Cleanup
-    d3.select(container).selectAll('svg').remove()
+    select(container).selectAll('svg').remove()
     simulation?.stop()
 
     const width = container.clientWidth
@@ -78,7 +81,7 @@ export function useGraph(
       label: e.label,
     }))
 
-    svg = d3.select(container)
+    svg = select(container)
       .append('svg')
       .attr('width', width)
       .attr('height', height)
@@ -86,7 +89,7 @@ export function useGraph(
     // Zoom (smaller steps for smoother control)
     const g = svg.append('g')
     svg.call(
-      d3.zoom<SVGSVGElement, unknown>()
+      zoom<SVGSVGElement, unknown>()
         .scaleExtent([0.3, 3])
         .wheelDelta((event: WheelEvent) => -event.deltaY * 0.002)
         .on('zoom', (event) => {
@@ -95,11 +98,11 @@ export function useGraph(
     )
 
     // Simulation
-    simulation = d3.forceSimulation(d3Nodes)
-      .force('link', d3.forceLink<D3Node, D3Link>(d3Links).id(d => d.id).distance(120))
-      .force('charge', d3.forceManyBody().strength(-300))
-      .force('center', d3.forceCenter(width / 2, height / 2))
-      .force('collide', d3.forceCollide<D3Node>().radius(d => nodeRadius(d) + 8))
+    simulation = forceSimulation(d3Nodes)
+      .force('link', forceLink<D3Node, D3Link>(d3Links).id(d => d.id).distance(120))
+      .force('charge', forceManyBody().strength(-300))
+      .force('center', forceCenter(width / 2, height / 2))
+      .force('collide', forceCollide<D3Node>().radius(d => nodeRadius(d) + 8))
 
     // Edges
     const link = g.append('g')
@@ -120,7 +123,7 @@ export function useGraph(
 
     // Drag — only activates on actual movement
     node.call(
-      d3.drag<SVGGElement, D3Node>()
+      drag<SVGGElement, D3Node>()
         .clickDistance(4)
         .on('start', (event, d) => {
           if (!event.active) simulation!.alphaTarget(0.3).restart()
@@ -148,7 +151,7 @@ export function useGraph(
       .attr('stroke-dasharray', d => hasWeakConnection(d.id, d3Nodes, d3Links) ? '4,2' : 'none')
       .on('click', function (event) {
         event.stopPropagation()
-        const d = d3.select<SVGGElement, D3Node>((this as SVGCircleElement).parentNode as SVGGElement).datum()
+        const d = select<SVGGElement, D3Node>((this as SVGCircleElement).parentNode as SVGGElement).datum()
         options.onNodeClick?.(d.id)
       })
 
@@ -163,7 +166,7 @@ export function useGraph(
       .attr('pointer-events', 'none')
 
     // Tooltip
-    const tooltip = d3.select(container)
+    const tooltip = select(container)
       .append('div')
       .attr('class', 'absolute pointer-events-none px-3 py-2 rounded-lg text-small bg-surface-secondary text-base-primary border border-base shadow-lg opacity-0 transition-opacity z-50')
 
@@ -202,8 +205,8 @@ export function useGraph(
     simulation?.stop()
     simulation = null
     if (containerRef.value) {
-      d3.select(containerRef.value).selectAll('svg').remove()
-      d3.select(containerRef.value).selectAll('div.absolute').remove()
+      select(containerRef.value).selectAll('svg').remove()
+      select(containerRef.value).selectAll('div.absolute').remove()
     }
   }
 

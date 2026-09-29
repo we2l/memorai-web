@@ -62,25 +62,12 @@ const mainMargin = computed(() => sidebarCollapsed.value ? 'lg:ml-16' : 'lg:ml-[
 const showUpgrade = ref(false)
 const upgradeDetail = ref<FeatureLimitDetail>({ feature: '' })
 
-/** True from the first time `source` is true on (lazy mount once). */
-function loadedOnce(source: () => boolean) {
-  const loaded = ref(source())
-  if (!loaded.value) {
-    const stop = watch(source, (v) => {
-      if (!v) return
-      loaded.value = true
-      stop()
-    })
-  }
-  return loaded
-}
-
 const chat = useChatStore()
 const paletteOpen = useCommandPaletteOpen()
-const chatLoaded = loadedOnce(() => chat.isOpen)
-const expandedPlayerLoaded = loadedOnce(() => player.expanded)
-const paletteLoaded = loadedOnce(() => paletteOpen.value)
-const upgradeLoaded = loadedOnce(() => showUpgrade.value)
+const chatLoaded = useLoadedOnce(() => chat.isOpen)
+const expandedPlayerLoaded = useLoadedOnce(() => player.expanded)
+const paletteLoaded = useLoadedOnce(() => paletteOpen.value)
+const upgradeLoaded = useLoadedOnce(() => showUpgrade.value)
 
 const subscription = useSubscriptionStore()
 

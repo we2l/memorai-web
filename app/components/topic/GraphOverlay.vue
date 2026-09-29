@@ -262,7 +262,7 @@ watch(() => props.modelValue, async (open) => {
   } else {
     destroy()
   }
-})
+}, { immediate: true }) // lazy-mounted already open
 
 watch(showOnlyWeak, async () => {
   await nextTick()

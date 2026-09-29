@@ -153,7 +153,7 @@
             />
           </template>
           <template #editor>
-            <TopicCardWorkshop
+            <LazyTopicCardWorkshop
               v-if="cardWorkshop.state.value === 'workshop' || cardWorkshop.state.value === 'loading' || cardWorkshop.state.value === 'success'"
               :cards="cardWorkshop.cards.value"
               :loading="cardWorkshop.state.value === 'loading'"
@@ -171,8 +171,8 @@
                 <NuxtLink :to="`/revisar?topic_id=${selectedTopicId}`" class="btn-primary w-full justify-center">Revisar agora</NuxtLink>
                 <button class="btn-secondary w-full justify-center" @click="cardWorkshop.reset()">Voltar à nota</button>
               </template>
-            </TopicCardWorkshop>
-            <TopicNoteEditor v-else v-model="noteContent" :editable="!noteIsGenerating && noteImprove.state.value !== 'loading' && noteImprove.state.value !== 'preview'" :topic-id="selectedTopicId" @update:model-value="debouncedSave" @create-card="openNoteToCard" @ask-ai="askAiAboutSelection" @navigate-topic="selectTopic" />
+            </LazyTopicCardWorkshop>
+            <LazyTopicNoteEditor v-else v-model="noteContent" :editable="!noteIsGenerating && noteImprove.state.value !== 'loading' && noteImprove.state.value !== 'preview'" :topic-id="selectedTopicId" @update:model-value="debouncedSave" @create-card="openNoteToCard" @ask-ai="askAiAboutSelection" @navigate-topic="selectTopic" />
           </template>
           <template #selection-toolbar />
         </TopicHubNotesTab>
@@ -237,8 +237,8 @@
             @quiz="navigateTo(`/simulados?topic_id=${selectedTopicId}`)"
           />
 
-          <PodcastGenerateSheet
-            v-if="selectedTopicId"
+          <LazyPodcastGenerateSheet
+            v-if="selectedTopicId && podcastSheetLoaded"
             v-model="showPodcastSheet"
             :topic-id="selectedTopicId"
             :topic-name="selectedTopicName ?? ''"
@@ -293,13 +293,13 @@
             </div>
 
             <!-- Sub-view: Grafo de Cadernos -->
-            <TopicGraphInline
+            <LazyTopicGraphInline
               v-if="mapSubView === 'graph'"
               @expand="showGraph = true"
             />
 
             <!-- Sub-view: Mapa Mental -->
-            <TopicMindMapView
+            <LazyTopicMindMapView
               v-if="mapSubView === 'mindmap' && selectedTopicId"
               :topic-id="selectedTopicId"
               @create-note="createNote"
@@ -346,7 +346,7 @@
           <div v-if="activeTab === 'cards'" class="tab-fade-in">
             <!-- Card Workshop (inline above card list) -->
             <div v-if="cardWorkshop.state.value !== 'idle'" class="px-4 pt-4">
-              <TopicCardWorkshop
+              <LazyTopicCardWorkshop
                 :cards="cardWorkshop.cards.value"
                 :loading="cardWorkshop.state.value === 'loading'"
                 :accepted-indexes="cardWorkshop.acceptedIndexes.value"
@@ -363,10 +363,10 @@
                   <NuxtLink :to="`/revisar?topic_id=${selectedTopicId}`" class="btn-primary w-full justify-center">Revisar agora</NuxtLink>
                   <button class="btn-secondary w-full justify-center" @click="cardWorkshop.reset()">Fechar</button>
                 </template>
-              </TopicCardWorkshop>
+              </LazyTopicCardWorkshop>
             </div>
 
-            <TopicHubCardsTab
+            <LazyTopicHubCardsTab
               :topic-id="selectedTopicId!"
               :cards="topicCards"
               :generated-cards="generatedCards"
@@ -393,7 +393,7 @@
                   <Sparkles :size="14" /> Preparar revisão
                 </button>
               </template>
-            </TopicHubCardsTab>
+            </LazyTopicHubCardsTab>
           </div>
         </template>
 
@@ -552,8 +552,8 @@
       @confirm="handleDeleteTopic"
     />
 
-    <TopicNoteToCardModal
-      v-if="noteStore.current"
+    <LazyTopicNoteToCardModal
+      v-if="noteStore.current && noteToCardLoaded"
       v-model="showNoteToCard"
       :note-id="noteStore.current.id"
       :selected-text="selectedText"
@@ -576,7 +576,8 @@
       @confirm="handleDeleteNote"
     />
 
-    <FlashcardCardFormModal
+    <LazyFlashcardCardFormModal
+      v-if="cardFormLoaded"
       v-model="showCardForm"
       :topic-id="selectedTopicId ?? undefined"
       :card="editingCard"
@@ -592,13 +593,14 @@
 
     <!-- Note editor modal removed — now using split-view in HubNotesTab -->
 
-    <TopicGraphOverlay v-model="showGraph" />
+    <LazyTopicGraphOverlay v-if="graphLoaded" v-model="showGraph" />
 
     <!-- Confetti celebration (triggers when pendentes goes to 0) -->
-    <UiConfetti :trigger="showConfetti" />
+    <LazyUiConfetti v-if="confettiLoaded" :trigger="showConfetti" />
 
     <!-- Upload modal for import PDF (learning mode selection) -->
-    <TopicUploadModal
+    <LazyTopicUploadModal
+      v-if="uploadModalLoaded"
       v-model="showImportUploadModal"
       :default-mode="auth.user?.default_learning_mode || 'general'"
       @confirm="onImportModalConfirm"
@@ -631,6 +633,7 @@ const { topicCards, showDeleteCard, deleteCardId, memorizeProgress, dueCardsCoun
 
 // Confetti when pending goes from >0 to 0
 const showConfetti = ref(false)
+const confettiLoaded = useLoadedOnce(() => showConfetti.value)
 watch(pendingCount, (curr, prev) => {
   if (prev > 0 && curr === 0) {
     showConfetti.value = true
@@ -671,6 +674,10 @@ const showNoteToCard = ref(false)
 const showGraph = ref(false)
 const showAddMenu = ref(false)
 const showPodcastSheet = ref(false)
+// Modals/overlays: chunk loads on first open (prd-performance-frontend RF-02)
+const noteToCardLoaded = useLoadedOnce(() => showNoteToCard.value)
+const graphLoaded = useLoadedOnce(() => showGraph.value)
+const podcastSheetLoaded = useLoadedOnce(() => showPodcastSheet.value)
 const highlightCardId = ref('')
 
 function onPodcastGenerated() {
@@ -678,6 +685,7 @@ function onPodcastGenerated() {
 }
 onUnmounted(() => usePodcastStore().stopPolling())
 const showCardForm = ref(false)
+const cardFormLoaded = useLoadedOnce(() => showCardForm.value)
 const cardFormInitialFront = ref('')
 const cardFormInitialBack = ref('')
 const editingGeneratedCardIndex = ref<number | null>(null)
@@ -966,6 +974,7 @@ const importingInSelectedTopic = computed(() =>
 
 const importPdfInput = ref<HTMLInputElement | null>(null)
 const showImportUploadModal = ref(false)
+const uploadModalLoaded = useLoadedOnce(() => showImportUploadModal.value)
 
 async function onImportModalConfirm(data: { learning_mode: string; target_language?: string; language_level?: string; file: File }) {
   const structureStore = useStructureStore()

@@ -58,6 +58,15 @@ function findKey(manifest, src) {
   return Object.keys(manifest).find(k => k === src || k.endsWith(`/${src}`) || manifest[k].src === src)
 }
 
+// When Rollup turns a page into a shared chunk (lazy children import code hoisted
+// into it), the manifest loses the page key: resolve it from the router in the entry.
+function routeChunkKey(manifest, entryCode, route) {
+  const escaped = route.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')
+  const match = entryCode.match(new RegExp(`path:"${escaped}",[^}]*?import\\("\\./([^"]+\\.js)"\\)`))
+  if (!match) return undefined
+  return Object.keys(manifest).find(k => manifest[k].file === match[1])
+}
+
 function precacheBytes() {
   const swPath = join(publicDir, 'sw.js')
   if (!existsSync(swPath)) return 0
@@ -100,8 +109,9 @@ async function main() {
 
   // Route chunks: the page chunk itself (gate of the PRD) and its static closure
   // minus what the entry already ships (what navigating to the route downloads).
+  const entryCode = readFileSync(join(nuxtDir, manifest[entryKey].file), 'utf8')
   for (const [route, src] of Object.entries(budget.routes ?? {})) {
-    const key = findKey(manifest, src.file)
+    const key = findKey(manifest, src.file) ?? routeChunkKey(manifest, entryCode, route)
     if (!key) throw new Error(`rota ${route}: ${src.file} não está no manifest`)
     push(`rota ${route} chunk (gz)`, gz(manifest[key].file), src.gzKb * KB)
     if (src.closureGzKb != null) {

@@ -206,7 +206,7 @@ watch(model, async (val) => {
       topics.value = (res.data ?? []).filter((t: any) => !t.parent_id && (t.flashcards_count ?? 0) >= 5)
     } catch {}
   }
-})
+}, { immediate: true }) // lazy-mounted already open
 
 const duration = ref<PodcastDuration>('medium')
 const tone = ref<PodcastTone>('conversational')

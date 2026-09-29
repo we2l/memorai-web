@@ -189,7 +189,7 @@ watch(open, (val) => {
     renderedPages.value = []
     nextTick(() => renderPdf())
   }
-})
+}, { immediate: true }) // lazy-mounted already open
 </script>
 
 <style>

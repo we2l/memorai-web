@@ -145,7 +145,12 @@ export interface TopicDetails {
   flashcards_count: number
   notes_count: number
   review_count: number
-  flashcards: { id: string; front: string; state: string; due: string | null }[]
+  weak_count: number
+  due_count: number
+  new_count: number
+  /** Only the first 200 cards come in `flashcards`; the rest via GET /topics/{topic}/flashcards */
+  flashcards_truncated: boolean
+  flashcards: { id: string; front: string; back?: string | null; state: string; due: string | null; lapses?: number; source_note_id?: string | null }[]
   notes: { id: string; title: string }[]
   goal: { target_date: string; cards_per_day: number; remaining: number; days_left: number } | null
 }
@@ -534,4 +539,10 @@ export interface FeatureLimitDetail {
 export interface DocumentAutoGeneration {
   dispatched: boolean
   blocked_reason: 'feature_limit' | 'pages_cap' | 'in_progress' | null
+}
+
+/** Laravel paginated resource collection */
+export interface Paginated<T> {
+  data: T[]
+  meta: { current_page: number; last_page: number; per_page: number; total: number }
 }

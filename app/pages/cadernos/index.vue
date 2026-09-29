@@ -201,7 +201,7 @@
                 <div class="min-w-0">
                   <h1 class="font-heading font-bold text-3xl text-base-primary truncate">{{ selectedTopicName }}</h1>
                   <p class="text-small text-base-muted mt-2.5">
-                    {{ topicCards.length }} card{{ topicCards.length !== 1 ? 's' : '' }}{{ pendingCount > 0 ? ` · ${pendingCount} pendente${pendingCount !== 1 ? 's' : ''} hoje` : '' }}
+                    {{ totalCards }} card{{ totalCards !== 1 ? 's' : '' }}{{ pendingCount > 0 ? ` · ${pendingCount} pendente${pendingCount !== 1 ? 's' : ''} hoje` : '' }}
                   </p>
                 </div>
               </div>
@@ -263,7 +263,7 @@
               v-model="activeTab"
               :tabs="[
                 { key: 'notes', label: 'Material', count: noteStore.notes.length },
-                { key: 'cards', label: 'Cards', count: topicCards.length },
+                { key: 'cards', label: 'Cards', count: totalCards },
                 { key: 'map', label: 'Mapa' },
               ]"
               :storage-key="`baigi-hub-tab-${selectedTopicId}`"
@@ -368,7 +368,10 @@
 
             <LazyTopicHubCardsTab
               :topic-id="selectedTopicId!"
-              :cards="topicCards"
+              :cards="listCards"
+              :server-mode="listMode === 'server'"
+              :has-more="hasMorePages"
+              :loading-more="loadingPage"
               :generated-cards="generatedCards"
               :ai-generating="aiGenerating"
               :error-patterns="errorPatterns"
@@ -383,6 +386,8 @@
               @edit-generated="editGeneratedCard"
               @discard-generated="discardGenerated"
               @ocr-cards="handleOcrCards"
+              @search="searchCards"
+              @load-more="loadNextPage"
             >
               <template #ai-generate>
                 <button
@@ -629,7 +634,7 @@ const mapSubView = ref<'graph' | 'mindmap'>(
   (import.meta.client && localStorage.getItem('baigi-map-subview') as 'graph' | 'mindmap') || 'mindmap'
 )
 const searchQuery = ref('')
-const { topicCards, showDeleteCard, deleteCardId, memorizeProgress, dueCardsCount, newCardsCount, pendingCount, setCards, cardsFromNote, confirmDeleteCard, handleDeleteCard } = useTopicCards()
+const { topicCards, showDeleteCard, deleteCardId, memorizeProgress, dueCardsCount, newCardsCount, pendingCount, setCards, listMode, listCards, hasMorePages, loadingPage, totalCards, loadNextPage, searchCards, cardsFromNote, confirmDeleteCard, handleDeleteCard } = useTopicCards()
 
 // Confetti when pending goes from >0 to 0
 const showConfetti = ref(false)
@@ -653,7 +658,7 @@ const cardWorkshop = useCardWorkshop({
 const nextStep = useNextStep({
   topicId: selectedTopicId,
   notes: computed(() => noteStore.notes),
-  flashcardsCount: computed(() => topicCards.value.length),
+  flashcardsCount: totalCards,
   dueCardsCount,
   editingNote,
 })
@@ -879,7 +884,7 @@ async function loadTopicData(id: string) {
       $api<any>(`/topics/${id}/details`),
       $api<any>(`/topics/${id}/error-patterns`),
     ])
-    setCards(detailRes.data.flashcards)
+    setCards(detailRes.data.flashcards, detailRes.data)
     errorPatterns.value = patternsRes.data
 
     // Set default tab based on content

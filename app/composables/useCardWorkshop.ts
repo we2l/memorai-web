@@ -23,6 +23,7 @@ const STORAGE_KEY = 'baigi-card-workshop'
 
 export function useCardWorkshop({ topicId, onReload }: UseCardWorkshopOptions) {
   const { $api } = useNuxtApp()
+  const aiJob = useAiJob()
   const toast = useToast()
 
   const state = ref<WorkshopState>('idle')
@@ -96,12 +97,10 @@ export function useCardWorkshop({ topicId, onReload }: UseCardWorkshopOptions) {
       if (noteId) body.note_id = noteId
       if (documentId) body.document_id = documentId
 
-      const res = await $api<any>('/ai/generate-cards', {
-        method: 'POST',
-        body,
-      })
+      // 202 + job polled until done (RF-30)
+      const result = await aiJob.run<{ cards: any[] }>('/ai/generate-cards', body)
 
-      const generated = res.data?.cards ?? []
+      const generated = result?.cards ?? []
       if (generated.length) {
         cards.value = generated
         state.value = 'workshop'

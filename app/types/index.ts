@@ -546,3 +546,13 @@ export interface Paginated<T> {
   data: T[]
   meta: { current_page: number; last_page: number; per_page: number; total: number }
 }
+
+/** GET /ai/jobs/{id} — async AI generation (RF-30) */
+export interface AiJob<T = unknown> {
+  id: string
+  type: 'cards' | 'mindmap' | 'mindmap_note'
+  status: 'pending' | 'processing' | 'done' | 'failed'
+  result?: T
+  error?: string
+  created_at: string
+}

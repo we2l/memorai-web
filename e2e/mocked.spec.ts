@@ -173,7 +173,8 @@ test.describe('Mock: Podcast em geração', () => {
   test('mostra status de geração do podcast', async ({ page }) => {
     await login(page)
 
-    await page.route('**/api/podcasts', route => {
+    // GET /podcasts is paginated (?page&per_page, { data, meta })
+    await page.route(/\/api\/podcasts(\?.*)?$/, route => {
       if (route.request().method() === 'GET') {
         route.fulfill({
           status: 200, contentType: 'application/json',
@@ -182,6 +183,7 @@ test.describe('Mock: Podcast em geração', () => {
               { id: 'pod-1', title: 'Revisão: Direito', status: 'generating_audio', topic_name: 'Direito', duration_seconds: null, audio_url: null, created_at: new Date().toISOString() },
               { id: 'pod-2', title: 'Revisão: Algoritmos', status: 'ready', topic_name: 'Algoritmos', duration_seconds: 320, audio_url: 'https://example.com/audio.mp3', created_at: new Date(Date.now() - 86400000).toISOString() },
             ],
+            meta: { current_page: 1, last_page: 1, per_page: 20, total: 2 },
           }),
         })
       } else {
@@ -251,5 +253,40 @@ test.describe('Layout lazy (prd-performance-frontend RF-03)', () => {
     })
     await expect(page.getByRole('dialog', { name: 'Limite do plano' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Ver planos' })).toBeVisible()
+  })
+})
+
+test.describe('/cadernos sob demanda (prd-performance-frontend RF-02)', () => {
+  test('troca de abas e modal de card sem erro de console; editor só monta ao abrir', async ({ page }) => {
+    const errors: string[] = []
+    page.on('pageerror', e => errors.push(e.message))
+    page.on('console', m => { if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) errors.push(m.text()) })
+
+    await page.setViewportSize({ width: 1280, height: 800 })
+    await login(page)
+    const topicId = await page.evaluate(async () => {
+      const app = (document.querySelector('#__nuxt') as any).__vue_app__
+      const res = await app.config.globalProperties.$api('/topics', { method: 'POST', body: { name: `E2E lazy ${Date.now()}` } })
+      return res.data.id as string
+    })
+
+    await page.goto(`/cadernos?topic=${topicId}`)
+    await page.waitForLoadState('networkidle')
+    for (const tab of ['Material', 'Cards', 'Mapa', 'Cards']) {
+      await page.getByRole('tab', { name: new RegExp(tab) }).click()
+      await page.waitForTimeout(300)
+    }
+
+    // Tiptap only exists after opening the card form (Lazy + v-if)
+    await expect(page.locator('.ProseMirror')).toHaveCount(0)
+    await page.getByRole('button', { name: /Criar (primeiro )?card/ }).first().click()
+    await expect(page.locator('.ProseMirror').first()).toBeVisible()
+
+    expect(errors).toEqual([])
+
+    await page.evaluate(async (id) => {
+      const app = (document.querySelector('#__nuxt') as any).__vue_app__
+      await app.config.globalProperties.$api(`/topics/${id}`, { method: 'DELETE' }).catch(() => {})
+    }, topicId)
   })
 })

@@ -22,6 +22,8 @@ const CSP = [
   "form-action 'self'",
 ].join('; ')
 
+const SESSION_HINT_SCRIPT = `(function(){var d=document.documentElement;if(['/','/entrar','/criar-conta'].indexOf(location.pathname.replace(/\\/$/,'')||'/')<0)return;if(!/(?:^|;\\s*)baigi_logged_in=1/.test(document.cookie))return;d.classList.add('baigi-session');setTimeout(function(){d.classList.remove('baigi-session')},4000)})()`
+
 const SECURITY_HEADERS = {
   'X-Frame-Options': 'DENY',
   'X-Content-Type-Options': 'nosniff',
@@ -137,6 +139,15 @@ export default defineNuxtConfig({
         { name: 'theme-color', content: '#0F001F', media: '(prefers-color-scheme: dark)' },
         { name: 'apple-mobile-web-app-capable', content: 'yes' },
         { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
+      ],
+      script: [
+        // Prerendered /, /entrar, /criar-conta: a user with the session hint cookie is
+        // redirected to /hoje by the middleware once JS runs; hide the static page until
+        // then (no landing flash). plugins/auth.client.ts removes the class; 4 s failsafe.
+        { innerHTML: SESSION_HINT_SCRIPT, tagPosition: 'head' },
+      ],
+      style: [
+        { innerHTML: 'html.baigi-session body{visibility:hidden}' },
       ],
       link: [
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },

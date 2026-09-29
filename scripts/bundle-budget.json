@@ -10,8 +10,8 @@
     },
     "/": {
       "file": "pages/index.vue",
-      "gzKb": 13,
-      "closureGzKb": 42
+      "gzKb": 12,
+      "closureGzKb": 20
     }
   },
   "entryLayoutForbidden": {

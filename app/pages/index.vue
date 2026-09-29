@@ -416,6 +416,8 @@
           <a href="#recursos" class="hover:text-[#6F3FF5] transition-colors">Recursos</a>
           <a href="#planos" class="hover:text-[#6F3FF5] transition-colors">Planos</a>
           <NuxtLink to="/ajuda" class="hover:text-[#6F3FF5] transition-colors">Ajuda</NuxtLink>
+          <NuxtLink to="/termos" class="hover:text-[#6F3FF5] transition-colors">Termos</NuxtLink>
+          <NuxtLink to="/privacidade" class="hover:text-[#6F3FF5] transition-colors">Privacidade</NuxtLink>
           <a href="mailto:contato@baigi.com.br" class="hover:text-[#6F3FF5] transition-colors">Contato</a>
         </div>
       </div>

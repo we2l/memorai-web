@@ -22,7 +22,7 @@ const CSP = [
   "form-action 'self'",
 ].join('; ')
 
-const SESSION_HINT_SCRIPT = `(function(){var d=document.documentElement;if(['/','/entrar','/criar-conta'].indexOf(location.pathname.replace(/\\/$/,'')||'/')<0)return;if(!/(?:^|;\\s*)baigi_logged_in=1/.test(document.cookie))return;d.classList.add('baigi-session');setTimeout(function(){d.classList.remove('baigi-session')},4000)})()`
+const SESSION_HINT_SCRIPT = `(function(){var d=document.documentElement;if(['/','/entrar','/criar-conta','/planos','/ajuda'].indexOf(location.pathname.replace(/\\/$/,'')||'/')<0)return;if(!/(?:^|;\\s*)baigi_logged_in=1/.test(document.cookie))return;d.classList.add('baigi-session');setTimeout(function(){d.classList.remove('baigi-session')},4000)})()`
 
 const SECURITY_HEADERS = {
   'X-Frame-Options': 'DENY',
@@ -80,6 +80,8 @@ export default defineNuxtConfig({
       navigateFallback: null,
       // Images are runtime-cached (below); never precache png/pdf (RF-05)
       globPatterns: ['**/*.{js,css,html,svg,ico,woff2}'],
+      // Public content pages don't need to work offline: keep them out of the install download
+      globIgnores: ['termos/**', 'privacidade/**', 'planos/**', 'ajuda/**'],
       // Heavy on-demand chunks (pdf.js ~330 KB) stay out of the install download;
       // maximumFileSizeToCacheInBytes would fail the build instead of skipping.
       manifestTransforms: [
@@ -107,6 +109,13 @@ export default defineNuxtConfig({
     '/entrar': { ssr: true, prerender: true },
     '/criar-conta': { ssr: true, prerender: true },
     '/esqueci-senha': { ssr: true, prerender: true },
+    // Public pages (prd-ux-critica RF-F11): legal texts + offer/help for visitors.
+    // /planos fetches /api/plans on the client; logged-in users are hidden by the
+    // session-hint script until the app layout takes over.
+    '/termos': { ssr: true, prerender: true },
+    '/privacidade': { ssr: true, prerender: true },
+    '/planos': { ssr: true, prerender: true },
+    '/ajuda': { ssr: true, prerender: true },
     '/redefinir-senha': { ssr: false },
     '/auth/**': { ssr: false },
     // Legacy URLs: real 301 on the edge (prd-performance-frontend RF-01)

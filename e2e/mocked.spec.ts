@@ -429,3 +429,104 @@ test.describe('Estados honestos (RF-F3.6–F3.9)', () => {
     await expect(page.getByText('Não foi possível carregar seus cadernos')).toHaveCount(0)
   })
 })
+
+test.describe('Onboarding sem armadilhas (RF-F4)', () => {
+  const newUser = { id: 'u-new', name: 'Nova Pessoa', email: 'nova@e2e.test', plan: 'free', onboarding_completed: false, email_verified_at: '2026-09-29T00:00:00Z', default_learning_mode: null }
+
+  async function mockNewUserApi(page: import('@playwright/test').Page) {
+    // Catch-all first (Playwright matches the most recent route first)
+    await page.route('**/api/**', r => r.fulfill(json({ data: [] })))
+    await page.route('**/api/plans', r => r.continue())
+    await page.route('**/api/me', r => r.fulfill(json({ data: newUser })))
+    await page.route('**/api/register', r => r.fulfill(json({ data: { user: newUser } }, 201)))
+    await page.route('**/api/onboarding/complete', r => r.fulfill(json({ data: { onboarding_completed: true } })))
+    await page.route('**/api/onboarding/learning-mode', r => r.fulfill(json({ data: {} })))
+  }
+
+  async function register(page: import('@playwright/test').Page) {
+    await page.goto('/criar-conta')
+    await page.waitForLoadState('networkidle')
+    await page.fill('#name', newUser.name)
+    await page.fill('#email', newUser.email)
+    await page.fill('#password', 'password123')
+    await page.fill('#password_confirmation', 'password123')
+    await page.check('#accept_terms')
+    await page.click('button[type="submit"]')
+  }
+
+  test('cadastro vai direto para /comecar (sem passar por /hoje)', async ({ page }) => {
+    await mockNewUserApi(page)
+    const visited: string[] = []
+    page.on('framenavigated', f => { if (f === page.mainFrame()) visited.push(new URL(f.url()).pathname) })
+    await register(page)
+    await page.waitForURL('**/comecar')
+    expect(visited).not.toContain('/hoje')
+  })
+
+  test('"Importar Anki" conclui o onboarding antes e permanece em /importar', async ({ page }) => {
+    await mockNewUserApi(page)
+    await register(page)
+    await page.waitForURL('**/comecar')
+    await page.getByRole('button', { name: /Pular/ }).first().click()
+    await page.getByRole('button', { name: /Importar Anki/ }).click()
+    await page.waitForURL('**/importar')
+    await page.waitForTimeout(800)
+    expect(new URL(page.url()).pathname).toBe('/importar')
+  })
+
+  test('0 cards gerados mostra erro inline e não conclui o onboarding', async ({ page }) => {
+    await mockNewUserApi(page)
+    let completed = false
+    await page.route('**/api/onboarding/complete', r => { completed = true; return r.fulfill(json({ data: {} })) })
+    await page.route(/\/api\/topics$/, r => r.fulfill(json({ data: { id: 't-new', name: 'x' } }, 201)))
+    await page.route('**/api/topics/t-new/notes', r => r.fulfill(json({ data: { id: 'n1' } }, 201)))
+    await page.route('**/api/ai/generate-cards', r => r.fulfill(json({ data: { id: 'job-1', status: 'done', result: { cards: [] } } }, 202)))
+    await register(page)
+    await page.waitForURL('**/comecar')
+    await page.getByRole('button', { name: /Pular/ }).first().click()
+    await page.fill('#material', 'Texto curto demais')
+    await expect(page.locator('#notebook-name')).toHaveValue('Texto curto demais')
+    await page.getByRole('button', { name: 'Transformar em estudo' }).click()
+    await expect(page.getByText(/Não conseguimos criar cards com esse texto/)).toBeVisible()
+    expect(completed).toBe(false)
+  })
+
+  test('PDF acima do limite do plano é recusado sem request', async ({ page }) => {
+    await mockNewUserApi(page)
+    let uploads = 0
+    await page.route('**/api/documents', r => { uploads++; return r.fulfill(json({ data: {} }, 201)) })
+    // Real catalog with a 1 MB Free limit (the limit comes from /api/plans, never hardcoded)
+    await page.route('**/api/plans', async (r) => {
+      const res = await r.fetch()
+      const body = await res.json()
+      for (const p of body.data.plans) p.extras.upload_max_mb = 1
+      await r.fulfill(json(body))
+    })
+    await register(page)
+    await page.waitForURL('**/comecar')
+    await page.getByRole('button', { name: /Pular/ }).first().click()
+    await page.locator('input[type="file"][accept*="pdf"]').setInputFiles({
+      name: 'enorme.pdf', mimeType: 'application/pdf', buffer: Buffer.alloc(2 * 1024 * 1024, 0),
+    })
+    await expect(page.getByText(/O limite do seu plano é 1 MB/)).toBeVisible()
+    expect(uploads).toBe(0)
+  })
+
+  test('modo prova com data cria o Exam depois do caderno; sem data não cria', async ({ page }) => {
+    await mockNewUserApi(page)
+    const calls: string[] = []
+    await page.route(/\/api\/topics$/, r => { calls.push('topics'); return r.fulfill(json({ data: { id: 't-new' } }, 201)) })
+    await page.route('**/api/topics/t-new/notes', r => r.fulfill(json({ data: { id: 'n1' } }, 201)))
+    await page.route(/\/api\/exams$/, r => { calls.push('exams'); return r.fulfill(json({ data: { id: 'e1' } }, 201)) })
+    await page.route('**/api/ai/generate-cards', r => r.fulfill(json({ data: { id: 'job-1', status: 'done', result: { cards: [] } } }, 202)))
+    await register(page)
+    await page.waitForURL('**/comecar')
+    await page.getByRole('button', { name: /Concurso/ }).click()
+    const d = new Date(Date.now() + 30 * 86400_000)
+    await page.fill('#exam-date', d.toISOString().slice(0, 10))
+    await page.getByRole('button', { name: /Continuar/ }).click()
+    await page.fill('#material', 'Direito constitucional e seus princípios fundamentais')
+    await page.getByRole('button', { name: 'Transformar em estudo' }).click()
+    await expect.poll(() => calls).toEqual(['topics', 'exams'])
+  })
+})

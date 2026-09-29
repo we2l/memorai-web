@@ -35,7 +35,7 @@ onMounted(async () => {
       body: { code, state },
     })
     auth.setUser(res.data.user)
-    await navigateTo('/hoje')
+    await navigateTo(postAuthRedirect(res.data.user))
   } catch (e: any) {
     const errors = e?.data?.errors
     error.value = errors?.state?.[0] || errors?.email?.[0] || e?.data?.message || 'Erro ao conectar com Google. Tente novamente.'

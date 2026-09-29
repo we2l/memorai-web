@@ -999,11 +999,13 @@ async function onImportModalConfirm(data: { learning_mode: string; target_langua
 }
 
 // Handle file selected from StartCard — upload PDF to current topic
+const startCardUpload = useDocumentUpload()
+
 async function handleStartCardFile(file: File) {
   if (!selectedTopicId.value) return
-  const maxSize = (auth.user?.plan === 'pro' ? 100 : 50) * 1024 * 1024
-  if (file.size > maxSize) { toast.show(`Máximo ${auth.user?.plan === 'pro' ? '100' : '50'}MB`, 'error'); return }
-  if (!file.name.endsWith('.pdf')) { toast.show('Apenas PDF', 'error'); return }
+  // Type and size are validated against GET /api/plans (RN-UX-06: no hardcoded limits)
+  const invalid = await startCardUpload.validate(file)
+  if (invalid) { toast.show(invalid, 'error'); return }
 
   // If topic has no learning mode, open upload modal (user re-selects file there)
   if (!selectedTopicLearningMode.value) {
@@ -1011,9 +1013,8 @@ async function handleStartCardFile(file: File) {
     return
   }
 
-  const { upload } = useDocumentUpload()
-  const success = await upload(file, selectedTopicId.value)
-  if (success) await docStore.fetchForTopic(selectedTopicId.value, true)
+  const result = await startCardUpload.upload(file, { topicId: selectedTopicId.value, autoCards: readAutoCardsPref() })
+  if (result) await docStore.fetchForTopic(selectedTopicId.value, true)
 }
 
 const editTopicIsRoot = ref(false)

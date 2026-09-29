@@ -275,6 +275,11 @@ export interface Document {
     insights: number
     errors: number
   } | null
+  /** PDF → cards (prd-ux-critica RF-B6) */
+  note_id?: string | null
+  auto_cards?: boolean
+  auto_cards_status?: 'pending' | 'generating' | 'completed' | 'failed' | 'skipped_quota' | 'skipped_empty' | null
+  auto_cards_count?: number
   created_at: string
 }
 

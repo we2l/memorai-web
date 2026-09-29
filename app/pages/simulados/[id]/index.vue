@@ -153,7 +153,7 @@
 <script setup lang="ts">
 import { ArrowLeft, Clock } from 'lucide-vue-next'
 
-definePageMeta({ layout: false })
+definePageMeta({ layout: false, chrome: 'focus' })
 
 const route = useRoute()
 const quizStore = useQuizStore()

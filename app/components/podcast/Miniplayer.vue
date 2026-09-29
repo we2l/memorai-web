@@ -1,8 +1,8 @@
 <template>
   <div
     v-if="player.currentPodcast"
-    class="fixed left-0 lg:left-[240px] right-0 z-40 bg-[var(--bg-card)] border-t border-base shadow-[0_-4px_16px_rgba(45,35,66,0.06)]"
-    :class="isMobile ? 'bottom-16' : 'bottom-0'"
+    class="fixed right-0 z-40 bg-[var(--bg-card)] border-t border-base shadow-[0_-4px_16px_rgba(45,35,66,0.06)]"
+    style="left: var(--sidebar-w); bottom: var(--nav-h);"
   >
     <div class="h-[2px] bg-surface-secondary">
       <div class="h-[2px] bg-[var(--color-accent-soft)] transition-all duration-300" :style="{ width: progressPercent + '%' }" />
@@ -44,7 +44,6 @@
 import { Headphones, Play, Pause, ChevronUp, X } from 'lucide-vue-next'
 
 const player = usePlayerStore()
-const isMobile = ref(false)
 
 const progressPercent = computed(() => {
   if (!player.duration) return 0
@@ -57,10 +56,5 @@ const contentModeBadge = computed(() => {
   if (mode === 'pre_exam') return 'Pré-prova'
   if (mode === 'general_review') return 'Revisão geral'
   return ''
-})
-
-onMounted(() => {
-  isMobile.value = window.innerWidth < 1024
-  window.addEventListener('resize', () => { isMobile.value = window.innerWidth < 1024 })
 })
 </script>

@@ -2,13 +2,14 @@
   <div>
     <!-- Trigger button -->
     <button
-      class="fixed z-40 bg-[var(--bg-soft)] border border-base rounded-full p-3 shadow-lg hover:bg-surface-secondary transition-all right-4 hidden sm:block text-base-secondary hover:text-base-primary"
+      class="fixed z-40 bg-[var(--bg-soft)] border border-base rounded-full p-3 shadow-lg hover:bg-surface-secondary transition-all lg:right-6 hidden lg:block text-base-secondary hover:text-base-primary"
       :class="isOpen ? '!hidden' : ''"
-      style="bottom: 80px;"
+      style="bottom: calc(var(--fab-bottom) + 56px);"
       title="Anotar rapidamente (Ctrl+N)"
+      aria-label="Anotar rapidamente (Ctrl+N)"
       @click="open"
     >
-      <PenLine :size="20" class="text-accent-primary" />
+      <PenLine :size="20" class="text-accent-primary" aria-hidden="true" />
     </button>
 
     <!-- Modal chunk only loads on first open -->

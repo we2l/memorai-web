@@ -177,6 +177,33 @@
 }
 
 /* ============================================
+   Layout chrome vars (prd-ux-critica RF-F1.5)
+   Set on :root because toasts/FABs are teleported
+   outside the layout wrapper. The layout writes the
+   *-set values; breakpoints and focus mode override.
+   ============================================ */
+:root {
+  --nav-h: 64px;
+  --miniplayer-h: var(--miniplayer-h-set, 0px);
+  --sticky-action-h: var(--sticky-action-h-set, 0px);
+  --sidebar-w: 0px;
+  --fab-bottom: calc(var(--nav-h) + var(--miniplayer-h) + var(--sticky-action-h) + 16px + env(safe-area-inset-bottom));
+}
+@media (min-width: 1024px) {
+  :root {
+    --nav-h: 0px;
+    --sticky-action-h: 0px;
+    --sidebar-w: var(--sidebar-w-set, 240px);
+    --fab-bottom: calc(var(--miniplayer-h) + 24px);
+  }
+}
+:root[data-chrome="focus"] {
+  --nav-h: 0px;
+  --miniplayer-h: 0px;
+  --sticky-action-h: 0px;
+}
+
+/* ============================================
    Surface utilities
    ============================================ */
 

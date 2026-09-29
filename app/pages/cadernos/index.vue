@@ -432,7 +432,7 @@
     </main>
 
     <!-- Mobile: sticky bottom review button -->
-    <div v-if="selectedTopicId && dueCardsCount > 0" class="lg:hidden fixed bottom-16 left-0 right-0 p-3 bg-[var(--bg-card)]/95 backdrop-blur-md border-t border-base z-30 flex gap-2">
+    <div v-if="showStickyReview" class="lg:hidden fixed left-0 right-0 p-3 bg-[var(--bg-card)]/95 backdrop-blur-md border-t border-base z-30 flex gap-2" style="bottom: calc(var(--nav-h) + var(--miniplayer-h));">
       <NuxtLink :to="`/revisar?mode=blitz&topic_id=${selectedTopicId}`" class="btn-secondary flex-none justify-center !py-2.5 !px-3 inline-flex items-center gap-1">
         <Zap :size="14" /> Rápida
       </NuxtLink>
@@ -634,6 +634,8 @@ const mapSubView = ref<'graph' | 'mindmap'>(
 )
 const searchQuery = ref('')
 const { topicCards, showDeleteCard, deleteCardId, memorizeProgress, dueCardsCount, newCardsCount, pendingCount, setCards, listMode, listCards, hasMorePages, loadingPage, totalCards, loadNextPage, searchCards, cardsFromNote, confirmDeleteCard, handleDeleteCard } = useTopicCards()
+const showStickyReview = computed(() => !!selectedTopicId.value && dueCardsCount.value > 0)
+useStickyActionHeight(showStickyReview)
 
 // Confetti when pending goes from >0 to 0
 const showConfetti = ref(false)

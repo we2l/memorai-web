@@ -225,6 +225,8 @@
 <script setup lang="ts">
 import { Flame, AlertOctagon, Timer, Zap, CalendarClock, GitBranch, FastForward } from 'lucide-vue-next'
 
+definePageMeta({ chrome: 'focus' })
+
 const review = useReviewStore()
 const deckStore = useDeckStore()
 const chat = useChatStore()

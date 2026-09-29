@@ -263,10 +263,9 @@ function setMode(mode: 'light' | 'dark') {
   set(mode)
 }
 
-async function handleLogout() {
-  await auth.logout()
-  toast.show('Até logo!', 'success')
-  await navigateTo('/entrar')
+const { logout } = useLogout()
+function handleLogout() {
+  return logout({ message: 'Até logo!' })
 }
 
 onMounted(async () => {

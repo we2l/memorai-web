@@ -556,3 +556,10 @@ export interface AiJob<T = unknown> {
   error?: string
   created_at: string
 }
+
+declare module '#app' {
+  interface PageMeta {
+    /** 'focus' hides BottomNav, FABs and the compact miniplayer (RF-F1.6). */
+    chrome?: 'focus'
+  }
+}

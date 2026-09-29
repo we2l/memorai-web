@@ -302,3 +302,25 @@ describe('diário de erros (RN-UX-04)', () => {
     expect(store.currentCard?.id).toBe('b')
   })
 })
+
+describe('editar durante a revisão (RF-F2.11)', () => {
+  it('atualiza frente/verso sem mexer no agendamento', () => {
+    setActivePinia(createPinia())
+    const store = useReviewStore()
+    store.cards = [card('a', { front: 'velha', back: 'x', due: '2026-10-01T00:00:00Z' })]
+    store.updateCurrentContent({ id: 'a', front: 'nova', back: 'y' })
+    expect(store.currentCard).toMatchObject({ front: 'nova', back: 'y', due: '2026-10-01T00:00:00Z' })
+  })
+
+  it('diário sometimes: abre no 1º erro e não no 2º', () => {
+    setActivePinia(createPinia())
+    apiMock.mockReset().mockReturnValue(new Promise(() => {}))
+    const store = useReviewStore()
+    store.cards = [card('a'), card('b'), card('c')]
+    store.rate(1)
+    expect(store.showErrorDiary).toBe(true)
+    store.dismissDiary()
+    store.rate(1)
+    expect(store.showErrorDiary).toBe(false)
+  })
+})

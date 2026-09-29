@@ -16,6 +16,16 @@
           <Undo2 :size="16" aria-hidden="true" />
           Desfazer
         </button>
+        <button
+          v-if="review.currentCard && !review.showErrorDiary"
+          type="button"
+          class="inline-flex items-center justify-center w-11 h-11 rounded-full text-base-muted hover:text-base-primary hover:bg-[var(--border-divider)] transition-colors"
+          aria-label="Editar card"
+          aria-keyshortcuts="E"
+          @click="openEdit"
+        >
+          <Pencil :size="16" aria-hidden="true" />
+        </button>
       </div>
       <div class="flex items-center gap-3 text-small text-base-secondary min-w-0">
         <span v-if="isSurvivalMode" class="px-2 py-0.5 rounded-full text-micro uppercase tracking-wide font-medium bg-[var(--badge-warning-bg)] text-[var(--badge-warning-text)]">Sobrevivência</span>
@@ -121,7 +131,7 @@
     </div>
 
     <!-- Finished -->
-    <div v-else-if="review.finished && !review.showErrorDiary" class="flex-1 flex flex-col items-center justify-center px-4 text-center">
+    <div v-else-if="review.finished && !review.showErrorDiary" class="flex-1 min-h-0 overflow-y-auto flex flex-col items-center justify-center px-4 py-6 text-center">
       <!-- Empty session (no cards found) -->
       <template v-if="review.reviewed === 0">
         <picture class="contents"><source srcset="~/assets/mascots/mascot-baigi-celebrating.avif" type="image/avif"><img src="~/assets/mascots/mascot-baigi-celebrating.webp" alt="Baigi celebrando" class="w-24 h-24 object-contain mb-4" width="96" height="96" loading="lazy" decoding="async" /></picture>
@@ -135,35 +145,16 @@
         <NuxtLink to="/hoje" class="btn-primary mt-8">Voltar</NuxtLink>
       </template>
 
-      <!-- Normal finish (reviewed some cards) -->
-      <template v-else>
-        <picture class="contents"><source srcset="~/assets/mascots/mascot-baigi-celebrating.avif" type="image/avif"><img src="~/assets/mascots/mascot-baigi-celebrating.webp" alt="Baigi celebrando" class="w-28 h-28 object-contain" width="112" height="112" loading="lazy" decoding="async" /></picture>
-        <h2 class="text-display mt-4">Missão de hoje concluída!</h2>
-        <p class="text-body text-base-muted mt-3">
-          Você reforçou <span class="text-accent-primary font-medium">{{ review.reviewed }}</span> conceito{{ review.reviewed !== 1 ? 's' : '' }}
-        </p>
-      <p v-if="correctStreak > 3" class="text-small text-success mt-2">
-        {{ correctStreak }} acertos seguidos — seu cérebro agradece
-      </p>
-      <p v-if="review.pendingLearning > 0" class="text-base-muted text-small mt-2">
-        {{ review.pendingLearning }} card{{ review.pendingLearning !== 1 ? 's' : '' }} em aprendizado — {{ review.pendingLearning === 1 ? 'volta' : 'voltam' }} em breve.
-      </p>
-
-      <!-- Post-session suggestion -->
-      <div v-if="topErrorTopic" class="mt-6 card border border-warning/30 max-w-sm">
-        <p class="text-small text-base-primary">Você errou {{ topErrorTopic.count }}x em "{{ topErrorTopic.name }}".</p>
-        <div class="flex gap-2 mt-3 justify-center">
-          <NuxtLink :to="`/revisar?topic_id=${topErrorTopic.id}&errors_only=1&t=${Date.now()}`" class="btn-primary !py-1.5 !px-3 !min-h-[2.75rem] text-small">
-            Reforçar
-          </NuxtLink>
-          <NuxtLink to="/hoje" class="btn-secondary !py-1.5 !px-3 !min-h-[2.75rem] text-small">
-            Depois
-          </NuxtLink>
-        </div>
-      </div>
-
-      <NuxtLink v-else to="/hoje" class="btn-primary mt-8">Voltar</NuxtLink>
-      </template>
+      <!-- Normal finish (reviewed some cards) — RF-F2.10 -->
+      <ReviewSessionSummary
+        v-else
+        :reviewed="review.totalRated"
+        :ratings="review.ratingsCount"
+        :started-at="review.sessionStartedAt"
+        :pending-learning="review.pendingLearning"
+        :top-error-topic="topErrorTopic ?? null"
+        :has-backlog="hasBacklog"
+      />
     </div>
 
     <!-- Waiting for learning cards -->
@@ -231,6 +222,40 @@
             </div>
           </div>
 
+          <!-- Hints after an error (RF-F2.9): optional context, never blocks -->
+          <section
+            v-if="!review.showErrorDiary && (review.hintsLoading || review.hints.length)"
+            class="w-full max-w-lg"
+            aria-live="polite"
+            aria-label="Dicas da sua nota"
+          >
+            <div v-if="review.hintsLoading" class="space-y-2" aria-busy="true">
+              <div class="skeleton h-4 w-full rounded" />
+              <div class="skeleton h-4 w-2/3 rounded" />
+            </div>
+            <template v-else>
+              <ul class="space-y-2">
+                <li
+                  v-for="(hint, i) in visibleHints"
+                  :key="i"
+                  class="flex gap-2 p-3 rounded-lg border text-small text-left"
+                  :class="hintStyle(hint.type).box"
+                >
+                  <component :is="hintStyle(hint.type).icon" :size="16" class="shrink-0 mt-0.5" aria-hidden="true" />
+                  <span><span class="sr-only">{{ hintStyle(hint.type).label }}: </span><span v-html="sanitize(hint.text)" /></span>
+                </li>
+              </ul>
+              <button
+                v-if="!showAllHints && review.hints.length > 2"
+                type="button"
+                class="mt-2 text-small text-accent-primary underline underline-offset-2 min-h-[44px]"
+                @click="showAllHints = true"
+              >
+                Ver mais {{ review.hints.length - 2 }}
+              </button>
+            </template>
+          </section>
+
           <!-- Weak connection suggestion -->
           <div v-if="review.weakSuggestion?.length && !review.showErrorDiary" class="w-full max-w-lg px-4">
             <div class="card border border-warning/30 text-center">
@@ -273,6 +298,14 @@
       </div>
     </UiModal>
 
+    <!-- Edit current card (E) -->
+    <LazyFlashcardCardFormModal
+      v-if="editLoaded && editingCard"
+      v-model="showEditCard"
+      :card="editingCard"
+      @updated="onCardUpdated"
+    />
+
     <!-- Shortcuts help (?) -->
     <UiModal v-model="showShortcuts" size="sm">
       <h2 class="text-title mb-4">Atalhos da revisão</h2>
@@ -287,7 +320,7 @@
 </template>
 
 <script setup lang="ts">
-import { Flame, AlertOctagon, AlertTriangle, Timer, Zap, CalendarClock, GitBranch, FastForward, Undo2 } from 'lucide-vue-next'
+import { Flame, AlertOctagon, AlertTriangle, Timer, Zap, CalendarClock, GitBranch, FastForward, Undo2, XCircle, Lightbulb, Pencil } from 'lucide-vue-next'
 
 definePageMeta({ chrome: 'focus' })
 
@@ -310,11 +343,25 @@ const visibleHints = computed(() =>
   showAllHints.value ? review.hints : review.hints.slice(0, 2),
 )
 
-function hintIcon(type: string): string {
-  if (type === 'error') return 'error'
-  if (type === 'gotcha') return 'gotcha'
-  return 'insight'
+const { sanitize } = useSanitize()
+
+function hintStyle(type: string) {
+  if (type === 'error') return { icon: XCircle, label: 'Erro comum', box: 'bg-[var(--badge-danger-bg)] border-[var(--badge-danger-text)]/20 text-base-primary' }
+  if (type === 'gotcha') return { icon: AlertTriangle, label: 'Pegadinha', box: 'bg-[var(--badge-warning-bg)] border-[var(--badge-warning-text)]/20 text-base-primary' }
+  return { icon: Lightbulb, label: 'Dica', box: 'bg-[var(--badge-info-bg)] border-[var(--badge-info-text)]/20 text-base-primary' }
 }
+
+// "Revisar mais" on the summary when there is backlog (silent: decorative)
+const hasBacklog = ref(false)
+watch(() => review.finished, async (done) => {
+  if (!done || review.reviewed === 0) return
+  try {
+    const res = await useNuxtApp().$api<any>('/review/backlog-stats')
+    hasBacklog.value = (res.data?.overdue_count ?? 0) > 0
+  } catch (e) {
+    reportApiError(e, { silent: true })
+  }
+})
 
 const topErrorTopic = computed(() => {
   const entries = Object.values(errorsByTopic.value).filter(e => e.count >= 2)
@@ -425,11 +472,26 @@ const shortcutList = [
   { keys: 'Espaço / Enter', label: 'Virar; com o card virado, "Lembrei"' },
   { keys: '1 2 3 4', label: 'Não lembrei · Quase · Lembrei · Fácil demais' },
   { keys: 'U / Ctrl+Z', label: 'Desfazer a última avaliação' },
+  { keys: 'E', label: 'Editar o card atual' },
   { keys: '?', label: 'Mostrar ou esconder os atalhos' },
   { keys: 'Esc', label: 'Fechar o diário; senão, voltar para Hoje' },
 ]
 
+// Edit the current card (E) — content only, scheduling untouched (RF-F2.11)
+const showEditCard = ref(false)
+const editLoaded = useLoadedOnce(() => showEditCard.value)
+const editingCard = ref<any>(null)
+function openEdit() {
+  if (!review.currentCard || review.showErrorDiary) return
+  editingCard.value = { ...review.currentCard }
+  showEditCard.value = true
+}
+function onCardUpdated(card?: { id: string; front: string; back: string }) {
+  if (card) review.updateCurrentContent(card)
+}
+
 useReviewShortcuts({
+  edit: openEdit,
   flip: () => { if (review.currentCard && !review.showErrorDiary) review.flip() },
   rate: (r) => { if (review.flipped && !review.showErrorDiary) handleRate(r) },
   undo: () => { if (review.canUndo) void handleUndo() },
@@ -439,7 +501,7 @@ useReviewShortcuts({
     else navigateTo('/hoje')
   },
   isFlipped: () => review.flipped,
-  isSuspended: () => showTimerModal.value,
+  isSuspended: () => showTimerModal.value || showEditCard.value,
 })
 
 // "Press ? for shortcuts" tip on the first 3 sessions (pointer: fine only, via CSS)
@@ -522,6 +584,7 @@ async function loadSessionTimer() {
     const { $api } = useNuxtApp()
     const res = await $api<any>('/settings')
     isSurvivalMode.value = res.data.survival_mode ?? false
+    if (res.data.error_diary_mode) review.errorDiaryMode = res.data.error_diary_mode
     const limit = res.data.session_time_limit
     if (limit) {
       sessionTimer.value = limit * 60

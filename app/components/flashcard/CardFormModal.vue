@@ -132,7 +132,7 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{
   (e: 'created'): void
-  (e: 'updated'): void
+  (e: 'updated', card?: { id: string; front: string; back: string }): void
   (e: 'local-save', card: { front: string; back: string; tags: string[]; frontAudioBlob: Blob | null; backAudioBlob: Blob | null }): void
 }>()
 const open = defineModel<boolean>({ required: true })
@@ -298,7 +298,7 @@ async function doSubmit(closeAfter: boolean) {
         back_audio_url,
       })
       toast.show('Card atualizado!', 'success')
-      emit('updated')
+      emit('updated', { id: props.card.id, front: form.front, back: form.back })
       open.value = false
     } else {
       await $api('/flashcards', {

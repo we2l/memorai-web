@@ -551,3 +551,78 @@ test.describe('PDF → cards automático (RF-F5.2)', () => {
     await expect(page.getByRole('link', { name: 'Revisar 12 cards' })).toHaveAttribute('href', `/revisar?topic_id=${topic.id}`)
   })
 })
+
+test.describe('Configurações de conta e LGPD (RF-F11.3–F11.5)', () => {
+  test.describe.configure({ mode: 'serial' })
+  let page: import('@playwright/test').Page
+  let me: any
+
+  test.beforeAll(async ({ browser }) => {
+    page = await sharedPage(browser)
+    me = await page.evaluate(async () => {
+      const r = await fetch('http://localhost:8037/api/me', { credentials: 'include', headers: { Accept: 'application/json' } })
+      return (await r.json()).data
+    })
+  })
+  test.afterAll(async () => { await page.context().close() })
+  test.beforeEach(async () => { await page.unrouteAll({ behavior: 'ignoreErrors' }) })
+
+  test('salvar o nome atualiza a Sidebar', async () => {
+    await page.route('**/api/user/profile', r => r.fulfill(json({ data: { ...me, name: 'Nome Novo E2E' } })))
+    await page.goto('/configuracoes')
+    await page.fill('#profile-name', 'Nome Novo E2E')
+    await page.getByRole('button', { name: 'Salvar', exact: true }).first().click()
+    await expect(page.getByText('Nome atualizado.')).toBeVisible()
+  })
+
+  test('422 da troca de senha aparece inline', async () => {
+    await page.route('**/api/user/password', r => r.fulfill(json({ message: 'x', errors: { current_password: ['A senha atual está incorreta.'] } }, 422)))
+    await page.goto('/configuracoes#senha')
+    await page.fill('#pw-current_password', 'errada')
+    await page.fill('#pw-password', 'novasenha123')
+    await page.fill('#pw-password_confirmation', 'novasenha123')
+    await page.getByRole('button', { name: 'Trocar senha' }).click()
+    await expect(page.locator('#pw-current_password-error')).toHaveText('A senha atual está incorreta.')
+    await expect(page.locator('#pw-current_password')).toHaveAttribute('aria-invalid', 'true')
+  })
+
+  test('exportar: 202 mostra o e-mail; 429 mostra o aviso de 24h', async () => {
+    await page.route('**/api/user/export', r => r.fulfill(json({ data: { status: 'queued', email: 'v***@e2e.test' } }, 202)))
+    await page.goto('/configuracoes#seus-dados')
+    await page.getByRole('button', { name: 'Exportar meus dados' }).click()
+    await page.getByRole('alertdialog').getByRole('button', { name: 'Exportar' }).click()
+    await expect(page.getByText(/Enviaremos o link para v\*\*\*@e2e.test/)).toBeVisible()
+  })
+
+  test('excluir conta com 502 da Stripe: mensagem e nada muda', async () => {
+    await page.route('**/api/user', r => r.request().method() === 'DELETE'
+      ? r.fulfill(json({ message: 'Não foi possível cancelar a assinatura. Nada foi excluído.' }, 502))
+      : r.continue())
+    await page.goto('/configuracoes#conta')
+    await page.getByRole('button', { name: 'Excluir conta' }).click()
+    const dialog = page.getByRole('alertdialog')
+    await expect(dialog).toBeVisible()
+    await dialog.getByLabel('Entendo que isso é permanente').check()
+    await dialog.getByRole('button', { name: 'Continuar' }).click()
+    await dialog.locator('#delete-confirmation').fill('password')
+    await dialog.getByRole('button', { name: 'Excluir minha conta' }).click()
+    await expect(dialog.getByText(/Não conseguimos cancelar sua assinatura/)).toBeVisible()
+    await page.keyboard.press('Escape')
+    await expect(dialog).toBeHidden()
+  })
+
+  test('excluir conta com 202: sai e volta para a landing com aviso', async () => {
+    await page.route('**/api/user', r => r.request().method() === 'DELETE'
+      ? r.fulfill(json({ data: { status: 'deletion_scheduled' } }, 202))
+      : r.continue())
+    await page.goto('/configuracoes#conta')
+    await page.getByRole('button', { name: 'Excluir conta' }).click()
+    const dialog = page.getByRole('alertdialog')
+    await dialog.getByLabel('Entendo que isso é permanente').check()
+    await dialog.getByRole('button', { name: 'Continuar' }).click()
+    await dialog.locator('#delete-confirmation').fill('password')
+    await dialog.getByRole('button', { name: 'Excluir minha conta' }).click()
+    await page.waitForURL(url => new URL(url).pathname === '/')
+    await expect(page.getByText('Sua conta está sendo excluída.')).toBeVisible()
+  })
+})

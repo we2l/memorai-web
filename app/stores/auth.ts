@@ -58,6 +58,13 @@ export const useAuthStore = defineStore('auth', {
       this.clearAuth()
     },
 
+    async updateProfile(name: string): Promise<User> {
+      const { $api } = useNuxtApp()
+      const res = await $api<{ data: User }>('/user/profile', { method: 'PUT', body: { name } })
+      this.setUser(res.data)
+      return res.data
+    },
+
     setUser(user: User) {
       this.user = user
       if (import.meta.client) {

@@ -7,6 +7,8 @@ export interface User {
   default_learning_mode: string
   subscription_status?: SubscriptionStatus | null
   onboarding_completed: boolean
+  /** False for Google sign-ups that never defined a password (RF-B3). */
+  has_password?: boolean
 }
 
 export interface ApiResponse<T> {
@@ -185,6 +187,8 @@ export interface UserSettings {
   session_time_limit: number | null
   survival_mode: boolean
   default_learning_mode?: string
+  desired_retention?: number
+  error_diary_mode?: 'always' | 'sometimes' | 'never'
 }
 
 export interface BacklogStats {

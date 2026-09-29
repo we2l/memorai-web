@@ -80,8 +80,8 @@ export default defineNuxtConfig({
       navigateFallback: null,
       // Images are runtime-cached (below); never precache png/pdf (RF-05)
       globPatterns: ['**/*.{js,css,html,svg,ico,woff2}'],
-      // Public content pages don't need to work offline: keep them out of the install download
-      globIgnores: ['termos/**', 'privacidade/**', 'planos/**', 'ajuda/**'],
+      // Public/auth HTML only works online anyway (content or login): keep it out of the install download
+      globIgnores: ['termos/**', 'privacidade/**', 'planos/**', 'ajuda/**', 'entrar/**', 'criar-conta/**', 'esqueci-senha/**'],
       // Heavy on-demand chunks (pdf.js ~330 KB) stay out of the install download;
       // maximumFileSizeToCacheInBytes would fail the build instead of skipping.
       manifestTransforms: [

@@ -420,6 +420,15 @@
           <p class="text-micro text-base-muted mt-2">A IA está lendo o PDF e criando o resumo.</p>
         </div>
 
+        <!-- 0 cadernos: nothing to select, offer the first steps (RF-F6.3) -->
+        <TopicEmptyStateOnboarding
+          v-else-if="!topicStore.loading && !topicStore.error && topicStore.tree.length === 0"
+          mode="no-notebooks"
+          @create="openCreate(null)"
+          @upload-pdf="showImportUploadModal = true"
+          @import-anki="navigateTo('/importar')"
+        />
+
         <template v-else>
           <button
             class="btn-secondary !py-2 !px-3.5 !min-h-[2.75rem] text-small lg:hidden"
@@ -559,9 +568,10 @@
 
     <UiConfirmModal
       v-model="showDeleteTopic"
-      title="Deletar?"
-      message="Conteúdo e notas serão deletados. Cards vinculados serão removidos."
-      confirm-label="Deletar"
+      :title="deleteTarget ? `Excluir '${deleteTarget.name}'?` : 'Excluir?'"
+      :message="deleteSummary"
+      confirm-label="Excluir"
+      :require-text="deleteRequiresName ? deleteTarget?.name : undefined"
       @confirm="handleDeleteTopic"
     />
 
@@ -629,6 +639,7 @@ const topicStore = useTopicStore()
 const noteStore = useNoteStore()
 const toast = useToast()
 const route = useRoute()
+const router = useRouter()
 const { $api } = useNuxtApp()
 const featureUsage = useFeatureUsage()
 const auth = useAuthStore()
@@ -864,7 +875,16 @@ const filteredTree = computed(() => {
 const headerRef = ref<HTMLElement>()
 const showStickyHeader = ref(false)
 
-function selectTopic(id: string) {
+/**
+ * The URL reflects the caderno (RF-F6.2): user selection pushes history, automatic
+ * selection replaces it, and back/forward ('none') only syncs the state.
+ */
+function selectTopic(id: string, history: 'push' | 'replace' | 'none' = 'push') {
+  if (history !== 'none' && route.query.topic !== id) {
+    const query = { ...route.query, topic: id, note: undefined, tab: undefined }
+    if (history === 'push') router.push({ query })
+    else router.replace({ query })
+  }
   flushPendingSave()
   closeEditor()
   noteImprove.reset()
@@ -1029,8 +1049,32 @@ function openEdit(topic: Topic) {
   showEditTopic.value = true
 }
 
+const deleteTarget = ref<Topic | null>(null)
+
+function subtreeTotals(topic: Topic): { notes: number; cards: number } {
+  return (topic.children ?? []).reduce((acc, c) => {
+    const sub = subtreeTotals(c)
+    return { notes: acc.notes + sub.notes, cards: acc.cards + sub.cards }
+  }, { notes: topic.notes_count ?? 0, cards: topic.flashcards_count ?? 0 })
+}
+
+const deleteSummary = computed(() => {
+  const t = deleteTarget.value
+  if (!t) return ''
+  const { notes, cards } = subtreeTotals(t)
+  const pdfs = t.id === selectedTopicId.value ? docStore.documents.length : null
+  const parts = [`${notes} nota${notes !== 1 ? 's' : ''}`, `${cards} card${cards !== 1 ? 's' : ''}`]
+  if (pdfs !== null) parts.push(`${pdfs} PDF${pdfs !== 1 ? 's' : ''}`)
+  const last = parts.pop()
+  return `${parts.join(', ')} e ${last} serão excluídos. Você terá 10 segundos para desfazer.`
+})
+
+// Root cadernos with ≥ 50 cards require typing the name (RN-UX-08)
+const deleteRequiresName = computed(() => !!deleteTarget.value && !deleteTarget.value.parent_id && subtreeTotals(deleteTarget.value).cards >= 50)
+
 function openDelete(topic: Topic) {
   deleteTopicId.value = topic.id
+  deleteTarget.value = topic
   showDeleteTopic.value = true
 }
 
@@ -1066,13 +1110,46 @@ async function handleEditTopic() {
   toast.show('Salvo!', 'success')
 }
 
-async function handleDeleteTopic() {
-  if (!deleteTopicId.value) return
-  await topicStore.remove(deleteTopicId.value)
-  if (selectedTopicId.value === deleteTopicId.value) selectedTopicId.value = null
+/** Optimistic, deferred 10 s with "Desfazer" (RF-F6.4). */
+function handleDeleteTopic() {
+  const topic = deleteTarget.value
+  if (!topic) return
   showDeleteTopic.value = false
-  toast.show('Deletado.', 'success')
+  const wasSelected = selectedTopicId.value === topic.id
+  topicStore.scheduleRemove(topic)
+  if (wasSelected) {
+    selectedTopicId.value = null
+    router.replace({ query: { ...route.query, topic: undefined, note: undefined } })
+  }
+  toast.show(`"${topic.name}" excluído`, 'success', {
+    duration: 10_000,
+    action: {
+      label: 'Desfazer',
+      onClick: () => {
+        if (topicStore.cancelRemove(topic.id) && wasSelected) selectTopic(topic.id, 'replace')
+      },
+    },
+  })
 }
+
+onBeforeRouteLeave(() => { void topicStore.flushRemoves() })
+
+// Back/forward between cadernos
+watch(() => route.query.topic, (id) => {
+  if (typeof id === 'string' && id && id !== selectedTopicId.value && topicStore.findById(id)) selectTopic(id, 'none')
+})
+// Note and tab are part of the URL too (replace: no history spam)
+watch(() => editingNote.value?.id, (id) => {
+  if (!selectedTopicId.value || route.query.note === (id ?? undefined)) return
+  router.replace({ query: { ...route.query, note: id ?? undefined } })
+})
+watch(activeTab, (tab) => {
+  if (!selectedTopicId.value || route.query.tab === tab) return
+  router.replace({ query: { ...route.query, tab: tab === 'notes' ? undefined : tab } })
+})
+function onPageHide() { void topicStore.flushRemoves() }
+onMounted(() => window.addEventListener('pagehide', onPageHide))
+onUnmounted(() => window.removeEventListener('pagehide', onPageHide))
 
 function getEditorHtml(): string {
   // Get HTML from the Tiptap editor DOM
@@ -1159,7 +1236,7 @@ onMounted(async () => {
     showGraph.value = true
   }
   if (route.query.topic) {
-    selectTopic(route.query.topic as string)
+    selectTopic(route.query.topic as string, 'none')
     if (route.query.note) {
       // Wait for notes to load, then select
       const noteId = route.query.note as string
@@ -1172,8 +1249,8 @@ onMounted(async () => {
       }, { immediate: true })
     }
   } else if (topicStore.tree.length) {
-    // Auto-select first topic
-    selectTopic(topicStore.tree[0].id)
+    // Auto-select first topic (replace: not a user navigation)
+    selectTopic(topicStore.tree[0]!.id, 'replace')
   }
 
   // Sticky header observer

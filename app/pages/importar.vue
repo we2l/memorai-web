@@ -163,7 +163,12 @@ import { PREVIEW_TIMEOUT_MESSAGE } from '~/stores/import'
 const store = useImportStore()
 const toast = useToast()
 const dragOver = ref(false)
-let pollInterval: ReturnType<typeof setInterval> | null = null
+// Stops on unmount (component scope) and while the tab is hidden
+const statusPoll = usePoll(() => store.pollStatus(), {
+  interval: 2000,
+  immediate: false,
+  until: () => store.status?.status === 'completed' || store.status?.status === 'failed',
+})
 
 const stepLabel = computed(() => {
   const step = store.status?.current_step
@@ -211,19 +216,11 @@ async function confirmImport() {
 }
 
 function startPolling() {
-  pollInterval = setInterval(async () => {
-    await store.pollStatus()
-    if (store.status?.status === 'completed' || store.status?.status === 'failed') {
-      stopPolling()
-    }
-  }, 2000)
+  statusPoll.start()
 }
 
 function stopPolling() {
-  if (pollInterval) {
-    clearInterval(pollInterval)
-    pollInterval = null
-  }
+  statusPoll.stop()
 }
 
 async function retryImport() {
@@ -245,7 +242,4 @@ onMounted(() => {
   store.reset()
 })
 
-onUnmounted(() => {
-  stopPolling()
-})
 </script>

@@ -6,7 +6,7 @@ export const useDocumentStore = defineStore('document', () => {
   const loading = ref(false)
   const currentTopicId = ref<string | null>(null)
 
-  async function fetchForTopic(topicId: string, force = false) {
+  async function fetchForTopic(topicId: string, force = false, signal?: AbortSignal) {
     if (!topicId) return
     if (loading.value && !force) return
     if (!force && currentTopicId.value === topicId && documents.value.length > 0) return
@@ -14,7 +14,7 @@ export const useDocumentStore = defineStore('document', () => {
     loading.value = true
     try {
       const { $api } = useNuxtApp()
-      const res = await $api<{ data: Document[] }>('/documents', { params: { topic_id: topicId } })
+      const res = await $api<{ data: Document[] }>('/documents', { params: { topic_id: topicId }, signal })
       documents.value = res.data // filtered by topic_id on the server
       currentTopicId.value = topicId
     } catch {
@@ -24,18 +24,18 @@ export const useDocumentStore = defineStore('document', () => {
     }
 
     // Always check if polling should start/stop after fetch
-    if (needsPolling.value && !pollTimer) {
+    if (needsPolling.value && !poller.isActive.value) {
       startPolling()
-    } else if (!needsPolling.value && pollTimer) {
+    } else if (!needsPolling.value && poller.isActive.value) {
       stopPolling()
     }
   }
 
-  // Polling
-  let pollTimer: ReturnType<typeof setInterval> | null = null
-  const POLL_INTERVAL = 4000
-  const POLL_TIMEOUT = 10 * 60 * 1000
-  let pollStartedAt: number | null = null
+  // Polling (usePoll: pauses with hidden tab, never overlaps requests)
+  const poller = usePoll(
+    signal => fetchForTopic(currentTopicId.value!, true, signal),
+    { interval: 4000, timeout: 10 * 60 * 1000, immediate: false, until: () => !needsPolling.value },
+  )
 
   const needsPolling = computed(() =>
     documents.value.some(d =>
@@ -45,26 +45,12 @@ export const useDocumentStore = defineStore('document', () => {
   )
 
   function startPolling() {
-    if (pollTimer) return
     if (!currentTopicId.value) return
-    pollStartedAt = Date.now()
-    pollTimer = setInterval(async () => {
-      if (pollStartedAt && Date.now() - pollStartedAt > POLL_TIMEOUT) {
-        stopPolling()
-        return
-      }
-      if (currentTopicId.value) {
-        await fetchForTopic(currentTopicId.value, true)
-      }
-    }, POLL_INTERVAL)
+    poller.start()
   }
 
   function stopPolling() {
-    if (pollTimer) {
-      clearInterval(pollTimer)
-      pollTimer = null
-      pollStartedAt = null
-    }
+    poller.stop()
   }
 
   function reset() {

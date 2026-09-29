@@ -674,9 +674,9 @@ const showPodcastSheet = ref(false)
 const highlightCardId = ref('')
 
 function onPodcastGenerated() {
-  const podcastStore = usePodcastStore()
-  podcastStore.startPolling()
+  usePodcastStore().startPolling()
 }
+onUnmounted(() => usePodcastStore().stopPolling())
 const showCardForm = ref(false)
 const cardFormInitialFront = ref('')
 const cardFormInitialBack = ref('')
@@ -691,31 +691,20 @@ const noteIsGenerating = computed(() => {
   return doc?.note_generation_status === 'generating'
 })
 
-// Poll note content while generating
-let noteRefreshTimer: ReturnType<typeof setInterval> | null = null
+// Poll note content while generating (usePoll: stops on unmount / hidden tab)
+const noteRefresh = usePoll(async (signal) => {
+  if (!editingNote.value) return
+  const { $api } = useNuxtApp()
+  const res = await $api<any>(`/notes/${editingNote.value.id}`, { signal })
+  if (res.data?.content) {
+    noteContent.value = res.data.content
+  }
+}, { interval: 4000, immediate: false, until: () => !noteIsGenerating.value || !editingNote.value })
 
 watch(noteIsGenerating, (generating) => {
-  if (generating && editingNote.value) {
-    noteRefreshTimer = setInterval(async () => {
-      if (!editingNote.value) { stopNoteRefresh(); return }
-      try {
-        const { $api } = useNuxtApp()
-        const res = await $api<any>(`/notes/${editingNote.value.id}`)
-        if (res.data?.content) {
-          noteContent.value = res.data.content
-        }
-      } catch {}
-    }, 4000)
-  } else {
-    stopNoteRefresh()
-  }
+  if (generating && editingNote.value) noteRefresh.start()
+  else noteRefresh.stop()
 })
-
-function stopNoteRefresh() {
-  if (noteRefreshTimer) { clearInterval(noteRefreshTimer); noteRefreshTimer = null }
-}
-
-onUnmounted(() => stopNoteRefresh())
 
 // Auto-refresh notes list when documents change
 let lastNoteStatuses: Record<string, string | null> = {}

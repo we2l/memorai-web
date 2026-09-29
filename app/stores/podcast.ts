@@ -1,7 +1,11 @@
 import { defineStore } from 'pinia'
+import type { Poller } from '~/composables/usePoll'
 import type { Podcast, PodcastContentMode, PodcastDuration, PodcastTone, PodcastFormat, PodcastSpeakerConfig } from '~/types'
 
 const PER_PAGE = 20
+
+// One poller per store (idempotent start). Stores have no component scope: stopPolling() is on the caller.
+let poller: Poller | null = null
 
 export const usePodcastStore = defineStore('podcast', {
   state: () => ({
@@ -43,11 +47,11 @@ export const usePodcastStore = defineStore('podcast', {
   actions: {
     // GET /podcasts is paginated ({ data, meta }). Refreshing (polling) reloads page 1 and keeps
     // the older pages already loaded with "Carregar mais".
-    async fetchPodcasts() {
+    async fetchPodcasts(signal?: AbortSignal) {
       this.loading = true
       try {
         const { $api } = useNuxtApp()
-        const res = await $api<{ data: Podcast[], meta: { last_page: number } }>('/podcasts', { params: { page: 1, per_page: PER_PAGE } })
+        const res = await $api<{ data: Podcast[], meta: { last_page: number } }>('/podcasts', { params: { page: 1, per_page: PER_PAGE }, signal })
         if (this.page <= 1) {
           this.podcasts = res.data
           this.lastPage = res.meta.last_page
@@ -95,15 +99,20 @@ export const usePodcastStore = defineStore('podcast', {
       }
     },
 
+    /** Polls while some podcast is pending. Idempotent: one poller per store. */
     startPolling() {
-      const interval = setInterval(async () => {
-        if (!this.hasPending) {
-          clearInterval(interval)
-          return
-        }
-        await this.fetchPodcasts()
-      }, 5000)
-      return interval
+      if (!this.hasPending) return
+      poller ??= usePoll(signal => this.fetchPodcasts(signal), {
+        interval: 5000,
+        immediate: false,
+        detached: true,
+        until: () => !this.hasPending,
+      })
+      poller.start()
+    },
+
+    stopPolling() {
+      poller?.stop()
     },
 
     async deletePodcast(podcastId: string) {

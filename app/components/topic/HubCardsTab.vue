@@ -256,16 +256,16 @@ async function handleOcrFile(e: Event) {
 }
 
 async function pollOcrStatus(jobId: string): Promise<any[] | null> {
-  for (let i = 0; i < 30; i++) {
-    await new Promise(r => setTimeout(r, 2000))
-    const res = await $api<any>(`/flashcards/from-image/${jobId}/status`)
-    if (res.data.status === 'done') return res.data.cards
-    if (res.data.status === 'failed') {
-      toast.show('Falha ao gerar cards da imagem.', 'error')
-      return null
-    }
+  try {
+    const data = await pollUntil(async (signal) => {
+      const res = await $api<any>(`/flashcards/from-image/${jobId}/status`, { signal })
+      return res.data
+    }, { interval: 2000, immediate: false, timeout: 60_000, until: d => d.status === 'done' || d.status === 'failed' })
+    if (data.status === 'done') return data.cards
+    toast.show('Falha ao gerar cards da imagem.', 'error')
+  } catch (e) {
+    if (e instanceof PollTimeoutError) toast.show('Tempo esgotado. Tente novamente.', 'error')
   }
-  toast.show('Tempo esgotado. Tente novamente.', 'error')
   return null
 }
 </script>

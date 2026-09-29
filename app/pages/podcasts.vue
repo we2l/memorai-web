@@ -140,7 +140,7 @@ async function confirmDelete(podcast: Podcast) {
 }
 
 function onGenerated() {
-  if (store.hasPending) pollInterval = store.startPolling()
+  store.startPolling()
 }
 
 const groupedPodcasts = computed(() => {
@@ -212,12 +212,10 @@ function timeAgo(date: string): string {
   return `${Math.floor(hours / 24)}d`
 }
 
-let pollInterval: ReturnType<typeof setInterval> | null = null
-
 onMounted(async () => {
   await store.fetchPodcasts()
-  if (store.hasPending) pollInterval = store.startPolling()
+  store.startPolling()
 })
 
-onUnmounted(() => { if (pollInterval) clearInterval(pollInterval) })
+onUnmounted(() => store.stopPolling())
 </script>

@@ -75,6 +75,14 @@ export default defineNuxtConfig({
     '/esqueci-senha': { ssr: true, prerender: true },
     '/redefinir-senha': { ssr: false },
     '/auth/**': { ssr: false },
+    // Legacy URLs: real 301 on the edge (prd-performance-frontend RF-01)
+    '/dashboard': { redirect: { to: '/hoje', statusCode: 301 } },
+    '/chat': { redirect: { to: '/hoje', statusCode: 301 } },
+    '/stats': { redirect: { to: '/progresso', statusCode: 301 } },
+    '/graph': { redirect: { to: '/cadernos?view=graph', statusCode: 301 } },
+    '/documents': { redirect: { to: '/cadernos', statusCode: 301 } },
+    '/decks': { redirect: { to: '/cadernos', statusCode: 301 } },
+    '/decks/**': { redirect: { to: '/cadernos', statusCode: 301 } },
   },
 
   runtimeConfig: {

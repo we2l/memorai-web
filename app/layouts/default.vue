@@ -12,11 +12,7 @@
       </div>
     </main>
 
-    <UiToast
-      :message="toast.state.message"
-      :type="toast.state.type"
-      :visible="toast.state.visible"
-    />
+    <UiToast />
 
     <!-- Heavy overlays load on first open and stay mounted (keeps leave transitions) -->
     <LazyChatDrawer v-if="chatLoaded" />
@@ -43,7 +39,6 @@
 <script setup lang="ts">
 import type { FeatureLimitDetail } from '~/types'
 
-const toast = useToast()
 const route = useRoute()
 const auth = useAuthStore()
 const dive = useDiveMode()

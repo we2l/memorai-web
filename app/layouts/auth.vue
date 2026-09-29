@@ -4,14 +4,6 @@
       <slot />
     </div>
 
-    <UiToast
-      :message="toast.state.message"
-      :type="toast.state.type"
-      :visible="toast.state.visible"
-    />
+    <UiToast />
   </div>
 </template>
-
-<script setup lang="ts">
-const toast = useToast()
-</script>

@@ -1,6 +1,6 @@
 <template>
   <div class="py-8 px-4 flex flex-col items-center">
-    <img src="~/assets/mascot-baigi-thinking.png" alt="Baigi pensando" class="w-24 h-24 object-contain mb-4" />
+    <picture class="contents"><source srcset="~/assets/mascots/mascot-baigi-thinking.avif" type="image/avif"><img src="~/assets/mascots/mascot-baigi-thinking.webp" alt="Baigi pensando" class="w-24 h-24 object-contain mb-4" width="96" height="96" loading="lazy" decoding="async" /></picture>
     <h3 class="text-headline text-base-primary mb-2">Como você quer começar?</h3>
     <p class="text-small text-base-muted mb-6 text-center max-w-xs">Escolha uma forma de adicionar material — a IA cuida do resto.</p>
 

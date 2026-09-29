@@ -19,7 +19,7 @@
 
     <!-- Empty state -->
     <div v-else-if="!store.podcasts.length" class="text-center py-16">
-      <img src="~/assets/mascot-baigi-podcast.png" alt="Baigi com fones" class="w-28 h-28 object-contain mx-auto mb-4" />
+      <picture class="contents"><source srcset="~/assets/mascots/mascot-baigi-podcast.avif" type="image/avif"><img src="~/assets/mascots/mascot-baigi-podcast.webp" alt="Baigi com fones" class="w-28 h-28 object-contain mx-auto mb-4" width="112" height="112" loading="lazy" decoding="async" /></picture>
       <p class="text-title text-base-secondary">Nenhum podcast ainda</p>
       <p class="text-small text-base-muted mt-1 max-w-xs mx-auto">Gere seu primeiro podcast dentro de um caderno e ouça seus pontos fracos!</p>
       <NuxtLink to="/cadernos" class="btn-primary mt-5 inline-flex">Ir pra Cadernos</NuxtLink>

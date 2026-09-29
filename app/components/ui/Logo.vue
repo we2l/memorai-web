@@ -1,6 +1,6 @@
 <template>
   <div class="flex items-center gap-2">
-    <img src="~/assets/mascot-baigi-bust.png" alt="Baigi" :width="iconSize" :height="iconSize" class="object-contain" />
+    <picture class="contents"><source srcset="~/assets/mascots/mascot-baigi-bust-64.avif" type="image/avif"><img src="~/assets/mascots/mascot-baigi-bust-64.webp" alt="Baigi" :width="iconSize" :height="iconSize" class="object-contain" decoding="async" /></picture>
     <span v-if="showText" class="font-logo font-bold tracking-[0.08em]" :class="textClass">BAIGI.</span>
   </div>
 </template>

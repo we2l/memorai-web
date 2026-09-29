@@ -64,7 +64,7 @@
             <div class="skeleton h-64 w-64 rounded-full" />
           </div>
           <div v-else-if="!graphStore.data?.nodes.length" class="flex-1 flex flex-col items-center justify-center">
-            <img src="~/assets/mascot-baigi-thinking.png" alt="Baigi pensando" class="w-20 h-20 object-contain mb-3" />
+            <picture class="contents"><source srcset="~/assets/mascots/mascot-baigi-thinking.avif" type="image/avif"><img src="~/assets/mascots/mascot-baigi-thinking.webp" alt="Baigi pensando" class="w-20 h-20 object-contain mb-3" width="80" height="80" loading="lazy" decoding="async" /></picture>
             <p class="text-title text-base-secondary">Nenhum caderno ainda</p>
             <p class="text-small text-base-muted mt-1">Crie cadernos para ver seu mapa.</p>
           </div>

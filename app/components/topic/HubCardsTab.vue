@@ -148,7 +148,7 @@
       </button>
     </div>
     <div v-else class="text-center py-8">
-      <img src="~/assets/mascot-baigi-thinking.png" alt="Baigi pensando" class="w-20 h-20 object-contain mx-auto mb-3" />
+      <picture class="contents"><source srcset="~/assets/mascots/mascot-baigi-thinking.avif" type="image/avif"><img src="~/assets/mascots/mascot-baigi-thinking.webp" alt="Baigi pensando" class="w-20 h-20 object-contain mx-auto mb-3" width="80" height="80" loading="lazy" decoding="async" /></picture>
       <p class="text-body text-base-muted mb-3">Nenhum card ainda. Crie manualmente ou gere com IA.</p>
       <button class="btn-primary !py-2 !px-4 !min-h-[2.75rem] text-small" @click="$emit('create-card')">Criar primeiro card</button>
     </div>

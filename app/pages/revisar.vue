@@ -77,7 +77,7 @@
     <div v-else-if="review.finished && !review.showErrorDiary" class="flex-1 flex flex-col items-center justify-center px-4 text-center">
       <!-- Empty session (no cards found) -->
       <template v-if="review.reviewed === 0">
-        <img src="~/assets/mascot-baigi-celebrating.png" alt="Baigi celebrando" class="w-24 h-24 object-contain mb-4" />
+        <picture class="contents"><source srcset="~/assets/mascots/mascot-baigi-celebrating.avif" type="image/avif"><img src="~/assets/mascots/mascot-baigi-celebrating.webp" alt="Baigi celebrando" class="w-24 h-24 object-contain mb-4" width="96" height="96" loading="lazy" decoding="async" /></picture>
         <h2 class="text-display">{{ isErrorsOnly ? 'Sem erros pra revisar' : 'Tudo em dia!' }}</h2>
         <p class="text-body text-base-muted mt-3 max-w-sm">
           {{ isErrorsOnly
@@ -90,7 +90,7 @@
 
       <!-- Normal finish (reviewed some cards) -->
       <template v-else>
-        <img src="~/assets/mascot-baigi-celebrating.png" alt="Baigi celebrando" class="w-28 h-28 object-contain" />
+        <picture class="contents"><source srcset="~/assets/mascots/mascot-baigi-celebrating.avif" type="image/avif"><img src="~/assets/mascots/mascot-baigi-celebrating.webp" alt="Baigi celebrando" class="w-28 h-28 object-contain" width="112" height="112" loading="lazy" decoding="async" /></picture>
         <h2 class="text-display mt-4">Missão de hoje concluída!</h2>
         <p class="text-body text-base-muted mt-3">
           Você reforçou <span class="text-accent-primary font-medium">{{ review.reviewed }}</span> conceito{{ review.reviewed !== 1 ? 's' : '' }}

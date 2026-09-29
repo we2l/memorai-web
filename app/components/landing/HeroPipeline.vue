@@ -144,11 +144,19 @@
     </div>
 
     <!-- Mascot - positioned far right, not overlapping content -->
-    <img
-      src="~/assets/mascot-baigi.png"
-      alt="Baigi"
-      class="absolute -bottom-6 -right-14 sm:-right-20 w-24 sm:w-32 z-10 pointer-events-none drop-shadow-lg -scale-x-100"
-    />
+    <picture class="contents">
+      <source srcset="~/assets/mascots/mascot-baigi.avif" type="image/avif">
+      <!-- LCP of the landing: no lazy, high priority -->
+      <img
+        src="~/assets/mascots/mascot-baigi.webp"
+        alt="Baigi"
+        width="128"
+        height="200"
+        fetchpriority="high"
+        decoding="async"
+        class="absolute -bottom-6 -right-14 sm:-right-20 w-24 sm:w-32 h-auto z-10 pointer-events-none drop-shadow-lg -scale-x-100"
+      />
+    </picture>
   </div>
 </template>
 

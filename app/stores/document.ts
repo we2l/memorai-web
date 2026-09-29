@@ -15,7 +15,7 @@ export const useDocumentStore = defineStore('document', () => {
     try {
       const { $api } = useNuxtApp()
       const res = await $api<{ data: Document[] }>('/documents', { params: { topic_id: topicId } })
-      documents.value = res.data.filter(d => d.topic_id === topicId)
+      documents.value = res.data // filtered by topic_id on the server
       currentTopicId.value = topicId
     } catch {
       // Silent — component shows empty state

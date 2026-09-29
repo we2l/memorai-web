@@ -1,14 +1,21 @@
 import { defineStore } from 'pinia'
 import type { Podcast, PodcastContentMode, PodcastDuration, PodcastTone, PodcastFormat, PodcastSpeakerConfig } from '~/types'
 
+const PER_PAGE = 20
+
 export const usePodcastStore = defineStore('podcast', {
   state: () => ({
     podcasts: [] as Podcast[],
     loading: false,
+    loadingMore: false,
     generating: false,
+    page: 1,
+    lastPage: 1,
   }),
 
   getters: {
+    hasMore: (state) => state.page < state.lastPage,
+
     hasPending: (state) => state.podcasts.some(p =>
       ['pending', 'generating_script', 'generating_audio'].includes(p.status),
     ),
@@ -34,14 +41,38 @@ export const usePodcastStore = defineStore('podcast', {
   },
 
   actions: {
+    // GET /podcasts is paginated ({ data, meta }). Refreshing (polling) reloads page 1 and keeps
+    // the older pages already loaded with "Carregar mais".
     async fetchPodcasts() {
       this.loading = true
       try {
         const { $api } = useNuxtApp()
-        const res = await $api<any>('/podcasts')
-        this.podcasts = res.data
+        const res = await $api<{ data: Podcast[], meta: { last_page: number } }>('/podcasts', { params: { page: 1, per_page: PER_PAGE } })
+        if (this.page <= 1) {
+          this.podcasts = res.data
+          this.lastPage = res.meta.last_page
+        } else {
+          const freshIds = new Set(res.data.map(p => p.id))
+          this.podcasts = [...res.data, ...this.podcasts.filter(p => !freshIds.has(p.id))]
+        }
       } finally {
         this.loading = false
+      }
+    },
+
+    async loadMore() {
+      if (this.loadingMore || !this.hasMore) return
+      this.loadingMore = true
+      try {
+        const { $api } = useNuxtApp()
+        const next = this.page + 1
+        const res = await $api<{ data: Podcast[], meta: { last_page: number } }>('/podcasts', { params: { page: next, per_page: PER_PAGE } })
+        const known = new Set(this.podcasts.map(p => p.id))
+        this.podcasts.push(...res.data.filter(p => !known.has(p.id)))
+        this.page = next
+        this.lastPage = res.meta.last_page
+      } finally {
+        this.loadingMore = false
       }
     },
 

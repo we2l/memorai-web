@@ -231,3 +231,27 @@ test.describe('Tablet — FABs não se sobrepõem', () => {
     }
   })
 })
+
+test.describe('Mobile — árvore de cadernos no toque (RF-F6.1)', () => {
+  test.use({ viewport: { width: 375, height: 812 }, hasTouch: true })
+
+  test('tap no ⋯ → "Editar" abre o modal', async ({ page }) => {
+    await login(page)
+    const topic = { id: '00000000-0000-4000-8000-0000000000aa', name: 'Direito', parent_id: null, children: [], color: null, flashcards_count: 0, position: 0 }
+    await page.route(/\/api\/topics$/, r => r.request().method() === 'GET'
+      ? r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ data: [topic] }) })
+      : r.continue())
+    await page.goto('/cadernos')
+    const trigger = page.getByRole('button', { name: 'Opções de Direito', exact: true }).first()
+    if (!(await trigger.isVisible())) {
+      // Tree lives in a collapsible panel on small screens
+      await page.getByRole('button', { name: /Ver cadernos/i }).first().tap()
+    }
+    await expect(trigger).toBeVisible()
+    await expect(trigger).toHaveAttribute('aria-expanded', 'false')
+    await trigger.tap()
+    await expect(trigger).toHaveAttribute('aria-expanded', 'true')
+    await page.getByRole('menuitem', { name: 'Editar' }).tap()
+    await expect(page.getByRole('dialog')).toBeVisible()
+  })
+})

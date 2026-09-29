@@ -1,11 +1,16 @@
 <template>
   <div class="sidebar-item">
-    <!-- === ROOT CADERNO (matéria) === -->
+    <!-- === ROOT CADERNO === -->
     <template v-if="isRoot">
       <div
         class="root-caderno group"
         :class="{ 'root-caderno--active': isSelected }"
+        role="button"
+        tabindex="0"
+        :aria-current="isSelected ? 'true' : undefined"
         @click="$emit('select', topic.id)"
+        @keydown.enter.self.prevent="$emit('select', topic.id)"
+        @keydown.space.self.prevent="$emit('select', topic.id)"
       >
         <!-- Header: dot + name + menu -->
         <div class="flex items-center gap-2.5">
@@ -23,35 +28,17 @@
           <!-- Chevron (expand/collapse) -->
           <button
             v-if="topic.children?.length"
-            class="shrink-0 p-0.5 rounded text-base-muted/60 hover:text-base-muted transition-colors"
+            type="button"
+            class="relative shrink-0 w-6 h-6 inline-flex items-center justify-center rounded text-base-muted hover:text-base-primary transition-colors touch-target"
+            :aria-label="`${isExpanded ? 'Recolher' : 'Expandir'} ${topic.name}`"
+            :aria-expanded="isExpanded"
             @click.stop="expanded = !expanded"
+            @keydown.stop
           >
-            <ChevronRight :size="12" class="transition-transform duration-150" :class="{ 'rotate-90': expanded }" />
+            <ChevronRight :size="12" class="transition-transform duration-150" :class="{ 'rotate-90': isExpanded }" aria-hidden="true" />
           </button>
 
-          <!-- 3 dots (visible on hover, menu opens on click) -->
-          <div class="relative opacity-0 group-hover:opacity-100 transition-opacity duration-150" :class="{ '!opacity-100': showMenu }" @click.stop>
-            <button
-              class="p-1 rounded text-base-muted/50 hover:text-base-primary hover:bg-surface-secondary transition-colors"
-              @click="toggleMenu"
-            >
-              <MoreHorizontal :size="12" />
-            </button>
-            <Teleport to="body">
-              <div v-if="showMenu" class="fixed inset-0 z-40" @click="showMenu = false" />
-            </Teleport>
-            <div v-if="showMenu" class="absolute right-0 top-full mt-1 w-40 bg-[var(--bg-card)] border border-base rounded-lg shadow-lg py-1 z-50">
-              <button class="w-full text-left px-3 py-2 text-small text-base-primary hover:bg-surface-secondary transition-colors" @click="showMenu = false; $emit('add-child', topic.id)">
-                Adicionar matéria
-              </button>
-              <button class="w-full text-left px-3 py-2 text-small text-base-primary hover:bg-surface-secondary transition-colors" @click="showMenu = false; $emit('edit', topic)">
-                Editar
-              </button>
-              <button class="w-full text-left px-3 py-2 text-small text-danger hover:bg-danger/5 transition-colors" @click="showMenu = false; $emit('delete', topic)">
-                Deletar
-              </button>
-            </div>
-          </div>
+          <TopicTreeItemMenu :name="topic.name" @action="onMenuAction" />
         </div>
 
         <!-- Progress block (identity of Baigi) -->
@@ -67,8 +54,8 @@
           <!-- Stats -->
           <p class="text-[11px] mt-1.5 leading-none">
             <span class="text-base-muted">{{ topicCards }} cards</span>
-            <span v-if="pendingCount > 0" class="text-[var(--color-accent-soft)] font-semibold"> · {{ pendingCount }} pendentes</span>
-            <span v-else-if="topicProgress > 0" class="text-emerald-500 font-medium"> · em dia ✓</span>
+            <span v-if="pendingCount > 0" class="text-[var(--badge-primary-text)] font-semibold"> · {{ pendingCount }} pendentes</span>
+            <span v-else-if="topicProgress > 0" class="text-[var(--badge-success-text)] font-medium"> · em dia ✓</span>
           </p>
         </div>
       </div>
@@ -91,24 +78,33 @@
       </div>
     </template>
 
-    <!-- === CHILD (material de estudo) === -->
+    <!-- === CHILD (tópico / sub-tópico) === -->
     <template v-else>
       <div
-        class="child-item"
+        class="child-item group"
         :class="{ 'child-item--active': isSelected }"
+        role="button"
+        tabindex="0"
+        :aria-current="isSelected ? 'true' : undefined"
         @click="$emit('select', topic.id)"
+        @keydown.enter.self.prevent="$emit('select', topic.id)"
+        @keydown.space.self.prevent="$emit('select', topic.id)"
       >
         <!-- Expand chevron for nested children -->
         <button
           v-if="topic.children?.length"
-          class="shrink-0 p-0.5 rounded text-base-muted/50 hover:text-base-muted transition-colors"
+          type="button"
+          class="relative shrink-0 w-6 h-6 inline-flex items-center justify-center rounded text-base-muted hover:text-base-primary transition-colors touch-target"
+          :aria-label="`${isExpanded ? 'Recolher' : 'Expandir'} ${topic.name}`"
+          :aria-expanded="isExpanded"
           @click.stop="expanded = !expanded"
+          @keydown.stop
         >
-          <ChevronRight :size="11" class="transition-transform duration-150" :class="{ 'rotate-90': expanded }" />
+          <ChevronRight :size="11" class="transition-transform duration-150" :class="{ 'rotate-90': isExpanded }" aria-hidden="true" />
         </button>
 
         <!-- Document icon -->
-        <FileText :size="13" class="shrink-0 text-base-muted/50" />
+        <FileText :size="13" class="shrink-0 text-base-muted/50" aria-hidden="true" />
 
         <!-- Name -->
         <span class="flex-1 truncate text-[12.5px]" :title="topic.name">
@@ -116,10 +112,12 @@
         </span>
 
         <!-- Pending badge -->
-        <span v-if="pendingCount > 0" class="text-[10px] font-semibold text-[var(--color-accent-soft)] bg-[var(--color-accent-primary)]/8 rounded px-1.5 py-0.5 shrink-0">
+        <span v-if="pendingCount > 0" class="text-[10px] font-semibold text-[var(--badge-primary-text)] bg-[var(--color-accent-primary)]/8 rounded px-1.5 py-0.5 shrink-0">
           {{ pendingCount }}
         </span>
-        <span v-else-if="topicCards > 0 && topicProgress > 0 && pendingCount === 0" class="text-[10px] text-emerald-500 shrink-0">✓</span>
+        <span v-else-if="topicCards > 0 && topicProgress > 0 && pendingCount === 0" class="text-[10px] text-[var(--badge-success-text)] shrink-0">✓</span>
+
+        <TopicTreeItemMenu :name="topic.name" @action="onMenuAction" />
       </div>
 
       <!-- Nested children -->
@@ -143,7 +141,7 @@
 </template>
 
 <script setup lang="ts">
-import { ChevronRight, MoreHorizontal, FileText } from 'lucide-vue-next'
+import { ChevronRight, FileText } from 'lucide-vue-next'
 import type { Topic } from '~/types'
 import { getColorHex } from '~/utils/colors'
 
@@ -155,12 +153,18 @@ const props = defineProps<{
   forceExpand?: boolean
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
   (e: 'select', id: string): void
   (e: 'edit', topic: Topic): void
   (e: 'delete', topic: Topic): void
   (e: 'add-child', parentId: string): void
 }>()
+
+function onMenuAction(key: 'add-child' | 'edit' | 'delete') {
+  if (key === 'add-child') emit('add-child', props.topic.id)
+  else if (key === 'edit') emit('edit', props.topic)
+  else emit('delete', props.topic)
+}
 
 const isRoot = computed(() => !props.topic.parent_id)
 const isSelected = computed(() => props.topic.id === props.selectedId)
@@ -180,11 +184,6 @@ const progressBarColor = computed(() => {
 })
 
 const expanded = ref(props.depth === 0)
-const showMenu = ref(false)
-
-function toggleMenu() {
-  showMenu.value = !showMenu.value
-}
 
 const isExpanded = computed(() => {
   if (props.forceExpand) return true
@@ -209,7 +208,12 @@ watch(() => props.selectedId, (newId) => {
 </script>
 
 <style scoped>
-/* Root caderno — "matéria" */
+/* Root caderno */
+.touch-target::after {
+  content: '';
+  position: absolute;
+  inset: -10px;
+}
 .root-caderno {
   padding: 10px 12px;
   border-radius: 12px;
@@ -229,7 +233,7 @@ watch(() => props.selectedId, (newId) => {
   box-shadow: 0 1px 3px color-mix(in srgb, var(--color-accent-primary) 5%, transparent);
 }
 
-/* Child item — "material de estudo" */
+/* Child item — tópico / sub-tópico */
 .child-item {
   display: flex;
   align-items: center;

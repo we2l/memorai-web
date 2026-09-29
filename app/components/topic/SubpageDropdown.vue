@@ -10,7 +10,7 @@
         ref="inputRef"
         v-model="query"
         class="w-full px-3 py-2 text-small rounded-lg bg-surface-secondary border border-base text-base-primary placeholder:text-base-muted focus:outline-none focus:border-[var(--color-accent-primary)]"
-        placeholder="Nome da matéria..."
+        placeholder="Nome do tópico..."
         @keydown.enter.prevent="confirmSelection"
         @keydown.escape.prevent="$emit('close')"
         @keydown.down.prevent="moveSelection(1)"
@@ -46,7 +46,7 @@
 
       <!-- Empty state -->
       <div v-if="!filteredChildren.length && !showCreateOption" class="px-3 py-4 text-center text-small text-base-muted">
-        Digite o nome da matéria
+        Digite o nome do tópico
       </div>
     </div>
   </div>

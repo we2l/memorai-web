@@ -32,7 +32,7 @@
       <div v-if="loadingQuiz" class="text-center py-16">
         <div class="animate-spin w-8 h-8 border-2 border-[var(--color-primary-500)] border-t-transparent rounded-full mx-auto mb-4" />
         <p class="text-base-muted">Gerando questões...</p>
-        <p class="text-xs text-base-muted mt-1">Isso pode levar até 30 segundos</p>
+        <p class="text-xs text-base-muted mt-1">Isso pode levar alguns segundos</p>
       </div>
 
       <div v-else-if="question" class="w-full max-w-[640px]">

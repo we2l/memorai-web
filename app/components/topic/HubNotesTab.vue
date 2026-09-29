@@ -147,7 +147,7 @@
                 <Sparkles :size="14" class="text-[var(--color-accent-soft)]" /> Melhorar com IA
               </button>
               <button class="w-full text-left px-3 py-2 text-small text-base-primary hover:bg-surface-secondary transition-colors flex items-center gap-2" @click="showMenu = false; $emit('generate-from-note')">
-                <Zap :size="14" class="text-[var(--color-accent-soft)]" /> Transformar em flashcards
+                <Zap :size="14" class="text-[var(--color-accent-soft)]" /> Gerar cards
               </button>
               <button class="w-full text-left px-3 py-2 text-small text-danger hover:bg-danger/5 transition-colors flex items-center gap-2" @click="showMenu = false; $emit('delete-note')">
                 <Trash2 :size="14" /> Excluir nota

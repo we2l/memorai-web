@@ -48,7 +48,7 @@
         </div>
       </div>
 
-      <!-- Retention + Streak row -->
+      <!-- Retention + dias seguidos row -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <div class="card py-5 px-5 text-center">
           <p class="text-small text-base-muted mb-1">Retenção (7 dias)</p>
@@ -63,7 +63,7 @@
           </p>
         </div>
         <div class="card py-5 px-5 text-center">
-          <p class="text-small text-base-muted mb-1">Streak</p>
+          <p class="text-small text-base-muted mb-1">Dias seguidos</p>
           <p class="text-2xl font-bold text-base-primary">{{ data.streak }} 🔥</p>
         </div>
       </div>

@@ -35,10 +35,10 @@
       <button
         v-if="topicId"
         class="bubble-action"
-        title="Transformar em matéria"
+        title="Transformar em tópico"
         @mousedown.prevent="createSubpageFromSelection"
       >
-        <FolderOpen :size="12" class="inline" /> Matéria
+        <FolderOpen :size="12" class="inline" aria-hidden="true" /> Tópico
       </button>
     </div>
 
@@ -205,7 +205,7 @@ const slashItems = [
   { label: 'Erro', description: 'Bloco de erro comum', icon: AlertTriangle, command: (e: any) => e.chain().focus().setCallout('error').run() },
   { label: 'Insight', description: 'Algo que aprendi', icon: Lightbulb, command: (e: any) => e.chain().focus().setCallout('insight').run() },
   { label: 'Pegadinha', description: 'Atenção — pegadinha!', icon: ShieldAlert, command: (e: any) => e.chain().focus().setCallout('gotcha').run() },
-  { label: 'Matéria', description: 'Criar ou acessar subcaderno', icon: FolderOpen, command: () => openSubpageDropdown() },
+  { label: 'Tópico', description: 'Criar ou abrir um tópico', icon: FolderOpen, command: () => openSubpageDropdown() },
 ]
 
 const filteredSlashItems = computed(() => {

@@ -145,7 +145,7 @@ const form = reactive({
 const canSubmit = computed(() => form.topic_id && form.types.length > 0)
 
 const typesLabel = computed(() => {
-  const labels: Record<string, string> = { multiple_choice: 'MC', true_false: 'V/F', short_answer: 'Dissertativa' }
+  const labels: Record<string, string> = { multiple_choice: 'Múltipla escolha', true_false: 'V/F', short_answer: 'Dissertativa' }
   return form.types.map((t) => labels[t]).join(' + ')
 })
 

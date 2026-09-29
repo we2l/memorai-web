@@ -23,6 +23,13 @@ export const useTopicStore = defineStore('topic', {
       }
       return (id: string) => search(id, state.tree)
     },
+    /** Root caderno that contains the topic (the deck is inferred from it — RF-B7). */
+    rootOf: (state) => {
+      function contains(t: Topic, id: string): boolean {
+        return t.id === id || !!t.children?.some(c => contains(c, id))
+      }
+      return (id: string | null | undefined) => (id ? state.tree.find(root => contains(root, id)) ?? null : null)
+    },
   },
 
   actions: {

@@ -32,7 +32,7 @@ const items = computed(() => [
   { key: 'material', label: 'Adicionar material (nota ou PDF)', done: props.hasMaterial },
   { key: 'cards', label: 'Gerar ou criar cards', done: props.hasCards },
   { key: 'review', label: 'Fazer primeira revisão', done: props.hasReviewed },
-  { key: 'streak', label: '3 dias de streak', done: props.streak >= 3 },
+  { key: 'streak', label: '3 dias seguidos', done: props.streak >= 3 },
 ])
 
 const doneCount = computed(() => items.value.filter(i => i.done).length)

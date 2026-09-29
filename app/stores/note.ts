@@ -59,7 +59,7 @@ export const useNoteStore = defineStore('note', {
       if (this.current?.id === id) this.current = null
     },
 
-    async createFlashcard(noteId: string, data: { front: string; back: string; deck_id: string }) {
+    async createFlashcard(noteId: string, data: { front: string; back: string; deck_id?: string }) {
       const { $api } = useNuxtApp()
       const res = await $api<any>(`/notes/${noteId}/flashcards`, { method: 'POST', body: data })
       return res.data

@@ -20,7 +20,7 @@
             <p class="text-micro font-bold uppercase tracking-wide text-base-muted">O sistema processa</p>
             <div class="flow-node bg-[#F5F2FF] dark:bg-[#6F3FF5]/10 border-[#D7DDF2] dark:border-[#6F3FF5]/30 !py-4">
               <Brain :size="24" class="text-[#6F3FF5] dark:text-[#B794F4]" />
-              <span class="block text-small font-semibold text-[#6F3FF5] dark:text-[#B794F4]">IA + FSRS</span>
+              <span class="block text-small font-semibold text-[#6F3FF5] dark:text-[#B794F4]">IA + revisão espaçada</span>
               <span class="block text-micro text-base-muted">prioriza, gera, conecta</span>
             </div>
             <!-- Arrows (mobile: vertical, desktop: implied by grid) -->
@@ -94,9 +94,9 @@ const features = [
   },
   {
     icon: RefreshCw,
-    title: 'Revisão (FSRS)',
+    title: 'Revisão espaçada',
     description: 'O algoritmo calcula o momento ideal pra revisar cada card.',
-    impact: 'Ordem: learning steps → prova próxima → mais atrasados → normais. Nunca mais do que você aguenta.',
+    impact: 'Ordem: cards em aprendizado → prova próxima → mais atrasados → normais. Nunca mais do que você aguenta.',
   },
   {
     icon: XCircle,
@@ -139,7 +139,7 @@ const features = [
 const loop = [
   'Você cria notas e organiza em cadernos.',
   'A IA indexa tudo e gera cards, quiz e podcast.',
-  'Você revisa — o FSRS agenda o próximo momento ideal.',
+  'Você revisa — a revisão espaçada agenda o próximo momento ideal.',
   'Errou? O motivo é registrado e vira combustível: podcast aborda, padrões são detectados.',
   'Tem prova? O algoritmo prioriza os cadernos vinculados automaticamente.',
   'O ciclo se repete — cada erro te faz mais forte.',

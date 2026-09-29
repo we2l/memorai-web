@@ -25,7 +25,7 @@
         </div>
         <div class="flex items-center gap-2 shrink-0">
           <button class="btn-primary !py-1.5 !px-3 !min-h-0 text-small" @click="$emit('generate-cards')">
-            Transformar em flashcards
+            Gerar cards
           </button>
           <button class="p-1 rounded text-base-muted hover:text-base-primary transition-colors" @click="$emit('dismiss')" title="Dispensar">
             <X :size="14" />

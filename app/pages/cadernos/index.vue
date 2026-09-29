@@ -134,8 +134,8 @@
             <div v-if="noteIsGenerating" class="px-6 py-3 bg-accent-primary-subtle/20 border-b border-[var(--color-accent-primary)]/10 flex items-center gap-3">
               <div class="w-4 h-4 border-2 border-[var(--color-accent-primary)] border-t-transparent rounded-full animate-spin shrink-0" />
               <div class="flex-1">
-                <p class="text-small text-base-primary">Gerando material... O conteudo aparece conforme fica pronto.</p>
-                <p class="text-micro text-base-muted">Edicao liberada ao finalizar.</p>
+                <p class="text-small text-base-primary">Gerando material... O conteúdo aparece conforme fica pronto.</p>
+                <p class="text-micro text-base-muted">Edição liberada ao finalizar.</p>
               </div>
             </div>
           </template>
@@ -216,7 +216,7 @@
                   Revisar {{ pendingCount }} cards
                 </NuxtLink>
                 <button v-else-if="topicCards.length === 0 && noteStore.notes.length > 0" class="btn-primary !py-3 !px-6 !text-base font-semibold" @click="cardWorkshop.generate('notes')">
-                  Transformar em flashcards
+                  Gerar cards
                 </button>
                 <span v-else-if="topicCards.length > 0" class="text-small text-emerald-500 font-medium">Tudo em dia ✓</span>
               </div>
@@ -417,7 +417,7 @@
         <div v-if="importingInSelectedTopic" class="w-full max-w-md px-5 py-4 rounded-xl bg-[var(--bg-card)] border border-base shadow-sm text-center">
           <div class="w-5 h-5 border-2 border-[var(--color-accent-primary)] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
           <p class="text-body text-base-primary font-medium">Gerando material de estudo...</p>
-          <p class="text-micro text-base-muted mt-2">A IA esta lendo o PDF e criando o resumo.</p>
+          <p class="text-micro text-base-muted mt-2">A IA está lendo o PDF e criando o resumo.</p>
         </div>
 
         <template v-else>
@@ -442,7 +442,7 @@
     <!-- Mobile: sticky bottom review button -->
     <div v-if="showStickyReview" class="lg:hidden fixed left-0 right-0 p-3 bg-[var(--bg-card)]/95 backdrop-blur-md border-t border-base z-30 flex gap-2" style="bottom: calc(var(--nav-h) + var(--miniplayer-h));">
       <NuxtLink :to="`/revisar?mode=blitz&topic_id=${selectedTopicId}`" class="btn-secondary flex-none justify-center !py-2.5 !px-3 inline-flex items-center gap-1">
-        <Zap :size="14" /> Rápida
+        <Zap :size="14" aria-hidden="true" /> Relâmpago
       </NuxtLink>
       <NuxtLink :to="`/revisar?topic_id=${selectedTopicId}`" class="btn-primary flex-1 justify-center">
         Revisar {{ dueCardsCount }} card{{ dueCardsCount !== 1 ? 's' : '' }}

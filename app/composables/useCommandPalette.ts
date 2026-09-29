@@ -95,7 +95,7 @@ export function useCommandPalette() {
     { id: 'action-revisar', label: 'Revisar agora', category: 'actions', icon: RotateCcw, keywords: ['revisar', 'review', 'começar'], meta: 'Alt+R', handler: () => navigateTo('/revisar') },
     { id: 'action-novo-caderno', label: 'Novo caderno', category: 'actions', icon: Plus, keywords: ['novo', 'caderno', 'criar', 'notebook'], handler: () => navigateTo('/cadernos?action=new-notebook') },
     { id: 'action-nova-nota', label: 'Nova nota', category: 'actions', icon: StickyNote, keywords: ['nova', 'nota', 'criar', 'escrever'], meta: 'Alt+N', handler: () => navigateTo('/cadernos?action=new-note') },
-    { id: 'action-gerar-cards', label: 'Gerar cards com IA', category: 'actions', icon: Zap, keywords: ['gerar', 'cards', 'ia', 'flashcards', 'inteligência'], handler: () => navigateTo('/cadernos?action=generate-cards') },
+    { id: 'action-gerar-cards', label: 'Gerar cards', category: 'actions', icon: Zap, keywords: ['gerar', 'cards', 'ia', 'flashcards', 'inteligência'], handler: () => navigateTo('/cadernos?action=generate-cards') },
     { id: 'action-simulado', label: 'Novo simulado', category: 'actions', icon: BookOpen, keywords: ['simulado', 'quiz', 'prova', 'gerar', 'teste'], handler: () => navigateTo('/simulados?action=new') },
     { id: 'action-nova-prova', label: 'Nova prova', category: 'actions', icon: CalendarClock, keywords: ['prova', 'agendar', 'concurso', 'deadline', 'data'], handler: () => navigateTo('/provas?action=new') },
     { id: 'action-importar', label: 'Importar Anki', category: 'actions', icon: Download, keywords: ['importar', 'anki', 'apkg', 'upload'], handler: () => navigateTo('/importar') },

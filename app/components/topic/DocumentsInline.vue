@@ -189,7 +189,7 @@
     >
       <Sparkles :size="16" class="text-[var(--color-accent-soft)]" />
       <div class="flex-1">
-        <p class="text-small font-medium text-accent-primary">Criar cards com IA</p>
+        <p class="text-small font-medium text-accent-primary">Gerar cards</p>
         <p class="text-micro text-base-muted">Sua cota acabou este mês</p>
       </div>
       <span class="text-small text-accent-primary font-medium shrink-0">Pro →</span>

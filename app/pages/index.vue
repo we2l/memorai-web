@@ -29,7 +29,7 @@
           </span>
 
           <h1 class="mt-6 text-[2.75rem] sm:text-[3.25rem] font-extrabold text-[#1E0A3C] leading-[1.08] tracking-tight">
-            Seu PDF vira notas, flashcards e simulados em 30 segundos.
+            Seu PDF vira notas, flashcards e simulados em minutos, sem montar cards na mão.
           </h1>
 
           <p class="mt-5 text-[17px] text-gray-600 max-w-[420px] leading-relaxed">
@@ -40,12 +40,6 @@
             <NuxtLink to="/criar-conta" class="bg-[#6F3FF5] hover:bg-[#5A2EE6] text-white font-semibold text-[15px] px-8 py-4 rounded-2xl shadow-[0_4px_16px_rgba(111,63,245,0.3)] hover:shadow-[0_6px_20px_rgba(111,63,245,0.4)] transition-all hover:-translate-y-0.5">
               Começar grátis
             </NuxtLink>
-            <button class="inline-flex items-center gap-3 text-[15px] font-medium text-gray-700 hover:text-[#6F3FF5] transition-colors" @click="showDemoModal = true">
-              <span class="w-10 h-10 rounded-full bg-[#2D1B69] flex items-center justify-center shadow-md">
-                <svg class="w-4 h-4 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
-              </span>
-              Ver demonstração (30s)
-            </button>
           </div>
 
           <div class="mt-10">
@@ -125,7 +119,7 @@
         <div class="text-center mt-10">
           <p class="text-sm text-gray-500">
             Você não precisa abandonar o Anki.
-            <span class="font-semibold text-[#6F3FF5]">Importe seus decks e continue de onde parou.</span>
+            <span class="font-semibold text-[#6F3FF5]">Importe seus baralhos do Anki e continue de onde parou.</span>
           </p>
         </div>
       </div>
@@ -377,7 +371,7 @@
       <h2 class="text-2xl sm:text-3xl font-extrabold text-[#1E0A3C] mb-3">
         Do primeiro PDF até o dia da prova.
       </h2>
-      <p class="text-base text-gray-500 mb-8">Comece agora — grátis, sem cartão, em 30 segundos.</p>
+      <p class="text-base text-gray-500 mb-8">Comece agora — grátis e sem cartão.</p>
       <NuxtLink to="/criar-conta" class="inline-block bg-[#6F3FF5] hover:bg-[#5A2EE6] text-white font-semibold px-8 py-3.5 rounded-xl shadow-[0_4px_16px_rgba(111,63,245,0.3)] hover:shadow-[0_6px_20px_rgba(111,63,245,0.4)] transition-all hover:-translate-y-0.5">
         Criar conta grátis
       </NuxtLink>
@@ -385,29 +379,6 @@
 
     <!-- Footer -->
     <footer class="py-8 px-4 sm:px-6 border-t border-gray-100 bg-white">
-
-    <!-- Demo Video Modal -->
-    <Teleport to="body">
-      <Transition name="fade">
-        <div v-if="showDemoModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4" @click.self="showDemoModal = false">
-          <div class="absolute inset-0 bg-black/70" />
-          <div class="relative w-full max-w-3xl rounded-2xl overflow-hidden shadow-2xl bg-[#1E0A3C]">
-            <!-- Close -->
-            <button class="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors" @click="showDemoModal = false">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-            </button>
-            <!-- Placeholder video -->
-            <div class="aspect-video flex flex-col items-center justify-center gap-4 p-8">
-              <div class="w-16 h-16 rounded-full bg-[#6F3FF5] flex items-center justify-center">
-                <svg class="w-7 h-7 text-white ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
-              </div>
-              <p class="text-white/80 text-sm text-center">Vídeo de demonstração em breve.</p>
-              <p class="text-white/50 text-xs text-center">PDF → Nota → Flashcards → Podcast em 30 segundos.</p>
-            </div>
-          </div>
-        </div>
-      </Transition>
-    </Teleport>
       <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
         <div class="flex items-center gap-3">
           <LandingLogoLanding :icon-size="22" size="sm" />
@@ -431,11 +402,11 @@ import { FileUp, Sparkles, RefreshCw, Headphones, Brain, CalendarCheck, BookOpen
 definePageMeta({ layout: 'landing' })
 
 useHead({
-  title: 'BAIGI — De PDF a revisão pronta em 30 segundos',
+  title: 'BAIGI — Do PDF à revisão pronta em minutos',
   meta: [
     { name: 'description', content: 'Transforme qualquer material em flashcards, notas, simulados e podcast com IA. Repetição espaçada inteligente. Grátis para começar.' },
     { property: 'og:title', content: 'BAIGI — Sistema completo de estudos com IA' },
-    { property: 'og:description', content: 'PDF vira revisão pronta em 30 segundos. Flashcards, podcast e simulados gerados pela IA.' },
+    { property: 'og:description', content: 'Seu PDF vira revisão pronta em minutos. Flashcards, podcast e simulados gerados pela IA.' },
     { property: 'og:type', content: 'website' },
   ],
 })
@@ -474,10 +445,9 @@ onMounted(() => {
   demoObserver.observe(demoRef.value)
 })
 onBeforeUnmount(() => demoObserver?.disconnect())
-const showDemoModal = ref(false)
 
 const socialStats = [
-  { value: '30s', label: 'PDF vira material de estudo' },
+  { value: 'Minutos', label: 'PDF vira material de estudo' },
   { value: '100%', label: 'em português' },
   { value: 'FSRS-6', label: 'mesmo algoritmo do Anki' },
   { value: '0', label: 'configuração necessária' },
@@ -490,7 +460,7 @@ const steps = [
 ]
 
 const comparisons = [
-  { pain: 'Criar cards na mão, um por um', painIcon: PenLine, solution: 'PDF vira 24 cards em 30s', solIcon: Zap, featured: false },
+  { pain: 'Criar cards na mão, um por um', painIcon: PenLine, solution: 'PDF vira cards prontos, sem montar na mão', solIcon: Zap, featured: false },
   { pain: 'Backlog infinito desmotiva', painIcon: Layers, solution: 'Modo Sobrevivência prioriza', solIcon: Shield, featured: false },
   { pain: 'Plugins pra tudo funcionar', painIcon: MonitorX, solution: 'Tudo integrado, zero config', solIcon: Sparkles, featured: false },
   { pain: 'Cards soltos, sem contexto', painIcon: StickyNote, solution: 'Notas + grafo + mapa mental', solIcon: Network, featured: false },
@@ -512,7 +482,7 @@ const hiddenFeatures = [
 ]
 
 const faqs = [
-  { q: 'Posso importar do Anki?', a: 'Sim! Importa .apkg com decks, cards, tags e media automaticamente. Sem perder nada.' },
+  { q: 'Posso importar do Anki?', a: 'Sim! Importa .apkg com baralhos, cards, tags e mídia automaticamente. Sem perder nada.' },
   { q: 'O plano grátis é realmente grátis?', a: 'Sim. Core ilimitado — flashcards, notas, grafo, revisão, importar Anki. A IA tem limites mensais que você pode expandir com o Pro.' },
   { q: 'Funciona no celular?', a: 'Sim, é PWA. Funciona em qualquer navegador como app nativo. Adicione à tela inicial e use offline.' },
   { q: 'Meus dados ficam seguros?', a: 'Sim. Servidores no Brasil, criptografia em trânsito e repouso, compatível com LGPD.' },

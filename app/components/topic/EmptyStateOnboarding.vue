@@ -34,7 +34,7 @@
         <span class="text-xl">📥</span>
         <div>
           <p class="text-body font-medium text-base-primary">Importar Anki</p>
-          <p class="text-micro text-base-muted">Traga seus decks existentes</p>
+          <p class="text-micro text-base-muted">Traga seus baralhos do Anki</p>
         </div>
       </button>
     </div>

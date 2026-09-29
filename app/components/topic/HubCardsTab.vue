@@ -41,7 +41,7 @@
         >
           <Camera :size="14" />
           <span v-if="ocrLoading">Analisando...</span>
-          <span v-else>Foto da matéria</span>
+          <span v-else>Foto do material</span>
         </button>
       </UiTooltip>
       <input

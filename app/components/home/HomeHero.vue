@@ -1,6 +1,33 @@
 <template>
+  <!-- Loading: same footprint as the hero (no layout shift) -->
+  <section v-if="loading && !stats" class="hero hero--skeleton" aria-busy="true" aria-label="Carregando resumo de hoje">
+    <div class="hero__layout">
+      <div class="hero__narrative">
+        <div class="skeleton h-4 w-40 rounded mb-4" />
+        <div class="skeleton h-3 w-24 rounded mb-2" />
+        <div class="skeleton h-12 w-48 rounded mb-3" />
+        <div class="skeleton h-3 w-32 rounded" />
+      </div>
+      <div class="hero__panel">
+        <div class="skeleton h-3 w-28 rounded mb-4" />
+        <div class="skeleton h-6 w-full rounded mb-3" />
+        <div class="skeleton h-3 w-24 rounded mb-4" />
+        <div class="skeleton h-11 w-full rounded-xl" />
+      </div>
+    </div>
+  </section>
+
+  <!-- Error: never "Crie seus primeiros cards" / "Tudo em dia" (RN-UX-03) -->
+  <UiErrorState
+    v-else-if="error"
+    variant="hero"
+    title="Não foi possível carregar seu resumo de hoje"
+    description="Verifique sua conexão e tente de novo."
+    @retry="$emit('retry')"
+  />
+
   <!-- Hero: cards pendentes -->
-  <section v-if="totalCards > 0" class="hero">
+  <section v-else-if="totalCards > 0" class="hero">
     <!-- Atmosphere -->
     <div class="hero__atmosphere" aria-hidden="true" />
 
@@ -129,7 +156,7 @@
   </section>
 
   <!-- Hero: novo usuário (0 cards) -->
-  <section v-else-if="totalUserCards === 0" class="hero hero--compact">
+  <section v-else-if="stats && totalUserCards === 0" class="hero hero--compact">
     <div class="hero__layout hero__layout--center">
       <div class="hero__narrative">
         <div class="hero__greeting">
@@ -147,7 +174,7 @@
   </section>
 
   <!-- Hero: tudo em dia -->
-  <section v-else class="hero hero--compact">
+  <section v-else-if="stats" class="hero hero--compact">
     <div class="hero__layout hero__layout--center">
       <div class="hero__narrative">
         <div class="hero__greeting">
@@ -173,7 +200,11 @@ const props = defineProps<{
   topicProgress: TopicProgress[]
   nextExam: { title: string; days_remaining: number } | null
   userName: string
+  loading?: boolean
+  error?: boolean
 }>()
+
+defineEmits<{ (e: 'retry'): void }>()
 
 const firstName = computed(() => props.userName?.split(' ')[0] ?? 'estudante')
 
@@ -224,6 +255,9 @@ const subtitle = computed(() => {
 
 <style scoped>
 /* ===== Hero Surface ===== */
+.hero--skeleton {
+  min-height: 240px;
+}
 .hero {
   position: relative;
   background: #FFFFFF;

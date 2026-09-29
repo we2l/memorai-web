@@ -7,15 +7,20 @@ export const useNoteStore = defineStore('note', {
     current: null as Note | null,
     loading: false,
     saving: false,
+    error: null as unknown,
   }),
 
   actions: {
     async fetchForTopic(topicId: string) {
       this.loading = true
+      this.error = null
       try {
         const { $api } = useNuxtApp()
         const res = await $api<any>(`/topics/${topicId}/notes`)
         this.notes = res.data
+      } catch (e) {
+        this.error = e
+        reportApiError(e, { silent: true })
       } finally {
         this.loading = false
       }

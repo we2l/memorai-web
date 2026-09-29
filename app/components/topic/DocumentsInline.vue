@@ -1,5 +1,8 @@
 <template>
   <div>
+    <div v-if="docStore.error && !documents.length" class="mt-3">
+      <UiErrorState title="Não foi possível carregar os PDFs" @retry="docStore.fetchForTopic(props.topicId, true)" />
+    </div>
     <!-- Documents list (compact cards) — upload area is now in MaterialInput -->
     <div v-if="documents.length" class="space-y-2 mt-3">
       <div

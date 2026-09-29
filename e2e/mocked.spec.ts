@@ -384,3 +384,48 @@ test.describe('Revisão rápida (RF-F2.1–F2.4)', () => {
     await expect(page.getByText('Pergunta 1')).toBeVisible()
   })
 })
+
+test.describe('Estados honestos (RF-F3.6–F3.9)', () => {
+  test.describe.configure({ mode: 'serial' })
+  let page: import('@playwright/test').Page
+
+  test.beforeAll(async ({ browser }) => {
+    page = await sharedPage(browser)
+  })
+  test.afterAll(async () => { await page.context().close() })
+  test.beforeEach(async () => { await page.unrouteAll({ behavior: 'ignoreErrors' }) })
+
+  test('/hoje com /stats 500 mostra erro e nunca "Crie seus primeiros cards"; retry recupera', async () => {
+    let fail = true
+    await page.route(/\/api\/stats$/, r => fail
+      ? r.fulfill(json({ message: 'x' }, 500))
+      : r.fulfill(json({ data: { total_cards: 0, total_decks: 0, due_today: 0, reviewed_today: 0, cards_reviewed_today: 0, streak: 0 } })))
+    await page.goto('/hoje')
+    await expect(page.getByText('Não foi possível carregar seu resumo de hoje')).toBeVisible()
+    await expect(page.getByText('Crie seus primeiros cards')).toHaveCount(0)
+    await expect(page.getByText('Tudo em dia!')).toHaveCount(0)
+    fail = false
+    await page.getByRole('button', { name: 'Tentar de novo' }).first().click()
+    await expect(page.getByText('Não foi possível carregar seu resumo de hoje')).toBeHidden()
+  })
+
+  test('/progresso com 500 mostra "Tentar de novo"', async () => {
+    let fail = true
+    await page.route('**/api/stats/progress', r => fail ? r.fulfill(json({ message: 'x' }, 500)) : r.continue())
+    await page.goto('/progresso')
+    await expect(page.getByText('Não foi possível carregar seu progresso')).toBeVisible()
+    fail = false
+    await page.getByRole('button', { name: 'Tentar de novo' }).click()
+    await expect(page.getByText('Não foi possível carregar seu progresso')).toBeHidden()
+  })
+
+  test('/cadernos com /topics 500 mostra erro inline na árvore', async () => {
+    let fail = true
+    await page.route(/\/api\/topics$/, r => fail && r.request().method() === 'GET' ? r.fulfill(json({ message: 'x' }, 500)) : r.continue())
+    await page.goto('/cadernos')
+    await expect(page.getByText('Não foi possível carregar seus cadernos').first()).toBeVisible()
+    fail = false
+    await page.getByRole('button', { name: 'Tentar de novo' }).first().click()
+    await expect(page.getByText('Não foi possível carregar seus cadernos')).toHaveCount(0)
+  })
+})

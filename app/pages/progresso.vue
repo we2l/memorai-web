@@ -9,6 +9,14 @@
       <div class="skeleton h-32 rounded-xl" />
     </div>
 
+    <UiErrorState
+      v-else-if="loadError"
+      variant="page"
+      title="Não foi possível carregar seu progresso"
+      description="Verifique sua conexão e tente de novo."
+      @retry="load"
+    />
+
     <template v-else-if="data">
       <!-- Mastery hero -->
       <div class="card py-6 px-6 mb-6 text-center">
@@ -171,12 +179,21 @@ function heatmapColor(count: number) {
   return 'bg-success'
 }
 
-onMounted(async () => {
+const loadError = ref(false)
+
+async function load() {
+  loading.value = true
+  loadError.value = false
   try {
     const res = await $api<any>('/stats/progress')
     data.value = res.data
+  } catch (e) {
+    loadError.value = true
+    reportApiError(e, { silent: true })
   } finally {
     loading.value = false
   }
-})
+}
+
+onMounted(load)
 </script>

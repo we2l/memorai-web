@@ -65,8 +65,11 @@
           </div>
         </div>
 
-        <div v-if="topicStore.loading" class="space-y-2 p-2">
+        <div v-if="topicStore.loading && !topicStore.tree.length" class="space-y-2 p-2">
           <div v-for="i in 4" :key="i" class="skeleton h-8 rounded" />
+        </div>
+        <div v-else-if="topicStore.error && !topicStore.tree.length" class="p-2">
+          <UiErrorState title="Não foi possível carregar seus cadernos" @retry="topicStore.fetchTree()" />
         </div>
         <TopicTree
           v-else
@@ -308,6 +311,9 @@
 
           <!-- Tab: Material (list only, no editor here) -->
           <div v-if="activeTab === 'notes'" class="tab-fade-in">
+          <div v-if="noteStore.error && !noteStore.notes.length" class="px-4 pt-4">
+            <UiErrorState title="Não foi possível carregar o material" @retry="noteStore.fetchForTopic(selectedTopicId!)" />
+          </div>
           <TopicHubNotesTab
             :notes="noteStore.notes"
             :active-note="null"
@@ -1142,7 +1148,10 @@ onMounted(async () => {
         color: tp.color,
       }
     }
-  } catch {}
+  } catch (e) {
+    // Progress is decorative (RF-F3.9)
+    reportApiError(e, { silent: true })
+  }
   if (route.query.view === 'graph') {
     showGraph.value = true
   }

@@ -4,6 +4,7 @@ import type { Document } from '~/types'
 export const useDocumentStore = defineStore('document', () => {
   const documents = ref<Document[]>([])
   const loading = ref(false)
+  const error = ref<unknown>(null)
   const currentTopicId = ref<string | null>(null)
 
   async function fetchForTopic(topicId: string, force = false, signal?: AbortSignal) {
@@ -17,8 +18,13 @@ export const useDocumentStore = defineStore('document', () => {
       const res = await $api<{ data: Document[] }>('/documents', { params: { topic_id: topicId }, signal })
       documents.value = res.data // filtered by topic_id on the server
       currentTopicId.value = topicId
-    } catch {
-      // Silent — component shows empty state
+      error.value = null
+    } catch (e) {
+      // Aborted polls are expected; real failures show inline in the Material tab
+      if (!signal?.aborted) {
+        error.value = e
+        reportApiError(e, { silent: true })
+      }
     } finally {
       loading.value = false
     }
@@ -58,11 +64,13 @@ export const useDocumentStore = defineStore('document', () => {
     documents.value = []
     currentTopicId.value = null
     loading.value = false
+    error.value = null
   }
 
   return {
     documents,
     loading,
+    error,
     currentTopicId,
     needsPolling,
     fetchForTopic,

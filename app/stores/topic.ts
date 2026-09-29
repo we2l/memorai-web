@@ -6,6 +6,7 @@ export const useTopicStore = defineStore('topic', {
     tree: [] as Topic[],
     current: null as Topic | null,
     loading: false,
+    error: null as unknown,
   }),
 
   getters: {
@@ -27,10 +28,15 @@ export const useTopicStore = defineStore('topic', {
   actions: {
     async fetchTree() {
       this.loading = true
+      this.error = null
       try {
         const { $api } = useNuxtApp()
         const res = await $api<any>('/topics')
         this.tree = res.data
+      } catch (e) {
+        // The page renders an inline error with "Tentar de novo" (RF-F3.9)
+        this.error = e
+        reportApiError(e, { silent: true })
       } finally {
         this.loading = false
       }

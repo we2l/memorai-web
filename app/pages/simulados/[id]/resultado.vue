@@ -209,11 +209,6 @@ function getBarColor(percent: number) {
   return 'bg-danger'
 }
 
-function formatTime(seconds: number) {
-  const m = Math.floor(seconds / 60)
-  const s = seconds % 60
-  return `${m}:${String(s).padStart(2, '0')}`
-}
 
 function formatAnswer(q: QuizQuestion, answer: string) {
   if (q.type === 'true_false') return answer === 'true' ? 'Verdadeiro' : 'Falso'

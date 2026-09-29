@@ -173,15 +173,6 @@ async function submit() {
   }
 }
 
-function flattenTopics(topics: any[]): any[] {
-  const result: any[] = []
-  for (const t of topics) {
-    result.push(t)
-    if (t.children?.length) result.push(...flattenTopics(t.children))
-  }
-  return result
-}
-
 onMounted(() => {
   if (!topicStore.tree.length) topicStore.fetchTree()
 })

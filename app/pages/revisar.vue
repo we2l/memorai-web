@@ -8,8 +8,8 @@
       <div class="flex items-center gap-3 text-small text-base-secondary">
         <span v-if="isSurvivalMode" class="px-2 py-0.5 rounded-full text-micro uppercase tracking-wide font-medium bg-warning/15 text-warning">Sobrevivência</span>
         <span v-if="isBlitz" class="px-2 py-0.5 rounded-full text-micro uppercase tracking-wide font-medium bg-accent-primary/15 text-accent-primary inline-flex items-center gap-1"><Zap :size="10" /> Relâmpago</span>
-        <span v-if="sessionTimer > 0" class="font-mono" :class="sessionTimer <= 60 ? 'text-danger' : ''" aria-live="polite" :aria-label="`${formatTimer(sessionTimer)} restantes`">
-          {{ formatTimer(sessionTimer) }}
+        <span v-if="sessionTimer > 0" class="font-mono" :class="sessionTimer <= 60 ? 'text-danger' : ''" aria-live="polite" :aria-label="`${formatTime(sessionTimer)} restantes`">
+          {{ formatTime(sessionTimer) }}
         </span>
         <span v-if="review.currentCard" class="font-medium text-base-primary">{{ review.remaining <= 1 ? 'Último!' : `${review.remaining - 1} restante${review.remaining - 1 !== 1 ? 's' : ''}` }}</span>
         <span class="text-micro text-base-muted">{{ reviewMood }}</span>
@@ -463,11 +463,6 @@ function stripHtml(html: string): string {
   return html?.replace(/<[^>]*>/g, '').trim() ?? ''
 }
 
-function formatTimer(seconds: number): string {
-  const m = Math.floor(seconds / 60)
-  const s = seconds % 60
-  return `${m}:${s.toString().padStart(2, '0')}`
-}
 
 function showReward(msg: string) {
   rewardMessage.value = msg

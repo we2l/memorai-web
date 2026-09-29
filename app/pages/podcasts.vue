@@ -195,12 +195,6 @@ function formatDuration(seconds: number): string {
   return `${m}:${s.toString().padStart(2, '0')}`
 }
 
-function formatTime(s: number): string {
-  const total = Math.floor(s)
-  const m = Math.floor(total / 60)
-  const sec = total % 60
-  return `${m}:${sec.toString().padStart(2, '0')}`
-}
 
 function timeAgo(date: string): string {
   const diff = Date.now() - new Date(date).getTime()

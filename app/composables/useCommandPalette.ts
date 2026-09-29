@@ -116,18 +116,6 @@ export function useCommandPalette() {
     }))
   })
 
-  // Flatten topic tree recursively
-  function flattenTopics(topics: any[]): any[] {
-    const result: any[] = []
-    for (const topic of topics) {
-      result.push(topic)
-      if (topic.children?.length) {
-        result.push(...flattenTopics(topic.children))
-      }
-    }
-    return result
-  }
-
   // Fuzzy search scoring
   function scoreMatch(text: string, q: string): number {
     const lower = text.toLowerCase()

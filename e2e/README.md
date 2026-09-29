@@ -34,7 +34,7 @@ URLs legadas (`/dashboard`, `/chat`, `/stats`, `/graph`, `/documents`, `/decks/*
 - Email: `#email`
 - Senha: `#password`
 - Submit: `button[type="submit"]`
-- Erro geral: `[role="alert"]`
+- Erro geral: `p[role="alert"]` (o `UiToast` mantém regiões `role="status"`/`role="alert"` sempre montadas e vazias)
 
 ### Revisão (`/revisar`)
 - Botões rating: texto "De novo", "Difícil", "Bom", "Fácil"

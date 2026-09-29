@@ -32,7 +32,7 @@ test.describe('Cadernos (/cadernos)', () => {
 
   test('botão Novo abre menu com opções', async ({ page }) => {
     await page.getByText('Novo', { exact: true }).click()
-    await expect(page.getByText('Novo caderno')).toBeVisible()
+    await expect(page.getByText('Novo caderno').first()).toBeVisible()
     await expect(page.getByText('Importar Anki')).toBeVisible()
   })
 })
@@ -92,7 +92,7 @@ test.describe('Configurações (/configuracoes)', () => {
   })
 
   test('exibe seção de aparência', async ({ page }) => {
-    await expect(page.getByText('Aparência')).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Aparência' })).toBeVisible()
     await expect(page.getByText('Tema')).toBeVisible()
   })
 })
@@ -186,7 +186,7 @@ test.describe('Auth', () => {
     await page.fill('#email', 'invalido@teste.com')
     await page.fill('#password', 'senhaerrada')
     await page.click('button[type="submit"]')
-    await expect(page.locator('[role="alert"], .text-danger, .text-red-500').first()).toBeVisible({ timeout: 5000 })
+    await expect(page.locator('p[role="alert"], main [role="alert"]:not(:empty)').first()).toBeVisible({ timeout: 5000 })
   })
 
   test('página de criar conta carrega', async ({ page }) => {

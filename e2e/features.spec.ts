@@ -25,7 +25,7 @@ test.describe.serial('Fluxo completo: Caderno → Card → Revisão', () => {
     await page.waitForLoadState('networkidle')
 
     await page.getByText('Novo', { exact: true }).click()
-    await page.getByText('Novo caderno').click()
+    await page.getByText('Novo caderno').first().click()
 
     await expect(page.getByRole('dialog')).toBeVisible()
     await page.locator('[aria-label="Criar caderno"] input').fill(TEST_NOTEBOOK)
@@ -157,7 +157,7 @@ test.describe('Configurações de estudo', () => {
 
     await expect(page.getByText('Tema')).toBeVisible()
     // Botões Escuro e Claro existem
-    await expect(page.getByRole('button', { name: /Escuro/i })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Escuro', exact: true })).toBeVisible()
     await expect(page.getByRole('button', { name: /Claro/i })).toBeVisible()
   })
 
@@ -166,8 +166,10 @@ test.describe('Configurações de estudo', () => {
     await page.goto('/configuracoes')
     await page.waitForLoadState('networkidle')
 
-    await expect(page.getByRole('heading', { name: 'Sessão de Estudo' })).toBeVisible()
-    await expect(page.getByText('Novos cards por dia')).toBeVisible()
+    // Daily limits stay hidden (PRD F11.3); the study section exposes retention + error diary
+    await expect(page.getByRole('heading', { name: 'Estudo', exact: true })).toBeVisible()
+    await expect(page.getByRole('radiogroup').first()).toBeVisible()
+    await expect(page.getByText('Quanto você quer lembrar')).toBeVisible()
   })
 })
 

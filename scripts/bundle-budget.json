@@ -1,7 +1,7 @@
 {
   "entryLayoutGzKb": 149,
   "largestChunkGzKb": 186,
-  "precacheKb": 4700,
+  "precacheKb": 1536,
   "routes": {
     "/cadernos": { "file": "pages/cadernos/index.vue", "gzKb": 186, "closureGzKb": 245 },
     "/": { "file": "pages/index.vue", "gzKb": 13, "closureGzKb": 42 }

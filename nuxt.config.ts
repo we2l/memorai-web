@@ -40,6 +40,10 @@ export default defineNuxtConfig({
 
   vite: {
     plugins: [tailwindcss()],
+    build: {
+      // Mascots stay as files (runtime-cached by the SW) instead of base64 inside JS chunks
+      assetsInlineLimit: (file: string) => (file.includes('/mascots/') ? false : undefined),
+    },
   },
 
   pwa: {
@@ -48,11 +52,12 @@ export default defineNuxtConfig({
       name: 'BAIGI',
       short_name: 'BAIGI',
       description: 'Estude de forma mais inteligente — repetição espaçada com IA',
-      theme_color: '#180838',
-      background_color: '#180838',
+      // DS v2 light surface (--bg-base in assets/css/main.css)
+      theme_color: '#F9FAFD',
+      background_color: '#F9FAFD',
       display: 'standalone',
       scope: '/',
-      start_url: '/dashboard',
+      start_url: '/hoje',
       icons: [
         { src: '/pwa-192x192.png', sizes: '192x192', type: 'image/png' },
         { src: '/pwa-512x512.png', sizes: '512x512', type: 'image/png' },
@@ -60,8 +65,27 @@ export default defineNuxtConfig({
       ],
     },
     workbox: {
-      navigateFallback: '/',
-      globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
+      // No app shell with ssr:false + prerender: a '/' fallback served the landing
+      // instead of the app. Offline page is Phase 2.
+      navigateFallback: null,
+      // Images are runtime-cached (below); never precache png/pdf (RF-05)
+      globPatterns: ['**/*.{js,css,html,svg,ico,woff2}'],
+      // Heavy on-demand chunks (pdf.js ~330 KB) stay out of the install download;
+      // maximumFileSizeToCacheInBytes would fail the build instead of skipping.
+      manifestTransforms: [
+        async entries => ({ manifest: entries.filter(e => e.size <= 300 * 1024), warnings: [] }),
+      ],
+      // API responses are never cached (RN-F03): no rule for the API origin
+      runtimeCaching: [
+        {
+          urlPattern: /\/_nuxt\/.*\.(png|webp|avif|svg)$/,
+          handler: 'CacheFirst',
+          options: {
+            cacheName: 'images',
+            expiration: { maxEntries: 60, maxAgeSeconds: 60 * 60 * 24 * 30 },
+          },
+        },
+      ],
     },
   },
 
@@ -101,7 +125,8 @@ export default defineNuxtConfig({
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
         { name: 'description', content: 'Estude de forma mais inteligente — repetição espaçada com IA' },
-        { name: 'theme-color', content: '#180838' },
+        { name: 'theme-color', content: '#F9FAFD', media: '(prefers-color-scheme: light)' },
+        { name: 'theme-color', content: '#0F001F', media: '(prefers-color-scheme: dark)' },
         { name: 'apple-mobile-web-app-capable', content: 'yes' },
         { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
       ],

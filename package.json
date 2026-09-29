@@ -15,7 +15,8 @@
     "test:e2e:headed": "playwright test --headed",
     "typecheck": "nuxi typecheck",
     "budget": "node scripts/check-bundle-budget.mjs",
-    "test:build": "vitest run tests/scripts"
+    "test:build": "vitest run tests/scripts",
+    "images": "node scripts/optimize-images.mjs"
   },
   "keywords": [],
   "author": "",
@@ -52,6 +53,7 @@
     "@vue/test-utils": "^2.4.6",
     "happy-dom": "^20.9.0",
     "jsdom": "^29.1.1",
+    "sharp": "^0.35.5",
     "typescript": "^5.9.3",
     "vitest": "^4.1.4",
     "vue-tsc": "^3.3.11"

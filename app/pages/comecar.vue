@@ -107,9 +107,9 @@
 
         <!-- Secondary: topic-based generation -->
         <div class="flex items-center gap-3 mt-6">
-          <div class="flex-1 h-px bg-border" />
+          <div class="flex-1 h-px bg-[var(--border-base)]" />
           <span class="text-micro text-base-muted">ou</span>
-          <div class="flex-1 h-px bg-border" />
+          <div class="flex-1 h-px bg-[var(--border-base)]" />
         </div>
 
         <div class="mt-4">

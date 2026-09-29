@@ -116,7 +116,7 @@ const minDate = computed(() => {
       <!-- Topics -->
       <div>
         <label class="block text-sm font-medium text-base-secondary mb-1">Cadernos vinculados</label>
-        <div class="max-h-48 overflow-y-auto space-y-1 border border-border-primary rounded-xl p-2 bg-surface-secondary">
+        <div class="max-h-48 overflow-y-auto space-y-1 border border-[var(--color-accent-primary)] rounded-xl p-2 bg-surface-secondary">
           <label
             v-for="topic in topics"
             :key="topic.id"

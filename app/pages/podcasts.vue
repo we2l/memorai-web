@@ -35,18 +35,19 @@
           @click="player.expand()"
         >
           <div class="w-14 h-14 rounded-xl bg-accent-primary-subtle border border-[var(--color-accent-primary)]/20 flex items-center justify-center shrink-0">
-            <div class="w-3 h-3 rounded-full bg-accent-primary-subtle0 animate-pulse" />
+            <div class="w-3 h-3 rounded-full bg-[var(--color-accent-primary)] animate-pulse" />
           </div>
           <div class="flex-1 min-w-0">
             <p class="text-sm text-base-primary font-medium truncate">{{ player.currentPodcast.title }}</p>
             <p class="text-xs text-base-muted mt-0.5">{{ formatTime(player.currentTime) }} / {{ formatTime(player.duration) }}</p>
           </div>
           <button
-            class="w-10 h-10 rounded-full bg-accent-primary-subtle0 flex items-center justify-center shrink-0 hover:brightness-110 transition-all"
+            class="w-11 h-11 rounded-full bg-[var(--color-accent-primary)] text-[var(--color-accent-primary-text)] flex items-center justify-center shrink-0 hover:brightness-110 transition-all"
+            :aria-label="player.isPlaying ? 'Pausar' : 'Tocar'"
             @click.stop="player.togglePlay()"
           >
-            <Pause v-if="player.isPlaying" :size="16" class="text-base-primary" />
-            <Play v-else :size="16" class="text-base-primary ml-0.5" />
+            <Pause v-if="player.isPlaying" :size="16" aria-hidden="true" />
+            <Play v-else :size="16" class="ml-0.5" aria-hidden="true" />
           </button>
         </div>
       </div>

@@ -22,7 +22,7 @@
           </div>
 
           <div class="text-center w-full">
-            <h2 class="text-title font-serif text-base-primary">{{ player.currentPodcast.title }}</h2>
+            <h2 class="text-title text-base-primary">{{ player.currentPodcast.title }}</h2>
             <p class="text-small text-base-muted mt-1">
               {{ formatDate(player.currentPodcast.created_at) }}
               <span v-if="player.currentPodcast.format"> · {{ player.currentPodcast.format === 'debate' ? 'Debate' : 'Expositivo' }}</span>

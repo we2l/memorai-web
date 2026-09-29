@@ -110,14 +110,14 @@
         <p class="hero__panel-title">Sessão de hoje</p>
         <div class="hero__session-viz">
           <div
-            v-for="i in Math.min(totalCards, 24)"
+            v-for="i in segmentCount"
             :key="i"
             class="hero__segment"
-            :class="{ 'hero__segment--done': i <= reviewedToday }"
+            :class="{ 'hero__segment--done': i <= doneSegments }"
             :style="{ animationDelay: `${i * 25}ms` }"
           />
         </div>
-        <p class="hero__session-label">{{ reviewedToday }} de {{ totalCards }} concluídos</p>
+        <p class="hero__session-label">{{ reviewedToday }} de {{ totalDue }} concluídos</p>
         <NuxtLink to="/revisar" class="hero__cta">
           Começar revisão
           <svg class="hero__cta-arrow" width="14" height="14" viewBox="0 0 16 16" fill="none">
@@ -188,7 +188,12 @@ const streak = computed(() => props.stats?.streak ?? 0)
 const reviewedToday = computed(() => props.stats?.reviewed_today ?? 0)
 const totalUserCards = computed(() => props.stats?.total_cards ?? 0)
 const totalCards = computed(() => (props.stats?.due_today ?? 0) + (props.backlog?.overdue_count ?? 0))
-const totalDue = computed(() => (props.stats?.due_today ?? 0) + reviewedToday.value)
+// Session size = what is left (due + overdue) + what was already done today (RF-F8.1)
+const totalDue = computed(() => reviewedToday.value + totalCards.value)
+const segmentCount = computed(() => Math.min(totalDue.value, 24))
+const doneSegments = computed(() => totalDue.value <= 24
+  ? reviewedToday.value
+  : Math.round((reviewedToday.value / totalDue.value) * 24))
 const topicCount = computed(() => props.topicProgress.filter(t => (t as any).pending_count > 0).length || props.topicProgress.length)
 const estimatedMinutes = computed(() => props.backlog?.estimated_minutes ?? Math.ceil(totalCards.value * 0.25))
 

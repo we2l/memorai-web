@@ -17,7 +17,7 @@
     <!-- Google OAuth -->
     <button
       type="button"
-      class="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-border bg-surface-secondary hover:bg-[var(--border-divider)] transition-colors mb-8"
+      class="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-base bg-surface-secondary hover:bg-[var(--border-divider)] transition-colors mb-8"
       :disabled="googleLoading"
       @click="loginWithGoogle"
     >
@@ -26,9 +26,9 @@
     </button>
 
     <div class="flex items-center gap-3 mb-6">
-      <div class="flex-1 h-px bg-border" />
+      <div class="flex-1 h-px bg-[var(--border-base)]" />
       <span class="text-micro text-base-muted">ou entre com e-mail</span>
-      <div class="flex-1 h-px bg-border" />
+      <div class="flex-1 h-px bg-[var(--border-base)]" />
     </div>
 
     <form @submit.prevent="handleLogin" class="flex flex-col gap-4">

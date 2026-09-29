@@ -1,6 +1,6 @@
 <template>
   <UiModal v-model="model" :size="'lg'" aria-label="Gerar Podcast" no-overflow>
-    <h2 class="text-headline font-serif mb-1">Gerar Podcast</h2>
+    <h2 class="text-headline mb-1">Gerar Podcast</h2>
     <p class="text-small text-base-muted mb-5">Personalize sua revisão de áudio</p>
 
     <!-- Topic selector (only when no topicId prop) -->

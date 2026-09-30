@@ -195,6 +195,17 @@ export interface UserSettings {
   email_suppressed?: boolean
 }
 
+/** GET /review/tomorrow (prd-retencao-lembretes §4.3). Dates in America/Sao_Paulo. */
+export interface TomorrowForecast {
+  date: string
+  due_count: number
+  review_count: number
+  new_count: number
+  estimated_minutes: number
+  streak: { current: number; reviewed_today: boolean; at_risk: boolean; next_milestone: number | null }
+  reminder: { enabled: boolean; hour: number; suppressed: boolean }
+}
+
 export interface BacklogStats {
   overdue_count: number
   due_today_count: number

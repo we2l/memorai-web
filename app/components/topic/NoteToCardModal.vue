@@ -10,17 +10,10 @@
         <label for="card-back" class="text-label mb-1 block">Verso</label>
         <textarea id="card-back" v-model="form.back" class="textarea-base" rows="3" placeholder="Resposta..." />
       </div>
-      <div>
-        <label class="text-label mb-1 block">Deck</label>
-        <UiSelect
-          v-model="form.deck_id"
-          :options="deckOptions"
-          placeholder="Selecione um deck"
-        />
-      </div>
+      <p v-if="notebookName" class="text-small text-base-muted">Caderno: <span class="text-base-primary font-medium">{{ notebookName }}</span></p>
       <div class="flex gap-3 justify-end">
         <button type="button" class="btn-secondary" @click="open = false">Cancelar</button>
-        <button type="submit" class="btn-primary" :disabled="!form.front || !form.back || !form.deck_id || saving">
+        <button type="submit" class="btn-primary" :disabled="!form.front || !form.back || saving">
           {{ saving ? 'Salvando...' : 'Criar card' }}
         </button>
       </div>
@@ -34,22 +27,20 @@ const emit = defineEmits<{ (e: 'created'): void }>()
 const open = defineModel<boolean>({ required: true })
 
 const noteStore = useNoteStore()
-const deckStore = useDeckStore()
+const topicStore = useTopicStore()
 const toast = useToast()
 const saving = ref(false)
-const form = reactive({ front: '', back: '', deck_id: '' })
+const form = reactive({ front: '', back: '' })
 
-const deckOptions = computed(() =>
-  deckStore.decks.map(d => ({ value: d.id, label: d.name })),
-)
+// The deck is inferred by the API from the note's root caderno (RF-B7)
+const notebookName = computed(() => {
+  const note = noteStore.notes.find(n => n.id === props.noteId) ?? noteStore.current
+  return topicStore.rootOf(note?.topic_id)?.name ?? ''
+})
 
 watch(() => props.selectedText, (text) => {
   if (text) form.front = text
 }, { immediate: true })
-
-watch(open, (val) => {
-  if (val && !deckStore.decks.length) deckStore.fetchDecks()
-})
 
 async function submit() {
   saving.value = true
@@ -57,15 +48,14 @@ async function submit() {
     await noteStore.createFlashcard(props.noteId, {
       front: form.front,
       back: form.back,
-      deck_id: form.deck_id,
     })
     toast.show('Card criado!', 'success')
     open.value = false
     form.front = ''
     form.back = ''
     emit('created')
-  } catch {
-    toast.show('Erro ao criar card.', 'error')
+  } catch (e) {
+    reportApiError(e, { error: extractApiMessage(e, 'Não foi possível criar o card.') })
   } finally {
     saving.value = false
   }

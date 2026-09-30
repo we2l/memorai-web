@@ -5,6 +5,10 @@
 - API: `http://localhost:8037/api`
 - Usuário teste: weslleyadesousa@gmail.com (plano Pro)
 - Senha: variável `E2E_PASSWORD` (default: "password")
+- Auth por cookie (Sanctum SPA): `docker exec baigi-app php artisan db:seed --class=E2eSeeder` cria o usuário
+  verificado (`E2E_EMAIL`, default acima) e `unverified@e2e.test`. Ex.: `docker exec -e E2E_EMAIL=verified@e2e.test baigi-app php artisan db:seed --class=E2eSeeder`
+  e `E2E_EMAIL=verified@e2e.test npx playwright test e2e/auth-cookie.spec.ts`. O throttle de login (5/min) persiste
+  entre execuções: `docker exec baigi-app php artisan cache:clear` antes de repetir.
 
 ## Páginas (URLs em PT-BR)
 
@@ -14,19 +18,15 @@
 | `/criar-conta` | Registro |
 | `/hoje` | Dashboard principal (cards pra hoje, backlog, sugestões) |
 | `/revisar` | Sessão de revisão (flip card, botões rating) |
-| `/decks` | Listagem de decks |
-| `/decks/[id]` | Detalhe do deck (cards, settings) |
 | `/cadernos` | Tópicos/cadernos (árvore, notas, erros, cards) |
-| `/grafo` | Grafo visual de tópicos (D3.js) |
-| `/chat` | Agente IA (chat contextual) |
 | `/podcasts` | Lista de podcasts gerados |
 | `/importar` | Importar Anki (.apkg) |
 | `/progresso` | Estatísticas de progresso |
-| `/stats` | Estatísticas de revisão |
 | `/configuracoes` | Configurações do usuário |
 | `/planos` | Planos e preços |
-| `/documents` | PDFs enviados |
 | `/comecar` | Onboarding |
+
+URLs legadas (`/dashboard`, `/chat`, `/stats`, `/graph`, `/documents`, `/decks/**`) são 301 no edge (`routeRules`) — ver `redirects.spec.ts`.
 
 ## Seletores importantes
 
@@ -34,7 +34,7 @@
 - Email: `#email`
 - Senha: `#password`
 - Submit: `button[type="submit"]`
-- Erro geral: `[role="alert"]`
+- Erro geral: `p[role="alert"]` (o `UiToast` mantém regiões `role="status"`/`role="alert"` sempre montadas e vazias)
 
 ### Revisão (`/revisar`)
 - Botões rating: texto "De novo", "Difícil", "Bom", "Fácil"

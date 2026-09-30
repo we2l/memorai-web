@@ -4,7 +4,7 @@
     <div class="flex items-center gap-2 mb-3 flex-wrap">
       <button
         class="btn-secondary !py-1.5 !px-3 !min-h-0 text-small"
-        :class="showOnlyWeak && 'bg-danger/10 text-danger border-danger/30'"
+        :class="showOnlyWeak && 'bg-danger/10 text-[var(--badge-danger-text)] border-danger/30'"
         :disabled="!graphStore.data?.nodes.length"
         @click="showOnlyWeak = !showOnlyWeak"
       >
@@ -25,8 +25,8 @@
         class="btn-secondary !py-1.5 !px-3 !min-h-0 text-small ml-auto"
         title="Expandir"
         @click="$emit('expand')"
-      >
-        <Maximize2 :size="14" />
+       aria-label="Expandir">
+        <Maximize2 :size="14" aria-hidden="true" />
       </button>
     </div>
 
@@ -41,7 +41,7 @@
       <div class="skeleton h-32 w-32 rounded-full" />
     </div>
     <div v-else-if="!graphStore.data?.nodes.length" class="flex-1 flex flex-col items-center justify-center gap-2">
-      <img src="~/assets/mascot-baigi-thinking.png" alt="Baigi pensando" class="w-16 h-16 object-contain" />
+      <picture class="contents"><source srcset="~/assets/mascots/mascot-baigi-thinking.avif" type="image/avif"><img src="~/assets/mascots/mascot-baigi-thinking.webp" alt="Baigi pensando" class="w-16 h-16 object-contain" width="64" height="64" loading="lazy" decoding="async" /></picture>
       <p class="text-body text-base-secondary">Nenhum caderno com cards ainda</p>
       <p class="text-small text-base-muted">Crie cadernos e cards para ver seu mapa.</p>
     </div>
@@ -52,8 +52,8 @@
         class="absolute bottom-3 right-3 p-2 rounded-lg bg-[var(--bg-card)] border border-base shadow text-base-muted hover:text-base-primary transition-colors"
         title="Recentralizar"
         @click="recenter"
-      >
-        <Maximize2 :size="16" />
+       aria-label="Recentralizar">
+        <Maximize2 :size="16" aria-hidden="true" />
       </button>
     </div>
 
@@ -61,14 +61,14 @@
     <div v-if="graphStore.selectedNode" class="mt-3 p-3 rounded-xl bg-[var(--bg-card)] border border-base">
       <div class="flex items-center justify-between mb-2">
         <h3 class="text-body font-medium truncate">{{ graphStore.selectedNode.name }}</h3>
-        <button class="p-1 rounded hover:bg-surface-secondary" @click="graphStore.clearSelection()">
-          <X :size="14" class="text-base-muted" />
+        <button class="p-1 rounded hover:bg-surface-secondary" aria-label="Fechar detalhes" @click="graphStore.clearSelection()">
+          <X :size="14" class="text-base-muted" aria-hidden="true" />
         </button>
       </div>
       <div class="flex items-center gap-2 mb-2">
         <div class="flex-1 h-1 rounded-full bg-surface-secondary">
           <div
-            class="h-1 rounded-full bg-accent-primary-subtle0/65 transition-all"
+            class="h-1 rounded-full bg-[var(--color-accent-primary)]/65 transition-all"
             :style="{ width: Math.round(graphStore.selectedNode.progress * 100) + '%' }"
           />
         </div>

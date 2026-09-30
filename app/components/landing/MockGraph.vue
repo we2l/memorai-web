@@ -50,15 +50,18 @@
 </template>
 
 <script setup lang="ts">
-import * as d3 from 'd3'
+import { select, type Selection } from 'd3-selection'
+import { zoom, type ZoomBehavior } from 'd3-zoom'
+import { drag } from 'd3-drag'
+import { forceSimulation, forceLink, forceManyBody, forceCenter, forceCollide, type SimulationNodeDatum, type SimulationLinkDatum } from 'd3-force'
 
 const containerRef = ref<HTMLElement | null>(null)
 const selectedNode = ref<{ name: string; cards: number; notes: number; pct: number; color: string } | null>(null)
 
-let zoomBehavior: d3.ZoomBehavior<SVGSVGElement, unknown> | null = null
-let svgEl: d3.Selection<SVGSVGElement, unknown, null, undefined> | null = null
+let zoomBehavior: ZoomBehavior<SVGSVGElement, unknown> | null = null
+let svgEl: Selection<SVGSVGElement, unknown, null, undefined> | null = null
 
-interface MockNode extends d3.SimulationNodeDatum {
+interface MockNode extends SimulationNodeDatum {
   id: string
   name: string
   cards: number
@@ -67,7 +70,7 @@ interface MockNode extends d3.SimulationNodeDatum {
   radius: number
 }
 
-interface MockLink extends d3.SimulationLinkDatum<MockNode> {
+interface MockLink extends SimulationLinkDatum<MockNode> {
   source: string
   target: string
   type: 'hierarchy' | 'connection'
@@ -131,7 +134,7 @@ onMounted(() => {
   const d3Nodes: MockNode[] = mockNodes.map(n => ({ ...n }))
   const d3Links: MockLink[] = mockLinks.map(l => ({ ...l }))
 
-  svgEl = d3.select(container)
+  svgEl = select(container)
     .append('svg')
     .attr('width', width)
     .attr('height', height)
@@ -139,7 +142,7 @@ onMounted(() => {
   const g = svgEl.append('g')
 
   // Zoom + pan
-  zoomBehavior = d3.zoom<SVGSVGElement, unknown>()
+  zoomBehavior = zoom<SVGSVGElement, unknown>()
     .scaleExtent([0.4, 2.5])
     .on('zoom', (event) => {
       g.attr('transform', event.transform)
@@ -148,11 +151,11 @@ onMounted(() => {
   svgEl.call(zoomBehavior)
 
   // Simulation
-  const simulation = d3.forceSimulation(d3Nodes as d3.SimulationNodeDatum[] as MockNode[])
-    .force('link', d3.forceLink<MockNode, MockLink>(d3Links).id(d => d.id).distance(90))
-    .force('charge', d3.forceManyBody().strength(-250))
-    .force('center', d3.forceCenter(width / 2, height / 2))
-    .force('collide', d3.forceCollide<MockNode>().radius(d => d.radius + 10))
+  const simulation = forceSimulation(d3Nodes as SimulationNodeDatum[] as MockNode[])
+    .force('link', forceLink<MockNode, MockLink>(d3Links).id(d => d.id).distance(90))
+    .force('charge', forceManyBody().strength(-250))
+    .force('center', forceCenter(width / 2, height / 2))
+    .force('collide', forceCollide<MockNode>().radius(d => d.radius + 10))
 
   // Links
   const link = g.append('g')
@@ -173,7 +176,7 @@ onMounted(() => {
 
   // Drag
   node.call(
-    d3.drag<SVGGElement, MockNode>()
+    drag<SVGGElement, MockNode>()
       .clickDistance(4)
       .on('start', (event, d) => {
         if (!event.active) simulation.alphaTarget(0.3).restart()

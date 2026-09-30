@@ -8,7 +8,7 @@
     <!-- Empty state: < 3 notes -->
     <div v-else-if="meta?.min_notes_required" class="flex-1 flex flex-col items-center justify-center gap-3 text-center">
       <div class="w-14 h-14 rounded-2xl bg-accent-primary-subtle flex items-center justify-center">
-        <Brain :size="28" class="text-[var(--color-accent-soft)]" />
+        <Brain :size="28" class="text-[var(--badge-primary-text)]" />
       </div>
       <p class="text-body text-base-secondary">Adicione pelo menos 3 notas com conteúdo para ver o mapa mental</p>
       <button class="btn-primary !py-2 !px-4 text-small" @click="$emit('create-note')">
@@ -74,7 +74,7 @@
         <template v-else-if="!aiMap && !generating">
           <div class="flex-1 flex flex-col items-center justify-center gap-3 text-center">
             <div class="w-14 h-14 rounded-2xl bg-accent-primary-subtle flex items-center justify-center">
-              <Brain :size="28" class="text-[var(--color-accent-soft)]" />
+              <Brain :size="28" class="text-[var(--badge-primary-text)]" />
             </div>
             <p class="text-body text-base-secondary">Gere um mapa mental detalhado com conceitos, definições e exemplos extraídos por IA</p>
             <button class="btn-primary !py-2 !px-4 text-small" @click="generateAiMap">
@@ -134,6 +134,7 @@ defineEmits<{
 }>()
 
 const { $api } = useNuxtApp()
+const aiJob = useAiJob()
 const auth = useAuthStore()
 const toast = useToast()
 
@@ -147,14 +148,14 @@ const activeLevel = ref<'auto' | 'ai'>('auto')
 const showNodeAction = ref(false)
 const selectedNode = ref<MindMapNode | null>(null)
 
-const isPro = computed(() => auth.user?.plan === 'pro' || auth.user?.plan === 'premium')
+const isPro = computed(() => !!auth.user && auth.user.plan !== 'free')
 
 const typeColors: Record<string, string> = {
-  conceito: '#6F3FF5',
-  definição: '#3B82F6',
-  exemplo: '#22C55E',
-  exceção: '#EF4444',
-  referência: '#8A90A8',
+  conceito: 'var(--color-accent-primary)',
+  definição: 'var(--color-info)',
+  exemplo: 'var(--color-success)',
+  exceção: 'var(--color-danger)',
+  referência: 'var(--text-muted)',
 }
 
 async function fetchData() {
@@ -173,7 +174,7 @@ async function fetchData() {
       aiMapId.value = aiRes.meta.id
     }
   } catch (e) {
-    // silent
+    reportApiError(e, { error: 'Não foi possível carregar o mapa mental.' })
   } finally {
     loading.value = false
   }
@@ -182,7 +183,8 @@ async function fetchData() {
 async function generateAiMap() {
   generating.value = true
   try {
-    const res = await $api<any>(`/topics/${props.topicId}/mindmap/generate`, { method: 'POST' })
+    // 202 + job polled until done (RF-30)
+    const res = await aiJob.run<{ data: any, meta: { id: string } }>(`/topics/${props.topicId}/mindmap/generate`)
     aiMap.value = res.data
     aiMapId.value = res.meta.id
     activeLevel.value = 'ai'

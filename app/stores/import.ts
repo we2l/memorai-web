@@ -1,5 +1,10 @@
 import type { AnkiImportPreview, AnkiImportStatus } from '~/types'
 
+// Preview runs in a job: API answers 202 { status: 'previewing' } until ready
+const PREVIEW_POLL_MS = 2000
+const PREVIEW_TIMEOUT_MS = 60000
+export const PREVIEW_TIMEOUT_MESSAGE = 'O arquivo está demorando para ser lido. Tente novamente em instantes.'
+
 export const useImportStore = defineStore('import', {
   state: () => ({
     importId: null as string | null,
@@ -29,7 +34,13 @@ export const useImportStore = defineStore('import', {
       this.loading = true
       try {
         const { $api } = useNuxtApp()
-        const res = await $api<any>(`/import/${this.importId}/preview`)
+        const startedAt = Date.now()
+        let res = await $api<any>(`/import/${this.importId}/preview`)
+        while (res.data?.status === 'previewing') {
+          if (Date.now() - startedAt >= PREVIEW_TIMEOUT_MS) throw new Error(PREVIEW_TIMEOUT_MESSAGE)
+          await new Promise(resolve => setTimeout(resolve, PREVIEW_POLL_MS))
+          res = await $api<any>(`/import/${this.importId}/preview`)
+        }
         this.preview = res.data
         // Pre-fill conflicts as 'import'
         for (const deck of res.data.decks) {

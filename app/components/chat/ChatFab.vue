@@ -1,12 +1,13 @@
 <template>
   <button
     v-if="!chat.isOpen"
-    class="fixed z-40 w-11 h-11 rounded-full bg-[var(--color-accent-primary)]/80 backdrop-blur-sm text-white shadow-lg hover:bg-[var(--color-accent-primary)] hover:scale-105 transition-all duration-150 flex items-center justify-center bottom-20 right-4 lg:bottom-6 lg:right-6"
+    class="fixed z-40 w-11 h-11 rounded-full bg-[var(--color-accent-primary)]/80 backdrop-blur-sm text-white shadow-lg hover:bg-[var(--color-accent-primary)] hover:scale-105 transition-all duration-150 flex items-center justify-center right-4 lg:right-6"
+    style="bottom: var(--fab-bottom);"
     :aria-label="label"
     :title="label"
     @click="chat.toggle()"
   >
-    <Sparkles :size="18" />
+    <Sparkles :size="18" aria-hidden="true" />
   </button>
 </template>
 

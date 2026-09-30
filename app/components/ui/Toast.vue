@@ -1,37 +1,51 @@
 <template>
   <Teleport to="body">
-    <Transition name="toast">
-      <div
-        v-if="visible"
-        role="alert"
-        class="fixed top-4 right-4 z-[100] max-w-sm px-4 py-3 rounded-xl text-small font-medium shadow-lg"
-        :class="typeClasses"
-      >
-        {{ message }}
+    <div class="toast-stack fixed z-[100] flex flex-col gap-2 pointer-events-none">
+      <!-- Two live regions always mounted: polite for success/info, assertive for error/warning -->
+      <div role="status" aria-live="polite" class="flex flex-col gap-2">
+        <TransitionGroup name="toast">
+          <UiToastItem
+            v-for="item in politeItems"
+            :key="item.id"
+            :item="item"
+          />
+        </TransitionGroup>
       </div>
-    </Transition>
+      <div role="alert" aria-live="assertive" class="flex flex-col gap-2">
+        <TransitionGroup name="toast">
+          <UiToastItem
+            v-for="item in assertiveItems"
+            :key="item.id"
+            :item="item"
+          />
+        </TransitionGroup>
+      </div>
+    </div>
   </Teleport>
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{
-  message: string
-  type?: 'success' | 'error' | 'warning' | 'info'
-  visible: boolean
-}>()
+const { state } = useToast()
 
-const typeClasses = computed(() => {
-  const map: Record<string, string> = {
-    success: 'bg-success/15 text-success',
-    error: 'bg-danger/15 text-danger',
-    warning: 'bg-warning/15 text-warning',
-    info: 'bg-info/15 text-info',
-  }
-  return map[props.type ?? 'success']
-})
+const politeItems = computed(() => state.items.filter(i => i.type === 'success' || i.type === 'info'))
+const assertiveItems = computed(() => state.items.filter(i => i.type === 'error' || i.type === 'warning'))
 </script>
 
 <style scoped>
+.toast-stack {
+  left: 1rem;
+  right: 1rem;
+  bottom: calc(var(--nav-h, 0px) + var(--miniplayer-h, 0px) + 12px + env(safe-area-inset-bottom));
+}
+@media (min-width: 1024px) {
+  .toast-stack {
+    left: auto;
+    bottom: auto;
+    top: 1rem;
+    right: 1rem;
+    width: 24rem;
+  }
+}
 .toast-enter-active,
 .toast-leave-active {
   transition: all 200ms ease-in-out;
@@ -39,6 +53,6 @@ const typeClasses = computed(() => {
 .toast-enter-from,
 .toast-leave-to {
   opacity: 0;
-  transform: translateY(-8px);
+  transform: translateY(8px);
 }
 </style>

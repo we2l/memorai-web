@@ -39,7 +39,9 @@ export const useChatStore = defineStore('chat', {
       try {
         const res = await $api<{ data: Conversation[] }>('/chat/conversations')
         this.conversations = res.data
-      } catch {}
+      } catch (e) {
+        reportApiError(e, { silent: true })
+      }
     },
 
     async loadConversation(id: string) {

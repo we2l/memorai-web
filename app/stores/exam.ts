@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { Exam, ExamUpcoming, ExamCalendarDay } from '~/types'
+import type { Exam, ExamOutcome, ExamUpcoming, ExamCalendarDay } from '~/types'
 
 export const useExamStore = defineStore('exam', {
   state: () => ({
@@ -36,7 +36,8 @@ export const useExamStore = defineStore('exam', {
         const res = await $api('/exams/upcoming')
         this.upcoming = res.data
       } catch (e) {
-        // Silent — dashboard shouldn't break if exams fail
+        // Dashboard shouldn't break if exams fail (RF-F3b: S)
+        reportApiError(e, { silent: true })
       }
     },
 
@@ -78,6 +79,15 @@ export const useExamStore = defineStore('exam', {
     async toggleRetaFinal(id: string) {
       const { $api } = useNuxtApp()
       const res = await $api(`/exams/${id}/toggle-reta-final`, { method: 'POST' })
+      const index = this.exams.findIndex((e) => e.id === id)
+      if (index >= 0) this.exams[index] = res.data
+      return res.data
+    },
+
+    /** Owner answer from /provas; replaces a previous one (RF-B20). */
+    async recordOutcome(id: string, outcome: ExamOutcome) {
+      const { $api } = useNuxtApp()
+      const res = await $api<{ data: Exam }>(`/exams/${id}/outcome`, { method: 'POST', body: { outcome } })
       const index = this.exams.findIndex((e) => e.id === id)
       if (index >= 0) this.exams[index] = res.data
       return res.data

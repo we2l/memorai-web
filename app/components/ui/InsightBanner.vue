@@ -21,8 +21,8 @@
       class="shrink-0 p-1 rounded-md opacity-60 hover:opacity-100 transition-opacity"
       title="Fechar"
       @click="dismiss"
-    >
-      <X :size="14" />
+     aria-label="Fechar">
+      <X :size="14" aria-hidden="true" />
     </button>
   </div>
 </template>
@@ -73,19 +73,19 @@ function dismiss() {
 
 const variantClasses = computed(() => {
   switch (props.variant) {
-    case 'warning': return 'bg-amber-50 text-amber-800 dark:bg-amber-900/20 dark:text-amber-300 border border-amber-200 dark:border-amber-800/40'
-    case 'success': return 'bg-emerald-50 text-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/40'
-    case 'accent': return 'bg-[#F5F2FF] text-[#6F3FF5] dark:bg-[#6F3FF5]/10 dark:text-[#B794F4] border border-[#D7DDF2] dark:border-[#6F3FF5]/30'
-    default: return 'bg-blue-50 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300 border border-blue-200 dark:border-blue-800/40'
+    case 'warning': return 'bg-[var(--badge-warning-bg)] text-[var(--badge-warning-text)] border border-[var(--badge-warning-text)]/20'
+    case 'success': return 'bg-[var(--badge-success-bg)] text-[var(--badge-success-text)] border border-[var(--badge-success-text)]/20'
+    case 'accent': return 'bg-[var(--badge-primary-bg)] text-[var(--color-accent-primary)] dark:bg-[var(--color-accent-primary)]/10 border border-base dark:border-[var(--color-accent-primary)]/30'
+    default: return 'bg-[var(--badge-info-bg)] text-[var(--badge-info-text)] border border-[var(--badge-info-text)]/20'
   }
 })
 
 const actionClasses = computed(() => {
   switch (props.variant) {
-    case 'warning': return 'bg-amber-100 hover:bg-amber-200 text-amber-900 dark:bg-amber-800/30 dark:text-amber-200'
-    case 'success': return 'bg-emerald-100 hover:bg-emerald-200 text-emerald-900 dark:bg-emerald-800/30 dark:text-emerald-200'
-    case 'accent': return 'bg-[#6F3FF5]/10 hover:bg-[#6F3FF5]/20 text-[#6F3FF5] dark:bg-[#6F3FF5]/20 dark:text-[#B794F4]'
-    default: return 'bg-blue-100 hover:bg-blue-200 text-blue-900 dark:bg-blue-800/30 dark:text-blue-200'
+    case 'warning': return 'bg-[var(--badge-warning-bg)] hover:bg-[var(--badge-warning-bg)] text-[var(--badge-warning-text)]'
+    case 'success': return 'bg-[var(--badge-success-bg)] hover:bg-[var(--badge-success-bg)] text-[var(--badge-success-text)]'
+    case 'accent': return 'bg-[var(--color-accent-primary)]/10 hover:bg-[var(--color-accent-primary)]/20 text-[var(--color-accent-primary)] dark:bg-[var(--color-accent-primary)]/20'
+    default: return 'bg-[var(--badge-info-bg)] hover:bg-[var(--badge-info-bg)] text-[var(--badge-info-text)]'
   }
 })
 </script>

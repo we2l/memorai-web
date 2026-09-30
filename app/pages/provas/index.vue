@@ -1,8 +1,12 @@
 <script setup lang="ts">
 import { ChevronLeft, ChevronRight, Plus, Trash2, Eye } from 'lucide-vue-next'
+import type { Exam, ExamOutcome } from '~/types'
 
 const examStore = useExamStore()
 const toast = useToast()
+const route = useRoute()
+const router = useRouter()
+const { $api } = useNuxtApp()
 
 const showCreateModal = ref(false)
 const showDeleteModal = ref(false)
@@ -11,9 +15,43 @@ const activeTab = ref<'upcoming' | 'past'>('upcoming')
 const currentMonth = ref(new Date())
 const selectedDay = ref<null | { day: number; date: string; exams: any[]; totalCards: number; isCurrentMonth: boolean }>(null)
 
+// "Cadastrar nova prova" from the result page: /provas?nova=1&from={examId} (RF-F11)
+const createTopicIds = ref<string[]>([])
+
+async function openFromQuery() {
+  if (route.query.nova !== '1') return
+  const from = typeof route.query.from === 'string' ? route.query.from : ''
+  if (from) {
+    const known = examStore.exams.find(e => e.id === from)
+    try {
+      const exam = known ?? (await $api<{ data: Exam }>(`/exams/${from}`)).data
+      createTopicIds.value = exam.topics.map(t => t.id)
+    } catch (e) {
+      reportApiError(e, { silent: true })
+    }
+  }
+  showCreateModal.value = true
+  router.replace({ query: {} })
+}
+
 onMounted(async () => {
   await Promise.all([examStore.fetchExams(), examStore.fetchUpcoming(), fetchCalendar()])
+  await openFromQuery()
 })
+
+// "Como foi?" on past exams (RF-F10)
+const { run: runOutcome, pending: savingOutcome } = useApiAction()
+function answerOutcome(id: string, outcome: ExamOutcome) {
+  return runOutcome(() => examStore.recordOutcome(id, outcome), {
+    success: outcome === 'passed' ? 'Parabéns pela aprovação!' : 'Resposta registrada. Bora para a próxima.',
+    error: 'Não foi possível salvar sua resposta.',
+  })
+}
+
+function closeCreate() {
+  showCreateModal.value = false
+  createTopicIds.value = []
+}
 
 async function fetchCalendar() {
   const start = new Date(currentMonth.value.getFullYear(), currentMonth.value.getMonth(), 1)
@@ -30,7 +68,7 @@ function selectDay(cell: any) {
   selectedDay.value = selectedDay.value?.date === cell.date ? null : cell
 }
 
-async function handleCreated() { showCreateModal.value = false; await examStore.fetchExams(); await fetchCalendar(); toast.show('Prova criada!', 'success') }
+async function handleCreated() { closeCreate(); await examStore.fetchExams(); await fetchCalendar(); toast.show('Prova criada!', 'success') }
 
 function confirmDelete(id: string) {
   examToDelete.value = id
@@ -119,26 +157,26 @@ const calendarDays = computed(() => {
       <!-- Header -->
       <div class="p-6 flex justify-between items-center" style="border-bottom: 1px solid var(--border-base)">
         <div class="flex items-center gap-5">
-          <h2 class="text-xl font-bold" style="color: #1F2343">{{ monthLabel }}</h2>
+          <h2 class="text-xl font-bold" style="color: var(--text-heading)">{{ monthLabel }}</h2>
           <div class="flex gap-1">
-            <button class="p-2 rounded-lg transition-colors" style="color: var(--text-muted)" @click="prevMonth">
-              <ChevronLeft class="w-5 h-5" />
+            <button class="p-2 rounded-lg transition-colors" style="color: var(--text-muted)" aria-label="Mês anterior" @click="prevMonth">
+              <ChevronLeft class="w-5 h-5" aria-hidden="true" />
             </button>
-            <button class="p-2 rounded-lg transition-colors" style="color: var(--text-muted)" @click="nextMonth">
-              <ChevronRight class="w-5 h-5" />
+            <button class="p-2 rounded-lg transition-colors" style="color: var(--text-muted)" aria-label="Próximo mês" @click="nextMonth">
+              <ChevronRight class="w-5 h-5" aria-hidden="true" />
             </button>
           </div>
-          <button class="px-4 py-1.5 rounded-lg font-semibold text-sm transition-colors" style="border: 1px solid #D7DDF2; color: #6F3FF5" @click="goToday">Hoje</button>
+          <button class="px-4 py-1.5 rounded-lg font-semibold text-sm transition-colors" style="border: 1px solid var(--border-base); color: var(--badge-primary-text)" @click="goToday">Hoje</button>
         </div>
-        <button class="flex items-center gap-2 px-5 py-2.5 rounded-[14px] font-semibold text-sm text-white transition-all" style="background: #6F3FF5; box-shadow: 0 4px 12px rgba(111,63,245,0.25)" @click="showCreateModal = true">
+        <button class="flex items-center gap-2 px-5 py-2.5 rounded-[14px] font-semibold text-sm transition-all" style="background: var(--color-accent-primary); color: var(--color-accent-primary-text); box-shadow: 0 4px 12px rgba(111,63,245,0.25)" @click="showCreateModal = true">
           <Plus class="w-4 h-4" /> Nova prova
         </button>
       </div>
 
       <!-- Calendar Grid -->
-      <div class="grid grid-cols-7 gap-px" style="background-color: #E7EAF3">
+      <div class="grid grid-cols-7 gap-px" style="background-color: var(--border-base)">
         <!-- Weekday headers -->
-        <div v-for="d in ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB', 'DOM']" :key="d" class="py-3 text-center text-[10px] font-bold uppercase tracking-widest" style="background: var(--bg-base); color: #7a7487">
+        <div v-for="d in ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB', 'DOM']" :key="d" class="py-3 text-center text-[10px] font-bold uppercase tracking-widest" style="background: var(--bg-base); color: var(--text-muted)">
           {{ d }}
         </div>
         <!-- Days -->
@@ -148,18 +186,18 @@ const calendarDays = computed(() => {
           type="button"
           class="min-h-[110px] p-4 text-left align-top text-sm transition-colors"
           :class="[
-            cell.isCurrentMonth ? '' : 'opacity-30',
-            selectedDay?.date === cell.date ? '!bg-[#F5F2FF]' : '',
+            cell.isCurrentMonth ? '' : 'text-base-muted',
+            selectedDay?.date === cell.date ? '!bg-[var(--badge-primary-bg)]' : '',
           ]"
-          :style="{ backgroundColor: cell.isCurrentMonth ? 'var(--bg-card)' : '#F5F6FA' }"
+          :style="{ backgroundColor: cell.isCurrentMonth ? 'var(--bg-card)' : 'var(--badge-muted-bg)' }"
           @click="selectDay(cell)"
         >
           <span
             v-if="cell.isToday"
-            class="inline-flex items-center justify-center w-8 h-8 rounded-full text-white font-semibold text-sm"
-            style="background: #6F3FF5"
+            class="inline-flex items-center justify-center w-8 h-8 rounded-full font-semibold text-sm"
+            style="background: var(--color-accent-primary); color: var(--color-accent-primary-text)"
           >{{ cell.day }}</span>
-          <span v-else style="color: #101a37">{{ cell.day }}</span>
+          <span v-else :style="{ color: cell.isCurrentMonth ? 'var(--text-heading)' : 'var(--text-muted)' }">{{ cell.day }}</span>
 
           <!-- Exam chip / study indicator (like Google Calendar) -->
           <div v-if="cell.isCurrentMonth && (cell.exams.length || cell.totalCards > 0)" class="mt-1.5 space-y-0.5">
@@ -168,7 +206,7 @@ const calendarDays = computed(() => {
               v-for="exam in cell.exams.filter(e => e.is_exam_day).slice(0, 2)"
               :key="exam.exam_id"
               class="text-[10px] leading-tight px-2 py-1 rounded-md font-bold truncate"
-              style="background: #F5F2FF; color: #6F3FF5; border: 1px solid #D7DDF2"
+              style="background: var(--badge-primary-bg); color: var(--badge-primary-text); border: 1px solid var(--border-base)"
             >
               {{ exam.title }}
             </div>
@@ -176,7 +214,7 @@ const calendarDays = computed(() => {
             <div
               v-if="cell.totalCards > 0 && !cell.exams.some(e => e.is_exam_day)"
               class="text-[9px] leading-tight px-1.5 py-0.5 rounded font-medium"
-              style="background: #EEF2FF; color: #6366F1"
+              style="background: var(--badge-info-bg); color: var(--badge-info-text)"
             >
               {{ cell.totalCards }} cards
             </div>
@@ -186,17 +224,17 @@ const calendarDays = computed(() => {
 
       <!-- Day Panel -->
       <div v-if="selectedDay && (selectedDay.exams.length > 0 || selectedDay.totalCards > 0)" class="p-8" style="background: var(--bg-soft)">
-        <h3 class="text-[10px] font-bold uppercase tracking-[0.1em] mb-4" style="color: #7a7487">
+        <h3 class="text-[10px] font-bold uppercase tracking-[0.1em] mb-4" style="color: var(--text-muted)">
           {{ new Date(selectedDay.date + 'T00:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }) }}
         </h3>
-        <div v-for="exam in selectedDay.exams" :key="exam.exam_id" class="rounded-2xl p-5 flex justify-between items-center" style="background: var(--bg-card); border: 1px solid #E7EAF3">
+        <div v-for="exam in selectedDay.exams" :key="exam.exam_id" class="rounded-2xl p-5 flex justify-between items-center" style="background: var(--bg-card); border: 1px solid var(--border-base)">
           <div class="flex items-center gap-4">
-            <div class="w-2.5 h-2.5 rounded-full" style="background: #6F3FF5"></div>
-            <span class="font-bold" style="color: #1F2343">{{ exam.title }}</span>
-            <span v-if="exam.is_exam_day" class="px-3 py-1 rounded-full text-[10px] font-bold" style="background: #F5F2FF; color: #6F3FF5">PROVA</span>
+            <div class="w-2.5 h-2.5 rounded-full" style="background: var(--color-accent-primary)"></div>
+            <span class="font-bold" style="color: var(--text-heading)">{{ exam.title }}</span>
+            <span v-if="exam.is_exam_day" class="px-3 py-1 rounded-full text-[10px] font-bold" style="background: var(--badge-primary-bg); color: var(--badge-primary-text)">PROVA</span>
           </div>
-          <div class="text-sm" style="color: #7a7487">
-            Carga estimada: <span class="font-bold" style="color: #1F2343">{{ exam.estimated_cards || selectedDay.totalCards }} cards</span>
+          <div class="text-sm" style="color: var(--text-muted)">
+            Carga estimada: <span class="font-bold" style="color: var(--text-heading)">{{ exam.estimated_cards || selectedDay.totalCards }} cards</span>
           </div>
         </div>
       </div>
@@ -205,16 +243,16 @@ const calendarDays = computed(() => {
     <!-- Minhas Provas -->
     <section class="space-y-5">
       <div class="flex justify-between items-center">
-        <h2 class="text-2xl font-bold" style="color: #1F2343">Minhas provas</h2>
-        <div class="p-1 rounded-xl flex gap-1" style="background: #ebedff">
+        <h2 class="text-2xl font-bold" style="color: var(--text-heading)">Minhas provas</h2>
+        <div class="p-1 rounded-xl flex gap-1" style="background: var(--bg-soft)">
           <button
             class="px-5 py-2 rounded-lg font-semibold text-sm transition-colors"
-            :style="activeTab === 'upcoming' ? 'background: white; color: #6F3FF5; box-shadow: 0 1px 3px rgba(0,0,0,0.08)' : 'color: #7a7487'"
+            :style="activeTab === 'upcoming' ? 'background: var(--bg-card); color: var(--badge-primary-text); box-shadow: 0 1px 3px rgba(0,0,0,0.08)' : 'color: var(--text-muted)'"
             @click="activeTab = 'upcoming'"
           >Próximas</button>
           <button
             class="px-5 py-2 rounded-lg font-semibold text-sm transition-colors"
-            :style="activeTab === 'past' ? 'background: white; color: #6F3FF5; box-shadow: 0 1px 3px rgba(0,0,0,0.08)' : 'color: #7a7487'"
+            :style="activeTab === 'past' ? 'background: var(--bg-card); color: var(--badge-primary-text); box-shadow: 0 1px 3px rgba(0,0,0,0.08)' : 'color: var(--text-muted)'"
             @click="activeTab = 'past'"
           >Passadas</button>
         </div>
@@ -222,17 +260,17 @@ const calendarDays = computed(() => {
 
       <!-- Loading -->
       <div v-if="examStore.loading" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div v-for="i in 2" :key="i" class="h-40 rounded-[24px] animate-pulse" style="background: #F5F6FA" />
+        <div v-for="i in 2" :key="i" class="h-40 rounded-[24px] animate-pulse" style="background: var(--badge-muted-bg)" />
       </div>
 
       <!-- Empty -->
-      <div v-else-if="filteredExams.length === 0" class="rounded-[24px] p-10 text-center" style="background: var(--bg-card); border: 1px solid #E7EAF3; box-shadow: 0 8px 24px rgba(45, 35, 66, 0.08)">
-        <div class="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center" style="background: #F5F2FF">
-          <svg class="w-7 h-7" style="color: #6F3FF5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
+      <div v-else-if="filteredExams.length === 0" class="rounded-[24px] p-10 text-center" style="background: var(--bg-card); border: 1px solid var(--border-base); box-shadow: 0 8px 24px rgba(45, 35, 66, 0.08)">
+        <div class="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center" style="background: var(--badge-primary-bg)">
+          <svg class="w-7 h-7" style="color: var(--badge-primary-text)" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
         </div>
-        <h3 class="font-bold text-lg mb-1" style="color: #1F2343">Nenhuma prova agendada</h3>
-        <p class="text-sm mb-5" style="color: #8A90A8">Agende suas provas e o algoritmo prioriza o que estudar primeiro.</p>
-        <button class="inline-flex items-center gap-2 px-5 py-2.5 rounded-[14px] font-semibold text-sm text-white" style="background: #6F3FF5; box-shadow: 0 4px 12px rgba(111,63,245,0.25)" @click="showCreateModal = true">
+        <h3 class="font-bold text-lg mb-1" style="color: var(--text-heading)">Nenhuma prova agendada</h3>
+        <p class="text-sm mb-5" style="color: var(--text-muted)">Agende suas provas e o algoritmo prioriza o que estudar primeiro.</p>
+        <button class="inline-flex items-center gap-2 px-5 py-2.5 rounded-[14px] font-semibold text-sm" style="background: var(--color-accent-primary); color: var(--color-accent-primary-text); box-shadow: 0 4px 12px rgba(111,63,245,0.25)" @click="showCreateModal = true">
           <Plus class="w-4 h-4" /> Agendar primeira prova
         </button>
       </div>
@@ -243,52 +281,66 @@ const calendarDays = computed(() => {
           v-for="exam in filteredExams"
           :key="exam.id"
           class="rounded-[24px] p-6 relative group transition-all"
-          style="background: var(--bg-card); border: 1px solid #E7EAF3; box-shadow: 0 8px 24px rgba(45, 35, 66, 0.08)"
+          style="background: var(--bg-card); border: 1px solid var(--border-base); box-shadow: 0 8px 24px rgba(45, 35, 66, 0.08)"
         >
           <div class="flex justify-between items-start mb-3">
-            <h3 class="font-bold text-lg pr-2" style="color: #1F2343">{{ exam.title }}</h3>
+            <h3 class="font-bold text-lg pr-2" style="color: var(--text-heading)">{{ exam.title }}</h3>
             <div class="flex items-center gap-2 shrink-0">
               <span
                 class="px-3 py-1 rounded-full text-[10px] font-bold uppercase"
                 :style="{
-                  background: exam.urgency_color === 'red' ? '#ffdad6' : exam.urgency_color === 'yellow' ? '#FFF8E1' : '#F0FDF4',
-                  color: exam.urgency_color === 'red' ? '#ba1a1a' : exam.urgency_color === 'yellow' ? '#B8860B' : '#16A34A',
+                  background: exam.urgency_color === 'red' ? 'var(--badge-danger-bg)' : exam.urgency_color === 'yellow' ? 'var(--badge-warning-bg)' : 'var(--badge-success-bg)',
+                  color: exam.urgency_color === 'red' ? 'var(--badge-danger-text)' : exam.urgency_color === 'yellow' ? 'var(--badge-warning-text)' : 'var(--badge-success-text)',
                 }"
               >{{ exam.days_remaining }} dias</span>
               <button
                 class="p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-danger/10"
-                style="color: #8A90A8"
+                style="color: var(--text-muted)"
                 title="Excluir prova"
                 @click="confirmDelete(exam.id)"
-              >
-                <Trash2 class="w-4 h-4" />
+               aria-label="Excluir prova">
+                <Trash2 class="w-4 h-4" aria-hidden="true" />
               </button>
             </div>
           </div>
 
-          <p class="text-sm mb-3" style="color: #50597A">Cadernos: {{ exam.topics?.map(t => t.name).join(', ') || '—' }}</p>
+          <p class="text-sm mb-3" style="color: var(--text-body)">Cadernos: {{ exam.topics?.map(t => t.name).join(', ') || '—' }}</p>
 
           <!-- Status badges -->
           <div class="flex flex-wrap gap-1.5 mb-4">
             <UiTooltip v-if="exam.days_remaining <= 14" text="Cards deste caderno estão sendo priorizados na revisão">
-              <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-success/10 text-success border border-success/20">Boost ativo</span>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-success/10 text-[var(--badge-success-text)] border border-success/20">Boost ativo</span>
             </UiTooltip>
             <UiTooltip v-if="exam.reta_final_active" text="Modo intensivo: +20 cards extras pra consolidar antes da prova">
-              <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-danger/10 text-danger border border-danger/20">Reta Final</span>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-danger/10 text-[var(--badge-danger-text)] border border-danger/20">Reta Final</span>
             </UiTooltip>
             <UiTooltip v-if="exam.days_remaining > 14" text="Boost ativa quando faltar 14 dias ou menos">
               <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-surface-secondary text-base-muted border border-base">Preparando</span>
             </UiTooltip>
           </div>
 
-          <button class="flex items-center gap-2 text-sm font-bold cursor-pointer hover:opacity-80 transition-opacity" style="color: #6F3FF5" @click="viewExamDetails(exam)">
+          <!-- "Passou?" in the app (RF-F10) -->
+          <div v-if="activeTab === 'past'" class="mb-4" data-testid="exam-outcome">
+            <span
+              v-if="exam.outcome"
+              class="inline-flex px-3 py-1 rounded-full text-small font-semibold"
+              :class="exam.outcome === 'passed' ? 'bg-[var(--badge-success-bg)] text-[var(--badge-success-text)]' : 'bg-[var(--badge-muted-bg)] text-base-secondary'"
+            >{{ exam.outcome === 'passed' ? 'Aprovado 🎉' : 'Próxima vez' }}</span>
+            <div v-else class="flex flex-wrap items-center gap-2">
+              <span class="text-small text-base-secondary">Como foi?</span>
+              <button type="button" class="btn-secondary !py-1.5 !min-h-[2.75rem] text-small" :disabled="savingOutcome" @click="answerOutcome(exam.id, 'passed')">Passei</button>
+              <button type="button" class="btn-secondary !py-1.5 !min-h-[2.75rem] text-small" :disabled="savingOutcome" @click="answerOutcome(exam.id, 'failed')">Não dessa vez</button>
+            </div>
+          </div>
+
+          <button class="flex items-center gap-2 text-sm font-bold cursor-pointer hover:opacity-80 transition-opacity" style="color: var(--badge-primary-text)" @click="viewExamDetails(exam)">
             <Eye class="w-4 h-4" /> Ver detalhes
           </button>
         </div>
       </div>
     </section>
 
-    <ExamCreateModal v-if="showCreateModal" @close="showCreateModal = false" @created="handleCreated" />
+    <ExamCreateModal v-if="showCreateModal" :initial-topic-ids="createTopicIds" @close="closeCreate" @created="handleCreated" />
 
     <!-- Delete confirmation modal -->
     <UiConfirmModal

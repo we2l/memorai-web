@@ -9,6 +9,7 @@
         style="z-index: 1;"
         @click="!flipped && $emit('flip')"
         role="button"
+        :tabindex="flipped ? -1 : 0"
         :aria-label="flipped ? 'Verso do card' : 'Toque para ver a resposta'"
       >
         <!-- Deck label -->
@@ -17,7 +18,7 @@
         <!-- Question (always visible) -->
         <div
           class="text-xl leading-relaxed max-w-md card-content"
-          :class="flipped ? 'mb-6 font-medium text-base-primary' : 'font-display text-[1.35rem] text-base-primary'"
+          :class="flipped ? 'mb-6 font-medium text-base-primary' : 'font-heading text-[1.35rem] text-base-primary'"
           v-html="displayFront"
         />
 

@@ -9,6 +9,14 @@
       <div class="skeleton h-32 rounded-xl" />
     </div>
 
+    <UiErrorState
+      v-else-if="loadError"
+      variant="page"
+      title="Não foi possível carregar seu progresso"
+      description="Verifique sua conexão e tente de novo."
+      @retry="load"
+    />
+
     <template v-else-if="data">
       <!-- Mastery hero -->
       <div class="card py-6 px-6 mb-6 text-center">
@@ -29,18 +37,18 @@
           />
           <div
             v-if="data.card_states.new"
-            class="bg-[#A8A29E] transition-all"
+            class="bg-[var(--badge-muted-text)] transition-all"
             :style="{ width: pct(data.card_states.new) }"
           />
         </div>
         <div class="flex justify-center gap-4 mt-3 text-micro text-base-muted">
           <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-success inline-block" /> Dominados ({{ data.card_states.mature }})</span>
           <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-warning inline-block" /> Aprendendo ({{ data.card_states.learning }})</span>
-          <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[#A8A29E] inline-block" /> Novos ({{ data.card_states.new }})</span>
+          <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-[var(--badge-muted-text)] inline-block" /> Novos ({{ data.card_states.new }})</span>
         </div>
       </div>
 
-      <!-- Retention + Streak row -->
+      <!-- Retention + dias seguidos row -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <div class="card py-5 px-5 text-center">
           <p class="text-small text-base-muted mb-1">Retenção (7 dias)</p>
@@ -55,7 +63,7 @@
           </p>
         </div>
         <div class="card py-5 px-5 text-center">
-          <p class="text-small text-base-muted mb-1">Streak</p>
+          <p class="text-small text-base-muted mb-1">Dias seguidos</p>
           <p class="text-2xl font-bold text-base-primary">{{ data.streak }} 🔥</p>
         </div>
       </div>
@@ -147,9 +155,9 @@ function pct(count: number) {
 
 function retentionColor(val: number | null) {
   if (val == null) return 'text-base-muted'
-  if (val >= 80) return 'text-success'
-  if (val >= 60) return 'text-warning'
-  return 'text-danger'
+  if (val >= 80) return 'text-[var(--badge-success-text)]'
+  if (val >= 60) return 'text-[var(--badge-warning-text)]'
+  return 'text-[var(--badge-danger-text)]'
 }
 
 const heatmapDays = computed(() => {
@@ -171,12 +179,21 @@ function heatmapColor(count: number) {
   return 'bg-success'
 }
 
-onMounted(async () => {
+const loadError = ref(false)
+
+async function load() {
+  loading.value = true
+  loadError.value = false
   try {
     const res = await $api<any>('/stats/progress')
     data.value = res.data
+  } catch (e) {
+    loadError.value = true
+    reportApiError(e, { silent: true })
   } finally {
     loading.value = false
   }
-})
+}
+
+onMounted(load)
 </script>

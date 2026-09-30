@@ -1,3 +1,4 @@
+<!-- tokens-allow-file: ilustração com paleta própria da marca -->
 <template>
   <Teleport to="body">
     <div v-if="show" class="fixed inset-0 pointer-events-none z-[100] overflow-hidden">
@@ -23,6 +24,8 @@ const props = defineProps<{
 }>()
 
 const show = ref(false)
+// No confetti for people who asked the OS for less motion (RF-F9.4)
+const reducedMotion = useReducedMotion()
 
 const colors = [
   '#6F3FF5', // accent
@@ -34,11 +37,11 @@ const colors = [
 ]
 
 watch(() => props.trigger, (val) => {
-  if (val) {
+  if (val && !reducedMotion.value) {
     show.value = true
     setTimeout(() => {
       show.value = false
     }, 2000)
   }
-})
+}, { immediate: true }) // lazy-mounted already triggered
 </script>

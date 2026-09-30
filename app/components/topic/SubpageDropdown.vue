@@ -10,7 +10,7 @@
         ref="inputRef"
         v-model="query"
         class="w-full px-3 py-2 text-small rounded-lg bg-surface-secondary border border-base text-base-primary placeholder:text-base-muted focus:outline-none focus:border-[var(--color-accent-primary)]"
-        placeholder="Nome da matéria..."
+        placeholder="Nome do tópico..."
         @keydown.enter.prevent="confirmSelection"
         @keydown.escape.prevent="$emit('close')"
         @keydown.down.prevent="moveSelection(1)"
@@ -28,7 +28,7 @@
         @mouseenter="selectedIndex = index"
         @mousedown.prevent="selectExisting(child.id)"
       >
-        <FolderOpen :size="14" class="text-[var(--color-accent-soft)] shrink-0" />
+        <FolderOpen :size="14" class="text-[var(--badge-primary-text)] shrink-0" />
         <span class="truncate text-base-primary">{{ child.name }}</span>
       </button>
 
@@ -40,13 +40,13 @@
         @mouseenter="selectedIndex = filteredChildren.length"
         @mousedown.prevent="createNew"
       >
-        <Plus :size="14" class="text-[var(--color-accent-soft)] shrink-0" />
-        <span class="text-base-primary">Criar "<strong class="text-[var(--color-accent-soft)]">{{ query }}</strong>"</span>
+        <Plus :size="14" class="text-[var(--badge-primary-text)] shrink-0" />
+        <span class="text-base-primary">Criar "<strong class="text-[var(--badge-primary-text)]">{{ query }}</strong>"</span>
       </button>
 
       <!-- Empty state -->
       <div v-if="!filteredChildren.length && !showCreateOption" class="px-3 py-4 text-center text-small text-base-muted">
-        Digite o nome da matéria
+        Digite o nome do tópico
       </div>
     </div>
   </div>
@@ -152,8 +152,8 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', onClickOutside))
 .subpage-dropdown {
   z-index: 50;
   width: 280px;
-  background: var(--bg-card, #fff);
-  border: 1px solid var(--border-base, #e5e7eb);
+  background: var(--bg-card);
+  border: 1px solid var(--border-base);
   border-radius: 0.75rem;
   box-shadow: var(--shadow-dropdown, 0 8px 24px rgba(0, 0, 0, 0.12));
   overflow: hidden;
@@ -172,6 +172,6 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', onClickOutside))
 }
 
 .subpage-dropdown-item:hover {
-  background: var(--bg-surface-secondary, #f9fafb);
+  background: var(--bg-soft);
 }
 </style>

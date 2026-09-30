@@ -2,10 +2,16 @@ export interface User {
   id: string
   name: string
   email: string
+  email_verified: boolean
   plan: string
   default_learning_mode: string
-  subscription_status?: string | null
+  subscription_status?: SubscriptionStatus | null
   onboarding_completed: boolean
+  /** False for Google sign-ups that never defined a password (RF-B3). */
+  has_password?: boolean
+  /** LGPD analytics consent: null = not decided (prd-analytics-posthog RF-B03). */
+  analytics_consent?: boolean | null
+  analytics_consent_at?: string | null
 }
 
 export interface ApiResponse<T> {
@@ -62,6 +68,8 @@ export interface Stats {
   reviewed_today: number
   cards_reviewed_today: number
   streak: number
+  /** Studied yesterday (Brasília) and not yet today. */
+  streak_at_risk?: boolean
   ratings_today: {
     again: number
     hard: number
@@ -144,7 +152,12 @@ export interface TopicDetails {
   flashcards_count: number
   notes_count: number
   review_count: number
-  flashcards: { id: string; front: string; state: string; due: string | null }[]
+  weak_count: number
+  due_count: number
+  new_count: number
+  /** Only the first 200 cards come in `flashcards`; the rest via GET /topics/{topic}/flashcards */
+  flashcards_truncated: boolean
+  flashcards: { id: string; front: string; back?: string | null; state: string; due: string | null; lapses?: number; source_note_id?: string | null }[]
   notes: { id: string; title: string }[]
   goal: { target_date: string; cards_per_day: number; remaining: number; days_left: number } | null
 }
@@ -179,6 +192,23 @@ export interface UserSettings {
   session_time_limit: number | null
   survival_mode: boolean
   default_learning_mode?: string
+  desired_retention?: number
+  error_diary_mode?: 'always' | 'sometimes' | 'never'
+  // Study e-mails (prd-retencao-lembretes F1): hour 6–22, America/Sao_Paulo
+  reminder_enabled?: boolean
+  reminder_hour?: number
+  email_suppressed?: boolean
+}
+
+/** GET /review/tomorrow (prd-retencao-lembretes §4.3). Dates in America/Sao_Paulo. */
+export interface TomorrowForecast {
+  date: string
+  due_count: number
+  review_count: number
+  new_count: number
+  estimated_minutes: number
+  streak: { current: number; reviewed_today: boolean; at_risk: boolean; next_milestone: number | null }
+  reminder: { enabled: boolean; hour: number; suppressed: boolean }
 }
 
 export interface BacklogStats {
@@ -269,6 +299,11 @@ export interface Document {
     insights: number
     errors: number
   } | null
+  /** PDF → cards (prd-ux-critica RF-B6) */
+  note_id?: string | null
+  auto_cards?: boolean
+  auto_cards_status?: 'pending' | 'generating' | 'completed' | 'failed' | 'skipped_quota' | 'skipped_empty' | null
+  auto_cards_count?: number
   created_at: string
 }
 
@@ -317,7 +352,7 @@ export interface Podcast {
   script?: string
   audio_url?: string | null
   duration_seconds?: number | null
-  duration_target?: PodcastDuration | null
+  duration_target?: PodcastDuration | 'long' | null
   tone?: PodcastTone | null
   format?: PodcastFormat | null
   is_teaser?: boolean
@@ -332,7 +367,8 @@ export interface Podcast {
 }
 
 export type PodcastContentMode = 'weak_points' | 'general_review' | 'pre_exam'
-export type PodcastDuration = 'short' | 'medium' | 'long'
+// 'teaser' is set by the API for Free; 'long' only exists in legacy rows
+export type PodcastDuration = 'teaser' | 'short' | 'medium'
 export type PodcastTone = 'formal' | 'conversational' | 'motivational' | 'didactic'
 export type PodcastFormat = 'expository' | 'debate'
 
@@ -341,11 +377,34 @@ export interface PodcastSpeakerConfig {
   host2?: { name: string; voice: string }
 }
 
+// The 8 Stripe subscription statuses (backend SubscriptionStatus enum)
+export type SubscriptionStatus =
+  | 'active' | 'past_due' | 'unpaid' | 'canceled'
+  | 'incomplete' | 'incomplete_expired' | 'trialing' | 'paused'
+
 export interface SubscriptionInfo {
   plan: string
-  subscription_status: string | null
+  /** annual wins when both exist (monthly scheduled after the annual) */
+  billing: 'annual' | 'monthly' | null
+  subscription_status: SubscriptionStatus | null
   subscription_ends_at: string | null
   has_subscription: boolean
+  plan_expires_at: string | null
+  in_grace_period: boolean
+  grace_ends_at: string | null
+  can_renew_annual: boolean
+  monthly_scheduled: boolean
+}
+
+/** GET /api/checkout/sessions/{id} — annual checkout status (Pix waiting page) */
+export interface CheckoutSessionInfo {
+  session_id: string
+  status: 'open' | 'complete' | 'expired'
+  payment_status: 'paid' | 'unpaid' | 'no_payment_required' | null
+  payment_method: 'pix' | 'card' | null
+  pix_qr: { data: string | null; image_url_png: string | null; expires_at: string | null } | null
+  plan_active: boolean
+  plan_expires_at: string | null
 }
 
 // Quiz / Simulados
@@ -417,6 +476,20 @@ export interface Exam {
   google_calendar_event_id: string | null
   topics: { id: string; name: string }[]
   created_at: string
+  /** "Passou?" (prd-retencao-lembretes F6) */
+  outcome?: ExamOutcome | null
+  outcome_answered_at?: string | null
+}
+
+export type ExamOutcome = 'passed' | 'failed'
+
+/** GET /exams/{id}/outcome-context?t= (public result page) */
+export interface ExamOutcomeContext {
+  id: string
+  title: string
+  exam_date: string
+  outcome: ExamOutcome | null
+  topics: { id: string; name: string }[]
 }
 
 export interface ExamUpcoming {
@@ -451,4 +524,85 @@ export interface RetaFinalInfo {
   active: boolean
   exam_titles: string[]
   extra_count: number
+}
+
+// Offer catalog — GET /api/plans (single source of limits and prices, RN-01)
+export type PlanKey = 'free' | 'pro'
+
+export interface PlanPrice {
+  amount_cents: number
+  label: string
+  monthly_equivalent_cents?: number
+  installments_max?: number
+  savings_cents?: number
+}
+
+export interface CatalogPlan {
+  key: PlanKey
+  name: string
+  prices: { monthly: PlanPrice | null; annual: PlanPrice | null }
+  /** null = unlimited, 0 = not included in the plan */
+  limits: Record<string, number | null>
+  extras: {
+    pdf_pages_per_note: number
+    rag_max_pages: number
+    upload_max_mb: number
+    pdf_pages_monthly_cap: number
+    quiz_max_questions: number
+    quiz_short_answer: boolean
+    podcast_format: 'teaser' | 'full'
+    podcast_max_minutes: number
+  }
+}
+
+export interface CatalogFeature {
+  label: string
+  unit: string
+  pro_benefit: string
+}
+
+export interface PlanCatalog {
+  currency: string
+  period: string
+  period_timezone: string
+  plans: CatalogPlan[]
+  features: Record<string, CatalogFeature>
+}
+
+/** Detail of the `feature-limit-reached` event (402 payload, PRD §4.1). */
+export interface FeatureLimitDetail {
+  feature: string
+  used?: number | null
+  limit?: number | null
+  planRequired?: PlanKey | null
+  resetsAt?: string | null
+}
+
+/** `auto_generation` of POST /documents (PRD §4.3) */
+export interface DocumentAutoGeneration {
+  dispatched: boolean
+  blocked_reason: 'feature_limit' | 'pages_cap' | 'in_progress' | null
+}
+
+/** Laravel paginated resource collection */
+export interface Paginated<T> {
+  data: T[]
+  meta: { current_page: number; last_page: number; per_page: number; total: number }
+}
+
+/** GET /ai/jobs/{id} — async AI generation (RF-30) */
+export interface AiJob<T = unknown> {
+  id: string
+  type: 'cards' | 'mindmap' | 'mindmap_note'
+  status: 'pending' | 'processing' | 'done' | 'failed'
+  result?: T
+  error?: string
+  created_at: string
+}
+
+declare module '#app' {
+  interface PageMeta {
+    /** 'focus' hides BottomNav, FABs and the compact miniplayer (RF-F1.6). */
+    chrome?: 'focus'
+  }
 }

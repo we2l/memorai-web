@@ -4,7 +4,7 @@
       class="subpage-card cursor-pointer hover:border-[var(--color-accent-primary)]/40 hover:bg-[var(--color-primary-50)]"
       @click="handleClick"
     >
-      <FolderOpen :size="16" class="shrink-0 text-[var(--color-accent-soft)]" />
+      <FolderOpen :size="16" class="shrink-0 text-[var(--badge-primary-text)]" />
       <span class="flex-1 truncate text-body font-medium text-base-primary">
         {{ displayName }}
       </span>
@@ -92,13 +92,13 @@ function navigateToTopic() {
   gap: 0.625rem;
   padding: 0.625rem 0.875rem;
   border-radius: 0.5rem;
-  border: 1px solid var(--border-base, #e5e7eb);
-  background: var(--bg-card, #fff);
+  border: 1px solid var(--border-base);
+  background: var(--bg-card);
   transition: all 0.15s ease;
 }
 
 .subpage-node-wrapper.selected .subpage-card {
-  border-color: var(--color-accent-primary, #6366f1);
+  border-color: var(--color-accent-primary);
   box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
 }
 </style>

@@ -7,7 +7,7 @@
         class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-micro font-medium bg-accent-primary-subtle text-accent-primary"
       >
         #{{ tag }}
-        <button type="button" class="hover:text-danger transition-colors" @click="remove(i)">×</button>
+        <button type="button" class="hover:text-[var(--badge-danger-text)] transition-colors" @click="remove(i)">×</button>
       </span>
     </div>
     <input

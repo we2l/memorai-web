@@ -20,11 +20,11 @@
               :key="qty"
               class="px-3 py-1.5 rounded-lg text-sm border transition-colors"
               :class="form.quantity === qty ? 'border-[var(--color-primary-500)] bg-[var(--color-primary-50)] text-[var(--color-primary-700)]' : 'border-[var(--border-base)] text-base-secondary hover:border-[var(--color-primary-300)]'"
-              :disabled="isFree && qty > 10"
+              :disabled="qty > maxQuestions"
               @click="form.quantity = qty"
             >
               {{ qty }}
-              <span v-if="isFree && qty > 10" class="ml-1 text-[10px] opacity-60">Pro</span>
+              <span v-if="qty > maxQuestions" class="ml-1 text-[10px] opacity-60">Pro</span>
             </button>
           </div>
         </div>
@@ -41,10 +41,10 @@
               <input type="checkbox" value="true_false" v-model="form.types" class="accent-[var(--color-primary-500)]" />
               Verdadeiro / Falso
             </label>
-            <label class="flex items-center gap-2 text-sm cursor-pointer" :class="isFree ? 'text-base-muted' : 'text-base-primary'">
-              <input type="checkbox" value="short_answer" v-model="form.types" class="accent-[var(--color-primary-500)]" :disabled="isFree" />
+            <label class="flex items-center gap-2 text-sm cursor-pointer" :class="!allowShortAnswer ? 'text-base-muted' : 'text-base-primary'">
+              <input type="checkbox" value="short_answer" v-model="form.types" class="accent-[var(--color-primary-500)]" :disabled="!allowShortAnswer" />
               Dissertativa curta
-              <span v-if="isFree" class="text-[10px] bg-[var(--color-primary-50)] text-[var(--color-primary-500)] px-1.5 py-0.5 rounded-full font-medium">Pro</span>
+              <span v-if="!allowShortAnswer" class="text-[10px] bg-[var(--color-primary-50)] text-[var(--color-primary-500)] px-1.5 py-0.5 rounded-full font-medium">Pro</span>
             </label>
           </div>
         </div>
@@ -122,6 +122,13 @@ const toast = useToast()
 const generating = ref(false)
 
 const isFree = computed(() => auth.user?.plan === 'free')
+
+// The backend enforces the gate (CreateQuizRequest); the UI only mirrors the catalog (RN-08)
+const plans = usePlans()
+const planExtras = computed(() => plans.limitOf(isFree.value ? 'free' : 'pro')?.extras ?? null)
+const maxQuestions = computed(() => planExtras.value?.quiz_max_questions ?? Infinity)
+const allowShortAnswer = computed(() => planExtras.value?.quiz_short_answer ?? !isFree.value)
+onMounted(() => { plans.fetchPlans() })
 const topics = computed(() => flattenTopics(topicStore.tree))
 
 const quantityOptions = [5, 10, 20, 30, 50]
@@ -138,7 +145,7 @@ const form = reactive({
 const canSubmit = computed(() => form.topic_id && form.types.length > 0)
 
 const typesLabel = computed(() => {
-  const labels: Record<string, string> = { multiple_choice: 'MC', true_false: 'V/F', short_answer: 'Dissertativa' }
+  const labels: Record<string, string> = { multiple_choice: 'Múltipla escolha', true_false: 'V/F', short_answer: 'Dissertativa' }
   return form.types.map((t) => labels[t]).join(' + ')
 })
 
@@ -164,15 +171,6 @@ async function submit() {
   } finally {
     generating.value = false
   }
-}
-
-function flattenTopics(topics: any[]): any[] {
-  const result: any[] = []
-  for (const t of topics) {
-    result.push(t)
-    if (t.children?.length) result.push(...flattenTopics(t.children))
-  }
-  return result
 }
 
 onMounted(() => {

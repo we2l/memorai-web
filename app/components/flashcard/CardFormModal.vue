@@ -11,7 +11,7 @@
           class="w-full mb-4 px-3 py-2.5 rounded-lg bg-accent-primary-subtle/50 flex items-center gap-2 text-left hover:bg-accent-primary-subtle transition-colors"
           @click="openUpgrade"
         >
-          <Lightbulb :size="14" class="text-[var(--color-accent-soft)]" />
+          <Lightbulb :size="14" class="text-[var(--badge-primary-text)]" />
           <p class="text-small text-accent-primary flex-1">A IA pode criar cards automaticamente</p>
           <span class="text-micro text-accent-primary font-medium">Pro →</span>
         </button>
@@ -99,13 +99,13 @@
             <div class="card-face card-front" @click="flipPreview">
               <div class="card-body">
                 <p class="text-micro text-base-muted mb-2 uppercase tracking-wider">{{ selectedTopicName || 'Caderno' }}</p>
-                <div class="text-base-primary leading-relaxed break-words preview-content max-h-[250px] overflow-y-auto" v-html="frontPreview" />
+                <div class="text-base-primary leading-relaxed break-words preview-content max-h-[250px] overflow-y-auto" v-html="sanitize(frontPreview)" />
               </div>
             </div>
             <div class="card-face card-back" @click="flipPreview">
               <div class="card-body">
                 <p class="text-micro text-base-muted mb-2 uppercase tracking-wider">Resposta</p>
-                <div class="text-base-primary leading-relaxed break-words preview-content max-h-[250px] overflow-y-auto" v-html="backPreview" />
+                <div class="text-base-primary leading-relaxed break-words preview-content max-h-[250px] overflow-y-auto" v-html="sanitize(backPreview)" />
               </div>
             </div>
           </div>
@@ -132,7 +132,7 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{
   (e: 'created'): void
-  (e: 'updated'): void
+  (e: 'updated', card?: { id: string; front: string; back: string }): void
   (e: 'local-save', card: { front: string; back: string; tags: string[]; frontAudioBlob: Blob | null; backAudioBlob: Blob | null }): void
 }>()
 const open = defineModel<boolean>({ required: true })
@@ -147,7 +147,7 @@ const showAiHint = computed(() =>
 
 function openUpgrade() {
   window.dispatchEvent(new CustomEvent('feature-limit-reached', {
-    detail: { feature: 'Geração de cards com IA', planRequired: 'pro' },
+    detail: { feature: 'cards_ai', planRequired: 'pro' },
   }))
 }
 
@@ -234,6 +234,7 @@ const canSubmit = computed(() => {
 })
 
 const { renderQuestion, renderAnswer } = useCloze()
+const { sanitize } = useSanitize()
 
 const frontPreview = computed(() => {
   if (isEmpty(form.front)) return '<span style="opacity:0.4">Sua pergunta aqui...</span>'
@@ -249,15 +250,9 @@ async function loadTopics() {
   try {
     const res = await $api<any>('/topics')
     topics.value = flattenTopics(res.data)
-  } catch {}
-}
-
-function flattenTopics(tree: Topic[], result: Topic[] = []): Topic[] {
-  for (const t of tree) {
-    result.push(t)
-    if (t.children?.length) flattenTopics(t.children, result)
+  } catch (e) {
+    reportApiError(e, { silent: true })
   }
-  return result
 }
 
 async function uploadAudio(blob: Blob): Promise<string> {
@@ -305,7 +300,7 @@ async function doSubmit(closeAfter: boolean) {
         back_audio_url,
       })
       toast.show('Card atualizado!', 'success')
-      emit('updated')
+      emit('updated', { id: props.card.id, front: form.front, back: form.back })
       open.value = false
     } else {
       await $api('/flashcards', {

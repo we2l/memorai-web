@@ -21,8 +21,9 @@ export function useFeatureUsage() {
     try {
       const res = await $api<any>('/usage')
       usage.value = res.data
-    } catch {
-      // Silently fail — usage is non-critical
+    } catch (e) {
+      // Usage is decorative (RF-F3b: S)
+      reportApiError(e, { silent: true })
     } finally {
       loading.value = false
     }

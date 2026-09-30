@@ -10,6 +10,7 @@
     >
       <div
         v-if="isOpen"
+        ref="overlayRoot"
         class="fixed inset-0 z-50 flex justify-center"
         role="dialog"
         aria-modal="true"
@@ -158,11 +159,12 @@ const isMac = computed(() => {
 // Autofocus input when opened
 watch(isOpen, (val) => {
   if (val) {
-    nextTick(() => {
-      inputRef.value?.focus()
-    })
+    query.value = ''
+    selectedIndex.value = 0
+    // rAF: on the first (lazy) mount the element is only in the document after the frame
+    nextTick(() => requestAnimationFrame(() => inputRef.value?.focus()))
   }
-})
+}, { immediate: true }) // lazy-mounted already open (layout)
 
 // Scroll selected item into view
 watch(selectedIndex, (idx) => {
@@ -183,4 +185,8 @@ function setItemRef(el: any, index: number) {
 function getGlobalIndex(group: any, item: any): number {
   return flatResults.value.indexOf(item)
 }
+
+// Focus trap + scroll lock (RF-F9.2)
+const overlayRoot = ref<HTMLElement | null>(null)
+useOverlayA11y(() => !!isOpen.value, overlayRoot)
 </script>

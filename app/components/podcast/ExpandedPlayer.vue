@@ -1,7 +1,7 @@
 <template>
   <Teleport to="body">
     <Transition name="slide-up">
-      <div v-if="player.expanded && player.currentPodcast" class="fixed inset-0 z-50 bg-surface flex flex-col">
+      <div v-if="player.expanded && player.currentPodcast" ref="overlayRoot" role="dialog" aria-modal="true" aria-label="Player do podcast" class="fixed inset-0 z-50 bg-surface flex flex-col">
         <!-- Header -->
         <div class="flex items-center justify-between px-4 py-3">
           <div class="w-10" />
@@ -22,7 +22,7 @@
           </div>
 
           <div class="text-center w-full">
-            <h2 class="text-title font-serif text-base-primary">{{ player.currentPodcast.title }}</h2>
+            <h2 class="text-title text-base-primary">{{ player.currentPodcast.title }}</h2>
             <p class="text-small text-base-muted mt-1">
               {{ formatDate(player.currentPodcast.created_at) }}
               <span v-if="player.currentPodcast.format"> · {{ player.currentPodcast.format === 'debate' ? 'Debate' : 'Expositivo' }}</span>
@@ -149,7 +149,7 @@
           class="px-6 py-4 bg-accent-primary-subtle border-t border-accent-primary/20"
         >
           <p class="text-small font-medium text-accent-primary text-center mb-2">Gostou? Essa foi só a prévia.</p>
-          <p class="text-micro text-base-muted text-center mb-3">Assine o Pro pra ouvir podcasts completos de até 15 min.</p>
+          <p v-if="podcastBenefit" class="text-micro text-base-muted text-center mb-3">No Pro: {{ podcastBenefit }}.</p>
           <NuxtLink to="/planos" class="btn-primary w-full justify-center" @click="player.collapse()">
             Ver planos
           </NuxtLink>
@@ -186,6 +186,13 @@ import { Headphones, Play, Pause, RotateCcw, RotateCw, Download, X, SkipBack, Sk
 const { sanitize } = useSanitize()
 const player = usePlayerStore()
 
+// Teaser CTA copy comes from the offer catalog (RF-62)
+const plans = usePlans()
+const podcastBenefit = computed(() => plans.feature('podcast')?.pro_benefit ?? null)
+watch(() => player.currentPodcast?.is_teaser, (isTeaser) => {
+  if (isTeaser) plans.fetchPlans()
+}, { immediate: true })
+
 function onKeydown(e: KeyboardEvent) {
   if (e.key === 'Escape' && player.expanded) player.collapse()
 }
@@ -205,8 +212,8 @@ async function downloadPodcast() {
     a.href = url
     a.download = `${podcast.title || 'podcast'}.mp3`
     a.click()
-  } catch {
-    // silent fail
+  } catch (e) {
+    reportApiError(e, { error: 'Não foi possível baixar o áudio.' })
   } finally {
     downloading.value = false
   }
@@ -240,7 +247,9 @@ watch(() => player.currentPodcast?.id, async (id) => {
       }),
     )
     linkedCards.value = cards.filter(Boolean) as LinkedCard[]
-  } catch {}
+  } catch (e) {
+    reportApiError(e, { silent: true })
+  }
 }, { immediate: true })
 
 // Sync logic
@@ -279,16 +288,14 @@ function onSeek(e: Event) {
   player.seek(Number((e.target as HTMLInputElement).value))
 }
 
-function formatTime(s: number): string {
-  const total = Math.floor(s)
-  const m = Math.floor(total / 60)
-  const sec = total % 60
-  return `${m}:${sec.toString().padStart(2, '0')}`
-}
 
 function formatDate(date: string): string {
   return new Date(date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' })
 }
+
+// Focus trap + scroll lock (RF-F9.2)
+const overlayRoot = ref<HTMLElement | null>(null)
+useOverlayA11y(() => player.expanded && !!player.currentPodcast, overlayRoot)
 </script>
 
 <style scoped>

@@ -29,7 +29,7 @@
           </span>
 
           <h1 class="mt-6 text-[2.75rem] sm:text-[3.25rem] font-extrabold text-[#1E0A3C] leading-[1.08] tracking-tight">
-            Seu PDF vira notas, flashcards e simulados em 30 segundos.
+            Seu PDF vira notas, flashcards e simulados em minutos, sem montar cards na mão.
           </h1>
 
           <p class="mt-5 text-[17px] text-gray-600 max-w-[420px] leading-relaxed">
@@ -40,12 +40,6 @@
             <NuxtLink to="/criar-conta" class="bg-[#6F3FF5] hover:bg-[#5A2EE6] text-white font-semibold text-[15px] px-8 py-4 rounded-2xl shadow-[0_4px_16px_rgba(111,63,245,0.3)] hover:shadow-[0_6px_20px_rgba(111,63,245,0.4)] transition-all hover:-translate-y-0.5">
               Começar grátis
             </NuxtLink>
-            <button class="inline-flex items-center gap-3 text-[15px] font-medium text-gray-700 hover:text-[#6F3FF5] transition-colors" @click="showDemoModal = true">
-              <span class="w-10 h-10 rounded-full bg-[#2D1B69] flex items-center justify-center shadow-md">
-                <svg class="w-4 h-4 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
-              </span>
-              Ver demonstração (30s)
-            </button>
           </div>
 
           <div class="mt-10">
@@ -125,7 +119,7 @@
         <div class="text-center mt-10">
           <p class="text-sm text-gray-500">
             Você não precisa abandonar o Anki.
-            <span class="font-semibold text-[#6F3FF5]">Importe seus decks e continue de onde parou.</span>
+            <span class="font-semibold text-[#6F3FF5]">Importe seus baralhos do Anki e continue de onde parou.</span>
           </p>
         </div>
       </div>
@@ -223,9 +217,13 @@
         </div>
 
         <!-- Tab content -->
-        <div class="relative">
-          <LandingMockGraph v-if="activeTab === 'graph'" />
-          <LandingMockMindMap v-else />
+        <!-- d3 and the mocks only download when the section nears the viewport (RF-04).
+             Not rendered in the prerender, so the HTML has no modulepreload for them. -->
+        <div ref="demoRef" class="relative min-h-[380px] sm:min-h-[440px]">
+          <template v-if="demoVisible">
+            <LazyLandingMockGraph v-if="activeTab === 'graph'" />
+            <LazyLandingMockMindMap v-else />
+          </template>
         </div>
 
         <!-- Caption -->
@@ -262,7 +260,7 @@
         <p class="text-sm text-gray-500 text-center mb-8">Core ilimitado pra sempre. IA como upgrade natural.</p>
 
         <!-- Toggle -->
-        <div class="flex items-center justify-center gap-4 mb-10">
+        <div v-if="pro?.prices.annual" class="flex items-center justify-center gap-4 mb-10">
           <span class="text-sm font-semibold cursor-pointer" :class="!isAnnual ? 'text-[#1E0A3C]' : 'text-gray-400'" @click="isAnnual = false">Mensal</span>
           <button
             class="relative w-14 h-7 rounded-full transition-colors duration-200"
@@ -277,24 +275,23 @@
           </button>
           <span class="text-sm font-semibold cursor-pointer" :class="isAnnual ? 'text-[#1E0A3C]' : 'text-gray-400'" @click="isAnnual = true">
             Anual
-            <span class="ml-1.5 text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">-20%</span>
+            <span v-if="annualDiscountPercent" class="ml-1.5 text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">-{{ annualDiscountPercent }}%</span>
           </span>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
           <!-- Free -->
           <div class="bg-white rounded-2xl border border-gray-100 shadow-md p-7">
-            <h3 class="text-lg font-bold text-[#1E0A3C] mb-1">Grátis</h3>
-            <p class="text-3xl font-extrabold text-[#1E0A3C] mb-1">R$ 0<span class="text-sm font-normal text-gray-400">/mês</span></p>
-            <p class="text-xs text-gray-400 mb-5">Para sempre</p>
-            <ul class="space-y-2.5 text-sm text-gray-600 mb-8">
+            <h3 class="text-lg font-bold text-[#1E0A3C] mb-1">{{ free?.name ?? 'Grátis' }}</h3>
+            <template v-if="free">
+              <p class="text-3xl font-extrabold text-[#1E0A3C] mb-1">{{ formatPrice(free.prices.monthly?.amount_cents ?? 0) }}<span class="text-sm font-normal text-gray-400">/mês</span></p>
+              <p class="text-xs text-gray-400 mb-5">Para sempre</p>
+            </template>
+            <ul class="space-y-2.5 text-sm text-gray-600 mb-8" :class="{ 'mt-4': !free }">
               <li class="flex items-start gap-2"><span class="text-emerald-500 font-bold">✓</span><span>Flashcards + repetição espaçada ilimitados</span></li>
               <li class="flex items-start gap-2"><span class="text-emerald-500 font-bold">✓</span><span>Notas, cadernos, grafo, agenda de provas</span></li>
               <li class="flex items-start gap-2"><span class="text-emerald-500 font-bold">✓</span><span>Importar do Anki (.apkg)</span></li>
-              <li class="flex items-start gap-2"><span class="text-emerald-500 font-bold">✓</span><span>10 cards com IA/mês</span></li>
-              <li class="flex items-start gap-2"><span class="text-emerald-500 font-bold">✓</span><span>5 conversas com agente/mês</span></li>
-              <li class="flex items-start gap-2"><span class="text-emerald-500 font-bold">✓</span><span>1 simulado/mês</span></li>
-              <li class="flex items-start gap-2"><span class="text-gray-300 font-bold">–</span><span class="text-gray-400">Podcast: prévia 30s</span></li>
+              <li v-for="line in freeLines" :key="line" class="flex items-start gap-2"><span class="text-emerald-500 font-bold">✓</span><span>{{ line }}</span></li>
             </ul>
             <NuxtLink to="/criar-conta" class="block w-full text-center py-3 rounded-xl border-2 border-gray-200 text-sm font-semibold text-gray-700 hover:border-[#6F3FF5] hover:text-[#6F3FF5] transition-all">
               Começar grátis
@@ -306,32 +303,34 @@
             <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#6F3FF5] text-white text-[11px] font-bold px-3.5 py-1 rounded-full shadow-md">
               Mais popular
             </span>
-            <h3 class="text-lg font-bold text-[#6F3FF5] mb-1">Pro</h3>
-            <div class="mb-1">
-              <p class="text-3xl font-extrabold text-[#1E0A3C] inline">
-                R$ {{ isAnnual ? '23,99' : '29,90' }}
+            <h3 class="text-lg font-bold text-[#6F3FF5] mb-1">{{ pro?.name ?? 'Pro' }}</h3>
+            <template v-if="pro?.prices.monthly">
+              <div class="mb-1">
+                <p class="text-3xl font-extrabold text-[#1E0A3C] inline">
+                  {{ formatPrice(isAnnual && pro.prices.annual ? pro.prices.annual.monthly_equivalent_cents ?? 0 : pro.prices.monthly.amount_cents) }}
+                </p>
+                <span class="text-sm font-normal text-gray-400">/mês</span>
+              </div>
+              <p v-if="isAnnual && pro.prices.annual" class="text-xs text-gray-400 mb-5">
+                {{ formatPrice(pro.prices.annual.amount_cents) }} cobrado anualmente
+                <span v-if="pro.prices.annual.savings_cents" class="text-emerald-600 font-semibold">(economize {{ formatPrice(pro.prices.annual.savings_cents) }})</span>
               </p>
-              <span class="text-sm font-normal text-gray-400">/mês</span>
-            </div>
-            <p v-if="isAnnual" class="text-xs text-gray-400 mb-5">
-              R$287,90 cobrado anualmente
-              <span class="text-emerald-600 font-semibold">(economize R$71)</span>
-            </p>
-            <p v-else class="text-xs text-gray-400 mb-5">Cancele quando quiser</p>
-            <ul class="space-y-2.5 text-sm text-gray-600 mb-8">
-              <li class="flex items-start gap-2"><span class="text-emerald-500 font-bold">✓</span><span>Tudo do Grátis, sem limites</span></li>
-              <li class="flex items-start gap-2"><span class="text-[#6F3FF5] font-bold">∞</span><span>Cards com IA <strong>ilimitado</strong></span></li>
-              <li class="flex items-start gap-2"><span class="text-[#6F3FF5] font-bold">∞</span><span>Agente tira-dúvidas <strong>ilimitado</strong></span></li>
-              <li class="flex items-start gap-2"><span class="text-[#6F3FF5] font-bold">∞</span><span>Simulados ilimitados (com dissertativa)</span></li>
-              <li class="flex items-start gap-2"><span class="text-emerald-500 font-bold">✓</span><span>30 PDFs processados/mês</span></li>
-              <li class="flex items-start gap-2"><span class="text-emerald-500 font-bold">✓</span><span>10 podcasts completos/mês</span></li>
-              <li class="flex items-start gap-2"><span class="text-emerald-500 font-bold">✓</span><span>Mapa mental com IA</span></li>
+              <p v-else class="text-xs text-gray-400 mb-5">Cancele quando quiser</p>
+            </template>
+            <ul class="space-y-2.5 text-sm text-gray-600 mb-8" :class="{ 'mt-4': !pro }">
+              <li class="flex items-start gap-2"><span class="text-emerald-500 font-bold">✓</span><span>Tudo do Grátis, com mais IA</span></li>
+              <li v-for="line in proLines" :key="line" class="flex items-start gap-2"><span class="text-[#6F3FF5] font-bold">✓</span><span>{{ line }}</span></li>
             </ul>
             <NuxtLink to="/criar-conta" class="block w-full text-center py-3.5 rounded-xl bg-[#6F3FF5] hover:bg-[#5A2EE6] text-white text-sm font-semibold shadow-[0_4px_12px_rgba(111,63,245,0.3)] hover:shadow-[0_6px_16px_rgba(111,63,245,0.4)] transition-all">
               Assinar Pro
             </NuxtLink>
           </div>
         </div>
+
+        <!-- Catalog unavailable (prerender/offline): no numbers, only the way to the details (RN-01) -->
+        <p v-if="!catalog" class="text-center text-sm mt-6">
+          <NuxtLink to="/planos" class="font-semibold text-[#6F3FF5] hover:underline">Ver detalhes dos planos</NuxtLink>
+        </p>
       </div>
     </section>
 
@@ -372,7 +371,7 @@
       <h2 class="text-2xl sm:text-3xl font-extrabold text-[#1E0A3C] mb-3">
         Do primeiro PDF até o dia da prova.
       </h2>
-      <p class="text-base text-gray-500 mb-8">Comece agora — grátis, sem cartão, em 30 segundos.</p>
+      <p class="text-base text-gray-500 mb-8">Comece agora — grátis e sem cartão.</p>
       <NuxtLink to="/criar-conta" class="inline-block bg-[#6F3FF5] hover:bg-[#5A2EE6] text-white font-semibold px-8 py-3.5 rounded-xl shadow-[0_4px_16px_rgba(111,63,245,0.3)] hover:shadow-[0_6px_20px_rgba(111,63,245,0.4)] transition-all hover:-translate-y-0.5">
         Criar conta grátis
       </NuxtLink>
@@ -380,29 +379,6 @@
 
     <!-- Footer -->
     <footer class="py-8 px-4 sm:px-6 border-t border-gray-100 bg-white">
-
-    <!-- Demo Video Modal -->
-    <Teleport to="body">
-      <Transition name="fade">
-        <div v-if="showDemoModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4" @click.self="showDemoModal = false">
-          <div class="absolute inset-0 bg-black/70" />
-          <div class="relative w-full max-w-3xl rounded-2xl overflow-hidden shadow-2xl bg-[#1E0A3C]">
-            <!-- Close -->
-            <button class="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors" @click="showDemoModal = false">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-            </button>
-            <!-- Placeholder video -->
-            <div class="aspect-video flex flex-col items-center justify-center gap-4 p-8">
-              <div class="w-16 h-16 rounded-full bg-[#6F3FF5] flex items-center justify-center">
-                <svg class="w-7 h-7 text-white ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
-              </div>
-              <p class="text-white/80 text-sm text-center">Vídeo de demonstração em breve.</p>
-              <p class="text-white/50 text-xs text-center">PDF → Nota → Flashcards → Podcast em 30 segundos.</p>
-            </div>
-          </div>
-        </div>
-      </Transition>
-    </Teleport>
       <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
         <div class="flex items-center gap-3">
           <LandingLogoLanding :icon-size="22" size="sm" />
@@ -411,6 +387,8 @@
           <a href="#recursos" class="hover:text-[#6F3FF5] transition-colors">Recursos</a>
           <a href="#planos" class="hover:text-[#6F3FF5] transition-colors">Planos</a>
           <NuxtLink to="/ajuda" class="hover:text-[#6F3FF5] transition-colors">Ajuda</NuxtLink>
+          <NuxtLink to="/termos" class="hover:text-[#6F3FF5] transition-colors">Termos</NuxtLink>
+          <NuxtLink to="/privacidade" class="hover:text-[#6F3FF5] transition-colors">Privacidade</NuxtLink>
           <a href="mailto:contato@baigi.com.br" class="hover:text-[#6F3FF5] transition-colors">Contato</a>
         </div>
       </div>
@@ -424,26 +402,52 @@ import { FileUp, Sparkles, RefreshCw, Headphones, Brain, CalendarCheck, BookOpen
 definePageMeta({ layout: 'landing' })
 
 useHead({
-  title: 'BAIGI — De PDF a revisão pronta em 30 segundos',
+  title: 'BAIGI — Do PDF à revisão pronta em minutos',
   meta: [
     { name: 'description', content: 'Transforme qualquer material em flashcards, notas, simulados e podcast com IA. Repetição espaçada inteligente. Grátis para começar.' },
     { property: 'og:title', content: 'BAIGI — Sistema completo de estudos com IA' },
-    { property: 'og:description', content: 'PDF vira revisão pronta em 30 segundos. Flashcards, podcast e simulados gerados pela IA.' },
+    { property: 'og:description', content: 'Seu PDF vira revisão pronta em minutos. Flashcards, podcast e simulados gerados pela IA.' },
     { property: 'og:type', content: 'website' },
   ],
 })
 
-const auth = useAuthStore()
-if (auth.isAuthenticated) {
-  navigateTo('/hoje')
-}
-
 const isAnnual = ref(false)
+
+// Pricing block comes only from GET /api/plans (RN-01)
+const { plans: catalog, fetchPlans, limitOf, formatPrice, benefitLines } = usePlans()
+const free = computed(() => limitOf('free'))
+const pro = computed(() => limitOf('pro'))
+const freeLines = computed(() => benefitLines('free'))
+const proLines = computed(() => benefitLines('pro'))
+const annualDiscountPercent = computed(() => {
+  const monthly = pro.value?.prices.monthly?.amount_cents
+  const savings = pro.value?.prices.annual?.savings_cents
+  return monthly && savings ? Math.round((savings / (monthly * 12)) * 100) : null
+})
+onMounted(() => { fetchPlans() })
 const activeTab = ref<'graph' | 'mindmap'>('graph')
-const showDemoModal = ref(false)
+
+// hydrate-on-visible still server-renders the component (and preloads its chunk):
+// mount it client-side only when the demo section is close to the viewport.
+const demoRef = ref<HTMLElement | null>(null)
+const demoVisible = ref(false)
+let demoObserver: IntersectionObserver | null = null
+onMounted(() => {
+  if (!demoRef.value || !('IntersectionObserver' in window)) {
+    demoVisible.value = true
+    return
+  }
+  demoObserver = new IntersectionObserver((entries) => {
+    if (!entries.some(e => e.isIntersecting)) return
+    demoVisible.value = true
+    demoObserver?.disconnect()
+  }, { rootMargin: '200px' })
+  demoObserver.observe(demoRef.value)
+})
+onBeforeUnmount(() => demoObserver?.disconnect())
 
 const socialStats = [
-  { value: '30s', label: 'PDF vira material de estudo' },
+  { value: 'Minutos', label: 'PDF vira material de estudo' },
   { value: '100%', label: 'em português' },
   { value: 'FSRS-6', label: 'mesmo algoritmo do Anki' },
   { value: '0', label: 'configuração necessária' },
@@ -456,7 +460,7 @@ const steps = [
 ]
 
 const comparisons = [
-  { pain: 'Criar cards na mão, um por um', painIcon: PenLine, solution: 'PDF vira 24 cards em 30s', solIcon: Zap, featured: false },
+  { pain: 'Criar cards na mão, um por um', painIcon: PenLine, solution: 'PDF vira cards prontos, sem montar na mão', solIcon: Zap, featured: false },
   { pain: 'Backlog infinito desmotiva', painIcon: Layers, solution: 'Modo Sobrevivência prioriza', solIcon: Shield, featured: false },
   { pain: 'Plugins pra tudo funcionar', painIcon: MonitorX, solution: 'Tudo integrado, zero config', solIcon: Sparkles, featured: false },
   { pain: 'Cards soltos, sem contexto', painIcon: StickyNote, solution: 'Notas + grafo + mapa mental', solIcon: Network, featured: false },
@@ -478,7 +482,7 @@ const hiddenFeatures = [
 ]
 
 const faqs = [
-  { q: 'Posso importar do Anki?', a: 'Sim! Importa .apkg com decks, cards, tags e media automaticamente. Sem perder nada.' },
+  { q: 'Posso importar do Anki?', a: 'Sim! Importa .apkg com baralhos, cards, tags e mídia automaticamente. Sem perder nada.' },
   { q: 'O plano grátis é realmente grátis?', a: 'Sim. Core ilimitado — flashcards, notas, grafo, revisão, importar Anki. A IA tem limites mensais que você pode expandir com o Pro.' },
   { q: 'Funciona no celular?', a: 'Sim, é PWA. Funciona em qualquer navegador como app nativo. Adicione à tela inicial e use offline.' },
   { q: 'Meus dados ficam seguros?', a: 'Sim. Servidores no Brasil, criptografia em trânsito e repouso, compatível com LGPD.' },

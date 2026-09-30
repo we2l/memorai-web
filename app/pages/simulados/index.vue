@@ -39,7 +39,7 @@
           class="rounded-2xl bg-[var(--bg-card)] border border-base p-5 flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow"
         >
           <div class="w-12 h-12 rounded-xl bg-warning/10 flex items-center justify-center shrink-0">
-            <Clock :size="22" class="text-warning" />
+            <Clock :size="22" class="text-[var(--badge-warning-text)]" />
           </div>
           <div class="flex-1 min-w-0">
             <p class="font-medium text-base-primary text-sm truncate">{{ quiz.title }}</p>
@@ -57,7 +57,7 @@
 
     <!-- Empty state -->
     <div v-else-if="completed.length === 0 && inProgress.length === 0" class="text-center py-16">
-      <img src="~/assets/mascot-baigi-thinking.png" alt="Baigi pensando" class="w-24 h-24 object-contain mx-auto mb-4" />
+      <picture class="contents"><source srcset="~/assets/mascots/mascot-baigi-thinking.avif" type="image/avif"><img src="~/assets/mascots/mascot-baigi-thinking.webp" alt="Baigi pensando" class="w-24 h-24 object-contain mx-auto mb-4" width="96" height="96" loading="lazy" decoding="async" /></picture>
       <p class="text-title text-base-secondary">Nenhum simulado ainda</p>
       <p class="text-small text-base-muted mt-1 max-w-xs mx-auto">Gere simulados a partir dos seus cadernos e descubra seus pontos fracos.</p>
       <button class="btn-primary mt-5" @click="showConfig = true">Criar primeiro simulado</button>
@@ -136,14 +136,9 @@ function getScoreBarColor(score: number) {
 
 function getScoreBadgeClass(score: number | null) {
   const s = score ?? 0
-  if (s >= 70) return 'bg-success/10 text-success border border-success/20'
-  if (s >= 50) return 'bg-warning/10 text-warning border border-warning/20'
-  return 'bg-danger/10 text-danger border border-danger/20'
+  if (s >= 70) return 'bg-success/10 text-[var(--badge-success-text)] border border-success/20'
+  if (s >= 50) return 'bg-warning/10 text-[var(--badge-warning-text)] border border-warning/20'
+  return 'bg-danger/10 text-[var(--badge-danger-text)] border border-danger/20'
 }
 
-function formatTime(seconds: number) {
-  const m = Math.floor(seconds / 60)
-  const s = seconds % 60
-  return `${m}:${String(s).padStart(2, '0')}`
-}
 </script>

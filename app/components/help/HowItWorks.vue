@@ -9,18 +9,18 @@
           <div class="space-y-3">
             <p class="text-micro font-bold uppercase tracking-wide text-base-muted">Você cria</p>
             <div class="space-y-2">
-              <div class="flow-node bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800/40"><BookOpen :size="14" class="inline text-blue-600 dark:text-blue-400" /> Notas</div>
-              <div class="flow-node bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800/40"><CalendarCheck :size="14" class="inline text-amber-600 dark:text-amber-400" /> Provas</div>
-              <div class="flow-node bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800/40"><Layers :size="14" class="inline text-emerald-600 dark:text-emerald-400" /> Cards</div>
+              <div class="flow-node bg-[var(--badge-info-bg)] border-[var(--badge-info-text)]/20"><BookOpen :size="14" class="inline text-[var(--badge-info-text)]" /> Notas</div>
+              <div class="flow-node bg-[var(--badge-warning-bg)] border-[var(--badge-warning-text)]/20"><CalendarCheck :size="14" class="inline text-[var(--badge-warning-text)]" /> Provas</div>
+              <div class="flow-node bg-[var(--badge-success-bg)] border-[var(--badge-success-text)]/20"><Layers :size="14" class="inline text-[var(--badge-success-text)]" /> Cards</div>
             </div>
           </div>
 
           <!-- Coluna 2: Sistema -->
           <div class="space-y-3 flex flex-col items-center justify-center">
             <p class="text-micro font-bold uppercase tracking-wide text-base-muted">O sistema processa</p>
-            <div class="flow-node bg-[#F5F2FF] dark:bg-[#6F3FF5]/10 border-[#D7DDF2] dark:border-[#6F3FF5]/30 !py-4">
-              <Brain :size="24" class="text-[#6F3FF5] dark:text-[#B794F4]" />
-              <span class="block text-small font-semibold text-[#6F3FF5] dark:text-[#B794F4]">IA + FSRS</span>
+            <div class="flow-node bg-[var(--badge-primary-bg)] dark:bg-[var(--color-accent-primary)]/10 border-base dark:border-[var(--color-accent-primary)]/30 !py-4">
+              <Brain :size="24" class="text-[var(--color-accent-primary)]" />
+              <span class="block text-small font-semibold text-[var(--color-accent-primary)]">IA + revisão espaçada</span>
               <span class="block text-micro text-base-muted">prioriza, gera, conecta</span>
             </div>
             <!-- Arrows (mobile: vertical, desktop: implied by grid) -->
@@ -33,9 +33,9 @@
           <div class="space-y-3">
             <p class="text-micro font-bold uppercase tracking-wide text-base-muted">Você recebe</p>
             <div class="space-y-2">
-              <div class="flow-node bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800/40"><RefreshCw :size="14" class="inline text-emerald-600 dark:text-emerald-400" /> Revisão inteligente</div>
-              <div class="flow-node bg-[#F5F2FF] dark:bg-[#6F3FF5]/10 border-[#D7DDF2] dark:border-[#6F3FF5]/30"><Headphones :size="14" class="inline text-[#6F3FF5] dark:text-[#B794F4]" /> Podcast personalizado</div>
-              <div class="flow-node bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800/40"><BarChart3 :size="14" class="inline text-blue-600 dark:text-blue-400" /> Simulados focados</div>
+              <div class="flow-node bg-[var(--badge-success-bg)] border-[var(--badge-success-text)]/20"><RefreshCw :size="14" class="inline text-[var(--badge-success-text)]" /> Revisão inteligente</div>
+              <div class="flow-node bg-[var(--badge-primary-bg)] dark:bg-[var(--color-accent-primary)]/10 border-base dark:border-[var(--color-accent-primary)]/30"><Headphones :size="14" class="inline text-[var(--color-accent-primary)]" /> Podcast personalizado</div>
+              <div class="flow-node bg-[var(--badge-info-bg)] border-[var(--badge-info-text)]/20"><BarChart3 :size="14" class="inline text-[var(--badge-info-text)]" /> Simulados focados</div>
             </div>
           </div>
         </div>
@@ -43,7 +43,7 @@
         <!-- Fluxo de erros -->
         <div class="mt-6 pt-6 border-t border-base text-center">
           <p class="text-small text-base-muted">
-            <span class="text-danger font-medium">Erros na revisão</span> → alimentam o podcast + detectam padrões → <span class="text-success font-medium">melhoria contínua</span>
+            <span class="text-[var(--badge-danger-text)] font-medium">Erros na revisão</span> → alimentam o podcast + detectam padrões → <span class="text-[var(--badge-success-text)] font-medium">melhoria contínua</span>
           </p>
         </div>
       </div>
@@ -56,12 +56,12 @@
         <div v-for="item in features" :key="item.title" class="card-base p-5">
           <div class="flex items-start gap-3">
             <div class="w-10 h-10 rounded-xl bg-accent-primary-subtle flex items-center justify-center shrink-0">
-              <component :is="item.icon" :size="20" class="text-[var(--color-accent-soft)]" />
+              <component :is="item.icon" :size="20" class="text-[var(--badge-primary-text)]" />
             </div>
             <div>
               <h3 class="font-medium text-base-primary text-sm">{{ item.title }}</h3>
               <p class="text-micro text-base-muted mt-1">{{ item.description }}</p>
-              <p class="text-micro text-[#6F3FF5] dark:text-[#B794F4] font-medium mt-2">↳ {{ item.impact }}</p>
+              <p class="text-micro text-[var(--color-accent-primary)] font-medium mt-2">↳ {{ item.impact }}</p>
             </div>
           </div>
         </div>
@@ -74,7 +74,7 @@
       <div class="card-base p-6">
         <ol class="space-y-3">
           <li v-for="(step, i) in loop" :key="i" class="flex items-start gap-3">
-            <span class="w-6 h-6 rounded-full bg-accent-primary-subtle flex items-center justify-center shrink-0 text-micro font-bold text-[#6F3FF5]">{{ i + 1 }}</span>
+            <span class="w-6 h-6 rounded-full bg-accent-primary-subtle flex items-center justify-center shrink-0 text-micro font-bold text-[var(--color-accent-primary)]">{{ i + 1 }}</span>
             <p class="text-small text-base-primary">{{ step }}</p>
           </li>
         </ol>
@@ -94,9 +94,9 @@ const features = [
   },
   {
     icon: RefreshCw,
-    title: 'Revisão (FSRS)',
+    title: 'Revisão espaçada',
     description: 'O algoritmo calcula o momento ideal pra revisar cada card.',
-    impact: 'Ordem: learning steps → prova próxima → mais atrasados → normais. Nunca mais do que você aguenta.',
+    impact: 'Ordem: cards em aprendizado → prova próxima → mais atrasados → normais. Nunca mais do que você aguenta.',
   },
   {
     icon: XCircle,
@@ -139,7 +139,7 @@ const features = [
 const loop = [
   'Você cria notas e organiza em cadernos.',
   'A IA indexa tudo e gera cards, quiz e podcast.',
-  'Você revisa — o FSRS agenda o próximo momento ideal.',
+  'Você revisa — a revisão espaçada agenda o próximo momento ideal.',
   'Errou? O motivo é registrado e vira combustível: podcast aborda, padrões são detectados.',
   'Tem prova? O algoritmo prioriza os cadernos vinculados automaticamente.',
   'O ciclo se repete — cada erro te faz mais forte.',

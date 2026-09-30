@@ -1,0 +1,117 @@
+<template>
+  <Teleport to="body">
+    <Transition name="fade">
+      <div v-if="isOpen" ref="overlayRoot" role="dialog" aria-modal="true" aria-label="Anotação rápida" class="fixed inset-0 z-50 flex items-start justify-center pt-[20vh]" @click.self="close">
+        <div class="w-full max-w-lg mx-4 rounded-2xl bg-surface-secondary border border-base shadow-2xl" style="box-shadow: 0 16px 64px rgba(0,0,0,0.5);">
+          <div class="p-5">
+            <div class="flex items-center justify-between mb-3">
+              <p class="text-body font-medium text-base-primary">Anotação rápida</p>
+              <button class="text-base-muted hover:text-base-primary p-1" aria-label="Fechar" @click="close">
+                <X :size="18" aria-hidden="true" />
+              </button>
+            </div>
+            <textarea
+              ref="inputRef"
+              v-model="content"
+              class="textarea-base w-full min-h-[100px] resize-none"
+              placeholder="Escreva uma ideia, conceito ou anotação..."
+              @keydown.meta.enter="save"
+              @keydown.ctrl.enter="save"
+            />
+            <div class="flex items-center justify-between mt-3">
+              <UiSelect
+                v-model="selectedTopicId"
+                :options="topicOptions"
+                placeholder="Escolher caderno..."
+                class="flex-1 sm:w-48 sm:flex-none"
+              />
+              <div class="flex items-center gap-2">
+                <span class="text-micro text-base-muted">Ctrl+Enter</span>
+                <button class="btn-primary !py-2 !px-4 !min-h-[2.75rem] text-small" :disabled="!content.trim() || !selectedTopicId || saving" @click="save">
+                  {{ saving ? 'Salvando...' : 'Salvar' }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
+</template>
+
+<script setup lang="ts">
+import { X } from 'lucide-vue-next'
+import type { Topic } from '~/types'
+
+// Lazy-mounted by UiQuickCapture on first open and kept mounted (leave transition)
+const isOpen = defineModel<boolean>({ required: true })
+
+const { $api } = useNuxtApp()
+const toast = useToast()
+
+const content = ref('')
+const selectedTopicId = ref('')
+const saving = ref(false)
+const inputRef = ref<HTMLTextAreaElement>()
+const rootTopics = ref<Topic[]>([])
+const topicOptions = computed(() => rootTopics.value.map(t => ({ value: t.id, label: t.name })))
+async function fetchTopics() {
+  try {
+    const res = await $api<{ data: any[] }>('/topics')
+    // API returns tree — root topics are the top level items
+    rootTopics.value = (res.data ?? []).map((t: any) => ({ id: t.id, name: t.name, parent_id: t.parent_id }))
+    if (rootTopics.value.length === 1) selectedTopicId.value = rootTopics.value[0].id
+  } catch (e) {
+    reportApiError(e, { silent: true })
+  }
+}
+
+watch(isOpen, (open) => {
+  if (!open) {
+    content.value = ''
+    return
+  }
+  if (!rootTopics.value.length) fetchTopics()
+  // rAF: on the first (lazy) mount the element is only in the document after the frame
+  nextTick(() => requestAnimationFrame(() => inputRef.value?.focus()))
+}, { immediate: true })
+
+function close() {
+  isOpen.value = false
+}
+
+async function save() {
+  if (!content.value.trim() || !selectedTopicId.value) return
+  saving.value = true
+  try {
+    const title = content.value.slice(0, 50).split('\n')[0] || 'Anotação rápida'
+    const tiptapContent = {
+      type: 'doc',
+      content: content.value.split('\n').filter(Boolean).map(p => ({
+        type: 'paragraph',
+        content: [{ type: 'text', text: p }],
+      })),
+    }
+    await $api(`/topics/${selectedTopicId.value}/notes`, {
+      method: 'POST',
+      body: { title, content: tiptapContent },
+    })
+    toast.show('Anotação salva!', 'success')
+    close()
+  } catch (e: any) {
+    console.error('QuickCapture save error:', e)
+    toast.show('Erro ao salvar anotação.', 'error')
+  } finally {
+    saving.value = false
+  }
+}
+
+// Focus trap + scroll lock (RF-F9.2)
+const overlayRoot = ref<HTMLElement | null>(null)
+useOverlayA11y(() => isOpen.value, overlayRoot)
+</script>
+
+<style scoped>
+.fade-enter-active, .fade-leave-active { transition: opacity 150ms; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
+</style>

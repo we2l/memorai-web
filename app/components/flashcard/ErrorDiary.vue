@@ -10,30 +10,38 @@
             v-for="opt in reasons"
             :key="opt.value"
             type="button"
-            class="px-3 py-1.5 rounded-full text-xs font-medium transition-all"
+            class="px-3 min-h-[36px] rounded-full text-xs font-medium transition-all"
+            :aria-pressed="selected === opt.value"
             :class="selected === opt.value ? 'bg-accent-primary-subtle text-accent-primary border border-[var(--color-accent-primary)]/20' : 'bg-surface-secondary text-base-secondary border border-base hover:bg-surface-secondary'"
             @click="selected = opt.value"
           >
-            <component :is="opt.icon" :size="12" class="inline" /> {{ opt.label }}
+            <component :is="opt.icon" :size="12" class="inline" aria-hidden="true" /> {{ opt.label }}
           </button>
         </div>
 
+        <label :for="`diary-note-${flashcardId}`" class="sr-only">O que te confundiu aqui?</label>
         <textarea
+          :id="`diary-note-${flashcardId}`"
           v-model="note"
           class="textarea-base text-small"
           rows="2"
           placeholder="O que te confundiu aqui?"
         />
 
-        <div class="flex gap-2 justify-end mt-4">
-          <button type="button" class="text-sm text-base-secondary hover:text-base-primary px-3 py-1.5 transition-colors" @click="skip">Pular</button>
+        <div class="flex flex-wrap items-center gap-2 justify-end mt-4">
+          <button type="button" class="mr-auto text-micro text-base-muted underline underline-offset-2 min-h-[44px]" @click="neverAsk">
+            Não perguntar mais
+          </button>
+          <!-- Skip is always available: the diary never blocks the review (RN-UX-04) -->
+          <button type="button" class="text-sm text-base-secondary hover:text-base-primary px-3 min-h-[44px] transition-colors" @click="skip">Pular</button>
           <button
             type="button"
-            class="btn-primary !py-1.5 !px-4 !min-h-0 text-sm"
-            :disabled="!selected || saving"
+            class="btn-primary !py-1.5 !px-4 !min-h-[44px] text-sm"
+            :disabled="!selected || saving || !reviewId"
+            :aria-busy="!reviewId"
             @click="save"
           >
-            {{ saving ? 'Salvando...' : 'Salvar' }}
+            {{ !reviewId ? 'Salvando avaliação…' : saving ? 'Salvando...' : 'Salvar' }}
           </button>
         </div>
       </div>
@@ -55,6 +63,10 @@ const emit = defineEmits<{
   (e: 'skipped'): void
 }>()
 
+const review = useReviewStore()
+const toast = useToast()
+const { run } = useApiAction()
+
 const { $api } = useNuxtApp()
 const saving = ref(false)
 const selected = ref<string | null>(null)
@@ -69,23 +81,40 @@ const reasons = [
 
 async function save() {
   if (!selected.value) return
+  if (!selected.value || !props.reviewId) return
   saving.value = true
-  try {
-    await $api('/error-logs', {
-      method: 'POST',
-      body: {
-        flashcard_id: props.flashcardId,
-        review_id: props.reviewId,
-        reason: selected.value,
-        note: note.value || null,
+  const ok = await run(() => $api('/error-logs', {
+    method: 'POST',
+    body: {
+      flashcard_id: props.flashcardId,
+      review_id: props.reviewId,
+      reason: selected.value,
+      note: note.value || null,
+    },
+  }), { error: 'Não foi possível salvar o diário. Você pode pular.' })
+  saving.value = false
+  if (ok === undefined) return
+  reset()
+  emit('saved')
+}
+
+/** "Não perguntar mais" → error_diary_mode = never, with undo. */
+async function neverAsk() {
+  const previous = review.errorDiaryMode
+  const setMode = (mode: typeof previous) => $api('/settings', { method: 'PUT', body: { error_diary_mode: mode } })
+  const ok = await run(() => setMode('never'), { error: 'Não foi possível salvar a preferência.' })
+  if (ok === undefined) return
+  review.errorDiaryMode = 'never'
+  toast.show('Não vamos mais perguntar. Mude em Configurações → Estudo.', 'info', {
+    action: {
+      label: 'Desfazer',
+      onClick: async () => {
+        const undone = await run(() => setMode(previous), { error: 'Não foi possível desfazer.' })
+        if (undone !== undefined) review.errorDiaryMode = previous
       },
-    })
-    reset()
-    emit('saved')
-  } catch {
-  } finally {
-    saving.value = false
-  }
+    },
+  })
+  skip()
 }
 
 function skip() {

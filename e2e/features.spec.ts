@@ -25,7 +25,7 @@ test.describe.serial('Fluxo completo: Caderno → Card → Revisão', () => {
     await page.waitForLoadState('networkidle')
 
     await page.getByText('Novo', { exact: true }).click()
-    await page.getByText('Novo caderno').click()
+    await page.getByText('Novo caderno').first().click()
 
     await expect(page.getByRole('dialog')).toBeVisible()
     await page.locator('[aria-label="Criar caderno"] input').fill(TEST_NOTEBOOK)
@@ -157,7 +157,7 @@ test.describe('Configurações de estudo', () => {
 
     await expect(page.getByText('Tema')).toBeVisible()
     // Botões Escuro e Claro existem
-    await expect(page.getByRole('button', { name: /Escuro/i })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Escuro', exact: true })).toBeVisible()
     await expect(page.getByRole('button', { name: /Claro/i })).toBeVisible()
   })
 
@@ -166,8 +166,10 @@ test.describe('Configurações de estudo', () => {
     await page.goto('/configuracoes')
     await page.waitForLoadState('networkidle')
 
-    await expect(page.getByRole('heading', { name: 'Sessão de Estudo' })).toBeVisible()
-    await expect(page.getByText('Novos cards por dia')).toBeVisible()
+    // Daily limits stay hidden (PRD F11.3); the study section exposes retention + error diary
+    await expect(page.getByRole('heading', { name: 'Estudo', exact: true })).toBeVisible()
+    await expect(page.getByRole('radiogroup').first()).toBeVisible()
+    await expect(page.getByText('Quanto você quer lembrar')).toBeVisible()
   })
 })
 
@@ -245,5 +247,50 @@ test.describe('Dashboard — ações rápidas', () => {
       await page.waitForLoadState('networkidle')
       await expect(page).toHaveURL(/\/cadernos/)
     }
+  })
+})
+
+test.describe.serial('Cadernos: URL e exclusão com Desfazer (RF-F6.2/F6.4)', () => {
+  let page: Page
+  const A = { id: '00000000-0000-4000-8000-0000000000a1', name: 'Caderno A', parent_id: null, children: [], color: null, notes_count: 1, flashcards_count: 2, position: 0 }
+  const B = { id: '00000000-0000-4000-8000-0000000000b2', name: 'Caderno B', parent_id: null, children: [], color: null, notes_count: 0, flashcards_count: 0, position: 1 }
+  let deletes = 0
+
+  test.beforeAll(async ({ browser }) => {
+    page = await browser.newPage()
+    await login(page)
+    const json = (data: unknown) => ({ status: 200, contentType: 'application/json', body: JSON.stringify(data) })
+    await page.route(/\/api\/topics$/, r => r.request().method() === 'GET' ? r.fulfill(json({ data: [A, B] })) : r.continue())
+    await page.route(/\/api\/topics\/[0-9a-f-]+$/, r => {
+      if (r.request().method() === 'DELETE') { deletes++; return r.fulfill(json({})) }
+      return r.fulfill(json({ data: A }))
+    })
+    await page.route(/\/api\/topics\/[0-9a-f-]+\/(notes|flashcards).*/, r => r.fulfill(json({ data: [], meta: { current_page: 1, last_page: 1, per_page: 50, total: 0 } })))
+    await page.route(/\/api\/documents\?.*/, r => r.fulfill(json({ data: [] })))
+  })
+
+  test.afterAll(async () => { await page.close() })
+
+  test('selecionar B → voltar → A selecionado', async () => {
+    await page.goto(`/cadernos?topic=${A.id}`)
+    await expect(page.getByRole('button', { name: /Caderno A/ }).first()).toHaveAttribute('aria-current', 'true')
+    await page.getByRole('button', { name: /Caderno B/ }).first().click()
+    await expect(page).toHaveURL(new RegExp(`topic=${B.id}`))
+    await page.goBack()
+    await expect(page).toHaveURL(new RegExp(`topic=${A.id}`))
+    await expect(page.getByRole('button', { name: /Caderno A/ }).first()).toHaveAttribute('aria-current', 'true')
+  })
+
+  test('excluir → Desfazer: o item volta sem request', async () => {
+    await page.getByRole('button', { name: 'Opções de Caderno B', exact: true }).click()
+    await page.getByRole('menuitem', { name: 'Excluir' }).click()
+    const dialog = page.getByRole('alertdialog')
+    await expect(dialog.getByRole('heading', { name: "Excluir 'Caderno B'?" })).toBeVisible()
+    await dialog.getByRole('button', { name: 'Excluir' }).click()
+    await expect(page.getByRole('button', { name: /Caderno B/ })).toHaveCount(0)
+    await page.getByRole('button', { name: 'Desfazer' }).click()
+    await expect(page.getByRole('button', { name: /Caderno B/ }).first()).toBeVisible()
+    await page.waitForTimeout(500)
+    expect(deletes).toBe(0)
   })
 })

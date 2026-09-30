@@ -1,8 +1,11 @@
 <template>
   <div class="relative" ref="containerRef">
     <button
+      :id="id"
       type="button"
-      class="input-base flex items-center justify-between gap-2 text-left"
+      class="input-base flex items-center justify-between gap-2 text-left disabled:opacity-50 disabled:cursor-not-allowed"
+      :disabled="disabled"
+      :aria-expanded="open"
       @click="toggle"
     >
       <span class="truncate" :class="modelValue ? 'text-base-primary' : 'text-base-muted'">
@@ -38,6 +41,9 @@ const props = defineProps<{
   modelValue: string
   options: { value: string; label: string }[]
   placeholder?: string
+  disabled?: boolean
+  /** Lets a <label for> name the trigger button. */
+  id?: string
 }>()
 
 const emit = defineEmits<{
@@ -52,6 +58,7 @@ const selectedLabel = computed(() =>
 )
 
 function toggle() {
+  if (props.disabled) return
   open.value = !open.value
 }
 

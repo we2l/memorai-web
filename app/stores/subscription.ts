@@ -1,4 +1,4 @@
-import type { SubscriptionInfo } from '~/types'
+import type { CheckoutSessionInfo, SubscriptionInfo } from '~/types'
 
 export const useSubscriptionStore = defineStore('subscription', {
   state: () => ({
@@ -7,6 +7,8 @@ export const useSubscriptionStore = defineStore('subscription', {
 
   getters: {
     isPastDue: state => state.info?.subscription_status === 'past_due',
+    isAnnual: state => state.info?.billing === 'annual',
+    inGracePeriod: state => state.info?.in_grace_period === true,
   },
 
   actions: {
@@ -25,13 +27,19 @@ export const useSubscriptionStore = defineStore('subscription', {
       window.location.href = res.checkout_url
     },
 
-    async checkoutAddon(addon: string) {
+    /** One-off annual payment (Pix or card in installments) — ADR-025 */
+    async checkoutAnnual() {
       const { $api } = useNuxtApp()
-      const res = await $api<{ checkout_url: string }>('/checkout/addon', {
+      const res = await $api<{ checkout_url: string; session_id: string }>('/checkout/annual', {
         method: 'POST',
-        body: { addon },
       })
       window.location.href = res.checkout_url
+    },
+
+    async fetchCheckoutSession(id: string): Promise<CheckoutSessionInfo> {
+      const { $api } = useNuxtApp()
+      const res = await $api<{ data: CheckoutSessionInfo }>(`/checkout/sessions/${encodeURIComponent(id)}`)
+      return res.data
     },
 
     async openPortal() {

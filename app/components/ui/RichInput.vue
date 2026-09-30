@@ -9,7 +9,7 @@
         :class="btn.active() ? 'bg-accent-primary-subtle text-accent-primary' : 'text-base-muted hover:bg-[var(--border-divider)]'"
         :title="btn.label"
         @click="btn.action"
-      >
+       :aria-label="btn.label">
         <component :is="btn.icon" :size="14" />
       </button>
 
@@ -19,18 +19,18 @@
       <button
         type="button"
         class="p-1 rounded text-small transition-colors"
-        :class="recording ? 'bg-danger/15 text-danger' : 'text-base-muted hover:bg-[var(--border-divider)]'"
+        :class="recording ? 'bg-danger/15 text-[var(--badge-danger-text)]' : 'text-base-muted hover:bg-[var(--border-divider)]'"
         :title="recording ? 'Parar gravação' : 'Gravar áudio'"
         @click="toggleRecording"
-      >
-        <Mic :size="14" />
+       :aria-label="recording ? 'Parar gravação' : 'Gravar áudio'">
+        <Mic :size="14" aria-hidden="true" />
       </button>
-      <span v-if="recording" class="text-micro text-danger animate-pulse ml-1">● {{ recordingTime }}s</span>
+      <span v-if="recording" class="text-micro text-[var(--badge-danger-text)] animate-pulse ml-1">● {{ recordingTime }}s</span>
     </div>
 
     <EditorContent
       :editor="editor"
-      class="rich-input px-3 py-2 text-small text-base-primary overflow-y-auto"
+      class="rich-input px-3 py-2 text-[1rem] leading-relaxed text-base-primary overflow-y-auto"
       :style="{ minHeight: minHeight + 'px', maxHeight: maxHeight + 'px' }"
     />
 
@@ -43,10 +43,6 @@
 
 <script setup lang="ts">
 import { useEditor, EditorContent } from '@tiptap/vue-3'
-import StarterKit from '@tiptap/starter-kit'
-import Underline from '@tiptap/extension-underline'
-import Placeholder from '@tiptap/extension-placeholder'
-import Image from '@tiptap/extension-image'
 import { ClozeMarker, markToCloze, clozeToMark, getNextClozeIndex } from '~/extensions/cloze-marker'
 import { Bold, Italic, Underline as UnderlineIcon, List, ListOrdered, Mic, ImagePlus, Brackets } from 'lucide-vue-next'
 
@@ -89,15 +85,11 @@ function toStorageContent(html: string): string {
 const editor = useEditor({
   content: toEditorContent(props.modelValue),
   extensions: [
-    StarterKit.configure({
-      heading: false,
-      blockquote: false,
-      codeBlock: false,
-      horizontalRule: false,
+    ...useTiptapBase({
+      starterKit: { heading: false, blockquote: false, codeBlock: false, horizontalRule: false },
+      placeholder: props.placeholder,
+      image: props.enableImage,
     }),
-    Underline.configure({}),
-    Placeholder.configure({ placeholder: props.placeholder }),
-    ...(props.enableImage ? [Image.configure({ inline: false, allowBase64: false })] : []),
     ...(props.enableCloze ? [ClozeMarker] : []),
   ],
   onUpdate: ({ editor }) => {

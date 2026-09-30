@@ -139,13 +139,13 @@ function handleFileSelect(event: Event) {
 }
 
 .start-card__icon--import {
-  background: color-mix(in srgb, #6F3FF5 8%, transparent);
-  color: #6F3FF5;
+  background: color-mix(in srgb, var(--color-accent-primary) 8%, transparent);
+  color: var(--color-accent-primary);
 }
 
 :root.dark .start-card__icon--import {
-  background: color-mix(in srgb, #A78BFA 10%, transparent);
-  color: #A78BFA;
+  background: color-mix(in srgb, var(--color-accent-soft) 10%, transparent);
+  color: var(--color-accent-soft);
 }
 
 .start-card__content {

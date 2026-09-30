@@ -32,7 +32,7 @@ test.describe('Cadernos (/cadernos)', () => {
 
   test('botão Novo abre menu com opções', async ({ page }) => {
     await page.getByText('Novo', { exact: true }).click()
-    await expect(page.getByText('Novo caderno')).toBeVisible()
+    await expect(page.getByText('Novo caderno').first()).toBeVisible()
     await expect(page.getByText('Importar Anki')).toBeVisible()
   })
 })
@@ -92,7 +92,7 @@ test.describe('Configurações (/configuracoes)', () => {
   })
 
   test('exibe seção de aparência', async ({ page }) => {
-    await expect(page.getByText('Aparência')).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Aparência' })).toBeVisible()
     await expect(page.getByText('Tema')).toBeVisible()
   })
 })
@@ -125,8 +125,10 @@ test.describe('Planos (/planos)', () => {
 
   test('exibe planos Grátis e Pro', async ({ page }) => {
     await expect(page.getByRole('heading', { name: /Escolha seu plano/i })).toBeVisible()
-    await expect(page.getByText('Grátis', { exact: true })).toBeVisible()
-    await expect(page.getByText('R$14')).toBeVisible()
+    const main = page.getByRole('main')
+    await expect(main.getByText('Grátis', { exact: true })).toBeVisible()
+    // Price comes from GET /api/plans
+    await expect(main.getByText('R$ 29,90')).toBeVisible()
   })
 
   test('mostra plano atual como desabilitado', async ({ page }) => {
@@ -184,7 +186,7 @@ test.describe('Auth', () => {
     await page.fill('#email', 'invalido@teste.com')
     await page.fill('#password', 'senhaerrada')
     await page.click('button[type="submit"]')
-    await expect(page.locator('[role="alert"], .text-danger, .text-red-500').first()).toBeVisible({ timeout: 5000 })
+    await expect(page.locator('p[role="alert"], main [role="alert"]:not(:empty)').first()).toBeVisible({ timeout: 5000 })
   })
 
   test('página de criar conta carrega', async ({ page }) => {

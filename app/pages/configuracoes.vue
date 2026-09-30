@@ -132,6 +132,13 @@
       </div>
     </section>
 
+    <!-- Lembretes (prd-retencao-lembretes RF-F01) -->
+    <section id="lembretes" class="card p-5 mb-6 scroll-mt-4" aria-labelledby="lembretes-title">
+      <h2 id="lembretes-title" class="text-headline mb-4">Lembretes</h2>
+      <div v-if="settingsLoading" class="skeleton h-24 w-full rounded-xl" />
+      <SettingsReminderPreferences v-else :settings="settings" :load-error="settingsError" @retry="loadSettings" />
+    </section>
+
     <!-- Sessão de Estudo (hidden for launch — too complex for new users) -->
     <section v-if="false" class="card p-6 md:p-8 mb-6">
       <h2 class="text-headline mb-2">Sessão de Estudo</h2>
@@ -317,6 +324,7 @@ const sectionLinks = [
   { id: 'estudo', label: 'Estudo' },
   { id: 'uso-ia', label: 'Uso de IA' },
   { id: 'aparencia', label: 'Aparência' },
+  { id: 'lembretes', label: 'Lembretes' },
   { id: 'seus-dados', label: 'Seus dados' },
   { id: 'conta', label: 'Conta' },
 ]

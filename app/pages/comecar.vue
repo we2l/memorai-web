@@ -211,6 +211,8 @@
         <button class="btn-secondary w-full mt-3 justify-center" @click="goToDashboard">
           Explorar o app primeiro
         </button>
+
+        <OnboardingReminderRow v-model:enabled="reminderEnabled" v-model:hour="reminderHour" class="mt-6" />
       </div>
 
       <!-- Step PDF processing (background) -->
@@ -227,6 +229,8 @@
         <button class="btn-secondary w-full mt-3 justify-center" :disabled="completing" @click="goToDashboard">
           Explorar o app
         </button>
+
+        <OnboardingReminderRow v-model:enabled="reminderEnabled" v-model:hour="reminderHour" class="mt-6" />
       </div>
 
     </div>
@@ -471,8 +475,23 @@ async function handlePdf(e: Event) {
   }
 }
 
+// Daily reminder, on by default (prd-retencao-lembretes RF-F02): saved only if changed
+const reminderEnabled = ref(true)
+const reminderHour = ref(DEFAULT_REMINDER_HOUR)
+const reminderChanged = computed(() => !reminderEnabled.value || reminderHour.value !== DEFAULT_REMINDER_HOUR)
+
+async function saveReminderIfChanged() {
+  if (!reminderChanged.value) return
+  // Never blocks the onboarding: Configurações is the fallback
+  await runAction(() => $api('/settings', {
+    method: 'PUT',
+    body: { reminder_enabled: reminderEnabled.value, reminder_hour: reminderHour.value },
+  }), { error: 'Não conseguimos salvar seu lembrete. Ajuste em Configurações.' })
+}
+
 /** Throws on failure (RF-F4.6): callers only navigate after the flag is saved. */
 async function completeOnboarding(): Promise<true> {
+  await saveReminderIfChanged()
   await $api('/onboarding/complete', { method: 'POST' })
   if (auth.user) auth.user.onboarding_completed = true
   return true

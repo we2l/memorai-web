@@ -189,6 +189,10 @@ export interface UserSettings {
   default_learning_mode?: string
   desired_retention?: number
   error_diary_mode?: 'always' | 'sometimes' | 'never'
+  // Study e-mails (prd-retencao-lembretes F1): hour 6–22, America/Sao_Paulo
+  reminder_enabled?: boolean
+  reminder_hour?: number
+  email_suppressed?: boolean
 }
 
 export interface BacklogStats {

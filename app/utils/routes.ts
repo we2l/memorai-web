@@ -1,5 +1,5 @@
 /** Routes reachable without a session (plus everything under /auth/). */
-export const PUBLIC_ROUTES = ['/', '/entrar', '/criar-conta', '/esqueci-senha', '/redefinir-senha', '/termos', '/privacidade', '/ajuda', '/planos']
+export const PUBLIC_ROUTES = ['/', '/entrar', '/criar-conta', '/esqueci-senha', '/redefinir-senha', '/termos', '/privacidade', '/ajuda', '/planos', '/lembretes/desativado', '/provas/resultado']
 
 export function isPublicRoute(path: string): boolean {
   return PUBLIC_ROUTES.includes(path) || path.startsWith('/auth/')

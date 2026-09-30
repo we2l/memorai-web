@@ -473,6 +473,20 @@ export interface Exam {
   google_calendar_event_id: string | null
   topics: { id: string; name: string }[]
   created_at: string
+  /** "Passou?" (prd-retencao-lembretes F6) */
+  outcome?: ExamOutcome | null
+  outcome_answered_at?: string | null
+}
+
+export type ExamOutcome = 'passed' | 'failed'
+
+/** GET /exams/{id}/outcome-context?t= (public result page) */
+export interface ExamOutcomeContext {
+  id: string
+  title: string
+  exam_date: string
+  outcome: ExamOutcome | null
+  topics: { id: string; name: string }[]
 }
 
 export interface ExamUpcoming {

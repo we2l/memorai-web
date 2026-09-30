@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { X, CalendarPlus, Info } from 'lucide-vue-next'
 
+// Prefill from "Cadastrar nova prova" on the result page (RF-F11)
+const props = defineProps<{ initialTopicIds?: string[] }>()
+
 const emit = defineEmits<{
   close: []
   created: []
@@ -12,7 +15,7 @@ const toast = useToast()
 
 const title = ref('')
 const examDate = ref('')
-const selectedTopicIds = ref<string[]>([])
+const selectedTopicIds = ref<string[]>([...(props.initialTopicIds ?? [])])
 const submitting = ref(false)
 
 // Load topics if not loaded

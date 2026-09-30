@@ -24,6 +24,10 @@ const CSP = [
 
 const SESSION_HINT_SCRIPT = `(function(){var d=document.documentElement;if(['/','/entrar','/criar-conta','/planos','/ajuda'].indexOf(location.pathname.replace(/\\/$/,'')||'/')<0)return;if(!/(?:^|;\\s*)baigi_logged_in=1/.test(document.cookie))return;d.classList.add('baigi-session');setTimeout(function(){d.classList.remove('baigi-session')},4000)})()`
 
+// Public pages opened from study e-mails (prd-retencao-lembretes): online-only like
+// termos/privacidade, so their chunks carry a prefix and stay out of the SW precache.
+const EMAIL_PAGE_CHUNK = /\/pages\/(lembretes\/desativado|provas\/resultado)\.vue/
+
 const SECURITY_HEADERS = {
   'X-Frame-Options': 'DENY',
   'X-Content-Type-Options': 'nosniff',
@@ -50,6 +54,16 @@ export default defineNuxtConfig({
 
   vite: {
     plugins: [tailwindcss()],
+    $client: {
+      build: {
+        rollupOptions: {
+          output: {
+            chunkFileNames: (chunk: { facadeModuleId: string | null }) =>
+              EMAIL_PAGE_CHUNK.test(chunk.facadeModuleId ?? '') ? '_nuxt/email-[hash].js' : '_nuxt/[hash].js',
+          },
+        },
+      },
+    },
     build: {
       // Mascots stay as files (runtime-cached by the SW) instead of base64 inside JS chunks
       assetsInlineLimit: (file: string) => (file.includes('/mascots/') ? false : undefined),
@@ -81,7 +95,7 @@ export default defineNuxtConfig({
       // Images are runtime-cached (below); never precache png/pdf (RF-05)
       globPatterns: ['**/*.{js,css,html,svg,ico,woff2}'],
       // Public/auth HTML only works online anyway (content or login): keep it out of the install download
-      globIgnores: ['termos/**', 'privacidade/**', 'planos/**', 'ajuda/**', 'entrar/**', 'criar-conta/**', 'esqueci-senha/**'],
+      globIgnores: ['termos/**', 'privacidade/**', 'planos/**', 'ajuda/**', 'entrar/**', 'criar-conta/**', 'esqueci-senha/**', '_nuxt/email-*.js'],
       // Heavy on-demand chunks (pdf.js ~330 KB) stay out of the install download;
       // maximumFileSizeToCacheInBytes would fail the build instead of skipping.
       manifestTransforms: [
@@ -133,6 +147,10 @@ export default defineNuxtConfig({
       apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8037/api',
       // Used for /sanctum/csrf-cookie (outside /api)
       apiOrigin,
+      // Result page after the exam (prd-retencao-lembretes RF-F09). Placeholders until defined:
+      // testimonial card is hidden while empty; referral program is Futuro.
+      testimonialUrl: process.env.NUXT_PUBLIC_TESTIMONIAL_URL || '',
+      referralUrl: process.env.NUXT_PUBLIC_REFERRAL_URL || '/criar-conta?ref=placeholder',
     },
   },
 

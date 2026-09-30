@@ -223,8 +223,9 @@ watch(selectedTopicId, async (id) => {
   if (!id) return
   try {
     const { $api } = useNuxtApp()
-    const res = await $api<any>(`/topics/${id}/details`)
-    fetchedWeakCount.value = (res.data?.flashcards ?? []).filter((c: any) => c.lapses > 0).length
+    // weak_count comes aggregated by the API: no need to download the cards (cards_limit=1).
+    const res = await $api<{ data: { weak_count?: number } }>(`/topics/${id}/details`, { params: { cards_limit: 1 } })
+    fetchedWeakCount.value = res.data?.weak_count ?? 0
   } catch {
     fetchedWeakCount.value = 0
   }

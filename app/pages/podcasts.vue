@@ -98,6 +98,19 @@
           </div>
         </div>
       </div>
+
+      <div v-if="store.hasMore" class="flex justify-center mt-2 mb-8">
+        <button
+          type="button"
+          class="btn-secondary inline-flex items-center gap-2"
+          :disabled="store.loadingMore"
+          :aria-busy="store.loadingMore"
+          @click="store.loadMore()"
+        >
+          <Loader2 v-if="store.loadingMore" :size="14" class="animate-spin" aria-hidden="true" />
+          Carregar mais
+        </button>
+      </div>
     </template>
   </div>
 </template>

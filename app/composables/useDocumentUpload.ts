@@ -3,12 +3,16 @@
  * Evita duplicação entre DocumentsInline, cadernos/index e comecar.
  * XHR (para progresso) com cookie de sessão + X-XSRF-TOKEN (ADR-020).
  */
+import type { DocumentAutoGeneration } from '~/types'
+
 export function useDocumentUpload() {
   const toast = useToast()
   const config = useRuntimeConfig()
 
   const uploading = ref(false)
   const uploadProgress = ref(0)
+  // Result of the upload's automatic note generation (null until an upload succeeds)
+  const autoGeneration = ref<(DocumentAutoGeneration & { documentId: string }) | null>(null)
 
   function send(file: File, topicId: string): Promise<XMLHttpRequest> {
     return new Promise((resolve, reject) => {
@@ -34,6 +38,7 @@ export function useDocumentUpload() {
   async function upload(file: File, topicId: string): Promise<boolean> {
     uploading.value = true
     uploadProgress.value = 0
+    autoGeneration.value = null
 
     try {
       await ensureCsrfCookie()
@@ -52,6 +57,12 @@ export function useDocumentUpload() {
         throw new Error(data?.message || 'Erro ao enviar')
       }
 
+      let body: any = null
+      try { body = JSON.parse(xhr.responseText) } catch {}
+      if (body?.data?.id && body?.auto_generation) {
+        autoGeneration.value = { documentId: body.data.id, ...body.auto_generation }
+      }
+
       toast.show('PDF enviado!')
       return true
     } catch (e: any) {
@@ -63,5 +74,5 @@ export function useDocumentUpload() {
     }
   }
 
-  return { upload, uploading, uploadProgress }
+  return { upload, uploading, uploadProgress, autoGeneration }
 }

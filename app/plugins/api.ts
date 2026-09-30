@@ -25,7 +25,13 @@ export default defineNuxtPlugin(() => {
       if (response.status === 402 && import.meta.client) {
         const data = response._data
         window.dispatchEvent(new CustomEvent('feature-limit-reached', {
-          detail: { feature: data?.feature, planRequired: data?.plan_required },
+          detail: {
+            feature: data?.feature,
+            used: data?.used ?? null,
+            limit: data?.limit ?? null,
+            planRequired: data?.plan_required ?? null,
+            resetsAt: data?.resets_at ?? null,
+          },
         }))
       }
       if (response.status === 403 && import.meta.client && response._data?.code === 'email_unverified') {

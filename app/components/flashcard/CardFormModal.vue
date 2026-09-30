@@ -147,7 +147,7 @@ const showAiHint = computed(() =>
 
 function openUpgrade() {
   window.dispatchEvent(new CustomEvent('feature-limit-reached', {
-    detail: { feature: 'Geração de cards com IA', planRequired: 'pro' },
+    detail: { feature: 'cards_ai', planRequired: 'pro' },
   }))
 }
 

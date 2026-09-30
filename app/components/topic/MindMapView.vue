@@ -147,7 +147,7 @@ const activeLevel = ref<'auto' | 'ai'>('auto')
 const showNodeAction = ref(false)
 const selectedNode = ref<MindMapNode | null>(null)
 
-const isPro = computed(() => auth.user?.plan === 'pro' || auth.user?.plan === 'premium')
+const isPro = computed(() => !!auth.user && auth.user.plan !== 'free')
 
 const typeColors: Record<string, string> = {
   conceito: '#6F3FF5',

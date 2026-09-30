@@ -262,7 +262,7 @@
         <p class="text-sm text-gray-500 text-center mb-8">Core ilimitado pra sempre. IA como upgrade natural.</p>
 
         <!-- Toggle -->
-        <div class="flex items-center justify-center gap-4 mb-10">
+        <div v-if="pro?.prices.annual" class="flex items-center justify-center gap-4 mb-10">
           <span class="text-sm font-semibold cursor-pointer" :class="!isAnnual ? 'text-[#1E0A3C]' : 'text-gray-400'" @click="isAnnual = false">Mensal</span>
           <button
             class="relative w-14 h-7 rounded-full transition-colors duration-200"
@@ -277,24 +277,23 @@
           </button>
           <span class="text-sm font-semibold cursor-pointer" :class="isAnnual ? 'text-[#1E0A3C]' : 'text-gray-400'" @click="isAnnual = true">
             Anual
-            <span class="ml-1.5 text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">-20%</span>
+            <span v-if="annualDiscountPercent" class="ml-1.5 text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">-{{ annualDiscountPercent }}%</span>
           </span>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
           <!-- Free -->
           <div class="bg-white rounded-2xl border border-gray-100 shadow-md p-7">
-            <h3 class="text-lg font-bold text-[#1E0A3C] mb-1">Grátis</h3>
-            <p class="text-3xl font-extrabold text-[#1E0A3C] mb-1">R$ 0<span class="text-sm font-normal text-gray-400">/mês</span></p>
-            <p class="text-xs text-gray-400 mb-5">Para sempre</p>
-            <ul class="space-y-2.5 text-sm text-gray-600 mb-8">
+            <h3 class="text-lg font-bold text-[#1E0A3C] mb-1">{{ free?.name ?? 'Grátis' }}</h3>
+            <template v-if="free">
+              <p class="text-3xl font-extrabold text-[#1E0A3C] mb-1">{{ formatPrice(free.prices.monthly?.amount_cents ?? 0) }}<span class="text-sm font-normal text-gray-400">/mês</span></p>
+              <p class="text-xs text-gray-400 mb-5">Para sempre</p>
+            </template>
+            <ul class="space-y-2.5 text-sm text-gray-600 mb-8" :class="{ 'mt-4': !free }">
               <li class="flex items-start gap-2"><span class="text-emerald-500 font-bold">✓</span><span>Flashcards + repetição espaçada ilimitados</span></li>
               <li class="flex items-start gap-2"><span class="text-emerald-500 font-bold">✓</span><span>Notas, cadernos, grafo, agenda de provas</span></li>
               <li class="flex items-start gap-2"><span class="text-emerald-500 font-bold">✓</span><span>Importar do Anki (.apkg)</span></li>
-              <li class="flex items-start gap-2"><span class="text-emerald-500 font-bold">✓</span><span>10 cards com IA/mês</span></li>
-              <li class="flex items-start gap-2"><span class="text-emerald-500 font-bold">✓</span><span>5 conversas com agente/mês</span></li>
-              <li class="flex items-start gap-2"><span class="text-emerald-500 font-bold">✓</span><span>1 simulado/mês</span></li>
-              <li class="flex items-start gap-2"><span class="text-gray-300 font-bold">–</span><span class="text-gray-400">Podcast: prévia 30s</span></li>
+              <li v-for="line in freeLines" :key="line" class="flex items-start gap-2"><span class="text-emerald-500 font-bold">✓</span><span>{{ line }}</span></li>
             </ul>
             <NuxtLink to="/criar-conta" class="block w-full text-center py-3 rounded-xl border-2 border-gray-200 text-sm font-semibold text-gray-700 hover:border-[#6F3FF5] hover:text-[#6F3FF5] transition-all">
               Começar grátis
@@ -306,32 +305,34 @@
             <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#6F3FF5] text-white text-[11px] font-bold px-3.5 py-1 rounded-full shadow-md">
               Mais popular
             </span>
-            <h3 class="text-lg font-bold text-[#6F3FF5] mb-1">Pro</h3>
-            <div class="mb-1">
-              <p class="text-3xl font-extrabold text-[#1E0A3C] inline">
-                R$ {{ isAnnual ? '23,99' : '29,90' }}
+            <h3 class="text-lg font-bold text-[#6F3FF5] mb-1">{{ pro?.name ?? 'Pro' }}</h3>
+            <template v-if="pro?.prices.monthly">
+              <div class="mb-1">
+                <p class="text-3xl font-extrabold text-[#1E0A3C] inline">
+                  {{ formatPrice(isAnnual && pro.prices.annual ? pro.prices.annual.monthly_equivalent_cents ?? 0 : pro.prices.monthly.amount_cents) }}
+                </p>
+                <span class="text-sm font-normal text-gray-400">/mês</span>
+              </div>
+              <p v-if="isAnnual && pro.prices.annual" class="text-xs text-gray-400 mb-5">
+                {{ formatPrice(pro.prices.annual.amount_cents) }} cobrado anualmente
+                <span v-if="pro.prices.annual.savings_cents" class="text-emerald-600 font-semibold">(economize {{ formatPrice(pro.prices.annual.savings_cents) }})</span>
               </p>
-              <span class="text-sm font-normal text-gray-400">/mês</span>
-            </div>
-            <p v-if="isAnnual" class="text-xs text-gray-400 mb-5">
-              R$287,90 cobrado anualmente
-              <span class="text-emerald-600 font-semibold">(economize R$71)</span>
-            </p>
-            <p v-else class="text-xs text-gray-400 mb-5">Cancele quando quiser</p>
-            <ul class="space-y-2.5 text-sm text-gray-600 mb-8">
-              <li class="flex items-start gap-2"><span class="text-emerald-500 font-bold">✓</span><span>Tudo do Grátis, sem limites</span></li>
-              <li class="flex items-start gap-2"><span class="text-[#6F3FF5] font-bold">∞</span><span>Cards com IA <strong>ilimitado</strong></span></li>
-              <li class="flex items-start gap-2"><span class="text-[#6F3FF5] font-bold">∞</span><span>Agente tira-dúvidas <strong>ilimitado</strong></span></li>
-              <li class="flex items-start gap-2"><span class="text-[#6F3FF5] font-bold">∞</span><span>Simulados ilimitados (com dissertativa)</span></li>
-              <li class="flex items-start gap-2"><span class="text-emerald-500 font-bold">✓</span><span>30 PDFs processados/mês</span></li>
-              <li class="flex items-start gap-2"><span class="text-emerald-500 font-bold">✓</span><span>10 podcasts completos/mês</span></li>
-              <li class="flex items-start gap-2"><span class="text-emerald-500 font-bold">✓</span><span>Mapa mental com IA</span></li>
+              <p v-else class="text-xs text-gray-400 mb-5">Cancele quando quiser</p>
+            </template>
+            <ul class="space-y-2.5 text-sm text-gray-600 mb-8" :class="{ 'mt-4': !pro }">
+              <li class="flex items-start gap-2"><span class="text-emerald-500 font-bold">✓</span><span>Tudo do Grátis, com mais IA</span></li>
+              <li v-for="line in proLines" :key="line" class="flex items-start gap-2"><span class="text-[#6F3FF5] font-bold">✓</span><span>{{ line }}</span></li>
             </ul>
             <NuxtLink to="/criar-conta" class="block w-full text-center py-3.5 rounded-xl bg-[#6F3FF5] hover:bg-[#5A2EE6] text-white text-sm font-semibold shadow-[0_4px_12px_rgba(111,63,245,0.3)] hover:shadow-[0_6px_16px_rgba(111,63,245,0.4)] transition-all">
               Assinar Pro
             </NuxtLink>
           </div>
         </div>
+
+        <!-- Catalog unavailable (prerender/offline): no numbers, only the way to the details (RN-01) -->
+        <p v-if="!catalog" class="text-center text-sm mt-6">
+          <NuxtLink to="/planos" class="font-semibold text-[#6F3FF5] hover:underline">Ver detalhes dos planos</NuxtLink>
+        </p>
       </div>
     </section>
 
@@ -434,6 +435,19 @@ useHead({
 })
 
 const isAnnual = ref(false)
+
+// Pricing block comes only from GET /api/plans (RN-01)
+const { plans: catalog, fetchPlans, limitOf, formatPrice, benefitLines } = usePlans()
+const free = computed(() => limitOf('free'))
+const pro = computed(() => limitOf('pro'))
+const freeLines = computed(() => benefitLines('free'))
+const proLines = computed(() => benefitLines('pro'))
+const annualDiscountPercent = computed(() => {
+  const monthly = pro.value?.prices.monthly?.amount_cents
+  const savings = pro.value?.prices.annual?.savings_cents
+  return monthly && savings ? Math.round((savings / (monthly * 12)) * 100) : null
+})
+onMounted(() => { fetchPlans() })
 const activeTab = ref<'graph' | 'mindmap'>('graph')
 const showDemoModal = ref(false)
 

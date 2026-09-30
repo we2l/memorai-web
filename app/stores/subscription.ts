@@ -25,15 +25,6 @@ export const useSubscriptionStore = defineStore('subscription', {
       window.location.href = res.checkout_url
     },
 
-    async checkoutAddon(addon: string) {
-      const { $api } = useNuxtApp()
-      const res = await $api<{ checkout_url: string }>('/checkout/addon', {
-        method: 'POST',
-        body: { addon },
-      })
-      window.location.href = res.checkout_url
-    },
-
     async openPortal() {
       const { $api } = useNuxtApp()
       const res = await $api<{ portal_url: string }>('/checkout/portal', {

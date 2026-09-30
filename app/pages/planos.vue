@@ -6,7 +6,7 @@
       <p class="text-base-muted text-small">Core grátis pra sempre. Pague só pela IA que acelera seus estudos.</p>
 
       <!-- Billing toggle -->
-      <div class="flex items-center justify-center gap-3 mt-5">
+      <div v-if="pro?.prices.annual" class="flex items-center justify-center gap-3 mt-5">
         <span :class="!isYearly ? 'text-base-primary font-medium' : 'text-base-muted'" class="text-small">Mensal</span>
         <button
           class="relative w-12 h-6 rounded-full transition-colors"
@@ -21,8 +21,8 @@
         </button>
         <span :class="isYearly ? 'text-base-primary font-medium' : 'text-base-muted'" class="text-small">
           Anual
-          <span class="inline-block ml-1 text-micro bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 px-1.5 py-0.5 rounded-full font-medium">
-            Economize R$71
+          <span v-if="pro.prices.annual.savings_cents" class="inline-block ml-1 text-micro bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 px-1.5 py-0.5 rounded-full font-medium">
+            Economize {{ formatPrice(pro.prices.annual.savings_cents) }}
           </span>
         </span>
       </div>
@@ -32,8 +32,8 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5 mb-10">
       <!-- Free -->
       <div class="card p-6 flex flex-col">
-        <p class="text-label uppercase tracking-wide mb-1">Grátis</p>
-        <p class="text-3xl font-bold text-base-primary mb-1">R$0</p>
+        <p class="text-label uppercase tracking-wide mb-1">{{ free?.name ?? 'Grátis' }}</p>
+        <p v-if="free" class="text-3xl font-bold text-base-primary mb-1">{{ formatPrice(free.prices.monthly?.amount_cents ?? 0) }}</p>
         <p class="text-micro text-base-muted mb-6">Para sempre</p>
 
         <button
@@ -50,11 +50,7 @@
           <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> Notas, cadernos e grafo</li>
           <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> Importar Anki</li>
           <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> Upload de PDFs</li>
-          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> 10 cards IA/mês</li>
-          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> 5 tira-dúvidas/mês</li>
-          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> 1 simulado/mês (10 questões)</li>
-          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> 1 PDF processado/mês (100 pág)</li>
-          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> Podcast: prévia 30s</li>
+          <li v-for="line in freeLines" :key="line" class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> {{ line }}</li>
         </ul>
       </div>
 
@@ -66,19 +62,14 @@
           </span>
         </div>
 
-        <p class="text-label uppercase tracking-wide mb-1 text-accent-primary">Pro</p>
-        <p class="text-3xl font-bold text-base-primary mb-1">
-          <template v-if="isYearly">
-            R$23<span class="text-lg">,99</span>
-          </template>
-          <template v-else>
-            R$29<span class="text-lg">,90</span>
-          </template>
+        <p class="text-label uppercase tracking-wide mb-1 text-accent-primary">{{ pro?.name ?? 'Pro' }}</p>
+        <p v-if="pro?.prices.monthly" class="text-3xl font-bold text-base-primary mb-1">
+          {{ formatPrice(isYearly && pro.prices.annual ? pro.prices.annual.monthly_equivalent_cents ?? 0 : pro.prices.monthly.amount_cents) }}
           <span class="text-small font-normal text-base-muted">/mês</span>
         </p>
         <p class="text-micro text-base-muted mb-6">
-          <template v-if="isYearly">R$287,90/ano · Sem limites. Sem interrupções.</template>
-          <template v-else>Sem limites. Sem interrupções.</template>
+          <template v-if="isYearly && pro?.prices.annual">{{ pro.prices.annual.label }} · Mais IA, sem interrupções.</template>
+          <template v-else>Mais IA, sem interrupções.</template>
         </p>
 
         <button
@@ -99,12 +90,7 @@
 
         <ul class="space-y-3 text-small">
           <li class="flex gap-2.5 font-medium text-base-primary"><Zap :size="16" class="text-accent-primary shrink-0 mt-0.5" /> Tudo do Grátis, mais:</li>
-          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> Cards com IA <strong>ilimitado</strong></li>
-          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> Tira-dúvidas <strong>ilimitado</strong></li>
-          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> Simulados <strong>ilimitados</strong> (com dissertativa)</li>
-          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> 20 PDFs processados/mês (até 500 pág)</li>
-          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> 5 podcasts/mês (até ~15 min)</li>
-          <li class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> Mapa mental IA</li>
+          <li v-for="line in proLines" :key="line" class="flex gap-2.5"><Check :size="16" class="text-green-500 shrink-0 mt-0.5" /> {{ line }}</li>
         </ul>
       </div>
     </div>
@@ -134,6 +120,13 @@ const loading = ref(false)
 const isYearly = ref(false)
 const currentPlan = computed(() => auth.user?.plan || 'free')
 
+// Limits and prices come only from GET /api/plans (RN-01)
+const { fetchPlans, limitOf, formatPrice, benefitLines } = usePlans()
+const free = computed(() => limitOf('free'))
+const pro = computed(() => limitOf('pro'))
+const freeLines = computed(() => benefitLines('free'))
+const proLines = computed(() => benefitLines('pro'))
+
 async function subscribe() {
   loading.value = true
   try {
@@ -146,6 +139,7 @@ async function subscribe() {
 }
 
 onMounted(async () => {
+  fetchPlans()
   await subscription.fetchStatus().catch(() => {})
 
   try {

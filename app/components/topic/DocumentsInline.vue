@@ -125,6 +125,21 @@
             <span>Processando...</span>
           </div>
 
+          <!-- Upload succeeded but the automatic note was not started (RF-63) -->
+          <div v-else-if="blockedDocs[doc.id]" class="px-3 py-2 rounded-lg bg-surface-secondary border border-base">
+            <template v-if="blockedDocs[doc.id] === 'feature_limit'">
+              <p class="text-small text-base-primary mb-1.5">Nota não gerada: limite do mês.</p>
+              <button class="text-small text-accent-primary font-medium hover:underline" @click="openNoteUpgrade">Ver o que o Pro libera</button>
+            </template>
+            <p v-else-if="blockedDocs[doc.id] === 'pages_cap'" class="text-small text-base-secondary">
+              Limite de leitura da IA atingido este mês. Agente e flashcards continuam funcionando normalmente.
+            </p>
+            <template v-else>
+              <p class="text-small text-base-primary mb-1.5">Outra nota está sendo gerada; gere esta quando terminar.</p>
+              <button class="text-small text-accent-primary font-medium hover:underline" @click="openGenerateNote(doc)">Gerar nota</button>
+            </template>
+          </div>
+
           <!-- Default: waiting for auto-generation -->
           <div v-else class="flex items-center gap-2 text-small text-base-muted">
             <Loader2 :size="14" class="animate-spin text-accent-primary" />
@@ -214,7 +229,7 @@
 
 <script setup lang="ts">
 import { Upload, FileText, Loader2, CheckCircle, XCircle, Sparkles, Lock, Trash2 } from 'lucide-vue-next'
-import type { Document } from '~/types'
+import type { Document, DocumentAutoGeneration } from '~/types'
 
 const props = defineProps<{ topicId: string; topicLearningMode?: string | null }>()
 const emit = defineEmits<{
@@ -241,13 +256,21 @@ const showPaywall = computed(() =>
 
 function openUpgrade() {
   window.dispatchEvent(new CustomEvent('feature-limit-reached', {
-    detail: { feature: 'Geração de cards com IA', planRequired: 'pro' },
+    detail: { feature: 'cards_ai', planRequired: 'pro' },
   }))
 }
 
 const docUpload = useDocumentUpload()
 const uploading = docUpload.uploading
 const uploadProgress = docUpload.uploadProgress
+// Documents whose automatic note was blocked on upload, by reason
+const blockedDocs = ref<Record<string, NonNullable<DocumentAutoGeneration['blocked_reason']>>>({})
+
+function openNoteUpgrade() {
+  window.dispatchEvent(new CustomEvent('feature-limit-reached', {
+    detail: { feature: 'pdf_to_note', planRequired: 'pro' },
+  }))
+}
 const completedDoc = ref<Document | null>(null)
 const dismissedLanguageBanners = ref(new Set<string>())
 
@@ -264,7 +287,7 @@ async function regenerateNote(doc: Document) {
     await docStore.fetchForTopic(props.topicId, true)
     docStore.startPolling()
   } catch (e: any) {
-    toast.show(e?.data?.message || 'Erro ao re-gerar.', 'error')
+    if (e?.response?.status !== 402) toast.show(e?.data?.message || 'Erro ao re-gerar.', 'error')
   } finally {
     regeneratingDoc.value = null
   }
@@ -404,6 +427,10 @@ async function onUploadModalConfirm(data: { learning_mode: string; target_langua
 
 async function doUpload(file: File) {
   const success = await docUpload.upload(file, props.topicId)
+  const auto = docUpload.autoGeneration.value
+  if (success && auto && !auto.dispatched && auto.blocked_reason) {
+    blockedDocs.value = { ...blockedDocs.value, [auto.documentId]: auto.blocked_reason }
+  }
   if (success) await docStore.fetchForTopic(props.topicId, true)
 }
 

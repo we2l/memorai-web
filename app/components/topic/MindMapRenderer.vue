@@ -7,8 +7,8 @@
       class="absolute bottom-3 right-3 p-2 rounded-lg bg-[var(--bg-card)] border border-base shadow text-base-muted hover:text-base-primary transition-colors"
       title="Centralizar"
       @click="handleFit"
-    >
-      <Maximize2 :size="16" />
+     aria-label="Centralizar">
+      <Maximize2 :size="16" aria-hidden="true" />
     </button>
   </div>
 </template>

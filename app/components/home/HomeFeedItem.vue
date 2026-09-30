@@ -31,12 +31,12 @@ defineProps<{
   padding: 10px 12px;
   border-radius: 10px;
   transition: background 150ms ease-out;
-  background: var(--bg-card, #FFFFFF);
+  background: var(--bg-card);
   border: 1px solid transparent;
 }
 .event:hover {
-  background: color-mix(in srgb, var(--color-primary-500) 3%, var(--bg-card, #FFFFFF));
-  border-color: #E8E2F4;
+  background: color-mix(in srgb, var(--color-primary-500) 3%, var(--bg-card));
+  border-color: var(--border-base);
 }
 .dark .event:hover {
   border-color: color-mix(in srgb, var(--color-accent-primary) 10%, var(--border-base));
@@ -51,7 +51,7 @@ defineProps<{
   align-items: center;
   justify-content: center;
   border-radius: 8px;
-  background: #F6F3FC;
+  background: var(--bg-soft);
 }
 .dark .event__icon {
   background: color-mix(in srgb, var(--color-accent-primary) 8%, var(--bg-soft));

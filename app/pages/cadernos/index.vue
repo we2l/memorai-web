@@ -13,11 +13,11 @@
         <div class="flex items-center justify-between mb-3">
           <h2 class="text-sm font-semibold text-base-primary">Cadernos</h2>
           <div class="flex items-center gap-1">
-            <button class="p-1 rounded-lg text-base-muted hover:text-base-primary hover:bg-surface-secondary transition-colors lg:hidden" title="Fechar" @click="sidebarOpen = false">
-              <X :size="16" />
+            <button class="p-1 rounded-lg text-base-muted hover:text-base-primary hover:bg-surface-secondary transition-colors lg:hidden" title="Fechar" @click="sidebarOpen = false" aria-label="Fechar">
+              <X :size="16" aria-hidden="true" />
             </button>
-            <button class="p-1 rounded-lg text-base-muted hover:text-base-primary hover:bg-surface-secondary transition-colors max-lg:hidden" title="Recolher painel" @click="sidebarCollapsed = true">
-              <PanelLeftClose :size="16" />
+            <button class="p-1 rounded-lg text-base-muted hover:text-base-primary hover:bg-surface-secondary transition-colors max-lg:hidden" title="Recolher painel" @click="sidebarCollapsed = true" aria-label="Recolher painel">
+              <PanelLeftClose :size="16" aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -58,15 +58,19 @@
             <button
               v-if="searchQuery"
               class="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded text-base-muted hover:text-base-primary"
+              aria-label="Limpar busca"
               @click="searchQuery = ''"
             >
-              <X :size="12" />
+              <X :size="12" aria-hidden="true" />
             </button>
           </div>
         </div>
 
-        <div v-if="topicStore.loading" class="space-y-2 p-2">
+        <div v-if="topicStore.loading && !topicStore.tree.length" class="space-y-2 p-2">
           <div v-for="i in 4" :key="i" class="skeleton h-8 rounded" />
+        </div>
+        <div v-else-if="topicStore.error && !topicStore.tree.length" class="p-2">
+          <UiErrorState title="Não foi possível carregar seus cadernos" @retry="topicStore.fetchTree()" />
         </div>
         <TopicTree
           v-else
@@ -124,14 +128,15 @@
               @note-ready="noteStore.fetchForTopic(selectedTopicId!)"
               @generate-cards="() => cardWorkshop.generate('notes')"
               @structure-ready="topicStore.fetchTree()"
+              @view-cards="activeTab = 'cards'"
             />
           </template>
           <template #generating-banner>
             <div v-if="noteIsGenerating" class="px-6 py-3 bg-accent-primary-subtle/20 border-b border-[var(--color-accent-primary)]/10 flex items-center gap-3">
               <div class="w-4 h-4 border-2 border-[var(--color-accent-primary)] border-t-transparent rounded-full animate-spin shrink-0" />
               <div class="flex-1">
-                <p class="text-small text-base-primary">Gerando material... O conteudo aparece conforme fica pronto.</p>
-                <p class="text-micro text-base-muted">Edicao liberada ao finalizar.</p>
+                <p class="text-small text-base-primary">Gerando material... O conteúdo aparece conforme fica pronto.</p>
+                <p class="text-micro text-base-muted">Edição liberada ao finalizar.</p>
               </div>
             </div>
           </template>
@@ -187,16 +192,16 @@
                   class="btn-secondary !p-1.5 !min-h-[2.75rem] shrink-0 lg:hidden"
                   title="Ver cadernos"
                   @click="sidebarOpen = true"
-                >
-                  <PanelLeftOpen :size="16" />
+                 aria-label="Ver cadernos">
+                  <PanelLeftOpen :size="16" aria-hidden="true" />
                 </button>
                 <button
                   v-if="sidebarCollapsed"
                   class="btn-secondary !p-1.5 !min-h-[2.75rem] shrink-0 max-lg:hidden"
                   title="Expandir cadernos"
                   @click="sidebarCollapsed = false"
-                >
-                  <PanelLeftOpen :size="16" />
+                 aria-label="Expandir cadernos">
+                  <PanelLeftOpen :size="16" aria-hidden="true" />
                 </button>
                 <div class="min-w-0">
                   <h1 class="font-heading font-bold text-3xl text-base-primary truncate">{{ selectedTopicName }}</h1>
@@ -212,9 +217,9 @@
                   Revisar {{ pendingCount }} cards
                 </NuxtLink>
                 <button v-else-if="topicCards.length === 0 && noteStore.notes.length > 0" class="btn-primary !py-3 !px-6 !text-base font-semibold" @click="cardWorkshop.generate('notes')">
-                  Transformar em flashcards
+                  Gerar cards
                 </button>
-                <span v-else-if="topicCards.length > 0" class="text-small text-emerald-500 font-medium">Tudo em dia ✓</span>
+                <span v-else-if="topicCards.length > 0" class="text-small text-[var(--badge-success-text)] font-medium">Tudo em dia ✓</span>
               </div>
             </div>
 
@@ -277,14 +282,14 @@
               <div class="inline-flex rounded-lg border border-base p-0.5 bg-surface-secondary">
                 <button
                   class="px-3 py-1.5 text-small rounded-md transition-colors flex items-center gap-1.5"
-                  :class="mapSubView === 'graph' ? 'bg-[var(--bg-card)] shadow text-[var(--color-accent-soft)] font-medium' : 'text-base-muted hover:text-base-primary'"
+                  :class="mapSubView === 'graph' ? 'bg-[var(--bg-card)] shadow text-[var(--badge-primary-text)] font-medium' : 'text-base-muted hover:text-base-primary'"
                   @click="mapSubView = 'graph'"
                 >
                   <Link2 :size="14" /> Cadernos
                 </button>
                 <button
                   class="px-3 py-1.5 text-small rounded-md transition-colors flex items-center gap-1.5"
-                  :class="mapSubView === 'mindmap' ? 'bg-[var(--bg-card)] shadow text-[var(--color-accent-soft)] font-medium' : 'text-base-muted hover:text-base-primary'"
+                  :class="mapSubView === 'mindmap' ? 'bg-[var(--bg-card)] shadow text-[var(--badge-primary-text)] font-medium' : 'text-base-muted hover:text-base-primary'"
                   @click="mapSubView = 'mindmap'"
                 >
                   <Brain :size="14" /> Mapa Mental
@@ -308,6 +313,9 @@
 
           <!-- Tab: Material (list only, no editor here) -->
           <div v-if="activeTab === 'notes'" class="tab-fade-in">
+          <div v-if="noteStore.error && !noteStore.notes.length" class="px-4 pt-4">
+            <UiErrorState title="Não foi possível carregar o material" @retry="noteStore.fetchForTopic(selectedTopicId!)" />
+          </div>
           <TopicHubNotesTab
             :notes="noteStore.notes"
             :active-note="null"
@@ -337,6 +345,7 @@
                 @note-ready="noteStore.fetchForTopic(selectedTopicId!)"
                 @generate-cards="() => cardWorkshop.generate('notes')"
                 @structure-ready="topicStore.fetchTree()"
+              @view-cards="activeTab = 'cards'"
               />
             </template>
           </TopicHubNotesTab>
@@ -409,8 +418,17 @@
         <div v-if="importingInSelectedTopic" class="w-full max-w-md px-5 py-4 rounded-xl bg-[var(--bg-card)] border border-base shadow-sm text-center">
           <div class="w-5 h-5 border-2 border-[var(--color-accent-primary)] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
           <p class="text-body text-base-primary font-medium">Gerando material de estudo...</p>
-          <p class="text-micro text-base-muted mt-2">A IA esta lendo o PDF e criando o resumo.</p>
+          <p class="text-micro text-base-muted mt-2">A IA está lendo o PDF e criando o resumo.</p>
         </div>
+
+        <!-- 0 cadernos: nothing to select, offer the first steps (RF-F6.3) -->
+        <TopicEmptyStateOnboarding
+          v-else-if="!topicStore.loading && !topicStore.error && topicStore.tree.length === 0"
+          mode="no-notebooks"
+          @create="openCreate(null)"
+          @upload-pdf="showImportUploadModal = true"
+          @import-anki="navigateTo('/importar')"
+        />
 
         <template v-else>
           <button
@@ -432,9 +450,9 @@
     </main>
 
     <!-- Mobile: sticky bottom review button -->
-    <div v-if="selectedTopicId && dueCardsCount > 0" class="lg:hidden fixed bottom-16 left-0 right-0 p-3 bg-[var(--bg-card)]/95 backdrop-blur-md border-t border-base z-30 flex gap-2">
+    <div v-if="showStickyReview" class="lg:hidden fixed left-0 right-0 p-3 bg-[var(--bg-card)]/95 backdrop-blur-md border-t border-base z-30 flex gap-2" style="bottom: calc(var(--nav-h) + var(--miniplayer-h));">
       <NuxtLink :to="`/revisar?mode=blitz&topic_id=${selectedTopicId}`" class="btn-secondary flex-none justify-center !py-2.5 !px-3 inline-flex items-center gap-1">
-        <Zap :size="14" /> Rápida
+        <Zap :size="14" aria-hidden="true" /> Relâmpago
       </NuxtLink>
       <NuxtLink :to="`/revisar?topic_id=${selectedTopicId}`" class="btn-primary flex-1 justify-center">
         Revisar {{ dueCardsCount }} card{{ dueCardsCount !== 1 ? 's' : '' }}
@@ -551,9 +569,10 @@
 
     <UiConfirmModal
       v-model="showDeleteTopic"
-      title="Deletar?"
-      message="Conteúdo e notas serão deletados. Cards vinculados serão removidos."
-      confirm-label="Deletar"
+      :title="deleteTarget ? `Excluir '${deleteTarget.name}'?` : 'Excluir?'"
+      :message="deleteSummary"
+      confirm-label="Excluir"
+      :require-text="deleteRequiresName ? deleteTarget?.name : undefined"
       @confirm="handleDeleteTopic"
     />
 
@@ -621,6 +640,7 @@ const topicStore = useTopicStore()
 const noteStore = useNoteStore()
 const toast = useToast()
 const route = useRoute()
+const router = useRouter()
 const { $api } = useNuxtApp()
 const featureUsage = useFeatureUsage()
 const auth = useAuthStore()
@@ -634,6 +654,8 @@ const mapSubView = ref<'graph' | 'mindmap'>(
 )
 const searchQuery = ref('')
 const { topicCards, showDeleteCard, deleteCardId, memorizeProgress, dueCardsCount, newCardsCount, pendingCount, setCards, listMode, listCards, hasMorePages, loadingPage, totalCards, loadNextPage, searchCards, cardsFromNote, confirmDeleteCard, handleDeleteCard } = useTopicCards()
+const showStickyReview = computed(() => !!selectedTopicId.value && dueCardsCount.value > 0)
+useStickyActionHeight(showStickyReview)
 
 // Confetti when pending goes from >0 to 0
 const showConfetti = ref(false)
@@ -854,7 +876,16 @@ const filteredTree = computed(() => {
 const headerRef = ref<HTMLElement>()
 const showStickyHeader = ref(false)
 
-function selectTopic(id: string) {
+/**
+ * The URL reflects the caderno (RF-F6.2): user selection pushes history, automatic
+ * selection replaces it, and back/forward ('none') only syncs the state.
+ */
+function selectTopic(id: string, history: 'push' | 'replace' | 'none' = 'push') {
+  if (history !== 'none' && route.query.topic !== id) {
+    const query = { ...route.query, topic: id, note: undefined, tab: undefined }
+    if (history === 'push') router.push({ query })
+    else router.replace({ query })
+  }
   flushPendingSave()
   closeEditor()
   noteImprove.reset()
@@ -911,7 +942,10 @@ async function loadTopicData(id: string) {
         setTimeout(() => { highlightCardId.value = '' }, 3000)
       }, 300)
     }
-  } catch {}
+  } catch (e) {
+    // Selection restore is best-effort (RF-F3b: S)
+    reportApiError(e, { silent: true })
+  }
 }
 
 function openCreate(parentId: string | null) {
@@ -991,11 +1025,13 @@ async function onImportModalConfirm(data: { learning_mode: string; target_langua
 }
 
 // Handle file selected from StartCard — upload PDF to current topic
+const startCardUpload = useDocumentUpload()
+
 async function handleStartCardFile(file: File) {
   if (!selectedTopicId.value) return
-  const maxSize = (auth.user?.plan === 'pro' ? 100 : 50) * 1024 * 1024
-  if (file.size > maxSize) { toast.show(`Máximo ${auth.user?.plan === 'pro' ? '100' : '50'}MB`, 'error'); return }
-  if (!file.name.endsWith('.pdf')) { toast.show('Apenas PDF', 'error'); return }
+  // Type and size are validated against GET /api/plans (RN-UX-06: no hardcoded limits)
+  const invalid = await startCardUpload.validate(file)
+  if (invalid) { toast.show(invalid, 'error'); return }
 
   // If topic has no learning mode, open upload modal (user re-selects file there)
   if (!selectedTopicLearningMode.value) {
@@ -1003,9 +1039,8 @@ async function handleStartCardFile(file: File) {
     return
   }
 
-  const { upload } = useDocumentUpload()
-  const success = await upload(file, selectedTopicId.value)
-  if (success) await docStore.fetchForTopic(selectedTopicId.value, true)
+  const result = await startCardUpload.upload(file, { topicId: selectedTopicId.value, autoCards: readAutoCardsPref() })
+  if (result) await docStore.fetchForTopic(selectedTopicId.value, true)
 }
 
 const editTopicIsRoot = ref(false)
@@ -1018,8 +1053,32 @@ function openEdit(topic: Topic) {
   showEditTopic.value = true
 }
 
+const deleteTarget = ref<Topic | null>(null)
+
+function subtreeTotals(topic: Topic): { notes: number; cards: number } {
+  return (topic.children ?? []).reduce((acc, c) => {
+    const sub = subtreeTotals(c)
+    return { notes: acc.notes + sub.notes, cards: acc.cards + sub.cards }
+  }, { notes: topic.notes_count ?? 0, cards: topic.flashcards_count ?? 0 })
+}
+
+const deleteSummary = computed(() => {
+  const t = deleteTarget.value
+  if (!t) return ''
+  const { notes, cards } = subtreeTotals(t)
+  const pdfs = t.id === selectedTopicId.value ? docStore.documents.length : null
+  const parts = [`${notes} nota${notes !== 1 ? 's' : ''}`, `${cards} card${cards !== 1 ? 's' : ''}`]
+  if (pdfs !== null) parts.push(`${pdfs} PDF${pdfs !== 1 ? 's' : ''}`)
+  const last = parts.pop()
+  return `${parts.join(', ')} e ${last} serão excluídos. Você terá 10 segundos para desfazer.`
+})
+
+// Root cadernos with ≥ 50 cards require typing the name (RN-UX-08)
+const deleteRequiresName = computed(() => !!deleteTarget.value && !deleteTarget.value.parent_id && subtreeTotals(deleteTarget.value).cards >= 50)
+
 function openDelete(topic: Topic) {
   deleteTopicId.value = topic.id
+  deleteTarget.value = topic
   showDeleteTopic.value = true
 }
 
@@ -1055,13 +1114,46 @@ async function handleEditTopic() {
   toast.show('Salvo!', 'success')
 }
 
-async function handleDeleteTopic() {
-  if (!deleteTopicId.value) return
-  await topicStore.remove(deleteTopicId.value)
-  if (selectedTopicId.value === deleteTopicId.value) selectedTopicId.value = null
+/** Optimistic, deferred 10 s with "Desfazer" (RF-F6.4). */
+function handleDeleteTopic() {
+  const topic = deleteTarget.value
+  if (!topic) return
   showDeleteTopic.value = false
-  toast.show('Deletado.', 'success')
+  const wasSelected = selectedTopicId.value === topic.id
+  topicStore.scheduleRemove(topic)
+  if (wasSelected) {
+    selectedTopicId.value = null
+    router.replace({ query: { ...route.query, topic: undefined, note: undefined } })
+  }
+  toast.show(`"${topic.name}" excluído`, 'success', {
+    duration: 10_000,
+    action: {
+      label: 'Desfazer',
+      onClick: () => {
+        if (topicStore.cancelRemove(topic.id) && wasSelected) selectTopic(topic.id, 'replace')
+      },
+    },
+  })
 }
+
+onBeforeRouteLeave(() => { void topicStore.flushRemoves() })
+
+// Back/forward between cadernos
+watch(() => route.query.topic, (id) => {
+  if (typeof id === 'string' && id && id !== selectedTopicId.value && topicStore.findById(id)) selectTopic(id, 'none')
+})
+// Note and tab are part of the URL too (replace: no history spam)
+watch(() => editingNote.value?.id, (id) => {
+  if (!selectedTopicId.value || route.query.note === (id ?? undefined)) return
+  router.replace({ query: { ...route.query, note: id ?? undefined } })
+})
+watch(activeTab, (tab) => {
+  if (!selectedTopicId.value || route.query.tab === tab) return
+  router.replace({ query: { ...route.query, tab: tab === 'notes' ? undefined : tab } })
+})
+function onPageHide() { void topicStore.flushRemoves() }
+onMounted(() => window.addEventListener('pagehide', onPageHide))
+onUnmounted(() => window.removeEventListener('pagehide', onPageHide))
 
 function getEditorHtml(): string {
   // Get HTML from the Tiptap editor DOM
@@ -1140,12 +1232,15 @@ onMounted(async () => {
         color: tp.color,
       }
     }
-  } catch {}
+  } catch (e) {
+    // Progress is decorative (RF-F3.9)
+    reportApiError(e, { silent: true })
+  }
   if (route.query.view === 'graph') {
     showGraph.value = true
   }
   if (route.query.topic) {
-    selectTopic(route.query.topic as string)
+    selectTopic(route.query.topic as string, 'none')
     if (route.query.note) {
       // Wait for notes to load, then select
       const noteId = route.query.note as string
@@ -1158,8 +1253,8 @@ onMounted(async () => {
       }, { immediate: true })
     }
   } else if (topicStore.tree.length) {
-    // Auto-select first topic
-    selectTopic(topicStore.tree[0].id)
+    // Auto-select first topic (replace: not a user navigation)
+    selectTopic(topicStore.tree[0]!.id, 'replace')
   }
 
   // Sticky header observer

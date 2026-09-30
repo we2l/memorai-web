@@ -14,7 +14,7 @@
         :class="{ active: btn.active?.() }"
         :title="btn.label"
         @mousedown.prevent="btn.action"
-      >
+       :aria-label="btn.label">
         <component :is="btn.icon" :size="16" />
       </button>
       <span class="bubble-separator" />
@@ -35,10 +35,10 @@
       <button
         v-if="topicId"
         class="bubble-action"
-        title="Transformar em matéria"
+        title="Transformar em tópico"
         @mousedown.prevent="createSubpageFromSelection"
       >
-        <FolderOpen :size="12" class="inline" /> Matéria
+        <FolderOpen :size="12" class="inline" aria-hidden="true" /> Tópico
       </button>
     </div>
 
@@ -205,7 +205,7 @@ const slashItems = [
   { label: 'Erro', description: 'Bloco de erro comum', icon: AlertTriangle, command: (e: any) => e.chain().focus().setCallout('error').run() },
   { label: 'Insight', description: 'Algo que aprendi', icon: Lightbulb, command: (e: any) => e.chain().focus().setCallout('insight').run() },
   { label: 'Pegadinha', description: 'Atenção — pegadinha!', icon: ShieldAlert, command: (e: any) => e.chain().focus().setCallout('gotcha').run() },
-  { label: 'Matéria', description: 'Criar ou acessar subcaderno', icon: FolderOpen, command: () => openSubpageDropdown() },
+  { label: 'Tópico', description: 'Criar ou abrir um tópico', icon: FolderOpen, command: () => openSubpageDropdown() },
 ]
 
 const filteredSlashItems = computed(() => {
@@ -462,7 +462,7 @@ onBeforeUnmount(() => {
 .prose-notion .tiptap {
   outline: none;
   line-height: 1.7;
-  color: var(--color-text-body, #50597A);
+  color: var(--text-body);
 }
 
 .prose-notion .tiptap > *:first-child {
@@ -479,7 +479,7 @@ onBeforeUnmount(() => {
 .prose-notion .tiptap h1 {
   font-size: 2rem;
   font-weight: 700;
-  color: var(--color-text-heading, #1F2343);
+  color: var(--text-heading);
   margin: 2em 0 0.25em;
   line-height: 1.2;
 }
@@ -487,7 +487,7 @@ onBeforeUnmount(() => {
 .prose-notion .tiptap h2 {
   font-size: 1.75rem;
   font-weight: 600;
-  color: var(--color-text-heading, #1F2343);
+  color: var(--text-heading);
   margin: 1.5em 0 0.25em;
   line-height: 1.25;
 }
@@ -495,7 +495,7 @@ onBeforeUnmount(() => {
 .prose-notion .tiptap h3 {
   font-size: 1.375rem;
   font-weight: 600;
-  color: var(--color-text-heading, #1F2343);
+  color: var(--text-heading);
   margin: 1.25em 0 0.25em;
   line-height: 1.3;
 }
@@ -523,7 +523,7 @@ onBeforeUnmount(() => {
 
 /* Blockquote */
 .prose-notion .tiptap blockquote {
-  border-left: 3px solid var(--color-primary-200, #D8CBFF);
+  border-left: 3px solid var(--color-accent-soft);
   padding-left: 1em;
   margin: 0.75em 0;
   opacity: 0.85;
@@ -532,7 +532,7 @@ onBeforeUnmount(() => {
 /* Horizontal rule */
 .prose-notion .tiptap hr {
   border: none;
-  border-top: 1px solid var(--color-border-divider, #EFF2F8);
+  border-top: 1px solid var(--border-divider);
   margin: 2em 0;
   opacity: 0.6;
 }
@@ -553,34 +553,34 @@ onBeforeUnmount(() => {
 
 .prose-notion .tiptap .callout[data-callout-type="error"] {
   background: rgba(239, 68, 68, 0.08);
-  border-left: 3px solid #EF4444;
+  border-left: 3px solid var(--color-danger);
 }
 
 .prose-notion .tiptap .callout[data-callout-type="insight"] {
   background: rgba(34, 197, 94, 0.08);
-  border-left: 3px solid #22C55E;
+  border-left: 3px solid var(--color-success);
 }
 
 .prose-notion .tiptap .callout[data-callout-type="gotcha"] {
   background: rgba(245, 158, 11, 0.08);
-  border-left: 3px solid #F59E0B;
+  border-left: 3px solid var(--color-warning);
 }
 
 .prose-notion .tiptap .callout[data-callout-type="info"] {
   background: rgba(56, 189, 248, 0.06);
-  border-left: 3px solid #38BDF8;
+  border-left: 3px solid var(--color-info);
 }
 
 /* Link styling */
 .prose-notion .tiptap .notion-link {
-  color: var(--color-primary-500, #6F3FF5);
+  color: var(--color-accent-primary);
   text-decoration: underline;
   text-underline-offset: 2px;
   cursor: pointer;
 }
 
 .prose-notion .tiptap .notion-link:hover {
-  color: var(--color-primary-600, #5A2EE6);
+  color: var(--color-accent-primary-hover);
 }
 
 /* Placeholder */
@@ -589,14 +589,14 @@ onBeforeUnmount(() => {
   float: left;
   pointer-events: none;
   height: 0;
-  color: var(--color-text-muted, #8A90A8);
+  color: var(--text-muted);
   opacity: 0.7;
 }
 
 /* Cloze chips */
 .prose-notion .tiptap .cloze-chip {
-  background: var(--color-primary-50, #F5F2FF);
-  color: var(--color-primary-500, #6F3FF5);
+  background: var(--badge-primary-bg);
+  color: var(--color-accent-primary);
   padding: 0.1em 0.4em;
   border-radius: 4px;
   font-weight: 500;
@@ -610,8 +610,8 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 2px;
   padding: 4px 8px;
-  background: var(--color-bg-card, #FFFFFF);
-  border: 1px solid var(--color-border-base, #E7EAF3);
+  background: var(--bg-card);
+  border: 1px solid var(--border-base);
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(45, 35, 66, 0.12);
   animation: fadeIn 150ms ease;
@@ -629,24 +629,24 @@ onBeforeUnmount(() => {
   width: 28px;
   height: 28px;
   border-radius: 6px;
-  color: var(--color-text-body, #50597A);
+  color: var(--text-body);
   transition: all 150ms;
 }
 
 .bubble-btn:hover {
-  background: var(--color-bg-soft, #F5F6FA);
-  color: var(--color-text-heading, #1F2343);
+  background: var(--bg-soft);
+  color: var(--text-heading);
 }
 
 .bubble-btn.active {
-  background: var(--color-primary-50, #F5F2FF);
-  color: var(--color-primary-500, #6F3FF5);
+  background: var(--badge-primary-bg);
+  color: var(--color-accent-primary);
 }
 
 .bubble-separator {
   width: 1px;
   height: 20px;
-  background: var(--color-border-base, #E7EAF3);
+  background: var(--border-base);
   margin: 0 4px;
 }
 
@@ -658,14 +658,14 @@ onBeforeUnmount(() => {
   border-radius: 6px;
   font-size: 0.75rem;
   font-weight: 500;
-  color: var(--color-text-body, #50597A);
+  color: var(--text-body);
   transition: all 150ms;
   white-space: nowrap;
 }
 
 .bubble-action:hover {
-  background: var(--color-primary-50, #F5F2FF);
-  color: var(--color-primary-500, #6F3FF5);
+  background: var(--badge-primary-bg);
+  color: var(--color-accent-primary);
 }
 
 /* === Slash Command Menu === */
@@ -676,8 +676,8 @@ onBeforeUnmount(() => {
   max-width: 320px;
   max-height: 320px;
   overflow-y: auto;
-  background: var(--color-bg-card, #FFFFFF);
-  border: 1px solid var(--color-border-base, #E7EAF3);
+  background: var(--bg-card);
+  border: 1px solid var(--border-base);
   border-radius: 14px;
   box-shadow: 0 8px 24px rgba(45, 35, 66, 0.12);
   padding: 6px;
@@ -703,7 +703,7 @@ onBeforeUnmount(() => {
 
 .slash-item:hover,
 .slash-item.selected {
-  background: var(--color-primary-50, #F5F2FF);
+  background: var(--badge-primary-bg);
 }
 
 .slash-icon {
@@ -713,15 +713,15 @@ onBeforeUnmount(() => {
   width: 36px;
   height: 36px;
   border-radius: 8px;
-  background: var(--color-bg-soft, #F5F6FA);
-  color: var(--color-text-body, #50597A);
+  background: var(--bg-soft);
+  color: var(--text-body);
   flex-shrink: 0;
 }
 
 .slash-item.selected .slash-icon,
 .slash-item:hover .slash-icon {
-  background: var(--color-primary-100, #ECE6FF);
-  color: var(--color-primary-500, #6F3FF5);
+  background: var(--color-primary-100);
+  color: var(--color-accent-primary);
 }
 
 .slash-text {
@@ -733,18 +733,18 @@ onBeforeUnmount(() => {
 .slash-label {
   font-size: 0.875rem;
   font-weight: 500;
-  color: var(--color-text-heading, #1F2343);
+  color: var(--text-heading);
 }
 
 .slash-desc {
   font-size: 0.75rem;
-  color: var(--color-text-muted, #8A90A8);
+  color: var(--text-muted);
 }
 
 .slash-empty {
   padding: 12px;
   text-align: center;
-  color: var(--color-text-muted, #8A90A8);
+  color: var(--text-muted);
   font-size: 0.875rem;
 }
 
@@ -767,8 +767,8 @@ onBeforeUnmount(() => {
   gap: 1rem;
   padding: 0.5rem 0.75rem;
   font-size: 0.6875rem;
-  color: var(--text-muted, #8A90A8);
-  border-top: 1px solid var(--border-base, #E7EAF3);
+  color: var(--text-muted);
+  border-top: 1px solid var(--border-base);
   user-select: none;
 }
 
@@ -779,9 +779,9 @@ onBeforeUnmount(() => {
   font-size: 0.625rem;
   font-family: inherit;
   border-radius: 4px;
-  border: 1px solid var(--border-base, #E7EAF3);
-  background: var(--bg-soft, #F5F6FA);
-  color: var(--text-body, #50597A);
+  border: 1px solid var(--border-base);
+  background: var(--bg-soft);
+  color: var(--text-body);
   margin-right: 0.25rem;
 }
 </style>

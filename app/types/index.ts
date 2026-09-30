@@ -7,6 +7,8 @@ export interface User {
   default_learning_mode: string
   subscription_status?: SubscriptionStatus | null
   onboarding_completed: boolean
+  /** False for Google sign-ups that never defined a password (RF-B3). */
+  has_password?: boolean
 }
 
 export interface ApiResponse<T> {
@@ -185,6 +187,8 @@ export interface UserSettings {
   session_time_limit: number | null
   survival_mode: boolean
   default_learning_mode?: string
+  desired_retention?: number
+  error_diary_mode?: 'always' | 'sometimes' | 'never'
 }
 
 export interface BacklogStats {
@@ -275,6 +279,11 @@ export interface Document {
     insights: number
     errors: number
   } | null
+  /** PDF → cards (prd-ux-critica RF-B6) */
+  note_id?: string | null
+  auto_cards?: boolean
+  auto_cards_status?: 'pending' | 'generating' | 'completed' | 'failed' | 'skipped_quota' | 'skipped_empty' | null
+  auto_cards_count?: number
   created_at: string
 }
 
@@ -555,4 +564,11 @@ export interface AiJob<T = unknown> {
   result?: T
   error?: string
   created_at: string
+}
+
+declare module '#app' {
+  interface PageMeta {
+    /** 'focus' hides BottomNav, FABs and the compact miniplayer (RF-F1.6). */
+    chrome?: 'focus'
+  }
 }

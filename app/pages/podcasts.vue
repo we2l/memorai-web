@@ -35,18 +35,19 @@
           @click="player.expand()"
         >
           <div class="w-14 h-14 rounded-xl bg-accent-primary-subtle border border-[var(--color-accent-primary)]/20 flex items-center justify-center shrink-0">
-            <div class="w-3 h-3 rounded-full bg-accent-primary-subtle0 animate-pulse" />
+            <div class="w-3 h-3 rounded-full bg-[var(--color-accent-primary)] animate-pulse" />
           </div>
           <div class="flex-1 min-w-0">
             <p class="text-sm text-base-primary font-medium truncate">{{ player.currentPodcast.title }}</p>
             <p class="text-xs text-base-muted mt-0.5">{{ formatTime(player.currentTime) }} / {{ formatTime(player.duration) }}</p>
           </div>
           <button
-            class="w-10 h-10 rounded-full bg-accent-primary-subtle0 flex items-center justify-center shrink-0 hover:brightness-110 transition-all"
+            class="w-11 h-11 rounded-full bg-[var(--color-accent-primary)] text-[var(--color-accent-primary-text)] flex items-center justify-center shrink-0 hover:brightness-110 transition-all"
+            :aria-label="player.isPlaying ? 'Pausar' : 'Tocar'"
             @click.stop="player.togglePlay()"
           >
-            <Pause v-if="player.isPlaying" :size="16" class="text-base-primary" />
-            <Play v-else :size="16" class="text-base-primary ml-0.5" />
+            <Pause v-if="player.isPlaying" :size="16" aria-hidden="true" />
+            <Play v-else :size="16" class="ml-0.5" aria-hidden="true" />
           </button>
         </div>
       </div>
@@ -63,10 +64,10 @@
             <!-- Status icon -->
             <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" :class="statusBg(podcast.status)">
               <Loader2 v-if="isGenerating(podcast.status)" :size="18" class="animate-spin text-base-muted" />
-              <AlertCircle v-else-if="podcast.status === 'failed'" :size="18" class="text-red-400" />
-              <button v-else @click="playPodcast(podcast)" class="w-full h-full flex items-center justify-center">
-                <Pause v-if="player.currentPodcast?.id === podcast.id && player.isPlaying" :size="18" :class="statusText(podcast.status)" />
-                <Headphones v-else :size="18" :class="statusText(podcast.status)" />
+              <AlertCircle v-else-if="podcast.status === 'failed'" :size="18" class="text-[var(--badge-danger-text)]" />
+              <button v-else :aria-label="player.currentPodcast?.id === podcast.id && player.isPlaying ? `Pausar ${podcast.title}` : `Tocar ${podcast.title}`" @click="playPodcast(podcast)" class="w-full h-full flex items-center justify-center">
+                <Pause v-if="player.currentPodcast?.id === podcast.id && player.isPlaying" :size="18" :class="statusText(podcast.status)" aria-hidden="true" />
+                <Headphones v-else :size="18" :class="statusText(podcast.status)" aria-hidden="true" />
               </button>
             </div>
 
@@ -77,7 +78,7 @@
                 <span v-if="podcast.status === 'ready' && podcast.duration_seconds">{{ formatDuration(podcast.duration_seconds) }}</span>
                 <span v-if="podcast.status === 'ready' && podcast.format" class="px-1.5 py-0.5 rounded bg-[var(--border-divider)] text-micro">{{ podcast.format === 'debate' ? 'Debate' : 'Expositivo' }}</span>
                 <span v-if="isGenerating(podcast.status)">{{ statusLabel(podcast.status) }}</span>
-                <span v-if="podcast.status === 'failed'" class="text-danger">Falhou</span>
+                <span v-if="podcast.status === 'failed'" class="text-[var(--badge-danger-text)]">Falhou</span>
                 <span>{{ timeAgo(podcast.created_at) }}</span>
               </div>
             </div>
@@ -89,10 +90,10 @@
               </span>
               <button
                 @click.stop="confirmDelete(podcast)"
-                class="w-8 h-8 rounded-lg flex items-center justify-center text-base-muted hover:text-danger hover:bg-red-500/10 transition-colors"
+                class="w-8 h-8 rounded-lg flex items-center justify-center text-base-muted hover:text-[var(--badge-danger-text)] hover:bg-[var(--badge-danger-bg)] transition-colors"
                 title="Excluir podcast"
-              >
-                <Trash2 :size="14" />
+               aria-label="Excluir podcast">
+                <Trash2 :size="14" aria-hidden="true" />
               </button>
             </div>
           </div>
@@ -173,7 +174,7 @@ function isGenerating(status: string) {
 
 function statusBg(status: string) {
   if (status === 'ready') return 'bg-accent-primary-subtle'
-  if (status === 'failed') return 'bg-red-500/10'
+  if (status === 'failed') return 'bg-[var(--badge-danger-bg)]'
   return 'bg-surface-secondary'
 }
 

@@ -14,7 +14,7 @@
       <!-- Header -->
       <div class="px-5 py-4 max-w-3xl mx-auto">
         <div class="flex items-center gap-2">
-          <Sparkles :size="18" class="text-[var(--color-accent-soft)]" />
+          <Sparkles :size="18" class="text-[var(--badge-primary-text)]" />
           <div>
             <h3 class="text-body font-semibold text-base-primary">
               {{ cards.length }} {{ cards.length === 1 ? 'sugestão' : 'sugestões' }} de flashcards
@@ -77,13 +77,13 @@
               <div class="flex items-center gap-0.5 shrink-0" :class="acceptedIndexes.has(index) ? '' : 'opacity-0 group-hover:opacity-100 transition-opacity'">
                 <button
                   v-if="!acceptedIndexes.has(index)"
-                  class="p-1.5 rounded-lg text-success/70 hover:text-success hover:bg-success/10 transition-colors"
+                  class="p-1.5 rounded-lg text-success/70 hover:text-[var(--badge-success-text)] hover:bg-success/10 transition-colors"
                   title="Aceitar"
                   @click="$emit('accept-card', index)"
-                >
-                  <Check :size="15" />
+                 aria-label="Aceitar">
+                  <Check :size="15" aria-hidden="true" />
                 </button>
-                <span v-else class="p-1.5 text-success">
+                <span v-else class="p-1.5 text-[var(--badge-success-text)]">
                   <Check :size="15" />
                 </span>
 
@@ -92,17 +92,17 @@
                   class="p-1.5 rounded-lg text-base-muted hover:text-base-primary hover:bg-surface-secondary transition-colors"
                   title="Editar"
                   @click="startEdit(index, card)"
-                >
-                  <Pencil :size="13" />
+                 aria-label="Editar">
+                  <Pencil :size="13" aria-hidden="true" />
                 </button>
 
                 <button
                   v-if="!acceptedIndexes.has(index)"
-                  class="p-1.5 rounded-lg text-base-muted hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+                  class="p-1.5 rounded-lg text-base-muted hover:text-[var(--badge-danger-text)] hover:bg-[var(--badge-danger-bg)] transition-colors"
                   title="Descartar"
                   @click="$emit('remove-card', index)"
-                >
-                  <Trash2 :size="13" />
+                 aria-label="Descartar">
+                  <Trash2 :size="13" aria-hidden="true" />
                 </button>
               </div>
             </div>
@@ -184,7 +184,7 @@ function confirmEdit(index: number) {
 }
 
 .card-item {
-  background: var(--bg-base, #fafbfd);
+  background: var(--bg-base);
   border: 1px solid var(--border-divider);
   border-radius: 0.625rem;
   transition: box-shadow 0.15s ease, border-color 0.15s ease;

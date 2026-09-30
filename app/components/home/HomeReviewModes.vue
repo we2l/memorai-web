@@ -41,7 +41,7 @@ defineProps<{
 .modes {
   margin-top: 32px;
   padding-top: 24px;
-  border-top: 1px solid #D8D2E8;
+  border-top: 1px solid var(--border-base);
 }
 
 .modes__label {

@@ -6,7 +6,7 @@
         <p class="text-base-muted">Conectando com Google...</p>
       </template>
       <template v-else>
-        <p role="alert" class="text-danger text-small mb-4">{{ error }}</p>
+        <p role="alert" class="text-[var(--badge-danger-text)] text-small mb-4">{{ error }}</p>
         <NuxtLink to="/entrar" class="btn-secondary inline-block">Voltar para entrar</NuxtLink>
       </template>
     </div>
@@ -35,7 +35,7 @@ onMounted(async () => {
       body: { code, state },
     })
     auth.setUser(res.data.user)
-    await navigateTo('/hoje')
+    await navigateTo(postAuthRedirect(res.data.user))
   } catch (e: any) {
     const errors = e?.data?.errors
     error.value = errors?.state?.[0] || errors?.email?.[0] || e?.data?.message || 'Erro ao conectar com Google. Tente novamente.'

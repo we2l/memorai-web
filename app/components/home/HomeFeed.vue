@@ -18,7 +18,7 @@ defineProps<{
 <style scoped>
 .feed {
   padding-left: 28px;
-  border-left: 1px solid #E2DDEF;
+  border-left: 1px solid var(--border-base);
 }
 .dark .feed {
   border-left-color: var(--border-base);
@@ -28,7 +28,7 @@ defineProps<{
     border-left: none;
     padding-left: 0;
     padding-top: 20px;
-    border-top: 1px solid #E2DDEF;
+    border-top: 1px solid var(--border-base);
   }
   .dark .feed {
     border-top-color: var(--border-base);

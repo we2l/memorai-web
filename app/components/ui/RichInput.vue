@@ -9,7 +9,7 @@
         :class="btn.active() ? 'bg-accent-primary-subtle text-accent-primary' : 'text-base-muted hover:bg-[var(--border-divider)]'"
         :title="btn.label"
         @click="btn.action"
-      >
+       :aria-label="btn.label">
         <component :is="btn.icon" :size="14" />
       </button>
 
@@ -19,18 +19,18 @@
       <button
         type="button"
         class="p-1 rounded text-small transition-colors"
-        :class="recording ? 'bg-danger/15 text-danger' : 'text-base-muted hover:bg-[var(--border-divider)]'"
+        :class="recording ? 'bg-danger/15 text-[var(--badge-danger-text)]' : 'text-base-muted hover:bg-[var(--border-divider)]'"
         :title="recording ? 'Parar gravação' : 'Gravar áudio'"
         @click="toggleRecording"
-      >
-        <Mic :size="14" />
+       :aria-label="recording ? 'Parar gravação' : 'Gravar áudio'">
+        <Mic :size="14" aria-hidden="true" />
       </button>
-      <span v-if="recording" class="text-micro text-danger animate-pulse ml-1">● {{ recordingTime }}s</span>
+      <span v-if="recording" class="text-micro text-[var(--badge-danger-text)] animate-pulse ml-1">● {{ recordingTime }}s</span>
     </div>
 
     <EditorContent
       :editor="editor"
-      class="rich-input px-3 py-2 text-small text-base-primary overflow-y-auto"
+      class="rich-input px-3 py-2 text-[1rem] leading-relaxed text-base-primary overflow-y-auto"
       :style="{ minHeight: minHeight + 'px', maxHeight: maxHeight + 'px' }"
     />
 

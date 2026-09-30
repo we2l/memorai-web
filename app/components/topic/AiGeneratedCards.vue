@@ -8,7 +8,7 @@
   <!-- Cards for review -->
   <div v-else-if="cards.length" class="mb-4">
     <div class="flex items-center justify-between mb-3">
-      <p class="text-small text-accent-primary font-medium"><Sparkles :size="14" class="inline text-[var(--color-accent-soft)]" /> {{ cards.length }} cards gerados — revise antes de aceitar</p>
+      <p class="text-small text-accent-primary font-medium"><Sparkles :size="14" class="inline text-[var(--badge-primary-text)]" /> {{ cards.length }} cards gerados — revise antes de aceitar</p>
       <button class="btn-primary !py-2 !px-3.5 !min-h-[2.75rem] text-small" @click="$emit('accept-all')">
         Aceitar todos
       </button>
@@ -25,7 +25,7 @@
         </div>
         <div class="mt-1.5 pt-1.5 border-t border-base">
           <p class="text-micro text-base-muted mb-0.5">Verso</p>
-          <div class="text-small text-base-muted line-clamp-2 card-front-preview" v-html="sanitize(stripMedia(card.back))" />
+          <div class="text-[1rem] leading-relaxed text-base-secondary line-clamp-2 card-front-preview" v-html="sanitize(stripMedia(card.back))" />
           <div class="flex items-center gap-1.5 mt-1" v-if="hasImage(card.back)">
             <span class="text-micro px-1.5 py-0.5 rounded bg-[var(--border-divider)] text-base-muted">🖼 imagem</span>
           </div>
@@ -33,7 +33,7 @@
         <div class="flex items-center gap-2 mt-2 pt-2 border-t border-base">
           <button class="btn-primary !py-1.5 !px-3 !min-h-0 text-small" @click="$emit('accept', i)">✓ Aceitar</button>
           <button class="btn-secondary !py-1.5 !px-3 !min-h-0 text-small" @click="$emit('edit', i)"><PenLine :size="12" class="inline" /> Editar</button>
-          <button class="btn-secondary !py-1.5 !px-3 !min-h-0 text-small text-danger" @click="$emit('discard', i)"><X :size="12" class="inline" /> Descartar</button>
+          <button class="btn-secondary !py-1.5 !px-3 !min-h-0 text-small text-[var(--badge-danger-text)]" @click="$emit('discard', i)"><X :size="12" class="inline" /> Descartar</button>
         </div>
       </div>
     </div>

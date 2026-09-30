@@ -34,7 +34,7 @@
           <Upload :size="16" class="text-base-muted shrink-0" />
           <div>
             <p class="font-medium text-base-primary">Importar do Anki</p>
-            <p class="text-micro text-base-muted">Traga seus decks</p>
+            <p class="text-micro text-base-muted">Traga seus baralhos do Anki</p>
           </div>
         </NuxtLink>
         <button

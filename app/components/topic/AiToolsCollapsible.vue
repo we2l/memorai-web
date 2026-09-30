@@ -4,7 +4,7 @@
       class="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl bg-[var(--bg-card)] border border-base hover:border-[var(--color-accent-primary)]/20 hover:bg-surface-secondary transition-all text-left"
       @click="$emit('podcast')"
     >
-      <Headphones :size="16" class="text-[var(--color-accent-soft)] shrink-0" />
+      <Headphones :size="16" class="text-[var(--badge-primary-text)] shrink-0" />
       <span class="text-small font-medium text-base-primary truncate">Podcast</span>
       <ChevronRight :size="12" class="text-base-muted/40 shrink-0 ml-auto" />
     </button>
@@ -13,7 +13,7 @@
       class="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl bg-[var(--bg-card)] border border-base hover:border-[var(--color-accent-primary)]/20 hover:bg-surface-secondary transition-all text-left"
       @click="$emit('quiz')"
     >
-      <ClipboardList :size="16" class="text-[var(--color-accent-soft)] shrink-0" />
+      <ClipboardList :size="16" class="text-[var(--badge-primary-text)] shrink-0" />
       <span class="text-small font-medium text-base-primary truncate">Simulado</span>
       <ChevronRight :size="12" class="text-base-muted/40 shrink-0 ml-auto" />
     </button>

@@ -17,11 +17,14 @@
       :topic-progress="topicProgress"
       :next-exam="nextExam"
       :user-name="auth.user?.name ?? 'estudante'"
+      :loading="heroLoading"
+      :error="heroError"
+      @retry="loadData"
     />
 
     <!-- Content: Cadernos + Feed -->
-    <div v-if="topicProgress.length || feedItems.length" class="home__content">
-      <HomeLibrary :topics="topicProgress" />
+    <div v-if="topicProgress.length || feedItems.length || libraryLoading || libraryError" class="home__content">
+      <HomeLibrary :topics="topicProgress" :loading="libraryLoading" :error="libraryError" @retry="loadData" />
       <HomeFeed :items="feedItems" />
     </div>
 
@@ -108,42 +111,70 @@ function guessDescription(label: string): string {
   return ''
 }
 
+const heroLoading = ref(true)
+const heroError = ref(false)
+const libraryLoading = ref(true)
+const libraryError = ref(false)
+
+/** Each block has its own state: a failing /stats never turns into "Crie seus primeiros cards" (RF-F3.6). */
 async function loadData() {
-  const [statsRes, progressRes, backlogRes, retRes, settingsRes, actionsRes] = await Promise.all([
+  heroLoading.value = true
+  libraryLoading.value = true
+  heroError.value = false
+  libraryError.value = false
+  const [statsRes, progressRes, backlogRes, retRes, settingsRes, actionsRes] = await Promise.allSettled([
     $api<any>('/stats'),
     $api<any>('/topics/progress'),
     $api<any>('/review/backlog-stats'),
-    $api<any>('/review/retention-suggestion').catch(() => ({ data: { has_suggestion: false } })),
+    $api<any>('/review/retention-suggestion'),
     $api<any>('/settings'),
-    $api<any>('/stats/pending-actions').catch(() => ({ data: [] })),
+    $api<any>('/stats/pending-actions'),
   ])
-  stats.value = statsRes.data
-  topicProgress.value = progressRes.data
-  backlog.value = backlogRes.data
-  retentionSuggestion.value = retRes.data
-  survivalActive.value = settingsRes.data.survival_mode ?? false
-  pendingActions.value = actionsRes.data
+
+  if (statsRes.status === 'fulfilled' && backlogRes.status === 'fulfilled') {
+    stats.value = statsRes.value.data
+    backlog.value = backlogRes.value.data
+  } else {
+    heroError.value = true
+    reportApiError(statsRes.status === 'rejected' ? statsRes.reason : (backlogRes as PromiseRejectedResult).reason, { silent: true })
+  }
+  heroLoading.value = false
+
+  if (progressRes.status === 'fulfilled') topicProgress.value = progressRes.value.data
+  else {
+    libraryError.value = true
+    reportApiError(progressRes.reason, { silent: true })
+  }
+  libraryLoading.value = false
+
+  // Decorative blocks: silent on failure
+  retentionSuggestion.value = retRes.status === 'fulfilled' ? retRes.value.data : { has_suggestion: false }
+  if (settingsRes.status === 'fulfilled') survivalActive.value = settingsRes.value.data.survival_mode ?? false
+  pendingActions.value = actionsRes.status === 'fulfilled' ? actionsRes.value.data : []
+  for (const r of [retRes, settingsRes, actionsRes]) if (r.status === 'rejected') reportApiError(r.reason, { silent: true })
+
   featureUsage.fetchUsage()
   examStore.fetchUpcoming()
 }
 
+const { run } = useApiAction()
+
 async function toggleSurvivalMode(enabled: boolean) {
-  try {
-    await $api('/review/survival-mode', { method: 'POST', body: { enabled } })
-    await loadData()
-  } catch {}
+  const ok = await run(() => $api('/review/survival-mode', { method: 'POST', body: { enabled } }), {
+    error: 'Não foi possível mudar o modo sobrevivência.',
+  })
+  if (ok !== undefined) await loadData()
 }
 
 async function applyRetention() {
   if (!retentionSuggestion.value?.suggested_retention) return
-  try {
-    await $api('/review/apply-retention', {
-      method: 'POST',
-      body: { desired_retention: retentionSuggestion.value.suggested_retention },
-    })
-    retentionSuggestion.value = { has_suggestion: false }
-    await loadData()
-  } catch {}
+  const ok = await run(() => $api('/review/apply-retention', {
+    method: 'POST',
+    body: { desired_retention: retentionSuggestion.value.suggested_retention },
+  }), { error: 'Não foi possível aplicar a sugestão.' })
+  if (ok === undefined) return
+  retentionSuggestion.value = { has_suggestion: false }
+  await loadData()
 }
 
 function dismissRetention() {

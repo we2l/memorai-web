@@ -84,7 +84,7 @@ const minDate = computed(() => {
   <UiModal :model-value="true" size="md" @update:model-value="emit('close')">
     <template #header>
       <div class="flex items-center gap-2">
-        <CalendarPlus class="w-5 h-5 text-amber-500" />
+        <CalendarPlus class="w-5 h-5 text-[var(--badge-warning-text)]" />
         <span class="font-semibold text-base-primary">Nova prova</span>
       </div>
     </template>
@@ -116,7 +116,7 @@ const minDate = computed(() => {
       <!-- Topics -->
       <div>
         <label class="block text-sm font-medium text-base-secondary mb-1">Cadernos vinculados</label>
-        <div class="max-h-48 overflow-y-auto space-y-1 border border-border-primary rounded-xl p-2 bg-surface-secondary">
+        <div class="max-h-48 overflow-y-auto space-y-1 border border-[var(--color-accent-primary)] rounded-xl p-2 bg-surface-secondary">
           <label
             v-for="topic in topics"
             :key="topic.id"

@@ -1,7 +1,7 @@
 <template>
   <Teleport to="body">
     <Transition name="slide-up">
-      <div v-if="player.expanded && player.currentPodcast" class="fixed inset-0 z-50 bg-surface flex flex-col">
+      <div v-if="player.expanded && player.currentPodcast" ref="overlayRoot" role="dialog" aria-modal="true" aria-label="Player do podcast" class="fixed inset-0 z-50 bg-surface flex flex-col">
         <!-- Header -->
         <div class="flex items-center justify-between px-4 py-3">
           <div class="w-10" />
@@ -22,7 +22,7 @@
           </div>
 
           <div class="text-center w-full">
-            <h2 class="text-title font-serif text-base-primary">{{ player.currentPodcast.title }}</h2>
+            <h2 class="text-title text-base-primary">{{ player.currentPodcast.title }}</h2>
             <p class="text-small text-base-muted mt-1">
               {{ formatDate(player.currentPodcast.created_at) }}
               <span v-if="player.currentPodcast.format"> · {{ player.currentPodcast.format === 'debate' ? 'Debate' : 'Expositivo' }}</span>
@@ -212,8 +212,8 @@ async function downloadPodcast() {
     a.href = url
     a.download = `${podcast.title || 'podcast'}.mp3`
     a.click()
-  } catch {
-    // silent fail
+  } catch (e) {
+    reportApiError(e, { error: 'Não foi possível baixar o áudio.' })
   } finally {
     downloading.value = false
   }
@@ -247,7 +247,9 @@ watch(() => player.currentPodcast?.id, async (id) => {
       }),
     )
     linkedCards.value = cards.filter(Boolean) as LinkedCard[]
-  } catch {}
+  } catch (e) {
+    reportApiError(e, { silent: true })
+  }
 }, { immediate: true })
 
 // Sync logic
@@ -290,6 +292,10 @@ function onSeek(e: Event) {
 function formatDate(date: string): string {
   return new Date(date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' })
 }
+
+// Focus trap + scroll lock (RF-F9.2)
+const overlayRoot = ref<HTMLElement | null>(null)
+useOverlayA11y(() => player.expanded && !!player.currentPodcast, overlayRoot)
 </script>
 
 <style scoped>

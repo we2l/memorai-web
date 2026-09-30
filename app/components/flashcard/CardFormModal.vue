@@ -11,7 +11,7 @@
           class="w-full mb-4 px-3 py-2.5 rounded-lg bg-accent-primary-subtle/50 flex items-center gap-2 text-left hover:bg-accent-primary-subtle transition-colors"
           @click="openUpgrade"
         >
-          <Lightbulb :size="14" class="text-[var(--color-accent-soft)]" />
+          <Lightbulb :size="14" class="text-[var(--badge-primary-text)]" />
           <p class="text-small text-accent-primary flex-1">A IA pode criar cards automaticamente</p>
           <span class="text-micro text-accent-primary font-medium">Pro →</span>
         </button>
@@ -132,7 +132,7 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{
   (e: 'created'): void
-  (e: 'updated'): void
+  (e: 'updated', card?: { id: string; front: string; back: string }): void
   (e: 'local-save', card: { front: string; back: string; tags: string[]; frontAudioBlob: Blob | null; backAudioBlob: Blob | null }): void
 }>()
 const open = defineModel<boolean>({ required: true })
@@ -250,7 +250,9 @@ async function loadTopics() {
   try {
     const res = await $api<any>('/topics')
     topics.value = flattenTopics(res.data)
-  } catch {}
+  } catch (e) {
+    reportApiError(e, { silent: true })
+  }
 }
 
 async function uploadAudio(blob: Blob): Promise<string> {
@@ -298,7 +300,7 @@ async function doSubmit(closeAfter: boolean) {
         back_audio_url,
       })
       toast.show('Card atualizado!', 'success')
-      emit('updated')
+      emit('updated', { id: props.card.id, front: form.front, back: form.back })
       open.value = false
     } else {
       await $api('/flashcards', {

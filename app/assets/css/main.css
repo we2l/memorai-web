@@ -80,7 +80,8 @@
   /* Text */
   --text-heading: #1E2240;
   --text-body: #3C4257;
-  --text-muted: #6B7294;
+  /* >= 4.5:1 also on --border-divider/soft surfaces (RF-F9.5) */
+  --text-muted: #5B6182;
   --text-disabled: #A3A8BE;
 
   /* Borders */
@@ -99,11 +100,11 @@
   --badge-primary-bg: #F5F2FF;
   --badge-primary-text: #6F3FF5;
   --badge-success-bg: #F0FDF4;
-  --badge-success-text: #16A34A;
+  --badge-success-text: #15803D;
   --badge-danger-bg: #FEF2F2;
-  --badge-danger-text: #DC2626;
+  --badge-danger-text: #B91C1C;
   --badge-warning-bg: #FFFBEB;
-  --badge-warning-text: #D97706;
+  --badge-warning-text: #B45309;
   --badge-info-bg: #EFF6FF;
   --badge-info-text: #2563EB;
   --badge-muted-bg: #F5F6FA;
@@ -174,6 +175,33 @@
   --text-secondary: var(--text-body);
   --border-default: var(--border-base);
   --border-strong: var(--border-hover);
+}
+
+/* ============================================
+   Layout chrome vars (prd-ux-critica RF-F1.5)
+   Set on :root because toasts/FABs are teleported
+   outside the layout wrapper. The layout writes the
+   *-set values; breakpoints and focus mode override.
+   ============================================ */
+:root {
+  --nav-h: 64px;
+  --miniplayer-h: var(--miniplayer-h-set, 0px);
+  --sticky-action-h: var(--sticky-action-h-set, 0px);
+  --sidebar-w: 0px;
+  --fab-bottom: calc(var(--nav-h) + var(--miniplayer-h) + var(--sticky-action-h) + 16px + env(safe-area-inset-bottom));
+}
+@media (min-width: 1024px) {
+  :root {
+    --nav-h: 0px;
+    --sticky-action-h: 0px;
+    --sidebar-w: var(--sidebar-w-set, 240px);
+    --fab-bottom: calc(var(--miniplayer-h) + 24px);
+  }
+}
+:root[data-chrome="focus"] {
+  --nav-h: 0px;
+  --miniplayer-h: 0px;
+  --sticky-action-h: 0px;
 }
 
 /* ============================================
@@ -258,9 +286,10 @@
     transform: translateY(0);
     box-shadow: 0 2px 8px rgba(111, 63, 245, 0.2);
   }
+  /* >= 3:1 in both themes (RF-F9.5) */
   &:disabled {
-    background-color: var(--border-hover);
-    color: rgba(255, 255, 255, 0.7);
+    background-color: var(--border-base);
+    color: var(--text-muted) !important;
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
@@ -991,4 +1020,16 @@ button {
   border-radius: 2px;
   animation: confetti-fall 1.5s ease-out forwards, confetti-spread 1.5s ease-out forwards;
   pointer-events: none;
+}
+
+/* Reduced motion (prd-ux-critica RF-F9.4): honour the OS preference everywhere */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

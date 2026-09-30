@@ -1,6 +1,34 @@
+<!-- tokens-allow-file: ilustração com paleta própria da marca -->
 <template>
+  <!-- Loading: same footprint as the hero (no layout shift) -->
+  <section v-if="loading && !stats" class="hero hero--skeleton" aria-busy="true" aria-label="Carregando resumo de hoje">
+    <div class="hero__layout">
+      <div class="hero__narrative">
+        <div class="skeleton h-4 w-40 rounded mb-4" />
+        <div class="skeleton h-3 w-24 rounded mb-2" />
+        <div class="skeleton h-12 w-48 rounded mb-3" />
+        <div class="skeleton h-3 w-32 rounded" />
+      </div>
+      <div class="hero__panel">
+        <div class="skeleton h-3 w-28 rounded mb-4" />
+        <div class="skeleton h-6 w-full rounded mb-3" />
+        <div class="skeleton h-3 w-24 rounded mb-4" />
+        <div class="skeleton h-11 w-full rounded-xl" />
+      </div>
+    </div>
+  </section>
+
+  <!-- Error: never "Crie seus primeiros cards" / "Tudo em dia" (RN-UX-03) -->
+  <UiErrorState
+    v-else-if="error"
+    variant="hero"
+    title="Não foi possível carregar seu resumo de hoje"
+    description="Verifique sua conexão e tente de novo."
+    @retry="$emit('retry')"
+  />
+
   <!-- Hero: cards pendentes -->
-  <section v-if="totalCards > 0" class="hero">
+  <section v-else-if="totalCards > 0" class="hero">
     <!-- Atmosphere -->
     <div class="hero__atmosphere" aria-hidden="true" />
 
@@ -110,14 +138,14 @@
         <p class="hero__panel-title">Sessão de hoje</p>
         <div class="hero__session-viz">
           <div
-            v-for="i in Math.min(totalCards, 24)"
+            v-for="i in segmentCount"
             :key="i"
             class="hero__segment"
-            :class="{ 'hero__segment--done': i <= reviewedToday }"
+            :class="{ 'hero__segment--done': i <= doneSegments }"
             :style="{ animationDelay: `${i * 25}ms` }"
           />
         </div>
-        <p class="hero__session-label">{{ reviewedToday }} de {{ totalCards }} concluídos</p>
+        <p class="hero__session-label">{{ reviewedToday }} de {{ totalDue }} concluídos</p>
         <NuxtLink to="/revisar" class="hero__cta">
           Começar revisão
           <svg class="hero__cta-arrow" width="14" height="14" viewBox="0 0 16 16" fill="none">
@@ -129,7 +157,7 @@
   </section>
 
   <!-- Hero: novo usuário (0 cards) -->
-  <section v-else-if="totalUserCards === 0" class="hero hero--compact">
+  <section v-else-if="stats && totalUserCards === 0" class="hero hero--compact">
     <div class="hero__layout hero__layout--center">
       <div class="hero__narrative">
         <div class="hero__greeting">
@@ -147,7 +175,7 @@
   </section>
 
   <!-- Hero: tudo em dia -->
-  <section v-else class="hero hero--compact">
+  <section v-else-if="stats" class="hero hero--compact">
     <div class="hero__layout hero__layout--center">
       <div class="hero__narrative">
         <div class="hero__greeting">
@@ -173,7 +201,11 @@ const props = defineProps<{
   topicProgress: TopicProgress[]
   nextExam: { title: string; days_remaining: number } | null
   userName: string
+  loading?: boolean
+  error?: boolean
 }>()
+
+defineEmits<{ (e: 'retry'): void }>()
 
 const firstName = computed(() => props.userName?.split(' ')[0] ?? 'estudante')
 
@@ -188,7 +220,12 @@ const streak = computed(() => props.stats?.streak ?? 0)
 const reviewedToday = computed(() => props.stats?.reviewed_today ?? 0)
 const totalUserCards = computed(() => props.stats?.total_cards ?? 0)
 const totalCards = computed(() => (props.stats?.due_today ?? 0) + (props.backlog?.overdue_count ?? 0))
-const totalDue = computed(() => (props.stats?.due_today ?? 0) + reviewedToday.value)
+// Session size = what is left (due + overdue) + what was already done today (RF-F8.1)
+const totalDue = computed(() => reviewedToday.value + totalCards.value)
+const segmentCount = computed(() => Math.min(totalDue.value, 24))
+const doneSegments = computed(() => totalDue.value <= 24
+  ? reviewedToday.value
+  : Math.round((reviewedToday.value / totalDue.value) * 24))
 const topicCount = computed(() => props.topicProgress.filter(t => (t as any).pending_count > 0).length || props.topicProgress.length)
 const estimatedMinutes = computed(() => props.backlog?.estimated_minutes ?? Math.ceil(totalCards.value * 0.25))
 
@@ -219,6 +256,9 @@ const subtitle = computed(() => {
 
 <style scoped>
 /* ===== Hero Surface ===== */
+.hero--skeleton {
+  min-height: 240px;
+}
 .hero {
   position: relative;
   background: #FFFFFF;

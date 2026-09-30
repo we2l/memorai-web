@@ -38,7 +38,7 @@ export const useAuthStore = defineStore('auth', {
       return res.data.user
     },
 
-    async register(payload: { name: string, email: string, password: string, password_confirmation: string }): Promise<User> {
+    async register(payload: { name: string, email: string, password: string, password_confirmation: string, accept_terms: boolean }): Promise<User> {
       const { $api } = useNuxtApp()
       const res = await $api<{ data: { user: User } }>('/register', {
         method: 'POST',
@@ -53,9 +53,16 @@ export const useAuthStore = defineStore('auth', {
       try {
         await $api('/logout', { method: 'POST' })
       } catch {
-        // Session may already be gone — local state is cleared anyway
+        // intencional: a sessão pode já ter acabado — o estado local é limpo de qualquer forma
       }
       this.clearAuth()
+    },
+
+    async updateProfile(name: string): Promise<User> {
+      const { $api } = useNuxtApp()
+      const res = await $api<{ data: User }>('/user/profile', { method: 'PUT', body: { name } })
+      this.setUser(res.data)
+      return res.data
     },
 
     setUser(user: User) {

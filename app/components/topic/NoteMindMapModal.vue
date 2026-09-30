@@ -1,7 +1,7 @@
 <template>
   <UiModal v-model="modelValue" size="lg">
     <div class="flex items-center justify-between mb-4">
-      <h2 class="text-headline inline-flex items-center gap-2"><Brain :size="20" class="text-[var(--color-accent-soft)]" /> Mapa Mental</h2>
+      <h2 class="text-headline inline-flex items-center gap-2"><Brain :size="20" class="text-[var(--badge-primary-text)]" /> Mapa Mental</h2>
       <span v-if="noteTitle" class="text-small text-base-muted truncate max-w-[200px]">{{ noteTitle }}</span>
     </div>
 
@@ -24,7 +24,7 @@
     <!-- No map, Pro user -->
     <div v-else-if="!mapData && canGenerate && !generating" class="flex flex-col items-center justify-center h-64 gap-3 text-center">
       <div class="w-14 h-14 rounded-2xl bg-accent-primary-subtle flex items-center justify-center">
-        <Brain :size="28" class="text-[var(--color-accent-soft)]" />
+        <Brain :size="28" class="text-[var(--badge-primary-text)]" />
       </div>
       <p class="text-body text-base-secondary">Extraia conceitos, definições e exemplos desta nota em um mapa mental</p>
       <button class="btn-primary !py-2 !px-4 text-small" @click="generate">
@@ -106,11 +106,11 @@ const cardFront = ref('')
 const cardBack = ref('')
 
 const typeColors: Record<string, string> = {
-  conceito: '#6F3FF5',
-  definição: '#3B82F6',
-  exemplo: '#22C55E',
-  exceção: '#EF4444',
-  referência: '#8A90A8',
+  conceito: 'var(--color-accent-primary)',
+  definição: 'var(--color-info)',
+  exemplo: 'var(--color-success)',
+  exceção: 'var(--color-danger)',
+  referência: 'var(--text-muted)',
 }
 
 async function fetchMap() {
@@ -121,8 +121,8 @@ async function fetchMap() {
       mapData.value = res.data
       mapId.value = res.meta.id
     }
-  } catch {
-    // silent
+  } catch (e) {
+    reportApiError(e, { error: 'Não foi possível carregar o mapa mental da nota.' })
   } finally {
     loading.value = false
   }

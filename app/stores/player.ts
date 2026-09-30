@@ -163,7 +163,7 @@ export const usePlayerStore = defineStore('player', {
             this._pendingSeek = saved.currentTime
           }
         }
-      } catch { /* ignore */ }
+      } catch { /* intencional: posição salva no localStorage é opcional */ }
     },
 
     _clearPosition() {

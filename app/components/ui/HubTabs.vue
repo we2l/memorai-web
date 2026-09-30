@@ -35,7 +35,7 @@ const emit = defineEmits<{ (e: 'update:modelValue', value: string): void }>()
 function select(key: string) {
   emit('update:modelValue', key)
   if (props.storageKey) {
-    try { localStorage.setItem(props.storageKey, key) } catch {}
+    try { localStorage.setItem(props.storageKey, key) } catch { /* intencional: sem localStorage a aba só não é lembrada */ }
   }
 }
 </script>

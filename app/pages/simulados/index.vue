@@ -39,7 +39,7 @@
           class="rounded-2xl bg-[var(--bg-card)] border border-base p-5 flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow"
         >
           <div class="w-12 h-12 rounded-xl bg-warning/10 flex items-center justify-center shrink-0">
-            <Clock :size="22" class="text-warning" />
+            <Clock :size="22" class="text-[var(--badge-warning-text)]" />
           </div>
           <div class="flex-1 min-w-0">
             <p class="font-medium text-base-primary text-sm truncate">{{ quiz.title }}</p>
@@ -136,9 +136,9 @@ function getScoreBarColor(score: number) {
 
 function getScoreBadgeClass(score: number | null) {
   const s = score ?? 0
-  if (s >= 70) return 'bg-success/10 text-success border border-success/20'
-  if (s >= 50) return 'bg-warning/10 text-warning border border-warning/20'
-  return 'bg-danger/10 text-danger border border-danger/20'
+  if (s >= 70) return 'bg-success/10 text-[var(--badge-success-text)] border border-success/20'
+  if (s >= 50) return 'bg-warning/10 text-[var(--badge-warning-text)] border border-warning/20'
+  return 'bg-danger/10 text-[var(--badge-danger-text)] border border-danger/20'
 }
 
 </script>

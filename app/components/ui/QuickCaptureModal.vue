@@ -1,13 +1,13 @@
 <template>
   <Teleport to="body">
     <Transition name="fade">
-      <div v-if="isOpen" class="fixed inset-0 z-50 flex items-start justify-center pt-[20vh]" @click.self="close">
+      <div v-if="isOpen" ref="overlayRoot" role="dialog" aria-modal="true" aria-label="Anotação rápida" class="fixed inset-0 z-50 flex items-start justify-center pt-[20vh]" @click.self="close">
         <div class="w-full max-w-lg mx-4 rounded-2xl bg-surface-secondary border border-base shadow-2xl" style="box-shadow: 0 16px 64px rgba(0,0,0,0.5);">
           <div class="p-5">
             <div class="flex items-center justify-between mb-3">
               <p class="text-body font-medium text-base-primary">Anotação rápida</p>
-              <button class="text-base-muted hover:text-base-primary p-1" @click="close">
-                <X :size="18" />
+              <button class="text-base-muted hover:text-base-primary p-1" aria-label="Fechar" @click="close">
+                <X :size="18" aria-hidden="true" />
               </button>
             </div>
             <textarea
@@ -61,7 +61,9 @@ async function fetchTopics() {
     // API returns tree — root topics are the top level items
     rootTopics.value = (res.data ?? []).map((t: any) => ({ id: t.id, name: t.name, parent_id: t.parent_id }))
     if (rootTopics.value.length === 1) selectedTopicId.value = rootTopics.value[0].id
-  } catch {}
+  } catch (e) {
+    reportApiError(e, { silent: true })
+  }
 }
 
 watch(isOpen, (open) => {
@@ -103,6 +105,10 @@ async function save() {
     saving.value = false
   }
 }
+
+// Focus trap + scroll lock (RF-F9.2)
+const overlayRoot = ref<HTMLElement | null>(null)
+useOverlayA11y(() => isOpen.value, overlayRoot)
 </script>
 
 <style scoped>

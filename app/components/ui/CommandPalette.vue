@@ -10,6 +10,7 @@
     >
       <div
         v-if="isOpen"
+        ref="overlayRoot"
         class="fixed inset-0 z-50 flex justify-center"
         role="dialog"
         aria-modal="true"
@@ -184,4 +185,8 @@ function setItemRef(el: any, index: number) {
 function getGlobalIndex(group: any, item: any): number {
   return flatResults.value.indexOf(item)
 }
+
+// Focus trap + scroll lock (RF-F9.2)
+const overlayRoot = ref<HTMLElement | null>(null)
+useOverlayA11y(() => !!isOpen.value, overlayRoot)
 </script>

@@ -17,13 +17,14 @@
         class="flex items-center rounded-xl text-small transition-all duration-150"
         :class="[
           collapsed ? 'justify-center px-0 py-2.5' : 'gap-3 px-3 py-2.5',
-          isActive(item.to) ? 'bg-accent-primary-subtle text-[var(--color-accent-soft)] font-medium' + (collapsed ? '' : ' border-l-3 border-l-[var(--color-accent-soft)]') : 'text-base-secondary hover:text-[var(--color-accent-soft)] hover:bg-accent-primary-subtle',
+          isNavActive(route.path, item.to) ? 'bg-accent-primary-subtle text-[var(--badge-primary-text)] font-medium' + (collapsed ? '' : ' border-l-3 border-l-[var(--color-accent-soft)]') : 'text-base-secondary hover:text-[var(--badge-primary-text)] hover:bg-accent-primary-subtle',
         ]"
-        :aria-current="isActive(item.to) ? 'page' : undefined"
+        :aria-current="isNavActive(route.path, item.to) ? 'page' : undefined"
         :title="collapsed ? item.label : undefined"
+        :aria-label="collapsed ? item.label : undefined"
         :data-tour="item.to === '/revisar' ? 'review-link' : undefined"
       >
-        <component :is="getIcon(item.icon)" :size="20" :stroke-width="1.5" />
+        <component :is="item.icon" :size="20" :stroke-width="1.5" aria-hidden="true" />
         <span v-if="!collapsed">{{ item.label }}</span>
       </NuxtLink>
     </nav>
@@ -33,38 +34,35 @@
       <button
         @click="toggleMode"
         class="flex items-center rounded-xl text-small transition-all duration-150 w-full"
-        :class="collapsed ? 'justify-center px-0 py-2.5 text-base-muted hover:text-[var(--color-accent-soft)] hover:bg-accent-primary-subtle' : 'gap-3 px-3 py-2.5 text-base-muted hover:text-[var(--color-accent-soft)] hover:bg-accent-primary-subtle'"
+        :class="collapsed ? 'justify-center px-0 py-2.5 text-base-muted hover:text-[var(--badge-primary-text)] hover:bg-accent-primary-subtle' : 'gap-3 px-3 py-2.5 text-base-muted hover:text-[var(--badge-primary-text)] hover:bg-accent-primary-subtle'"
         :title="collapsed ? (colorMode === 'light' ? 'Modo escuro' : 'Modo claro') : undefined"
+        :aria-label="collapsed ? (colorMode === 'light' ? 'Modo escuro' : 'Modo claro') : undefined"
       >
-        <Moon v-if="colorMode === 'light'" :size="20" :stroke-width="1.5" />
-        <Sun v-else :size="20" :stroke-width="1.5" />
+        <Moon v-if="colorMode === 'light'" :size="20" :stroke-width="1.5" aria-hidden="true" />
+        <Sun v-else :size="20" :stroke-width="1.5" aria-hidden="true" />
         <span v-if="!collapsed">{{ colorMode === 'light' ? 'Modo escuro' : 'Modo claro' }}</span>
       </button>
       <NuxtLink
-        to="/ajuda"
-        class="flex items-center rounded-xl text-small text-base-muted hover:text-[var(--color-accent-soft)] hover:bg-accent-primary-subtle transition-all duration-150"
+        v-for="item in accountNavOrdered"
+        :key="item.to"
+        :to="item.to"
+        class="flex items-center rounded-xl text-small text-base-muted hover:text-[var(--badge-primary-text)] hover:bg-accent-primary-subtle transition-all duration-150"
         :class="collapsed ? 'justify-center px-0 py-2.5' : 'gap-3 px-3 py-2.5'"
-        :title="collapsed ? 'Ajuda' : undefined"
+        :title="collapsed ? item.label : undefined"
+        :aria-label="collapsed ? item.label : undefined"
+        :aria-current="isNavActive(route.path, item.to) ? 'page' : undefined"
       >
-        <HelpCircle :size="20" :stroke-width="1.5" />
-        <span v-if="!collapsed">Ajuda</span>
-      </NuxtLink>
-      <NuxtLink
-        to="/configuracoes"
-        class="flex items-center rounded-xl text-small text-base-muted hover:text-[var(--color-accent-soft)] hover:bg-accent-primary-subtle transition-all duration-150"
-        :class="collapsed ? 'justify-center px-0 py-2.5' : 'gap-3 px-3 py-2.5'"
-        :title="collapsed ? 'Configurações' : undefined"
-      >
-        <Settings :size="20" :stroke-width="1.5" />
-        <span v-if="!collapsed">Configurações</span>
+        <component :is="item.icon" :size="20" :stroke-width="1.5" aria-hidden="true" />
+        <span v-if="!collapsed">{{ item.label }}</span>
       </NuxtLink>
       <button
         @click="handleLogout"
-        class="flex items-center rounded-xl text-small text-danger hover:bg-danger/5 transition-all duration-150 w-full mt-1"
+        class="flex items-center rounded-xl text-small text-[var(--badge-danger-text)] hover:bg-danger/5 transition-all duration-150 w-full mt-1"
         :class="collapsed ? 'justify-center px-0 py-2.5' : 'gap-3 px-3 py-2.5'"
         :title="collapsed ? 'Sair' : undefined"
+        :aria-label="collapsed ? 'Sair' : undefined"
       >
-        <LogOut :size="20" :stroke-width="1.5" />
+        <LogOut :size="20" :stroke-width="1.5" aria-hidden="true" />
         <span v-if="!collapsed">Sair</span>
       </button>
     </div>
@@ -72,20 +70,8 @@
 </template>
 
 <script setup lang="ts">
-import {
-  Home,
-  BookOpen,
-  RotateCcw,
-  Headphones,
-  BarChart3,
-  Settings,
-  LogOut,
-  Moon,
-  Sun,
-  HelpCircle,
-  ClipboardCheck,
-  CalendarClock,
-} from 'lucide-vue-next'
+import { LogOut, Moon, Sun } from 'lucide-vue-next'
+import { primaryNav, secondaryNav, accountNav, isNavActive } from '~/utils/navigation'
 
 defineProps<{
   collapsed?: boolean
@@ -94,37 +80,13 @@ defineProps<{
 const route = useRoute()
 const auth = useAuthStore()
 const { colorMode, toggle: toggleMode } = useColorMode()
+const { logout } = useLogout()
 
-async function handleLogout() {
-  await auth.logout()
-  await navigateTo('/entrar')
+function handleLogout() {
+  return logout()
 }
 
-const items = [
-  { label: 'Hoje', to: '/hoje', icon: 'home' },
-  { label: 'Cadernos', to: '/cadernos', icon: 'topics' },
-  { label: 'Revisão', to: '/revisar', icon: 'review' },
-  { label: 'Simulados', to: '/simulados', icon: 'quiz' },
-  { label: 'Provas', to: '/provas', icon: 'exams' },
-  { label: 'Podcasts', to: '/podcasts', icon: 'podcasts' },
-  { label: 'Progresso', to: '/progresso', icon: 'progress' },
-]
-
-const iconMap: Record<string, any> = {
-  home: Home,
-  topics: BookOpen,
-  review: RotateCcw,
-  quiz: ClipboardCheck,
-  exams: CalendarClock,
-  podcasts: Headphones,
-  progress: BarChart3,
-}
-
-function getIcon(name: string) {
-  return iconMap[name]
-}
-
-function isActive(path: string) {
-  return route.path === path || route.path.startsWith(path + '/')
-}
+const items = [...primaryNav, ...secondaryNav]
+// Sidebar footer historically lists Ajuda before Configurações
+const accountNavOrdered = [...accountNav].reverse()
 </script>

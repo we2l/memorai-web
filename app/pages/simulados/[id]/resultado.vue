@@ -19,9 +19,9 @@
         </div>
         <h1 class="font-heading font-bold text-xl text-base-primary">{{ quiz.title }}</h1>
         <div class="flex items-center justify-center gap-3 text-sm text-base-muted mt-2">
-          <span class="flex items-center gap-1"><CheckCircle2 :size="14" class="text-success" /> {{ quiz.correct_count }} certas</span>
+          <span class="flex items-center gap-1"><CheckCircle2 :size="14" class="text-[var(--badge-success-text)]" /> {{ quiz.correct_count }} certas</span>
           <span>·</span>
-          <span class="flex items-center gap-1"><XCircle :size="14" class="text-danger" /> {{ wrongCount }} erradas</span>
+          <span class="flex items-center gap-1"><XCircle :size="14" class="text-[var(--badge-danger-text)]" /> {{ wrongCount }} erradas</span>
           <span v-if="quiz.time_spent_seconds">·</span>
           <span v-if="quiz.time_spent_seconds" class="flex items-center gap-1"><Clock :size="14" /> {{ formatTime(quiz.time_spent_seconds) }}</span>
         </div>
@@ -76,7 +76,7 @@
             >Todas</button>
             <button
               class="text-xs px-3 py-1.5 rounded-md transition-colors"
-              :class="filter === 'wrong' ? 'bg-[var(--bg-card)] text-danger shadow-sm' : 'text-base-muted'"
+              :class="filter === 'wrong' ? 'bg-[var(--bg-card)] text-[var(--badge-danger-text)] shadow-sm' : 'text-base-muted'"
               @click="filter = 'wrong'"
             >Só erros ({{ wrongCount }})</button>
           </div>
@@ -93,8 +93,8 @@
                 class="w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5"
                 :class="q.is_correct ? 'bg-success/10' : 'bg-danger/10'"
               >
-                <CheckCircle2 v-if="q.is_correct" :size="14" class="text-success" />
-                <XCircle v-else :size="14" class="text-danger" />
+                <CheckCircle2 v-if="q.is_correct" :size="14" class="text-[var(--badge-success-text)]" />
+                <XCircle v-else :size="14" class="text-[var(--badge-danger-text)]" />
               </div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-2 mb-1">
@@ -105,11 +105,11 @@
 
                 <div class="mt-3 space-y-1.5">
                   <div v-if="!q.is_correct && q.user_answer" class="flex items-start gap-2 text-xs">
-                    <span class="text-danger font-medium shrink-0">Você:</span>
+                    <span class="text-[var(--badge-danger-text)] font-medium shrink-0">Você:</span>
                     <span class="text-base-secondary">{{ formatAnswer(q, q.user_answer) }}</span>
                   </div>
                   <div class="flex items-start gap-2 text-xs">
-                    <span class="text-success font-medium shrink-0">Correta:</span>
+                    <span class="text-[var(--badge-success-text)] font-medium shrink-0">Correta:</span>
                     <span class="text-base-primary font-medium">{{ formatAnswer(q, q.correct_answer ?? '') }}</span>
                   </div>
                 </div>
@@ -175,9 +175,9 @@ const scoreBorderClass = computed(() => {
 
 const scoreTextClass = computed(() => {
   const s = quiz.value?.score_percent ?? 0
-  if (s >= 70) return 'text-success'
-  if (s >= 50) return 'text-warning'
-  return 'text-danger'
+  if (s >= 70) return 'text-[var(--badge-success-text)]'
+  if (s >= 50) return 'text-[var(--badge-warning-text)]'
+  return 'text-[var(--badge-danger-text)]'
 })
 
 onMounted(async () => {

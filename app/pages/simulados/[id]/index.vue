@@ -9,7 +9,7 @@
 
         <div class="flex items-center gap-3">
           <!-- Timer -->
-          <div v-if="quizStore.hasTimer" class="flex items-center gap-1.5 text-sm font-mono" :class="timeWarning ? 'text-danger' : 'text-base-secondary'">
+          <div v-if="quizStore.hasTimer" class="flex items-center gap-1.5 text-sm font-mono" :class="timeWarning ? 'text-[var(--badge-danger-text)]' : 'text-base-secondary'">
             <Clock :size="14" />
             {{ formattedTime }}
           </div>
@@ -32,7 +32,7 @@
       <div v-if="loadingQuiz" class="text-center py-16">
         <div class="animate-spin w-8 h-8 border-2 border-[var(--color-primary-500)] border-t-transparent rounded-full mx-auto mb-4" />
         <p class="text-base-muted">Gerando questões...</p>
-        <p class="text-xs text-base-muted mt-1">Isso pode levar até 30 segundos</p>
+        <p class="text-xs text-base-muted mt-1">Isso pode levar alguns segundos</p>
       </div>
 
       <div v-else-if="question" class="w-full max-w-[640px]">
@@ -93,7 +93,7 @@
         <!-- Feedback (learning mode, after answering) -->
         <Transition enter-active-class="transition-all duration-200" enter-from-class="opacity-0 translate-y-2" enter-to-class="opacity-100 translate-y-0">
           <div v-if="isAnswered && isLearning && question.type !== 'short_answer' && question.is_correct !== null" class="mt-6 p-4 rounded-xl border" :class="question.is_correct ? 'bg-success/5 border-success/30' : 'bg-danger/5 border-danger/30'">
-            <p class="font-medium text-sm" :class="question.is_correct ? 'text-success' : 'text-danger'">
+            <p class="font-medium text-sm" :class="question.is_correct ? 'text-[var(--badge-success-text)]' : 'text-[var(--badge-danger-text)]'">
               {{ question.is_correct ? '✓ Correto!' : '✗ Incorreto' }}
             </p>
             <p v-if="question.correct_answer && !question.is_correct" class="text-sm text-base-secondary mt-1">
@@ -153,7 +153,7 @@
 <script setup lang="ts">
 import { ArrowLeft, Clock } from 'lucide-vue-next'
 
-definePageMeta({ layout: false })
+definePageMeta({ layout: false, chrome: 'focus' })
 
 const route = useRoute()
 const quizStore = useQuizStore()
@@ -319,8 +319,8 @@ function getTFClass(value: string) {
   }
 
   if (isLearning.value && question.value?.is_correct !== null) {
-    if (value === correct) return 'border-success bg-success/5 text-success'
-    if (value === answer && !question.value?.is_correct) return 'border-danger bg-danger/5 text-danger'
+    if (value === correct) return 'border-success bg-success/5 text-[var(--badge-success-text)]'
+    if (value === answer && !question.value?.is_correct) return 'border-danger bg-danger/5 text-[var(--badge-danger-text)]'
   }
 
   if (value === answer) return 'border-[var(--color-primary-500)] bg-[var(--color-primary-50)] text-[var(--color-primary-700)]'

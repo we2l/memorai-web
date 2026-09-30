@@ -6,7 +6,7 @@
     <div v-if="!store.importId" class="card p-8 text-center">
       <Upload :size="48" class="mx-auto text-base-muted mb-4" />
       <p class="text-title mb-2">Selecione seu arquivo .apkg</p>
-      <p class="text-small text-base-muted mb-6">Suporta decks exportados do Anki (até 500MB)</p>
+      <p class="text-small text-base-muted mb-6">Suporta baralhos exportados do Anki (até 500MB)</p>
 
       <label
         class="btn-primary cursor-pointer inline-flex"
@@ -32,16 +32,16 @@
       <div class="card p-5">
         <p class="text-title mb-4">Preview da importação</p>
 
-        <!-- Decks -->
+        <!-- Baralhos do Anki -->
         <div class="mb-4">
-          <p class="text-label mb-2">Decks ({{ store.preview.decks.length }})</p>
+          <p class="text-label mb-2">Baralhos do Anki ({{ store.preview.decks.length }})</p>
           <div v-for="deck in store.preview.decks" :key="deck.name" class="flex items-center justify-between py-2 border-b border-surface-tertiary last:border-0">
             <div>
               <span class="text-small text-base-primary">{{ deck.name }}</span>
               <span class="text-micro text-base-muted ml-2">{{ deck.cards_count }} cards</span>
             </div>
             <div v-if="deck.conflict" class="flex items-center gap-2">
-              <span class="text-micro text-warning inline-flex items-center gap-0.5"><AlertTriangle :size="10" /> Já existe</span>
+              <span class="text-micro text-[var(--badge-warning-text)] inline-flex items-center gap-0.5"><AlertTriangle :size="10" /> Já existe</span>
               <UiSelect
                 :model-value="store.deckConflicts[deck.name]"
                 @update:model-value="store.deckConflicts[deck.name] = $event"
@@ -71,8 +71,8 @@
         <div class="mb-4">
           <p class="text-label mb-2">Tipos de card</p>
           <div class="flex gap-3 text-small">
-            <span v-if="store.preview.note_types.Basic" class="px-2 py-1 rounded bg-[var(--border-divider)]">Basic: {{ store.preview.note_types.Basic }}</span>
-            <span v-if="store.preview.note_types.Cloze" class="px-2 py-1 rounded bg-[var(--border-divider)]">Cloze: {{ store.preview.note_types.Cloze }}</span>
+            <span v-if="store.preview.note_types.Basic" class="px-2 py-1 rounded bg-[var(--border-divider)]">Pergunta e resposta: {{ store.preview.note_types.Basic }}</span>
+            <span v-if="store.preview.note_types.Cloze" class="px-2 py-1 rounded bg-[var(--border-divider)]">Lacuna: {{ store.preview.note_types.Cloze }}</span>
             <span v-if="store.preview.note_types.Other" class="px-2 py-1 rounded bg-[var(--border-divider)]">Outros: {{ store.preview.note_types.Other }}</span>
           </div>
         </div>
@@ -123,7 +123,7 @@
       <div class="grid grid-cols-2 gap-3 max-w-xs mx-auto mt-4 mb-6">
         <div class="bg-[var(--border-divider)] rounded-lg p-3">
           <p class="text-title text-accent-primary">{{ store.status.stats?.decks_created }}</p>
-          <p class="text-micro text-base-muted">Decks</p>
+          <p class="text-micro text-base-muted">Cadernos criados</p>
         </div>
         <div class="bg-[var(--border-divider)] rounded-lg p-3">
           <p class="text-title text-accent-primary">{{ store.status.stats?.cards_created }}</p>
@@ -143,7 +143,7 @@
 
     <!-- Failed -->
     <div v-else-if="store.status?.status === 'failed'" class="card p-8 text-center">
-      <div class="w-14 h-14 rounded-2xl bg-danger/10 flex items-center justify-center mx-auto mb-4"><XCircle :size="28" class="text-danger" /></div>
+      <div class="w-14 h-14 rounded-2xl bg-danger/10 flex items-center justify-center mx-auto mb-4"><XCircle :size="28" class="text-[var(--badge-danger-text)]" /></div>
       <h2 class="text-display mb-2">Erro na importação</h2>
       <p class="text-small text-base-muted mb-4">{{ store.status.error }}</p>
       <button class="btn-primary" @click="retryImport">Tentar novamente</button>
@@ -173,7 +173,7 @@ const statusPoll = usePoll(() => store.pollStatus(), {
 const stepLabel = computed(() => {
   const step = store.status?.current_step
   const map: Record<string, string> = {
-    creating_decks: 'Criando decks...',
+    creating_decks: 'Criando cadernos...',
     creating_topics: 'Criando cadernos...',
     importing_cards: 'Importando cards...',
     extracting_media: 'Extraindo media...',

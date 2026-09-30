@@ -36,7 +36,8 @@ export const useExamStore = defineStore('exam', {
         const res = await $api('/exams/upcoming')
         this.upcoming = res.data
       } catch (e) {
-        // Silent — dashboard shouldn't break if exams fail
+        // Dashboard shouldn't break if exams fail (RF-F3b: S)
+        reportApiError(e, { silent: true })
       }
     },
 

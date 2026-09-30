@@ -85,11 +85,11 @@
 
           <!-- Delete button (hover only) -->
           <button
-            class="absolute top-4 right-4 p-1.5 rounded-lg text-base-muted/40 hover:text-danger hover:bg-danger/10 opacity-0 group-hover:opacity-100 transition-all duration-150 z-10"
+            class="absolute top-4 right-4 p-1.5 rounded-lg text-base-muted/40 hover:text-[var(--badge-danger-text)] hover:bg-danger/10 opacity-0 group-hover:opacity-100 transition-all duration-150 z-10"
             title="Excluir nota"
             @click.stop="noteToDelete = note"
-          >
-            <Trash2 :size="14" />
+           aria-label="Excluir nota">
+            <Trash2 :size="14" aria-hidden="true" />
           </button>
         </div>
 
@@ -114,8 +114,8 @@
             class="p-1.5 rounded-lg text-base-muted hover:text-base-primary hover:bg-surface-secondary transition-colors"
             title="Voltar"
             @click="$emit('close-editor')"
-          >
-            <ArrowLeft :size="16" />
+           aria-label="Voltar">
+            <ArrowLeft :size="16" aria-hidden="true" />
           </button>
           <nav class="flex items-center gap-1 text-small text-base-muted min-w-0">
             <span class="truncate max-w-[120px]">{{ breadcrumbTopic }}</span>
@@ -139,17 +139,17 @@
               class="p-1.5 rounded-lg text-base-muted hover:text-base-primary hover:bg-surface-secondary transition-colors"
               title="Mais opções"
               @click="showMenu = !showMenu"
-            >
-              <MoreHorizontal :size="16" />
+             aria-label="Mais opções">
+              <MoreHorizontal :size="16" aria-hidden="true" />
             </button>
             <div v-if="showMenu" class="absolute right-0 top-full mt-1 w-48 bg-[var(--bg-card)] border border-base rounded-xl shadow-lg py-1 z-30">
               <button class="w-full text-left px-3 py-2 text-small text-base-primary hover:bg-surface-secondary transition-colors flex items-center gap-2" @click="showMenu = false; $emit('improve-note')">
-                <Sparkles :size="14" class="text-[var(--color-accent-soft)]" /> Melhorar com IA
+                <Sparkles :size="14" class="text-[var(--badge-primary-text)]" /> Melhorar com IA
               </button>
               <button class="w-full text-left px-3 py-2 text-small text-base-primary hover:bg-surface-secondary transition-colors flex items-center gap-2" @click="showMenu = false; $emit('generate-from-note')">
-                <Zap :size="14" class="text-[var(--color-accent-soft)]" /> Transformar em flashcards
+                <Zap :size="14" class="text-[var(--badge-primary-text)]" /> Gerar cards
               </button>
-              <button class="w-full text-left px-3 py-2 text-small text-danger hover:bg-danger/5 transition-colors flex items-center gap-2" @click="showMenu = false; $emit('delete-note')">
+              <button class="w-full text-left px-3 py-2 text-small text-[var(--badge-danger-text)] hover:bg-danger/5 transition-colors flex items-center gap-2" @click="showMenu = false; $emit('delete-note')">
                 <Trash2 :size="14" /> Excluir nota
               </button>
             </div>
@@ -188,7 +188,7 @@
         <span v-else-if="wordCount >= 100" class="text-small text-base-muted">{{ wordCount }} palavras · Quase lá — mais um pouco pra IA funcionar</span>
         <span v-else-if="wordCount > 0" class="text-small text-base-muted">{{ wordCount }} palavras · Continue escrevendo...</span>
         <span v-else class="text-small text-base-muted">0 palavras</span>
-        <span v-if="wordCount >= 200" class="text-small font-medium text-emerald-600 bg-emerald-500/10 px-2.5 py-1 rounded-full">Material suficiente pra flashcards ✓</span>
+        <span v-if="wordCount >= 200" class="text-small font-medium text-[var(--badge-success-text)] bg-[var(--badge-success-bg)] px-2.5 py-1 rounded-full">Material suficiente pra flashcards ✓</span>
       </div>
 
       <!-- Selection toolbar (create card from selection) -->
@@ -403,14 +403,14 @@ onBeforeUnmount(() => {
   font-size: 2.5rem;
   font-weight: 700;
   line-height: 1.2;
-  color: var(--color-text-heading, #1F2343);
+  color: var(--text-heading);
   outline: none;
   word-break: break-word;
 }
 
 .notion-title:empty::before {
   content: attr(data-placeholder);
-  color: var(--color-text-muted, #8A90A8);
+  color: var(--text-muted);
   opacity: 0.6;
   pointer-events: none;
 }
@@ -457,7 +457,7 @@ onBeforeUnmount(() => {
   height: 140px;
   flex-shrink: 0;
   border-radius: 8px;
-  background: #fff;
+  background: var(--bg-card);
   border: 1px solid var(--border-base);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   padding: 14px 11px;
@@ -650,13 +650,13 @@ onBeforeUnmount(() => {
 }
 
 .note-badge--green {
-  background: color-mix(in srgb, #16A34A 6%, transparent);
-  color: #16A34A;
+  background: color-mix(in srgb, var(--badge-success-text) 6%, transparent);
+  color: var(--badge-success-text);
 }
 
 .note-badge--purple {
-  background: color-mix(in srgb, #6F3FF5 6%, transparent);
-  color: #6F3FF5;
+  background: color-mix(in srgb, var(--color-accent-primary) 6%, transparent);
+  color: var(--color-accent-primary);
 }
 
 .note-badge--accent {

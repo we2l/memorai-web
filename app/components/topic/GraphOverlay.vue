@@ -3,6 +3,7 @@
     <Transition name="fade">
       <div
         v-if="modelValue"
+        ref="overlayRoot"
         class="fixed inset-0 z-50 bg-surface flex flex-col"
         role="dialog"
         aria-modal="true"
@@ -18,7 +19,7 @@
           <div class="flex-1" />
           <button
             class="btn-secondary !py-1.5 !px-3 !min-h-[2.75rem] text-small"
-            :class="showOnlyWeak && 'bg-danger/10 text-danger border-danger/30'"
+            :class="showOnlyWeak && 'bg-danger/10 text-[var(--badge-danger-text)] border-danger/30'"
             :disabled="!graphStore.data?.nodes.length"
             @click="showOnlyWeak = !showOnlyWeak"
           >
@@ -51,7 +52,7 @@
         </div>
 
         <!-- Weak topics banner -->
-        <div v-else-if="weakNodesCount > 0" class="px-4 py-2.5 bg-danger/10 text-danger text-small text-center shrink-0 flex items-center justify-center gap-3 flex-wrap">
+        <div v-else-if="weakNodesCount > 0" class="px-4 py-2.5 bg-danger/10 text-[var(--badge-danger-text)] text-small text-center shrink-0 flex items-center justify-center gap-3 flex-wrap">
           <span>{{ weakNodesCount }} {{ weakNodesCount === 1 ? 'caderno precisa' : 'cadernos precisam' }} de atenção</span>
           <button class="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-danger text-base-primary text-micro font-medium hover:bg-danger/90 transition-colors" @click="showOnlyWeak = !showOnlyWeak">
             {{ showOnlyWeak ? 'Mostrar todos' : 'Ver quais' }}
@@ -102,8 +103,8 @@
             <div class="p-4 border-b border-base">
               <div class="flex items-center justify-between mb-2">
                 <h3 class="text-title truncate">{{ graphStore.selectedNode.name }}</h3>
-                <button class="p-1 rounded hover:bg-[var(--border-divider)]" @click="graphStore.clearSelection()">
-                  <X :size="16" class="text-base-muted" />
+                <button class="p-1 rounded hover:bg-[var(--border-divider)]" aria-label="Fechar detalhes" @click="graphStore.clearSelection()">
+                  <X :size="16" class="text-base-muted" aria-hidden="true" />
                 </button>
               </div>
               <div class="flex items-center gap-2 mb-3">
@@ -137,13 +138,13 @@
           class="absolute bottom-4 right-4 p-3 rounded-lg bg-surface-secondary border border-base shadow-lg text-base-muted hover:text-base-primary transition-colors"
           title="Recentralizar"
           @click="recenter"
-        >
-          <Maximize2 :size="18" />
+         aria-label="Recentralizar">
+          <Maximize2 :size="18" aria-hidden="true" />
         </button>
 
         <!-- Legend -->
         <div v-if="graphStore.data?.nodes.length" class="absolute bottom-20 lg:bottom-4 left-3 right-3 sm:left-4 sm:right-auto flex flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2 rounded-lg bg-surface-secondary/90 backdrop-blur text-small text-base-muted border border-base">
-          <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-[#6B7280] inline-block" /> Sem cards</span>
+          <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-[var(--text-muted)] inline-block" /> Sem cards</span>
           <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-danger inline-block" /> &lt; 30%</span>
           <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-warning inline-block" /> 30-70%</span>
           <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-success inline-block" /> &gt; 70%</span>
@@ -153,7 +154,7 @@
         <UiModal v-model="showLabelModal" size="sm">
           <h2 class="text-headline mb-4">Conectar cadernos</h2>
           <p class="text-small text-base-secondary mb-3">{{ connectSourceName }} ↔ {{ connectTargetName }}</p>
-          <p class="text-micro text-base-muted mb-3 bg-[var(--border-divider)] rounded-lg px-3 py-2"><Lightbulb :size="12" class="inline text-[var(--color-accent-soft)]" /> Cadernos conectados são revisados juntos — o algoritmo mistura cards dos dois pra fortalecer a memória.</p>
+          <p class="text-micro text-base-muted mb-3 bg-[var(--border-divider)] rounded-lg px-3 py-2"><Lightbulb :size="12" class="inline text-[var(--badge-primary-text)]" /> Cadernos conectados são revisados juntos — o algoritmo mistura cards dos dois pra fortalecer a memória.</p>
           <input v-model="connectLabel" class="input-base" placeholder="Label (opcional, ex: 'é exceção de')" @keydown.enter="confirmConnection" />
           <div class="flex gap-3 justify-end mt-4">
             <button class="btn-secondary" @click="cancelLabel">Cancelar</button>
@@ -268,4 +269,8 @@ watch(showOnlyWeak, async () => {
   await nextTick()
   render()
 })
+
+// Focus trap + scroll lock (RF-F9.2)
+const overlayRoot = ref<HTMLElement | null>(null)
+useOverlayA11y(() => props.modelValue, overlayRoot)
 </script>

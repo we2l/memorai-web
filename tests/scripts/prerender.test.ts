@@ -5,7 +5,7 @@ import { pathToFileURL } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { PUBLIC_DIR, skipWithoutBuild } from './buildOutput'
 
-const PAGES = ['index.html', 'entrar/index.html', 'criar-conta/index.html']
+const PAGES = ['index.html', 'entrar/index.html', 'criar-conta/index.html', 'termos/index.html', 'privacidade/index.html', 'planos/index.html', 'ajuda/index.html']
 const MANIFEST = resolve(__dirname, '../../node_modules/.cache/nuxt/.nuxt/dist/server/client.manifest.mjs')
 
 describe.skipIf(skipWithoutBuild)('páginas pré-renderizadas (build)', () => {

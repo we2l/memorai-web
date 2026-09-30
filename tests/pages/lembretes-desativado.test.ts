@@ -9,7 +9,8 @@ mockNuxtImport('useNuxtApp', (original) => () => new Proxy(original(), {
   get: (target, key) => (key === '$api' ? apiMock : Reflect.get(target, key)),
 }))
 
-const apiBase = 'http://localhost:8037/api'
+// Same source as nuxt.config (public.apiBase): the page only POSTs to URLs under it
+const apiBase = (process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8037/api').replace(/\/$/, '')
 const unsubscribeUrl = `${apiBase}/email/unsubscribe/u-1?signature=abc`
 const resubscribeUrl = `${apiBase}/email/resubscribe/u-1?expires=1&signature=def`
 

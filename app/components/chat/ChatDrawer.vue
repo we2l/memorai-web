@@ -210,7 +210,7 @@ watch(() => chat.isOpen, async (open) => {
     await nextTick()
     inputRef.value?.focus()
   }
-})
+}, { immediate: true }) // lazy-mounted by the layout already open
 
 // Scroll to bottom on new messages
 watch(() => chat.messages.length, async () => {

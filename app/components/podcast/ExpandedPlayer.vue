@@ -286,12 +286,6 @@ function onSeek(e: Event) {
   player.seek(Number((e.target as HTMLInputElement).value))
 }
 
-function formatTime(s: number): string {
-  const total = Math.floor(s)
-  const m = Math.floor(total / 60)
-  const sec = total % 60
-  return `${m}:${sec.toString().padStart(2, '0')}`
-}
 
 function formatDate(date: string): string {
   return new Date(date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' })

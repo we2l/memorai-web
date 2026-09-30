@@ -43,10 +43,6 @@
 
 <script setup lang="ts">
 import { useEditor, EditorContent } from '@tiptap/vue-3'
-import StarterKit from '@tiptap/starter-kit'
-import Underline from '@tiptap/extension-underline'
-import Placeholder from '@tiptap/extension-placeholder'
-import Image from '@tiptap/extension-image'
 import { ClozeMarker, markToCloze, clozeToMark, getNextClozeIndex } from '~/extensions/cloze-marker'
 import { Bold, Italic, Underline as UnderlineIcon, List, ListOrdered, Mic, ImagePlus, Brackets } from 'lucide-vue-next'
 
@@ -89,15 +85,11 @@ function toStorageContent(html: string): string {
 const editor = useEditor({
   content: toEditorContent(props.modelValue),
   extensions: [
-    StarterKit.configure({
-      heading: false,
-      blockquote: false,
-      codeBlock: false,
-      horizontalRule: false,
+    ...useTiptapBase({
+      starterKit: { heading: false, blockquote: false, codeBlock: false, horizontalRule: false },
+      placeholder: props.placeholder,
+      image: props.enableImage,
     }),
-    Underline.configure({}),
-    Placeholder.configure({ placeholder: props.placeholder }),
-    ...(props.enableImage ? [Image.configure({ inline: false, allowBase64: false })] : []),
     ...(props.enableCloze ? [ClozeMarker] : []),
   ],
   onUpdate: ({ editor }) => {

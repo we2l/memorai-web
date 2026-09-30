@@ -13,6 +13,7 @@ interface AiGenerateOptions {
  */
 export function useAiGenerate({ topicId, topicCards, activeTab, onReload }: AiGenerateOptions) {
   const { $api } = useNuxtApp()
+  const aiJob = useAiJob()
   const toast = useToast()
 
   const generatedCards = ref<any[]>([])
@@ -55,18 +56,16 @@ export function useAiGenerate({ topicId, topicCards, activeTab, onReload }: AiGe
     aiGenerating.value = true
     toast.show('Gerando cards com IA...', 'success')
     try {
-      const res = await $api<any>('/ai/generate-cards', {
-        method: 'POST',
-        body: {
-          topic_id: topicId.value,
-          deck_id: deckId,
-          source,
-          count: quantity,
-          document_id: source === 'pdf' ? documentIdOrPrompt : undefined,
-          prompt: source === 'free' ? documentIdOrPrompt : undefined,
-        },
+      // 202 + job polled until done (RF-30)
+      const result = await aiJob.run<{ cards: any[] }>('/ai/generate-cards', {
+        topic_id: topicId.value,
+        deck_id: deckId,
+        source,
+        count: quantity,
+        document_id: source === 'pdf' ? documentIdOrPrompt : undefined,
+        prompt: source === 'free' ? documentIdOrPrompt : undefined,
       })
-      const cards = res.data?.cards ?? []
+      const cards = result?.cards ?? []
       if (cards.length) {
         generatedCards.value = cards
         generatingDeckId.value = deckId

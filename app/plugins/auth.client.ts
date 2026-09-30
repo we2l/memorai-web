@@ -15,4 +15,10 @@ export default defineNuxtPlugin(async () => {
   }
 
   auth.loaded = true
+
+  // Reveal prerendered pages hidden by the session-hint head script (nuxt.config)
+  const reveal = () => document.documentElement.classList.remove('baigi-session')
+  const nuxtApp = useNuxtApp()
+  nuxtApp.hook('app:suspense:resolve', reveal)
+  nuxtApp.hook('app:error', reveal)
 })

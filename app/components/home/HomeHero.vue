@@ -96,7 +96,7 @@
       <!-- Left: narrative -->
       <div class="hero__narrative">
         <div class="hero__greeting">
-          <img src="~/assets/mascot-baigi-bust.png" alt="" class="hero__mascot" />
+          <picture class="contents"><source srcset="~/assets/mascots/mascot-baigi-bust-64.avif" type="image/avif"><img src="~/assets/mascots/mascot-baigi-bust-64.webp" alt="" class="hero__mascot" width="24" height="24" decoding="async" /></picture>
           <span class="hero__salute">{{ greeting }}, {{ firstName }}.</span>
           <span v-if="nextExam" class="hero__exam">📋 {{ nextExam.days_remaining }}d até prova</span>
         </div>
@@ -133,7 +133,7 @@
     <div class="hero__layout hero__layout--center">
       <div class="hero__narrative">
         <div class="hero__greeting">
-          <img src="~/assets/mascot-baigi-reading.png" alt="" class="hero__mascot" />
+          <picture class="contents"><source srcset="~/assets/mascots/mascot-baigi-reading.avif" type="image/avif"><img src="~/assets/mascots/mascot-baigi-reading.webp" alt="" class="hero__mascot" width="24" height="24" decoding="async" /></picture>
           <span class="hero__salute">{{ greeting }}, {{ firstName }}.</span>
         </div>
         <h1 class="hero__number hero__number--sm">Crie seus primeiros cards.</h1>
@@ -151,7 +151,7 @@
     <div class="hero__layout hero__layout--center">
       <div class="hero__narrative">
         <div class="hero__greeting">
-          <img src="~/assets/mascot-baigi-celebrating.png" alt="" class="hero__mascot" />
+          <picture class="contents"><source srcset="~/assets/mascots/mascot-baigi-celebrating.avif" type="image/avif"><img src="~/assets/mascots/mascot-baigi-celebrating.webp" alt="" class="hero__mascot" width="24" height="24" decoding="async" /></picture>
           <span class="hero__salute">{{ greeting }}, {{ firstName }}.</span>
         </div>
         <h1 class="hero__number hero__number--sm">Tudo em dia! 🎉</h1>

@@ -57,7 +57,7 @@
 
     <!-- Empty state -->
     <div v-else-if="completed.length === 0 && inProgress.length === 0" class="text-center py-16">
-      <img src="~/assets/mascot-baigi-thinking.png" alt="Baigi pensando" class="w-24 h-24 object-contain mx-auto mb-4" />
+      <picture class="contents"><source srcset="~/assets/mascots/mascot-baigi-thinking.avif" type="image/avif"><img src="~/assets/mascots/mascot-baigi-thinking.webp" alt="Baigi pensando" class="w-24 h-24 object-contain mx-auto mb-4" width="96" height="96" loading="lazy" decoding="async" /></picture>
       <p class="text-title text-base-secondary">Nenhum simulado ainda</p>
       <p class="text-small text-base-muted mt-1 max-w-xs mx-auto">Gere simulados a partir dos seus cadernos e descubra seus pontos fracos.</p>
       <button class="btn-primary mt-5" @click="showConfig = true">Criar primeiro simulado</button>
@@ -141,9 +141,4 @@ function getScoreBadgeClass(score: number | null) {
   return 'bg-danger/10 text-danger border border-danger/20'
 }
 
-function formatTime(seconds: number) {
-  const m = Math.floor(seconds / 60)
-  const s = seconds % 60
-  return `${m}:${String(s).padStart(2, '0')}`
-}
 </script>

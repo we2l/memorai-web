@@ -153,7 +153,7 @@
             />
           </template>
           <template #editor>
-            <TopicCardWorkshop
+            <LazyTopicCardWorkshop
               v-if="cardWorkshop.state.value === 'workshop' || cardWorkshop.state.value === 'loading' || cardWorkshop.state.value === 'success'"
               :cards="cardWorkshop.cards.value"
               :loading="cardWorkshop.state.value === 'loading'"
@@ -171,8 +171,8 @@
                 <NuxtLink :to="`/revisar?topic_id=${selectedTopicId}`" class="btn-primary w-full justify-center">Revisar agora</NuxtLink>
                 <button class="btn-secondary w-full justify-center" @click="cardWorkshop.reset()">Voltar à nota</button>
               </template>
-            </TopicCardWorkshop>
-            <TopicNoteEditor v-else v-model="noteContent" :editable="!noteIsGenerating && noteImprove.state.value !== 'loading' && noteImprove.state.value !== 'preview'" :topic-id="selectedTopicId" @update:model-value="debouncedSave" @create-card="openNoteToCard" @ask-ai="askAiAboutSelection" @navigate-topic="selectTopic" />
+            </LazyTopicCardWorkshop>
+            <LazyTopicNoteEditor v-else v-model="noteContent" :editable="!noteIsGenerating && noteImprove.state.value !== 'loading' && noteImprove.state.value !== 'preview'" :topic-id="selectedTopicId" @update:model-value="debouncedSave" @create-card="openNoteToCard" @ask-ai="askAiAboutSelection" @navigate-topic="selectTopic" />
           </template>
           <template #selection-toolbar />
         </TopicHubNotesTab>
@@ -201,7 +201,7 @@
                 <div class="min-w-0">
                   <h1 class="font-heading font-bold text-3xl text-base-primary truncate">{{ selectedTopicName }}</h1>
                   <p class="text-small text-base-muted mt-2.5">
-                    {{ topicCards.length }} card{{ topicCards.length !== 1 ? 's' : '' }}{{ pendingCount > 0 ? ` · ${pendingCount} pendente${pendingCount !== 1 ? 's' : ''} hoje` : '' }}
+                    {{ totalCards }} card{{ totalCards !== 1 ? 's' : '' }}{{ pendingCount > 0 ? ` · ${pendingCount} pendente${pendingCount !== 1 ? 's' : ''} hoje` : '' }}
                   </p>
                 </div>
               </div>
@@ -237,8 +237,8 @@
             @quiz="navigateTo(`/simulados?topic_id=${selectedTopicId}`)"
           />
 
-          <PodcastGenerateSheet
-            v-if="selectedTopicId"
+          <LazyPodcastGenerateSheet
+            v-if="selectedTopicId && podcastSheetLoaded"
             v-model="showPodcastSheet"
             :topic-id="selectedTopicId"
             :topic-name="selectedTopicName ?? ''"
@@ -263,7 +263,7 @@
               v-model="activeTab"
               :tabs="[
                 { key: 'notes', label: 'Material', count: noteStore.notes.length },
-                { key: 'cards', label: 'Cards', count: topicCards.length },
+                { key: 'cards', label: 'Cards', count: totalCards },
                 { key: 'map', label: 'Mapa' },
               ]"
               :storage-key="`baigi-hub-tab-${selectedTopicId}`"
@@ -293,13 +293,13 @@
             </div>
 
             <!-- Sub-view: Grafo de Cadernos -->
-            <TopicGraphInline
+            <LazyTopicGraphInline
               v-if="mapSubView === 'graph'"
               @expand="showGraph = true"
             />
 
             <!-- Sub-view: Mapa Mental -->
-            <TopicMindMapView
+            <LazyTopicMindMapView
               v-if="mapSubView === 'mindmap' && selectedTopicId"
               :topic-id="selectedTopicId"
               @create-note="createNote"
@@ -346,7 +346,7 @@
           <div v-if="activeTab === 'cards'" class="tab-fade-in">
             <!-- Card Workshop (inline above card list) -->
             <div v-if="cardWorkshop.state.value !== 'idle'" class="px-4 pt-4">
-              <TopicCardWorkshop
+              <LazyTopicCardWorkshop
                 :cards="cardWorkshop.cards.value"
                 :loading="cardWorkshop.state.value === 'loading'"
                 :accepted-indexes="cardWorkshop.acceptedIndexes.value"
@@ -363,12 +363,15 @@
                   <NuxtLink :to="`/revisar?topic_id=${selectedTopicId}`" class="btn-primary w-full justify-center">Revisar agora</NuxtLink>
                   <button class="btn-secondary w-full justify-center" @click="cardWorkshop.reset()">Fechar</button>
                 </template>
-              </TopicCardWorkshop>
+              </LazyTopicCardWorkshop>
             </div>
 
-            <TopicHubCardsTab
+            <LazyTopicHubCardsTab
               :topic-id="selectedTopicId!"
-              :cards="topicCards"
+              :cards="listCards"
+              :server-mode="listMode === 'server'"
+              :has-more="hasMorePages"
+              :loading-more="loadingPage"
               :generated-cards="generatedCards"
               :ai-generating="aiGenerating"
               :error-patterns="errorPatterns"
@@ -383,6 +386,8 @@
               @edit-generated="editGeneratedCard"
               @discard-generated="discardGenerated"
               @ocr-cards="handleOcrCards"
+              @search="searchCards"
+              @load-more="loadNextPage"
             >
               <template #ai-generate>
                 <button
@@ -393,7 +398,7 @@
                   <Sparkles :size="14" /> Preparar revisão
                 </button>
               </template>
-            </TopicHubCardsTab>
+            </LazyTopicHubCardsTab>
           </div>
         </template>
 
@@ -552,8 +557,8 @@
       @confirm="handleDeleteTopic"
     />
 
-    <TopicNoteToCardModal
-      v-if="noteStore.current"
+    <LazyTopicNoteToCardModal
+      v-if="noteStore.current && noteToCardLoaded"
       v-model="showNoteToCard"
       :note-id="noteStore.current.id"
       :selected-text="selectedText"
@@ -576,7 +581,8 @@
       @confirm="handleDeleteNote"
     />
 
-    <FlashcardCardFormModal
+    <LazyFlashcardCardFormModal
+      v-if="cardFormLoaded"
       v-model="showCardForm"
       :topic-id="selectedTopicId ?? undefined"
       :card="editingCard"
@@ -592,10 +598,10 @@
 
     <!-- Note editor modal removed — now using split-view in HubNotesTab -->
 
-    <TopicGraphOverlay v-model="showGraph" />
+    <LazyTopicGraphOverlay v-if="graphLoaded" v-model="showGraph" />
 
     <!-- Confetti celebration (triggers when pendentes goes to 0) -->
-    <UiConfetti :trigger="showConfetti" />
+    <LazyUiConfetti v-if="confettiLoaded" :trigger="showConfetti" />
 
     <!-- Upload modal for import PDF (learning mode selection) -->
     <TopicUploadModal
@@ -627,10 +633,11 @@ const mapSubView = ref<'graph' | 'mindmap'>(
   (import.meta.client && localStorage.getItem('baigi-map-subview') as 'graph' | 'mindmap') || 'mindmap'
 )
 const searchQuery = ref('')
-const { topicCards, showDeleteCard, deleteCardId, memorizeProgress, dueCardsCount, newCardsCount, pendingCount, setCards, cardsFromNote, confirmDeleteCard, handleDeleteCard } = useTopicCards()
+const { topicCards, showDeleteCard, deleteCardId, memorizeProgress, dueCardsCount, newCardsCount, pendingCount, setCards, listMode, listCards, hasMorePages, loadingPage, totalCards, loadNextPage, searchCards, cardsFromNote, confirmDeleteCard, handleDeleteCard } = useTopicCards()
 
 // Confetti when pending goes from >0 to 0
 const showConfetti = ref(false)
+const confettiLoaded = useLoadedOnce(() => showConfetti.value)
 watch(pendingCount, (curr, prev) => {
   if (prev > 0 && curr === 0) {
     showConfetti.value = true
@@ -650,7 +657,7 @@ const cardWorkshop = useCardWorkshop({
 const nextStep = useNextStep({
   topicId: selectedTopicId,
   notes: computed(() => noteStore.notes),
-  flashcardsCount: computed(() => topicCards.value.length),
+  flashcardsCount: totalCards,
   dueCardsCount,
   editingNote,
 })
@@ -671,13 +678,18 @@ const showNoteToCard = ref(false)
 const showGraph = ref(false)
 const showAddMenu = ref(false)
 const showPodcastSheet = ref(false)
+// Modals/overlays: chunk loads on first open (prd-performance-frontend RF-02)
+const noteToCardLoaded = useLoadedOnce(() => showNoteToCard.value)
+const graphLoaded = useLoadedOnce(() => showGraph.value)
+const podcastSheetLoaded = useLoadedOnce(() => showPodcastSheet.value)
 const highlightCardId = ref('')
 
 function onPodcastGenerated() {
-  const podcastStore = usePodcastStore()
-  podcastStore.startPolling()
+  usePodcastStore().startPolling()
 }
+onUnmounted(() => usePodcastStore().stopPolling())
 const showCardForm = ref(false)
+const cardFormLoaded = useLoadedOnce(() => showCardForm.value)
 const cardFormInitialFront = ref('')
 const cardFormInitialBack = ref('')
 const editingGeneratedCardIndex = ref<number | null>(null)
@@ -691,31 +703,20 @@ const noteIsGenerating = computed(() => {
   return doc?.note_generation_status === 'generating'
 })
 
-// Poll note content while generating
-let noteRefreshTimer: ReturnType<typeof setInterval> | null = null
+// Poll note content while generating (usePoll: stops on unmount / hidden tab)
+const noteRefresh = usePoll(async (signal) => {
+  if (!editingNote.value) return
+  const { $api } = useNuxtApp()
+  const res = await $api<any>(`/notes/${editingNote.value.id}`, { signal })
+  if (res.data?.content) {
+    noteContent.value = res.data.content
+  }
+}, { interval: 4000, immediate: false, until: () => !noteIsGenerating.value || !editingNote.value })
 
 watch(noteIsGenerating, (generating) => {
-  if (generating && editingNote.value) {
-    noteRefreshTimer = setInterval(async () => {
-      if (!editingNote.value) { stopNoteRefresh(); return }
-      try {
-        const { $api } = useNuxtApp()
-        const res = await $api<any>(`/notes/${editingNote.value.id}`)
-        if (res.data?.content) {
-          noteContent.value = res.data.content
-        }
-      } catch {}
-    }, 4000)
-  } else {
-    stopNoteRefresh()
-  }
+  if (generating && editingNote.value) noteRefresh.start()
+  else noteRefresh.stop()
 })
-
-function stopNoteRefresh() {
-  if (noteRefreshTimer) { clearInterval(noteRefreshTimer); noteRefreshTimer = null }
-}
-
-onUnmounted(() => stopNoteRefresh())
 
 // Auto-refresh notes list when documents change
 let lastNoteStatuses: Record<string, string | null> = {}
@@ -882,7 +883,7 @@ async function loadTopicData(id: string) {
       $api<any>(`/topics/${id}/details`),
       $api<any>(`/topics/${id}/error-patterns`),
     ])
-    setCards(detailRes.data.flashcards)
+    setCards(detailRes.data.flashcards, detailRes.data)
     errorPatterns.value = patternsRes.data
 
     // Set default tab based on content

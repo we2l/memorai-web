@@ -253,14 +253,6 @@ async function loadTopics() {
   } catch {}
 }
 
-function flattenTopics(tree: Topic[], result: Topic[] = []): Topic[] {
-  for (const t of tree) {
-    result.push(t)
-    if (t.children?.length) flattenTopics(t.children, result)
-  }
-  return result
-}
-
 async function uploadAudio(blob: Blob): Promise<string> {
   const formData = new FormData()
   formData.append('audio', blob, 'recording.webm')

@@ -18,19 +18,15 @@
 | `/criar-conta` | Registro |
 | `/hoje` | Dashboard principal (cards pra hoje, backlog, sugestões) |
 | `/revisar` | Sessão de revisão (flip card, botões rating) |
-| `/decks` | Listagem de decks |
-| `/decks/[id]` | Detalhe do deck (cards, settings) |
 | `/cadernos` | Tópicos/cadernos (árvore, notas, erros, cards) |
-| `/grafo` | Grafo visual de tópicos (D3.js) |
-| `/chat` | Agente IA (chat contextual) |
 | `/podcasts` | Lista de podcasts gerados |
 | `/importar` | Importar Anki (.apkg) |
 | `/progresso` | Estatísticas de progresso |
-| `/stats` | Estatísticas de revisão |
 | `/configuracoes` | Configurações do usuário |
 | `/planos` | Planos e preços |
-| `/documents` | PDFs enviados |
 | `/comecar` | Onboarding |
+
+URLs legadas (`/dashboard`, `/chat`, `/stats`, `/graph`, `/documents`, `/decks/**`) são 301 no edge (`routeRules`) — ver `redirects.spec.ts`.
 
 ## Seletores importantes
 

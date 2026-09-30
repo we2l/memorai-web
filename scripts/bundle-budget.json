@@ -1,0 +1,20 @@
+{
+  "entryLayoutGzKb": 120,
+  "largestChunkGzKb": 150,
+  "precacheKb": 1536,
+  "routes": {
+    "/cadernos": {
+      "file": "pages/cadernos/index.vue",
+      "gzKb": 80,
+      "closureGzKb": 60
+    },
+    "/": {
+      "file": "pages/index.vue",
+      "gzKb": 12,
+      "closureGzKb": 20
+    }
+  },
+  "entryLayoutForbidden": {
+    "dompurify": "SAFE_FOR_TEMPLATES"
+  }
+}

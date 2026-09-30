@@ -158,11 +158,12 @@ const isMac = computed(() => {
 // Autofocus input when opened
 watch(isOpen, (val) => {
   if (val) {
-    nextTick(() => {
-      inputRef.value?.focus()
-    })
+    query.value = ''
+    selectedIndex.value = 0
+    // rAF: on the first (lazy) mount the element is only in the document after the frame
+    nextTick(() => requestAnimationFrame(() => inputRef.value?.focus()))
   }
-})
+}, { immediate: true }) // lazy-mounted already open (layout)
 
 // Scroll selected item into view
 watch(selectedIndex, (idx) => {

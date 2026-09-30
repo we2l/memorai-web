@@ -49,7 +49,7 @@ watch(() => props.selectedText, (text) => {
 
 watch(open, (val) => {
   if (val && !deckStore.decks.length) deckStore.fetchDecks()
-})
+}, { immediate: true }) // lazy-mounted already open
 
 async function submit() {
   saving.value = true

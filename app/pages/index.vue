@@ -223,9 +223,13 @@
         </div>
 
         <!-- Tab content -->
-        <div class="relative">
-          <LandingMockGraph v-if="activeTab === 'graph'" />
-          <LandingMockMindMap v-else />
+        <!-- d3 and the mocks only download when the section nears the viewport (RF-04).
+             Not rendered in the prerender, so the HTML has no modulepreload for them. -->
+        <div ref="demoRef" class="relative min-h-[380px] sm:min-h-[440px]">
+          <template v-if="demoVisible">
+            <LazyLandingMockGraph v-if="activeTab === 'graph'" />
+            <LazyLandingMockMindMap v-else />
+          </template>
         </div>
 
         <!-- Caption -->
@@ -449,6 +453,25 @@ const annualDiscountPercent = computed(() => {
 })
 onMounted(() => { fetchPlans() })
 const activeTab = ref<'graph' | 'mindmap'>('graph')
+
+// hydrate-on-visible still server-renders the component (and preloads its chunk):
+// mount it client-side only when the demo section is close to the viewport.
+const demoRef = ref<HTMLElement | null>(null)
+const demoVisible = ref(false)
+let demoObserver: IntersectionObserver | null = null
+onMounted(() => {
+  if (!demoRef.value || !('IntersectionObserver' in window)) {
+    demoVisible.value = true
+    return
+  }
+  demoObserver = new IntersectionObserver((entries) => {
+    if (!entries.some(e => e.isIntersecting)) return
+    demoVisible.value = true
+    demoObserver?.disconnect()
+  }, { rootMargin: '200px' })
+  demoObserver.observe(demoRef.value)
+})
+onBeforeUnmount(() => demoObserver?.disconnect())
 const showDemoModal = ref(false)
 
 const socialStats = [

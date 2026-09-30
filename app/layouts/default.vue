@@ -18,16 +18,18 @@
       :visible="toast.state.visible"
     />
 
-    <ChatDrawer />
+    <!-- Heavy overlays load on first open and stay mounted (keeps leave transitions) -->
+    <LazyChatDrawer v-if="chatLoaded" />
     <ChatFab />
     <UiQuickCapture />
 
     <PodcastMiniplayer />
-    <PodcastExpandedPlayer />
+    <LazyPodcastExpandedPlayer v-if="expandedPlayerLoaded" />
 
-    <UiCommandPalette />
+    <LazyUiCommandPalette v-if="paletteLoaded" />
 
-    <UiUpgradeModal
+    <LazyUiUpgradeModal
+      v-if="upgradeLoaded"
       v-model="showUpgrade"
       :feature="upgradeDetail.feature"
       :used="upgradeDetail.used"
@@ -59,6 +61,13 @@ const mainMargin = computed(() => sidebarCollapsed.value ? 'lg:ml-16' : 'lg:ml-[
 
 const showUpgrade = ref(false)
 const upgradeDetail = ref<FeatureLimitDetail>({ feature: '' })
+
+const chat = useChatStore()
+const paletteOpen = useCommandPaletteOpen()
+const chatLoaded = useLoadedOnce(() => chat.isOpen)
+const expandedPlayerLoaded = useLoadedOnce(() => player.expanded)
+const paletteLoaded = useLoadedOnce(() => paletteOpen.value)
+const upgradeLoaded = useLoadedOnce(() => showUpgrade.value)
 
 const subscription = useSubscriptionStore()
 

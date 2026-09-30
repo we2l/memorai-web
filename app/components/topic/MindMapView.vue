@@ -134,6 +134,7 @@ defineEmits<{
 }>()
 
 const { $api } = useNuxtApp()
+const aiJob = useAiJob()
 const auth = useAuthStore()
 const toast = useToast()
 
@@ -182,7 +183,8 @@ async function fetchData() {
 async function generateAiMap() {
   generating.value = true
   try {
-    const res = await $api<any>(`/topics/${props.topicId}/mindmap/generate`, { method: 'POST' })
+    // 202 + job polled until done (RF-30)
+    const res = await aiJob.run<{ data: any, meta: { id: string } }>(`/topics/${props.topicId}/mindmap/generate`)
     aiMap.value = res.data
     aiMapId.value = res.meta.id
     activeLevel.value = 'ai'

@@ -95,11 +95,6 @@
 
 <script setup lang="ts">
 import { useEditor, EditorContent } from '@tiptap/vue-3'
-import StarterKit from '@tiptap/starter-kit'
-import Underline from '@tiptap/extension-underline'
-import Placeholder from '@tiptap/extension-placeholder'
-import Image from '@tiptap/extension-image'
-import Link from '@tiptap/extension-link'
 import { Callout } from '~/extensions/callout'
 import { SubpageBlock } from '~/extensions/subpage-block'
 import {
@@ -279,21 +274,18 @@ const editor = useEditor({
   content: props.modelValue ?? '',
   editable: props.editable !== false,
   extensions: [
-    StarterKit,
-    Underline,
-    Callout,
-    SubpageBlock.configure({
-      onNavigate: (topicId: string) => emit('navigate-topic', topicId),
-    }),
-    Image.configure({ inline: false, allowBase64: false }),
-    Link.configure({ openOnClick: false, HTMLAttributes: { class: 'notion-link' } }),
-    Placeholder.configure({
+    ...useTiptapBase({
+      link: { openOnClick: false, HTMLAttributes: { class: 'notion-link' } },
       placeholder: ({ node, pos }) => {
         if (pos === 0 || (node.type.name === 'paragraph' && pos <= 1)) {
           return 'Escreva ou digite / para blocos. Suas notas melhoram cards, quiz e podcast.'
         }
         return ''
       },
+    }),
+    Callout,
+    SubpageBlock.configure({
+      onNavigate: (topicId: string) => emit('navigate-topic', topicId),
     }),
   ],
   onUpdate: ({ editor: ed }) => {

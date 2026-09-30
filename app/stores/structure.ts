@@ -1,4 +1,8 @@
 import { defineStore } from 'pinia'
+import type { Poller } from '~/composables/usePoll'
+
+// Outside the state: a store has no component scope, so we own stop() (usePoll JSDoc)
+let poller: Poller | null = null
 
 /**
  * Store para importação de PDF.
@@ -11,7 +15,6 @@ export const useStructureStore = defineStore('structure', {
     fileName: '',
     documentId: null as string | null,
     topicId: null as string | null,
-    _pollInterval: null as ReturnType<typeof setInterval> | null,
   }),
 
   actions: {
@@ -57,47 +60,48 @@ export const useStructureStore = defineStore('structure', {
 
     /** Resume polling if page was remounted while still generating */
     resumeIfNeeded() {
-      if (this.generating && this.documentId && !this._pollInterval) {
+      if (this.generating && this.documentId && !poller?.isActive.value) {
         this._startPolling()
       }
     },
 
     _startPolling() {
-      if (this._pollInterval) clearInterval(this._pollInterval)
+      poller?.stop()
 
       const { $api } = useNuxtApp()
       const toast = useToast()
       const topicStore = useTopicStore()
 
-      this._pollInterval = setInterval(async () => {
-        if (!this.documentId) { this._stopPolling(); return }
-
-        try {
-          const res = await $api<any>(`/documents/${this.documentId}`)
-          const status = res.data.note_generation_status
-
-          if (status === 'completed') {
-            this._stopPolling()
-            toast.show('Material de estudo pronto!')
-            topicStore.fetchTree()
-          } else if (status === 'failed') {
-            this._stopPolling()
-            toast.show('Falha ao gerar material. Tente novamente.', 'error')
-          }
-        } catch {
-          // Network error — keep polling
+      poller = usePoll(async (signal) => {
+        if (!this.documentId) {
+          this._stopPolling()
+          return
         }
-      }, 4000)
+        const res = await $api<any>(`/documents/${this.documentId}`, { signal })
+        const status = res.data.note_generation_status
 
-      // Timeout after 5 min
-      setTimeout(() => this._stopPolling(), 300000)
+        if (status === 'completed') {
+          this._stopPolling()
+          toast.show('Material de estudo pronto!')
+          topicStore.fetchTree()
+        } else if (status === 'failed') {
+          this._stopPolling()
+          toast.show('Falha ao gerar material. Tente novamente.', 'error')
+        }
+        // Network error → usePoll backs off and keeps polling
+      }, {
+        interval: 4000,
+        immediate: false,
+        timeout: 5 * 60 * 1000,
+        detached: true,
+        onTimeout: () => this._stopPolling(),
+      })
+      poller.start()
     },
 
     _stopPolling() {
-      if (this._pollInterval) {
-        clearInterval(this._pollInterval)
-        this._pollInterval = null
-      }
+      poller?.stop()
+      poller = null
       this.generating = false
       this.fileName = ''
       this.documentId = null

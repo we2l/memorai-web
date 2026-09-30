@@ -44,8 +44,13 @@ const CATEGORY_LABELS: Record<string, string> = {
 const MAX_RESULTS_PER_CATEGORY = 4
 const MAX_TOTAL_RESULTS = 12
 
+/** Open state shared by the shortcuts plugin, the layout (lazy mount) and the palette. */
+export function useCommandPaletteOpen() {
+  return useState('command-palette-open', () => false)
+}
+
 export function useCommandPalette() {
-  const isOpen = ref(false)
+  const isOpen = useCommandPaletteOpen()
   const query = ref('')
   const selectedIndex = ref(0)
 
@@ -78,8 +83,8 @@ export function useCommandPalette() {
     { id: 'page-provas', label: 'Provas', category: 'pages', icon: CalendarClock, keywords: ['provas', 'agenda', 'calendario', 'deadline', 'concurso', 'exame'], handler: () => navigateTo('/provas') },
     { id: 'page-podcasts', label: 'Podcasts', category: 'pages', icon: Headphones, keywords: ['podcasts', 'áudio', 'ouvir'], handler: () => navigateTo('/podcasts') },
     { id: 'page-progresso', label: 'Progresso', category: 'pages', icon: BarChart3, keywords: ['progresso', 'estatísticas', 'stats', 'desempenho'], handler: () => navigateTo('/progresso') },
-    { id: 'page-grafo', label: 'Grafo', category: 'pages', icon: Network, keywords: ['grafo', 'graph', 'mapa', 'conexões'], handler: () => navigateTo('/grafo') },
-    { id: 'page-chat', label: 'Chat IA', category: 'pages', icon: MessageCircle, keywords: ['chat', 'ia', 'agente', 'perguntar', 'assistente'], handler: () => navigateTo('/chat') },
+    { id: 'page-grafo', label: 'Grafo', category: 'pages', icon: Network, keywords: ['grafo', 'graph', 'mapa', 'conexões'], handler: () => navigateTo('/cadernos?view=graph') },
+    { id: 'page-chat', label: 'Chat IA', category: 'pages', icon: MessageCircle, keywords: ['chat', 'ia', 'agente', 'perguntar', 'assistente'], handler: () => { useChatStore().open(); close() } },
     { id: 'page-importar', label: 'Importar Anki', category: 'pages', icon: Download, keywords: ['importar', 'anki', 'apkg'], handler: () => navigateTo('/importar') },
     { id: 'page-configuracoes', label: 'Configurações', category: 'pages', icon: Settings, keywords: ['configurações', 'settings', 'preferências'], handler: () => navigateTo('/configuracoes') },
     { id: 'page-planos', label: 'Planos', category: 'pages', icon: CreditCard, keywords: ['planos', 'pro', 'assinatura', 'upgrade', 'pricing'], handler: () => navigateTo('/planos') },
@@ -110,18 +115,6 @@ export function useCommandPalette() {
       handler: () => navigateTo(`/cadernos?topic=${topic.id}`),
     }))
   })
-
-  // Flatten topic tree recursively
-  function flattenTopics(topics: any[]): any[] {
-    const result: any[] = []
-    for (const topic of topics) {
-      result.push(topic)
-      if (topic.children?.length) {
-        result.push(...flattenTopics(topic.children))
-      }
-    }
-    return result
-  }
 
   // Fuzzy search scoring
   function scoreMatch(text: string, q: string): number {
@@ -219,51 +212,6 @@ export function useCommandPalette() {
   // Reset selected index when results change
   watch(query, () => {
     selectedIndex.value = 0
-  })
-
-  // Global keyboard shortcuts
-  function handleGlobalKeydown(e: KeyboardEvent) {
-    if (!auth.isAuthenticated) return
-
-    // Don't fire when typing in input/textarea/contenteditable
-    const target = e.target as HTMLElement
-    const isEditable = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable
-
-    // Ctrl+K / ⌘K — always capture (even in inputs)
-    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-      e.preventDefault()
-      toggle()
-      return
-    }
-
-    // Don't fire other shortcuts when in editable fields
-    if (isEditable) return
-
-    // Alt+R — go to review
-    if (e.altKey && e.key === 'r') {
-      e.preventDefault()
-      navigateTo('/revisar')
-      return
-    }
-
-    // Alt+N — new note
-    if (e.altKey && e.key === 'n') {
-      e.preventDefault()
-      navigateTo('/cadernos?action=new-note')
-      return
-    }
-  }
-
-  onMounted(() => {
-    if (import.meta.client) {
-      document.addEventListener('keydown', handleGlobalKeydown)
-    }
-  })
-
-  onUnmounted(() => {
-    if (import.meta.client) {
-      document.removeEventListener('keydown', handleGlobalKeydown)
-    }
   })
 
   return {

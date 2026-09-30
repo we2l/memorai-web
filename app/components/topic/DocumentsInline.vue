@@ -185,7 +185,8 @@
     </div>
 
     <!-- PDF Viewer -->
-    <TopicPdfViewer
+    <LazyTopicPdfViewer
+      v-if="viewerLoaded"
       v-model="showViewer"
       :url="viewerUrl"
       :filename="viewerFilename"
@@ -317,6 +318,7 @@ async function setLanguageMode(doc: Document) {
 
 // Viewer state
 const showViewer = ref(false)
+const viewerLoaded = useLoadedOnce(() => showViewer.value) // component + styles only on first open
 const viewerUrl = ref('')
 const viewerFilename = ref('')
 

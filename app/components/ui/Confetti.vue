@@ -40,5 +40,5 @@ watch(() => props.trigger, (val) => {
       show.value = false
     }, 2000)
   }
-})
+}, { immediate: true }) // lazy-mounted already triggered
 </script>

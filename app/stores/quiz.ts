@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { PollTimeoutError, pollUntil } from '~/composables/usePoll'
 import type { Quiz, QuizQuestion, QuizStats } from '~/types'
 
 export const useQuizStore = defineStore('quiz', {
@@ -60,9 +61,9 @@ export const useQuizStore = defineStore('quiz', {
       }
     },
 
-    async fetchQuiz(id: string) {
+    async fetchQuiz(id: string, signal?: AbortSignal) {
       const { $api } = useNuxtApp()
-      const res = await $api<any>(`/quizzes/${id}`)
+      const res = await $api<any>(`/quizzes/${id}`, { signal })
       this.currentQuiz = res.data
       this.questions = res.data.questions ?? []
       return res.data as Quiz
@@ -207,19 +208,22 @@ export const useQuizStore = defineStore('quiz', {
       return this.currentQuiz.time_limit_seconds - this.timeRemaining
     },
 
-    // Polling for quiz generation
-    async pollUntilReady(id: string, maxAttempts = 30) {
-      for (let i = 0; i < maxAttempts; i++) {
-        await new Promise((r) => setTimeout(r, 2000))
-        const quiz = await this.fetchQuiz(id)
-        if (quiz.status === 'in_progress' || quiz.status === 'completed') {
-          return quiz
-        }
-        if (quiz.status === 'failed') {
-          throw new Error('Falha ao gerar simulado. Tente novamente.')
-        }
+    // Polling for quiz generation (2 s, 60 s timeout, pauses with hidden tab)
+    async pollUntilReady(id: string) {
+      let quiz: Quiz
+      try {
+        quiz = await pollUntil(signal => this.fetchQuiz(id, signal), {
+          interval: 2000,
+          immediate: false,
+          timeout: 60_000,
+          until: q => ['in_progress', 'completed', 'failed'].includes(q.status),
+        })
+      } catch (e) {
+        if (e instanceof PollTimeoutError) throw new Error('Timeout na geração do simulado.')
+        throw e
       }
-      throw new Error('Timeout na geração do simulado.')
+      if (quiz.status === 'failed') throw new Error('Falha ao gerar simulado. Tente novamente.')
+      return quiz
     },
 
     reset() {

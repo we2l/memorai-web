@@ -91,6 +91,7 @@ const props = defineProps<{
 }>()
 
 const { $api } = useNuxtApp()
+const aiJob = useAiJob()
 const auth = useAuthStore()
 const toast = useToast()
 
@@ -130,7 +131,8 @@ async function fetchMap() {
 async function generate() {
   generating.value = true
   try {
-    const res = await $api<any>(`/notes/${props.noteId}/mindmap/generate`, { method: 'POST' })
+    // 202 + job polled until done (RF-30)
+    const res = await aiJob.run<{ data: any, meta: { id: string } }>(`/notes/${props.noteId}/mindmap/generate`)
     mapData.value = res.data
     mapId.value = res.meta.id
     toast.show('Mapa mental gerado!', 'success')

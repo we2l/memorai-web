@@ -65,6 +65,8 @@ export interface Stats {
   reviewed_today: number
   cards_reviewed_today: number
   streak: number
+  /** Studied yesterday (Brasília) and not yet today. */
+  streak_at_risk?: boolean
   ratings_today: {
     again: number
     hard: number

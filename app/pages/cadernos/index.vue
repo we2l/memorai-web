@@ -1039,7 +1039,7 @@ async function handleStartCardFile(file: File) {
     return
   }
 
-  const result = await startCardUpload.upload(file, { topicId: selectedTopicId.value, autoCards: readAutoCardsPref() })
+  const result = await startCardUpload.upload(file, { topicId: selectedTopicId.value, autoCards: readAutoCardsPref(), source: 'caderno' })
   if (result) await docStore.fetchForTopic(selectedTopicId.value, true)
 }
 

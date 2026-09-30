@@ -96,6 +96,11 @@ onMounted(() => {
       resetsAt: detail.resetsAt ?? null,
     }
     showUpgrade.value = true
+    useAnalytics().track('paywall_viewed', {
+      feature: upgradeDetail.value.feature || null,
+      source: 'limit_402',
+      plan_required: upgradeDetail.value.planRequired === 'pro' ? 'pro' : null,
+    })
   }) as EventListener)
 })
 </script>

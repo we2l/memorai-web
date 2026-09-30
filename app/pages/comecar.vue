@@ -239,12 +239,20 @@
 
 <script setup lang="ts">
 import { Sparkles } from 'lucide-vue-next'
+import type { OnboardingPath } from '~/types/analytics'
 definePageMeta({ layout: 'auth' })
 
 const { $api } = useNuxtApp()
 const auth = useAuthStore()
+const { track } = useAnalytics()
 
 const step = ref(0)
+
+// Onboarding funnel (prd-analytics-posthog §4.3): real step names, see docs/produto/eventos-analytics.md
+const STEP_NAMES = ['learning_mode', 'choose_path', 'processing', 'cards_ready', 'pdf_sent'] as const
+watch(step, (s) => {
+  track('onboarding_step_viewed', { step: s as 0 | 1 | 2 | 3 | 4, step_name: STEP_NAMES[s] ?? 'choose_path' })
+}, { immediate: true })
 const textInput = ref('')
 const topicInput = ref('')
 const generating = ref(false)
@@ -462,6 +470,7 @@ async function handlePdf(e: Event) {
       topicId: createdTopicId.value || null,
       autoCards: true,
       learningMode: selectedMode.value || null,
+      source: 'onboarding',
     })
     if (!result) {
       step.value = 1
@@ -483,10 +492,11 @@ const reminderChanged = computed(() => !reminderEnabled.value || reminderHour.va
 async function saveReminderIfChanged() {
   if (!reminderChanged.value) return
   // Never blocks the onboarding: Configurações is the fallback
-  await runAction(() => $api('/settings', {
+  const saved = await runAction(() => $api('/settings', {
     method: 'PUT',
     body: { reminder_enabled: reminderEnabled.value, reminder_hour: reminderHour.value },
   }), { error: 'Não conseguimos salvar seu lembrete. Ajuste em Configurações.' })
+  if (saved !== undefined) track('reminder_toggled', { on: reminderEnabled.value, hour: reminderHour.value, source: 'onboarding' })
 }
 
 /** Throws on failure (RF-F4.6): callers only navigate after the flag is saved. */
@@ -497,31 +507,33 @@ async function completeOnboarding(): Promise<true> {
   return true
 }
 
-async function finishAndGo(to: string) {
+async function finishAndGo(to: string, path: OnboardingPath) {
   if (completing.value) return
   completing.value = true
   const ok = await runAction(completeOnboarding, { error: 'Não conseguimos concluir seu cadastro. Tente de novo.' })
   completing.value = false
-  if (ok) await navigateTo(to)
+  if (!ok) return
+  track('onboarding_completed', { path, learning_mode: selectedMode.value || null })
+  await navigateTo(to)
 }
 
 function goToAnkiImport() {
-  return finishAndGo('/importar')
+  return finishAndGo('/importar', 'import_anki')
 }
 
 function goToNotebook() {
-  return finishAndGo(createdTopicId.value ? `/cadernos?topic=${createdTopicId.value}` : '/cadernos')
+  return finishAndGo(createdTopicId.value ? `/cadernos?topic=${createdTopicId.value}` : '/cadernos', 'notebook')
 }
 
 function goToReview() {
-  return finishAndGo(createdTopicId.value ? `/revisar?topic_id=${createdTopicId.value}` : '/revisar')
+  return finishAndGo(createdTopicId.value ? `/revisar?topic_id=${createdTopicId.value}` : '/revisar', 'review')
 }
 
 function goToDashboard() {
-  return finishAndGo('/hoje')
+  return finishAndGo('/hoje', 'home')
 }
 
 function skipToApp() {
-  return finishAndGo('/hoje')
+  return finishAndGo('/hoje', 'skip')
 }
 </script>

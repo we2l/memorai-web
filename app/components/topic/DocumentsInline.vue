@@ -476,7 +476,7 @@ async function retryAutoCards(doc: Document) {
 }
 
 async function doUpload(file: File, autoCards = readAutoCardsPref()) {
-  const success = await docUpload.upload(file, { topicId: props.topicId, autoCards })
+  const success = await docUpload.upload(file, { topicId: props.topicId, autoCards, source: 'caderno' })
   const auto = docUpload.autoGeneration.value
   if (success && auto && !auto.dispatched && auto.blocked_reason) {
     blockedDocs.value = { ...blockedDocs.value, [auto.documentId]: auto.blocked_reason }

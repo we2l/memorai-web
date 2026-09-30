@@ -433,11 +433,6 @@ useHead({
   ],
 })
 
-const auth = useAuthStore()
-if (auth.isAuthenticated) {
-  navigateTo('/hoje')
-}
-
 const isAnnual = ref(false)
 const activeTab = ref<'graph' | 'mindmap'>('graph')
 const showDemoModal = ref(false)

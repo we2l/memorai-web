@@ -1,13 +1,14 @@
 import { type Page } from '@playwright/test'
 
 const TEST_USER = {
-  email: 'weslleyadesousa@gmail.com',
+  email: process.env.E2E_EMAIL || 'weslleyadesousa@gmail.com',
   password: process.env.E2E_PASSWORD || 'password',
 }
 
 export async function login(page: Page) {
   await page.goto('/entrar')
-  await page.waitForLoadState('domcontentloaded')
+  // /entrar is prerendered: wait for hydration before submitting (else native submit)
+  await page.waitForLoadState('networkidle')
 
   // Ensure fields are visible (scroll if needed on mobile)
   const emailInput = page.locator('#email')

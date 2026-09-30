@@ -5,6 +5,10 @@
 - API: `http://localhost:8037/api`
 - Usuário teste: weslleyadesousa@gmail.com (plano Pro)
 - Senha: variável `E2E_PASSWORD` (default: "password")
+- Auth por cookie (Sanctum SPA): `docker exec baigi-app php artisan db:seed --class=E2eSeeder` cria o usuário
+  verificado (`E2E_EMAIL`, default acima) e `unverified@e2e.test`. Ex.: `docker exec -e E2E_EMAIL=verified@e2e.test baigi-app php artisan db:seed --class=E2eSeeder`
+  e `E2E_EMAIL=verified@e2e.test npx playwright test e2e/auth-cookie.spec.ts`. O throttle de login (5/min) persiste
+  entre execuções: `docker exec baigi-app php artisan cache:clear` antes de repetir.
 
 ## Páginas (URLs em PT-BR)
 

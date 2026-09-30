@@ -1,43 +1,35 @@
 export default defineNuxtPlugin(() => {
   const config = useRuntimeConfig()
 
-  const api = $fetch.create({
+  // Sanctum SPA (ADR-020): the session travels in an HttpOnly cookie; the
+  // front never handles credentials. Mutations send X-XSRF-TOKEN.
+  const raw = $fetch.create({
     baseURL: config.public.apiBase,
-    onRequest({ request, options }) {
-      const headers: Record<string, string> = {
-        Accept: 'application/json',
-        ...options.headers as Record<string, string>,
-      }
-
-      // Tentar ler token de múltiplas fontes
-      let token: string | null = null
-
-      // 1. useCookie (funciona SSR + client)
-      try {
-        token = useCookie('auth_token').value ?? null
-      } catch {}
-
-      // 2. document.cookie fallback (client only)
-      if (!token && import.meta.client) {
-        const match = document.cookie.match(/auth_token=([^;]+)/)
-        token = match ? match[1] : null
-      }
-
-      if (token) {
-        headers.Authorization = `Bearer ${token}`
-      }
-
+    credentials: 'include',
+    onRequest({ options }) {
+      const headers = new Headers(options.headers as HeadersInit | undefined)
+      headers.set('Accept', 'application/json')
+      headers.set('X-Requested-With', 'XMLHttpRequest')
+      const xsrf = getXsrfToken()
+      if (xsrf) headers.set('X-XSRF-TOKEN', xsrf)
       options.headers = headers
     },
     async onResponseError({ response }) {
       if (response.status === 401 && import.meta.client) {
-        await navigateTo('/entrar')
+        useAuthStore().clearAuth()
+        const route = useRouter().currentRoute.value
+        if (!isPublicRoute(route.path)) {
+          await navigateTo({ path: '/entrar', query: { redirect: route.fullPath } })
+        }
       }
       if (response.status === 402 && import.meta.client) {
         const data = response._data
         window.dispatchEvent(new CustomEvent('feature-limit-reached', {
           detail: { feature: data?.feature, planRequired: data?.plan_required },
         }))
+      }
+      if (response.status === 403 && import.meta.client && response._data?.code === 'email_unverified') {
+        window.dispatchEvent(new CustomEvent('email-unverified'))
       }
 
       // Sanitize technical messages — never show raw English errors to user
@@ -51,6 +43,8 @@ export default defineNuxtPlugin(() => {
     },
   })
 
+  const api = withCsrfRetry(raw, ensureCsrfCookie)
+
   return { provide: { api } }
 
   function getClientFriendlyMessage(status: number): string {
@@ -61,6 +55,7 @@ export default defineNuxtPlugin(() => {
       case 405: return 'Ação não permitida. Tente novamente.'
       case 408: return 'Tempo esgotado. Tente novamente.'
       case 413: return 'Arquivo muito grande.'
+      case 419: return 'Sessão expirada. Recarregue a página.'
       case 422: return 'Dados inválidos. Verifique os campos.'
       case 429: return 'Muitas tentativas. Aguarde um momento.'
       case 500: return 'Algo deu errado. Tente novamente em instantes.'

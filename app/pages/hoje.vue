@@ -150,9 +150,19 @@ function dismissRetention() {
   retentionSuggestion.value = { has_suggestion: false }
 }
 
-onMounted(loadData)
-
 const route = useRoute()
+const router = useRouter()
+const toast = useToast()
+
+onMounted(async () => {
+  loadData()
+  if (route.query.email_verificado) {
+    await router.replace({ query: {} })
+    await auth.fetchMe()
+    toast.show('E-mail confirmado!', 'success')
+  }
+})
+
 watch(() => route.fullPath, () => {
   if (route.path === '/hoje') loadData()
 })

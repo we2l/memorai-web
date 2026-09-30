@@ -93,14 +93,10 @@ defineProps<{
 
 const route = useRoute()
 const auth = useAuthStore()
-const { $api } = useNuxtApp()
 const { colorMode, toggle: toggleMode } = useColorMode()
 
 async function handleLogout() {
-  try {
-    await $api('/logout', { method: 'POST' })
-  } catch {}
-  auth.clearAuth()
+  await auth.logout()
   await navigateTo('/entrar')
 }
 

@@ -110,6 +110,8 @@ const googleLoading = ref(false)
 async function registerWithGoogle() {
   googleLoading.value = true
   try {
+    // The OAuth state is kept in the API session: make sure it exists first.
+    await ensureCsrfCookie()
     const res = await $api<any>('/auth/google/redirect')
     window.location.href = res.data.url
   } catch {
@@ -122,11 +124,7 @@ async function handleRegister() {
   loading.value = true
 
   try {
-    const res = await $api<any>('/register', {
-      method: 'POST',
-      body: { ...form, device_name: 'web' },
-    })
-    auth.setAuth(res.data.user, res.data.token)
+    await auth.register({ ...form })
     await navigateTo('/hoje')
   } catch (e: any) {
     const data = e.data

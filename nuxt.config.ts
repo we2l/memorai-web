@@ -2,7 +2,8 @@ import tailwindcss from '@tailwindcss/vite'
 
 // CSP in Report-Only (RN-09 of prd-hardening-seguranca): promote to enforcing
 // only after a week without legitimate violations.
-const apiOrigin = new URL(process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8037/api').origin
+const apiOrigin = process.env.NUXT_PUBLIC_API_ORIGIN
+  || new URL(process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8037/api').origin
 const s3Origin = process.env.CSP_S3_ORIGIN || 'https://*.amazonaws.com'
 
 const CSP = [
@@ -20,6 +21,15 @@ const CSP = [
   "base-uri 'self'",
   "form-action 'self'",
 ].join('; ')
+
+const SECURITY_HEADERS = {
+  'X-Frame-Options': 'DENY',
+  'X-Content-Type-Options': 'nosniff',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  // microphone=(self): RichInput records audio in the browser
+  'Permissions-Policy': 'camera=(), microphone=(self), geolocation=(), payment=()',
+  'Content-Security-Policy-Report-Only': CSP,
+}
 
 export default defineNuxtConfig({
   future: { compatibilityVersion: 4 },
@@ -55,22 +65,23 @@ export default defineNuxtConfig({
     },
   },
 
+  // ADR-020: authenticated app is client-only (session cookie lives on the API);
+  // landing and auth entry pages are prerendered. Specific rules merge over '/**'.
   routeRules: {
-    '/**': {
-      headers: {
-        'X-Frame-Options': 'DENY',
-        'X-Content-Type-Options': 'nosniff',
-        'Referrer-Policy': 'strict-origin-when-cross-origin',
-        // microphone=(self): RichInput records audio in the browser
-        'Permissions-Policy': 'camera=(), microphone=(self), geolocation=(), payment=()',
-        'Content-Security-Policy-Report-Only': CSP,
-      },
-    },
+    '/**': { ssr: false, headers: SECURITY_HEADERS },
+    '/': { ssr: true, prerender: true },
+    '/entrar': { ssr: true, prerender: true },
+    '/criar-conta': { ssr: true, prerender: true },
+    '/esqueci-senha': { ssr: true, prerender: true },
+    '/redefinir-senha': { ssr: false },
+    '/auth/**': { ssr: false },
   },
 
   runtimeConfig: {
     public: {
       apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8037/api',
+      // Used for /sanctum/csrf-cookie (outside /api)
+      apiOrigin,
     },
   },
 

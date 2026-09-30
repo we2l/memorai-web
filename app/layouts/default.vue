@@ -6,6 +6,7 @@
     <UiDiveMode />
 
     <main class="relative min-h-screen transition-[margin] duration-200" :class="[mainPadding, dive.active.value ? '' : mainMargin]">
+      <UiVerifyEmailBanner v-if="auth.user && !auth.isVerified" />
       <div class="relative">
         <slot />
       </div>
@@ -37,6 +38,7 @@
 <script setup lang="ts">
 const toast = useToast()
 const route = useRoute()
+const auth = useAuthStore()
 const dive = useDiveMode()
 const { colorMode } = useColorMode()
 

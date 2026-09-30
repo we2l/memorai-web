@@ -32,9 +32,6 @@ export const useStructureStore = defineStore('structure', {
       toast.show('Enviando PDF...')
 
       try {
-        const config = useRuntimeConfig()
-        const token = useCookie('auth_token').value
-
         // Upload via XHR for progress (no topic_id → backend creates topic)
         const formData = new FormData()
         formData.append('file', file)

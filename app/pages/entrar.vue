@@ -6,6 +6,14 @@
     <p class="text-base-muted text-center mb-1">Volte para o seu estudo</p>
     <p class="text-micro text-base-muted text-center mb-10">Revise no tempo certo e pare de esquecer</p>
 
+    <p
+      v-if="notice"
+      role="status"
+      class="text-small text-base-primary text-center rounded-xl px-4 py-3 mb-6 bg-[var(--badge-warning-bg)]"
+    >
+      {{ notice }}
+    </p>
+
     <!-- Google OAuth -->
     <button
       type="button"
@@ -50,6 +58,9 @@
           :aria-describedby="errors.password ? 'password-error' : undefined"
         />
         <p v-if="errors.password" id="password-error" role="alert" class="text-danger text-micro mt-1">{{ errors.password }}</p>
+        <div class="flex justify-end mt-2">
+          <NuxtLink to="/esqueci-senha" class="text-accent-primary text-micro hover:underline">Esqueci minha senha</NuxtLink>
+        </div>
       </div>
 
       <button type="submit" class="btn-primary w-full mt-2" :disabled="loading">
@@ -71,15 +82,20 @@ definePageMeta({ layout: 'auth' })
 
 const { $api } = useNuxtApp()
 const auth = useAuthStore()
+const route = useRoute()
+const toast = useToast()
 
 const form = reactive({ email: '', password: '' })
 const errors = reactive<Record<string, string>>({})
 const loading = ref(false)
+const notice = ref('')
 const googleLoading = ref(false)
 
 async function loginWithGoogle() {
   googleLoading.value = true
   try {
+    // The OAuth state is kept in the API session: make sure it exists first.
+    await ensureCsrfCookie()
     const res = await $api<any>('/auth/google/redirect')
     window.location.href = res.data.url
   } catch {
@@ -92,12 +108,8 @@ async function handleLogin() {
   loading.value = true
 
   try {
-    const res = await $api<any>('/login', {
-      method: 'POST',
-      body: { ...form, device_name: 'web' },
-    })
-    auth.setAuth(res.data.user, res.data.token)
-    await navigateTo('/hoje')
+    await auth.login(form.email, form.password)
+    await navigateTo(safeRedirect(route.query.redirect))
   } catch (e: any) {
     const data = e.data
     if ((e.status ?? e.statusCode) === 429) {
@@ -111,4 +123,20 @@ async function handleLogin() {
     loading.value = false
   }
 }
+
+// Client-only notices (the page is prerendered)
+onMounted(() => {
+  if (route.query.senha_redefinida) {
+    toast.show('Senha redefinida. Entre com a nova senha.', 'success', 5000)
+  }
+  if (route.query.verificacao === 'expirada') {
+    notice.value = 'Link de verificação expirado. Entre para reenviar.'
+  }
+  try {
+    if (sessionStorage.getItem('relogin')) {
+      sessionStorage.removeItem('relogin')
+      toast.show('Atualizamos a segurança do login. Entre novamente.', 'info', 5000)
+    }
+  } catch {}
+})
 </script>

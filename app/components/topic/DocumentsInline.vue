@@ -328,22 +328,21 @@ async function handleDeleteDoc() {
 }
 
 async function resolveViewerUrl(doc: Document): Promise<string> {
-  const auth = useAuthStore()
-  try {
-    const res = await $api<{ url: string }>(`/documents/${doc.id}/file`, {
-      params: { token: auth.token },
-    })
-    if (res.url) return res.url
-  } catch {}
-  const config = useRuntimeConfig()
-  const auth2 = useAuthStore()
-  return `${config.public.apiBase}/documents/${doc.id}/file?token=${auth2.token}`
+  // Short-lived signed URL (15 min, RN-05): resolved on every open, so a
+  // viewer reopened later always gets a fresh one.
+  const res = await $api<{ data: { url: string } }>(`/documents/${doc.id}/file-url`)
+  return res.data.url
 }
 
 async function openViewer(doc: Document) {
-  viewerFilename.value = doc.original_name
-  viewerUrl.value = await resolveViewerUrl(doc)
-  showViewer.value = true
+  try {
+    const url = await resolveViewerUrl(doc)
+    viewerFilename.value = doc.original_name
+    viewerUrl.value = url
+    showViewer.value = true
+  } catch {
+    toast.show('Não foi possível abrir o PDF.', 'error')
+  }
 }
 
 function openGenerateNote(doc: Document) {

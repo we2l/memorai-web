@@ -21,6 +21,12 @@ describe('cloze-marker helpers', () => {
       expect(result).toContain('data-cloze-hint="capital do..."')
     })
 
+    it('escapes the hint attribute', () => {
+      const result = clozeToMark('{{c1::A::"><img src=x onerror=1>}}')
+      expect(result).toContain('data-cloze-hint="&quot;&gt;&lt;img src=x onerror=1&gt;"')
+      expect(result).not.toContain('<img')
+    })
+
     it('returns text unchanged when no cloze', () => {
       expect(clozeToMark('texto normal')).toBe('texto normal')
     })

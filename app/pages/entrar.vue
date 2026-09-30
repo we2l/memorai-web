@@ -100,7 +100,9 @@ async function handleLogin() {
     await navigateTo('/hoje')
   } catch (e: any) {
     const data = e.data
-    if (data?.errors) {
+    if ((e.status ?? e.statusCode) === 429) {
+      errors.general = 'Muitas tentativas. Aguarde 1 minuto e tente novamente.'
+    } else if (data?.errors) {
       Object.entries(data.errors).forEach(([k, v]: any) => { errors[k] = v[0] })
     } else {
       errors.general = data?.message || 'Erro ao fazer login.'

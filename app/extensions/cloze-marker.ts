@@ -1,4 +1,5 @@
 import { Mark, mergeAttributes } from '@tiptap/core'
+import { escapeHtml } from '~/utils/escapeHtml'
 
 export interface ClozeMarkerOptions {
   HTMLAttributes: Record<string, any>
@@ -93,7 +94,7 @@ export function clozeToMark(text: string): string {
     /\{\{c(\d+)::([\s\S]*?)(?:::([\s\S]+?))?\}\}/g,
     (_match, index, answer, hint) => {
       const attrs = hint
-        ? `data-cloze-index="${index}" data-cloze-hint="${hint}"`
+        ? `data-cloze-index="${index}" data-cloze-hint="${escapeHtml(hint)}"`
         : `data-cloze-index="${index}"`
       return `<span class="cloze-chip" ${attrs}>${answer}</span>`
     },

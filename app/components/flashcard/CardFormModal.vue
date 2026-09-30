@@ -99,13 +99,13 @@
             <div class="card-face card-front" @click="flipPreview">
               <div class="card-body">
                 <p class="text-micro text-base-muted mb-2 uppercase tracking-wider">{{ selectedTopicName || 'Caderno' }}</p>
-                <div class="text-base-primary leading-relaxed break-words preview-content max-h-[250px] overflow-y-auto" v-html="frontPreview" />
+                <div class="text-base-primary leading-relaxed break-words preview-content max-h-[250px] overflow-y-auto" v-html="sanitize(frontPreview)" />
               </div>
             </div>
             <div class="card-face card-back" @click="flipPreview">
               <div class="card-body">
                 <p class="text-micro text-base-muted mb-2 uppercase tracking-wider">Resposta</p>
-                <div class="text-base-primary leading-relaxed break-words preview-content max-h-[250px] overflow-y-auto" v-html="backPreview" />
+                <div class="text-base-primary leading-relaxed break-words preview-content max-h-[250px] overflow-y-auto" v-html="sanitize(backPreview)" />
               </div>
             </div>
           </div>
@@ -234,6 +234,7 @@ const canSubmit = computed(() => {
 })
 
 const { renderQuestion, renderAnswer } = useCloze()
+const { sanitize } = useSanitize()
 
 const frontPreview = computed(() => {
   if (isEmpty(form.front)) return '<span style="opacity:0.4">Sua pergunta aqui...</span>'

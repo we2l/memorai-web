@@ -1,5 +1,26 @@
 import tailwindcss from '@tailwindcss/vite'
 
+// CSP in Report-Only (RN-09 of prd-hardening-seguranca): promote to enforcing
+// only after a week without legitimate violations.
+const apiOrigin = new URL(process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8037/api').origin
+const s3Origin = process.env.CSP_S3_ORIGIN || 'https://*.amazonaws.com'
+
+const CSP = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "font-src 'self' https://fonts.gstatic.com",
+  `img-src 'self' data: blob: ${s3Origin} ${apiOrigin} https://lh3.googleusercontent.com`,
+  `media-src 'self' blob: ${s3Origin} ${apiOrigin}`,
+  `connect-src 'self' ${apiOrigin} ${s3Origin}`,
+  "worker-src 'self' blob: https://cdnjs.cloudflare.com",
+  `frame-src 'self' blob: ${apiOrigin} ${s3Origin}`,
+  "frame-ancestors 'none'",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+].join('; ')
+
 export default defineNuxtConfig({
   future: { compatibilityVersion: 4 },
 
@@ -31,6 +52,19 @@ export default defineNuxtConfig({
     workbox: {
       navigateFallback: '/',
       globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
+    },
+  },
+
+  routeRules: {
+    '/**': {
+      headers: {
+        'X-Frame-Options': 'DENY',
+        'X-Content-Type-Options': 'nosniff',
+        'Referrer-Policy': 'strict-origin-when-cross-origin',
+        // microphone=(self): RichInput records audio in the browser
+        'Permissions-Policy': 'camera=(), microphone=(self), geolocation=(), payment=()',
+        'Content-Security-Policy-Report-Only': CSP,
+      },
     },
   },
 

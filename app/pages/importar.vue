@@ -158,6 +158,7 @@
 
 <script setup lang="ts">
 import { Upload, XCircle, AlertTriangle } from 'lucide-vue-next'
+import { PREVIEW_TIMEOUT_MESSAGE } from '~/stores/import'
 
 const store = useImportStore()
 const toast = useToast()
@@ -194,8 +195,8 @@ async function uploadFile(file: File) {
   try {
     await store.upload(file)
     await store.fetchPreview()
-  } catch {
-    toast.show('Erro ao processar arquivo.', 'error')
+  } catch (e: any) {
+    toast.show(e?.data?.errors?.file?.[0] || e?.data?.message || (e?.message === PREVIEW_TIMEOUT_MESSAGE ? e.message : 'Erro ao processar arquivo.'), 'error')
     store.reset()
   }
 }

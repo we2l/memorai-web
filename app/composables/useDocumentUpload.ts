@@ -6,12 +6,15 @@
  * - sends `auto_cards` and registers the document in the docStore for polling.
  */
 import type { Document, DocumentAutoGeneration, PlanKey } from '~/types'
+import type { UploadSource } from '~/types/analytics'
 
 export interface UploadOptions {
   /** Omit to let the backend create the caderno from the file name. */
   topicId?: string | null
   autoCards?: boolean
   learningMode?: string | null
+  /** Where the upload started (analytics: pdf_upload_started.source). */
+  source?: UploadSource
 }
 
 export interface UploadResult {
@@ -89,6 +92,11 @@ export function useDocumentUpload() {
     uploading.value = true
     uploadProgress.value = 0
     autoGeneration.value = null
+
+    useAnalytics().track('pdf_upload_started', {
+      size_mb: Math.round((file.size / MB) * 10) / 10,
+      source: opts.source ?? 'other',
+    })
 
     try {
       await ensureCsrfCookie()

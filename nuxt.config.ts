@@ -5,15 +5,18 @@ import tailwindcss from '@tailwindcss/vite'
 const apiOrigin = process.env.NUXT_PUBLIC_API_ORIGIN
   || new URL(process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8037/api').origin
 const s3Origin = process.env.CSP_S3_ORIGIN || 'https://*.amazonaws.com'
+// PostHog (ADR-024): same-origin /ingest proxy by default; the cloud hosts cover a direct
+// NUXT_PUBLIC_POSTHOG_HOST and the SDK's assets (doc: connect-src/script-src *.posthog.com).
+const posthogOrigins = 'https://*.posthog.com'
 
 const CSP = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com",
+  `script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com ${posthogOrigins}`,
   "style-src 'self' 'unsafe-inline'",
   "font-src 'self'",
   `img-src 'self' data: blob: ${s3Origin} ${apiOrigin} https://lh3.googleusercontent.com`,
   `media-src 'self' blob: ${s3Origin} ${apiOrigin}`,
-  `connect-src 'self' ${apiOrigin} ${s3Origin}`,
+  `connect-src 'self' ${apiOrigin} ${s3Origin} ${posthogOrigins}`,
   "worker-src 'self' blob: https://cdnjs.cloudflare.com",
   `frame-src 'self' blob: ${apiOrigin} ${s3Origin}`,
   "frame-ancestors 'none'",
@@ -27,6 +30,10 @@ const SESSION_HINT_SCRIPT = `(function(){var d=document.documentElement;if(['/',
 // Public pages opened from study e-mails (prd-retencao-lembretes): online-only like
 // termos/privacidade, so their chunks carry a prefix and stay out of the SW precache.
 const EMAIL_PAGE_CHUNK = /\/pages\/(lembretes\/desativado|provas\/resultado)\.vue/
+// posthog-js is imported only after consent (prd-analytics-posthog RF-F05): never precached.
+const ANALYTICS_CHUNK = /\/node_modules\/posthog-js\//
+// Consent banner/modal only matter online on a first visit: kept out of the precache too.
+const CONSENT_CHUNK = /\/components\/ui\/Consent(Banner|Modal)\.vue/
 
 const SECURITY_HEADERS = {
   'X-Frame-Options': 'DENY',
@@ -58,8 +65,13 @@ export default defineNuxtConfig({
       build: {
         rollupOptions: {
           output: {
-            chunkFileNames: (chunk: { facadeModuleId: string | null }) =>
-              EMAIL_PAGE_CHUNK.test(chunk.facadeModuleId ?? '') ? '_nuxt/email-[hash].js' : '_nuxt/[hash].js',
+            chunkFileNames: (chunk: { facadeModuleId: string | null }) => {
+              const id = chunk.facadeModuleId ?? ''
+              if (EMAIL_PAGE_CHUNK.test(id)) return '_nuxt/email-[hash].js'
+              if (ANALYTICS_CHUNK.test(id)) return '_nuxt/analytics-[hash].js'
+              if (CONSENT_CHUNK.test(id)) return '_nuxt/consent-[hash].js'
+              return '_nuxt/[hash].js'
+            },
           },
         },
       },
@@ -95,7 +107,7 @@ export default defineNuxtConfig({
       // Images are runtime-cached (below); never precache png/pdf (RF-05)
       globPatterns: ['**/*.{js,css,html,svg,ico,woff2}'],
       // Public/auth HTML only works online anyway (content or login): keep it out of the install download
-      globIgnores: ['termos/**', 'privacidade/**', 'planos/**', 'ajuda/**', 'entrar/**', 'criar-conta/**', 'esqueci-senha/**', '_nuxt/email-*.js'],
+      globIgnores: ['termos/**', 'privacidade/**', 'planos/**', 'ajuda/**', 'entrar/**', 'criar-conta/**', 'esqueci-senha/**', '_nuxt/email-*.js', '_nuxt/analytics-*.js', '_nuxt/consent-*.js'],
       // Heavy on-demand chunks (pdf.js ~330 KB) stay out of the install download;
       // maximumFileSizeToCacheInBytes would fail the build instead of skipping.
       manifestTransforms: [
@@ -131,6 +143,9 @@ export default defineNuxtConfig({
     '/planos': { ssr: true, prerender: true },
     '/ajuda': { ssr: true, prerender: true },
     '/redefinir-senha': { ssr: false },
+    // PostHog reverse proxy (RF-F10, anti-adblock). EU region (ADR-024, Questão 1).
+    '/ingest/static/**': { proxy: 'https://eu-assets.i.posthog.com/static/**' },
+    '/ingest/**': { proxy: 'https://eu.i.posthog.com/**' },
     '/auth/**': { ssr: false },
     // Legacy URLs: real 301 on the edge (prd-performance-frontend RF-01)
     '/dashboard': { redirect: { to: '/hoje', statusCode: 301 } },
@@ -151,6 +166,11 @@ export default defineNuxtConfig({
       // testimonial card is hidden while empty; referral program is Futuro.
       testimonialUrl: process.env.NUXT_PUBLIC_TESTIMONIAL_URL || '',
       referralUrl: process.env.NUXT_PUBLIC_REFERRAL_URL || '/criar-conta?ref=placeholder',
+      // Product analytics (prd-analytics-posthog). Empty key = plugin does nothing.
+      posthogKey: process.env.NUXT_PUBLIC_POSTHOG_KEY || '',
+      posthogHost: process.env.NUXT_PUBLIC_POSTHOG_HOST || '/ingest',
+      posthogUiHost: process.env.NUXT_PUBLIC_POSTHOG_UI_HOST || 'https://eu.posthog.com',
+      appVersion: process.env.NUXT_PUBLIC_APP_VERSION || (process.env.VERCEL_GIT_COMMIT_SHA || '').slice(0, 7) || 'dev',
     },
   },
 
@@ -180,6 +200,21 @@ export default defineNuxtConfig({
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
         { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
       ],
+    },
+  },
+
+  hooks: {
+    // No <link rel="prefetch"> for analytics/consent chunks: without consent the browser must not
+    // download posthog-js at all (prd-analytics-posthog RF-F05, "0 KB para quem recusa").
+    'build:manifest'(manifest) {
+      const lazyOnly = new Set(Object.keys(manifest).filter(k => /^(analytics|consent)-/.test(manifest[k]?.file ?? '')))
+      for (const chunk of Object.values(manifest)) {
+        if (lazyOnly.has(chunk.src ?? '')) {
+          chunk.prefetch = false
+          chunk.preload = false
+        }
+        chunk.dynamicImports &&= chunk.dynamicImports.filter(i => !lazyOnly.has(i))
+      }
     },
   },
 

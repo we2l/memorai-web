@@ -9,6 +9,9 @@ export interface User {
   onboarding_completed: boolean
   /** False for Google sign-ups that never defined a password (RF-B3). */
   has_password?: boolean
+  /** LGPD analytics consent: null = not decided (prd-analytics-posthog RF-B03). */
+  analytics_consent?: boolean | null
+  analytics_consent_at?: string | null
 }
 
 export interface ApiResponse<T> {

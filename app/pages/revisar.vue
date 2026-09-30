@@ -410,6 +410,7 @@ async function enableReminder() {
       rethrow: true,
     })
     f.reminder.enabled = true
+    useAnalytics().track('reminder_toggled', { on: true, hour: f.reminder.hour, source: 'session_end' })
   } catch (e) {
     if (isEmailSuppressedError(e)) f.reminder.suppressed = true
   }
@@ -606,7 +607,14 @@ async function loadSession() {
   } else {
     await loadSessionTimer()
   }
+  // After the settings load: survival mode is known
+  sessionAnalytics.started(route.query, isSurvivalMode.value, review.total)
 }
+
+const sessionAnalytics = useReviewSessionAnalytics()
+watch(() => review.finished, (done) => {
+  if (done) sessionAnalytics.completed(review.ratingsCount)
+})
 
 // Session timer & survival mode
 const sessionTimer = ref(0)

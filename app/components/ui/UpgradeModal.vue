@@ -77,6 +77,7 @@ function formatResetDate(iso: string | null): string | null {
 }
 
 async function goToPlans() {
+  useAnalytics().track('upgrade_clicked', { feature: props.feature || null, billing: null, source: 'upgrade_modal' })
   open.value = false
   await navigateTo('/planos')
 }

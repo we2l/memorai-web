@@ -66,21 +66,24 @@ const enabled = computed(() => props.settings.reminder_enabled !== false && !pro
 const hour = computed(() => props.settings.reminder_hour ?? DEFAULT_REMINDER_HOUR)
 const suppressed = computed(() => !!props.settings.email_suppressed)
 
-/** Optimistic update with rollback (RF-F01). */
-async function save(body: Partial<UserSettings>, success: string) {
+/** Optimistic update with rollback (RF-F01). Resolves true when the PUT succeeded. */
+async function save(body: Partial<UserSettings>, success: string): Promise<boolean> {
   const previous = { reminder_enabled: props.settings.reminder_enabled, reminder_hour: props.settings.reminder_hour }
   Object.assign(props.settings, body)
   try {
     await run(() => $api('/settings', { method: 'PUT', body }), { success, error: 'Não foi possível salvar o lembrete.', rethrow: true })
+    return true
   } catch (e) {
     Object.assign(props.settings, previous)
     if (isEmailSuppressedError(e)) props.settings.email_suppressed = true
+    return false
   }
 }
 
-function toggle() {
+async function toggle() {
   const on = !enabled.value
-  return save({ reminder_enabled: on }, on ? `Lembrete ativado para ${formatReminderHour(hour.value)}.` : 'Lembretes desativados.')
+  const ok = await save({ reminder_enabled: on }, on ? `Lembrete ativado para ${formatReminderHour(hour.value)}.` : 'Lembretes desativados.')
+  if (ok) useAnalytics().track('reminder_toggled', { on, hour: hour.value, source: 'settings' })
 }
 
 function setHour(value: string) {

@@ -49,6 +49,7 @@
     "nuxt": "^4.4.2",
     "pdfjs-dist": "^4.9.155",
     "pinia": "^3.0.4",
+    "posthog-js": "^1.435.1",
     "tailwindcss": "^4.2.2"
   },
   "private": true,

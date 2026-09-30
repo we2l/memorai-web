@@ -38,7 +38,7 @@ export const useAuthStore = defineStore('auth', {
       return res.data.user
     },
 
-    async register(payload: { name: string, email: string, password: string, password_confirmation: string, accept_terms: boolean }): Promise<User> {
+    async register(payload: { name: string, email: string, password: string, password_confirmation: string, accept_terms: boolean, analytics_consent?: boolean }): Promise<User> {
       const { $api } = useNuxtApp()
       const res = await $api<{ data: { user: User } }>('/register', {
         method: 'POST',
@@ -69,12 +69,17 @@ export const useAuthStore = defineStore('auth', {
       this.user = user
       if (import.meta.client) {
         document.cookie = `${LOGGED_IN_HINT}=1; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax`
+        // Account consent vs. this device's cookie (RF-F01), then identify without PII (RF-F07)
+        void useConsent().syncWithServer(user)
+        useAnalytics().identify(user)
       }
     },
 
     clearAuth() {
       this.user = null
       if (import.meta.client) {
+        // Next person on this browser starts a fresh anonymous id (RF-F07)
+        useAnalytics().reset()
         document.cookie = `${LOGGED_IN_HINT}=; path=/; max-age=0`
         // Legacy Bearer cookie (pre ADR-020)
         document.cookie = 'auth_token=; path=/; max-age=0'

@@ -21,7 +21,7 @@
       <li><strong>Uso:</strong> revisões realizadas, avaliações, sequência de dias, preferências e registros técnicos (IP, navegador, data e hora).</li>
       <li><strong>Pagamento:</strong> processado pela Stripe. O BAIGI não armazena número de cartão; guardamos apenas o status da assinatura e o histórico de cobranças.</li>
       <li><strong>E-mail transacional:</strong> enviado pela Resend (verificação de conta, redefinição de senha, avisos da assinatura e exportação de dados).</li>
-      <li><strong>Analytics:</strong> eventos de uso do produto via PostHog, somente com o seu consentimento.</li>
+      <li><strong>Analytics:</strong> eventos de uso do produto via PostHog, somente com o seu consentimento. Os eventos usam um identificador interno da conta, sem nome, e-mail ou conteúdo de estudo, e o IP não é armazenado. Eventos de cobrança (início, cancelamento e fim da assinatura) são registrados mesmo sem consentimento, de forma pseudonimizada e sem perfil, para contabilidade.</li>
     </ul>
 
     <h2 id="finalidades">3. Finalidades e bases legais</h2>
@@ -37,7 +37,7 @@
     <ul>
       <li><strong>OpenAI</strong> e <strong>Google (Gemini)</strong>: processamento por IA do conteúdo que você pede para transformar (cards, notas, podcasts, simulados).</li>
       <li><strong>AWS</strong>: armazenamento de arquivos (PDFs, áudios, imagens).</li>
-      <li><strong>Stripe</strong>: pagamentos. <strong>Resend</strong>: e-mails. <strong>PostHog</strong>: analytics com consentimento.</li>
+      <li><strong>Stripe</strong>: pagamentos. <strong>Resend</strong>: e-mails. <strong>PostHog</strong> (PostHog Inc., nuvem na União Europeia): operador de analytics de produto, com consentimento.</li>
       <li><strong>Vercel</strong> e <strong>Contabo</strong>: hospedagem do site e da API.</li>
     </ul>
     <p>
@@ -68,8 +68,8 @@
 
     <h2 id="cookies">7. Cookies</h2>
     <ul>
-      <li><strong>Essenciais:</strong> cookie de sessão e proteção CSRF, necessários para você entrar e usar o app. Não podem ser desativados.</li>
-      <li><strong>Analytics (opcional):</strong> usados pelo PostHog apenas se você consentir no aviso de cookies.</li>
+      <li><strong>Essenciais:</strong> cookie de sessão e proteção CSRF, necessários para você entrar e usar o app, e o cookie <code>baigi_consent</code>, que guarda a sua escolha por 12 meses. Não podem ser desativados.</li>
+      <li><strong>Analytics (opcional):</strong> cookie e armazenamento local do PostHog (<code>ph_*</code>), criados apenas se você consentir no aviso de cookies. Você pode revogar a qualquer momento em <NuxtLink to="/configuracoes#privacidade">Configurações → Privacidade</NuxtLink>; a coleta para na hora.</li>
     </ul>
 
     <h2 id="seguranca">8. Segurança</h2>

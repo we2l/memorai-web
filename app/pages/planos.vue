@@ -207,15 +207,20 @@ async function startCheckout(annual: boolean) {
   }
 }
 
+const { track } = useAnalytics()
+
 function subscribe() {
+  track('upgrade_clicked', { feature: null, billing: isYearly.value ? 'annual' : 'monthly', source: 'planos_page' })
   return startCheckout(isYearly.value)
 }
 
 function switchToAnnual() {
+  track('upgrade_clicked', { feature: null, billing: 'annual', source: 'planos_page' })
   return startCheckout(true)
 }
 
 onMounted(async () => {
+  track('paywall_viewed', { feature: null, source: 'planos_page', plan_required: 'pro' })
   fetchPlans()
   if (!auth.user) return // anonymous visitor: only the public catalog
 

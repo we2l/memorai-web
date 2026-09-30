@@ -4,7 +4,8 @@ import { setActivePinia, createPinia } from 'pinia'
 import { useDocumentUpload } from '~/composables/useDocumentUpload'
 import { useToast } from '~/composables/useToast'
 
-const { apiMock } = vi.hoisted(() => ({ apiMock: vi.fn() }))
+const { apiMock, track } = vi.hoisted(() => ({ apiMock: vi.fn(), track: vi.fn() }))
+mockNuxtImport('useAnalytics', () => () => ({ track, identify: vi.fn(), reset: vi.fn() }))
 mockNuxtImport('useNuxtApp', original => () => new Proxy(original(), {
   get: (target, key) => (key === '$api' ? apiMock : Reflect.get(target, key)),
 }))
@@ -55,5 +56,18 @@ describe('useDocumentUpload', () => {
   it('aceita PDF dentro do limite', async () => {
     const { validate } = useDocumentUpload()
     expect(await validate(pdf(4))).toBeNull()
+  })
+
+  it('emite pdf_upload_started com size_mb de 1 casa e a origem, antes do envio', async () => {
+    track.mockClear()
+    const send = vi.spyOn(XMLHttpRequest.prototype, 'send').mockImplementation(function (this: XMLHttpRequest) {
+      Object.defineProperty(this, 'status', { value: 500 })
+      Object.defineProperty(this, 'responseText', { value: '{}' })
+      this.onload?.(new ProgressEvent('load'))
+    })
+    const { upload } = useDocumentUpload()
+    await upload(pdf(2.345), { source: 'onboarding' })
+    expect(track).toHaveBeenCalledWith('pdf_upload_started', { size_mb: 2.3, source: 'onboarding' })
+    send.mockRestore()
   })
 })

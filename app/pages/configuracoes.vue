@@ -139,6 +139,37 @@
       <SettingsReminderPreferences v-else :settings="settings" :load-error="settingsError" @retry="loadSettings" />
     </section>
 
+    <!-- Privacidade (prd-analytics-posthog RF-F04): revoking stops PostHog right away -->
+    <section id="privacidade" class="card p-5 mb-6 scroll-mt-4" aria-labelledby="privacidade-title">
+      <h2 id="privacidade-title" class="text-headline mb-4">Privacidade</h2>
+      <button
+        type="button"
+        role="switch"
+        :aria-checked="consent.analytics.value === true"
+        aria-describedby="analytics-help"
+        class="w-full flex items-center gap-3 min-h-[2.75rem] text-left"
+        data-testid="analytics-switch"
+        @click="consent.set(consent.analytics.value !== true)"
+      >
+        <span class="flex-1">
+          <span class="block text-base-primary">Permitir análise de uso</span>
+          <span id="analytics-help" class="block text-micro text-base-muted">
+            Eventos de uso sem seu nome ou e-mail (PostHog), para melhorar o Baigi. Desligar interrompe a coleta na hora.
+          </span>
+        </span>
+        <span
+          class="relative w-10 h-6 rounded-full transition-colors shrink-0"
+          :class="consent.analytics.value === true ? 'bg-[var(--color-accent-primary)]' : 'bg-[var(--border-hover)]'"
+          aria-hidden="true"
+        >
+          <span class="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all" :class="consent.analytics.value === true ? 'left-[18px]' : 'left-0.5'" />
+        </span>
+      </button>
+      <p class="text-micro text-base-muted mt-3">
+        Saiba o que coletamos na <NuxtLink to="/privacidade" class="underline">Política de Privacidade</NuxtLink>.
+      </p>
+    </section>
+
     <!-- Sessão de Estudo (hidden for launch — too complex for new users) -->
     <section v-if="false" class="card p-6 md:p-8 mb-6">
       <h2 class="text-headline mb-2">Sessão de Estudo</h2>
@@ -318,6 +349,8 @@ async function loadSettings() {
   }
 }
 
+const consent = useConsent()
+
 const sectionLinks = [
   { id: 'perfil', label: 'Perfil' },
   { id: 'senha', label: 'Senha' },
@@ -325,6 +358,7 @@ const sectionLinks = [
   { id: 'uso-ia', label: 'Uso de IA' },
   { id: 'aparencia', label: 'Aparência' },
   { id: 'lembretes', label: 'Lembretes' },
+  { id: 'privacidade', label: 'Privacidade' },
   { id: 'seus-dados', label: 'Seus dados' },
   { id: 'conta', label: 'Conta' },
 ]

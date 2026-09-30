@@ -32,7 +32,8 @@ onMounted(async () => {
   try {
     const res = await $api<{ data: { user: any } }>('/auth/google/callback', {
       method: 'POST',
-      body: { code, state },
+      // Banner choice applies only if this creates the account (RF-B04)
+      body: { code, state, ...useConsent().signupPayload() },
     })
     auth.setUser(res.data.user)
     await navigateTo(postAuthRedirect(res.data.user))

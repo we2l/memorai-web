@@ -151,7 +151,8 @@ async function handleRegister() {
   loading.value = true
 
   try {
-    await auth.register({ ...form })
+    // Banner choice made before the account existed (RF-B04)
+    await auth.register({ ...form, ...useConsent().signupPayload() })
     await navigateTo(postAuthRedirect(auth.user, route.query.redirect))
   } catch (e: any) {
     const data = e.data

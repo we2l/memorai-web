@@ -1,8 +1,12 @@
 <script setup lang="ts">
 import { ChevronLeft, ChevronRight, Plus, Trash2, Eye } from 'lucide-vue-next'
+import type { Exam, ExamOutcome } from '~/types'
 
 const examStore = useExamStore()
 const toast = useToast()
+const route = useRoute()
+const router = useRouter()
+const { $api } = useNuxtApp()
 
 const showCreateModal = ref(false)
 const showDeleteModal = ref(false)
@@ -11,9 +15,43 @@ const activeTab = ref<'upcoming' | 'past'>('upcoming')
 const currentMonth = ref(new Date())
 const selectedDay = ref<null | { day: number; date: string; exams: any[]; totalCards: number; isCurrentMonth: boolean }>(null)
 
+// "Cadastrar nova prova" from the result page: /provas?nova=1&from={examId} (RF-F11)
+const createTopicIds = ref<string[]>([])
+
+async function openFromQuery() {
+  if (route.query.nova !== '1') return
+  const from = typeof route.query.from === 'string' ? route.query.from : ''
+  if (from) {
+    const known = examStore.exams.find(e => e.id === from)
+    try {
+      const exam = known ?? (await $api<{ data: Exam }>(`/exams/${from}`)).data
+      createTopicIds.value = exam.topics.map(t => t.id)
+    } catch (e) {
+      reportApiError(e, { silent: true })
+    }
+  }
+  showCreateModal.value = true
+  router.replace({ query: {} })
+}
+
 onMounted(async () => {
   await Promise.all([examStore.fetchExams(), examStore.fetchUpcoming(), fetchCalendar()])
+  await openFromQuery()
 })
+
+// "Como foi?" on past exams (RF-F10)
+const { run: runOutcome, pending: savingOutcome } = useApiAction()
+function answerOutcome(id: string, outcome: ExamOutcome) {
+  return runOutcome(() => examStore.recordOutcome(id, outcome), {
+    success: outcome === 'passed' ? 'Parabéns pela aprovação!' : 'Resposta registrada. Bora para a próxima.',
+    error: 'Não foi possível salvar sua resposta.',
+  })
+}
+
+function closeCreate() {
+  showCreateModal.value = false
+  createTopicIds.value = []
+}
 
 async function fetchCalendar() {
   const start = new Date(currentMonth.value.getFullYear(), currentMonth.value.getMonth(), 1)
@@ -30,7 +68,7 @@ function selectDay(cell: any) {
   selectedDay.value = selectedDay.value?.date === cell.date ? null : cell
 }
 
-async function handleCreated() { showCreateModal.value = false; await examStore.fetchExams(); await fetchCalendar(); toast.show('Prova criada!', 'success') }
+async function handleCreated() { closeCreate(); await examStore.fetchExams(); await fetchCalendar(); toast.show('Prova criada!', 'success') }
 
 function confirmDelete(id: string) {
   examToDelete.value = id
@@ -281,6 +319,20 @@ const calendarDays = computed(() => {
             </UiTooltip>
           </div>
 
+          <!-- "Passou?" in the app (RF-F10) -->
+          <div v-if="activeTab === 'past'" class="mb-4" data-testid="exam-outcome">
+            <span
+              v-if="exam.outcome"
+              class="inline-flex px-3 py-1 rounded-full text-small font-semibold"
+              :class="exam.outcome === 'passed' ? 'bg-[var(--badge-success-bg)] text-[var(--badge-success-text)]' : 'bg-[var(--badge-muted-bg)] text-base-secondary'"
+            >{{ exam.outcome === 'passed' ? 'Aprovado 🎉' : 'Próxima vez' }}</span>
+            <div v-else class="flex flex-wrap items-center gap-2">
+              <span class="text-small text-base-secondary">Como foi?</span>
+              <button type="button" class="btn-secondary !py-1.5 !min-h-[2.75rem] text-small" :disabled="savingOutcome" @click="answerOutcome(exam.id, 'passed')">Passei</button>
+              <button type="button" class="btn-secondary !py-1.5 !min-h-[2.75rem] text-small" :disabled="savingOutcome" @click="answerOutcome(exam.id, 'failed')">Não dessa vez</button>
+            </div>
+          </div>
+
           <button class="flex items-center gap-2 text-sm font-bold cursor-pointer hover:opacity-80 transition-opacity" style="color: var(--badge-primary-text)" @click="viewExamDetails(exam)">
             <Eye class="w-4 h-4" /> Ver detalhes
           </button>
@@ -288,7 +340,7 @@ const calendarDays = computed(() => {
       </div>
     </section>
 
-    <ExamCreateModal v-if="showCreateModal" @close="showCreateModal = false" @created="handleCreated" />
+    <ExamCreateModal v-if="showCreateModal" :initial-topic-ids="createTopicIds" @close="closeCreate" @created="handleCreated" />
 
     <!-- Delete confirmation modal -->
     <UiConfirmModal

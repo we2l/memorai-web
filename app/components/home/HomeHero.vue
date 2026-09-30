@@ -127,6 +127,7 @@
           <picture class="contents"><source srcset="~/assets/mascots/mascot-baigi-bust-64.avif" type="image/avif"><img src="~/assets/mascots/mascot-baigi-bust-64.webp" alt="" class="hero__mascot" width="24" height="24" decoding="async" /></picture>
           <span class="hero__salute">{{ greeting }}, {{ firstName }}.</span>
           <span v-if="nextExam" class="hero__exam">📋 {{ nextExam.days_remaining }}d até prova</span>
+          <span v-if="streak >= 1" class="hero__streak" :class="{ 'hero__streak--risk': atRisk }" data-testid="hero-streak">{{ streakLabel }}</span>
         </div>
         <p class="hero__eyebrow">Hoje faltam apenas</p>
         <h1 class="hero__number"><span class="hero__value">{{ totalCards }}</span><span class="hero__unit"> cards.</span></h1>
@@ -174,16 +175,16 @@
     </div>
   </section>
 
-  <!-- Hero: tudo em dia -->
-  <section v-else-if="stats" class="hero hero--compact">
+  <!-- Hero: tudo em dia (prd-retencao-lembretes RF-F07): compact, no SVG -->
+  <section v-else-if="stats" class="hero hero--compact" data-testid="hero-up-to-date">
     <div class="hero__layout hero__layout--center">
       <div class="hero__narrative">
         <div class="hero__greeting">
           <picture class="contents"><source srcset="~/assets/mascots/mascot-baigi-celebrating.avif" type="image/avif"><img src="~/assets/mascots/mascot-baigi-celebrating.webp" alt="" class="hero__mascot" width="24" height="24" decoding="async" /></picture>
-          <span class="hero__salute">{{ greeting }}, {{ firstName }}.</span>
+          <span v-if="streak >= 1" class="hero__streak" :class="{ 'hero__streak--risk': atRisk }" data-testid="hero-streak">{{ streakLabel }}</span>
         </div>
-        <h1 class="hero__number hero__number--sm">Tudo em dia! 🎉</h1>
-        <p class="hero__meta">{{ subtitle }}</p>
+        <h1 class="hero__number hero__number--sm">Tudo em dia, {{ firstName }}.</h1>
+        <p class="hero__meta" data-testid="hero-tomorrow">{{ tomorrowLine }}</p>
       </div>
       <div class="hero__panel hero__panel--simple">
         <NuxtLink to="/cadernos" class="hero__cta hero__cta--secondary">Ir pra Cadernos</NuxtLink>
@@ -193,7 +194,7 @@
 </template>
 
 <script setup lang="ts">
-import type { BacklogStats, Stats, TopicProgress } from '~/types'
+import type { BacklogStats, Stats, TomorrowForecast, TopicProgress } from '~/types'
 
 const props = defineProps<{
   stats: Stats | null
@@ -248,10 +249,31 @@ const progressPercent = computed(() => {
   return Math.round((reviewedToday.value / totalDue.value) * 100)
 })
 
-const subtitle = computed(() => {
-  if (streak.value > 7) return `${streak.value} dias seguidos. Continue assim.`
-  return 'Que tal gerar novos cards?'
+// Dias seguidos from 1 day on (RF-F06); warning tone while today's study is missing
+const atRisk = computed(() => !!props.stats?.streak_at_risk)
+const streakLabel = computed(() => {
+  if (atRisk.value) return `🔥 Revise hoje para manter ${streak.value} ${streak.value === 1 ? 'dia' : 'dias'}`
+  return `🔥 ${streak.value} ${streak.value === 1 ? 'dia seguido' : 'dias seguidos'}`
 })
+
+// "Em dia" state only: tomorrow's load (RF-F07)
+const isUpToDate = computed(() => !props.loading && !props.error && !!props.stats && totalCards.value === 0 && totalUserCards.value > 0)
+const tomorrow = ref<TomorrowForecast | null>(null)
+const tomorrowLine = computed(() => {
+  if (!tomorrow.value) return 'Que tal gerar novos cards?'
+  const n = tomorrow.value.due_count
+  if (n === 0) return 'Amanhã: nada pendente. Que tal gerar novos cards?'
+  return `Amanhã: ${n} ${n === 1 ? 'card' : 'cards'} · ≈${tomorrow.value.estimated_minutes} min`
+})
+watch(isUpToDate, async (upToDate) => {
+  if (!upToDate || tomorrow.value) return
+  try {
+    const res = await useNuxtApp().$api<{ data: TomorrowForecast }>('/review/tomorrow')
+    tomorrow.value = res.data
+  } catch (e) {
+    reportApiError(e, { silent: true })
+  }
+}, { immediate: true })
 </script>
 
 <style scoped>
@@ -261,8 +283,8 @@ const subtitle = computed(() => {
 }
 .hero {
   position: relative;
-  background: #FFFFFF;
-  border: 1px solid #DDD4F5;
+  background: var(--bg-card);
+  border: 1px solid color-mix(in srgb, var(--color-accent-primary) 18%, var(--border-base));
   border-radius: 16px;
   padding: 28px 32px;
   overflow: hidden;
@@ -547,6 +569,19 @@ const subtitle = computed(() => {
   border-radius: 4px;
   background: color-mix(in srgb, var(--color-warning) 10%, transparent);
   margin-left: 4px;
+}
+.hero__streak {
+  font-size: 10.5px;
+  font-weight: 530;
+  color: var(--text-body);
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--color-accent-primary) 10%, transparent);
+  margin-left: 4px;
+}
+.hero__streak--risk {
+  color: var(--color-warning);
+  background: color-mix(in srgb, var(--color-warning) 10%, transparent);
 }
 .hero__eyebrow {
   font-size: 14px;

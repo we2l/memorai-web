@@ -22,6 +22,9 @@
       {{ pendingLearning }} card{{ pendingLearning !== 1 ? 's' : '' }} em aprendizado — {{ pendingLearning === 1 ? 'volta' : 'voltam' }} em breve.
     </p>
 
+    <!-- Filled by prd-retencao-lembretes ("Amanhã: N cards + streak"), above the suggestion (RF-F05) -->
+    <slot name="tomorrow" />
+
     <!-- Post-session suggestion -->
     <div v-if="topErrorTopic" class="mt-6 card border border-[var(--badge-warning-text)]/30">
       <p class="text-small text-base-primary">Você errou {{ topErrorTopic.count }}x em "{{ topErrorTopic.name }}".</p>
@@ -31,9 +34,6 @@
         </NuxtLink>
       </div>
     </div>
-
-    <!-- Filled by prd-retencao-lembretes ("Amanhã: N cards + streak") -->
-    <slot name="tomorrow" />
 
     <div class="flex flex-col min-[420px]:flex-row gap-3 justify-center mt-8">
       <NuxtLink to="/hoje" class="btn-primary justify-center">Voltar para Hoje</NuxtLink>

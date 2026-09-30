@@ -154,7 +154,16 @@
         :pending-learning="review.pendingLearning"
         :top-error-topic="topErrorTopic ?? null"
         :has-backlog="hasBacklog"
-      />
+      >
+        <template v-if="!tomorrowFailed" #tomorrow>
+          <ReviewSessionTomorrow
+            :forecast="tomorrow"
+            :loading="tomorrowLoading"
+            :enabling="enablingReminder"
+            @enable-reminder="enableReminder"
+          />
+        </template>
+      </ReviewSessionSummary>
     </div>
 
     <!-- Waiting for learning cards -->
@@ -320,6 +329,7 @@
 </template>
 
 <script setup lang="ts">
+import type { TomorrowForecast } from '~/types'
 import { Flame, AlertOctagon, AlertTriangle, Timer, Zap, CalendarClock, GitBranch, FastForward, Undo2, XCircle, Lightbulb, Pencil } from 'lucide-vue-next'
 
 definePageMeta({ chrome: 'focus' })
@@ -362,6 +372,48 @@ watch(() => review.finished, async (done) => {
     reportApiError(e, { silent: true })
   }
 })
+
+// "Amanhã: N cards" + dias seguidos (prd-retencao-lembretes RF-F04): one fetch, after the queue drains
+const tomorrow = ref<TomorrowForecast | null>(null)
+const tomorrowLoading = ref(false)
+const tomorrowFailed = ref(false)
+watch(() => review.finished && review.reviewed > 0 && !review.saving, async (ready) => {
+  if (!ready || tomorrow.value || tomorrowLoading.value) return
+  tomorrowLoading.value = true
+  try {
+    const res = await useNuxtApp().$api<{ data: TomorrowForecast }>('/review/tomorrow')
+    tomorrow.value = res.data
+  } catch (e) {
+    // Never lie: the block simply does not render
+    tomorrowFailed.value = true
+    reportApiError(e, { silent: true })
+  } finally {
+    tomorrowLoading.value = false
+  }
+})
+
+// A new session in the same page ("Revisar mais") gets a fresh forecast
+watch(() => review.finished, (done) => {
+  if (done) return
+  tomorrow.value = null
+  tomorrowFailed.value = false
+})
+
+const { run: runReminder, pending: enablingReminder } = useApiAction()
+async function enableReminder() {
+  const f = tomorrow.value
+  if (!f) return
+  try {
+    await runReminder(() => useNuxtApp().$api('/settings', { method: 'PUT', body: { reminder_enabled: true } }), {
+      success: `Lembrete ativado para ${formatReminderHour(f.reminder.hour)}`,
+      error: 'Não foi possível ativar o lembrete.',
+      rethrow: true,
+    })
+    f.reminder.enabled = true
+  } catch (e) {
+    if (isEmailSuppressedError(e)) f.reminder.suppressed = true
+  }
+}
 
 const topErrorTopic = computed(() => {
   const entries = Object.values(errorsByTopic.value).filter(e => e.count >= 2)

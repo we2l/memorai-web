@@ -65,6 +65,8 @@ export interface Stats {
   reviewed_today: number
   cards_reviewed_today: number
   streak: number
+  /** Studied yesterday (Brasília) and not yet today. */
+  streak_at_risk?: boolean
   ratings_today: {
     again: number
     hard: number
@@ -189,6 +191,21 @@ export interface UserSettings {
   default_learning_mode?: string
   desired_retention?: number
   error_diary_mode?: 'always' | 'sometimes' | 'never'
+  // Study e-mails (prd-retencao-lembretes F1): hour 6–22, America/Sao_Paulo
+  reminder_enabled?: boolean
+  reminder_hour?: number
+  email_suppressed?: boolean
+}
+
+/** GET /review/tomorrow (prd-retencao-lembretes §4.3). Dates in America/Sao_Paulo. */
+export interface TomorrowForecast {
+  date: string
+  due_count: number
+  review_count: number
+  new_count: number
+  estimated_minutes: number
+  streak: { current: number; reviewed_today: boolean; at_risk: boolean; next_milestone: number | null }
+  reminder: { enabled: boolean; hour: number; suppressed: boolean }
 }
 
 export interface BacklogStats {
@@ -456,6 +473,20 @@ export interface Exam {
   google_calendar_event_id: string | null
   topics: { id: string; name: string }[]
   created_at: string
+  /** "Passou?" (prd-retencao-lembretes F6) */
+  outcome?: ExamOutcome | null
+  outcome_answered_at?: string | null
+}
+
+export type ExamOutcome = 'passed' | 'failed'
+
+/** GET /exams/{id}/outcome-context?t= (public result page) */
+export interface ExamOutcomeContext {
+  id: string
+  title: string
+  exam_date: string
+  outcome: ExamOutcome | null
+  topics: { id: string; name: string }[]
 }
 
 export interface ExamUpcoming {

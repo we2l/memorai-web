@@ -350,9 +350,27 @@ export type SubscriptionStatus =
 
 export interface SubscriptionInfo {
   plan: string
+  /** annual wins when both exist (monthly scheduled after the annual) */
+  billing: 'annual' | 'monthly' | null
   subscription_status: SubscriptionStatus | null
   subscription_ends_at: string | null
   has_subscription: boolean
+  plan_expires_at: string | null
+  in_grace_period: boolean
+  grace_ends_at: string | null
+  can_renew_annual: boolean
+  monthly_scheduled: boolean
+}
+
+/** GET /api/checkout/sessions/{id} — annual checkout status (Pix waiting page) */
+export interface CheckoutSessionInfo {
+  session_id: string
+  status: 'open' | 'complete' | 'expired'
+  payment_status: 'paid' | 'unpaid' | 'no_payment_required' | null
+  payment_method: 'pix' | 'card' | null
+  pix_qr: { data: string | null; image_url_png: string | null; expires_at: string | null } | null
+  plan_active: boolean
+  plan_expires_at: string | null
 }
 
 // Quiz / Simulados

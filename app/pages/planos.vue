@@ -68,12 +68,39 @@
           <span class="text-small font-normal text-base-muted">/mês</span>
         </p>
         <p class="text-micro text-base-muted mb-6">
-          <template v-if="isYearly && pro?.prices.annual">{{ pro.prices.annual.label }} · Mais IA, sem interrupções.</template>
+          <template v-if="isYearly && annualCopy">{{ annualCopy }}</template>
           <template v-else>Mais IA, sem interrupções.</template>
         </p>
 
+        <!-- Annual running: validity + renewal (RN-09) or monthly scheduling at D-7 (RN-08) -->
+        <template v-if="isAnnual">
+          <p class="text-small text-base-primary font-medium mb-2" data-testid="annual-valid-until">
+            Seu anual vale até {{ formatBillingDate(subscription.info?.plan_expires_at) }}
+          </p>
+          <template v-if="isYearly">
+            <UiTooltip v-if="!subscription.info?.can_renew_annual" :text="`A renovação abre ${ANNUAL_RENEWAL_WINDOW_DAYS} dias antes`">
+              <button class="btn-secondary w-full justify-center mb-6 opacity-60" disabled>
+                Renovar
+              </button>
+            </UiTooltip>
+            <button v-else class="btn-primary w-full justify-center mb-6" :disabled="loading" @click="subscribe">
+              {{ loading ? 'Abrindo checkout...' : 'Renovar anual' }}
+            </button>
+          </template>
+          <button
+            v-else-if="canScheduleMonthly"
+            class="btn-secondary w-full justify-center mb-6"
+            :disabled="loading"
+            @click="subscribe"
+          >
+            {{ loading ? 'Abrindo checkout...' : 'Agendar mensal para depois do anual' }}
+          </button>
+          <button v-else class="btn-secondary w-full justify-center mb-6 opacity-60" disabled>
+            Plano atual
+          </button>
+        </template>
         <button
-          v-if="currentPlan === 'pro'"
+          v-else-if="currentPlan === 'pro'"
           class="btn-secondary w-full justify-center mb-6 opacity-60"
           disabled
         >
@@ -85,7 +112,7 @@
           :disabled="loading"
           @click="subscribe"
         >
-          {{ loading ? 'Abrindo checkout...' : 'Assinar Pro' }}
+          {{ loading ? 'Abrindo checkout...' : isYearly ? 'Assinar anual' : 'Assinar Pro' }}
         </button>
 
         <ul class="space-y-3 text-small">
@@ -96,12 +123,21 @@
     </div>
 
     <!-- Manage subscription -->
-    <div v-if="subscription.info?.has_subscription" class="card p-5 mb-8 flex items-center justify-between">
+    <div v-if="subscription.info?.has_subscription" class="card p-5 mb-8 flex items-center justify-between gap-3">
       <div>
         <p class="text-small font-medium text-base-primary">Gerenciar assinatura</p>
         <p class="text-micro text-base-muted">Cancelar, trocar cartão ou ver faturas</p>
+        <!-- Monthly → annual: the annual starts when the paid month ends (RN-07) -->
+        <button
+          v-if="subscription.info?.billing === 'monthly' && pro?.prices.annual"
+          class="text-micro text-accent-primary font-medium underline mt-1"
+          :disabled="loading"
+          @click="switchToAnnual"
+        >
+          Mudar para anual e economizar {{ formatPrice(pro.prices.annual.savings_cents ?? 0) }}
+        </button>
       </div>
-      <button class="btn-secondary" @click="subscription.openPortal()">
+      <button class="btn-secondary shrink-0" @click="subscription.openPortal()">
         Gerenciar
       </button>
     </div>
@@ -117,8 +153,14 @@ const auth = useAuthStore()
 const subscription = useSubscriptionStore()
 
 const loading = ref(false)
-const isYearly = ref(false)
+// Annual is the default offer (RF-20); ?ciclo=mensal forces the monthly
+const isYearly = ref(route.query.ciclo !== 'mensal')
 const currentPlan = computed(() => auth.user?.plan || 'free')
+const isAnnual = computed(() => subscription.isAnnual)
+const canScheduleMonthly = computed(() => {
+  const info = subscription.info
+  return !!info && !info.has_subscription && daysUntil(info.plan_expires_at) <= MONTHLY_SWITCH_WINDOW_DAYS
+})
 
 // Limits and prices come only from GET /api/plans (RN-01)
 const { fetchPlans, limitOf, formatPrice, benefitLines } = usePlans()
@@ -127,15 +169,35 @@ const pro = computed(() => limitOf('pro'))
 const freeLines = computed(() => benefitLines('free'))
 const proLines = computed(() => benefitLines('pro'))
 
-async function subscribe() {
+/** "R$ 287,90 no Pix ou 12x de R$ 23,99 sem juros no cartão" — numbers from GET /api/plans */
+const annualCopy = computed(() => {
+  const annual = pro.value?.prices.annual
+  if (!annual) return ''
+  const total = formatPrice(annual.amount_cents)
+  const installments = annual.installments_max ?? 1
+  return installments > 1
+    ? `${total} no Pix ou ${installments}x de ${formatPrice(Math.round(annual.amount_cents / installments))} sem juros no cartão`
+    : `${total} no Pix ou à vista no cartão`
+})
+
+async function startCheckout(annual: boolean) {
   loading.value = true
   try {
-    await subscription.checkoutSubscription('pro', isYearly.value ? 'yearly' : 'monthly')
-  } catch {
-    toast.show('Erro ao iniciar checkout.', 'error')
+    if (annual) await subscription.checkoutAnnual()
+    else await subscription.checkoutSubscription('pro', 'monthly')
+  } catch (e: any) {
+    toast.show(e?.data?.message || 'Erro ao iniciar checkout.', 'error')
   } finally {
     loading.value = false
   }
+}
+
+function subscribe() {
+  return startCheckout(isYearly.value)
+}
+
+function switchToAnnual() {
+  return startCheckout(true)
 }
 
 onMounted(async () => {
@@ -153,6 +215,11 @@ onMounted(async () => {
   }
   if (route.query.canceled === '1') {
     toast.show('Pagamento cancelado.', 'info')
+  }
+
+  // Renewal link from the expiry e-mails: open the annual checkout right away
+  if (route.query.ciclo === 'anual' && route.query.renovar === '1' && (subscription.info?.can_renew_annual ?? true)) {
+    startCheckout(true)
   }
 })
 </script>

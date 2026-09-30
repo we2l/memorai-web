@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { mockNuxtImport } from '@nuxt/test-utils/runtime'
 import { setActivePinia, createPinia } from 'pinia'
 import { useAuthStore } from '~/stores/auth'
 import type { User } from '~/types'
@@ -13,8 +14,14 @@ const user: User = {
   onboarding_completed: true,
 }
 
+const { analyticsMock } = vi.hoisted(() => ({
+  analyticsMock: { track: vi.fn(), identify: vi.fn(), reset: vi.fn() },
+}))
+mockNuxtImport('useAnalytics', () => () => analyticsMock)
+
 describe('useAuthStore', () => {
   beforeEach(() => {
+    Object.values(analyticsMock).forEach(f => f.mockClear())
     setActivePinia(createPinia())
     document.cookie = 'baigi_logged_in=; path=/; max-age=0'
   })
@@ -55,5 +62,18 @@ describe('useAuthStore', () => {
     expect(auth.token).toBeUndefined()
     expect(auth.setAuth).toBeUndefined()
     expect(auth.loadFromCookie).toBeUndefined()
+  })
+
+  it('setUser identifica no analytics (o composable só repassa id + plan)', () => {
+    const auth = useAuthStore()
+    auth.setUser(user)
+    expect(analyticsMock.identify).toHaveBeenCalledWith(user)
+  })
+
+  it('clearAuth (logout) reseta o analytics', () => {
+    const auth = useAuthStore()
+    auth.setUser(user)
+    auth.clearAuth()
+    expect(analyticsMock.reset).toHaveBeenCalledTimes(1)
   })
 })

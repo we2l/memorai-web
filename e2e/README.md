@@ -64,3 +64,35 @@ e2e/
 ├── smoke.spec.ts       ← teste de sanidade (login + dashboard)
 └── *.spec.ts           ← testes por fluxo (gerados sob demanda)
 ```
+
+## Screenshots de PR (`@screens`)
+
+`e2e/screens.spec.ts` captura as telas principais (desktop 1440×900, mobile 375×812, dark em /hoje,
+caderno Material e nota) em `screens-output/<tela>-<desktop|mobile>[-dark].png`. Não compara pixels:
+é artefato para revisão humana. Roda sem backend — a API vem de `e2e/screens/api.har` (replay via
+`routeFromHAR`), com os ids em `e2e/screens/fixture.json`. Telas e passos: `e2e/screens/screens.ts`.
+
+```bash
+# build apontando para a origem gravada no HAR + servidor
+NUXT_PUBLIC_API_BASE=http://localhost:8037/api npm run build && node .output/server/index.mjs &
+npx playwright test e2e/screens.spec.ts   # não precisa da API rodando
+```
+
+**No CI:** job `screens` em todo PR. Baixe o artefato `screens-<nº do PR>` na aba Summary do run
+(ou `gh run download <run-id> -n screens-<nº>`); o resumo do job lista os PNG. Para antes/depois,
+baixe também o artefato do PR anterior (ou de um run do `develop` re-executado) e compare lado a lado.
+
+**Regravar o HAR** quando endpoint/payload mudar, uma tela nova chamar outra rota ou o resumo do job
+listar "Requests fora do HAR" (também em `screens-output/unmatched.txt`). Precisa da API local em
+:8037 com o usuário de fixture `caderno-shots@test.local` (dados descritos em `docs/research/caderno-ux-2026-09.md` na raiz do projeto)
+e do build acima servido em :3000:
+
+```bash
+E2E_EMAIL=caderno-shots@test.local E2E_PASSWORD='<senha do usuário>' \
+  npx playwright test -c e2e/screens/record.config.ts
+```
+
+O gravador faz login uma vez (contexto A), reaproveita a sessão no contexto B (sem login no HAR),
+bloqueia escritas, guarda uma resposta por URL e remove `cookie`/`set-cookie`/`x-xsrf-token`/
+`authorization`; falha se a senha ou cookie de sessão aparecer no arquivo. Revise o diff do HAR antes
+de commitar. Os dados ficam congelados na data da gravação (o spec instala o relógio em `recordedAt`).

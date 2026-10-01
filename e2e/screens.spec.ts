@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { test } from '@playwright/test'
 import { CONSENT_DECIDED } from './helpers'
-import { SCREENS, VIEWPORTS, API_URL, NO_MOTION_CSS, FULL_PAGE_CSS, initScript, variantsOf, shotName, type Fixture } from './screens/screens'
+import { SCREENS, VIEWPORTS, API_URL, NO_MOTION_CSS, growViewportToContent, initScript, variantsOf, shotName, type Fixture } from './screens/screens'
 
 /**
  * Screenshots das telas principais para revisão visual de PR (job `screens` do CI).
@@ -43,8 +43,8 @@ for (const s of SCREENS) {
       const page = await ctx.newPage()
       await page.addInitScript(initScript(v.theme, NO_MOTION_CSS))
       await s.run(page, fx, v)
-      if (s.fullPage) await page.addStyleTag({ content: FULL_PAGE_CSS })
-      await page.screenshot({ path: path.join(OUT, `${name}.png`), fullPage: !!s.fullPage, animations: 'disabled', caret: 'hide' })
+      if (s.fullPage) await growViewportToContent(page)
+      await page.screenshot({ path: path.join(OUT, `${name}.png`), animations: 'disabled', caret: 'hide' })
       await ctx.close()
 
       if (unmatched.length) {

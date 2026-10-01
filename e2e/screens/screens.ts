@@ -135,8 +135,25 @@ export const shotName = (s: Screen, v: Variant) => `${s.name}-${v.tag}${v.theme 
 /** Zera transições/animações (complementa reducedMotion) */
 export const NO_MOTION_CSS = '*,*::before,*::after{transition-duration:0s!important;transition-delay:0s!important;animation-duration:0s!important;animation-delay:0s!important;caret-color:transparent!important;scroll-behavior:auto!important}'
 
-/** O layout do app usa h-screen + overflow; libera a altura para o fullPage */
-export const FULL_PAGE_CSS = 'html,body,#__nuxt{height:auto!important;overflow:visible!important} .h-screen{height:auto!important;min-height:100vh} main{overflow:visible!important}'
+/**
+ * "Página inteira" sem quebrar o layout h-screen + scroll interno: cresce o viewport até caber
+ * o maior conteúdo rolável (barras fixas ficam no rodapé real, não no meio do PNG).
+ */
+export async function growViewportToContent(page: Page, max = 6000) {
+  const vp = page.viewportSize()
+  if (!vp) return
+  const extra = await page.evaluate(() => {
+    let e = document.documentElement.scrollHeight - window.innerHeight
+    for (const el of Array.from(document.querySelectorAll<HTMLElement>('body *'))) {
+      const oy = getComputedStyle(el).overflowY
+      if ((oy === 'auto' || oy === 'scroll') && el.scrollHeight > el.clientHeight) e = Math.max(e, el.scrollHeight - el.clientHeight)
+    }
+    return Math.max(0, e)
+  })
+  if (!extra) return
+  await page.setViewportSize({ width: vp.width, height: Math.min(max, vp.height + extra) })
+  await settle(page, 600)
+}
 
 export function initScript(theme: 'light' | 'dark', css: string) {
   return `(() => {

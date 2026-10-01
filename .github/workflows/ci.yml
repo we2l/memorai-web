@@ -57,3 +57,63 @@ jobs:
             .nuxt/analyze
             node_modules/.cache/nuxt/.nuxt/analyze
           if-no-files-found: ignore
+
+  # Screenshots das telas principais para revisão visual (artefato, sem comparação de pixels).
+  # Sem backend: a API vem do HAR gravado (e2e/screens/api.har); o build aponta para a origem gravada.
+  screens:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NUXT_PUBLIC_API_BASE: http://localhost:8037/api
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Start server
+        run: |
+          PORT=3000 node .output/server/index.mjs > server.log 2>&1 &
+          for i in $(seq 1 60); do curl -sf -o /dev/null http://localhost:3000/entrar && exit 0; sleep 1; done; cat server.log; exit 1
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Screenshots
+        run: npx playwright test e2e/screens.spec.ts
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "### Screenshots (artefato \`screens-${{ github.event.pull_request.number }}\`)"
+            echo
+            ls screens-output/*.png 2>/dev/null | sed 's|screens-output/|- |' || echo "_nenhum PNG gerado_"
+            if [ -s screens-output/unmatched.txt ]; then
+              echo
+              echo "**Requests fora do HAR** (regravar: ver e2e/README.md):"
+              echo '```'
+              cat screens-output/unmatched.txt
+              echo '```'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screens-${{ github.event.pull_request.number }}
+          path: screens-output/
+          retention-days: 14
+          if-no-files-found: warn
+
+      - name: Server log
+        if: failure()
+        run: tail -100 server.log || true

@@ -21,7 +21,8 @@
     "lint:catch": "node scripts/check-empty-catch.mjs",
     "lint": "eslint app",
     "lint:tokens": "node scripts/check-tokens.mjs",
-    "lint:components": "node scripts/check-components.mjs"
+    "lint:components": "node scripts/check-components.mjs",
+    "lint:classes": "node scripts/check-theme-classes.mjs"
   },
   "keywords": [],
   "author": "",

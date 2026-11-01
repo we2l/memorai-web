@@ -174,3 +174,94 @@ test.describe('Caderno — caminho triste', () => {
     await expect(page.getByRole('menuitem', { name: /Mover/i })).toBeVisible({ timeout: 2000 })
   })
 })
+
+test.describe('Caderno — importar PDF (upload interceptado, sem IA)', () => {
+  const PDF = { name: 'aula.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.4\n%%EOF\n') }
+  const FAKE_DOC = '00000000-0000-4000-8000-0000000000d1'
+
+  /** POST /documents answered by the test (nothing stored, no job, no AI): records the multipart fields. */
+  async function interceptUpload(page: Page) {
+    const posts: Record<string, string>[] = []
+    await page.route('**/api/documents', async (route) => {
+      if (route.request().method() !== 'POST') return route.fallback()
+      const body = route.request().postDataBuffer()?.toString('latin1') ?? ''
+      const fields = Object.fromEntries([...body.matchAll(/name="([^"]+)"\r\n\r\n([^\r]*)\r\n/g)].map(m => [m[1], m[2]]))
+      posts.push(fields)
+      const topicId = fields.topic_id || null
+      const doc = { id: FAKE_DOC, original_name: PDF.name, file_size: PDF.buffer.length, pages_count: 1, processed_pages: 1, status: 'completed', topic_id: topicId, note_generation_status: 'completed', auto_cards: fields.auto_cards === '1', auto_cards_status: null, created_at: new Date().toISOString() }
+      await route.fulfill({ status: 201, json: { data: doc, topic_id: topicId, topic_created: !topicId, auto_generation: null } })
+    })
+    await page.route(`**/api/documents/${FAKE_DOC}`, route => route.fulfill({ json: { data: { id: FAKE_DOC, note_generation_status: 'completed' } } }))
+    return posts
+  }
+
+  async function subTopic(page: Page, rootBody: Record<string, unknown>) {
+    await gotoApp(page, '/hoje')
+    const root = await apiCall(page, 'POST', '/topics', { name: `Raiz ${uid()}`, ...rootBody })
+    const child = await apiCall(page, 'POST', '/topics', { name: `Sub ${uid()}`, parent_id: root.data.id })
+    return { rootId: root.data.id as string, childId: child.data.id as string }
+  }
+
+  const openMaterial = async (page: Page, topicId: string) => {
+    await gotoApp(page, `/cadernos?topic=${topicId}&tab=notes`)
+    await page.getByRole('tab', { name: /^Material/ }).click()
+  }
+
+  test('sub-caderno herda o modo da raiz: sem modal, o PDF vai com o topic_id dele e auto_cards da escolha', async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem('baigi-auto-cards', '0')) // "Criar cards" desmarcado antes
+    const { childId } = await subTopic(page, { learning_mode: 'academic' })
+    const posts = await interceptUpload(page)
+    await openMaterial(page, childId)
+    await page.locator('.start-card input[type="file"]').setInputFiles(PDF)
+    await expect.poll(() => posts.length).toBe(1)
+    await expect(page.getByRole('dialog', { name: 'Modo de estudo' })).toBeHidden()
+    expect(posts[0]).toMatchObject({ topic_id: childId, auto_cards: '0' })
+  })
+
+  test('caderno sem modo: o modal salva o modo nele e o PDF entra nele, com "Criar cards" desmarcado', async ({ page }) => {
+    const { childId } = await subTopic(page, {})
+    const posts = await interceptUpload(page)
+    const puts: any[] = []
+    page.on('request', (r) => { if (r.method() === 'PUT' && r.url().endsWith(`/api/topics/${childId}`)) puts.push(r.postDataJSON()) })
+    await openMaterial(page, childId)
+    await page.locator('.start-card input[type="file"]').setInputFiles(PDF)
+    const modal = page.getByRole('dialog', { name: 'Modo de estudo' })
+    await modal.getByRole('button', { name: /Faculdade \/ Escola/ }).click()
+    await modal.getByRole('checkbox', { name: /Criar cards automaticamente/ }).uncheck()
+    await modal.locator('input[type="file"]').setInputFiles(PDF)
+    await expect.poll(() => posts.length).toBe(1)
+    expect(posts[0]).toMatchObject({ topic_id: childId, auto_cards: '0' })
+    expect(puts[0]).toMatchObject({ learning_mode: 'academic' })
+    // Nenhum caderno novo
+    expect((await apiCall(page, 'GET', '/topics')).data.filter((t: any) => t.name === PDF.name.replace('.pdf', ''))).toHaveLength(0)
+  })
+
+  test('"Enviar PDF" do caderno vazio abre o upload, não o editor de nota', async ({ page }) => {
+    const { childId } = await subTopic(page, { learning_mode: 'general' })
+    const posts = await interceptUpload(page)
+    let notePosts = 0
+    page.on('request', (r) => { if (r.method() === 'POST' && /\/api\/topics\/[^/]+\/notes$/.test(r.url())) notePosts++ })
+    await openMaterial(page, childId)
+    const chooser = page.waitForEvent('filechooser')
+    await page.getByRole('button', { name: /Enviar PDF/ }).click()
+    await (await chooser).setFiles(PDF)
+    await expect.poll(() => posts.length).toBe(1)
+    expect(posts[0]).toMatchObject({ topic_id: childId })
+    expect(['0', '1']).toContain(posts[0]!.auto_cards)
+    expect(notePosts).toBe(0)
+    await expect(page.locator('.notion-title')).toHaveCount(0)
+  })
+
+  test('"Novo → Importar PDF" com "Criar cards" desmarcado manda auto_cards=0 (caderno criado pelo arquivo)', async ({ page }) => {
+    const posts = await interceptUpload(page)
+    await gotoApp(page, '/cadernos')
+    await page.getByRole('button', { name: 'Novo', exact: true }).click()
+    await page.getByRole('button', { name: /Importar PDF/ }).click()
+    const modal = page.getByRole('dialog', { name: 'Modo de estudo' })
+    await modal.getByRole('checkbox', { name: /Criar cards automaticamente/ }).uncheck()
+    await modal.locator('input[type="file"]').setInputFiles(PDF)
+    await expect.poll(() => posts.length).toBe(1)
+    expect(posts[0]!.auto_cards).toBe('0')
+    expect(posts[0]!.topic_id).toBeUndefined()
+  })
+})

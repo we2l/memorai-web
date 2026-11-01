@@ -1,8 +1,9 @@
 import { test, expect } from '@playwright/test'
-import { login } from './helpers'
+import { loginViaForm } from './helpers'
 
 test('login e acesso ao dashboard', async ({ page }) => {
-  await login(page)
+  // The one test that exercises the form (the others reuse an API session: login throttle 5/min)
+  await loginViaForm(page)
   await expect(page).toHaveURL(/\/hoje/)
   await expect(page.locator('body')).toBeVisible()
 })

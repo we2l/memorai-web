@@ -12,8 +12,9 @@ test.describe('Mock: Sessão de revisão com cards', () => {
   const mockCards = [
     {
       id: 'mock-card-1',
-      front: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'O que é FSRS?' }] }] },
-      back: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Free Spaced Repetition Scheduler' }] }] },
+      // front/back are HTML strings now (TipTap JSON was the old shape: nothing rendered and the test skipped itself)
+      front: '<p>O que é FSRS?</p>',
+      back: '<p>Free Spaced Repetition Scheduler</p>',
       state: 'new',
       due: null,
       lapses: 0,
@@ -36,7 +37,7 @@ test.describe('Mock: Sessão de revisão com cards', () => {
     })
 
     // Mock review submit
-    await page.route('**/8037/api/review', route => {
+    await page.route('**/api/review', route => {
       if (route.request().method() === 'POST') {
         route.fulfill({
           status: 200,
@@ -75,8 +76,8 @@ test.describe('Mock: Sessão de revisão com cards', () => {
       await expect(page.getByText('Free Spaced Repetition Scheduler')).toBeVisible()
 
       // Rating
-      await expect(page.getByRole('button', { name: /Bom/i })).toBeVisible()
-      await page.getByRole('button', { name: /Bom/i }).click()
+      await expect(page.getByRole('button', { name: /^Lembrei/ })).toBeVisible()
+      await page.getByRole('button', { name: /^Lembrei/ }).click()
       await page.waitForTimeout(1000)
     } else {
       // Mock não interceptou (API real respondeu primeiro) — skip gracefully
@@ -106,7 +107,9 @@ test.describe('Mock: Backlog grande (modo sobrevivência)', () => {
     await page.goto('/hoje')
     await page.waitForTimeout(3000)
 
-    await expect(page.getByText(/Modo Sobrevivência/i)).toBeVisible()
+    // Copy atual do HomeBanner: "150 cards atrasados." + botão "Ativar Sobrevivência"
+    await expect(page.getByText('150 cards atrasados.')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Ativar Sobrevivência' })).toBeVisible()
   })
 })
 

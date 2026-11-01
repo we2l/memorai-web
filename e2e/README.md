@@ -2,13 +2,30 @@
 
 ## Ambiente
 - Frontend: `http://localhost:3000`
-- API: `http://localhost:8037/api`
-- Usuário teste: weslleyadesousa@gmail.com (plano Pro)
-- Senha: variável `E2E_PASSWORD` (default: "password")
-- Auth por cookie (Sanctum SPA): `docker exec baigi-app php artisan db:seed --class=E2eSeeder` cria o usuário
-  verificado (`E2E_EMAIL`, default acima) e `unverified@e2e.test`. Ex.: `docker exec -e E2E_EMAIL=verified@e2e.test baigi-app php artisan db:seed --class=E2eSeeder`
-  e `E2E_EMAIL=verified@e2e.test npx playwright test e2e/auth-cookie.spec.ts`. O throttle de login (5/min) persiste
-  entre execuções: `docker exec baigi-app php artisan cache:clear` antes de repetir.
+- API: `http://localhost:8037/api` (containers `baigi-app` e `baigi-db`)
+- Usuário padrão dos specs antigos (`e2e/*.spec.ts`): `e2e-legacy@audit.test` (Pro, verificado), criado/recriado
+  via `docker exec baigi-app php artisan tinker` na primeira vez que uma execução precisa dele
+  (`e2e/auditoria/support/provision.php`). Para outro usuário: `E2E_EMAIL` / `E2E_PASSWORD`
+  (ex.: banco novo com `php artisan db:seed --class=E2eSeeder`, que cria `weslleyadesousa@gmail.com` / `password`).
+  Localmente essa conta é Google (sem a senha `password`): não use como padrão.
+- Login: `login(page)` faz **um** login pela API por usuário e execução e reaproveita o `storageState`
+  (`e2e/.auth/`, fora do git). O throttle de login (5/min por e-mail+IP) não é atingido; não rode `cache:clear`
+  (apaga cache/sessões de quem mais usa o stack). `loginViaForm(page)` só onde o formulário é o alvo do teste.
+- `unverified@e2e.test` / `password` vem do `E2eSeeder`.
+
+## Auditoria (`e2e/auditoria/`)
+Jornadas com caminho feliz e triste (cadastro/onboarding, caderno, nota, card, revisão, importar, configurações,
+planos/paywall, sessão, resiliência a 500/offline, mobile 390px). Usuários próprios `e2e-*@audit.test`,
+recriados uma vez por execução. **IA nunca roda**: toda chamada de IA é cortada no navegador (fixture `aiGuard`)
+ou mockada; `realGate` só deixa passar para provar um 402/403 do servidor depois de checar a pré-condição no banco.
+Cadastros (3/h por IP) saem com `X-Forwarded-For` próprio da execução. Notas criadas pelos specs têm < 50
+caracteres: salvar nota enfileira `GenerateNoteEmbeddingJob` (embedding OpenAI) na fila `default`, que o job
+ignora abaixo desse tamanho — e pode haver worker consumindo essa fila.
+
+```bash
+npx playwright test e2e/auditoria            # ~3 min
+npx playwright test e2e/auditoria/revisao.spec.ts
+```
 
 ## Páginas (URLs em PT-BR)
 
@@ -37,11 +54,8 @@ URLs legadas (`/dashboard`, `/chat`, `/stats`, `/graph`, `/documents`, `/decks/*
 - Erro geral: `p[role="alert"]` (o `UiToast` mantém regiões `role="status"`/`role="alert"` sempre montadas e vazias)
 
 ### Revisão (`/revisar`)
-- Botões rating: texto "De novo", "Difícil", "Bom", "Fácil"
-- Revelar resposta: procurar botão com texto "Mostrar resposta" ou similar
-
-### Decks (`/decks`)
-- Criar deck: botão com texto "Novo deck" ou ícone +
+- Botões rating: "Não lembrei", "Quase", "Lembrei", "Fácil demais" (atalhos 1–4)
+- Card: `.review-card` (botão "Toque para ver a resposta" / "Verso do card"); Espaço vira, U ou Ctrl+Z desfaz, ? ajuda
 
 ### Cadernos (`/cadernos`)
 - Árvore de tópicos: sidebar com itens colapsáveis
@@ -51,9 +65,9 @@ URLs legadas (`/dashboard`, `/chat`, `/stats`, `/graph`, `/documents`, `/decks/*
 
 ```bash
 cd memorai-web
-E2E_PASSWORD=suasenha npx playwright test
-# ou headed:
-E2E_PASSWORD=suasenha npx playwright test --headed
+npx playwright test                 # usuário padrão provisionado (precisa do docker local)
+E2E_EMAIL=x@y E2E_PASSWORD=z npx playwright test   # outro usuário já existente
+npx playwright test --headed
 ```
 
 ## Estrutura de testes

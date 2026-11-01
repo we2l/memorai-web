@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { login } from './helpers'
+import { login, TEST_USER } from './helpers'
 
 test.describe('Dashboard (/hoje)', () => {
   test.beforeEach(async ({ page }) => {
@@ -8,12 +8,14 @@ test.describe('Dashboard (/hoje)', () => {
 
   test('exibe saudação e streak', async ({ page }) => {
     await expect(page.locator('h1')).toBeVisible()
-    await expect(page.getByText('dias 🔥')).toBeVisible()
+    // Streak só aparece com ≥ 1 dia ("🔥 N dias seguidos"); usuário novo não tem
+    const streak = page.getByTestId('hero-streak')
+    if (await streak.count()) await expect(streak.first()).toHaveText(/🔥 .*\d+ dias?/)
   })
 
   test('exibe CTA de revisão ou estado vazio', async ({ page }) => {
     const cta = page.getByRole('link', { name: /Começar revisão/i })
-    const empty = page.getByText(/Tudo em dia|Pare de esquecer/i)
+    const empty = page.getByText(/Tudo em dia|Pare de esquecer|Crie seus primeiros cards/i).first()
     await expect(cta.or(empty)).toBeVisible()
   })
 })
@@ -33,7 +35,7 @@ test.describe('Cadernos (/cadernos)', () => {
   test('botão Novo abre menu com opções', async ({ page }) => {
     await page.getByText('Novo', { exact: true }).click()
     await expect(page.getByText('Novo caderno').first()).toBeVisible()
-    await expect(page.getByText('Importar Anki')).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Importar Anki' })).toBeVisible()
   })
 })
 
@@ -83,8 +85,8 @@ test.describe('Configurações (/configuracoes)', () => {
 
   test('exibe perfil do usuário', async ({ page }) => {
     await expect(page.getByRole('heading', { name: 'Configurações' })).toBeVisible()
-    await expect(page.getByText('Perfil')).toBeVisible()
-    await expect(page.getByText('weslleyadesousa@gmail.com')).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Perfil' })).toBeVisible()
+    await expect(page.getByText(TEST_USER.email)).toBeVisible()
   })
 
   test('exibe uso de IA', async ({ page }) => {
@@ -123,12 +125,16 @@ test.describe('Planos (/planos)', () => {
     await page.waitForLoadState('networkidle')
   })
 
-  test('exibe planos Grátis e Pro', async ({ page }) => {
+  test('exibe planos Grátis e Pro', async ({ page, request }) => {
     await expect(page.getByRole('heading', { name: /Escolha seu plano/i })).toBeVisible()
     const main = page.getByRole('main')
     await expect(main.getByText('Grátis', { exact: true })).toBeVisible()
-    // Price comes from GET /api/plans
-    await expect(main.getByText('R$ 29,90')).toBeVisible()
+    // Price comes from GET /api/plans; /planos abre no anual: alterna para o mensal
+    const catalog = (await (await request.get('http://localhost:8037/api/plans')).json()).data
+    const monthly = catalog.plans.find((p: any) => p.key === 'pro').prices.monthly.amount_cents
+    const brl = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(monthly / 100)
+    await page.getByRole('button', { name: 'Alternar entre plano mensal e anual' }).click()
+    await expect(main.getByText(brl).first()).toBeVisible()
   })
 
   test('mostra plano atual como desabilitado', async ({ page }) => {
@@ -171,7 +177,7 @@ test.describe('Navegação global', () => {
 
     await page.goto('/configuracoes')
     await page.waitForLoadState('networkidle')
-    await expect(page.getByText('weslleyadesousa@gmail.com')).toBeVisible()
+    await expect(page.getByText(TEST_USER.email)).toBeVisible()
   })
 })
 

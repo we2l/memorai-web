@@ -41,8 +41,8 @@ test.describe.serial('Fluxo completo: Caderno → Card → Revisão', () => {
   })
 
   test('3. Criar card manualmente', async () => {
-    // Ir pra aba Cards
-    await page.getByText('Cards').first().click()
+    // Ir pra aba Cards (getByText('Cards') pegava o "0 cards" do cabeçalho)
+    await page.getByRole('tab', { name: /^Cards/ }).click()
     await page.waitForTimeout(500)
 
     // Botão de criar card
@@ -103,7 +103,7 @@ test.describe.serial('Fluxo completo: Caderno → Card → Revisão', () => {
     await page.waitForTimeout(500)
 
     // Rating
-    const goodBtn = page.getByRole('button', { name: /Bom/i })
+    const goodBtn = page.getByRole('button', { name: /^Lembrei/ })
     if (await goodBtn.count() > 0) {
       await goodBtn.click()
       await page.waitForTimeout(1000)
@@ -114,21 +114,15 @@ test.describe.serial('Fluxo completo: Caderno → Card → Revisão', () => {
     await page.goto('/cadernos')
     await page.waitForLoadState('networkidle')
 
-    await page.getByText(TEST_NOTEBOOK).click()
-    await page.waitForTimeout(500)
-
-    // Hover no item da árvore (span dentro do botão, não o heading)
-    const treeItem = page.getByRole('button', { name: TEST_NOTEBOOK })
-    await treeItem.hover()
-
-    const deleteBtn = page.locator('button[title*="Deletar"], button[title*="Excluir"]').first()
-    if (await deleteBtn.count() > 0) {
-      await deleteBtn.click()
-      // Confirmar no modal
-      await page.locator('.btn-danger').click()
-      await page.waitForTimeout(1000)
-      await expect(page.getByRole('heading', { name: TEST_NOTEBOOK })).not.toBeVisible({ timeout: 3000 })
-    }
+    // Menu ⋯ da árvore (TreeItemMenu) → Excluir → confirmar; o DELETE sai ao trocar de página
+    await page.getByRole('button', { name: `Opções de ${TEST_NOTEBOOK}`, exact: true }).click()
+    await page.getByRole('menuitem', { name: 'Excluir' }).click()
+    await page.getByRole('alertdialog').getByRole('button', { name: 'Excluir' }).click()
+    await expect(page.getByRole('heading', { name: TEST_NOTEBOOK })).not.toBeVisible({ timeout: 3000 })
+    const deleted = page.waitForRequest(r => r.method() === 'DELETE' && r.url().includes('/api/topics/'))
+    // Navegação SPA (onBeforeRouteLeave → flushRemoves); page.goto recarregaria a página
+    await page.getByRole('navigation', { name: 'Navegação principal' }).getByRole('link', { name: 'Hoje' }).click()
+    await deleted
   })
 })
 
@@ -206,7 +200,7 @@ test.describe('Progresso e estatísticas', () => {
 
     await expect(page.getByText('Domínio geral')).toBeVisible()
     await expect(page.getByText(/Retenção/).first()).toBeVisible()
-    await expect(page.getByText(/Streak/)).toBeVisible()
+    await expect(page.getByText('Dias seguidos')).toBeVisible()
   })
 
   test('exibe estados de cards', async ({ page }) => {

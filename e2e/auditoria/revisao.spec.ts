@@ -41,9 +41,9 @@ test.describe('Revisão — caminho feliz', () => {
       await expect(page.getByRole('button', { name: 'Verso do card' })).toBeVisible()
       await page.keyboard.press('4')
     }
-    // BUG: revisar.vue usa <ReviewSessionSummary>, mas o componente registrado é FlashcardReviewSessionSummary
-    // (components/flashcard/) — o resumo não é resolvido e a tela fica em branco ao fim de toda sessão.
+    // Resumo da sessão (B1: a tag não resolvia e a tela ficava em branco), com o "Amanhã"
     await expect(page.getByRole('heading', { name: 'Missão de hoje concluída!' })).toBeVisible({ timeout: 10_000 })
+    await expect(page.getByTestId('tomorrow-load')).toContainText('Amanhã')
 
     // Servidor registrou as 4 revisões
     await expect.poll(async () => (await Promise.all(cardIds.map(id => card(page, id)))).every((c: any) => c.reps === 1)).toBe(true)

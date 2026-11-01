@@ -2,6 +2,8 @@
 // Audit users for e2e/auditoria (run through `php artisan tinker` by support/users.ts).
 // Input: env E2E_AUDIT_USERS = JSON [{email, plan, verified, onboarded, reset, quota_exhausted?}]
 // Recreates users marked `reset` (cascade wipes their data). Never touches other accounts.
+// Without `reset` an existing user keeps its password (its sessions stay valid): used to mark
+// the e-mail as verified in the middle of a test, standing in for the link in the e-mail.
 
 use App\Domain\User\Models\User;
 use App\Domain\Credit\Models\FeatureUsage;
@@ -21,14 +23,14 @@ foreach ($specs as $s) {
     }
 
     $user = User::firstOrNew(['email' => $s['email']]);
+    if (! $user->exists) {
+        $user->forceFill(['name' => $s['name'] ?? 'Auditoria E2E', 'password' => $password, 'password_set_at' => now()]);
+    }
     $user->forceFill([
-        'name' => $s['name'] ?? 'Auditoria E2E',
-        'password' => $password,
         'plan' => $s['plan'] ?? 'free',
         'email_verified_at' => ! empty($s['verified']) ? ($user->email_verified_at ?? now()) : null,
         'onboarding_completed_at' => ! empty($s['onboarded']) ? ($user->onboarding_completed_at ?? now()) : null,
         'analytics_consent' => false,
-        'password_set_at' => now(),
     ])->save();
 
     if (! empty($s['quota_exhausted'])) {

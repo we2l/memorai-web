@@ -66,6 +66,17 @@
   --transition-slow: all 200ms ease-in-out;
 }
 
+/* Theme-switching colors as utilities (bg-accent-primary, border-accent-primary/20...).
+   The values live in :root/.dark below; `inline reference` makes the utilities read
+   var(--color-*) without re-emitting the variable (a self-reference in @layer theme). */
+@theme inline reference {
+  --color-accent-primary: var(--color-accent-primary);
+  --color-accent-primary-hover: var(--color-accent-primary-hover);
+  --color-accent-primary-subtle: var(--color-accent-primary-subtle);
+  --color-accent-soft: var(--color-accent-soft);
+  --color-accent-primary-text: var(--color-accent-primary-text);
+}
+
 /* ============================================
    CSS Variables — Light mode (default)
    ============================================ */
@@ -235,14 +246,6 @@
 
 @utility text-base-muted {
   color: var(--text-muted);
-}
-
-@utility text-accent-primary {
-  color: var(--color-accent-primary);
-}
-
-@utility bg-accent-primary-subtle {
-  background-color: var(--color-accent-primary-subtle);
 }
 
 @utility border-base {

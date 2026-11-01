@@ -2,7 +2,6 @@ import type { Ref } from 'vue'
 
 interface AiGenerateOptions {
   topicId: Ref<string | null>
-  topicCards: Ref<any[]>
   activeTab: Ref<string>
   onReload: () => Promise<void>
 }
@@ -11,24 +10,22 @@ interface AiGenerateOptions {
  * Composable para fluxo de geração de cards via IA.
  * Gerencia geração, OCR, accept/discard, auto-accept on leave.
  */
-export function useAiGenerate({ topicId, topicCards, activeTab, onReload }: AiGenerateOptions) {
+export function useAiGenerate({ topicId, activeTab, onReload }: AiGenerateOptions) {
   const { $api } = useNuxtApp()
   const aiJob = useAiJob()
   const toast = useToast()
 
   const generatedCards = ref<any[]>([])
-  const generatingDeckId = ref<string>('')
+  // Caderno the pending cards belong to (the API resolves the deck from it; AcceptCardsRequest requires topic_id)
+  const generatingTopicId = ref<string | null>(null)
   const aiGenerating = ref(false)
 
   // Auto-accept generated cards if user leaves
   function autoAcceptPendingCards() {
-    if (generatedCards.value.length && generatingDeckId.value) {
+    if (generatedCards.value.length && generatingTopicId.value) {
       $api('/ai/accept-cards', {
         method: 'POST',
-        body: {
-          deck_id: generatingDeckId.value,
-          cards: generatedCards.value.map(c => ({ ...c, topic_id: topicId.value })),
-        },
+        body: { topic_id: generatingTopicId.value, cards: generatedCards.value },
       }).catch((e: unknown) => reportApiError(e, { silent: true }))
       generatedCards.value = []
     }
@@ -40,17 +37,7 @@ export function useAiGenerate({ topicId, topicCards, activeTab, onReload }: AiGe
 
   async function handleAiGenerate(source: string, quantity: number, documentIdOrPrompt?: string) {
     if (!topicId.value) return
-
-    let deckId = topicCards.value[0]?.deck_id
-    if (!deckId) {
-      const deckStore = useDeckStore()
-      if (!deckStore.decks.length) await deckStore.fetchDecks()
-      deckId = deckStore.decks[0]?.id
-    }
-    if (!deckId) {
-      toast.show('Crie um deck antes de gerar cards.', 'error')
-      return
-    }
+    const forTopicId = topicId.value
 
     activeTab.value = 'cards'
     aiGenerating.value = true
@@ -58,8 +45,7 @@ export function useAiGenerate({ topicId, topicCards, activeTab, onReload }: AiGe
     try {
       // 202 + job polled until done (RF-30)
       const result = await aiJob.run<{ cards: any[] }>('/ai/generate-cards', {
-        topic_id: topicId.value,
-        deck_id: deckId,
+        topic_id: forTopicId,
         source,
         count: quantity,
         document_id: source === 'pdf' ? documentIdOrPrompt : undefined,
@@ -68,7 +54,7 @@ export function useAiGenerate({ topicId, topicCards, activeTab, onReload }: AiGe
       const cards = result?.cards ?? []
       if (cards.length) {
         generatedCards.value = cards
-        generatingDeckId.value = deckId
+        generatingTopicId.value = forTopicId
       } else {
         toast.show('Nenhum card gerado.', 'error')
       }
@@ -80,17 +66,9 @@ export function useAiGenerate({ topicId, topicCards, activeTab, onReload }: AiGe
     }
   }
 
-  async function handleOcrCards(cards: any[]) {
+  function handleOcrCards(cards: any[]) {
     generatedCards.value = cards.map(c => ({ front: c.front, back: c.back }))
-
-    // Ensure we have a deck to accept cards into
-    let deckId = topicCards.value[0]?.deck_id
-    if (!deckId) {
-      const deckStore = useDeckStore()
-      if (!deckStore.decks.length) await deckStore.fetchDecks()
-      deckId = deckStore.decks[0]?.id
-    }
-    generatingDeckId.value = deckId || null
+    generatingTopicId.value = topicId.value
 
     activeTab.value = 'cards'
     toast.show(`${cards.length} cards gerados da imagem!`, 'success')
@@ -98,14 +76,11 @@ export function useAiGenerate({ topicId, topicCards, activeTab, onReload }: AiGe
 
   async function acceptCard(index: number) {
     const card = generatedCards.value[index]
-    if (!card || !generatingDeckId.value) return
+    if (!card || !generatingTopicId.value) return
     try {
       await $api('/ai/accept-cards', {
         method: 'POST',
-        body: {
-          deck_id: generatingDeckId.value,
-          cards: [{ ...card, topic_id: topicId.value }],
-        },
+        body: { topic_id: generatingTopicId.value, cards: [card] },
       })
       generatedCards.value.splice(index, 1)
       toast.show('Card aceito!', 'success')
@@ -116,14 +91,11 @@ export function useAiGenerate({ topicId, topicCards, activeTab, onReload }: AiGe
   }
 
   async function acceptAllCards() {
-    if (!generatedCards.value.length || !generatingDeckId.value) return
+    if (!generatedCards.value.length || !generatingTopicId.value) return
     try {
       await $api('/ai/accept-cards', {
         method: 'POST',
-        body: {
-          deck_id: generatingDeckId.value,
-          cards: generatedCards.value.map(c => ({ ...c, topic_id: topicId.value })),
-        },
+        body: { topic_id: generatingTopicId.value, cards: generatedCards.value },
       })
       const count = generatedCards.value.length
       generatedCards.value = []
@@ -158,7 +130,7 @@ export function useAiGenerate({ topicId, topicCards, activeTab, onReload }: AiGe
 
   return {
     generatedCards,
-    generatingDeckId,
+    generatingTopicId,
     aiGenerating,
     handleAiGenerate,
     handleOcrCards,

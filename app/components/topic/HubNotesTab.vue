@@ -85,7 +85,7 @@
 
           <!-- Delete button (hover only) -->
           <button
-            class="absolute top-4 right-4 p-1.5 rounded-lg text-base-muted/40 hover:text-[var(--badge-danger-text)] hover:bg-danger/10 opacity-0 group-hover:opacity-100 transition-all duration-150 z-10"
+            class="absolute top-4 right-4 p-1.5 rounded-lg text-base-muted hover:text-[var(--badge-danger-text)] hover:bg-danger/10 opacity-0 group-hover:opacity-100 transition-all duration-150 z-10"
             title="Excluir nota"
             @click.stop="noteToDelete = note"
            aria-label="Excluir nota">
@@ -99,9 +99,11 @@
       <div v-else class="py-6">
         <TopicEmptyStateOnboarding
           @paste="$emit('create-note')"
-          @upload-pdf="$emit('create-note')"
+          @upload-pdf="pdfInput?.click()"
           @import-anki="navigateTo('/importar')"
         />
+        <!-- "Enviar PDF" goes through the same upload as the StartCard (select-file), not the note editor -->
+        <input ref="pdfInput" type="file" accept=".pdf,application/pdf" class="hidden" @change="onPdfSelected" />
       </div>
     </div>
 
@@ -132,7 +134,12 @@
             <Brain :size="16" />
             <span class="text-small hidden lg:inline">Mapa</span>
           </button>
-          <span class="text-micro text-base-muted mx-1">{{ saving ? 'Salvando...' : '✓' }}</span>
+          <!-- Honest autosave (RF-F8): "Salvo" only once the server has the text -->
+          <span v-if="saveState !== 'error'" class="text-micro text-base-muted mx-1">{{ saveState === 'saving' ? 'Salvando...' : 'Salvo' }}</span>
+          <span v-else role="alert" class="inline-flex items-center gap-1 mx-1 text-micro font-medium whitespace-nowrap text-[var(--badge-danger-text)]">
+            Não salvo
+            <button type="button" class="min-h-[44px] px-1 underline underline-offset-2" @click="$emit('retry-save')">Tentar de novo</button>
+          </span>
           <!-- More menu -->
           <div class="relative">
             <button
@@ -157,6 +164,15 @@
         </div>
       </div>
 
+      <!-- Unsaved local draft newer than the server copy (RF-F8): the user decides -->
+      <div v-if="draftSavedAt" role="status" class="px-4 sm:px-6 py-2.5 bg-[var(--badge-warning-bg)] border-b border-base flex flex-wrap items-center gap-x-3 gap-y-2">
+        <p class="text-small text-base-primary flex-1 min-w-[12rem]">Você tem alterações não salvas de {{ draftTime }}.</p>
+        <div class="flex gap-2">
+          <button type="button" class="btn-secondary !py-1.5 !px-3 !min-h-[2.75rem] text-small" @click="$emit('restore-draft')">Restaurar</button>
+          <button type="button" class="btn-ghost !py-1.5 !px-3 !min-h-[2.75rem] text-small" @click="$emit('discard-draft')">Descartar</button>
+        </div>
+      </div>
+
       <!-- Generating banner (fixed above editor, does not scroll) -->
       <slot name="generating-banner" />
 
@@ -164,10 +180,11 @@
       <div class="flex-1 overflow-y-auto">
         <div class="max-w-[720px] mx-auto px-6 pt-12 pb-32">
           <!-- Title as H1 inline -->
+          <!-- Read-only while a local draft waits for Restaurar/Descartar: typing first would lose it -->
           <div
             ref="titleRef"
             class="notion-title"
-            contenteditable="true"
+            :contenteditable="draftSavedAt ? 'false' : 'true'"
             :data-placeholder="'Sem título'"
             @input="onTitleInput"
             @keydown.enter.prevent="focusEditor"
@@ -218,12 +235,15 @@
 import { ArrowLeft, Bookmark, ChevronRight, FileText, MoreHorizontal, Zap, Trash2, Brain, Sparkles } from 'lucide-vue-next'
 import { extractStructuredPreview, countWordsFromContent } from '~/utils/notePreview'
 import type { Note } from '~/types'
+import type { NoteSaveState } from '~/composables/useNoteEditor'
 
 const props = defineProps<{
   notes: Note[]
   activeNote: Note | null
   noteTitle: string
-  saving: boolean
+  saveState?: NoteSaveState
+  /** savedAt of a local draft to offer (null: none). */
+  draftSavedAt?: number | null
   hasDocuments: boolean
   breadcrumbTopic: string
   cardsFromNote: (noteId: string) => number
@@ -239,6 +259,9 @@ const emit = defineEmits<{
   (e: 'improve-note'): void
   (e: 'delete-note'): void
   (e: 'save-title'): void
+  (e: 'retry-save'): void
+  (e: 'restore-draft'): void
+  (e: 'discard-draft'): void
   (e: 'update:noteTitle', value: string): void
   (e: 'select-file', file: File): void
 }>()
@@ -246,6 +269,23 @@ const emit = defineEmits<{
 const showMenu = ref(false)
 const showMindMap = ref(false)
 const titleRef = ref<HTMLElement>()
+const pdfInput = ref<HTMLInputElement>()
+
+// "14:32" today, "31/10 às 14:32" on another day (drafts live up to 7 days)
+const draftTime = computed(() => {
+  if (!props.draftSavedAt) return ''
+  const d = new Date(props.draftSavedAt)
+  const time = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+  if (d.toDateString() === new Date().toDateString()) return time
+  return `${d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} às ${time}`
+})
+
+function onPdfSelected(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = ''
+  if (file) emit('select-file', file)
+}
 const noteToDelete = ref<Note | null>(null)
 const showDeleteNoteConfirm = computed({
   get: () => noteToDelete.value !== null,

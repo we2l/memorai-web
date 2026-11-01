@@ -6,7 +6,7 @@
     >
       <Headphones :size="16" class="text-[var(--badge-primary-text)] shrink-0" />
       <span class="text-small font-medium text-base-primary truncate">Podcast</span>
-      <ChevronRight :size="12" class="text-base-muted/40 shrink-0 ml-auto" />
+      <ChevronRight :size="12" class="text-base-muted shrink-0 ml-auto" />
     </button>
 
     <button
@@ -15,7 +15,7 @@
     >
       <ClipboardList :size="16" class="text-[var(--badge-primary-text)] shrink-0" />
       <span class="text-small font-medium text-base-primary truncate">Simulado</span>
-      <ChevronRight :size="12" class="text-base-muted/40 shrink-0 ml-auto" />
+      <ChevronRight :size="12" class="text-base-muted shrink-0 ml-auto" />
     </button>
   </div>
 </template>

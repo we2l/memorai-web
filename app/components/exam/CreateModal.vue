@@ -123,7 +123,7 @@ const minDate = computed(() => {
           <label
             v-for="topic in topics"
             :key="topic.id"
-            class="flex items-center gap-2 p-2 rounded-lg hover:bg-surface-primary cursor-pointer transition-colors"
+            class="flex items-center gap-2 p-2 rounded-lg hover:bg-surface-secondary cursor-pointer transition-colors"
           >
             <input
               type="checkbox"

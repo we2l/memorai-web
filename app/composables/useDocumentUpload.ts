@@ -59,7 +59,8 @@ export function useDocumentUpload() {
       const formData = new FormData()
       formData.append('file', file)
       if (opts.topicId) formData.append('topic_id', opts.topicId)
-      if (opts.autoCards !== undefined) formData.append('auto_cards', opts.autoCards ? '1' : '0')
+      // Always explicit: without it the API assumes false (RF-B3)
+      formData.append('auto_cards', opts.autoCards ? '1' : '0')
       if (opts.learningMode) formData.append('learning_mode', opts.learningMode)
 
       xhr.upload.onprogress = (e) => {

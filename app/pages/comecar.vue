@@ -1,6 +1,8 @@
 <template>
   <div class="min-h-screen bg-surface flex items-center justify-center p-4 sm:p-6">
     <div class="w-full max-w-md">
+      <!-- AI needs a confirmed e-mail (RN-06): resend and "Já confirmei" without leaving (RF-F3) -->
+      <UiVerifyEmailBanner v-if="auth.user && !auth.isVerified" inline class="mb-6" />
 
       <!-- Step 0: Learning Mode -->
       <div v-if="step === 0">
@@ -130,7 +132,8 @@
 
         <button
           class="btn-primary w-full mt-4 !py-3 text-base font-semibold"
-          :disabled="!textInput.trim() || generating"
+          :disabled="!textInput.trim() || generating || !auth.isVerified"
+          :aria-describedby="auth.isVerified ? undefined : 'verify-email-notice'"
           @click="generateFromText"
         >
           {{ generating ? 'Gerando cards...' : 'Transformar em estudo' }}
@@ -155,7 +158,8 @@
             />
             <button
               class="btn-primary !py-2 !px-4 !min-h-[2.75rem] text-small shrink-0"
-              :disabled="!topicInput.trim() || generating"
+              :disabled="!topicInput.trim() || generating || !auth.isVerified"
+              :aria-describedby="auth.isVerified ? undefined : 'verify-email-notice'"
               @click="generateFromTopic"
             >
               Gerar →
@@ -165,8 +169,8 @@
 
         <!-- Tertiary options -->
         <div class="flex gap-3 mt-4">
-          <label class="btn-secondary flex-1 justify-center cursor-pointer !py-2.5 text-small">
-            <input type="file" accept=".pdf,application/pdf" class="sr-only" @change="handlePdf" />
+          <label class="btn-secondary flex-1 justify-center cursor-pointer !py-2.5 text-small" :class="{ 'opacity-50 pointer-events-none': !auth.isVerified }">
+            <input type="file" accept=".pdf,application/pdf" class="sr-only" :disabled="!auth.isVerified" :aria-describedby="auth.isVerified ? undefined : 'verify-email-notice'" @change="handlePdf" />
             📄 Subir PDF
           </label>
           <button type="button" class="btn-secondary flex-1 justify-center !py-2.5 text-small" :disabled="completing" @click="goToAnkiImport">
@@ -332,7 +336,7 @@ function skipLearningMode() {
 }
 
 async function generateFromText() {
-  if (!textInput.value.trim()) return
+  if (!textInput.value.trim() || !auth.isVerified) return
   error.value = ''
   notebookNameError.value = ''
   const name = notebookName.value.trim()
@@ -355,12 +359,9 @@ async function generateFromText() {
   }, 1500)
 
   try {
-    // Reuse the caderno if a previous attempt already created it (0 cards keeps it)
-    if (!createdTopicId.value) {
-      const topicRes = await $api<any>('/topics', { method: 'POST', body: { name } })
-      createdTopicId.value = topicRes.data.id
-      void createExamIfAny(createdTopicId.value)
-    }
+    // A failed attempt deletes its caderno, so each attempt creates one
+    const topicRes = await $api<any>('/topics', { method: 'POST', body: { name } })
+    createdTopicId.value = topicRes.data.id
 
     // Save text as a note in the topic
     await $api<any>(`/topics/${createdTopicId.value}/notes`, {
@@ -379,6 +380,7 @@ async function generateFromText() {
   } catch (e: any) {
     error.value = extractApiMessage(e, e?.data?.message || 'Erro ao gerar cards. Tente novamente.')
     step.value = 1
+    discardAttemptTopic()
   } finally {
     generating.value = false
     clearInterval(interval)
@@ -390,14 +392,25 @@ async function acceptOrFail(cards: any[]) {
   if (!cards.length) {
     error.value = ZERO_CARDS_MESSAGE
     step.value = 1
+    discardAttemptTopic()
     return
   }
+  // AcceptCardsRequest requires the top-level topic_id (B2)
   await $api('/ai/accept-cards', {
     method: 'POST',
-    body: { cards: cards.map((c: any) => ({ ...c, topic_id: createdTopicId.value })) },
+    body: { topic_id: createdTopicId.value, cards },
   })
+  void createExamIfAny(createdTopicId.value)
   generatedCount.value = cards.length
   step.value = 3
+}
+
+/** A failed attempt leaves no empty caderno behind (RF-F2); the material stays in the form. */
+function discardAttemptTopic() {
+  const id = createdTopicId.value
+  if (!id) return
+  createdTopicId.value = ''
+  $api(`/topics/${id}`, { method: 'DELETE' }).catch((e: unknown) => reportApiError(e, { silent: true }))
 }
 
 async function createExamIfAny(topicId: string) {
@@ -411,7 +424,7 @@ async function createExamIfAny(topicId: string) {
 }
 
 async function generateFromTopic() {
-  if (!topicInput.value.trim()) return
+  if (!topicInput.value.trim() || !auth.isVerified) return
   error.value = ''
   generating.value = true
   step.value = 2
@@ -425,11 +438,8 @@ async function generateFromTopic() {
 
   try {
     const name = topicInput.value.trim()
-    if (!createdTopicId.value) {
-      const topicRes = await $api<any>('/topics', { method: 'POST', body: { name } })
-      createdTopicId.value = topicRes.data.id
-      void createExamIfAny(createdTopicId.value)
-    }
+    const topicRes = await $api<any>('/topics', { method: 'POST', body: { name } })
+    createdTopicId.value = topicRes.data.id
 
     const result = await aiJob.run<{ cards: any[] }>('/ai/generate-cards', {
       source: 'free',
@@ -441,6 +451,7 @@ async function generateFromTopic() {
   } catch (e: any) {
     error.value = extractApiMessage(e, e?.data?.message || 'Erro ao gerar cards. Tente novamente.')
     step.value = 1
+    discardAttemptTopic()
   } finally {
     generating.value = false
     clearInterval(interval)
@@ -451,7 +462,7 @@ async function handlePdf(e: Event) {
   const input = e.target as HTMLInputElement
   const file = input.files?.[0]
   input.value = ''
-  if (!file) return
+  if (!file || !auth.isVerified) return
   error.value = ''
 
   // Size/type against the plan before any request (RN-UX-06)

@@ -1,4 +1,4 @@
-import { test, expect, gotoApp, uid, realGate, sql, loginState, USERS, AUDIT_PASSWORD } from './support/fixtures'
+import { test, expect, gotoApp, uid, sql, loginState, verifyEmail, USERS, AUDIT_PASSWORD } from './support/fixtures'
 import type { Page } from '@playwright/test'
 
 /**
@@ -81,9 +81,10 @@ test.describe('Cadastro', () => {
     test.skip(r.status() === 429, 'ambiente: throttle de cadastro (3/h por IP) esgotado')
     expect(r.status()).toBe(201)
 
-    // Onboarding pendente → /comecar
+    // Onboarding pendente → /comecar, com o aviso de verificação do e-mail recém-cadastrado
     await page.waitForURL('**/comecar')
     await expect(page.getByRole('heading', { name: 'O que você mais estuda?' })).toBeVisible()
+    await expect(page.locator('#verify-email-notice')).toContainText(`Confirme seu e-mail para gerar com IA. Enviamos um link para ${email}.`)
     await page.getByRole('button', { name: /Uso geral/ }).click()
     await page.getByRole('button', { name: 'Continuar →' }).click()
     await expect(page.getByRole('heading', { name: 'Pare de esquecer o que estuda' })).toBeVisible()
@@ -128,7 +129,7 @@ test.describe('Cadastro', () => {
 test.describe('Onboarding com IA (mockada)', () => {
   test.use({ auditUser: 'onboarding' })
 
-  test('falha da IA: mensagem e continua no passo do material (caderno não duplica)', async ({ page }) => {
+  test('falha da IA: mensagem e continua no passo do material (nenhum caderno vazio sobra)', async ({ page }) => {
     await mockGenerate(page, [], 'failed')
     await gotoApp(page, '/comecar')
     await page.getByRole('button', { name: 'Pular →' }).click()
@@ -143,7 +144,8 @@ test.describe('Onboarding com IA (mockada)', () => {
     await mockGenerate(page, [])
     await page.getByRole('button', { name: 'Transformar em estudo' }).click()
     await expect(page.getByText(/Não conseguimos criar cards com esse texto/)).toBeVisible()
-    expect(sql(`select count(*) from topics t join users u on u.id=t.user_id where u.email='${USERS.onboarding.email}' and t.name='Bio Onboarding'`)).toBe('1')
+    // Cada tentativa que falha apaga o caderno que criou
+    await expect.poll(() => sql(`select count(*) from topics t join users u on u.id=t.user_id where u.email='${USERS.onboarding.email}' and t.name='Bio Onboarding'`)).toBe('0')
   })
 
   test('caminho feliz: material → cards prontos → começar revisão → primeira avaliação', async ({ page }) => {
@@ -155,9 +157,10 @@ test.describe('Onboarding com IA (mockada)', () => {
     await page.locator('#notebook-name').fill('Bio Onboarding')
     const accepted = page.waitForResponse(r => r.url().endsWith('/api/ai/accept-cards'))
     await page.getByRole('button', { name: 'Transformar em estudo' }).click()
-    // BUG crítico: comecar.vue (acceptOrFail) não manda o topic_id de topo que AcceptCardsRequest exige → 422
-    // "O campo topic id é obrigatório." depois de a IA já ter gerado (e cobrado) os cards.
-    expect((await accepted).status(), 'POST /ai/accept-cards do onboarding').toBe(201)
+    // accept-cards contra a API real, com o topic_id de topo que o AcceptCardsRequest exige
+    const res = await accepted
+    expect(res.status(), 'POST /ai/accept-cards do onboarding').toBe(201)
+    expect(res.request().postDataJSON()).toMatchObject({ topic_id: expect.any(String), cards: expect.any(Array) })
     await expect(page.getByRole('heading', { name: '3 cards prontos!' })).toBeVisible()
     expect(calls[calls.length - 1]).toMatchObject({ source: 'notes', count: 10 })
 
@@ -183,23 +186,64 @@ test.describe('Onboarding com IA (mockada)', () => {
   })
 })
 
-test.describe('Onboarding de quem não confirmou o e-mail (gate real, sem IA)', () => {
-  test.use({ auditUser: 'unverified' })
+test.describe('Onboarding de quem não confirmou o e-mail', () => {
+  test.use({ auditUser: 'onboardingUnverified' })
 
-  test('"Transformar em estudo" recebe 403 e a tela orienta a confirmar o e-mail', async ({ page }) => {
-    const unverified = () => sql(`select email_verified_at is null from users where email='${USERS.unverified.email}'`) === 't'
-    const gate = await realGate(page, /\/api\/ai\/generate-cards$/, 'unverified', unverified)
-    await gotoApp(page, '/hoje')
-    await page.goto('/comecar')
+  test('aviso com Reenviar e Já confirmei → verificação → gera (IA mockada) → accept real → revisão → resumo', async ({ page }) => {
+    test.setTimeout(90_000)
+    // O reenvio real só registraria log (MAIL_MAILER=log), mas gasta o throttle de verificação compartilhado
+    const resends: string[] = []
+    await page.route('**/api/email/verification-notification', (r) => { resends.push(r.request().method()); return r.fulfill({ status: 202, json: { message: 'ok' } }) })
+    const calls = await mockGenerate(page)
+    await gotoApp(page, '/comecar')
+    const notice = page.getByRole('status').filter({ hasText: 'Confirme seu e-mail para gerar com IA.' })
+    await expect(notice).toContainText(USERS.onboardingUnverified.email)
+
     await page.getByRole('button', { name: 'Pular →' }).click()
     await page.locator('#material').fill('Fotossíntese ocorre nos cloroplastos.')
-    await page.locator('#notebook-name').fill(`Sem verificação ${uid()}`)
-    await page.getByRole('button', { name: 'Transformar em estudo' }).click()
-    await expect(page.getByRole('alert').filter({ hasText: /confirm/i })).toBeVisible()
-    expect(gate.map(g => g.status)).toEqual([403])
-    // Esperado: um caminho para reenviar o e-mail de confirmação nesta tela (layout "auth" não tem o banner)
-    const resend = page.getByRole('button', { name: /Reenviar/i })
-    test.info().annotations.push({ type: 'evidência', description: `botão de reenvio na tela do onboarding: ${await resend.count()}` })
-    await expect(resend).toBeVisible({ timeout: 2000 })
+    await page.locator('#notebook-name').fill('Bio Verificação')
+    const transform = page.getByRole('button', { name: 'Transformar em estudo' })
+    // Ações de IA bloqueadas com o motivo (o aviso), nunca o 403 cru
+    await expect(transform).toBeDisabled()
+    await expect(transform).toHaveAttribute('aria-describedby', 'verify-email-notice')
+    await page.getByPlaceholder(/Biologia, Direito Penal/).fill('Biologia')
+    await expect(page.getByRole('button', { name: 'Gerar →' })).toBeDisabled()
+
+    // Reenviar: fica em espera (throttle) depois de enviar
+    await notice.getByRole('button', { name: 'Reenviar e-mail' }).click()
+    await expect(notice.getByRole('button', { name: /^Reenviar em \d+s$/ })).toBeDisabled()
+    expect(resends).toEqual(['POST'])
+
+    // "Já confirmei" antes de confirmar: continua bloqueado
+    await notice.getByRole('button', { name: 'Já confirmei' }).click()
+    await expect(page.getByText('Ainda não recebemos a confirmação. Abra o link do e-mail e tente de novo.')).toBeVisible()
+    await expect(transform).toBeDisabled()
+
+    // Confirma (no lugar do link do e-mail) e "Já confirmei" relê o /me sem recarregar a página
+    verifyEmail(USERS.onboardingUnverified)
+    await notice.getByRole('button', { name: 'Já confirmei' }).click()
+    await expect(notice).toBeHidden()
+    await expect(transform).toBeEnabled()
+
+    const accepted = page.waitForResponse(r => r.url().endsWith('/api/ai/accept-cards'))
+    await transform.click()
+    const res = await accepted
+    expect(res.status(), 'POST /ai/accept-cards (API real)').toBe(201)
+    expect(res.request().postDataJSON()).toMatchObject({ topic_id: expect.any(String) })
+    await expect(page.getByRole('heading', { name: '3 cards prontos!' })).toBeVisible()
+    expect(calls).toHaveLength(1)
+
+    // Primeira revisão até o resumo da sessão
+    await page.getByRole('button', { name: 'Começar revisão →' }).click()
+    await page.waitForURL('**/revisar?topic_id=**')
+    for (let i = 0; i < 3; i++) {
+      await expect(page.getByRole('button', { name: 'Toque para ver a resposta' })).toBeVisible()
+      await page.keyboard.press('Space')
+      await expect(page.getByRole('button', { name: 'Verso do card' })).toBeVisible()
+      await page.keyboard.press('4')
+    }
+    await expect(page.getByRole('heading', { name: 'Missão de hoje concluída!' })).toBeVisible({ timeout: 10_000 })
+    await expect(page.getByTestId('tomorrow-load')).toContainText('Amanhã')
+    expect(Number(sql(`select count(*) from reviews r join users u on u.id=r.user_id where u.email='${USERS.onboardingUnverified.email}'`))).toBe(3)
   })
 })

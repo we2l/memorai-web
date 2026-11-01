@@ -1,22 +1,34 @@
 <template>
   <div>
     <div
-      v-if="!dismissed"
+      v-if="inline || !dismissed"
       role="status"
-      class="relative border-b px-4 py-2.5 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 bg-[var(--badge-warning-bg)] border-[var(--border-divider)]"
+      class="relative px-4 py-2.5 flex flex-col gap-2 bg-[var(--badge-warning-bg)] border-[var(--border-divider)]"
+      :class="inline ? 'rounded-xl border' : 'border-b sm:flex-row sm:items-center sm:gap-3'"
     >
-      <p class="text-micro text-base-primary font-medium flex-1 pr-8 sm:pr-0">
-        Confirme seu e-mail (<span class="break-all">{{ auth.user?.email }}</span>) para usar os recursos de IA.
+      <p id="verify-email-notice" class="text-micro text-base-primary font-medium flex-1" :class="{ 'pr-8 sm:pr-0': !inline }">
+        Confirme seu e-mail para gerar com IA. Enviamos um link para <span class="break-all">{{ auth.user?.email }}</span>.
       </p>
+      <div class="flex gap-2 shrink-0">
+        <button
+          type="button"
+          class="btn-secondary text-micro px-3 py-1.5 flex-1 sm:flex-none"
+          :disabled="sending || cooldown > 0"
+          @click="resend"
+        >
+          {{ buttonLabel }}
+        </button>
+        <button
+          type="button"
+          class="btn-secondary text-micro px-3 py-1.5 flex-1 sm:flex-none"
+          :disabled="checking"
+          @click="checkVerified"
+        >
+          {{ checking ? 'Verificando...' : 'Já confirmei' }}
+        </button>
+      </div>
       <button
-        type="button"
-        class="btn-secondary text-micro px-3 py-1.5 w-full sm:w-auto shrink-0"
-        :disabled="sending || cooldown > 0"
-        @click="resend"
-      >
-        {{ buttonLabel }}
-      </button>
-      <button
+        v-if="!inline"
         type="button"
         class="absolute right-2 top-2 sm:static p-1.5 text-base-muted hover:text-base-primary rounded-lg shrink-0"
         aria-label="Fechar aviso"
@@ -40,6 +52,9 @@
 </template>
 
 <script setup lang="ts">
+// inline: persistent box for pages without the default layout (onboarding), no dismiss
+defineProps<{ inline?: boolean }>()
+
 const COOLDOWN_SECONDS = 60
 const DISMISS_KEY = 'verify_email_banner_dismissed'
 
@@ -50,6 +65,7 @@ const { $api } = useNuxtApp()
 const dismissed = ref(false)
 const showModal = ref(false)
 const sending = ref(false)
+const checking = ref(false)
 const cooldown = ref(0)
 let timer: ReturnType<typeof setInterval> | undefined
 
@@ -88,6 +104,16 @@ async function resend() {
   }
 }
 
+/** Re-reads /me: once verified the parent's v-if removes the notice and the AI actions unlock. */
+async function checkVerified() {
+  checking.value = true
+  const user = await auth.fetchMe()
+  checking.value = false
+  if (user?.email_verified) toast.show('E-mail confirmado!', 'success')
+  else if (user) toast.show('Ainda não recebemos a confirmação. Abra o link do e-mail e tente de novo.', 'warning')
+  else if (auth.user) toast.show('Não foi possível verificar agora. Tente de novo.', 'error')
+}
+
 function dismiss() {
   dismissed.value = true
   try { sessionStorage.setItem(DISMISS_KEY, '1') } catch { /* intencional: sessionStorage indisponível */ }
@@ -107,5 +133,5 @@ onBeforeUnmount(() => {
   clearInterval(timer)
 })
 
-defineExpose({ resend, cooldown })
+defineExpose({ resend, cooldown, checkVerified })
 </script>

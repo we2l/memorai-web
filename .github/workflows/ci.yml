@@ -33,6 +33,14 @@ jobs:
       - name: Unit tests
         run: npm test
 
+      # PascalCase tags that Nuxt does not register render nothing in production (.nuxt from postinstall)
+      - name: Unresolved components
+        run: npm run lint:components
+
+      # Color utilities whose token is not in @theme generate no CSS (main.css)
+      - name: Color classes without CSS
+        run: npm run lint:classes
+
       - name: Build
         run: npm run build
 

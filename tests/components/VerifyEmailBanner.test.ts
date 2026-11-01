@@ -47,7 +47,34 @@ describe('VerifyEmailBanner', () => {
 
     auth.setUser({ ...baseUser, email_verified: false })
     const unverified = await mountSuspended(Host)
-    expect(unverified.find('[role="status"]').text()).toContain('Confirme seu e-mail (ana@baigi.com.br)')
+    expect(unverified.find('[role="status"]').text()).toContain('Confirme seu e-mail para gerar com IA. Enviamos um link para ana@baigi.com.br.')
+  })
+
+  it('inline (onboarding) has no dismiss button', async () => {
+    useAuthStore().setUser({ ...baseUser, email_verified: false })
+    const wrapper = await mountSuspended(VerifyEmailBanner, { props: { inline: true } })
+    expect(wrapper.find('[aria-label="Fechar aviso"]').exists()).toBe(false)
+    expect(wrapper.find('#verify-email-notice').exists()).toBe(true)
+  })
+
+  it('"Já confirmei" re-reads /me and the host stops rendering the notice once verified', async () => {
+    const auth = useAuthStore()
+    auth.setUser({ ...baseUser, email_verified: false })
+    apiMock.mockResolvedValueOnce({ data: { ...baseUser, email_verified: false } })
+    apiMock.mockResolvedValueOnce({ data: { ...baseUser, email_verified: true } })
+    const host = await mountSuspended(Host)
+    const check = host.findAll('[role="status"] button').find(b => b.text() === 'Já confirmei')!
+
+    await check.trigger('click')
+    await vi.waitFor(() => expect(apiMock).toHaveBeenCalledWith('/me'))
+    await vi.waitFor(() => expect(check.attributes('disabled')).toBeUndefined())
+    expect(auth.isVerified).toBe(false)
+    expect(host.text()).toContain('Confirme seu e-mail')
+
+    await check.trigger('click')
+    await vi.waitFor(() => expect(auth.isVerified).toBe(true))
+    await host.vm.$nextTick()
+    expect(host.text()).toBe('verified')
   })
 
   it('resend calls the endpoint and disables the button for 60 s', async () => {

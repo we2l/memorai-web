@@ -146,7 +146,7 @@
       </template>
 
       <!-- Normal finish (reviewed some cards) — RF-F2.10 -->
-      <ReviewSessionSummary
+      <FlashcardReviewSessionSummary
         v-else
         :reviewed="review.totalRated"
         :ratings="review.ratingsCount"
@@ -163,7 +163,7 @@
             @enable-reminder="enableReminder"
           />
         </template>
-      </ReviewSessionSummary>
+      </FlashcardReviewSessionSummary>
     </div>
 
     <!-- Waiting for learning cards -->

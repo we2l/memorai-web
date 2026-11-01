@@ -33,7 +33,7 @@
               <NuxtLink to="/importar" class="block px-3 py-2 text-small text-base-primary hover:bg-surface-secondary transition-colors" @click="showAddMenu = false">
                 Importar Anki
               </NuxtLink>
-              <button class="w-full text-left px-3 py-2 text-small text-base-primary hover:bg-surface-secondary transition-colors" @click="showAddMenu = false; showImportUploadModal = true">
+              <button class="w-full text-left px-3 py-2 text-small text-base-primary hover:bg-surface-secondary transition-colors" @click="showAddMenu = false; openImportModal(null)">
                 <span class="block">Importar PDF</span>
                 <span class="block text-micro text-base-muted">A IA gera resumo, cards e organiza pra você</span>
               </button>
@@ -82,7 +82,7 @@
           @edit="openEdit"
           @delete="openDelete"
           @add-child="openCreate"
-          @import-pdf="showImportUploadModal = true"
+          @import-pdf="openImportModal(null)"
         />
       </div>
     </aside>
@@ -104,7 +104,8 @@
           :notes="noteStore.notes"
           :active-note="editingNote"
           :note-title="noteTitle"
-          :saving="noteStore.saving"
+          :save-state="saveState"
+          :draft-saved-at="pendingDraft?.savedAt ?? null"
           :has-documents="docStore.documents.length > 0"
           :breadcrumb-topic="selectedTopicName ?? ''"
           :cards-from-note="cardsFromNote"
@@ -117,6 +118,9 @@
           @improve-note="openChatForNote"
           @delete-note="showDeleteNote = true"
           @save-title="saveTitle"
+          @retry-save="retrySaveNow"
+          @restore-draft="restoreDraft"
+          @discard-draft="discardDraft"
           @update:note-title="noteTitle = $event"
         >
           <template #documents>
@@ -177,7 +181,7 @@
                 <button class="btn-secondary w-full justify-center" @click="cardWorkshop.reset()">Voltar à nota</button>
               </template>
             </LazyTopicCardWorkshop>
-            <LazyTopicNoteEditor v-else v-model="noteContent" :editable="!noteIsGenerating && noteImprove.state.value !== 'loading' && noteImprove.state.value !== 'preview'" :topic-id="selectedTopicId" @update:model-value="debouncedSave" @create-card="openNoteToCard" @ask-ai="askAiAboutSelection" @navigate-topic="selectTopic" />
+            <LazyTopicNoteEditor v-else v-model="noteContent" :editable="!noteIsGenerating && noteImprove.state.value !== 'loading' && noteImprove.state.value !== 'preview' && !pendingDraft" :topic-id="selectedTopicId" @update:model-value="debouncedSave" @create-card="openNoteToCard" @ask-ai="askAiAboutSelection" @navigate-topic="selectTopic" />
           </template>
           <template #selection-toolbar />
         </TopicHubNotesTab>
@@ -320,7 +324,6 @@
             :notes="noteStore.notes"
             :active-note="null"
             :note-title="''"
-            :saving="false"
             :has-documents="docStore.documents.length > 0"
             :breadcrumb-topic="selectedTopicName ?? ''"
             :cards-from-note="cardsFromNote"
@@ -426,7 +429,7 @@
           v-else-if="!topicStore.loading && !topicStore.error && topicStore.tree.length === 0"
           mode="no-notebooks"
           @create="openCreate(null)"
-          @upload-pdf="showImportUploadModal = true"
+          @upload-pdf="openImportModal(null)"
           @import-anki="navigateTo('/importar')"
         />
 
@@ -665,7 +668,7 @@ watch(pendingCount, (curr, prev) => {
     showConfetti.value = true
   }
 })
-const { noteTitle, noteContent, editingNote, selectedText, showDeleteNote, flushPendingSave, debouncedSave, saveTitle, selectNote, openNoteEditor, closeEditor, createNote, handleDeleteNote } = useNoteEditor(selectedTopicId)
+const { noteTitle, noteContent, editingNote, selectedText, showDeleteNote, saveState, retrySaveNow, pendingDraft, restoreDraft, discardDraft, flushPendingSave, debouncedSave, saveTitle, selectNote, openNoteEditor, closeEditor, createNote, handleDeleteNote } = useNoteEditor(selectedTopicId)
 const noteImprove = useNoteImprove(selectedTopicId)
 const errorPatterns = ref<any>(null)
 
@@ -686,7 +689,6 @@ const nextStep = useNextStep({
 
 const aiGenerate = useAiGenerate({
   topicId: selectedTopicId,
-  topicCards,
   activeTab,
   onReload: async () => { if (selectedTopicId.value) await loadTopicData(selectedTopicId.value) },
 })
@@ -816,16 +818,18 @@ const selectedTopicName = computed(() => {
   return selectedTopicId.value ? find(topicStore.tree, selectedTopicId.value) ?? '' : ''
 })
 
+// A sub-caderno uses the mode of the nearest ancestor that has one (the root): no "Como você vai estudar" modal (RF-F7)
 const selectedTopicLearningMode = computed(() => {
-  function find(topics: Topic[], id: string): string | null {
+  function find(topics: Topic[], id: string, inherited: string | null): string | null | undefined {
     for (const t of topics) {
-      if (t.id === id) return t.learning_mode
-      const found = find(t.children ?? [], id)
-      if (found) return found
+      const mode = t.learning_mode ?? inherited
+      if (t.id === id) return mode
+      const found = find(t.children ?? [], id, mode)
+      if (found !== undefined) return found
     }
-    return null
+    return undefined
   }
-  return selectedTopicId.value ? find(topicStore.tree, selectedTopicId.value) : null
+  return selectedTopicId.value ? find(topicStore.tree, selectedTopicId.value, null) ?? null : null
 })
 
 function noteNameById(noteId: string): string {
@@ -1012,8 +1016,30 @@ const importingInSelectedTopic = computed(() =>
 
 const importPdfInput = ref<HTMLInputElement | null>(null)
 const showImportUploadModal = ref(false)
+// Caderno the modal imports into; null = the API creates a caderno from the file name
+const importTargetTopicId = ref<string | null>(null)
+const { run: runAction } = useApiAction()
 
-async function onImportModalConfirm(data: { learning_mode: string; target_language?: string; language_level?: string; file: File }) {
+function openImportModal(topicId: string | null) {
+  importTargetTopicId.value = topicId
+  showImportUploadModal.value = true
+}
+
+async function onImportModalConfirm(data: { learning_mode: string; target_language?: string; language_level?: string; file: File; auto_cards: boolean }) {
+  const topicId = importTargetTopicId.value
+  if (topicId) {
+    // Caderno (and its root) without a mode: save the chosen one on it, then upload into it (RF-F7).
+    // As in DocumentsInline, the upload goes on even if saving the mode fails (toast shown).
+    const { file, auto_cards: autoCards, ...mode } = data
+    await runAction(() => $api(`/topics/${topicId}`, { method: 'PUT', body: mode }), {
+      error: 'Não foi possível salvar o modo de estudo do caderno.',
+    })
+    void topicStore.fetchTree()
+    const result = await startCardUpload.upload(file, { topicId, autoCards, source: 'caderno' })
+    if (result) await docStore.fetchForTopic(topicId, true)
+    return
+  }
+
   const structureStore = useStructureStore()
   await structureStore.importPdfWithMode(data.file, data)
 
@@ -1033,9 +1059,9 @@ async function handleStartCardFile(file: File) {
   const invalid = await startCardUpload.validate(file)
   if (invalid) { toast.show(invalid, 'error'); return }
 
-  // If topic has no learning mode, open upload modal (user re-selects file there)
+  // If the caderno (or its root) has no learning mode, open upload modal (user re-selects file there)
   if (!selectedTopicLearningMode.value) {
-    showImportUploadModal.value = true
+    openImportModal(selectedTopicId.value)
     return
   }
 

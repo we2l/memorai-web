@@ -35,3 +35,27 @@ test.describe('Catálogo de planos na landing', () => {
     await expect(pricing.getByText(/R\$/)).toHaveCount(0)
   })
 })
+
+/**
+ * Anual sem parcelamento falso (prd-custo-abuso-p0 RF-7): "Nx de" só quando GET /api/plans
+ * anuncia installments_max > 1; com 1 (padrão), "à vista no cartão".
+ */
+test.describe('Parcelamento do anual em /planos', () => {
+  for (const installments of [1, 12]) {
+    test(`installments_max=${installments}`, async ({ page, request }) => {
+      const catalog = (await (await request.get('http://localhost:8037/api/plans')).json()).data
+      const annual = catalog.plans.find((p: any) => p.key === 'pro').prices.annual
+      annual.installments_max = installments
+      await page.route('**/api/plans', route => route.fulfill({ json: { data: catalog } }))
+
+      await page.goto('/planos')
+      const brl = (cents: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(cents / 100)
+      if (installments > 1) {
+        await expect(page.getByText(`${brl(annual.amount_cents)} no Pix ou 12x de ${brl(Math.round(annual.amount_cents / 12))} sem juros no cartão`)).toBeVisible()
+      } else {
+        await expect(page.getByText(`${brl(annual.amount_cents)} no Pix ou à vista no cartão`)).toBeVisible()
+        await expect(page.getByText(/\d+x de/)).toHaveCount(0)
+      }
+    })
+  }
+})

@@ -58,7 +58,10 @@ test.describe('Checkout anual', () => {
     await page.route('**/api/checkout/sessions/**', route => route.fulfill({ json: { data: pixSession() } }))
 
     await page.goto('/planos')
-    const copy = `${brl(annual.amount_cents)} no Pix ou ${annual.installments_max}x de ${brl(Math.round(annual.amount_cents / annual.installments_max))} sem juros no cartão`
+    // Parcelas só quando a conta Stripe oferece (installments_max > 1, prd-custo-abuso-p0 RF-7)
+    const copy = annual.installments_max > 1
+      ? `${brl(annual.amount_cents)} no Pix ou ${annual.installments_max}x de ${brl(Math.round(annual.amount_cents / annual.installments_max))} sem juros no cartão`
+      : `${brl(annual.amount_cents)} no Pix ou à vista no cartão`
     await expect(page.getByText(copy)).toBeVisible()
 
     await page.getByRole('button', { name: 'Assinar anual' }).click()

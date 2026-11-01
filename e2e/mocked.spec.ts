@@ -434,7 +434,7 @@ test.describe('Estados honestos (RF-F3.6–F3.9)', () => {
 })
 
 test.describe('Onboarding sem armadilhas (RF-F4)', () => {
-  const newUser = { id: 'u-new', name: 'Nova Pessoa', email: 'nova@e2e.test', plan: 'free', onboarding_completed: false, email_verified_at: '2026-09-29T00:00:00Z', default_learning_mode: null }
+  const newUser = { id: 'u-new', name: 'Nova Pessoa', email: 'nova@e2e.test', plan: 'free', onboarding_completed: false, email_verified: true, email_verified_at: '2026-09-29T00:00:00Z', default_learning_mode: null }
 
   async function mockNewUserApi(page: import('@playwright/test').Page) {
     // Catch-all first (Playwright matches the most recent route first)
@@ -521,7 +521,9 @@ test.describe('Onboarding sem armadilhas (RF-F4)', () => {
     await page.route(/\/api\/topics$/, r => { calls.push('topics'); return r.fulfill(json({ data: { id: 't-new' } }, 201)) })
     await page.route('**/api/topics/t-new/notes', r => r.fulfill(json({ data: { id: 'n1' } }, 201)))
     await page.route(/\/api\/exams$/, r => { calls.push('exams'); return r.fulfill(json({ data: { id: 'e1' } }, 201)) })
-    await page.route('**/api/ai/generate-cards', r => r.fulfill(json({ data: { id: 'job-1', status: 'done', result: { cards: [] } } }, 202)))
+    // The exam is only created once the cards are accepted: a failed attempt deletes its notebook (B2)
+    await page.route('**/api/ai/generate-cards', r => r.fulfill(json({ data: { id: 'job-1', status: 'done', result: { cards: [{ front: 'Q', back: 'A' }] } } }, 202)))
+    await page.route('**/api/ai/accept-cards', r => r.fulfill(json({ data: [{ id: 'c1' }] }, 201)))
     await register(page)
     await page.waitForURL('**/comecar')
     await page.getByRole('button', { name: /Concurso/ }).click()

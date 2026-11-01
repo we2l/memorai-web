@@ -20,7 +20,8 @@
     "lint:copy": "node scripts/check-copy.mjs",
     "lint:catch": "node scripts/check-empty-catch.mjs",
     "lint": "eslint app",
-    "lint:tokens": "node scripts/check-tokens.mjs"
+    "lint:tokens": "node scripts/check-tokens.mjs",
+    "lint:components": "node scripts/check-components.mjs"
   },
   "keywords": [],
   "author": "",

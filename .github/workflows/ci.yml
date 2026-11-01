@@ -33,6 +33,10 @@ jobs:
       - name: Unit tests
         run: npm test
 
+      # PascalCase tags that Nuxt does not register render nothing in production (.nuxt from postinstall)
+      - name: Unresolved components
+        run: npm run lint:components
+
       - name: Build
         run: npm run build
 

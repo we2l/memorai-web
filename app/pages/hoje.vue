@@ -50,7 +50,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Stats, TopicProgress, BacklogStats, Topic } from '~/types'
+import type { Stats, TopicProgress, BacklogStats } from '~/types'
 
 const auth = useAuthStore()
 const examStore = useExamStore()
@@ -88,19 +88,20 @@ const isNewUser = computed(() => {
 const activation = ref<{ hasTopics: boolean; hasMaterial: boolean; topicId: string | null } | null>(null)
 
 async function loadActivation() {
-  const [treeRes, docsRes] = await Promise.allSettled([
-    $api<{ data: Topic[] }>('/topics'),
-    $api<{ data: unknown[] }>('/documents'),
-  ])
-  const tree = treeRes.status === 'fulfilled' ? treeRes.value.data : []
-  const topics = flattenTopics(tree)
-  activation.value = {
-    hasTopics: topics.length > 0,
-    hasMaterial: topics.some(t => (t.notes_count ?? 0) > 0) || (docsRes.status === 'fulfilled' && docsRes.value.data.length > 0),
-    topicId: tree[0]?.id ?? null,
+  const topicStore = useTopicStore()
+  await topicStore.fetchTree()
+  const topics = flattenTopics(topicStore.tree)
+  let hasMaterial = topics.some(t => (t.notes_count ?? 0) > 0)
+  // A PDF still being read has no note yet; documents always belong to a caderno
+  if (!hasMaterial && topics.length) {
+    try {
+      hasMaterial = (await $api<{ data: unknown[] }>('/documents')).data.length > 0
+    } catch (e) {
+      // Decorative block: silent on failure
+      reportApiError(e, { silent: true })
+    }
   }
-  // Decorative block: silent on failure
-  for (const r of [treeRes, docsRes]) if (r.status === 'rejected') reportApiError(r.reason, { silent: true })
+  activation.value = { hasTopics: topics.length > 0, hasMaterial, topicId: topicStore.tree[0]?.id ?? null }
 }
 
 const feedItems = computed(() => {

@@ -6,8 +6,9 @@
 // classes take no opacity modifier: `text-base-muted/40` generates nothing either).
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-const ROOT = new URL('../app', import.meta.url).pathname
+const ROOT = fileURLToPath(new URL('../app', import.meta.url))
 const CSS = readFileSync(join(ROOT, 'assets/css/main.css'), 'utf8')
 const PREFIXES = 'bg|text|border(?:-[xytrbl]|-[se])?|ring|ring-offset|outline|fill|stroke|from|via|to|divide|placeholder|caret|accent|decoration|shadow'
 

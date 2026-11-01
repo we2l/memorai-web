@@ -5,9 +5,10 @@
 // (run `nuxi prepare` or the build first), imported/declared in the file's <script>, or a Vue built-in.
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-const ROOT = new URL('../app', import.meta.url).pathname
-const DTS = new URL('../.nuxt/components.d.ts', import.meta.url).pathname
+const ROOT = fileURLToPath(new URL('../app', import.meta.url))
+const DTS = fileURLToPath(new URL('../.nuxt/components.d.ts', import.meta.url))
 const VUE_BUILTINS = new Set(['Transition', 'TransitionGroup', 'KeepAlive', 'Teleport', 'Suspense', 'Component', 'Slot'])
 
 if (!existsSync(DTS)) {

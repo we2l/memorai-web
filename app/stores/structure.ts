@@ -22,7 +22,7 @@ export const useStructureStore = defineStore('structure', {
       return this.importPdfWithMode(file)
     },
 
-    async importPdfWithMode(file: File, modeData?: { learning_mode: string; target_language?: string; language_level?: string }) {
+    async importPdfWithMode(file: File, modeData?: { learning_mode: string; target_language?: string; language_level?: string; auto_cards?: boolean }) {
       const { $api } = useNuxtApp()
       const toast = useToast()
       const auth = useAuthStore()
@@ -41,6 +41,8 @@ export const useStructureStore = defineStore('structure', {
         if (modeData?.learning_mode) formData.append('learning_mode', modeData.learning_mode)
         if (modeData?.target_language) formData.append('target_language', modeData.target_language)
         if (modeData?.language_level) formData.append('language_level', modeData.language_level)
+        // "Criar cards automaticamente" from the modal; explicit because the API assumes false (RF-B3)
+        formData.append('auto_cards', modeData?.auto_cards ? '1' : '0')
 
         const res = await $api<any>('/documents', { method: 'POST', body: formData })
         this.documentId = res.data.id

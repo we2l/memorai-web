@@ -136,7 +136,7 @@
           </button>
           <!-- Honest autosave (RF-F8): "Salvo" only once the server has the text -->
           <span v-if="saveState !== 'error'" class="text-micro text-base-muted mx-1">{{ saveState === 'saving' ? 'Salvando...' : 'Salvo' }}</span>
-          <span v-else role="alert" class="inline-flex items-center gap-1 mx-1 text-micro font-medium text-[var(--badge-danger-text)]">
+          <span v-else role="alert" class="inline-flex items-center gap-1 mx-1 text-micro font-medium whitespace-nowrap text-[var(--badge-danger-text)]">
             Não salvo
             <button type="button" class="min-h-[44px] px-1 underline underline-offset-2" @click="$emit('retry-save')">Tentar de novo</button>
           </span>

@@ -21,7 +21,7 @@ export const API = `${API_ORIGIN}/api`
 export const AUDIT_PASSWORD = 'Senha-Audit-2026'
 const CONTAINER = process.env.E2E_API_CONTAINER || 'baigi-app'
 
-export type UserKey = 'pro' | 'free' | 'quota' | 'unverified' | 'onboarding' | 'empty' | 'session' | 'logout' | 'account' | 'mobile' | 'legacy'
+export type UserKey = 'pro' | 'free' | 'quota' | 'unverified' | 'onboarding' | 'onboardingUnverified' | 'empty' | 'session' | 'logout' | 'account' | 'mobile' | 'legacy'
 
 type UserSpec = { email: string; plan: 'free' | 'pro'; verified: boolean; onboarded: boolean; reset: true; quota_exhausted?: Record<string, number> }
 
@@ -32,6 +32,8 @@ export const USERS: Record<UserKey, UserSpec> = {
   quota: { email: 'e2e-quota@audit.test', plan: 'free', verified: true, onboarded: true, reset: true, quota_exhausted: { cards_ai: 10, agent_chat: 5 } },
   unverified: { email: 'e2e-unverified@audit.test', plan: 'pro', verified: false, onboarded: true, reset: true },
   onboarding: { email: 'e2e-onboarding@audit.test', plan: 'free', verified: true, onboarded: false, reset: true },
+  // Fresh e-mail sign-up: onboarding pending and e-mail not confirmed yet (verified mid-test)
+  onboardingUnverified: { email: 'e2e-onboarding-unverified@audit.test', plan: 'free', verified: false, onboarded: false, reset: true },
   empty: { email: 'e2e-empty@audit.test', plan: 'free', verified: true, onboarded: true, reset: true },
   session: { email: 'e2e-session@audit.test', plan: 'free', verified: true, onboarded: true, reset: true },
   logout: { email: 'e2e-logout@audit.test', plan: 'free', verified: true, onboarded: true, reset: true },
@@ -68,6 +70,21 @@ export function sql(query: string): string {
 }
 
 const sessionFile = (email: string) => path.join(AUTH_DIR, `${email}.run-${RUN_ID}.json`)
+
+function runProvision(specs: object[]): string {
+  const php = fs.readFileSync(path.join(__dirname, 'provision.php'), 'utf8').replace(/^<\?php\s*/, '')
+  const outText = tinker(php, { E2E_AUDIT_USERS: JSON.stringify(specs), E2E_AUDIT_PASSWORD: AUDIT_PASSWORD })
+  if (!outText.includes('E2E_AUDIT_RESULT=')) throw new Error(`provision.php falhou:\n${outText}`)
+  return outText
+}
+
+/**
+ * Marks an audit user's e-mail as verified (stands in for the link in the e-mail). No reset: the
+ * user, its data and its session are kept.
+ */
+export function verifyEmail(spec: { email: string; plan?: 'free' | 'pro'; onboarded?: boolean }) {
+  runProvision([{ email: spec.email, plan: spec.plan ?? 'free', onboarded: spec.onboarded ?? false, verified: true }])
+}
 const provisionedMarker = (email: string) => path.join(AUTH_DIR, `${email}.run-${RUN_ID}.provisioned`)
 
 /** (Re)creates the user once per run, lazily: only users a run actually needs are touched. */
@@ -75,10 +92,7 @@ function provision(key: UserKey) {
   ensureAuthDir()
   const spec = USERS[key]
   if (fs.existsSync(provisionedMarker(spec.email))) return
-  const php = fs.readFileSync(path.join(__dirname, 'provision.php'), 'utf8').replace(/^<\?php\s*/, '')
-  const outText = tinker(php, { E2E_AUDIT_USERS: JSON.stringify([spec]), E2E_AUDIT_PASSWORD: AUDIT_PASSWORD })
-  if (!outText.includes('E2E_AUDIT_RESULT=')) throw new Error(`provision.php falhou:\n${outText}`)
-  fs.writeFileSync(provisionedMarker(spec.email), outText)
+  fs.writeFileSync(provisionedMarker(spec.email), runProvision([spec]))
 }
 
 const apiHeaders = (xsrf?: string) => ({

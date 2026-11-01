@@ -130,6 +130,12 @@
       <p class="text-body text-base-secondary">Salvando suas avaliações…</p>
     </div>
 
+    <!-- Next page of the session on its way (pages of 100 cards) -->
+    <div v-else-if="review.awaitingPage && !review.showErrorDiary" class="flex-1 flex flex-col items-center justify-center px-4 text-center" role="status">
+      <div class="w-8 h-8 border-2 border-[var(--color-accent-primary)] border-t-transparent rounded-full animate-spin mb-4" aria-hidden="true" />
+      <p class="text-body text-base-secondary">Carregando mais cards…</p>
+    </div>
+
     <!-- Finished -->
     <div v-else-if="review.finished && !review.showErrorDiary" class="flex-1 min-h-0 overflow-y-auto flex flex-col items-center justify-center px-4 py-6 text-center">
       <!-- Empty session (no cards found) -->

@@ -31,6 +31,11 @@ export interface UndoEntry {
 
 export const UNDO_MAX = 10
 export const RETRY_DELAYS = [1000, 2000, 4000]
+/** The next page of the session is asked when this many main cards are left (RF-F7). */
+export const NEXT_PAGE_AT = 10
+
+// Bumped by each fetchSession: a late page of the previous session is dropped
+let sessionSeq = 0
 
 function uuid(): string {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') return crypto.randomUUID()
@@ -71,6 +76,12 @@ export const useReviewStore = defineStore('review', {
     hints: [] as { type: string; text: string }[],
     hintsLoading: false,
     retaFinal: null as { active: boolean; exam_titles: string[]; extra_count: number } | null,
+    // GET /review/session pages (≤ 100 cards, prd-performance-caderno RF-F7): one continuous session
+    sessionQuery: '',
+    hasMore: false,
+    loadingMore: false,
+    /** Session cards beyond the loaded pages (session_count − page size, at the last page) */
+    unloadedCount: 0,
     // Optimistic submit queue (RF-F2.3/F2.4)
     reviewQueue: [] as QueueItem[],
     queuePaused: false,
@@ -102,20 +113,20 @@ export const useReviewStore = defineStore('review', {
       return this.currentCard?.next_intervals ?? { again: '', hard: '', good: '', easy: '' }
     },
     total(state): number {
-      return state.cards.length + state.learningQueue.length
+      return state.cards.length + state.learningQueue.length + state.unloadedCount
     },
     reviewed: (state) => state.currentIndex,
     progress(state): number {
       void state._tick // force reactivity
-      const total = state.cards.length + state.learningQueue.length
-      const left = (state.cards.length - state.currentIndex) + state.learningQueue.length
+      const total = state.cards.length + state.learningQueue.length + state.unloadedCount
+      const left = (state.cards.length - state.currentIndex) + state.learningQueue.length + state.unloadedCount
       if (!total) return 0
       return Math.min(100, Math.round(((total - left) / total) * 100))
     },
     pendingLearning: (state) => state.learningQueue.length,
     remaining(state): number {
       void state._tick // force reactivity
-      return (state.cards.length - state.currentIndex) + state.learningQueue.length
+      return (state.cards.length - state.currentIndex) + state.learningQueue.length + state.unloadedCount
     },
     pendingCount: (state) => state.reviewQueue.length,
     canUndo: (state) => state.undoStack.length > 0,
@@ -123,11 +134,16 @@ export const useReviewStore = defineStore('review', {
     saving(state): boolean {
       return state.currentIndex >= state.cards.length && state.learningQueue.length === 0 && state.reviewQueue.length > 0
     },
+    /** Nothing left to show while the next page of the session is on its way (never "Tudo em dia"). */
+    awaitingPage(state): boolean {
+      return state.currentIndex >= state.cards.length && state.learningQueue.length === 0 && state.hasMore
+    },
     totalRated: (state) => state.ratingsCount[1] + state.ratingsCount[2] + state.ratingsCount[3] + state.ratingsCount[4],
   },
 
   actions: {
     async fetchSession(deckId?: string, topicId?: string, errorsOnly?: boolean, backlog?: boolean, mode?: string) {
+      const seq = ++sessionSeq
       this.loading = true
       this.finished = false
       this.sessionError = null
@@ -146,6 +162,9 @@ export const useReviewStore = defineStore('review', {
       this.undoStack = []
       this.ratingsCount = { 1: 0, 2: 0, 3: 0, 4: 0 }
       this.errorsThisSession = 0
+      this.hasMore = false
+      this.loadingMore = false
+      this.unloadedCount = 0
       try {
         const { $api } = useNuxtApp()
         const params = new URLSearchParams()
@@ -156,30 +175,83 @@ export const useReviewStore = defineStore('review', {
         if (mode) params.set('mode', mode)
         const query = params.toString() ? `?${params}` : ''
         const res = await $api<any>(`/review/session${query}`)
-        const allCards = res.data as SessionCard[]
+        if (seq !== sessionSeq) return
+        this.sessionQuery = query
         this.retaFinal = res.reta_final ?? null
-        const now = Date.now()
-
-        // Separate learning/relearning cards with future due into learningQueue
-        for (const card of allCards) {
-          const isLearning = card.state === 'learning' || card.state === 'relearning'
-          const dueFuture = card.due && new Date(card.due).getTime() > now
-          if (isLearning && dueFuture) {
-            this.learningQueue.push({ card, dueAt: new Date(card.due!).getTime() })
-          } else {
-            this.cards.push(card)
-          }
-        }
+        this.addPage(res)
 
         this.initialTotal = this.cards.length
         this.sessionStartedAt = Date.now()
         // "Tudo em dia" only after a 2xx (RN-UX-03)
         this.checkFinished()
+        this.prefetchPage()
       } catch (e) {
+        if (seq !== sessionSeq) return
         this.sessionError = e
         this.finished = false
       } finally {
-        this.loading = false
+        if (seq === sessionSeq) this.loading = false
+      }
+    },
+
+    /**
+     * Cards of a session page. Reviewed cards are no longer eligible on the server, but the
+     * page may repeat cards still unrated here, in learning or with the answer on its way: an id
+     * already in the session is dropped.
+     */
+    addPage(res: { data: SessionCard[]; has_more?: boolean; session_count?: number }): number {
+      const seen = new Set([...this.cards.map(c => c.id), ...this.learningQueue.map(q => q.card.id), ...this.reviewQueue.map(q => q.flashcard_id)])
+      const now = Date.now()
+      let added = 0
+      // Separate learning/relearning cards with future due into learningQueue
+      for (const card of res.data) {
+        if (seen.has(card.id)) continue
+        seen.add(card.id)
+        added++
+        const isLearning = card.state === 'learning' || card.state === 'relearning'
+        const dueFuture = card.due && new Date(card.due).getTime() > now
+        if (isLearning && dueFuture) {
+          this.learningQueue.push({ card, dueAt: new Date(card.due!).getTime() })
+        } else {
+          this.cards.push(card)
+        }
+      }
+      // A page with nothing new (all of it already here) ends the paging: no request loop
+      this.hasMore = !!res.has_more && added > 0
+      this.unloadedCount = this.hasMore ? Math.max(0, (res.session_count ?? 0) - res.data.length) : 0
+      return added
+    },
+
+    /** Asks the next page when few main cards are left: after the first page, a page and each rating. */
+    prefetchPage() {
+      const mainLeft = this.cards.length - this.currentIndex
+      if (this.hasMore && !this.loadingMore && !this.sessionError && mainLeft <= NEXT_PAGE_AT) void this.fetchMore()
+    },
+
+    /** Next page of the session, asked before the current one runs out (RF-F7). */
+    async fetchMore() {
+      if (!this.hasMore || this.loadingMore) return
+      const seq = sessionSeq
+      this.loadingMore = true
+      let ok = false
+      try {
+        const { $api } = useNuxtApp()
+        const res = await $api<any>(`/review/session${this.sessionQuery}`)
+        if (seq !== sessionSeq) return
+        this.addPage(res)
+        ok = true
+      } catch (e) {
+        if (seq !== sessionSeq) return
+        // Cards still on screen: the next rating tries again; nothing left: the error screen retries
+        if (this.currentIndex >= this.cards.length && !this.learningQueue.length) this.sessionError = e
+        else reportApiError(e, { silent: true })
+      } finally {
+        if (seq === sessionSeq) {
+          this.loadingMore = false
+          this._tick++
+          this.checkFinished()
+          if (ok) this.prefetchPage()
+        }
       }
     },
 
@@ -218,6 +290,7 @@ export const useReviewStore = defineStore('review', {
         this.flipped = false
         this._tick++
         this.checkFinished()
+        this.prefetchPage()
       }
 
       if (rating === 1 && shouldOpenDiary(this.errorDiaryMode, this.errorsThisSession)) {
@@ -431,8 +504,8 @@ export const useReviewStore = defineStore('review', {
     checkFinished() {
       const hasMainCards = this.currentIndex < this.cards.length
       const hasPendingLearning = this.learningQueue.length > 0
-      // The end screen waits for the queue to drain (RF-F2.4)
-      this.finished = !hasMainCards && !hasPendingLearning && this.reviewQueue.length === 0 && !this.sessionError
+      // The end screen waits for the queue to drain (RF-F2.4) and for the last page of the session
+      this.finished = !hasMainCards && !hasPendingLearning && this.reviewQueue.length === 0 && !this.sessionError && !this.hasMore
     },
   },
 })

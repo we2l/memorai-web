@@ -180,10 +180,11 @@
       <div class="flex-1 overflow-y-auto">
         <div class="max-w-[720px] mx-auto px-6 pt-12 pb-32">
           <!-- Title as H1 inline -->
+          <!-- Read-only while a local draft waits for Restaurar/Descartar: typing first would lose it -->
           <div
             ref="titleRef"
             class="notion-title"
-            contenteditable="true"
+            :contenteditable="draftSavedAt ? 'false' : 'true'"
             :data-placeholder="'Sem título'"
             @input="onTitleInput"
             @keydown.enter.prevent="focusEditor"

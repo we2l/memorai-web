@@ -181,7 +181,7 @@
                 <button class="btn-secondary w-full justify-center" @click="cardWorkshop.reset()">Voltar à nota</button>
               </template>
             </LazyTopicCardWorkshop>
-            <LazyTopicNoteEditor v-else v-model="noteContent" :editable="!noteIsGenerating && noteImprove.state.value !== 'loading' && noteImprove.state.value !== 'preview'" :topic-id="selectedTopicId" @update:model-value="debouncedSave" @create-card="openNoteToCard" @ask-ai="askAiAboutSelection" @navigate-topic="selectTopic" />
+            <LazyTopicNoteEditor v-else v-model="noteContent" :editable="!noteIsGenerating && noteImprove.state.value !== 'loading' && noteImprove.state.value !== 'preview' && !pendingDraft" :topic-id="selectedTopicId" @update:model-value="debouncedSave" @create-card="openNoteToCard" @ask-ai="askAiAboutSelection" @navigate-topic="selectTopic" />
           </template>
           <template #selection-toolbar />
         </TopicHubNotesTab>
@@ -1028,7 +1028,8 @@ function openImportModal(topicId: string | null) {
 async function onImportModalConfirm(data: { learning_mode: string; target_language?: string; language_level?: string; file: File; auto_cards: boolean }) {
   const topicId = importTargetTopicId.value
   if (topicId) {
-    // Caderno (and its root) without a mode: save the chosen one on it, then upload into it (RF-F7)
+    // Caderno (and its root) without a mode: save the chosen one on it, then upload into it (RF-F7).
+    // As in DocumentsInline, the upload goes on even if saving the mode fails (toast shown).
     const { file, auto_cards: autoCards, ...mode } = data
     await runAction(() => $api(`/topics/${topicId}`, { method: 'PUT', body: mode }), {
       error: 'Não foi possível salvar o modo de estudo do caderno.',

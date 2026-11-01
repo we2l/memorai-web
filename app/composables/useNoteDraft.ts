@@ -1,13 +1,15 @@
 /**
  * Local draft of a note's unsaved edits (prd-correcoes-experiencia RF-F8): survives a failed
  * autosave, a closed tab and an expired session. One entry per user and note in localStorage
- * (`baigi:draft:{userId}:{noteId}` → {content, title, savedAt}), expiring after 7 days.
+ * (`baigi:draft:{userId}:{noteId}` → {content, title, base, savedAt}), expiring after 7 days.
  * Writes are debounced (no JSON.stringify per keystroke) and every storage access is guarded:
  * without localStorage (private mode, quota) the draft simply does not exist.
  */
 export interface NoteDraft {
   content: Record<string, any> | null
   title: string
+  /** Server updated_at the edits started from (compared as-is, immune to clock skew). */
+  base?: string | null
   savedAt: number
 }
 

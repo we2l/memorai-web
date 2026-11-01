@@ -37,12 +37,14 @@ export const useNoteStore = defineStore('note', {
       this.saving = true
       try {
         const { $api } = useNuxtApp()
-        await $api<any>(`/notes/${id}`, { method: 'PUT', body: data })
+        const res = await $api<any>(`/notes/${id}`, { method: 'PUT', body: data })
         // Update local list without overwriting editor state via current
         const idx = this.notes.findIndex(n => n.id === id)
         if (idx !== -1) {
           const { improved, ...rest } = data
-          this.notes[idx] = { ...this.notes[idx], ...rest }
+          // updated_at follows the server: it is the base of the local draft (useNoteDraft)
+          const updatedAt = res?.data?.updated_at
+          this.notes[idx] = { ...this.notes[idx], ...rest, ...(updatedAt ? { updated_at: updatedAt } : {}) }
           if (improved) {
             this.notes[idx].last_ai_transform_at = new Date().toISOString()
           }

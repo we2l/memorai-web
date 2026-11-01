@@ -97,6 +97,41 @@ describe('useNoteEditor autosave', () => {
     expect(editor.saveState.value).toBe('saved')
   })
 
+  it('failures are kept per note: a failed note B never drops the unsaved text of note A', async () => {
+    const noteB = { ...note, id: 'n2', title: 'Outra', content: doc('b') } as Note
+    useNoteStore().notes = [note, noteB]
+    apiMock.mockRejectedValue(httpError(500))
+    type('texto de A')
+    await vi.advanceTimersByTimeAsync(1000)
+    editor.selectNote(noteB)
+    editor.noteContent.value = doc('texto de B')
+    editor.debouncedSave()
+    await vi.advanceTimersByTimeAsync(1000)
+    expect(editor.saveState.value).toBe('error')
+
+    // Reopening A shows its unsaved text, not the stale list copy
+    editor.selectNote(note)
+    expect(editor.noteContent.value).toEqual(doc('texto de A'))
+
+    apiMock.mockReset()
+    apiMock.mockResolvedValue({ data: {} })
+    editor.retrySaveNow()
+    await vi.advanceTimersByTimeAsync(0)
+    const sent = apiMock.mock.calls.filter(([, o]) => o?.method === 'PUT').map(([url, o]) => `${url} ${JSON.stringify(o.body)}`)
+    expect(sent.some(c => c.startsWith('/notes/n1') && c.includes('texto de A'))).toBe(true)
+    expect(sent.some(c => c.startsWith('/notes/n2') && c.includes('texto de B'))).toBe(true)
+    expect(editor.saveState.value).toBe('saved')
+  })
+
+  it('404 (note deleted elsewhere) drops the pending write instead of retrying forever', async () => {
+    apiMock.mockRejectedValue(httpError(404))
+    type('nota apagada')
+    await vi.advanceTimersByTimeAsync(1000)
+    expect(editor.saveState.value).toBe('saved')
+    await vi.advanceTimersByTimeAsync(30_000)
+    expect(puts()).toHaveLength(1)
+  })
+
   it('401 → "error" without automatic retry (the session is gone)', async () => {
     apiMock.mockRejectedValue(httpError(401))
     type('sessão expirada')
@@ -154,7 +189,7 @@ describe('useNoteEditor local draft', () => {
     editor.debouncedSave()
     expect(localStorage.getItem(KEY)).toBeNull()
     await vi.advanceTimersByTimeAsync(300)
-    expect(JSON.parse(localStorage.getItem(KEY)!)).toMatchObject({ title: 'Nota', content: doc('não perder') })
+    expect(JSON.parse(localStorage.getItem(KEY)!)).toMatchObject({ title: 'Nota', content: doc('não perder'), base: note.updated_at })
 
     await vi.advanceTimersByTimeAsync(700) // PUT fails: the draft stays
     expect(editor.saveState.value).toBe('error')
@@ -178,6 +213,12 @@ describe('useNoteEditor local draft', () => {
     expect(puts()[0]![1].body).toMatchObject({ content: doc('rascunho local') })
     expect(editor.pendingDraft.value).toBeNull()
     expect(localStorage.getItem(KEY)).toBeNull()
+  })
+
+  it('a draft based on the current server version is offered even with the device clock behind', () => {
+    localStorage.setItem(KEY, JSON.stringify({ content: doc('rascunho'), title: 'Nota', base: note.updated_at, savedAt: Date.parse(note.updated_at) - 10 * 60_000 }))
+    open()
+    expect(editor.pendingDraft.value?.content).toEqual(doc('rascunho'))
   })
 
   it('Descartar removes the draft; older or identical drafts are not offered', () => {

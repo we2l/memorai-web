@@ -8,7 +8,8 @@ test.use({ auditUser: 'pro' })
 
 const editor = (page: Page) => page.locator('.ProseMirror').first()
 const title = (page: Page) => page.locator('.notion-title')
-const saveIndicator = (page: Page) => page.getByRole('main').getByText(/^(Salvando\.\.\.|✓)$/)
+const saveIndicator = (page: Page) => page.getByRole('main').getByText(/^(Salvando\.\.\.|Salvo)$/)
+const notSaved = (page: Page) => page.getByRole('alert').filter({ hasText: 'Não salvo' })
 
 async function openNote(page: Page, topicId: string, noteTitle: string) {
   await gotoApp(page, `/cadernos?topic=${topicId}`)
@@ -48,7 +49,7 @@ test.describe('Nota — caminho feliz', () => {
     await editor(page).click()
     await page.keyboard.type('Queda da Bastilha em 1789.')
     expect((await bodySaved).status()).toBe(200)
-    await expect(saveIndicator(page)).toHaveText('✓')
+    await expect(saveIndicator(page)).toHaveText('Salvo')
 
     const saved = await noteText(page, note.id)
     expect(saved.title).toBe('Revolução Francesa')
@@ -123,11 +124,41 @@ test.describe('Nota — caminho triste (conexão)', () => {
     await page.keyboard.type(' parágrafo escrito sem rede')
     await failed
 
-    // Servidor não recebeu o texto
+    // Servidor não recebeu o texto, e a tela diz isso (B13: o indicador voltava para "✓")
     expect((await noteText(page, n.data.id)).text).not.toContain('sem rede')
-    // Esperado: aviso de erro / "não salvo" com como tentar de novo. BUG: o indicador volta para "✓"
-    // e nenhum aviso aparece (useNoteEditor.debouncedSave não trata a rejeição de noteStore.update).
-    await expect(saveIndicator(page)).not.toHaveText('✓', { timeout: 3000 })
+    await expect(notSaved(page)).toBeVisible({ timeout: 3000 })
+    await expect(saveIndicator(page)).toHaveCount(0)
+
+    // A rede volta: "Tentar de novo" envia o texto pendente
+    await page.unroute(`**/api/notes/${n.data.id}`)
+    const saved = page.waitForResponse(r => r.request().method() === 'PUT' && r.url().endsWith(`/notes/${n.data.id}`))
+    await notSaved(page).getByRole('button', { name: 'Tentar de novo' }).click()
+    expect((await saved).status()).toBe(200)
+    await expect(saveIndicator(page)).toHaveText('Salvo')
+    expect((await noteText(page, n.data.id)).text).toContain('parágrafo escrito sem rede')
+  })
+
+  test('PUT 500 no autosave: "Não salvo" e nova tentativa automática salva o texto', async ({ page }) => {
+    const topicId = await newTopic(page)
+    const n = await apiCall(page, 'POST', `/topics/${topicId}/notes`, { title: 'Erro 500', content: doc('base') })
+    await openNote(page, topicId, 'Erro 500')
+    let fail = true
+    await page.route(`**/api/notes/${n.data.id}`, route => fail && route.request().method() === 'PUT'
+      ? route.fulfill({ status: 500, json: { message: 'Server Error' } })
+      : route.fallback())
+    const failed = page.waitForResponse(r => r.request().method() === 'PUT' && r.url().endsWith(`/notes/${n.data.id}`))
+    await editor(page).click()
+    await page.keyboard.press('End')
+    await page.keyboard.type(' depois do 500')
+    expect((await failed).status()).toBe(500)
+    await expect(notSaved(page)).toBeVisible()
+
+    fail = false
+    // Backoff: a primeira nova tentativa sai 2 s depois da falha, sem ação da pessoa
+    const retried = page.waitForResponse(r => r.request().method() === 'PUT' && r.url().endsWith(`/notes/${n.data.id}`) && r.status() === 200, { timeout: 6000 })
+    expect((await retried).status()).toBe(200)
+    await expect(saveIndicator(page)).toHaveText('Salvo')
+    expect((await noteText(page, n.data.id)).text).toContain('depois do 500')
   })
 
   test('volta da rede: próxima edição salva também o que foi digitado offline', async ({ page }) => {

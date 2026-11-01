@@ -27,8 +27,8 @@
         :aria-label="player.isPlaying ? 'Pausar' : 'Reproduzir'"
         @click="player.togglePlay()"
       >
-        <Pause v-if="player.isPlaying" :size="16" class="text-white" />
-        <Play v-else :size="16" class="text-white ml-0.5" />
+        <Pause v-if="player.isPlaying" :size="16" class="text-accent-primary-text" />
+        <Play v-else :size="16" class="text-accent-primary-text ml-0.5" />
       </button>
       <button class="p-1.5 text-base-muted hover:text-base-primary" aria-label="Expandir player" @click="player.expand()">
         <ChevronUp :size="18" />

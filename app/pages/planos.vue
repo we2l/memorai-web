@@ -63,7 +63,7 @@
         <!-- Pro -->
         <div class="card-warm p-6 flex flex-col">
           <div class="mb-4">
-            <span class="inline-block bg-accent-primary text-white text-micro font-semibold px-3 py-0.5 rounded-full">
+            <span class="inline-block bg-accent-primary text-accent-primary-text text-micro font-semibold px-3 py-0.5 rounded-full">
               Recomendado
             </span>
           </div>

@@ -1,0 +1,205 @@
+import { test, expect, gotoApp, uid, realGate, sql, loginState, USERS, AUDIT_PASSWORD } from './support/fixtures'
+import type { Page } from '@playwright/test'
+
+/**
+ * Cadastro (validações) → onboarding → primeiro caderno → primeiro card → primeira revisão.
+ *
+ * Throttle de cadastro: 3/h por IP, compartilhado com quem mais usa a API local. Cada chamada a
+ * /api/register deste spec sai com um X-Forwarded-For próprio da execução (a API confia em qualquer
+ * proxy — `trustProxies(at: '*')` — o que também é um achado de segurança). São 2 cadastros por execução.
+ */
+const RUN_IP = `10.${Math.floor(Math.random() * 200) + 20}.${Math.floor(Math.random() * 250)}.${Math.floor(Math.random() * 250) + 1}`
+
+async function isolateRegisterThrottle(page: Page) {
+  await page.route('**/api/register', async route => route.continue({ headers: { ...(await route.request().allHeaders()), 'x-forwarded-for': RUN_IP } }))
+}
+
+async function fillSignup(page: Page, data: { name: string; email: string; password: string; confirmation?: string; terms?: boolean }) {
+  await page.goto('/criar-conta')
+  await page.waitForLoadState('networkidle')
+  await page.locator('#name').fill(data.name)
+  await page.locator('#email').fill(data.email)
+  await page.locator('#password').fill(data.password)
+  await page.locator('#password_confirmation').fill(data.confirmation ?? data.password)
+  if (data.terms !== false) await page.locator('#accept_terms').check()
+}
+
+const fakeCards = [
+  { front: 'O que é fotossíntese?', back: 'Conversão de luz em energia química pelas plantas.' },
+  { front: 'Onde ocorre a fotossíntese?', back: 'Nos cloroplastos.' },
+  { front: 'Pigmento principal?', back: 'Clorofila.' },
+]
+
+/** /ai/generate-cards respondendo como o job pronto (202 + job "done" no próprio POST). */
+async function mockGenerate(page: Page, cards = fakeCards, status: 'done' | 'failed' = 'done') {
+  const calls: any[] = []
+  await page.route('**/api/ai/generate-cards', (route) => {
+    calls.push(JSON.parse(route.request().postData() ?? '{}'))
+    return route.fulfill({ status: 202, json: { data: { id: '00000000-0000-4000-8000-000000000001', status, result: status === 'done' ? { cards } : null, error: status === 'failed' ? 'A IA não respondeu. Tente de novo.' : null } } })
+  })
+  return calls
+}
+
+test.describe('Cadastro', () => {
+  test('validações do servidor: senha fraca e e-mail duplicado aparecem nos campos', async ({ page, browser }) => {
+    await loginState(browser, 'free') // garante que o e-mail duplicado existe nesta execução
+    await isolateRegisterThrottle(page)
+    // Um único POST cobre as duas regras (economiza o throttle de 3/h)
+    await fillSignup(page, { name: 'Dup', email: USERS.free.email, password: '123' })
+    // e-mail do usuário Free da auditoria já existe (criado pelo provisionamento)
+    const res = page.waitForResponse(r => r.url().endsWith('/api/register'))
+    await page.getByRole('button', { name: 'Criar conta' }).click()
+    const r = await res
+    test.skip(r.status() === 429, 'ambiente: throttle de cadastro (3/h por IP) esgotado')
+    expect(r.status()).toBe(422)
+    await expect(page.locator('#email-error')).toBeVisible()
+    await expect(page.locator('#password-error')).toBeVisible()
+    await expect(page.locator('#email')).toHaveAttribute('aria-invalid', 'true')
+    await expect(page.locator('#password')).toHaveAttribute('aria-invalid', 'true')
+    for (const id of ['#email-error', '#password-error']) await expect(page.locator(id)).not.toHaveText(/validation\.|The .* field/i)
+    expect(new URL(page.url()).pathname).toBe('/criar-conta')
+  })
+
+  test('senha fraca: o cliente avisa antes de gastar uma tentativa (placeholder promete "Mínimo 8 caracteres")', async ({ page }) => {
+    let calls = 0
+    await page.route('**/api/register', (r) => { calls++; return r.fulfill({ status: 422, json: { message: 'x', errors: { password: ['mock'] } } }) })
+    await fillSignup(page, { name: 'Fraca', email: `e2e-fraca-${uid()}@audit.test`, password: '123' })
+    await page.getByRole('button', { name: 'Criar conta' }).click()
+    await expect(page.locator('#password-error')).toBeVisible()
+    // Melhoria (não bug): criar-conta.vue não valida tamanho no cliente; toda senha curta consome o throttle
+    test.info().annotations.push({ type: 'observação', description: `chamadas a /register com senha de 3 caracteres: ${calls}` })
+  })
+
+  test('cadastro feliz → onboarding (pular) → primeiro caderno → primeiro card → primeira revisão', async ({ page }) => {
+    test.setTimeout(90_000)
+    await isolateRegisterThrottle(page)
+    const email = `e2e-signup-${uid()}@audit.test`
+    await fillSignup(page, { name: 'Novo Aluno', email, password: AUDIT_PASSWORD })
+    const res = page.waitForResponse(r => r.url().endsWith('/api/register'))
+    await page.getByRole('button', { name: 'Criar conta' }).click()
+    const r = await res
+    test.skip(r.status() === 429, 'ambiente: throttle de cadastro (3/h por IP) esgotado')
+    expect(r.status()).toBe(201)
+
+    // Onboarding pendente → /comecar
+    await page.waitForURL('**/comecar')
+    await expect(page.getByRole('heading', { name: 'O que você mais estuda?' })).toBeVisible()
+    await page.getByRole('button', { name: /Uso geral/ }).click()
+    await page.getByRole('button', { name: 'Continuar →' }).click()
+    await expect(page.getByRole('heading', { name: 'Pare de esquecer o que estuda' })).toBeVisible()
+    await page.getByRole('button', { name: 'Pular e explorar o app →' }).click()
+    await page.waitForURL('**/hoje')
+    expect(sql(`select onboarding_completed_at is not null from users where email='${email}'`)).toBe('t')
+
+    // Primeiro caderno
+    await page.getByRole('navigation', { name: 'Navegação principal' }).getByRole('link', { name: 'Cadernos' }).click()
+    await page.getByRole('button', { name: 'Novo', exact: true }).click()
+    await page.getByRole('button', { name: 'Novo caderno' }).first().click()
+    const createDialog = page.getByRole('dialog', { name: 'Criar caderno' })
+    await createDialog.getByRole('textbox', { name: 'Nome do caderno' }).fill('Biologia')
+    await createDialog.getByRole('button', { name: 'Criar' }).click()
+    await page.getByRole('complementary').getByRole('button', { name: /^Biologia/ }).click()
+
+    // Primeiro card
+    await page.getByRole('tab', { name: /^Cards/ }).click()
+    await page.getByRole('button', { name: /Criar (primeiro )?card/ }).first().click()
+    const dialog = page.getByRole('dialog', { name: /flashcard/ })
+    await dialog.locator('.ProseMirror').nth(0).click()
+    await page.keyboard.type('Organela da fotossíntese?')
+    await dialog.locator('.ProseMirror').nth(1).click()
+    await page.keyboard.type('Cloroplasto')
+    await dialog.getByRole('button', { name: 'Salvar', exact: true }).click()
+    await expect(page.getByRole('status').getByText('Card criado!')).toBeVisible()
+
+    // Primeira revisão
+    await page.getByRole('navigation', { name: 'Navegação principal' }).getByRole('link', { name: 'Revisão' }).click()
+    await expect(page.locator('.review-card').first()).toContainText('Organela da fotossíntese?')
+    // Obs.: aqui o Espaço não vira o card — o foco ficou no link "Revisão" da sidebar e o atalho
+    // ignora Espaço com foco em <a> (useReviewShortcuts). Vira com clique.
+    await page.locator('.review-card').first().click()
+    await expect(page.getByRole('button', { name: 'Verso do card' })).toContainText('Cloroplasto')
+    const rated = page.waitForResponse(r => r.url().endsWith('/api/review') && r.request().method() === 'POST')
+    await page.getByRole('button', { name: /^Lembrei/ }).click()
+    expect((await rated).status()).toBeLessThan(300)
+    expect(Number(sql(`select count(*) from reviews r join users u on u.id=r.user_id where u.email='${email}'`))).toBe(1)
+  })
+})
+
+test.describe('Onboarding com IA (mockada)', () => {
+  test.use({ auditUser: 'onboarding' })
+
+  test('falha da IA: mensagem e continua no passo do material (caderno não duplica)', async ({ page }) => {
+    await mockGenerate(page, [], 'failed')
+    await gotoApp(page, '/comecar')
+    await page.getByRole('button', { name: 'Pular →' }).click()
+    await page.locator('#material').fill('Fotossíntese: luz vira energia.')
+    await page.locator('#notebook-name').fill('Bio Onboarding')
+    await page.getByRole('button', { name: 'Transformar em estudo' }).click()
+    await expect(page.getByRole('alert').filter({ hasText: 'A IA não respondeu. Tente de novo.' })).toBeVisible()
+    await expect(page.locator('#material')).toHaveValue(/Fotossíntese/)
+
+    // 0 cards → orientação, nada de "0 cards prontos"
+    await page.unroute('**/api/ai/generate-cards')
+    await mockGenerate(page, [])
+    await page.getByRole('button', { name: 'Transformar em estudo' }).click()
+    await expect(page.getByText(/Não conseguimos criar cards com esse texto/)).toBeVisible()
+    expect(sql(`select count(*) from topics t join users u on u.id=t.user_id where u.email='${USERS.onboarding.email}' and t.name='Bio Onboarding'`)).toBe('1')
+  })
+
+  test('caminho feliz: material → cards prontos → começar revisão → primeira avaliação', async ({ page }) => {
+    const calls = await mockGenerate(page)
+    await gotoApp(page, '/comecar')
+    await page.getByRole('button', { name: /Faculdade \/ Escola/ }).click()
+    await page.getByRole('button', { name: 'Continuar →' }).click()
+    await page.locator('#material').fill('Fotossíntese ocorre nos cloroplastos.')
+    await page.locator('#notebook-name').fill('Bio Onboarding')
+    const accepted = page.waitForResponse(r => r.url().endsWith('/api/ai/accept-cards'))
+    await page.getByRole('button', { name: 'Transformar em estudo' }).click()
+    // BUG crítico: comecar.vue (acceptOrFail) não manda o topic_id de topo que AcceptCardsRequest exige → 422
+    // "O campo topic id é obrigatório." depois de a IA já ter gerado (e cobrado) os cards.
+    expect((await accepted).status(), 'POST /ai/accept-cards do onboarding').toBe(201)
+    await expect(page.getByRole('heading', { name: '3 cards prontos!' })).toBeVisible()
+    expect(calls[calls.length - 1]).toMatchObject({ source: 'notes', count: 10 })
+
+    await page.getByRole('button', { name: 'Começar revisão →' }).click()
+    await page.waitForURL('**/revisar?topic_id=**')
+    expect(sql(`select onboarding_completed_at is not null from users where email='${USERS.onboarding.email}'`)).toBe('t')
+    await expect(page.locator('.review-card').first()).toContainText(/fotossíntese|Pigmento/i)
+    await page.keyboard.press('Space')
+    await page.keyboard.press('3')
+    await expect.poll(() => Number(sql(`select count(*) from reviews r join users u on u.id=r.user_id where u.email='${USERS.onboarding.email}'`))).toBe(1)
+  })
+
+  test('nome do caderno curto bloqueia antes de chamar a API', async ({ page }) => {
+    let topicPosts = 0
+    await page.route('**/api/topics', (r) => { if (r.request().method() === 'POST') topicPosts++; return r.fallback() })
+    await gotoApp(page, '/comecar')
+    await page.getByRole('button', { name: 'Pular →' }).click()
+    await page.locator('#material').fill('Texto qualquer')
+    await page.locator('#notebook-name').fill('A')
+    await page.getByRole('button', { name: 'Transformar em estudo' }).click()
+    await expect(page.getByText('Dê um nome ao caderno (mín. 2 caracteres).')).toBeVisible()
+    expect(topicPosts).toBe(0)
+  })
+})
+
+test.describe('Onboarding de quem não confirmou o e-mail (gate real, sem IA)', () => {
+  test.use({ auditUser: 'unverified' })
+
+  test('"Transformar em estudo" recebe 403 e a tela orienta a confirmar o e-mail', async ({ page }) => {
+    const unverified = () => sql(`select email_verified_at is null from users where email='${USERS.unverified.email}'`) === 't'
+    const gate = await realGate(page, /\/api\/ai\/generate-cards$/, 'unverified', unverified)
+    await gotoApp(page, '/hoje')
+    await page.goto('/comecar')
+    await page.getByRole('button', { name: 'Pular →' }).click()
+    await page.locator('#material').fill('Fotossíntese ocorre nos cloroplastos.')
+    await page.locator('#notebook-name').fill(`Sem verificação ${uid()}`)
+    await page.getByRole('button', { name: 'Transformar em estudo' }).click()
+    await expect(page.getByRole('alert').filter({ hasText: /confirm/i })).toBeVisible()
+    expect(gate.map(g => g.status)).toEqual([403])
+    // Esperado: um caminho para reenviar o e-mail de confirmação nesta tela (layout "auth" não tem o banner)
+    const resend = page.getByRole('button', { name: /Reenviar/i })
+    test.info().annotations.push({ type: 'evidência', description: `botão de reenvio na tela do onboarding: ${await resend.count()}` })
+    await expect(resend).toBeVisible({ timeout: 2000 })
+  })
+})

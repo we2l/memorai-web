@@ -69,7 +69,7 @@ test.describe('Mobile — Revisão', () => {
       await card.click()
       await page.waitForTimeout(500)
 
-      const buttons = page.getByRole('button', { name: /Bom|Fácil|Difícil|De novo/i })
+      const buttons = page.getByRole('button', { name: /^(Não lembrei|Quase|Lembrei|Fácil demais)/ })
       if (await buttons.count() > 0) {
         const firstBtn = buttons.first()
         await expect(firstBtn).toBeVisible()
@@ -88,7 +88,7 @@ test.describe('Mobile — Configurações', () => {
     await page.waitForTimeout(2000)
 
     await expect(page.getByRole('heading', { name: 'Configurações' })).toBeVisible()
-    await expect(page.getByText('Perfil')).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Perfil' })).toBeVisible()
   })
 })
 
@@ -191,7 +191,10 @@ test.describe('Mobile — todas as rotas por toque (RF-F1)', () => {
     await page.waitForURL('**/cadernos**')
     const importLink = page.locator('a[href="/importar"]:visible').first()
     if (await importLink.count() === 0) {
-      await page.getByRole('button', { name: /Novo|Adicionar/i }).first().click()
+      // Com cadernos, o link sai do estado vazio e fica no menu "Novo" da árvore (atrás de "Ver cadernos")
+      const novo = page.getByRole('button', { name: 'Novo', exact: true })
+      if (!(await novo.isVisible())) await page.getByRole('button', { name: 'Ver cadernos' }).click()
+      await novo.click()
     }
     await page.locator('a[href="/importar"]:visible').first().click()
     await page.waitForURL('**/importar')

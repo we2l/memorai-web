@@ -1,11 +1,38 @@
+import fs from 'node:fs'
 import { type Page } from '@playwright/test'
 
-const TEST_USER = {
-  email: process.env.E2E_EMAIL || 'weslleyadesousa@gmail.com',
-  password: process.env.E2E_PASSWORD || 'password',
+// Lazy: playwright.config.ts imports this file (CONSENT_DECIDED) and must not load test fixtures
+const sessions = () => require('./auditoria/support/fixtures') as typeof import('./auditoria/support/fixtures')
+
+/**
+ * Default user: a dedicated, auto-provisioned audit account (Pro, verified, onboarded). The old
+ * default (weslleyadesousa@gmail.com) is a real Google account locally — its password is not
+ * "password" and every login of the suite failed with 422 (auditoria 2026-11). Set E2E_EMAIL /
+ * E2E_PASSWORD to use another seeded user (e.g. a fresh CI database with E2eSeeder).
+ */
+export const TEST_USER = {
+  email: process.env.E2E_EMAIL || 'e2e-legacy@audit.test',
+  password: process.env.E2E_PASSWORD || (process.env.E2E_EMAIL ? 'password' : 'Senha-Audit-2026'),
 }
 
+/**
+ * Logged-in page without going through the form: one API login per user per run, reused as
+ * storageState (the 5/min login throttle is never hit). Use `loginViaForm` to test the form itself.
+ */
 export async function login(page: Page) {
+  const browser = page.context().browser()!
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const state = JSON.parse(fs.readFileSync(await sessions().cachedLoginState(browser, TEST_USER.email, TEST_USER.password, CONSENT_DECIDED), 'utf8'))
+    await page.context().addCookies(state.cookies)
+    await page.goto('/hoje')
+    await page.waitForLoadState('networkidle')
+    if (new URL(page.url()).pathname === '/hoje') return
+    sessions().forgetSession(TEST_USER.email) // session died (logout spec, password change): log in again once
+  }
+  throw new Error(`login(${TEST_USER.email}) não chegou em /hoje: ${page.url()}`)
+}
+
+export async function loginViaForm(page: Page, user = TEST_USER) {
   await page.goto('/entrar')
   // /entrar is prerendered: wait for hydration before submitting (else native submit)
   await page.waitForLoadState('networkidle')
@@ -13,11 +40,11 @@ export async function login(page: Page) {
   // Ensure fields are visible (scroll if needed on mobile)
   const emailInput = page.locator('#email')
   await emailInput.scrollIntoViewIfNeeded()
-  await emailInput.fill(TEST_USER.email)
+  await emailInput.fill(user.email)
 
   const passwordInput = page.locator('#password')
   await passwordInput.scrollIntoViewIfNeeded()
-  await passwordInput.fill(TEST_USER.password)
+  await passwordInput.fill(user.password)
 
   const submitBtn = page.locator('button[type="submit"]')
   await submitBtn.scrollIntoViewIfNeeded()
@@ -27,8 +54,8 @@ export async function login(page: Page) {
 }
 
 /**
- * One login per describe (the login throttle is 5/min): create the page in
- * beforeAll with `sharedPage(browser)` and reuse it in serial tests.
+ * One context per describe: create the page in beforeAll with `sharedPage(browser)` and reuse it
+ * in serial tests.
  */
 export async function sharedPage(browser: import('@playwright/test').Browser, opts: import('@playwright/test').BrowserContextOptions = {}) {
   const context = await browser.newContext({ baseURL: 'http://localhost:3000', storageState: CONSENT_DECIDED, ...opts })

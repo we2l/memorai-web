@@ -1,0 +1,133 @@
+import { test, expect, gotoApp, apiCall, uid, loginState, forgetSession, API, WEB, USERS, AUDIT_PASSWORD } from './support/fixtures'
+import type { Page, BrowserContext } from '@playwright/test'
+
+/**
+ * Logout e sessão expirada no meio do uso (401 → /entrar?redirect=… sem perder o que foi digitado?).
+ * Usuários próprios: e2e-logout (sessão descartada pelo logout) e e2e-session (sessão "expirada").
+ */
+
+async function me(context: BrowserContext) {
+  return context.request.get(`${API}/me`, { headers: { Accept: 'application/json', Origin: WEB, Referer: `${WEB}/` } })
+}
+
+/**
+ * Simula a sessão expirada/revogada: some o cookie de sessão e o "lembrar de mim" (o login da API
+ * sempre usa remember=true, então só o cookie de sessão não basta — o recaller reautentica).
+ */
+async function expireSession(context: BrowserContext) {
+  await context.clearCookies({ name: 'baigi-session' })
+  await context.clearCookies({ name: /^remember_web_/ })
+}
+
+async function loginViaForm(page: Page, email: string) {
+  await page.locator('#email').fill(email)
+  await page.locator('#password').fill(AUDIT_PASSWORD)
+  await page.locator('button[type="submit"]').click()
+}
+
+test.describe('Logout', () => {
+  test('"Sair" encerra a sessão no servidor e rotas privadas voltam para /entrar', async ({ browser }) => {
+    const state = await loginState(browser, 'logout', { fresh: true })
+    const context = await browser.newContext({ storageState: state })
+    const page = await context.newPage()
+    try {
+      await gotoApp(page, '/progresso')
+      await page.getByRole('complementary').getByRole('button', { name: 'Sair' }).click()
+      await page.waitForURL('**/entrar**')
+      expect((await me(context)).status()).toBe(401)
+
+      // Voltar no histórico não mostra a tela privada
+      await page.goBack()
+      await page.waitForURL('**/entrar**')
+      await page.goto('/hoje')
+      await page.waitForURL('**/entrar?redirect=**')
+      expect(new URL(page.url()).searchParams.get('redirect')).toBe('/hoje')
+    } finally {
+      await context.close()
+      forgetSession(USERS.logout.email) // sessão morta: o próximo uso refaz o login
+    }
+  })
+
+  test('logout sem rede: a sessão não pode continuar válida neste navegador', async ({ browser }) => {
+    const state = await loginState(browser, 'logout', { fresh: true })
+    const context = await browser.newContext({ storageState: state })
+    const page = await context.newPage()
+    try {
+      await gotoApp(page, '/hoje')
+      await page.route('**/api/logout', route => route.abort('internetdisconnected'))
+      await page.getByRole('complementary').getByRole('button', { name: 'Sair' }).click()
+      await page.waitForURL('**/entrar**', { timeout: 10_000 })
+      await page.unroute('**/api/logout')
+      // A pessoa seguinte neste navegador abre uma rota privada
+      await page.goto('/hoje')
+      await page.waitForLoadState('networkidle')
+      const meStatus = (await me(context)).status()
+      test.info().annotations.push({ type: 'evidência', description: `após logout offline: URL=${page.url()} GET /me=${meStatus}` })
+      // BUG: auth.logout() engole a falha do POST /logout e só limpa o estado local; o cookie HttpOnly
+      // (e o remember_web) seguem válidos e o plugin auth.client.ts reautentica via /me.
+      expect(new URL(page.url()).pathname, 'logout offline deixou a conta acessível').toBe('/entrar')
+    } finally {
+      await context.close()
+      forgetSession(USERS.logout.email)
+    }
+  })
+})
+
+test.describe('Sessão expirada no meio do uso', () => {
+  test.use({ auditUser: 'session' })
+
+  test('401 numa ação leva a /entrar com redirect e, após entrar, volta para a mesma tela', async ({ page, context }) => {
+    await gotoApp(page, '/hoje')
+    const t = await apiCall(page, 'POST', '/topics', { name: `Sessão ${uid()}` })
+    await gotoApp(page, `/cadernos?topic=${t.data.id}`)
+    await expireSession(context)
+    await page.getByRole('tab', { name: /^Cards/ }).click()
+    await page.getByRole('button', { name: /Criar (primeiro )?card/ }).first().click()
+    await page.waitForURL('**/entrar?redirect=**', { timeout: 10_000 }).catch(() => {})
+    if (!page.url().includes('/entrar')) {
+      // Abrir o modal não chama a API: força a chamada salvando
+      const dialog = page.getByRole('dialog', { name: /flashcard/ })
+      await dialog.locator('.ProseMirror').nth(0).click()
+      await page.keyboard.type('Pergunta digitada antes do 401')
+      await dialog.locator('.ProseMirror').nth(1).click()
+      await page.keyboard.type('Resposta digitada')
+      await dialog.getByRole('button', { name: 'Salvar', exact: true }).click()
+      await page.waitForURL('**/entrar?redirect=**')
+    }
+    const redirect = new URL(page.url()).searchParams.get('redirect')
+    expect(redirect).toContain(`/cadernos?topic=${t.data.id}`)
+
+    await page.waitForLoadState('networkidle')
+    await loginViaForm(page, USERS.session.email)
+    await page.waitForURL(u => u.pathname === '/cadernos' && u.searchParams.get('topic') === t.data.id, { timeout: 15_000 })
+    await expect(page.getByRole('heading', { level: 1, name: /^Sessão / })).toBeVisible()
+  })
+
+  test('texto da nota digitado quando a sessão expira não se perde', async ({ page, context }) => {
+    await gotoApp(page, '/hoje')
+    const t = await apiCall(page, 'POST', '/topics', { name: `Rascunho ${uid()}` })
+    await apiCall(page, 'POST', `/topics/${t.data.id}/notes`, { title: 'Nota longa', content: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Início.' }] }] } })
+    await gotoApp(page, `/cadernos?topic=${t.data.id}`)
+    await page.locator('.note-card').filter({ hasText: 'Nota longa' }).click()
+    const editor = page.locator('.ProseMirror').first()
+    await expect(editor).toContainText('Início.')
+
+    await expireSession(context)
+    await editor.click()
+    await page.keyboard.press('End')
+    await page.keyboard.type(' Parágrafo importante.') // < 50 chars: sem job de embedding
+    // Autosave → 401 → plugin manda para /entrar
+    await page.waitForURL('**/entrar?redirect=**', { timeout: 10_000 })
+    await page.waitForLoadState('networkidle')
+    await loginViaForm(page, USERS.session.email)
+    await page.waitForURL(u => u.pathname === '/cadernos', { timeout: 15_000 })
+    await page.waitForLoadState('networkidle')
+
+    const notes = await apiCall(page, 'GET', `/topics/${t.data.id}/notes`)
+    const serverText = JSON.stringify(notes.data)
+    const shown = await page.locator('.ProseMirror').first().innerText({ timeout: 2000 }).catch(() => '')
+    test.info().annotations.push({ type: 'evidência', description: `no servidor: ${serverText.includes('Parágrafo importante')}; na tela: ${JSON.stringify(shown.slice(0, 120))}` })
+    // Esperado: o texto sobrevive (rascunho local reaplicado ou reenviado após o login)
+    expect(serverText.includes('Parágrafo importante') || shown.includes('Parágrafo importante')).toBe(true)
+  })
+})

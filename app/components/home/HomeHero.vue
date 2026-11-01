@@ -220,8 +220,10 @@ const greeting = computed(() => {
 const streak = computed(() => props.stats?.streak ?? 0)
 const reviewedToday = computed(() => props.stats?.reviewed_today ?? 0)
 const totalUserCards = computed(() => props.stats?.total_cards ?? 0)
-const totalCards = computed(() => (props.stats?.due_today ?? 0) + (props.backlog?.overdue_count ?? 0))
-// Session size = what is left (due + overdue) + what was already done today (RF-F8.1)
+// "Revisar N": due_today is the size of the global session, overdue cards already included
+// (same rule as session_count, prd-performance-caderno); adding overdue_count counted them twice
+const totalCards = computed(() => props.stats?.due_today ?? 0)
+// Session size = what is left (due_today) + what was already done today (RF-F8.1)
 const totalDue = computed(() => reviewedToday.value + totalCards.value)
 const segmentCount = computed(() => Math.min(totalDue.value, 24))
 const doneSegments = computed(() => totalDue.value <= 24

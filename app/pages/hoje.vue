@@ -64,7 +64,8 @@ const retentionSuggestion = ref<any>(null)
 const survivalActive = ref(false)
 const pendingActions = ref<any[]>([])
 
-const totalCards = computed(() => (stats.value?.due_today ?? 0) + (backlog.value?.overdue_count ?? 0))
+// Size of the global review session, overdue cards included (see HomeHero)
+const totalCards = computed(() => stats.value?.due_today ?? 0)
 
 const hasLapsedCards = computed(() =>
   (stats.value?.total_cards ?? 0) > 0 &&

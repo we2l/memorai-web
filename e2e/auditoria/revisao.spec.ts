@@ -1,4 +1,4 @@
-import { test, expect, gotoApp, apiCall, uid } from './support/fixtures'
+import { test, expect, gotoApp, apiCall, uid, cachedLoginState } from './support/fixtures'
 import type { Page } from '@playwright/test'
 
 /**
@@ -163,5 +163,44 @@ test.describe('Revisão — caminho triste', () => {
     await banner.getByRole('button', { name: 'Tentar de novo' }).click()
     await expect(banner).toBeHidden({ timeout: 10_000 })
     await expect.poll(async () => (await Promise.all(cardIds.map(id => card(page, id)))).filter((c: any) => c.reps === 1).length).toBe(1)
+  })
+})
+
+test.describe('Revisar do caderno com volume (seed perf@audit.test, prd-performance-caderno)', () => {
+  test('"Revisar N" do cabeçalho é o tamanho da sessão que abre (páginas de até 100)', async ({ browser }) => {
+    // Seed: memorai-api/scripts/perf/seed-caderno-pesado.php (only GETs here: nothing is rated)
+    const ctx = await browser.newContext({ storageState: await cachedLoginState(browser, 'perf@audit.test', 'password') })
+    const page = await ctx.newPage()
+    await gotoApp(page, '/hoje')
+    const heavy = ((await apiCall(page, 'GET', '/topics')).data as any[]).find(t => t.name === 'Direito — TRF (pesado)')
+    test.skip(!heavy, 'seed pesado ausente')
+
+    await gotoApp(page, `/cadernos?topic=${heavy.id}`)
+    const cta = page.getByRole('main').getByRole('link', { name: /^Revisar \d+ cards$/ }).first()
+    const n = Number((await cta.innerText()).match(/\d+/)![0])
+    const session = page.waitForResponse(r => r.url().includes('/api/review/session'))
+    await cta.click()
+    const body = await (await session).json()
+    expect(body.session_count).toBe(n)
+    expect(body.data.length).toBeLessThanOrEqual(100)
+    // The card on screen + "restantes" = the session, across pages
+    await expect(page.getByText(`${n - 1} restantes`)).toBeVisible()
+    await ctx.close()
+  })
+
+  test('o número do hero da Home é o tamanho da sessão global (atrasados contados uma vez)', async ({ browser }) => {
+    const ctx = await browser.newContext({ storageState: await cachedLoginState(browser, 'perf@audit.test', 'password') })
+    const page = await ctx.newPage()
+    await gotoApp(page, '/hoje')
+    const heavy = ((await apiCall(page, 'GET', '/topics')).data as any[]).find(t => t.name === 'Direito — TRF (pesado)')
+    test.skip(!heavy, 'seed pesado ausente')
+
+    const n = Number(await page.locator('.hero__value').first().innerText())
+    expect(n).toBe((await apiCall(page, 'GET', '/stats')).data.due_today)
+    const session = page.waitForResponse(r => r.url().includes('/api/review/session'))
+    await gotoApp(page, '/revisar')
+    expect((await (await session).json()).session_count).toBe(n)
+    await expect(page.getByText(`${n - 1} restantes`)).toBeVisible()
+    await ctx.close()
   })
 })

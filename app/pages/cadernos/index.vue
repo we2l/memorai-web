@@ -105,6 +105,7 @@
           :active-note="editingNote"
           :note-title="noteTitle"
           :save-state="saveState"
+          :draft-saved-at="pendingDraft?.savedAt ?? null"
           :has-documents="docStore.documents.length > 0"
           :breadcrumb-topic="selectedTopicName ?? ''"
           :cards-from-note="cardsFromNote"
@@ -118,6 +119,8 @@
           @delete-note="showDeleteNote = true"
           @save-title="saveTitle"
           @retry-save="retrySaveNow"
+          @restore-draft="restoreDraft"
+          @discard-draft="discardDraft"
           @update:note-title="noteTitle = $event"
         >
           <template #documents>
@@ -665,7 +668,7 @@ watch(pendingCount, (curr, prev) => {
     showConfetti.value = true
   }
 })
-const { noteTitle, noteContent, editingNote, selectedText, showDeleteNote, saveState, retrySaveNow, flushPendingSave, debouncedSave, saveTitle, selectNote, openNoteEditor, closeEditor, createNote, handleDeleteNote } = useNoteEditor(selectedTopicId)
+const { noteTitle, noteContent, editingNote, selectedText, showDeleteNote, saveState, retrySaveNow, pendingDraft, restoreDraft, discardDraft, flushPendingSave, debouncedSave, saveTitle, selectNote, openNoteEditor, closeEditor, createNote, handleDeleteNote } = useNoteEditor(selectedTopicId)
 const noteImprove = useNoteImprove(selectedTopicId)
 const errorPatterns = ref<any>(null)
 

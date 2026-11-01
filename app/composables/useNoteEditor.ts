@@ -1,4 +1,5 @@
 import type { Note } from '~/types'
+import type { NoteDraft } from '~/composables/useNoteDraft'
 
 /** Autosave indicator (RF-F8): never "saved" while the server lacks the text. */
 export type NoteSaveState = 'saved' | 'saving' | 'error'
@@ -35,6 +36,11 @@ export function useNoteEditor(topicId: Ref<string | null>) {
   const latestSeq = new Map<string, number>()
   let disposed = false
 
+  const draft = useNoteDraft()
+  draft.prune()
+  // Local draft newer than the server copy, offered when the note opens: never applied silently
+  const pendingDraft = ref<(NoteDraft & { noteId: string }) | null>(null)
+
   function clearRetry() {
     if (retryTimer) clearTimeout(retryTimer)
     retryTimer = null
@@ -54,6 +60,9 @@ export function useNoteEditor(topicId: Ref<string | null>) {
       if (latestSeq.get(noteId) !== seq) return
       if (failed?.noteId === noteId) failed = null
       retryIndex = 0
+      // The server has the text: drop the draft, unless a newer edit or a restore offer still needs it
+      const newerEdit = !!saveTimeout && pendingSaveNoteId === noteId
+      if (!newerEdit && pendingDraft.value?.noteId !== noteId) draft.clear(noteId)
       saveState.value = failed ? 'error' : saveTimeout ? 'saving' : 'saved'
     } catch (e) {
       if (latestSeq.get(noteId) !== seq) return
@@ -97,6 +106,8 @@ export function useNoteEditor(topicId: Ref<string | null>) {
     if (saveTimeout) clearTimeout(saveTimeout)
     pendingSaveNoteId = noteStore.current?.id ?? null
     pendingSaveContent = noteContent.value ? JSON.parse(JSON.stringify(noteContent.value)) : null
+    // Local copy until the server confirms: survives a 401 redirect or a closed tab (B14)
+    if (pendingSaveNoteId && !pendingDraft.value) draft.save(pendingSaveNoteId, { content: pendingSaveContent, title: noteTitle.value })
     if (saveState.value !== 'error') saveState.value = 'saving'
     saveTimeout = setTimeout(() => {
       saveTimeout = null
@@ -110,13 +121,41 @@ export function useNoteEditor(topicId: Ref<string | null>) {
 
   function saveTitle() {
     if (noteStore.current && noteTitle.value !== noteStore.current.title) {
+      if (!pendingDraft.value) draft.save(noteStore.current.id, { content: noteContent.value, title: noteTitle.value })
       void persist(noteStore.current.id, { title: noteTitle.value })
     }
+  }
+
+  /** Draft newer than the server copy and different from it (an identical one is dropped). */
+  function draftNewerThan(note: Note) {
+    const d = draft.read(note.id)
+    if (!d || d.savedAt <= Date.parse(note.updated_at)) return null
+    if (d.title === note.title && JSON.stringify(d.content) === JSON.stringify(note.content)) {
+      draft.clear(note.id)
+      return null
+    }
+    return { ...d, noteId: note.id }
+  }
+
+  /** "Restaurar": the draft goes back to the editor and to the server. */
+  function restoreDraft() {
+    const d = pendingDraft.value
+    if (!d || noteStore.current?.id !== d.noteId) return
+    pendingDraft.value = null
+    noteTitle.value = d.title
+    noteContent.value = d.content
+    void persist(d.noteId, { title: d.title, content: d.content })
+  }
+
+  function discardDraft() {
+    if (pendingDraft.value) draft.clear(pendingDraft.value.noteId)
+    pendingDraft.value = null
   }
 
   onScopeDispose(() => {
     disposed = true
     clearRetry()
+    draft.flush()
   })
 
   function selectNote(note: Note) {
@@ -124,6 +163,7 @@ export function useNoteEditor(topicId: Ref<string | null>) {
     noteStore.current = note
     noteTitle.value = note.title
     noteContent.value = note.content
+    pendingDraft.value = draftNewerThan(note)
   }
 
   function openNoteEditor(note: Note) {
@@ -134,6 +174,7 @@ export function useNoteEditor(topicId: Ref<string | null>) {
   function closeEditor() {
     editingNote.value = null
     noteStore.current = null
+    pendingDraft.value = null
   }
 
   async function createNote() {
@@ -163,6 +204,9 @@ export function useNoteEditor(topicId: Ref<string | null>) {
     showDeleteNote,
     saveState,
     retrySaveNow,
+    pendingDraft,
+    restoreDraft,
+    discardDraft,
     flushPendingSave,
     debouncedSave,
     saveTitle,

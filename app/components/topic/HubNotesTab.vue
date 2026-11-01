@@ -164,6 +164,15 @@
         </div>
       </div>
 
+      <!-- Unsaved local draft newer than the server copy (RF-F8): the user decides -->
+      <div v-if="draftSavedAt" role="status" class="px-4 sm:px-6 py-2.5 bg-[var(--badge-warning-bg)] border-b border-base flex flex-wrap items-center gap-x-3 gap-y-2">
+        <p class="text-small text-base-primary flex-1 min-w-[12rem]">Você tem alterações não salvas de {{ draftTime }}.</p>
+        <div class="flex gap-2">
+          <button type="button" class="btn-secondary !py-1.5 !px-3 !min-h-[2.75rem] text-small" @click="$emit('restore-draft')">Restaurar</button>
+          <button type="button" class="btn-ghost !py-1.5 !px-3 !min-h-[2.75rem] text-small" @click="$emit('discard-draft')">Descartar</button>
+        </div>
+      </div>
+
       <!-- Generating banner (fixed above editor, does not scroll) -->
       <slot name="generating-banner" />
 
@@ -232,6 +241,8 @@ const props = defineProps<{
   activeNote: Note | null
   noteTitle: string
   saveState?: NoteSaveState
+  /** savedAt of a local draft to offer (null: none). */
+  draftSavedAt?: number | null
   hasDocuments: boolean
   breadcrumbTopic: string
   cardsFromNote: (noteId: string) => number
@@ -248,6 +259,8 @@ const emit = defineEmits<{
   (e: 'delete-note'): void
   (e: 'save-title'): void
   (e: 'retry-save'): void
+  (e: 'restore-draft'): void
+  (e: 'discard-draft'): void
   (e: 'update:noteTitle', value: string): void
   (e: 'select-file', file: File): void
 }>()
@@ -256,6 +269,15 @@ const showMenu = ref(false)
 const showMindMap = ref(false)
 const titleRef = ref<HTMLElement>()
 const pdfInput = ref<HTMLInputElement>()
+
+// "14:32" today, "31/10 às 14:32" on another day (drafts live up to 7 days)
+const draftTime = computed(() => {
+  if (!props.draftSavedAt) return ''
+  const d = new Date(props.draftSavedAt)
+  const time = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+  if (d.toDateString() === new Date().toDateString()) return time
+  return `${d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} às ${time}`
+})
 
 function onPdfSelected(event: Event) {
   const input = event.target as HTMLInputElement

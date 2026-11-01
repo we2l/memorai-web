@@ -14,7 +14,7 @@
       <div
         v-if="chat.isOpen"
         ref="drawerRef"
-        class="fixed top-0 right-0 h-full w-full sm:w-[400px] bg-overlay z-50 flex flex-col border-l border-base"
+        class="fixed top-0 right-0 h-full w-full sm:w-[400px] bg-[var(--bg-card)] z-50 flex flex-col border-l border-base"
         role="dialog"
         aria-modal="true"
         aria-label="Chat com IA"

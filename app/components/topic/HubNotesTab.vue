@@ -134,7 +134,12 @@
             <Brain :size="16" />
             <span class="text-small hidden lg:inline">Mapa</span>
           </button>
-          <span class="text-micro text-base-muted mx-1">{{ saving ? 'Salvando...' : '✓' }}</span>
+          <!-- Honest autosave (RF-F8): "Salvo" only once the server has the text -->
+          <span v-if="saveState !== 'error'" class="text-micro text-base-muted mx-1">{{ saveState === 'saving' ? 'Salvando...' : 'Salvo' }}</span>
+          <span v-else role="alert" class="inline-flex items-center gap-1 mx-1 text-micro font-medium text-[var(--badge-danger-text)]">
+            Não salvo
+            <button type="button" class="min-h-[44px] px-1 underline underline-offset-2" @click="$emit('retry-save')">Tentar de novo</button>
+          </span>
           <!-- More menu -->
           <div class="relative">
             <button
@@ -220,12 +225,13 @@
 import { ArrowLeft, Bookmark, ChevronRight, FileText, MoreHorizontal, Zap, Trash2, Brain, Sparkles } from 'lucide-vue-next'
 import { extractStructuredPreview, countWordsFromContent } from '~/utils/notePreview'
 import type { Note } from '~/types'
+import type { NoteSaveState } from '~/composables/useNoteEditor'
 
 const props = defineProps<{
   notes: Note[]
   activeNote: Note | null
   noteTitle: string
-  saving: boolean
+  saveState?: NoteSaveState
   hasDocuments: boolean
   breadcrumbTopic: string
   cardsFromNote: (noteId: string) => number
@@ -241,6 +247,7 @@ const emit = defineEmits<{
   (e: 'improve-note'): void
   (e: 'delete-note'): void
   (e: 'save-title'): void
+  (e: 'retry-save'): void
   (e: 'update:noteTitle', value: string): void
   (e: 'select-file', file: File): void
 }>()

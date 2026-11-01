@@ -104,7 +104,7 @@
           :notes="noteStore.notes"
           :active-note="editingNote"
           :note-title="noteTitle"
-          :saving="noteStore.saving"
+          :save-state="saveState"
           :has-documents="docStore.documents.length > 0"
           :breadcrumb-topic="selectedTopicName ?? ''"
           :cards-from-note="cardsFromNote"
@@ -117,6 +117,7 @@
           @improve-note="openChatForNote"
           @delete-note="showDeleteNote = true"
           @save-title="saveTitle"
+          @retry-save="retrySaveNow"
           @update:note-title="noteTitle = $event"
         >
           <template #documents>
@@ -320,7 +321,6 @@
             :notes="noteStore.notes"
             :active-note="null"
             :note-title="''"
-            :saving="false"
             :has-documents="docStore.documents.length > 0"
             :breadcrumb-topic="selectedTopicName ?? ''"
             :cards-from-note="cardsFromNote"
@@ -665,7 +665,7 @@ watch(pendingCount, (curr, prev) => {
     showConfetti.value = true
   }
 })
-const { noteTitle, noteContent, editingNote, selectedText, showDeleteNote, flushPendingSave, debouncedSave, saveTitle, selectNote, openNoteEditor, closeEditor, createNote, handleDeleteNote } = useNoteEditor(selectedTopicId)
+const { noteTitle, noteContent, editingNote, selectedText, showDeleteNote, saveState, retrySaveNow, flushPendingSave, debouncedSave, saveTitle, selectNote, openNoteEditor, closeEditor, createNote, handleDeleteNote } = useNoteEditor(selectedTopicId)
 const noteImprove = useNoteImprove(selectedTopicId)
 const errorPatterns = ref<any>(null)
 

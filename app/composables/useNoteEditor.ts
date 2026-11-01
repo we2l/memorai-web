@@ -1,12 +1,20 @@
-import type { Note } from '~/types'
+import type { Note, NoteSummary } from '~/types'
 import type { NoteDraft } from '~/composables/useNoteDraft'
 
 /** Autosave indicator (RF-F8): never "saved" while the server lacks the text. */
 export type NoteSaveState = 'saved' | 'saving' | 'error'
-type NoteSaveData = { title?: string; content?: Record<string, any> | null }
+type NoteContent = Record<string, any> | null
+type NoteSaveData = { title?: string; content?: NoteContent }
+/** Reads the editor document; called when the draft or the autosave writes, not per keystroke. */
+export type NoteContentReader = () => NoteContent
 
 // Automatic retries after a failed save; then only "Tentar de novo" or the next edit
 const RETRY_DELAYS = [2000, 5000, 15000]
+// Autosave pause; longer above ~100 KB of JSON (≈ 75k ProseMirror positions), where each PUT
+// serializes and sends the whole document (prd-performance-caderno RF-F4)
+const SAVE_DEBOUNCE_MS = 1000
+const BIG_DOC_SAVE_DEBOUNCE_MS = 2500
+const BIG_DOC_SIZE = 75_000
 
 /**
  * Composable para lógica do editor de notas no hub do caderno.
@@ -18,14 +26,20 @@ export function useNoteEditor(topicId: Ref<string | null>) {
   const toast = useToast()
 
   const noteTitle = ref('')
-  const noteContent = ref<Record<string, any> | null>(null)
-  const editingNote = ref<Note | null>(null)
+  // Outside deep reactivity: behind a proxy, a 400 KB Tiptap JSON paid per node on every read (RF-F4)
+  const noteContent = shallowRef<NoteContent>(null)
+  /** Note open in the editor: the list summary until GET /notes/{id} answers, then the full note. */
+  const editingNote = shallowRef<NoteSummary | Note | null>(null)
+  /** Full note on its way: the editor waits (typing on an empty document would overwrite it). */
+  const noteLoading = ref(false)
   const selectedText = ref('')
   const showDeleteNote = ref(false)
 
   let saveTimeout: ReturnType<typeof setTimeout> | null = null
   let pendingSaveNoteId: string | null = null
-  let pendingSaveContent: Record<string, any> | null = null
+  let pendingRead: NoteContentReader | null = null
+  // Bumped by each open/close: a late GET /notes/{id} never fills the editor of another note
+  let openSeq = 0
 
   const saveState = ref<NoteSaveState>('saved')
   // Writes the server has not confirmed yet, per note (in flight or failed): merged into the next
@@ -114,41 +128,54 @@ export function useNoteEditor(topicId: Ref<string | null>) {
 
   /** Sends the debounced edit now; returns the note it belongs to. */
   function flushPendingSave(): string | null {
-    if (!saveTimeout || !pendingSaveNoteId || !pendingSaveContent) return null
+    if (!saveTimeout) return null
     clearTimeout(saveTimeout)
     saveTimeout = null
+    return sendPendingSave()
+  }
+
+  function sendPendingSave(): string | null {
     const noteId = pendingSaveNoteId
-    const content = pendingSaveContent
+    const read = pendingRead
     pendingSaveNoteId = null
-    pendingSaveContent = null
+    pendingRead = null
+    // The document is serialized here, once per pause (RF-F4)
+    const content = read?.() ?? null
+    if (!noteId || !content) {
+      refreshState()
+      return null
+    }
+    // The editor's own object: NoteEditor sees the same reference and does not reload it
+    if (noteStore.current?.id === noteId) noteContent.value = content
     void persist(noteId, { content })
     return noteId
   }
 
-  function debouncedSave() {
+  /**
+   * An edit of the open note. `read` returns the editor document (default: `noteContent`) and is
+   * only called by the draft and the autosave; `docSize` (ProseMirror positions) picks the pause.
+   */
+  function debouncedSave(read: NoteContentReader = () => noteContent.value, docSize = 0) {
     if (saveTimeout) clearTimeout(saveTimeout)
     pendingSaveNoteId = noteStore.current?.id ?? null
-    pendingSaveContent = noteContent.value ? JSON.parse(JSON.stringify(noteContent.value)) : null
+    pendingRead = read
     // Local copy until the server confirms: survives a 401 redirect or a closed tab (B14)
     if (pendingSaveNoteId && !pendingDraft.value) {
-      draft.save(pendingSaveNoteId, { content: pendingSaveContent, title: noteTitle.value, base: baseOf(pendingSaveNoteId) })
+      draft.save(pendingSaveNoteId, { content: read, title: noteTitle.value, base: baseOf(pendingSaveNoteId) })
     }
     saveTimeout = setTimeout(() => {
       saveTimeout = null
-      const noteId = pendingSaveNoteId
-      const content = pendingSaveContent
-      pendingSaveNoteId = null
-      pendingSaveContent = null
-      if (noteId && content) void persist(noteId, { content })
-      else refreshState()
-    }, 1000)
+      sendPendingSave()
+    }, docSize > BIG_DOC_SIZE ? BIG_DOC_SAVE_DEBOUNCE_MS : SAVE_DEBOUNCE_MS)
     refreshState()
   }
 
   function saveTitle() {
     const note = noteStore.current
     if (note && noteTitle.value !== note.title) {
-      if (!pendingDraft.value) draft.save(note.id, { content: noteContent.value, title: noteTitle.value, base: baseOf(note.id) })
+      // The draft carries the newest body too: the pending edit, else the last one sent
+      const content = (pendingSaveNoteId === note.id && pendingRead) || noteContent.value
+      if (!pendingDraft.value) draft.save(note.id, { content, title: noteTitle.value, base: baseOf(note.id) })
       void persist(note.id, { title: noteTitle.value })
     }
   }
@@ -162,7 +189,7 @@ export function useNoteEditor(topicId: Ref<string | null>) {
       clearTimeout(saveTimeout)
       saveTimeout = null
       pendingSaveNoteId = null
-      pendingSaveContent = null
+      pendingRead = null
     }
     draft.clear(noteId)
     if (!failedIds.size) clearRetry()
@@ -217,22 +244,48 @@ export function useNoteEditor(topicId: Ref<string | null>) {
     }
   })
 
-  function selectNote(note: Note) {
+  /**
+   * Selects a note. A list item has no content (RF-F1): GET /notes/{id} loads it first.
+   * Resolves with the full note, or null when it could not be opened (or another one was).
+   */
+  async function selectNote(note: NoteSummary | Note): Promise<Note | null> {
     flushPendingSave()
-    noteStore.current = note
-    // Edits the server has not confirmed yet (in flight or failed) win over the list copy
+    draft.flush()
+    const seq = ++openSeq
+    const { content: _content, ...summary } = note as Note
+    noteStore.current = summary
+    // Edits the server has not confirmed yet (in flight or failed) win over the server copy
     const local = unsaved.get(note.id)
     noteTitle.value = local?.title ?? note.title
-    noteContent.value = local && 'content' in local ? local.content ?? null : note.content
-    pendingDraft.value = local ? null : draftNewerThan(note)
+    pendingDraft.value = null
+    let full = 'content' in note ? note : null
+    if (!full) {
+      noteLoading.value = true
+      try {
+        full = await noteStore.fetchOne(note.id)
+      } catch (e) {
+        if (seq !== openSeq) return null
+        closeEditor()
+        reportApiError(e, { error: 'Não foi possível abrir a nota.' })
+        return null
+      }
+      if (seq !== openSeq) return null
+    }
+    noteContent.value = local && 'content' in local ? local.content ?? null : full.content
+    pendingDraft.value = local ? null : draftNewerThan(full)
+    noteLoading.value = false
+    return full
   }
 
-  function openNoteEditor(note: Note) {
-    selectNote(note)
+  async function openNoteEditor(note: NoteSummary | Note) {
     editingNote.value = note
+    const full = await selectNote(note)
+    if (full && editingNote.value?.id === full.id) editingNote.value = full
   }
 
   function closeEditor() {
+    openSeq++
+    noteLoading.value = false
     editingNote.value = null
     noteStore.current = null
     pendingDraft.value = null
@@ -263,6 +316,7 @@ export function useNoteEditor(topicId: Ref<string | null>) {
     noteTitle,
     noteContent,
     editingNote,
+    noteLoading,
     selectedText,
     showDeleteNote,
     saveState,

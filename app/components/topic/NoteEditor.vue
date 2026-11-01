@@ -111,7 +111,8 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (e: 'update:modelValue', value: Record<string, any>): void
+  /** A user edit. `read` serializes the document (on demand); `size` is its ProseMirror size. */
+  (e: 'edit', read: () => Record<string, any>, size: number): void
   (e: 'create-card'): void
   (e: 'ask-ai'): void
   (e: 'navigate-topic', topicId: string): void
@@ -270,6 +271,19 @@ const subpageDropdown = reactive({
   position: { top: 0, left: 0 },
 })
 
+// getJSON() of the whole document on every keystroke was the typing cost of big notes
+// (prd-performance-caderno RF-F4): an edit only marks the JSON stale; whoever needs it calls readDoc()
+let docJSON: Record<string, any> | null = props.modelValue ?? null
+let docStale = false
+
+function readDoc(): Record<string, any> {
+  if (docStale && editor.value && !editor.value.isDestroyed) {
+    docJSON = editor.value.getJSON()
+    docStale = false
+  }
+  return docJSON ?? { type: 'doc', content: [] }
+}
+
 const editor = useEditor({
   content: props.modelValue ?? '',
   editable: props.editable !== false,
@@ -289,7 +303,8 @@ const editor = useEditor({
     }),
   ],
   onUpdate: ({ editor: ed }) => {
-    emit('update:modelValue', ed.getJSON())
+    docStale = true
+    emit('edit', readDoc, ed.state.doc.content.size)
     handleSlashDetection(ed)
   },
   onSelectionUpdate: ({ editor: ed }) => {
@@ -390,13 +405,14 @@ async function createSubpageFromSelection() {
   }
 }
 
+// External content (another note, a restored draft, AI preview, PDF generation): not a user edit,
+// so no autosave. The JSON this editor produced comes back as the same object: a reference check
+// replaces the 2 stringifies per edit
 watch(() => props.modelValue, (val) => {
-  if (!editor.value) return
-  const current = JSON.stringify(editor.value.getJSON())
-  const incoming = JSON.stringify(val)
-  if (current !== incoming) {
-    editor.value.commands.setContent(val ?? '')
-  }
+  if (!editor.value || val === docJSON) return
+  editor.value.commands.setContent(val ?? '', { emitUpdate: false })
+  docJSON = val ?? null
+  docStale = false
 })
 
 watch(() => props.editable, (val) => {
@@ -446,6 +462,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   document.removeEventListener('mousedown', handleClickOutside)
   if (imageInput.value) imageInput.value.remove()
+  readDoc() // the autosave or draft of the last keystrokes may read it after the editor is gone
   editor.value?.destroy()
 })
 </script>

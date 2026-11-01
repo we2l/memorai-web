@@ -181,7 +181,13 @@
                 <button class="btn-secondary w-full justify-center" @click="cardWorkshop.reset()">Voltar à nota</button>
               </template>
             </LazyTopicCardWorkshop>
-            <LazyTopicNoteEditor v-else v-model="noteContent" :editable="!noteIsGenerating && noteImprove.state.value !== 'loading' && noteImprove.state.value !== 'preview' && !pendingDraft" :topic-id="selectedTopicId" @update:model-value="debouncedSave" @create-card="openNoteToCard" @ask-ai="askAiAboutSelection" @navigate-topic="selectTopic" />
+            <div v-else-if="noteLoading" class="space-y-3" aria-busy="true">
+              <span class="sr-only">Carregando nota...</span>
+              <div class="skeleton h-4 w-11/12 rounded" />
+              <div class="skeleton h-4 w-full rounded" />
+              <div class="skeleton h-4 w-3/4 rounded" />
+            </div>
+            <LazyTopicNoteEditor v-else :model-value="noteContent" :editable="!noteIsGenerating && noteImprove.state.value !== 'loading' && noteImprove.state.value !== 'preview' && !pendingDraft" :topic-id="selectedTopicId" @edit="debouncedSave" @create-card="openNoteToCard" @ask-ai="askAiAboutSelection" @navigate-topic="selectTopic" />
           </template>
           <template #selection-toolbar />
         </TopicHubNotesTab>
@@ -220,10 +226,10 @@
                 <NuxtLink v-if="pendingCount > 0" :to="`/revisar?topic_id=${selectedTopicId}`" class="btn-primary !py-3 !px-6 !text-base font-semibold">
                   Revisar {{ pendingCount }} cards
                 </NuxtLink>
-                <button v-else-if="topicCards.length === 0 && noteStore.notes.length > 0" class="btn-primary !py-3 !px-6 !text-base font-semibold" @click="cardWorkshop.generate('notes')">
+                <button v-else-if="totalCards === 0 && noteStore.notes.length > 0" class="btn-primary !py-3 !px-6 !text-base font-semibold" @click="cardWorkshop.generate('notes')">
                   Gerar cards
                 </button>
-                <span v-else-if="topicCards.length > 0" class="text-small text-[var(--badge-success-text)] font-medium">Tudo em dia ✓</span>
+                <span v-else-if="totalCards > 0" class="text-small text-[var(--badge-success-text)] font-medium">Tudo em dia ✓</span>
               </div>
             </div>
 
@@ -231,7 +237,7 @@
             <div class="mt-3">
               <div class="h-1 rounded-full bg-surface-secondary overflow-hidden">
                 <div
-                  v-if="topicCards.length"
+                  v-if="totalCards"
                   class="h-1 rounded-full bg-[var(--color-accent-primary)] transition-all duration-500"
                   :style="{ width: memorizeProgress + '%' }"
                 />
@@ -251,7 +257,7 @@
             v-model="showPodcastSheet"
             :topic-id="selectedTopicId"
             :topic-name="selectedTopicName ?? ''"
-            :weak-cards-count="topicCards.filter(c => c.lapses > 0).length"
+            :weak-cards-count="weakCardsCount"
             @generated="onPodcastGenerated"
           />
 
@@ -261,8 +267,8 @@
             class="sticky top-0 z-10 px-4 py-2.5 border-b border-base bg-[var(--bg-card)]/95 backdrop-blur-md flex items-center justify-between"
           >
             <span class="text-small font-medium text-base-primary truncate">{{ selectedTopicName }}</span>
-            <NuxtLink v-if="dueCardsCount > 0" :to="`/revisar?topic_id=${selectedTopicId}`" class="btn-primary !py-2 !px-3.5 !min-h-[2.75rem] !text-sm shrink-0">
-              Revisar {{ dueCardsCount }}
+            <NuxtLink v-if="pendingCount > 0" :to="`/revisar?topic_id=${selectedTopicId}`" class="btn-primary !py-2 !px-3.5 !min-h-[2.75rem] !text-sm shrink-0">
+              Revisar {{ pendingCount }}
             </NuxtLink>
           </div>
 
@@ -381,7 +387,7 @@
             <LazyTopicHubCardsTab
               :topic-id="selectedTopicId!"
               :cards="listCards"
-              :server-mode="listMode === 'server'"
+              server-mode
               :has-more="hasMorePages"
               :loading-more="loadingPage"
               :generated-cards="generatedCards"
@@ -458,7 +464,7 @@
         <Zap :size="14" aria-hidden="true" /> Relâmpago
       </NuxtLink>
       <NuxtLink :to="`/revisar?topic_id=${selectedTopicId}`" class="btn-primary flex-1 justify-center">
-        Revisar {{ dueCardsCount }} card{{ dueCardsCount !== 1 ? 's' : '' }}
+        Revisar {{ pendingCount }} card{{ pendingCount !== 1 ? 's' : '' }}
       </NuxtLink>
     </div>
 
@@ -656,8 +662,9 @@ const mapSubView = ref<'graph' | 'mindmap'>(
   (import.meta.client && localStorage.getItem('baigi-map-subview') as 'graph' | 'mindmap') || 'mindmap'
 )
 const searchQuery = ref('')
-const { topicCards, showDeleteCard, deleteCardId, memorizeProgress, dueCardsCount, newCardsCount, pendingCount, setCards, listMode, listCards, hasMorePages, loadingPage, totalCards, loadNextPage, searchCards, cardsFromNote, confirmDeleteCard, handleDeleteCard } = useTopicCards()
-const showStickyReview = computed(() => !!selectedTopicId.value && dueCardsCount.value > 0)
+const { showDeleteCard, deleteCardId, memorizeProgress, dueCardsCount, newCardsCount, weakCardsCount, pendingCount, setSummary, ensureList, listCards, hasMorePages, loadingPage, totalCards, loadNextPage, searchCards, cardsFromNote, confirmDeleteCard, handleDeleteCard } = useTopicCards()
+// "Revisar N" everywhere is the size of the session it opens (RF-F6)
+const showStickyReview = computed(() => !!selectedTopicId.value && pendingCount.value > 0)
 useStickyActionHeight(showStickyReview)
 
 // Confetti when pending goes from >0 to 0
@@ -668,7 +675,7 @@ watch(pendingCount, (curr, prev) => {
     showConfetti.value = true
   }
 })
-const { noteTitle, noteContent, editingNote, selectedText, showDeleteNote, saveState, retrySaveNow, pendingDraft, restoreDraft, discardDraft, flushPendingSave, debouncedSave, saveTitle, selectNote, openNoteEditor, closeEditor, createNote, handleDeleteNote } = useNoteEditor(selectedTopicId)
+const { noteTitle, noteContent, editingNote, noteLoading, selectedText, showDeleteNote, saveState, retrySaveNow, pendingDraft, restoreDraft, discardDraft, flushPendingSave, debouncedSave, saveTitle, openNoteEditor, closeEditor, createNote, handleDeleteNote } = useNoteEditor(selectedTopicId)
 const noteImprove = useNoteImprove(selectedTopicId)
 const errorPatterns = ref<any>(null)
 
@@ -683,7 +690,7 @@ const nextStep = useNextStep({
   topicId: selectedTopicId,
   notes: computed(() => noteStore.notes),
   flashcardsCount: totalCards,
-  dueCardsCount,
+  dueCardsCount: pendingCount,
   editingNote,
 })
 
@@ -752,8 +759,9 @@ watch(() => docStore.documents, (docs) => {
   const hasGenerating = docs.some(d => d.note_generation_status === 'generating')
   const hasCompleted = docs.some(d => d.note_generation_status === 'completed')
 
-  // If a doc is generating or completed and we have no notes, fetch notes
-  if ((hasGenerating || hasCompleted) && noteStore.notes.length === 0) {
+  // If a doc is generating or completed and we have no notes, fetch notes (not while the
+  // caderno's own request is in flight: that duplicated the list on every opening, RF-F2)
+  if ((hasGenerating || hasCompleted) && noteStore.notes.length === 0 && !noteStore.loading) {
     noteStore.fetchForTopic(selectedTopicId.value)
   }
 
@@ -773,9 +781,15 @@ watch(() => docStore.documents, (docs) => {
       }
     }
 
-    // Refresh notes when progress advances (incremental generation)
+    // Progress advanced (incremental generation): refresh only the note being generated (RF-F3).
+    // Open in the editor, noteRefresh already polls it; not listed yet, the list comes once
     if (curr === 'generating' && currProgress !== null && currProgress !== prevProgress) {
-      noteStore.fetchForTopic(selectedTopicId.value)
+      const noteId = doc.note_id ?? noteStore.notes.find(n => n.source_document_id === doc.id)?.id
+      if (!noteId || !noteStore.notes.some(n => n.id === noteId)) {
+        if (!noteStore.loading) noteStore.fetchForTopic(selectedTopicId.value)
+      } else if (editingNote.value?.id !== noteId) {
+        noteStore.fetchOne(noteId).catch((e: unknown) => reportApiError(e, { silent: true }))
+      }
     }
 
     lastNoteStatuses[doc.id] = curr
@@ -902,12 +916,7 @@ function selectTopic(id: string, history: 'push' | 'replace' | 'none' = 'push') 
   docStore.fetchForTopic(id).then(() => {
     if (docStore.needsPolling) docStore.startPolling()
   })
-  noteStore.fetchForTopic(id).then(() => {
-    // Auto-select first note if available
-    if (noteStore.notes.length && !noteStore.current) {
-      selectNote(noteStore.notes[0])
-    }
-  })
+  noteStore.fetchForTopic(id)
   loadTopicData(id)
   if (window.innerWidth < 1024) sidebarOpen.value = false
 }
@@ -918,12 +927,12 @@ async function loadTopicData(id: string) {
       $api<any>(`/topics/${id}/details`),
       $api<any>(`/topics/${id}/error-patterns`),
     ])
-    setCards(detailRes.data.flashcards, detailRes.data)
+    setSummary(detailRes.data)
     errorPatterns.value = patternsRes.data
 
     // Set default tab based on content
-    const hasDue = topicCards.value.some(c => c.due && new Date(c.due) <= new Date())
-    const hasNew = topicCards.value.some(c => c.state === 'new')
+    const hasDue = dueCardsCount.value > 0
+    const hasNew = newCardsCount.value > 0
     const stored = localStorage.getItem(`baigi-hub-tab-${id}`)
 
     // Query param override (from podcast player link)
@@ -939,12 +948,17 @@ async function loadTopicData(id: string) {
     if (route.query.highlight) {
       activeTab.value = 'cards'
       highlightCardId.value = route.query.highlight as string
-      // Wait for tab + card list to render
-      setTimeout(() => {
+    }
+
+    // The Cards tab list comes from GET /topics/{id}/flashcards, only when the tab is open
+    if (activeTab.value === 'cards') {
+      const listed = ensureList()
+      // Wait for the first page + card list to render
+      if (highlightCardId.value) void listed.then(() => setTimeout(() => {
         const el = document.getElementById(`card-${highlightCardId.value}`)
         el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
         setTimeout(() => { highlightCardId.value = '' }, 3000)
-      }, 300)
+      }, 300))
     }
   } catch (e) {
     // Selection restore is best-effort (RF-F3b: S)
@@ -1174,6 +1188,7 @@ watch(() => editingNote.value?.id, (id) => {
   router.replace({ query: { ...route.query, note: id ?? undefined } })
 })
 watch(activeTab, (tab) => {
+  if (tab === 'cards') void ensureList()
   if (!selectedTopicId.value || route.query.tab === tab) return
   router.replace({ query: { ...route.query, tab: tab === 'notes' ? undefined : tab } })
 })
@@ -1273,7 +1288,8 @@ onMounted(async () => {
       const unwatch = watch(() => noteStore.notes, (notes) => {
         const note = notes.find(n => n.id === noteId)
         if (note) {
-          selectNote(note)
+          // The list has no content: opening loads the note (and the editor is what ?note= means)
+          void openNoteEditor(note)
           unwatch()
         }
       }, { immediate: true })

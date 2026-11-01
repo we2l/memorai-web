@@ -1,13 +1,15 @@
-import type { Note } from '~/types'
+import type { Note, NoteSummary } from '~/types'
 
 type NextStepType = 'improve' | 'cards' | 'review' | null
 
 interface UseNextStepOptions {
   topicId: Ref<string | null>
-  notes: Ref<Note[]>
+  /** List items: words come from the API (`word_count`), never from the content (RF-F1) */
+  notes: Ref<NoteSummary[]>
   flashcardsCount: Ref<number>
   dueCardsCount: Ref<number>
-  editingNote: Ref<Note | null>
+  /** Open note: the summary while GET /notes/{id} loads, then the full note */
+  editingNote: Ref<NoteSummary | Note | null>
 }
 
 export function useNextStep({ topicId, notes, flashcardsCount, dueCardsCount, editingNote }: UseNextStepOptions) {
@@ -59,9 +61,7 @@ export function useNextStep({ topicId, notes, flashcardsCount, dueCardsCount, ed
     return score < 0.15
   }
 
-  const totalWords = computed(() => {
-    return notes.value.reduce((sum, note) => sum + extractWordCount(note.content), 0)
-  })
+  const totalWords = computed(() => notes.value.reduce((sum, note) => sum + (note.word_count ?? 0), 0))
 
   const estimatedConcepts = computed(() => Math.floor(totalWords.value / 45))
 
@@ -70,16 +70,22 @@ export function useNextStep({ topicId, notes, flashcardsCount, dueCardsCount, ed
     return flashcardsCount.value / estimatedConcepts.value
   })
 
+  // Walks the open note once per opening, not again on every autosave (which changes `notes`)
+  const openNoteIsRaw = computed(() => {
+    const open = editingNote.value
+    return !!open && 'content' in open && isRawNote(open.content)
+  })
+
   const step = computed<NextStepType>(() => {
     if (!topicId.value) return null
 
     // Priority 1: Improve (raw note being edited)
-    if (editingNote.value && isRawNote(editingNote.value.content)) {
+    if (openNoteIsRaw.value) {
       return 'improve'
     }
 
     // Priority 2: Generate cards (low coverage)
-    const hasMatureNote = notes.value.some(n => extractWordCount(n.content) >= 200)
+    const hasMatureNote = notes.value.some(n => (n.word_count ?? 0) >= 200)
     if (hasMatureNote && coverage.value < 0.6) {
       return 'cards'
     }

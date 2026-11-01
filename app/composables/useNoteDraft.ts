@@ -3,7 +3,8 @@
  * autosave, a closed tab and an expired session. One entry per user and note in localStorage
  * (`baigi:draft:{userId}:{noteId}` → {content, title, base, savedAt}), expiring after 7 days.
  * Writes are debounced (no JSON.stringify per keystroke) and every storage access is guarded:
- * without localStorage (private mode, quota) the draft simply does not exist.
+ * without localStorage (private mode, quota) the draft simply does not exist. The content may come
+ * as a reader of the editor document, called only when the write happens (prd-performance-caderno RF-F4).
  */
 export interface NoteDraft {
   content: Record<string, any> | null
@@ -13,6 +14,9 @@ export interface NoteDraft {
   savedAt: number
 }
 
+/** Content as JSON or as a reader called when the draft is written. */
+type DraftInput = Omit<NoteDraft, 'savedAt' | 'content'> & { content: NoteDraft['content'] | (() => NoteDraft['content']) }
+
 const PREFIX = 'baigi:draft:'
 const TTL_MS = 7 * 24 * 60 * 60 * 1000
 const DEBOUNCE_MS = 300
@@ -20,13 +24,14 @@ const DEBOUNCE_MS = 300
 export function useNoteDraft() {
   const auth = useAuthStore()
   let timer: ReturnType<typeof setTimeout> | null = null
-  let pending: { key: string; draft: Omit<NoteDraft, 'savedAt'> } | null = null
+  let pending: { key: string; draft: DraftInput } | null = null
 
   const keyOf = (noteId: string) => (auth.user ? `${PREFIX}${auth.user.id}:${noteId}` : null)
 
-  function write(key: string, draft: Omit<NoteDraft, 'savedAt'>) {
+  function write(key: string, { content, ...draft }: DraftInput) {
     try {
-      localStorage.setItem(key, JSON.stringify({ ...draft, savedAt: Date.now() }))
+      const doc = typeof content === 'function' ? content() : content
+      localStorage.setItem(key, JSON.stringify({ ...draft, content: doc, savedAt: Date.now() }))
     } catch {
       // intencional: sem localStorage (modo privado, cota cheia) o rascunho só não existe
     }
@@ -42,7 +47,7 @@ export function useNoteDraft() {
   }
 
   /** Schedules the draft of a note; the key is fixed now (a 401 clears the user right after). */
-  function save(noteId: string, draft: Omit<NoteDraft, 'savedAt'>) {
+  function save(noteId: string, draft: DraftInput) {
     const key = keyOf(noteId)
     if (!key) return
     if (pending && pending.key !== key) flush()

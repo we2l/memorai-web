@@ -4,7 +4,7 @@ import { effectScope, ref, type EffectScope } from 'vue'
 import { useNoteEditor } from '~/composables/useNoteEditor'
 import { useNoteStore } from '~/stores/note'
 import { useAuthStore } from '~/stores/auth'
-import type { Note } from '~/types'
+import type { Note, NoteSummary } from '~/types'
 
 const { apiMock } = vi.hoisted(() => ({ apiMock: vi.fn() }))
 mockNuxtImport('useNuxtApp', original => () => new Proxy(original(), {
@@ -245,5 +245,81 @@ describe('useNoteEditor local draft', () => {
     open()
     expect(localStorage.getItem('baigi:draft:u1:velho')).toBeNull()
     expect(localStorage.getItem('baigi:draft:u1:novo')).not.toBeNull()
+  })
+})
+
+describe('useNoteEditor com a lista sem content (prd-performance-caderno)', () => {
+  let scope: EffectScope
+  let editor: ReturnType<typeof useNoteEditor>
+  const summary = (id: string, title = 'Nota') => ({ id, topic_id: 't1', title, word_count: 3, plain_preview: null, flashcards_count: 0, updated_at: '2026-11-01T10:00:00Z' }) as unknown as NoteSummary
+
+  beforeEach(() => {
+    vi.useFakeTimers()
+    apiMock.mockReset()
+    useNoteStore().$reset()
+    useNoteStore().notes = [summary('n1'), summary('n2', 'Outra')]
+    scope = effectScope()
+    editor = scope.run(() => useNoteEditor(ref('t1')))!
+  })
+
+  afterEach(() => {
+    scope.stop()
+    vi.useRealTimers()
+  })
+
+  it('abrir um item da lista busca GET /notes/{id}; o editor espera o content', async () => {
+    let answer!: (v: unknown) => void
+    apiMock.mockReturnValueOnce(new Promise(r => { answer = r }))
+    const opening = editor.openNoteEditor(useNoteStore().notes[0]!)
+    expect(apiMock).toHaveBeenCalledWith('/notes/n1')
+    expect(editor.noteLoading.value).toBe(true)
+    expect(editor.editingNote.value?.id).toBe('n1')
+
+    answer({ data: { ...summary('n1'), word_count: 1, content: doc('do servidor') } })
+    await opening
+    expect(editor.noteLoading.value).toBe(false)
+    expect(editor.noteContent.value).toEqual(doc('do servidor'))
+    expect(editor.editingNote.value).toMatchObject({ id: 'n1', content: doc('do servidor') })
+    // The list keeps only the summary (fresh metadata, no content)
+    expect(useNoteStore().notes[0]).toMatchObject({ id: 'n1', word_count: 1 })
+    expect(useNoteStore().notes[0]).not.toHaveProperty('content')
+  })
+
+  it('uma resposta atrasada não preenche o editor de outra nota', async () => {
+    let first!: (v: unknown) => void
+    apiMock.mockReturnValueOnce(new Promise(r => { first = r }))
+      .mockResolvedValueOnce({ data: { ...summary('n2', 'Outra'), content: doc('nota B') } })
+    void editor.openNoteEditor(useNoteStore().notes[0]!)
+    editor.closeEditor()
+    await editor.openNoteEditor(useNoteStore().notes[1]!)
+    first({ data: { ...summary('n1'), content: doc('nota A') } })
+    await vi.advanceTimersByTimeAsync(0)
+    expect(editor.editingNote.value?.id).toBe('n2')
+    expect(editor.noteContent.value).toEqual(doc('nota B'))
+  })
+
+  it('falha ao abrir: fecha o editor com aviso, sem editor vazio', async () => {
+    apiMock.mockRejectedValueOnce(httpError(500))
+    await editor.openNoteEditor(useNoteStore().notes[0]!)
+    expect(editor.editingNote.value).toBeNull()
+    expect(editor.noteLoading.value).toBe(false)
+  })
+
+  it('o documento é lido uma vez por pausa, não por tecla; acima de ~100 KB a pausa é de 2,5 s', async () => {
+    apiMock.mockResolvedValueOnce({ data: { ...summary('n1'), content: doc('a') } })
+    await editor.openNoteEditor(useNoteStore().notes[0]!)
+    apiMock.mockResolvedValue({ data: { id: 'n1', title: 'Nota', word_count: 9, updated_at: '2026-11-01T10:05:00Z' } })
+    const read = vi.fn(() => doc('texto grande'))
+    for (let i = 0; i < 50; i++) editor.debouncedSave(read, 80_000)
+    expect(read).not.toHaveBeenCalled()
+    await vi.advanceTimersByTimeAsync(1000)
+    expect(puts()).toHaveLength(0)
+    await vi.advanceTimersByTimeAsync(1500)
+    expect(read).toHaveBeenCalledTimes(1)
+    expect(puts()).toHaveLength(1)
+    expect(puts()[0]![1].body).toEqual({ content: doc('texto grande') })
+    // The light PUT answer (no content) goes into the list item
+    expect(useNoteStore().notes[0]).toMatchObject({ word_count: 9, updated_at: '2026-11-01T10:05:00Z' })
+    expect(editor.saveState.value).toBe('saved')
   })
 })

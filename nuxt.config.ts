@@ -34,6 +34,9 @@ const EMAIL_PAGE_CHUNK = /\/pages\/(lembretes\/desativado|provas\/resultado)\.vu
 const ANALYTICS_CHUNK = /\/node_modules\/posthog-js\//
 // Consent banner/modal only matter online on a first visit: kept out of the precache too.
 const CONSENT_CHUNK = /\/components\/ui\/Consent(Banner|Modal)\.vue/
+// One-shot pages that only work online (onboarding, OAuth and checkout returns, reset link):
+// fetched when opened instead of in every install download (precache budget, prd-correcoes-experiencia Q2).
+const ONE_SHOT_PAGE_CHUNK = /\/pages\/(comecar|checkout\/sucesso|auth\/google\/callback|redefinir-senha)\.vue/
 
 const SECURITY_HEADERS = {
   'X-Frame-Options': 'DENY',
@@ -70,6 +73,7 @@ export default defineNuxtConfig({
               if (EMAIL_PAGE_CHUNK.test(id)) return '_nuxt/email-[hash].js'
               if (ANALYTICS_CHUNK.test(id)) return '_nuxt/analytics-[hash].js'
               if (CONSENT_CHUNK.test(id)) return '_nuxt/consent-[hash].js'
+              if (ONE_SHOT_PAGE_CHUNK.test(id)) return '_nuxt/once-[hash].js'
               return '_nuxt/[hash].js'
             },
           },
@@ -107,7 +111,7 @@ export default defineNuxtConfig({
       // Images are runtime-cached (below); never precache png/pdf (RF-05)
       globPatterns: ['**/*.{js,css,html,svg,ico,woff2}'],
       // Public/auth HTML only works online anyway (content or login): keep it out of the install download
-      globIgnores: ['termos/**', 'privacidade/**', 'planos/**', 'ajuda/**', 'entrar/**', 'criar-conta/**', 'esqueci-senha/**', '_nuxt/email-*.js', '_nuxt/analytics-*.js', '_nuxt/consent-*.js'],
+      globIgnores: ['termos/**', 'privacidade/**', 'planos/**', 'ajuda/**', 'entrar/**', 'criar-conta/**', 'esqueci-senha/**', '_nuxt/email-*.js', '_nuxt/analytics-*.js', '_nuxt/consent-*.js', '_nuxt/once-*.js'],
       // Heavy on-demand chunks (pdf.js ~330 KB) stay out of the install download;
       // maximumFileSizeToCacheInBytes would fail the build instead of skipping.
       manifestTransforms: [

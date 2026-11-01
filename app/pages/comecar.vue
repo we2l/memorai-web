@@ -355,12 +355,9 @@ async function generateFromText() {
   }, 1500)
 
   try {
-    // Reuse the caderno if a previous attempt already created it (0 cards keeps it)
-    if (!createdTopicId.value) {
-      const topicRes = await $api<any>('/topics', { method: 'POST', body: { name } })
-      createdTopicId.value = topicRes.data.id
-      void createExamIfAny(createdTopicId.value)
-    }
+    // A failed attempt deletes its caderno, so each attempt creates one
+    const topicRes = await $api<any>('/topics', { method: 'POST', body: { name } })
+    createdTopicId.value = topicRes.data.id
 
     // Save text as a note in the topic
     await $api<any>(`/topics/${createdTopicId.value}/notes`, {
@@ -379,6 +376,7 @@ async function generateFromText() {
   } catch (e: any) {
     error.value = extractApiMessage(e, e?.data?.message || 'Erro ao gerar cards. Tente novamente.')
     step.value = 1
+    discardAttemptTopic()
   } finally {
     generating.value = false
     clearInterval(interval)
@@ -390,6 +388,7 @@ async function acceptOrFail(cards: any[]) {
   if (!cards.length) {
     error.value = ZERO_CARDS_MESSAGE
     step.value = 1
+    discardAttemptTopic()
     return
   }
   // AcceptCardsRequest requires the top-level topic_id (B2)
@@ -397,8 +396,17 @@ async function acceptOrFail(cards: any[]) {
     method: 'POST',
     body: { topic_id: createdTopicId.value, cards },
   })
+  void createExamIfAny(createdTopicId.value)
   generatedCount.value = cards.length
   step.value = 3
+}
+
+/** A failed attempt leaves no empty caderno behind (RF-F2); the material stays in the form. */
+function discardAttemptTopic() {
+  const id = createdTopicId.value
+  if (!id) return
+  createdTopicId.value = ''
+  $api(`/topics/${id}`, { method: 'DELETE' }).catch((e: unknown) => reportApiError(e, { silent: true }))
 }
 
 async function createExamIfAny(topicId: string) {
@@ -426,11 +434,8 @@ async function generateFromTopic() {
 
   try {
     const name = topicInput.value.trim()
-    if (!createdTopicId.value) {
-      const topicRes = await $api<any>('/topics', { method: 'POST', body: { name } })
-      createdTopicId.value = topicRes.data.id
-      void createExamIfAny(createdTopicId.value)
-    }
+    const topicRes = await $api<any>('/topics', { method: 'POST', body: { name } })
+    createdTopicId.value = topicRes.data.id
 
     const result = await aiJob.run<{ cards: any[] }>('/ai/generate-cards', {
       source: 'free',
@@ -442,6 +447,7 @@ async function generateFromTopic() {
   } catch (e: any) {
     error.value = extractApiMessage(e, e?.data?.message || 'Erro ao gerar cards. Tente novamente.')
     step.value = 1
+    discardAttemptTopic()
   } finally {
     generating.value = false
     clearInterval(interval)

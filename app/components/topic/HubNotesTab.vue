@@ -99,9 +99,11 @@
       <div v-else class="py-6">
         <TopicEmptyStateOnboarding
           @paste="$emit('create-note')"
-          @upload-pdf="$emit('create-note')"
+          @upload-pdf="pdfInput?.click()"
           @import-anki="navigateTo('/importar')"
         />
+        <!-- "Enviar PDF" goes through the same upload as the StartCard (select-file), not the note editor -->
+        <input ref="pdfInput" type="file" accept=".pdf,application/pdf" class="hidden" @change="onPdfSelected" />
       </div>
     </div>
 
@@ -246,6 +248,14 @@ const emit = defineEmits<{
 const showMenu = ref(false)
 const showMindMap = ref(false)
 const titleRef = ref<HTMLElement>()
+const pdfInput = ref<HTMLInputElement>()
+
+function onPdfSelected(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = ''
+  if (file) emit('select-file', file)
+}
 const noteToDelete = ref<Note | null>(null)
 const showDeleteNoteConfirm = computed({
   get: () => noteToDelete.value !== null,

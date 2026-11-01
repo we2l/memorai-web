@@ -392,9 +392,10 @@ async function acceptOrFail(cards: any[]) {
     step.value = 1
     return
   }
+  // AcceptCardsRequest requires the top-level topic_id (B2)
   await $api('/ai/accept-cards', {
     method: 'POST',
-    body: { cards: cards.map((c: any) => ({ ...c, topic_id: createdTopicId.value })) },
+    body: { topic_id: createdTopicId.value, cards },
   })
   generatedCount.value = cards.length
   step.value = 3

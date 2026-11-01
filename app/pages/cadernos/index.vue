@@ -686,7 +686,6 @@ const nextStep = useNextStep({
 
 const aiGenerate = useAiGenerate({
   topicId: selectedTopicId,
-  topicCards,
   activeTab,
   onReload: async () => { if (selectedTopicId.value) await loadTopicData(selectedTopicId.value) },
 })

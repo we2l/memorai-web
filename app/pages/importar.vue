@@ -23,7 +23,7 @@
         @dragleave="dragOver = false"
         @drop.prevent="handleDrop"
       >
-        <p class="text-sm text-base-primary/[0.55]">ou arraste e solte aqui</p>
+        <p class="text-sm text-base-muted">ou arraste e solte aqui</p>
       </div>
     </div>
 
@@ -35,7 +35,7 @@
         <!-- Baralhos do Anki -->
         <div class="mb-4">
           <p class="text-label mb-2">Baralhos do Anki ({{ store.preview.decks.length }})</p>
-          <div v-for="deck in store.preview.decks" :key="deck.name" class="flex items-center justify-between py-2 border-b border-surface-tertiary last:border-0">
+          <div v-for="deck in store.preview.decks" :key="deck.name" class="flex items-center justify-between py-2 border-b border-base last:border-0">
             <div>
               <span class="text-small text-base-primary">{{ deck.name }}</span>
               <span class="text-micro text-base-muted ml-2">{{ deck.cards_count }} cards</span>

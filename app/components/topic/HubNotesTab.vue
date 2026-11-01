@@ -85,7 +85,7 @@
 
           <!-- Delete button (hover only) -->
           <button
-            class="absolute top-4 right-4 p-1.5 rounded-lg text-base-muted/40 hover:text-[var(--badge-danger-text)] hover:bg-danger/10 opacity-0 group-hover:opacity-100 transition-all duration-150 z-10"
+            class="absolute top-4 right-4 p-1.5 rounded-lg text-base-muted hover:text-[var(--badge-danger-text)] hover:bg-danger/10 opacity-0 group-hover:opacity-100 transition-all duration-150 z-10"
             title="Excluir nota"
             @click.stop="noteToDelete = note"
            aria-label="Excluir nota">

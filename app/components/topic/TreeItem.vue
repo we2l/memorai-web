@@ -104,7 +104,7 @@
         </button>
 
         <!-- Document icon -->
-        <FileText :size="13" class="shrink-0 text-base-muted/50" aria-hidden="true" />
+        <FileText :size="13" class="shrink-0 text-base-muted" aria-hidden="true" />
 
         <!-- Name -->
         <span class="flex-1 truncate text-[12.5px]" :title="topic.name">

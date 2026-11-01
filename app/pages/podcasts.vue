@@ -59,7 +59,7 @@
           <div
             v-for="podcast in group.podcasts"
             :key="podcast.id"
-            class="card flex items-center gap-4 hover:border-base-muted/30 transition-colors"
+            class="card flex items-center gap-4 hover:border-base-muted transition-colors"
           >
             <!-- Status icon -->
             <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" :class="statusBg(podcast.status)">

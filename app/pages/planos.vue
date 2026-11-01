@@ -184,7 +184,11 @@ const pro = computed(() => limitOf('pro'))
 const freeLines = computed(() => benefitLines('free'))
 const proLines = computed(() => benefitLines('pro'))
 
-/** "R$ 287,90 no Pix ou 12x de R$ 23,99 sem juros no cartão" — numbers from GET /api/plans */
+/**
+ * "R$ 287,90 no Pix ou 12x de R$ 23,99 sem juros no cartão" only when the Stripe account offers
+ * installments (installments_max > 1); otherwise "à vista no cartão" (prd-custo-abuso-p0 RF-7).
+ * Numbers from GET /api/plans.
+ */
 const annualCopy = computed(() => {
   const annual = pro.value?.prices.annual
   if (!annual) return ''

@@ -7,6 +7,8 @@ export interface User {
   default_learning_mode: string
   subscription_status?: SubscriptionStatus | null
   onboarding_completed: boolean
+  /** ISO 8601. Older API builds omit it (the activation checklist then stays hidden). */
+  created_at?: string
   /** False for Google sign-ups that never defined a password (RF-B3). */
   has_password?: boolean
   /** LGPD analytics consent: null = not decided (prd-analytics-posthog RF-B03). */

@@ -36,20 +36,21 @@
     />
 
     <!-- Activation (new users only) -->
-    <section v-if="stats && isNewUser" class="home__activation">
+    <section v-if="stats && isNewUser && activation" class="home__activation">
       <UiActivationChecklist
-        :has-topics="Number(stats.total_decks) > 0"
-        :has-material="Number(stats.total_decks) > 0"
+        :has-topics="activation.hasTopics"
+        :has-material="activation.hasMaterial"
         :has-cards="Number(stats.total_cards) > 0"
         :has-reviewed="Number(stats.cards_reviewed_today) > 0 || Number(stats.streak) > 0"
         :streak="Number(stats.streak)"
+        :topic-id="activation.topicId"
       />
     </section>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { Stats, TopicProgress, BacklogStats } from '~/types'
+import type { Stats, TopicProgress, BacklogStats, Topic } from '~/types'
 
 const auth = useAuthStore()
 const examStore = useExamStore()
@@ -82,6 +83,25 @@ const isNewUser = computed(() => {
   if (!auth.user?.created_at) return false
   return Date.now() - new Date(auth.user.created_at).getTime() < 7 * 24 * 60 * 60 * 1000
 })
+
+// Checklist data that /stats lacks (new users only): cadernos from the tree, material = notes or PDFs
+const activation = ref<{ hasTopics: boolean; hasMaterial: boolean; topicId: string | null } | null>(null)
+
+async function loadActivation() {
+  const [treeRes, docsRes] = await Promise.allSettled([
+    $api<{ data: Topic[] }>('/topics'),
+    $api<{ data: unknown[] }>('/documents'),
+  ])
+  const tree = treeRes.status === 'fulfilled' ? treeRes.value.data : []
+  const topics = flattenTopics(tree)
+  activation.value = {
+    hasTopics: topics.length > 0,
+    hasMaterial: topics.some(t => (t.notes_count ?? 0) > 0) || (docsRes.status === 'fulfilled' && docsRes.value.data.length > 0),
+    topicId: tree[0]?.id ?? null,
+  }
+  // Decorative block: silent on failure
+  for (const r of [treeRes, docsRes]) if (r.status === 'rejected') reportApiError(r.reason, { silent: true })
+}
 
 const feedItems = computed(() => {
   const items = [...pendingActions.value]
@@ -155,6 +175,7 @@ async function loadData() {
 
   featureUsage.fetchUsage()
   examStore.fetchUpcoming()
+  if (isNewUser.value) void loadActivation()
 }
 
 const { run } = useApiAction()

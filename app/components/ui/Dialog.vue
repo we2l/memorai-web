@@ -9,7 +9,7 @@
       <div
         v-if="modelValue"
         class="fixed inset-0 z-overlay flex bg-scrim"
-        :class="LAYOUT[placement].scrim"
+        :class="[LAYOUT[placement].scrim, size === 'xl' && placement === 'center' && 'max-sm:p-0']"
         @click.self="dismiss"
       >
         <div
@@ -54,7 +54,8 @@ const props = withDefaults(defineProps<{
   modelValue: boolean
   title: string
   description?: string
-  size?: 'sm' | 'md' | 'lg'
+  /** xl: wide reading (the PDF), the whole screen on the phone */
+  size?: 'sm' | 'md' | 'lg' | 'xl'
   /** false: no close button, Esc and the backdrop do nothing (a decision is required) */
   dismissible?: boolean
   role?: 'dialog' | 'alertdialog'
@@ -67,7 +68,7 @@ const panel = ref<HTMLElement | null>(null)
 const titleId = useId()
 const descriptionId = `${titleId}-desc`
 
-const SIZES = { sm: 'sm:max-w-sm', md: 'sm:max-w-lg', lg: 'sm:max-w-2xl' }
+const SIZES = { sm: 'sm:max-w-sm', md: 'sm:max-w-lg', lg: 'sm:max-w-2xl', xl: 'h-full sm:h-auto sm:max-w-5xl' }
 const LAYOUT: Record<DialogPlacement, { scrim: string; panel: string }> = {
   center: { scrim: 'items-center justify-center p-4', panel: 'max-h-full rounded-float' },
   bottom: { scrim: 'items-end justify-center', panel: 'max-h-9/10 rounded-t-float pb-safe-bottom' },

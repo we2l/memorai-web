@@ -1,53 +1,34 @@
 <template>
-  <!-- Loading -->
-  <div v-if="loading" class="mb-4 px-4 py-4 rounded-xl bg-accent-primary-subtle flex items-center gap-3">
-    <UiBaigiMascot state="thinking" :visible="true" :size="28" />
-    <p class="text-small text-accent-primary">Gerando cards com IA...</p>
-  </div>
-
-  <!-- Cards for review -->
-  <div v-else-if="cards.length" class="mb-4">
-    <div class="flex items-center justify-between mb-3">
-      <p class="text-small text-accent-primary font-medium"><Sparkles :size="14" class="inline text-[var(--badge-primary-text)]" /> {{ cards.length }} cards gerados — revise antes de aceitar</p>
-      <button class="btn-primary !py-2 !px-3.5 !min-h-[2.75rem] text-small" @click="$emit('accept-all')">
-        Aceitar todos
-      </button>
-    </div>
-    <div class="space-y-2">
-      <div v-for="(card, i) in cards" :key="i" class="px-4 py-3 rounded-xl bg-[var(--border-divider)]/50">
-        <div>
-          <p class="text-micro text-base-muted mb-0.5">Frente</p>
-          <div class="text-body text-base-primary line-clamp-2" v-html="sanitize(stripMedia(card.front))" />
-          <div class="flex items-center gap-1.5 mt-1" v-if="hasImage(card.front) || hasCloze(card.front)">
-            <span v-if="hasImage(card.front)" class="text-micro px-1.5 py-0.5 rounded bg-[var(--border-divider)] text-base-muted">🖼 imagem</span>
-            <span v-if="hasCloze(card.front)" class="text-micro px-1.5 py-0.5 rounded bg-[var(--border-divider)] text-base-muted">[...] lacuna</span>
-          </div>
+  <UiSection v-if="cards.length" :title="`${cards.length} cards da foto`" description="Revise antes de aceitar: eles entram na biblioteca deste caderno." data-testid="photo-cards">
+    <template #action>
+      <UiButton size="sm" @click="$emit('accept-all')">Aceitar todos</UiButton>
+    </template>
+    <ul class="divide-y divide-line">
+      <li v-for="(card, i) in cards" :key="i" class="py-3">
+        <p class="text-label text-fg-muted">Frente</p>
+        <div class="line-clamp-2 text-body text-fg-strong" v-html="sanitize(stripMedia(card.front))" />
+        <p class="mt-2 text-label text-fg-muted">Verso</p>
+        <div class="line-clamp-2 text-meta text-fg" v-html="sanitize(stripMedia(card.back))" />
+        <p v-if="hasImage(card.front) || hasImage(card.back) || hasCloze(card.front)" class="mt-1 flex gap-1.5">
+          <UiTag v-if="hasImage(card.front) || hasImage(card.back)">imagem</UiTag>
+          <UiTag v-if="hasCloze(card.front)">lacuna</UiTag>
+        </p>
+        <div class="mt-2 flex flex-wrap gap-2">
+          <UiButton size="sm" :icon-left="Check" @click="$emit('accept', i)">Aceitar</UiButton>
+          <UiButton size="sm" variant="ghost" :icon-left="PenLine" @click="$emit('edit', i)">Editar</UiButton>
+          <UiButton size="sm" variant="ghost" :icon-left="X" @click="$emit('discard', i)">Descartar</UiButton>
         </div>
-        <div class="mt-1.5 pt-1.5 border-t border-base">
-          <p class="text-micro text-base-muted mb-0.5">Verso</p>
-          <div class="text-[1rem] leading-relaxed text-base-secondary line-clamp-2" v-html="sanitize(stripMedia(card.back))" />
-          <div class="flex items-center gap-1.5 mt-1" v-if="hasImage(card.back)">
-            <span class="text-micro px-1.5 py-0.5 rounded bg-[var(--border-divider)] text-base-muted">🖼 imagem</span>
-          </div>
-        </div>
-        <div class="flex items-center gap-2 mt-2 pt-2 border-t border-base">
-          <button class="btn-primary !py-1.5 !px-3 !min-h-0 text-small" @click="$emit('accept', i)">✓ Aceitar</button>
-          <button class="btn-secondary !py-1.5 !px-3 !min-h-0 text-small" @click="$emit('edit', i)"><PenLine :size="12" class="inline" /> Editar</button>
-          <button class="btn-secondary !py-1.5 !px-3 !min-h-0 text-small text-[var(--badge-danger-text)]" @click="$emit('discard', i)"><X :size="12" class="inline" /> Descartar</button>
-        </div>
-      </div>
-    </div>
-  </div>
+      </li>
+    </ul>
+  </UiSection>
 </template>
 
 <script setup lang="ts">
-import { Sparkles, PenLine, X } from 'lucide-vue-next'
+// Cards the AI read from a photo, waiting to be accepted on the library (usePhotoCards).
+import { Check, PenLine, X } from 'lucide-vue-next'
 const { sanitize } = useSanitize()
 
-defineProps<{
-  cards: any[]
-  loading: boolean
-}>()
+defineProps<{ cards: any[] }>()
 
 defineEmits<{
   (e: 'accept', index: number): void

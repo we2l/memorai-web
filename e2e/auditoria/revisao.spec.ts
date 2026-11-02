@@ -115,7 +115,7 @@ test.describe('Revisão — caminho feliz', () => {
     await expect(page.getByRole('button', { name: 'Toque para ver a resposta' })).toBeVisible()
 
     await page.keyboard.press('e')
-    await expect(page.getByRole('dialog', { name: 'Editar flashcard' })).toBeVisible()
+    await expect(page.getByRole('dialog', { name: 'Editar card' })).toBeVisible()
     // Com o modal aberto, atalhos não avaliam
     await page.keyboard.press('4')
     expect(posts).toBe(0)

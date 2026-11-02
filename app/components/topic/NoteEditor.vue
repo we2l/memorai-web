@@ -1,85 +1,68 @@
 <template>
-  <div class="notion-editor" ref="editorWrapperRef">
-    <!-- Bubble Menu (manually positioned) -->
+  <div ref="editorWrapperRef" class="relative w-full" :class="{ 'is-reading': !editable }">
+    <!-- Formatting of the selection, only while editing (the card/IA/tira-dúvidas actions are SelectionActions) -->
     <div
-      v-if="showBubbleMenu"
+      v-if="showBubbleMenu && editable"
       ref="bubbleMenuRef"
-      class="bubble-menu"
+      class="absolute z-popover flex -translate-x-1/2 items-center gap-0.5 rounded-control border border-line-strong bg-float px-1.5 py-1 shadow-float"
       :style="bubbleMenuStyle"
+      role="toolbar"
+      aria-label="Formatação"
     >
       <button
         v-for="btn in bubbleButtons"
         :key="btn.label"
-        class="bubble-btn"
-        :class="{ active: btn.active?.() }"
+        type="button"
+        class="flex size-8 items-center justify-center rounded-row transition-colors duration-nav"
+        :class="btn.active?.() ? 'bg-action-subtle text-action-fg' : 'text-fg hover:bg-subtle hover:text-fg-strong'"
         :title="btn.label"
+        :aria-label="btn.label"
+        :aria-pressed="btn.active?.() ? 'true' : 'false'"
         @mousedown.prevent="btn.action"
-       :aria-label="btn.label">
-        <component :is="btn.icon" :size="16" />
-      </button>
-      <span class="bubble-separator" />
-      <button
-        class="bubble-action"
-        title="Criar card"
-        @mousedown.prevent="emit('create-card')"
       >
-        <Zap :size="14" /> Card
-      </button>
-      <button
-        class="bubble-action"
-        title="Perguntar sobre este trecho"
-        aria-label="Perguntar sobre este trecho"
-        @mousedown.prevent="emit('ask-ai')"
-        @keydown.enter.prevent="emit('ask-ai')"
-      >
-        <Sparkles :size="12" class="inline" aria-hidden="true" /> Perguntar
-      </button>
-      <button
-        v-if="topicId"
-        class="bubble-action"
-        title="Transformar em tópico"
-        @mousedown.prevent="createSubpageFromSelection"
-      >
-        <FolderOpen :size="12" class="inline" aria-hidden="true" /> Tópico
+        <component :is="btn.icon" class="size-4" aria-hidden="true" />
       </button>
     </div>
 
     <!-- Editor content -->
     <EditorContent :editor="editor" class="prose-notion" />
 
-    <!-- Editor hint -->
-    <div class="editor-hint">
-      <span><kbd>/</kbd> comandos</span>
-      <span><kbd>Ctrl+Shift+C</kbd> cloze</span>
+    <!-- Editor hint (editing only) -->
+    <div v-if="editable" class="flex select-none items-center gap-4 border-t border-line px-3 py-2 text-label text-fg-muted">
+      <span><kbd class="mr-1 rounded-tag border border-line-strong bg-subtle px-1.5 font-sans text-label text-fg">/</kbd> comandos</span>
+      <span><kbd class="mr-1 rounded-tag border border-line-strong bg-subtle px-1.5 font-sans text-label text-fg">Ctrl+Shift+C</kbd> cloze</span>
     </div>
 
     <!-- Slash command menu -->
     <div
       v-if="slashMenu.open"
       ref="slashMenuRef"
-      class="slash-menu"
+      class="absolute z-popover max-h-80 w-72 overflow-y-auto rounded-float border border-line-strong bg-float p-1.5 shadow-float"
       :style="slashMenu.style"
     >
-      <div class="slash-menu-list">
+      <div class="flex flex-col" role="listbox" aria-label="Blocos">
         <button
           v-for="(item, index) in filteredSlashItems"
           :key="item.label"
-          class="slash-item"
-          :class="{ selected: index === slashMenu.selectedIndex }"
+          type="button"
+          role="option"
+          :aria-selected="index === slashMenu.selectedIndex ? 'true' : 'false'"
+          class="flex w-full items-center gap-3 rounded-row px-3 py-2 text-left"
+          :class="index === slashMenu.selectedIndex ? 'bg-action-subtle' : 'hover:bg-subtle'"
           @mousedown.prevent="selectSlashItem(item)"
           @mouseenter="slashMenu.selectedIndex = index"
         >
-          <span class="slash-icon">
-            <component :is="item.icon" :size="18" />
+          <span class="flex size-9 shrink-0 items-center justify-center rounded-row" :class="index === slashMenu.selectedIndex ? 'bg-raised text-action-fg' : 'bg-subtle text-fg'">
+            <component :is="item.icon" class="size-4.5" aria-hidden="true" />
           </span>
-          <span class="slash-text">
-            <span class="slash-label">{{ item.label }}</span>
-            <span class="slash-desc">{{ item.description }}</span>
+          <span class="flex min-w-0 flex-col">
+            <span class="text-meta font-medium text-fg-strong">{{ item.label }}</span>
+            <span class="text-label text-fg-muted">{{ item.description }}</span>
           </span>
         </button>
-        <div v-if="!filteredSlashItems.length" class="slash-empty">
+        <p v-if="!filteredSlashItems.length" class="p-3 text-center text-meta text-fg-muted">
           Nenhum resultado
-        </div>
+        </p>
       </div>
     </div>
 
@@ -99,25 +82,33 @@
 import { useEditor, EditorContent } from '@tiptap/vue-3'
 import { Callout } from '~/extensions/callout'
 import { SubpageBlock } from '~/extensions/subpage-block'
+import { PageLinks } from '~/extensions/page-links'
 import {
-  Bold, Italic, Underline as UnderlineIcon, Strikethrough, LinkIcon, Zap,
+  Bold, Italic, Underline as UnderlineIcon, Strikethrough, LinkIcon,
   Heading1, Heading2, Heading3, List, ListOrdered, Quote, Minus,
-  ImagePlus, AlertTriangle, Lightbulb, ShieldAlert, Type, Sparkles,
+  ImagePlus, AlertTriangle, Lightbulb, ShieldAlert, Type,
   FolderOpen,
 } from 'lucide-vue-next'
 
+// The text of a note (prd-4c-material-v3 RF-F2): reading (`editable: false`, a PDF note) or editing (the
+// slash menu, formatting of the selection, cloze). `pageLinks` turns the job's "(pág. X-Y)" into links
+// that open the PDF on that page, only on screen (extensions/page-links.ts). The actions on a selected
+// excerpt (card, 3 cards with AI, tira-dúvidas) live outside, in material/SelectionActions.vue.
 const props = defineProps<{
   modelValue?: Record<string, any> | null
   editable?: boolean
   topicId?: string | null
+  /** A PDF note: "(pág. X-Y)" become links (emits `open-page`) */
+  pageLinks?: boolean
 }>()
 
 const emit = defineEmits<{
   /** A user edit. `read` serializes the document (on demand); `size` is its ProseMirror size. */
   (e: 'edit', read: () => Record<string, any>, size: number): void
-  (e: 'create-card'): void
-  (e: 'ask-ai'): void
+  (e: 'open-page', page: number): void
   (e: 'navigate-topic', topicId: string): void
+  /** The document is on screen (the outline can look for its headings) */
+  (e: 'ready'): void
 }>()
 
 const editorWrapperRef = ref<HTMLElement>()
@@ -154,12 +145,7 @@ function updateBubbleMenu() {
   const centerX = (coords.left + endCoords.right) / 2 - wrapperRect.left
   const topY = Math.min(coords.top, endCoords.top) - wrapperRect.top - 48
 
-  bubbleMenuStyle.value = {
-    position: 'absolute',
-    top: `${topY}px`,
-    left: `${centerX}px`,
-    transform: 'translateX(-50%)',
-  }
+  bubbleMenuStyle.value = { top: `${topY}px`, left: `${centerX}px` }
   showBubbleMenu.value = true
 }
 
@@ -253,7 +239,6 @@ function handleSlashDetection(editorInstance: any) {
     const wrapperRect = editorWrapperRef.value?.getBoundingClientRect()
     if (wrapperRect) {
       slashMenu.style = {
-        position: 'absolute',
         top: `${coords.bottom - wrapperRect.top + 8}px`,
         left: `${coords.left - wrapperRect.left}px`,
       }
@@ -291,6 +276,8 @@ const editor = useEditor({
   editable: props.editable !== false,
   extensions: [
     ...useTiptapBase({
+      // tabindex: the outline ("Nesta parte") puts the focus on the heading it scrolls to
+      starterKit: { heading: { HTMLAttributes: { tabindex: '-1' } } },
       link: { openOnClick: false, HTMLAttributes: { class: 'notion-link' } },
       placeholder: ({ node, pos }) => {
         if (pos === 0 || (node.type.name === 'paragraph' && pos <= 1)) {
@@ -303,7 +290,17 @@ const editor = useEditor({
     SubpageBlock.configure({
       onNavigate: (topicId: string) => emit('navigate-topic', topicId),
     }),
+    ...(props.pageLinks ? [PageLinks.configure({ onOpen: (page: number) => emit('open-page', page) })] : []),
   ],
+  onCreate: ({ editor: ed }) => {
+    // The note may have arrived between setup and mount (lazy chunk): the watcher below had no editor yet
+    if (props.modelValue && props.modelValue !== docJSON) {
+      ed.commands.setContent(props.modelValue, { emitUpdate: false })
+      docJSON = props.modelValue
+      docStale = false
+    }
+    void nextTick(() => emit('ready'))
+  },
   onUpdate: ({ editor: ed }) => {
     docStale = true
     emit('edit', readDoc, ed.state.doc.content.size)
@@ -391,24 +388,6 @@ function onSubpageSelect(topicId: string) {
   }
 }
 
-async function createSubpageFromSelection() {
-  if (!editor.value || !props.topicId) return
-
-  const { state } = editor.value
-  const { from, to } = state.selection
-  if (from === to) return
-
-  const selectedText = state.doc.textBetween(from, to).trim()
-  if (!selectedText) return
-
-  // Create the topic with selected text as name
-  const created = await topicStore.create({ name: selectedText, parent_id: props.topicId })
-  if (created?.id) {
-    // Replace selection with subpage block
-    editor.value.chain().focus().deleteRange({ from, to }).insertSubpage(created.id).run()
-  }
-}
-
 // External content (another note, a restored draft, AI preview, PDF generation): not a user edit,
 // so no autosave. The JSON this editor produced comes back as the same object: a reference check
 // replaces the 2 stringifies per edit
@@ -421,7 +400,8 @@ watch(() => props.modelValue, (val) => {
 
 watch(() => props.editable, (val) => {
   if (!editor.value) return
-  editor.value.setEditable(val !== false)
+  // Reading ↔ editing is not an edit: no update event, no autosave
+  editor.value.setEditable(val !== false, false)
 })
 
 // === Image upload ===
@@ -472,337 +452,49 @@ onBeforeUnmount(() => {
 </script>
 
 <style>
-/* === Notion-like Editor Styles === */
-
-.notion-editor {
-  position: relative;
-  width: 100%;
-}
-
-/* Editor content area */
+/* Rich text of a note (prd-4c-material-v3 RF-F2): the only CSS of the editor, because the content is
+   ProseMirror's own DOM (no classes to put utilities on). Tokens only (ADR-027 §1): sizes from the @theme
+   scales, colors from the semantic tokens, nothing literal. Off-screen blocks skip style, layout and paint
+   (content-visibility): typing in a 300k-character note pays for what is on screen. */
 .prose-notion .tiptap {
   outline: none;
+  font-size: var(--text-body);
   line-height: 1.7;
   color: var(--fg);
+  overflow-wrap: break-word;
 }
-
-.prose-notion .tiptap > *:first-child {
-  margin-top: 0;
+.prose-notion .tiptap > * {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 1.7em;
 }
-
-/* Paragraphs */
-.prose-notion .tiptap p {
-  margin: 0.5em 0;
-  font-size: 1rem;
+.prose-notion .tiptap > :first-child { margin-top: 0; }
+.prose-notion .tiptap p { margin: 0.5em 0; }
+.prose-notion .tiptap :is(h1, h2, h3) {
+  color: var(--fg-strong);
+  font-weight: var(--font-weight-strong);
+  letter-spacing: -0.01em;
+  scroll-margin-top: calc(var(--topnav-h) + 4.5rem);
+  outline: none;
 }
-
-/* Headings */
-.prose-notion .tiptap h1 {
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--text-heading);
-  margin: 2em 0 0.25em;
-  line-height: 1.2;
-}
-
-.prose-notion .tiptap h2 {
-  font-size: 1.75rem;
-  font-weight: 600;
-  color: var(--text-heading);
-  margin: 1.5em 0 0.25em;
-  line-height: 1.25;
-}
-
-.prose-notion .tiptap h3 {
-  font-size: 1.375rem;
-  font-weight: 600;
-  color: var(--text-heading);
-  margin: 1.25em 0 0.25em;
-  line-height: 1.3;
-}
-
-/* Lists */
-.prose-notion .tiptap ul {
-  list-style: disc;
-  padding-left: 1.5em;
-  margin: 0.25em 0;
-}
-
-.prose-notion .tiptap ol {
-  list-style: decimal;
-  padding-left: 1.5em;
-  margin: 0.25em 0;
-}
-
-.prose-notion .tiptap li {
-  margin-bottom: 0.15em;
-}
-
-.prose-notion .tiptap li p {
-  margin: 0;
-}
-
-/* Blockquote */
-.prose-notion .tiptap blockquote {
-  border-left: 3px solid var(--color-accent-soft);
-  padding-left: 1em;
-  margin: 0.75em 0;
-  opacity: 0.85;
-}
-
-/* Horizontal rule */
-.prose-notion .tiptap hr {
-  border: none;
-  border-top: 1px solid var(--border-divider);
-  margin: 2em 0;
-  opacity: 0.6;
-}
-
-/* Images */
-.prose-notion .tiptap img {
-  max-width: 100%;
-  border-radius: 0.5rem;
-  margin: 1.5em 0;
-}
-
-/* Callouts */
-.prose-notion .tiptap .callout {
-  border-radius: 0.5rem;
-  padding: 1rem 1.25rem;
-  margin: 1.5em 0;
-}
-
-.prose-notion .tiptap .callout[data-callout-type="error"] {
-  background: var(--state-danger-bg);
-  border-left: 3px solid var(--color-danger);
-}
-
-.prose-notion .tiptap .callout[data-callout-type="insight"] {
-  background: var(--state-success-bg);
-  border-left: 3px solid var(--color-success);
-}
-
-.prose-notion .tiptap .callout[data-callout-type="gotcha"] {
-  background: var(--state-warning-bg);
-  border-left: 3px solid var(--color-warning);
-}
-
-.prose-notion .tiptap .callout[data-callout-type="info"] {
-  background: var(--state-info-bg);
-  border-left: 3px solid var(--color-info);
-}
-
-/* Link styling */
-.prose-notion .tiptap .notion-link {
-  color: var(--color-accent-primary);
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  cursor: pointer;
-}
-
-.prose-notion .tiptap .notion-link:hover {
-  color: var(--color-accent-primary-hover);
-}
-
-/* Placeholder */
-.prose-notion .tiptap p.is-editor-empty:first-child::before {
-  content: attr(data-placeholder);
-  float: left;
-  pointer-events: none;
-  height: 0;
-  color: var(--text-muted);
-  opacity: 0.7;
-}
-
-/* Cloze chips */
-.prose-notion .tiptap .cloze-chip {
-  background: var(--badge-primary-bg);
-  color: var(--color-accent-primary);
-  padding: 0.1em 0.4em;
-  border-radius: 4px;
-  font-weight: 500;
-}
-
-/* === Bubble Menu === */
-
-.bubble-menu {
-  z-index: 50;
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  padding: 4px 8px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-base);
-  border-radius: 12px;
-  box-shadow: var(--elev-raised);
-  animation: fadeIn 150ms ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateX(-50%) translateY(4px); }
-  to { opacity: 1; transform: translateX(-50%) translateY(0); }
-}
-
-.bubble-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  color: var(--fg);
-  transition: all 150ms;
-}
-
-.bubble-btn:hover {
-  background: var(--bg-soft);
-  color: var(--text-heading);
-}
-
-.bubble-btn.active {
-  background: var(--badge-primary-bg);
-  color: var(--color-accent-primary);
-}
-
-.bubble-separator {
-  width: 1px;
-  height: 20px;
-  background: var(--border-base);
-  margin: 0 4px;
-}
-
-.bubble-action {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--fg);
-  transition: all 150ms;
-  white-space: nowrap;
-}
-
-.bubble-action:hover {
-  background: var(--badge-primary-bg);
-  color: var(--color-accent-primary);
-}
-
-/* === Slash Command Menu === */
-
-.slash-menu {
-  z-index: 50;
-  min-width: 280px;
-  max-width: 320px;
-  max-height: 320px;
-  overflow-y: auto;
-  background: var(--bg-card);
-  border: 1px solid var(--border-base);
-  border-radius: 14px;
-  box-shadow: var(--elev-float);
-  padding: 6px;
-  animation: fadeIn 150ms ease;
-}
-
-.slash-menu-list {
-  display: flex;
-  flex-direction: column;
-}
-
-.slash-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background 100ms;
-  text-align: left;
-  width: 100%;
-}
-
-.slash-item:hover,
-.slash-item.selected {
-  background: var(--badge-primary-bg);
-}
-
-.slash-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  background: var(--bg-soft);
-  color: var(--fg);
-  flex-shrink: 0;
-}
-
-.slash-item.selected .slash-icon,
-.slash-item:hover .slash-icon {
-  background: var(--color-primary-100);
-  color: var(--color-accent-primary);
-}
-
-.slash-text {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.slash-label {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--text-heading);
-}
-
-.slash-desc {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
-
-.slash-empty {
-  padding: 12px;
-  text-align: center;
-  color: var(--text-muted);
-  font-size: 0.875rem;
-}
-
-/* === Dark mode === */
-:root.dark .bubble-menu,
-:root.dark .slash-menu {
-  background: var(--bg-card);
-  border-color: var(--border-base);
-  box-shadow: var(--elev-float);
-}
-
-:root.dark .slash-icon {
-  background: var(--bg-soft);
-}
-
-/* Editor hint */
-.editor-hint {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.6875rem;
-  color: var(--text-muted);
-  border-top: 1px solid var(--border-base);
-  user-select: none;
-}
-
-.editor-hint kbd {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.125rem 0.375rem;
-  font-size: 0.625rem;
-  font-family: inherit;
-  border-radius: 4px;
-  border: 1px solid var(--border-base);
-  background: var(--bg-soft);
-  color: var(--fg);
-  margin-right: 0.25rem;
-}
+.prose-notion .tiptap h1 { font-size: var(--text-page-title-sm); line-height: 1.25; margin: 1.75em 0 0.4em; }
+.prose-notion .tiptap h2 { font-size: var(--text-section); line-height: 1.3; margin: 1.5em 0 0.35em; }
+.prose-notion .tiptap h3 { font-size: var(--text-body); line-height: 1.4; margin: 1.25em 0 0.25em; }
+.prose-notion .tiptap :is(h1, h2, h3):focus-visible { box-shadow: 0 0 0 2px var(--focus-ring); border-radius: var(--radius-tag); }
+.prose-notion .tiptap ul { list-style: disc; padding-left: 1.5em; margin: 0.25em 0; }
+.prose-notion .tiptap ol { list-style: decimal; padding-left: 1.5em; margin: 0.25em 0; }
+.prose-notion .tiptap li { margin-bottom: 0.15em; }
+.prose-notion .tiptap li p { margin: 0; }
+.prose-notion .tiptap blockquote { border-left: 3px solid var(--line-strong); padding-left: 1em; margin: 0.75em 0; color: var(--fg-muted); }
+.prose-notion .tiptap hr { border: none; border-top: 1px solid var(--line-strong); margin: 2em 0; }
+.prose-notion .tiptap img { max-width: 100%; border-radius: var(--radius-row); margin: 1.5em 0; }
+.prose-notion .tiptap .callout { border-radius: var(--radius-row); padding: 1rem 1.25rem; margin: 1.5em 0; border-left: 3px solid var(--state-info); background: var(--state-info-bg); }
+.prose-notion .tiptap .callout[data-callout-type="error"] { background: var(--state-danger-bg); border-left-color: var(--state-danger); }
+.prose-notion .tiptap .callout[data-callout-type="insight"] { background: var(--state-success-bg); border-left-color: var(--state-success); }
+.prose-notion .tiptap .callout[data-callout-type="gotcha"] { background: var(--state-warning-bg); border-left-color: var(--state-warning); }
+.prose-notion .tiptap :is(.notion-link, .page-link) { color: var(--action-fg); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+.prose-notion .tiptap .page-link { border-radius: var(--radius-tag); }
+.prose-notion .tiptap .page-link:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+.prose-notion .tiptap p.is-editor-empty:first-child::before { content: attr(data-placeholder); float: left; pointer-events: none; height: 0; color: var(--fg-muted); }
+.is-reading .prose-notion .tiptap p.is-editor-empty:first-child::before { content: none; }
+.prose-notion .tiptap .cloze-chip { background: var(--action-subtle); color: var(--action-fg); padding: 0.1em 0.4em; border-radius: var(--radius-tag); font-weight: 500; }
 </style>

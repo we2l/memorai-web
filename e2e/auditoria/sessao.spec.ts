@@ -91,7 +91,7 @@ test.describe('Sessão expirada no meio do uso', () => {
     await page.waitForURL('**/entrar?redirect=**', { timeout: 10_000 }).catch(() => {})
     if (!page.url().includes('/entrar')) {
       // Abrir o modal não chama a API: força a chamada salvando
-      const dialog = page.getByRole('dialog', { name: /flashcard/ })
+      const dialog = page.getByRole('dialog', { name: /^(Novo|Editar) card$/ })
       await dialog.locator('.ProseMirror').nth(0).click()
       await page.keyboard.type('Pergunta digitada antes do 401')
       await dialog.locator('.ProseMirror').nth(1).click()

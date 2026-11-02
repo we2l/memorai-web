@@ -59,6 +59,8 @@
 
   --container-page: 70rem;
   --container-prose: 42rem;
+  /* Material: sumário 240 + leitor ~720 + painel 340 (prd-4c-material-v3 RF-F1) */
+  --container-reading: 88rem;
 
   --ease-calm: cubic-bezier(0.2, 0, 0, 1);
 
@@ -175,3 +177,7 @@
 @utility duration-nav { transition-duration: var(--motion-nav); }
 @utility duration-respond { transition-duration: var(--motion-respond); }
 @utility duration-celebrate { transition-duration: var(--motion-celebrate); }
+
+/* Linha de lista longa (biblioteca de cards, prd-4c-material-v3 RF-F11): fora da tela não paga estilo,
+   layout nem pintura; o tamanho lembrado (auto) evita pulo na rolagem */
+@utility content-auto { content-visibility: auto; contain-intrinsic-size: auto 5.5rem; }

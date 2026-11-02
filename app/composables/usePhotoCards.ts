@@ -71,5 +71,30 @@ export function usePhotoCards(topicId: Ref<string | null>, onAccepted: () => Pro
     cards.value[index] = { ...cards.value[index], ...card }
   }
 
-  return { cards, fromOcr, accept, acceptAll, discard, saveLocal }
+  /** Photo of a page → suggested cards (POST /flashcards/from-image, polled). Also "+ Adicionar → Foto". */
+  const reading = ref(false)
+  async function processImage(file: File) {
+    if (!topicId.value || reading.value) return
+    reading.value = true
+    try {
+      const form = new FormData()
+      form.append('image', file)
+      form.append('topic_id', topicId.value)
+      form.append('count', '5')
+      const res = await $api<{ data: { id: string } }>('/flashcards/from-image', { method: 'POST', body: form })
+      const data = await pollUntil(async (signal) => {
+        const status = await $api<{ data: { status: string; cards?: { front: string; back: string }[] } }>(`/flashcards/from-image/${res.data.id}/status`, { signal })
+        return status.data
+      }, { interval: 2000, immediate: false, timeout: 60_000, until: d => d.status === 'done' || d.status === 'failed' })
+      if (data.status === 'done' && data.cards?.length) fromOcr(data.cards)
+      else toast.show('Não foi possível criar cards desta imagem.', 'error')
+    } catch (e) {
+      if (e instanceof PollTimeoutError) toast.show('A imagem demorou demais. Tente de novo.', 'error')
+      else if (getErrorStatus(e) !== 402) reportApiError(e, { error: extractApiMessage(e, 'Não foi possível ler a imagem.') })
+    } finally {
+      reading.value = false
+    }
+  }
+
+  return { cards, reading, fromOcr, accept, acceptAll, discard, saveLocal, processImage }
 }

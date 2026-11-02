@@ -42,7 +42,7 @@ test.describe('Mobile 390px', () => {
     await page.goto(page.url() + '/cards')
     await page.waitForLoadState('networkidle')
     await page.getByRole('button', { name: /Criar (primeiro )?card/ }).first().tap()
-    const card = page.getByRole('dialog', { name: /flashcard/ })
+    const card = page.getByRole('dialog', { name: /^(Novo|Editar) card$/ })
     await card.locator('.ProseMirror').nth(0).tap()
     await page.keyboard.type('Capital do Peru?')
     await card.locator('.ProseMirror').nth(1).tap()
@@ -78,14 +78,18 @@ test.describe('Mobile 390px', () => {
     await apiCall(page, 'POST', '/ai/accept-cards', { topic_id: t.data.id, cards: [{ front: 'Frente toque', back: 'Verso toque' }] })
     await gotoApp(page, `/cadernos/${t.data.id}/cards`)
     await expect(page.getByText('Frente toque')).toBeVisible()
-    const edit = page.getByRole('button', { name: 'Editar card' }).first()
+    // 4c-1: a linha abre o card, com Editar e Excluir sempre visíveis (o hover saiu com o HubCardsTab)
+    await page.getByTestId('card-row-open').first().tap()
+    const edit = page.getByRole('dialog', { name: 'Card' }).getByRole('button', { name: 'Editar' })
+    await expect(edit).toBeVisible()
+    await page.waitForTimeout(300) // the dialog fades in
     const opacity = await edit.evaluate(el => {
       let o = 1
       for (let n: HTMLElement | null = el as HTMLElement; n; n = n.parentElement) o *= Number(getComputedStyle(n).opacity)
       return o
     })
     test.info().annotations.push({ type: 'evidência', description: `opacidade efetiva de "Editar card" no toque: ${opacity}` })
-    // BUG: HubCardsTab.vue usa `opacity-0 group-hover:opacity-100` sem variante para toque/foco
+    // Era bug do HubCardsTab (`opacity-0 group-hover:opacity-100`); a biblioteca v3 não esconde ações
     expect(opacity, 'botões Editar/Excluir invisíveis sem hover').toBeGreaterThan(0.5)
   })
 

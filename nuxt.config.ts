@@ -48,6 +48,10 @@ const CONSENT_CHUNK = /\/components\/ui\/Consent(Banner|Modal)\.vue/
 // One-shot pages that only work online (onboarding, OAuth and checkout returns, reset link):
 // fetched when opened instead of in every install download (precache budget, prd-correcoes-experiencia Q2).
 const ONE_SHOT_PAGE_CHUNK = /\/pages\/(comecar|checkout\/sucesso|auth\/google\/callback|redefinir-senha)\.vue/
+// Reference page of the design system (prd-ds-v3-fundacao RF-2.5): only in `nuxt dev`. NUXT_DS_PAGE=1 keeps it
+// in a production build for screenshots; even then its chunk is `dev-*`, out of the precache.
+const DS_PAGE_FLAG = process.env.NUXT_DS_PAGE === '1'
+const DS_PAGE_CHUNK = /\/pages\/_ds\.vue/
 
 const SECURITY_HEADERS = {
   'X-Frame-Options': 'DENY',
@@ -61,7 +65,19 @@ const SECURITY_HEADERS = {
 export default defineNuxtConfig({
   future: { compatibilityVersion: 4 },
 
-  modules: ['@pinia/nuxt', '@vite-pwa/nuxt', '@nuxt/fonts'],
+  modules: [
+    '@pinia/nuxt',
+    '@vite-pwa/nuxt',
+    '@nuxt/fonts',
+    // /_ds exists in dev (or with NUXT_DS_PAGE=1): without the route its page and components never get bundled
+    (_options, nuxt) => {
+      nuxt.hook('pages:extend', (pages) => {
+        if (nuxt.options.dev || DS_PAGE_FLAG) return
+        const i = pages.findIndex(p => p.path === '/_ds')
+        if (i !== -1) pages.splice(i, 1)
+      })
+    },
+  ],
 
   // Self-hosted at build time (/_fonts), font-display swap + metric fallback (RF-07).
   // Precache (prd-ds-v3-fundacao RF-0.4): the SW precaches every woff2, unicode-range or not, so only
@@ -88,6 +104,7 @@ export default defineNuxtConfig({
               if (ANALYTICS_CHUNK.test(id)) return '_nuxt/analytics-[hash].js'
               if (CONSENT_CHUNK.test(id)) return '_nuxt/consent-[hash].js'
               if (ONE_SHOT_PAGE_CHUNK.test(id)) return '_nuxt/once-[hash].js'
+              if (DS_PAGE_CHUNK.test(id)) return '_nuxt/dev-[hash].js'
               return '_nuxt/[hash].js'
             },
           },
@@ -125,7 +142,7 @@ export default defineNuxtConfig({
       // Images are runtime-cached (below); never precache png/pdf (RF-05)
       globPatterns: ['**/*.{js,css,html,svg,ico,woff2}'],
       // Public/auth HTML only works online anyway (content or login): keep it out of the install download
-      globIgnores: ['termos/**', 'privacidade/**', 'planos/**', 'ajuda/**', 'entrar/**', 'criar-conta/**', 'esqueci-senha/**', '_nuxt/email-*.js', '_nuxt/analytics-*.js', '_nuxt/consent-*.js', '_nuxt/once-*.js'],
+      globIgnores: ['termos/**', 'privacidade/**', 'planos/**', 'ajuda/**', 'entrar/**', 'criar-conta/**', 'esqueci-senha/**', '_nuxt/email-*.js', '_nuxt/analytics-*.js', '_nuxt/consent-*.js', '_nuxt/once-*.js', '_nuxt/dev-*.js'],
       // Heavy on-demand chunks (pdf.js ~330 KB) stay out of the install download;
       // maximumFileSizeToCacheInBytes would fail the build instead of skipping.
       manifestTransforms: [

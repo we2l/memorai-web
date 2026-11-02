@@ -7,7 +7,7 @@
    Utilities resultantes: bg-page, bg-raised, bg-subtle, bg-tinted, border-line, border-line-input,
    text-fg-strong, text-fg, text-fg-muted, bg-action, text-action-fg, text-on-action, bg-action-subtle,
    ring-focus, text-success, bg-success-subtle, text-quiz, text-listen, bg-subject-1..8, shadow-card,
-   shadow-raised, shadow-float, text-page-title(-sm), text-section, text-body, text-meta, text-label,
+   shadow-raised, shadow-float, shadow-press(-active), text-page-title(-sm), text-section, text-body, text-meta, text-label,
    text-stat, rounded-tag/row/control/card/float, min-h-touch, px-gutter, mt-section, max-w-page, ease-calm.
    Opacidade funciona em todas as cores (bg-action/10 → color-mix).
    Uma cor e um tamanho de texto não podem ter o mesmo nome: text-{nome} vira cor quando existe
@@ -132,6 +132,8 @@
   --shadow-card: var(--elev-card);
   --shadow-raised: var(--elev-raised);
   --shadow-float: var(--elev-float);
+  --shadow-press: var(--elev-press);
+  --shadow-press-active: var(--elev-press-active);
 
   /* Espaço que muda no lg */
   --spacing-gutter: var(--gutter);

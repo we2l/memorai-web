@@ -1,90 +1,62 @@
 <template>
-  <div class="relative" ref="containerRef">
-    <button
-      :id="id"
-      type="button"
-      class="input-base flex items-center justify-between gap-2 text-left disabled:opacity-50 disabled:cursor-not-allowed"
-      :disabled="disabled"
-      :aria-expanded="open"
-      @click="toggle"
-    >
-      <span class="truncate" :class="modelValue ? 'text-base-primary' : 'text-base-muted'">
-        {{ selectedLabel || placeholder }}
-      </span>
-      <ChevronDown :size="16" class="text-base-muted shrink-0 transition-transform" :class="open && 'rotate-180'" />
-    </button>
-
-    <Transition name="dropdown">
-      <div
-        v-if="open"
-        class="absolute z-50 mt-1 w-full max-h-48 overflow-y-auto rounded-lg border border-base bg-surface-secondary shadow-lg py-1"
+  <UiField v-slot="field" :id="id" :label="label" :hint="hint" :error="error" :hide-label="hideLabel" v-bind="split.root">
+    <div class="relative">
+      <select
+        :id="field.id"
+        v-bind="split.rest"
+        :value="modelValue ?? ''"
+        :disabled="disabled"
+        :aria-invalid="field.invalid ? 'true' : undefined"
+        :aria-describedby="field.describedby"
+        class="min-h-touch w-full cursor-pointer appearance-none truncate rounded-control border py-2.5 pl-3 pr-10 text-body transition-colors duration-nav disabled:cursor-not-allowed"
+        :class="[
+          field.invalid ? 'border-danger' : 'border-line-input focus:border-focus',
+          disabled ? 'bg-subtle opacity-60' : 'bg-raised',
+          modelValue ? 'text-fg-strong' : 'text-fg-muted',
+        ]"
+        @change="emit('update:modelValue', ($event.target as HTMLSelectElement).value)"
       >
-        <button
-          v-for="opt in options"
-          :key="opt.value"
-          type="button"
-          class="w-full text-left px-3 py-2 text-small transition-colors"
-          :class="opt.value === modelValue ? 'text-accent-primary bg-accent-primary-subtle' : 'text-base-primary hover:bg-[var(--border-divider)]'"
-          @click="select(opt.value)"
-        >
+        <option v-if="placeholder && !hasEmptyOption" value="" disabled>{{ placeholder }}</option>
+        <option v-for="opt in options" :key="opt.value" :value="opt.value" :disabled="opt.disabled" class="text-fg-strong">
           {{ opt.label }}
-        </button>
-      </div>
-    </Transition>
-  </div>
+        </option>
+      </select>
+      <ChevronDown class="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-fg-muted" aria-hidden="true" />
+    </div>
+  </UiField>
 </template>
 
 <script setup lang="ts">
+// Select (raio-X §D, rewritten): native <select>. Keyboard, screen readers and the phone picker come
+// from the browser, and the list never fights a Modal for the z-index (the old one was z-50 inside z-50).
+// Same API as before (modelValue, options, placeholder, disabled, id for an outside <label for>) plus
+// label/hint/error. Listeners stay on the root: a disabled <select> gets no click, its parent does.
 import { ChevronDown } from 'lucide-vue-next'
 
-const props = defineProps<{
-  modelValue: string
-  options: { value: string; label: string }[]
-  placeholder?: string
+defineOptions({ inheritAttrs: false })
+
+export interface SelectOption {
+  value: string
+  label: string
   disabled?: boolean
-  /** Lets a <label for> name the trigger button. */
+}
+
+const props = withDefaults(defineProps<{
+  modelValue?: string | null
+  options: SelectOption[]
+  label?: string
+  placeholder?: string
+  hint?: string
+  error?: string
+  disabled?: boolean
+  hideLabel?: boolean
+  /** Lets an outside <label for> name the select */
   id?: string
-}>()
+}>(), { modelValue: undefined, label: undefined, placeholder: undefined, hint: undefined, error: undefined, id: undefined })
 
-const emit = defineEmits<{
-  (e: 'update:modelValue', value: string): void
-}>()
+const emit = defineEmits<{ (e: 'update:modelValue', value: string): void }>()
 
-const open = ref(false)
-const containerRef = ref<HTMLElement | null>(null)
-
-const selectedLabel = computed(() =>
-  props.options.find(o => o.value === props.modelValue)?.label ?? '',
-)
-
-function toggle() {
-  if (props.disabled) return
-  open.value = !open.value
-}
-
-function select(value: string) {
-  emit('update:modelValue', value)
-  open.value = false
-}
-
-function onClickOutside(e: MouseEvent) {
-  if (containerRef.value && !containerRef.value.contains(e.target as Node)) {
-    open.value = false
-  }
-}
-
-onMounted(() => document.addEventListener('click', onClickOutside))
-onUnmounted(() => document.removeEventListener('click', onClickOutside))
+const attrs = useAttrs()
+const split = computed(() => splitFieldAttrs(attrs, { listeners: 'root' }))
+const hasEmptyOption = computed(() => props.options.some(o => o.value === ''))
 </script>
-
-<style scoped>
-.dropdown-enter-active,
-.dropdown-leave-active {
-  transition: all 100ms ease-out;
-}
-.dropdown-enter-from,
-.dropdown-leave-to {
-  opacity: 0;
-  transform: translateY(-4px);
-}
-</style>

@@ -573,6 +573,8 @@ test.describe('PDF → cards automático (RF-F5.2)', () => {
       id: '00000000-0000-4000-8000-0000000000dd', original_name: 'apostila.pdf', file_size: 1000, pages_count: 20, processed_pages: 20,
       status: 'completed', topic_id: topic.id, has_generated_note: true, note_generation_status: 'completed',
       note_id: 'n1', auto_cards: true, auto_cards_status: status, auto_cards_count: count, created_at: '2026-09-29T10:00:00Z',
+      // Caderno F2: the button shows the session of the PDF itself
+      session_count: count, ahead_count: 0,
     })
     let calls = 0
     await page.route(/\/api\/topics$/, r => r.request().method() === 'GET' ? r.fulfill(json({ data: [topic] })) : r.continue())
@@ -581,7 +583,8 @@ test.describe('PDF → cards automático (RF-F5.2)', () => {
     await page.goto(`/cadernos?topic=${topic.id}`)
     await expect(page.getByText('Resumo pronto · Criando cards…')).toBeVisible()
     await expect(page.getByRole('link', { name: 'Revisar 12 cards' })).toBeVisible({ timeout: 15_000 })
-    await expect(page.getByRole('link', { name: 'Revisar 12 cards' })).toHaveAttribute('href', `/revisar?topic_id=${topic.id}`)
+    // Only this PDF (prd-caderno-f2-recorte RF-F3), no longer the whole caderno
+    await expect(page.getByRole('link', { name: 'Revisar 12 cards' })).toHaveAttribute('href', '/revisar?scope=document:00000000-0000-4000-8000-0000000000dd')
   })
 })
 

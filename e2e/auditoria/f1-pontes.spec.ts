@@ -140,7 +140,8 @@ test.describe('Simulado devolve ao escopo', () => {
     // Not only a toast: the next step in the same scope (RF-F2, N12)
     const next = page.getByRole('status').filter({ hasText: '1 card dos erros criado em' })
     await expect(next).toBeVisible()
-    await expect(next.getByRole('link', { name: 'Revisar agora' })).toHaveAttribute('href', `/revisar?topic_id=${root.id}`)
+    // F2: exactly the cards of these errors (scope=quiz:), no longer the whole caderno
+    await expect(next.getByRole('link', { name: 'Revisar o card agora' })).toHaveAttribute('href', `/revisar?scope=quiz:${quizId}`)
     await next.getByRole('link', { name: 'Voltar ao caderno' }).click()
     await expect(page).toHaveURL(new RegExp(`/cadernos\\?topic=${root.id}`))
     await expect(page.getByRole('main').getByRole('heading', { level: 1, name: root.name })).toBeVisible()

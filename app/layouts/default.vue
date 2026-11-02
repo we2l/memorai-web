@@ -58,7 +58,9 @@ watchEffect(() => {
   if (focusChrome.value) root.dataset.chrome = 'focus'
   else delete root.dataset.chrome
   // Mini-player card (60 px) + its 8 px gap; on desktop it floats in the corner over the page bottom
-  root.style.setProperty('--miniplayer-h-set', hasMiniplayer.value ? '72px' : '0px')
+  // + the "Revisar os N do episódio" row when the episode ended (F2)
+  const endedRow = player.hasEnded && episodeCardsCount(player.currentPodcast) > 0
+  root.style.setProperty('--miniplayer-h-set', hasMiniplayer.value ? (endedRow ? '122px' : '72px') : '0px')
   root.style.setProperty('--sticky-action-h-set', `${stickyActionH.value}px`)
 })
 

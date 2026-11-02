@@ -149,10 +149,19 @@ export const useQuizStore = defineStore('quiz', {
       return res.data as QuizStats
     },
 
-    async createCardsFromErrors(id: string) {
+    /**
+     * Cards of the wrong answers (idempotent: a 2nd call answers 0 with the same ids). The ids and the
+     * session size feed "Revisar os N agora" (scope=quiz:, prd-caderno-f2-recorte RF-F4).
+     */
+    async createCardsFromErrors(id: string): Promise<{ cards_created: number; card_ids: string[]; session_count: number }> {
       const { $api } = useNuxtApp()
-      const res = await $api<any>(`/quizzes/${id}/create-cards`, { method: 'POST' })
-      return res.data.cards_created as number
+      const res = await $api<{ data: { cards_created: number; card_ids?: string[]; session_count?: number } }>(`/quizzes/${id}/create-cards`, { method: 'POST' })
+      const out = { cards_created: res.data.cards_created, card_ids: res.data.card_ids ?? [], session_count: res.data.session_count ?? 0 }
+      if (this.currentQuiz?.id === id) {
+        this.currentQuiz.cards_from_errors = { count: out.card_ids.length, session_count: out.session_count }
+        this.currentQuiz.cards_created_at ??= new Date().toISOString()
+      }
+      return out
     },
 
     // Navigation

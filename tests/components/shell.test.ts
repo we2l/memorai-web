@@ -299,4 +299,21 @@ describe('ShellMiniPlayer', () => {
     expect(await axeViolations(region.element)).toEqual([])
     player.currentPodcast = null
   })
+
+  it('episódio terminado: "Revisar os N do episódio" com scope=podcast: (F2 RF-F5)', async () => {
+    const player = usePlayerStore()
+    const w = await mountSuspended(MiniPlayer, { attachTo: document.body })
+    player.currentPodcast = { id: 'p1', title: 'Erros', status: 'ready', created_at: '', card_ids: ['a', 'b', 'c', 'd', 'e'], cards_available: 4 } as any
+    player.isPlaying = true
+    player.currentTime = 100
+    player.duration = 724
+    await nextTick()
+    expect(w.text()).not.toContain('do episódio')
+    player.isPlaying = false
+    player.currentTime = 724
+    await nextTick()
+    const link = w.findAll('a').find(a => a.text() === 'Revisar os 4 do episódio')
+    expect(link?.attributes('href')).toBe('/revisar?scope=podcast:p1')
+    player.currentPodcast = null
+  })
 })

@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import type { Flashcard, WeakConnection } from '~/types'
 import { getErrorStatus } from '~/utils/apiErrors'
+import { scopeQuery, type ReviewScope, type SessionScopeInfo } from '~/utils/reviewScope'
 
 export interface SessionCard extends Flashcard {
   next_intervals: { again: string; hard: string; good: string; easy: string }
@@ -8,6 +9,21 @@ export interface SessionCard extends Flashcard {
 }
 
 export type Rating = 1 | 2 | 3 | 4
+
+/** What /revisar asks the API for (prd-caderno-f2-recorte RF-F2). */
+export interface SessionOptions {
+  deckId?: string
+  /** Caderno or subject (the subtree): `topic_id=` */
+  topicId?: string
+  /** Any slice: document, note, quiz, podcast or a list of card ids */
+  scope?: ReviewScope
+  origin?: 'quiz' | 'loose'
+  ahead?: boolean
+  errorsOnly?: boolean
+  backlog?: boolean
+  mode?: string
+  includeRelated?: boolean
+}
 export type ErrorDiaryMode = 'always' | 'sometimes' | 'never'
 
 export interface QueueItem {
@@ -78,6 +94,8 @@ export const useReviewStore = defineStore('review', {
     retaFinal: null as { active: boolean; exam_titles: string[]; extra_count: number } | null,
     // GET /review/session pages (≤ 100 cards, prd-performance-caderno RF-F7): one continuous session
     sessionQuery: '',
+    /** The slice the API reports for this session (null = the global one; prd-caderno-f2-recorte RF-B5) */
+    scope: null as SessionScopeInfo | null,
     hasMore: false,
     loadingMore: false,
     /** Session cards beyond the loaded pages (session_count − page size, at the last page) */
@@ -142,12 +160,17 @@ export const useReviewStore = defineStore('review', {
   },
 
   actions: {
-    /** topic_id = the topic and its subtree; includeRelated adds its graph neighbours (F1 RF-B1, no UI yet). */
-    async fetchSession(deckId?: string, topicId?: string, errorsOnly?: boolean, backlog?: boolean, mode?: string, includeRelated?: boolean) {
+    /**
+     * Opens a session. `topicId` = the topic and its subtree; `scope` = any slice of the F2 (document,
+     * note, quiz, podcast, cards; prd-caderno-f2-recorte RF-F2). includeRelated adds the graph neighbours
+     * of a topic (F1 RF-B1, no UI yet).
+     */
+    async fetchSession(opts: SessionOptions = {}) {
       const seq = ++sessionSeq
       this.loading = true
       this.finished = false
       this.sessionError = null
+      this.scope = null
       this.cards = []
       this.currentIndex = 0
       this.totalReviewed = 0
@@ -168,17 +191,18 @@ export const useReviewStore = defineStore('review', {
       this.unloadedCount = 0
       try {
         const { $api } = useNuxtApp()
-        const params = new URLSearchParams()
-        if (deckId) params.set('deck_id', deckId)
-        if (topicId) params.set('topic_id', topicId)
-        if (errorsOnly) params.set('errors_only', '1')
-        if (backlog) params.set('backlog', '1')
-        if (mode) params.set('mode', mode)
-        if (includeRelated) params.set('include_related', '1')
+        const params = new URLSearchParams(scopeQuery(opts.scope ?? opts.topicId ?? null, {
+          errorsOnly: opts.errorsOnly, ahead: opts.ahead, origin: opts.origin,
+        }))
+        if (opts.deckId) params.set('deck_id', opts.deckId)
+        if (opts.backlog) params.set('backlog', '1')
+        if (opts.mode) params.set('mode', opts.mode)
+        if (opts.includeRelated) params.set('include_related', '1')
         const query = params.toString() ? `?${params}` : ''
         const res = await $api<any>(`/review/session${query}`)
         if (seq !== sessionSeq) return
         this.sessionQuery = query
+        this.scope = res.scope ?? null
         this.retaFinal = res.reta_final ?? null
         this.addPage(res)
 

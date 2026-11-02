@@ -29,6 +29,13 @@
       <UiIconButton :icon="ChevronUp" label="Expandir player" size="sm" @click="expand" />
       <UiIconButton :icon="X" label="Fechar player" size="sm" @click="close" />
     </div>
+    <!-- The episode ended: review the cards it talked about (prd-caderno-f2-recorte RF-F5) -->
+    <div v-if="player.hasEnded && episodeCards > 0" class="flex items-center justify-between gap-2 border-t border-line px-3 py-2" role="status">
+      <span class="text-meta text-fg">Episódio concluído</span>
+      <UiButton size="sm" :to="reviewPath({ type: 'podcast', id: player.currentPodcast.id })">
+        Revisar {{ episodeCards === 1 ? 'o card' : `os ${episodeCards}` }} do episódio
+      </UiButton>
+    </div>
     <div class="h-0.5 bg-progress-track" aria-hidden="true">
       <div class="h-0.5 bg-fg-strong transition-all duration-respond" :style="{ width: `${progressPercent}%` }" />
     </div>
@@ -44,6 +51,7 @@
 import { ChevronUp, Headphones, Pause, Play, X } from 'lucide-vue-next'
 
 const player = usePlayerStore()
+const episodeCards = computed(() => episodeCardsCount(player.currentPodcast))
 
 const progressPercent = computed(() => {
   if (!player.duration) return 0

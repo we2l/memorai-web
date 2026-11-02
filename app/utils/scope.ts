@@ -20,11 +20,6 @@ export function cadernoPath(topicId?: string | null, extra: { note?: string; tab
   return `/cadernos?${params}`
 }
 
-/** The review session of a scope (the whole subtree on the API side). */
-export function reviewPath(topicId?: string | null): string {
-  return topicId ? `/revisar?topic_id=${encodeURIComponent(topicId)}` : '/revisar'
-}
-
 interface NamedTopic { id: string; name: string; parent_id?: string | null }
 
 /**

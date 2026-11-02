@@ -83,9 +83,19 @@
               </div>
               <div v-else-if="doc.auto_cards_status === 'completed'" class="flex items-center gap-3 flex-wrap">
                 <span class="px-2 py-0.5 rounded-full text-micro font-semibold bg-[var(--badge-success-bg)] text-[var(--badge-success-text)]">{{ doc.auto_cards_count }} cards</span>
-                <NuxtLink :to="`/revisar?topic_id=${topicId}`" class="btn-primary !py-1.5 !px-3 !min-h-[44px] text-small">
-                  Revisar {{ doc.auto_cards_count }} cards
-                </NuxtLink>
+                <!-- Only this PDF (prd-caderno-f2-recorte RF-F3): N = the session it opens -->
+                <UiButton v-if="(doc.session_count ?? 0) > 0" size="sm" :icon-left="Layers" icon-tone="action" :to="reviewPath({ type: 'document', id: doc.id })">
+                  Revisar {{ doc.session_count }} {{ doc.session_count === 1 ? 'card' : 'cards' }}
+                </UiButton>
+                <UiButton v-else-if="(doc.ahead_count ?? 0) > 0" size="sm" :to="reviewPath({ type: 'document', id: doc.id }, { ahead: true })">
+                  Praticar adiantado ({{ doc.ahead_count }})
+                </UiButton>
+                <!-- Lazy: the menu code only loads with a PDF that has cards (keeps /cadernos within its budget) -->
+                <LazyUiMenu :items="errorsMenu(doc)" :label="`Mais ações de ${doc.original_name}`">
+                  <template #trigger="{ props: trigger }">
+                    <UiIconButton :icon="Ellipsis" :label="`Mais ações de ${doc.original_name}`" v-bind="trigger" @focus="loadErrors(doc)" @click="loadErrors(doc)" />
+                  </template>
+                </LazyUiMenu>
                 <button type="button" class="text-small text-accent-primary underline underline-offset-2 min-h-[44px]" @click="$emit('viewCards', doc.note_id ?? null)">
                   Ver e editar cards
                 </button>
@@ -261,7 +271,8 @@
 </template>
 
 <script setup lang="ts">
-import { Upload, FileText, Loader2, CheckCircle, XCircle, Sparkles, Lock, Trash2 } from 'lucide-vue-next'
+import { Upload, FileText, Loader2, CheckCircle, XCircle, Sparkles, Lock, Trash2, Ellipsis, Layers } from 'lucide-vue-next'
+import type { MenuItem } from '~/components/ui/Menu.vue'
 import type { Document, DocumentAutoGeneration } from '~/types'
 
 const props = defineProps<{ topicId: string; topicLearningMode?: string | null }>()
@@ -443,6 +454,28 @@ async function onFileSelect(e: Event) {
   }
 
   await doUpload(file)
+}
+
+// "Só erros (N)" of one PDF (prd-caderno-f2-recorte RF-F6): counted when its menu opens
+const errorCounts = ref<Record<string, number | null>>({})
+
+async function loadErrors(doc: Document) {
+  if (doc.id in errorCounts.value) return
+  errorCounts.value[doc.id] = null
+  try {
+    const res = await $api<{ data: { session_count: number } }>(`/review/session-count?${scopeQuery({ type: 'document', id: doc.id }, { errorsOnly: true })}`)
+    errorCounts.value[doc.id] = res.data.session_count
+  } catch (e) {
+    delete errorCounts.value[doc.id]
+    reportApiError(e, { silent: true })
+  }
+}
+
+function errorsMenu(doc: Document): MenuItem[] {
+  const n = errorCounts.value[doc.id]
+  if (n === undefined || n === null) return [{ label: 'Só erros', meta: 'contando…', disabled: true }]
+  if (n === 0) return [{ label: 'Só erros', meta: 'nenhum agora', disabled: true }]
+  return [{ label: `Só erros (${n})`, to: reviewPath({ type: 'document', id: doc.id }, { errorsOnly: true }) }]
 }
 
 const { run: runAction } = useApiAction()

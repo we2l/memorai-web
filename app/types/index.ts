@@ -151,6 +151,8 @@ export interface NoteSummary {
   /** Only in the list (the PUT answer does not count the cards) */
   flashcards_count: number
   source_document_id: string | null
+  /** Only in the list: size of its session (`scope=note:`, prd-caderno-f2-recorte RF-B4) */
+  session_count?: number
   last_ai_transform_at: string | null
   cards_generated_at: string | null
   created_at: string
@@ -340,6 +342,9 @@ export interface Document {
   auto_cards?: boolean
   auto_cards_status?: 'pending' | 'generating' | 'completed' | 'failed' | 'skipped_quota' | 'skipped_empty' | null
   auto_cards_count?: number
+  /** Size of its session (`scope=document:`) and of "Praticar adiantado" (prd-caderno-f2-recorte RF-B4) */
+  session_count?: number
+  ahead_count?: number
   created_at: string
 }
 
@@ -396,6 +401,8 @@ export interface Podcast {
   topic_name?: string | null
   source_data?: { topic_names?: string[]; card_count?: number; error_count?: number } | null
   card_ids?: string[] | null
+  /** How many of card_ids still exist (prd-caderno-f2-recorte RF-B4): "Revisar os N do episódio" */
+  cards_available?: number
   timestamps?: { type: string; start_ms: number; end_ms: number; flip_ms?: number; card_index?: number }[] | null
   session_id?: string | null
   episode_number?: number | null
@@ -460,6 +467,8 @@ export interface Quiz {
   started_at: string | null
   completed_at: string | null
   cards_created_at: string | null
+  /** Cards born from the errors (prd-caderno-f2-recorte RF-B6); count 0 = older quiz, without the link */
+  cards_from_errors?: { count: number; session_count: number } | null
   created_at: string
 }
 

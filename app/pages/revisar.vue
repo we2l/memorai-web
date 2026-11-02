@@ -3,7 +3,7 @@
     <!-- Top bar — minimal -->
     <div v-show="!dive.active.value" class="flex items-center justify-between gap-2 px-4 py-2">
       <div class="flex items-center gap-1">
-        <NuxtLink to="/hoje" class="inline-flex items-center min-h-[44px] px-1 text-sm text-base-muted hover:text-base-primary transition-opacity">
+        <NuxtLink :to="backTo" class="inline-flex items-center min-h-[44px] px-1 text-sm text-base-muted hover:text-base-primary transition-opacity">
           ← Voltar
         </NuxtLink>
         <button
@@ -72,8 +72,19 @@
       </div>
     </Transition>
 
+    <!-- The slice of this session (prd-caderno-f2-recorte RF-F2): "TRF 4ª Região › Apostila" -->
+    <p v-if="scopeTrail && !review.loading" class="px-4 pt-2 text-center text-meta text-fg-muted truncate" data-testid="review-scope">
+      <span class="sr-only">Revisando: </span>{{ scopeTrail }}
+    </p>
+
     <!-- Insight banners -->
     <div v-if="!review.loading && !review.finished && !review.sessionError" class="px-4 space-y-2 mt-2">
+      <UiInsightBanner
+        v-if="isAhead"
+        :icon="FastForward"
+        text="Praticando adiantado: o agendamento continua sendo atualizado"
+        variant="info"
+      />
       <UiInsightBanner
         v-if="review.retaFinal?.active"
         :icon="Flame"
@@ -148,8 +159,8 @@
             : 'Nenhum card pendente agora. Que tal criar novos cards?'
           }}
         </p>
-        <UiButton variant="primary" class="mt-8" :to="scopeTopicId ? cadernoPath(scopeTopicId) : '/hoje'">
-          {{ scopeTopicId ? 'Voltar ao caderno' : 'Voltar' }}
+        <UiButton variant="primary" class="mt-8" :to="backTo">
+          {{ backLabel }}
         </UiButton>
       </template>
 
@@ -162,7 +173,10 @@
         :pending-learning="review.pendingLearning"
         :top-error-topic="topErrorTopic ?? null"
         :has-backlog="hasBacklog"
-        :caderno-to="scopeTopicId ? cadernoPath(scopeTopicId) : null"
+        :back-to="scopeBack"
+        :back-label="backLabel"
+        :errors-to="errorsScope ? reviewPath(errorsScope, { errorsOnly: true, origin: scopeOrigin }) : null"
+        :errors-count="errorsCount"
       >
         <template v-if="!tomorrowFailed" #tomorrow>
           <ReviewSessionTomorrow
@@ -347,6 +361,7 @@
 <script setup lang="ts">
 import type { TomorrowForecast } from '~/types'
 import { cadernoPath, markScopeCleared } from '~/utils/scope'
+import { reviewPath, scopeBackPath, scopeOf, scopeQuery, sessionScopeFromQuery } from '~/utils/reviewScope'
 import { Flame, AlertOctagon, AlertTriangle, Timer, Zap, CalendarClock, GitBranch, FastForward, Undo2, XCircle, Lightbulb, Pencil, MessageCircle } from 'lucide-vue-next'
 
 definePageMeta({ chrome: 'focus' })
@@ -609,13 +624,16 @@ onBeforeRouteLeave(() => {
 async function loadSession() {
   errorsByTopic.value = {}
   const deckId = route.query.deck_id as string | undefined
-  const topicId = route.query.topic_id as string | undefined
-  const errorsOnly = route.query.errors_only === '1'
-  const backlog = route.query.backlog === '1'
   const mode = route.query.mode as string | undefined
-  const includeRelated = route.query.include_related === '1'
+  const slice = sessionScopeFromQuery(route.query)
   if (deckId) await deckStore.fetchDeck(deckId)
-  await review.fetchSession(deckId, topicId, errorsOnly, backlog, mode, includeRelated)
+  await review.fetchSession({
+    ...slice,
+    deckId,
+    backlog: route.query.backlog === '1',
+    mode,
+    includeRelated: route.query.include_related === '1',
+  })
 
   // Blitz mode: fixed 5 min timer, ignore settings timer
   isBlitz.value = mode === 'blitz'
@@ -643,7 +661,41 @@ const isSurvivalMode = ref(false)
 const isBlitz = ref(false)
 const isErrorsOnly = computed(() => route.query.errors_only === '1')
 /** The caderno this session came from: the end of the session returns to it (F1 RF-F2, "voltar ao lugar certo") */
-const scopeTopicId = computed(() => (typeof route.query.topic_id === 'string' && route.query.topic_id) || null)
+const querySlice = computed(() => sessionScopeFromQuery(route.query))
+const scopeTopicId = computed(() => querySlice.value.topicId
+  ?? (querySlice.value.scope?.type === 'topic' ? querySlice.value.scope.id : null))
+const isAhead = computed(() => !!querySlice.value.ahead)
+const scopeOrigin = computed(() => querySlice.value.origin)
+
+// Where the session goes back to (prd-caderno-f2-recorte RF-F1): the slice the API reported, else the
+// caderno of the query; a list of ids goes back in history (or to Hoje)
+const scopeBack = computed(() => scopeBackPath(review.scope) ?? (scopeTopicId.value ? cadernoPath(scopeTopicId.value) : null))
+const backTo = computed(() => scopeBack.value ?? '/hoje')
+const backLabel = computed(() => {
+  if (review.scope?.label && scopeBack.value) return `Voltar a ${review.scope.label}`
+  return scopeTopicId.value ? 'Voltar ao caderno' : 'Voltar'
+})
+/** "TRF 4ª Região › Apostila de Constitucional" */
+const scopeTrail = computed(() => {
+  const sc = review.scope
+  if (!sc?.label) return ''
+  return sc.topic && sc.topic.name !== sc.label && sc.type !== 'topic' ? `${sc.topic.name} › ${sc.label}` : sc.label
+})
+
+// "Reforçar erros" in the same slice (RF-F2): its size comes from /review/session-count, hidden when 0
+const errorsScope = computed(() => (isErrorsOnly.value ? null : scopeOf(review.scope, querySlice.value.scope?.type === 'cards' ? querySlice.value.scope.ids : [])))
+const errorsCount = ref<number | null>(null)
+watch(() => review.finished && !review.saving && review.totalRated > 0, async (done) => {
+  errorsCount.value = null
+  if (!done || !errorsScope.value) return
+  try {
+    const query = scopeQuery(errorsScope.value, { errorsOnly: true, origin: scopeOrigin.value })
+    const res = await useNuxtApp().$api<{ data: { session_count: number } }>(`/review/session-count?${query}`)
+    errorsCount.value = res.data.session_count
+  } catch (e) {
+    reportApiError(e, { silent: true })
+  }
+})
 
 // The person's own session emptied the caderno: its page celebrates once (05/#11). Only the full session
 // of the scope counts (not "só erros", relâmpago or backlog) and only when nothing waits in learning.

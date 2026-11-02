@@ -5,6 +5,12 @@ const STORAGE_KEY = 'baigi_player_position'
 const FINISHED_KEY = 'baigi-podcasts-finished'
 const FINISHED_MAX = 50
 
+/** Cards of an episode that still exist: the size of its session (`scope=podcast:`, prd-caderno-f2-recorte RF-F5). */
+export function episodeCardsCount(podcast: Podcast | null | undefined): number {
+  if (!podcast) return 0
+  return podcast.cards_available ?? podcast.card_ids?.length ?? 0
+}
+
 /** Episodes played to the end on this device (Hoje: the "Ouvir" step skips them; prd-4a-hoje-v3 §5.2). */
 export function finishedPodcastIds(): string[] {
   try {

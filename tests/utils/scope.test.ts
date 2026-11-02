@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { cadernoPath, canAddSubtopic, consumeScopeCleared, findImportedRoot, markScopeCleared, reviewPath } from '~/utils/scope'
+import { cadernoPath, canAddSubtopic, consumeScopeCleared, findImportedRoot, markScopeCleared } from '~/utils/scope'
+import { reviewPath, scopeBackPath, scopeOf, scopeQuery, sessionScopeFromQuery } from '~/utils/reviewScope'
 
 describe('scope (prd-caderno-f1-pontes)', () => {
   afterEach(() => sessionStorage.clear())
@@ -18,6 +19,39 @@ describe('scope (prd-caderno-f1-pontes)', () => {
     expect(cadernoPath(null)).toBe('/cadernos')
     expect(reviewPath('t1')).toBe('/revisar?topic_id=t1')
     expect(reviewPath(undefined)).toBe('/revisar')
+  })
+
+  it('recortes da F2: reviewPath com scope, card_ids, origin, ahead e errors_only', () => {
+    const doc = '01a19af3-922b-70c5-89fb-feaa0e12085d'
+    expect(reviewPath({ type: 'document', id: doc })).toBe(`/revisar?scope=document:${doc}`)
+    expect(reviewPath({ type: 'note', id: doc }, { errorsOnly: true })).toBe(`/revisar?scope=note:${doc}&errors_only=1`)
+    expect(reviewPath({ type: 'document', id: doc }, { ahead: true })).toBe(`/revisar?scope=document:${doc}&ahead=1`)
+    expect(reviewPath({ type: 'topic', id: doc }, { origin: 'quiz' })).toBe(`/revisar?scope=topic:${doc}&origin=quiz`)
+    expect(reviewPath({ type: 'cards', ids: ['a', 'b'] })).toBe('/revisar?scope=cards&card_ids=a,b')
+    expect(reviewPath('t1', { errorsOnly: true })).toBe('/revisar?topic_id=t1&errors_only=1')
+    expect(scopeQuery({ type: 'quiz', id: doc }, { errorsOnly: true })).toBe(`scope=quiz:${doc}&errors_only=1`)
+  })
+
+  it('lê o recorte da URL do /revisar (ida e volta com reviewPath)', () => {
+    const doc = '01a19af3-922b-70c5-89fb-feaa0e12085d'
+    expect(sessionScopeFromQuery({ scope: `document:${doc}`, ahead: '1' })).toEqual({ scope: { type: 'document', id: doc }, ahead: true })
+    expect(sessionScopeFromQuery({ scope: 'cards', card_ids: 'a,b' })).toEqual({ scope: { type: 'cards', ids: ['a', 'b'] } })
+    expect(sessionScopeFromQuery({ topic_id: 't1', errors_only: '1' })).toEqual({ topicId: 't1', errorsOnly: true })
+    expect(sessionScopeFromQuery({ scope: 'foo:1', origin: 'x' })).toEqual({})
+    expect(sessionScopeFromQuery({ scope: `topic:${doc}`, origin: 'loose' })).toEqual({ scope: { type: 'topic', id: doc }, origin: 'loose' })
+  })
+
+  it('voltar ao recorte: caderno, caderno com a nota, resultado do simulado, episódios; lista = sem destino', () => {
+    const topic = { id: 't1', name: 'Constitucional' }
+    expect(scopeBackPath({ type: 'topic', id: 't1', label: 'TRF', topic: null })).toBe('/cadernos?topic=t1')
+    expect(scopeBackPath({ type: 'document', id: 'd1', label: 'Apostila', topic })).toBe('/cadernos?topic=t1')
+    expect(scopeBackPath({ type: 'note', id: 'n1', label: 'Nota', topic })).toBe('/cadernos?topic=t1&note=n1')
+    expect(scopeBackPath({ type: 'quiz', id: 'q1', label: 'Simulado', topic })).toBe('/simulados/q1/resultado')
+    expect(scopeBackPath({ type: 'podcast', id: 'p1', label: 'Episódio', topic })).toBe('/podcasts')
+    expect(scopeBackPath({ type: 'cards', id: null, label: 'Cards selecionados', topic: null })).toBeNull()
+    expect(scopeBackPath(null)).toBeNull()
+    expect(scopeOf({ type: 'quiz', id: 'q1', label: 'S', topic })).toEqual({ type: 'quiz', id: 'q1' })
+    expect(scopeOf({ type: 'cards', id: null, label: 'C', topic: null }, ['a'])).toEqual({ type: 'cards', ids: ['a'] })
   })
 
   it('fim do import: o caderno raiz do 1º baralho importado, pelo nome (N4)', () => {

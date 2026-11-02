@@ -54,7 +54,7 @@ test.describe('Navegação v3 — mapa de destinos', () => {
       ['Sidebar/aba "Revisão" → Praticar › Revisar', async () => { await from(); await place(page, 'Praticar'); await page.getByRole('link', { name: /5 minutos/ }).click() }, /\/revisar\?mode=blitz/],
       ['Sidebar "Progresso" → TopNav Progresso', async () => { await from(); await place(page, 'Progresso') }, /\/progresso$/],
       ['Sidebar/"Mais" "Simulados" → Praticar › Questões', async () => { await from(); await place(page, 'Praticar'); await page.getByRole('link', { name: /Questões e simulados/ }).click() }, /\/simulados/],
-      ['Sidebar/"Mais" "Provas" → Progresso › Ver agenda', async () => { await from(); await place(page, 'Progresso'); await page.getByRole('link', { name: 'Ver agenda' }).click() }, /\/provas$/],
+      ['Sidebar/"Mais" "Provas" → Progresso › Provas', async () => { await from(); await place(page, 'Progresso'); await page.getByTestId('progress-exams').waitFor() }, /\/progresso$/],
       ['Sidebar/"Mais" "Podcasts" → Praticar › Ouvir', async () => { await from(); await place(page, 'Praticar'); await page.getByRole('link', { name: /Todos os episódios/ }).click() }, /\/podcasts/],
       ['Sidebar/"Mais" "Configurações" → conta › Conta e segurança', async () => { await from(); await openAccount(page); await page.getByRole('menuitem', { name: 'Conta e segurança' }).click() }, /\/configuracoes#seguranca/],
       ['Sidebar/"Mais" "Ajuda" → conta › Ajuda e atalhos', async () => { await from(); await openAccount(page); await page.getByRole('menuitem', { name: /Ajuda e atalhos/ }).click() }, /\/ajuda\?tab=atalhos/],

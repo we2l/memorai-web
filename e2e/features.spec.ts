@@ -203,9 +203,14 @@ test.describe('Progresso e estatísticas', () => {
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(2000)
 
-    await expect(page.getByText('Domínio geral')).toBeVisible()
-    await expect(page.getByText(/Retenção/).first()).toBeVisible()
-    await expect(page.getByText('Dias seguidos')).toBeVisible()
+    // A user with cards sees the summary; one without, the single block with the preview (no zeros)
+    const summary = page.getByTestId('progress-summary')
+    await expect(summary.or(page.getByTestId('progress-new'))).toBeVisible()
+    if (await summary.isVisible()) {
+      await expect(summary).toContainText('de domínio')
+      await expect(summary).toContainText(/lembrou ao revisar|Revise para ver quanto lembra/)
+      await expect(summary).toContainText('de sequência')
+    }
   })
 
   test('exibe estados de cards', async ({ page }) => {
@@ -214,7 +219,10 @@ test.describe('Progresso e estatísticas', () => {
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(2000)
 
-    await expect(page.getByText(/Dominados|Aprendendo|Novos/).first()).toBeVisible()
+    // The card states left for the performance table and the history (prd-4f-progresso-v3)
+    await expect(page.getByTestId('progress-performance').or(page.getByTestId('progress-new'))).toBeVisible()
+    if (await page.getByTestId('progress-new').isVisible()) return
+    await expect(page.getByTestId('progress-history').getByRole('grid')).toBeVisible()
   })
 })
 

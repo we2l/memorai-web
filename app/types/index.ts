@@ -599,6 +599,56 @@ export interface Exam {
   /** "Passou?" (prd-retencao-lembretes F6) */
   outcome?: ExamOutcome | null
   outcome_answered_at?: string | null
+  /** Agenda (prd-4f-progresso-v3 RF-B2): the topics of the exam with their depth in the caderno */
+  coverage?: ExamCoverage[] | null
+  cards_per_day?: number | null
+  /** Retention on the exam day (RF-B1, §5.1); null without enough data */
+  projection?: ExamProjection | null
+}
+
+export interface ExamCoverage {
+  topic_id: string
+  name: string
+  depth: number
+}
+
+/** What the cards of the coverage keep on the exam day: if the person stops today and if she keeps the pace. */
+export interface ExamProjection {
+  keep_pace: number
+  stop_today: number
+  cards: number
+  reviewed_cards: number
+  new_cards: number
+  desired_retention: number
+  new_per_day: number
+  computed_for: string
+}
+
+/** GET /stats/progress?root_id= (prd-4f-progresso-v3 RF-B4) */
+export interface ProgressSummaryData {
+  mastery: { percent: number | null; in_day: number; cards: number; delta_30d: number | null }
+  questions: { answered: number; accuracy: number | null }
+  retention_30d: number | null
+  streak: number
+  streak_longest?: number
+}
+
+/** GET /stats/history?days= : only the days with reviews (study day of São Paulo) */
+export interface StudyHistory {
+  from: string
+  to: string
+  days: { date: string; reviews: number }[]
+  max: number
+}
+
+/** GET /stats/day?date= */
+export interface StudyDay {
+  date: string
+  reviews: number
+  remembered_percent: number | null
+  by_topic: { topic_id: string; name: string; root_name: string | null; reviews: number }[]
+  quizzes: { id: string; title: string; score_percent: number | null }[]
+  podcasts_completed: { id: string; title: string }[]
 }
 
 export type ExamOutcome = 'passed' | 'failed'
@@ -624,6 +674,7 @@ export interface ExamUpcoming {
   cards_weak: number
   topics: { id: string; name: string }[]
   podcast_suggestion: boolean
+  projection?: ExamProjection | null
 }
 
 export interface ExamCalendarDay {
@@ -772,7 +823,7 @@ export interface ScopeSummary {
   session: { count: number; overdue: number; errors: number }
   can_quiz?: StudyGate
   can_podcast?: StudyGate
-  exam: { id: string; title: string; days_remaining: number; cards_per_day: number | null; reta_final_active: boolean } | null
+  exam: { id: string; title: string; days_remaining: number; cards_per_day: number | null; reta_final_active: boolean; projection?: ExamProjection | null } | null
   next_step: ScopeNextStep | null
   listen: { id: string; title: string; duration_seconds: number | null } | null
   subjects: ScopeSubject[]

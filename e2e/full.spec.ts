@@ -69,11 +69,9 @@ test.describe('Progresso (/progresso)', () => {
   })
 
   test('exibe título e métricas', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: 'Progresso' })).toBeVisible()
-    await page.waitForTimeout(2000)
-    const mastery = page.getByText('Domínio geral')
-    const loading = page.getByTestId('skeleton').first()
-    await expect(mastery.or(loading)).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: 'Progresso' })).toBeVisible()
+    await expect(page.getByTestId('progress-summary').or(page.getByTestId('progress-new'))).toBeVisible()
+    await expect(page.getByTestId('progress-exams')).toBeVisible()
   })
 })
 

@@ -110,7 +110,9 @@ const contextLine = computed(() => {
   const exam = props.summary.exam
   if (exam) {
     parts.push(exam.days_remaining === 0 ? 'Prova hoje' : `Prova em ${exam.days_remaining} ${exam.days_remaining === 1 ? 'dia' : 'dias'}`)
-    if (exam.cards_per_day) parts.push(`${exam.cards_per_day} cards por dia`)
+    if (exam.cards_per_day) parts.push(`${exam.cards_per_day} ${exam.cards_per_day === 1 ? 'card' : 'cards'} por dia`)
+    // The projection on the day if the pace is kept (prd-4f-progresso-v3 RF-F10)
+    if (exam.projection) parts.push(`projeção ${exam.projection.keep_pace}%`)
   }
   const label = learningModeLabel(mode.value)
   if (label && isRoot.value) parts.push(label)
@@ -152,12 +154,17 @@ const moreItems = computed<MenuItem[]>(() => {
   return [
     { label: 'Relâmpago', meta: '5 minutos, os mais urgentes', to: `/revisar?mode=blitz&topic_id=${id}`, disabled: !hasCards.value },
     { label: errors > 0 ? `Só erros (${errors})` : 'Só erros', meta: errors > 0 ? undefined : 'nenhum agora', to: errors > 0 ? reviewPath(id, { errorsOnly: true }) : undefined, disabled: errors === 0 },
+    // The exam as the goal of the caderno or matéria (prd-4f-progresso-v3 RF-F10, D9)
+    ...(canSetExam.value ? [{ label: 'Definir prova', meta: 'data e o que cai', separator: true, onSelect: () => emit('exam') }] : []),
+    ...(canSetExam.value && props.summary.exam ? [{ label: 'Ver as provas', meta: 'em Progresso', to: '/progresso#provas' }] : []),
     { label: 'Editar', meta: isRoot.value ? 'nome, cor e modo' : 'nome e cor', separator: true, onSelect: () => emitEdit() },
     { label: 'Excluir', tone: 'danger', onSelect: () => emitDelete() },
   ]
 })
 
-const emit = defineEmits<{ (e: 'listen'): void; (e: 'edit'): void; (e: 'delete'): void }>()
+const emit = defineEmits<{ (e: 'listen'): void; (e: 'edit'): void; (e: 'delete'): void; (e: 'exam'): void }>()
+/** "Definir prova": the caderno or a matéria, in the modes with exams (concurso, faculdade) */
+const canSetExam = computed(() => props.summary.topic.depth <= 1 && ['exam', 'academic'].includes(mode.value ?? ''))
 function emitEdit() { emit('edit') }
 function emitDelete() { emit('delete') }
 </script>

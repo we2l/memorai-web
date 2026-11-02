@@ -1,252 +1,326 @@
 <template>
-  <div class="p-4 sm:p-6 max-w-4xl mx-auto">
-    <UiPageHeader title="Progresso" class="mb-6" />
-
-    <!-- Provas on top (prd-navegacao-v3 RF-8): the next ones and the full agenda in /provas -->
-    <UiSection id="provas" title="Provas" class="mb-6" data-testid="progress-exams">
-      <template #action>
-        <UiLink to="/provas" standalone>Ver agenda</UiLink>
+  <div class="mx-auto flex max-w-page flex-col gap-6 px-gutter pt-2 pb-6 md:pt-8">
+    <UiPageHeader title="Progresso" meta="Onde você está forte, onde precisa de reforço e como chega na prova.">
+      <template #actions>
+        <UiSelect v-model="scope" :options="scopeOptions" label="Escopo" hide-label class="w-60" data-testid="progress-scope" />
+        <UiButton v-if="primary" variant="primary" :to="primary.to" data-testid="progress-primary">{{ primary.label }}</UiButton>
       </template>
-      <!-- An error is never an empty state (RN-UX-03): the agenda says it did not load -->
-      <div v-if="examsError" role="alert" class="flex flex-wrap items-center justify-between gap-3">
-        <p class="text-meta text-fg-muted">Não foi possível carregar suas provas.</p>
-        <UiButton size="sm" :icon-left="RotateCw" @click="loadExams">Tentar de novo</UiButton>
-      </div>
-      <UiSkeleton v-else-if="examsLoading" variant="row" />
-      <ul v-else-if="nextExams.length" class="-mx-3 -mb-2 divide-y divide-line">
-        <li v-for="exam in nextExams" :key="exam.id">
-          <UiListRow to="/provas" :title="exam.title" :meta="examMeta(exam)">
-            <template #trailing>
-              <span class="font-semibold tabular-nums text-fg-strong">{{ exam.days_remaining === 1 ? 'amanhã' : `em ${exam.days_remaining} dias` }}</span>
-            </template>
-          </UiListRow>
-        </li>
-      </ul>
-      <div v-else class="flex flex-wrap items-center justify-between gap-3">
-        <p class="text-meta text-fg-muted">Nenhuma prova agendada. Com a data, o Baigi prioriza o que revisar até lá.</p>
-        <UiButton size="sm" to="/provas?nova=1">Agendar prova</UiButton>
+    </UiPageHeader>
+
+    <!-- A new account: one block, no zeros (03 §4 e, M10) -->
+    <UiSection v-if="noCards" data-testid="progress-new">
+      <div class="flex flex-col items-center gap-5 px-2 py-6 text-center">
+        <div class="w-full max-w-sm rounded-card border border-line bg-raised p-4 text-left shadow-card" aria-hidden="true">
+          <p class="text-label text-fg-muted">Prévia</p>
+          <div class="mt-2 flex items-baseline gap-2"><span class="text-page-title-sm text-fg-strong">62%</span><span class="text-meta text-fg-muted">de domínio · ▲ +6 em 30 dias</span></div>
+          <div class="mt-3 flex flex-col gap-2 text-meta">
+            <div class="flex items-center gap-2"><span class="w-28 text-fg">Português</span><span class="h-1.25 flex-1 overflow-hidden rounded-full bg-progress-track"><span class="block h-1.25 w-3/5 rounded-full bg-action" /></span></div>
+            <div class="flex items-center gap-2"><span class="w-28 text-fg">Constitucional</span><span class="h-1.25 flex-1 overflow-hidden rounded-full bg-progress-track"><span class="block h-1.25 w-2/5 rounded-full bg-action" /></span></div>
+          </div>
+        </div>
+        <div>
+          <h2 class="text-section text-fg-strong">Seu progresso aparece aqui</h2>
+          <p class="mt-1 max-w-sm text-body text-fg-muted">Crie seus primeiros cards e revise: o domínio, o acerto e a sequência começam a contar.</p>
+        </div>
+        <UiButton variant="primary" to="/cadernos">Crie seus primeiros cards</UiButton>
       </div>
     </UiSection>
 
-    <!-- Loading -->
-    <div v-if="loading" class="space-y-6" aria-busy="true">
-      <UiSkeleton variant="block" />
-      <UiSkeleton variant="block" size="lg" />
-      <UiSkeleton variant="block" />
-    </div>
+    <template v-else>
+      <div v-if="summaryState === 'loading'" class="grid grid-cols-2 gap-6 lg:grid-cols-4" aria-busy="true"><UiSkeleton v-for="i in 4" :key="i" variant="block" size="sm" /></div>
+      <UiErrorState v-else-if="summaryState === 'error'" title="Não foi possível carregar o resumo" @retry="retryFailed" />
+      <ProgressSummary v-else-if="summary" :data="summary" :scope-name="scopeName" />
+    </template>
 
-    <UiErrorState
-      v-else-if="loadError"
-      variant="page"
-      title="Não foi possível carregar seu progresso"
-      description="Verifique sua conexão e tente de novo."
-      @retry="load"
+    <div v-if="examsState === 'loading'" aria-busy="true"><UiSkeleton variant="block" /></div>
+    <UiErrorState v-else-if="examsState === 'error'" title="Não foi possível carregar suas provas" @retry="retryFailed" />
+    <ProgressExamList
+      v-else
+      :exams="examStore.exams"
+      :limit-reached="limitReached"
+      :saving-outcome="savingOutcome"
+      @create="openExam(null)"
+      @edit="openExam"
+      @delete="askDelete"
+      @reta="toggleReta"
+      @ics="exportIcs"
+      @google="exportGoogle"
+      @outcome="answerOutcome"
     />
 
-    <template v-else-if="data">
-      <!-- Mastery hero -->
-      <div class="card py-6 px-6 mb-6 text-center">
-        <p class="text-meta text-fg-muted mb-1">Domínio geral</p>
-        <p class="text-4xl font-bold text-fg-strong">{{ data.mastery_pct }}%</p>
-        <p class="text-label text-fg-muted mt-2">dos seus cards estão dominados</p>
-        <!-- Card states bar -->
-        <div class="flex h-3 rounded-full overflow-hidden mt-4 bg-line">
-          <div
-            v-if="data.card_states.mature"
-            class="bg-success transition-all"
-            :style="{ width: pct(data.card_states.mature) }"
-          />
-          <div
-            v-if="data.card_states.learning"
-            class="bg-warning transition-all"
-            :style="{ width: pct(data.card_states.learning) }"
-          />
-          <div
-            v-if="data.card_states.new"
-            class="bg-fg-muted transition-all"
-            :style="{ width: pct(data.card_states.new) }"
-          />
-        </div>
-        <div class="flex justify-center gap-4 mt-3 text-label text-fg-muted">
-          <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-success inline-block" /> Dominados ({{ data.card_states.mature }})</span>
-          <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-warning inline-block" /> Aprendendo ({{ data.card_states.learning }})</span>
-          <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-fg-muted inline-block" /> Novos ({{ data.card_states.new }})</span>
-        </div>
-      </div>
+    <template v-if="!noCards">
+      <div v-if="perfState === 'loading'" aria-busy="true"><UiSkeleton variant="block" size="lg" /></div>
+      <UiErrorState v-else-if="perfState === 'error'" title="Não foi possível carregar o desempenho" @retry="retryFailed" />
+      <ProgressPerformanceTable v-else :rows="scopedRows" :root-id="scope || null" @train="train" />
 
-      <!-- Retention + dias seguidos row -->
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <div class="card py-5 px-5 text-center">
-          <p class="text-meta text-fg-muted mb-1">Retenção (7 dias)</p>
-          <p class="text-section font-bold" :class="retentionColor(data.retention_7d)">
-            {{ data.retention_7d != null ? data.retention_7d + '%' : '—' }}
-          </p>
-        </div>
-        <div class="card py-5 px-5 text-center">
-          <p class="text-meta text-fg-muted mb-1">Retenção (30 dias)</p>
-          <p class="text-section font-bold" :class="retentionColor(data.retention_30d)">
-            {{ data.retention_30d != null ? data.retention_30d + '%' : '—' }}
-          </p>
-        </div>
-        <div class="card py-5 px-5 text-center">
-          <p class="text-meta text-fg-muted mb-1">Dias seguidos</p>
-          <p class="text-section font-bold text-fg-strong">{{ data.streak }} 🔥</p>
-        </div>
-      </div>
-
-      <!-- Heatmap -->
-      <div class="card py-5 px-5 mb-6">
-        <h2 class="text-section mb-4">Consistência (últimos 90 dias)</h2>
-        <div class="flex flex-wrap gap-[3px]">
-          <div
-            v-for="day in heatmapDays"
-            :key="day.date"
-            class="w-3 h-3 rounded-sm transition-colors"
-            :class="heatmapColor(day.count)"
-            :title="`${day.date}: ${day.count} revisões`"
-          />
-        </div>
-        <div class="flex items-center gap-2 mt-3 text-label text-fg-muted">
-          <span>Menos</span>
-          <span class="w-3 h-3 rounded-sm bg-line" />
-          <span class="w-3 h-3 rounded-sm bg-success/20" />
-          <span class="w-3 h-3 rounded-sm bg-success/50" />
-          <span class="w-3 h-3 rounded-sm bg-success/80" />
-          <span class="w-3 h-3 rounded-sm bg-success" />
-          <span>Mais</span>
-        </div>
-      </div>
-
-      <!-- Weak topics -->
-      <div v-if="data.weak_topics.length" class="card py-5 px-5">
-        <h2 class="text-section mb-4">Cadernos mais fracos</h2>
-        <div class="space-y-3">
-          <div v-for="topic in data.weak_topics" :key="topic.id" class="flex items-center gap-3">
-            <div class="flex-1 min-w-0">
-              <p class="text-meta text-fg-strong truncate">{{ topic.name }}</p>
-              <div class="flex items-center gap-2 mt-1">
-                <div class="flex-1 h-2 rounded-full bg-line">
-                  <div
-                    class="h-2 rounded-full bg-danger transition-all"
-                    :style="{ width: topic.mastery_pct + '%' }"
-                  />
-                </div>
-                <span class="text-label text-fg-muted">{{ topic.mastery_pct }}%</span>
-              </div>
-            </div>
-            <UiButton variant="secondary" size="sm" :to="cadernoPath(topic.id)"
-              class="text-label shrink-0">
-              Ver caderno
-            </UiButton>
-          </div>
-        </div>
-      </div>
-
-      <!-- Empty state -->
-      <div v-if="!data.streak && data.mastery_pct === 0" class="card text-center py-10 mt-6">
-        <p class="text-fg">Revise seus primeiros cards pra ver seu progresso aqui.</p>
-        <UiButton variant="primary" to="/revisar" class="mt-4 inline-flex">Começar revisão</UiButton>
-      </div>
+      <div v-if="historyState === 'loading'" aria-busy="true"><UiSkeleton variant="block" /></div>
+      <UiErrorState v-else-if="historyState === 'error'" title="Não foi possível carregar o histórico" @retry="retryFailed" />
+      <ProgressStudyHeatmap v-else-if="history" :history="history" @open="day = $event" />
     </template>
+
+    <LazyProgressStudyDayPanel v-if="dayLoaded" :date="day" @close="day = null" />
+    <LazyExamDialog v-if="examLoaded" v-model="examOpen" :exam="editing" :topic-ids="dialogTopicIds" origin="progress" @saved="onSaved" />
+    <LazyQuizConfigSheet v-if="quizLoaded" v-model="quizOpen" :topic-id="quizTopic" :quantity="20" @created="onQuizCreated" />
+    <LazyUiConfirmModal
+      v-if="confirmLoaded"
+      v-model="confirmOpen"
+      title="Excluir a prova?"
+      :message="toDelete ? `“${toDelete.title}” sai da agenda. Os cadernos e os cards continuam.` : ''"
+      confirm-label="Excluir"
+      :loading="deleting"
+      @confirm="confirmDelete"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { RotateCw } from 'lucide-vue-next'
-import type { ExamUpcoming } from '~/types'
+// Progresso (prd-4f-progresso-v3 RF-F1..F8, canvas ProgressoV2): the scope (all cadernos or one; ?caderno=, the
+// caderno of the nearest exam by default), the summary, the agenda of exams with pace and projection, the
+// performance by matéria and assunto and the history of 26 weeks with the day panel. One primary ("Revisar para
+// a prova · N" or "Revisar hoje · N") and no tinted block. 5 requests: /stats/progress, /exams, /topics/performance,
+// /stats/history and /stats; each section loads and fails on its own.
+import type { Exam, ExamOutcome, ProgressSummaryData, Quiz, Stats, StudyHistory, TopicPerformance } from '~/types'
+import { reviewPath } from '~/utils/reviewScope'
 
+useHead({ title: 'Progresso · Baigi' })
+
+type Load = 'loading' | 'error' | 'ready'
+
+const route = useRoute()
+const router = useRouter()
 const { $api } = useNuxtApp()
 const examStore = useExamStore()
+const auth = useAuthStore()
 
-// /exams/upcoming straight (the store's fetchUpcoming swallows the error: here an error is not "no exam")
-const examsLoading = ref(true)
-const examsError = ref(false)
+// Scope: '' = all cadernos. Without ?caderno= the caderno of the nearest exam, once the agenda is known.
+const scope = ref(typeof route.query.caderno === 'string' ? route.query.caderno : '')
+let scopeChosen = typeof route.query.caderno === 'string'
+let autoScope = false
+watch(scope, (id) => {
+  if (autoScope) autoScope = false
+  else {
+    scopeChosen = true
+    void router.replace({ query: { ...route.query, caderno: id || undefined }, hash: route.hash })
+    useAnalytics().track('progress_scope', { scope: id ? 'notebook' : 'all' })
+  }
+  void loadSummary()
+})
+
+const performance = ref<TopicPerformance[]>([])
+const roots = computed(() => performance.value.filter(r => r.depth === 0))
+const scopeOptions = computed(() => [{ value: '', label: 'Todos os cadernos' }, ...roots.value.map(r => ({ value: r.topic_id, label: r.name }))])
+const scopeName = computed(() => (scope.value ? roots.value.find(r => r.topic_id === scope.value)?.name ?? null : null))
+const rootOf = (topicId: string) => {
+  const byId = new Map(performance.value.map(r => [r.topic_id, r]))
+  let row = byId.get(topicId)
+  while (row?.parent_id && byId.has(row.parent_id)) row = byId.get(row.parent_id)
+  return row?.topic_id ?? null
+}
+
+// Summary
+const summary = ref<ProgressSummaryData | null>(null)
+const summaryState = ref<Load>('loading')
+let summarySeq = 0
+async function loadSummary() {
+  const n = ++summarySeq
+  summaryState.value = 'loading'
+  try {
+    const res = await $api<{ data: ProgressSummaryData }>('/stats/progress', { params: scope.value ? { root_id: scope.value } : {} })
+    if (n !== summarySeq) return
+    summary.value = res.data
+    summaryState.value = 'ready'
+  } catch (e) {
+    if (n !== summarySeq) return
+    summaryState.value = 'error'
+    reportApiError(e, { silent: true })
+  }
+}
+
+// Exams
+const examsState = ref<Load>('loading')
 async function loadExams() {
-  examsLoading.value = true
-  examsError.value = false
+  examsState.value = 'loading'
   try {
-    examStore.upcoming = (await $api<{ data: ExamUpcoming[] }>('/exams/upcoming')).data
+    await examStore.fetchAgenda('all')
+    examsState.value = 'ready'
+    // /progresso#provas (Hoje, the caderno, the old /provas): the agenda once it is drawn
+    if (route.hash === '#provas') nextTick(() => document.getElementById('provas')?.scrollIntoView({ block: 'start' }))
   } catch (e) {
-    examsError.value = true
+    examsState.value = 'error'
     reportApiError(e, { silent: true })
-  } finally {
-    examsLoading.value = false
   }
 }
-const nextExams = computed(() => examStore.upcoming.filter(e => e.days_remaining >= 0).slice(0, 3))
-function examMeta(exam: ExamUpcoming) {
-  const date = new Date(exam.exam_date.slice(0, 10) + 'T00:00:00').toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })
-  return exam.cards_per_day ? `${date} · ${exam.cards_per_day} cards por dia` : date
+const futureExams = computed(() => examStore.exams.filter(e => !isPastExam(e)))
+const isFree = computed(() => auth.user?.plan === 'free')
+const limitReached = computed(() => isFree.value && futureExams.value.length >= 2)
+const nextExam = computed(() => [...futureExams.value].sort((a, b) => a.days_remaining - b.days_remaining)[0] ?? null)
+const nextExamRoot = computed(() => {
+  const first = nextExam.value?.coverage?.[0]?.topic_id ?? nextExam.value?.topics[0]?.id
+  return first ? rootOf(first) : null
+})
+// The default scope: the caderno of the nearest exam (RF-F1), when the person did not choose one. The summary
+// waits for it (one request, not two)
+function applyDefaultScope() {
+  const id = nextExamRoot.value
+  if (!scopeChosen && id && scope.value !== id) {
+    autoScope = true
+    scope.value = id
+    return true
+  }
+  return false
 }
 
-interface ProgressData {
-  mastery_pct: number
-  card_states: { new: number; learning: number; mature: number }
-  retention_7d: number | null
-  retention_30d: number | null
-  streak: number
-  heatmap: Record<string, number>
-  weak_topics: { id: string; name: string; total_cards: number; mastery_pct: number }[]
+// Performance and the review count of the scope
+const perfState = ref<Load>('loading')
+async function loadPerformance() {
+  perfState.value = 'loading'
+  try {
+    performance.value = (await $api<{ data: TopicPerformance[] }>('/topics/performance')).data
+    perfState.value = 'ready'
+  } catch (e) {
+    perfState.value = 'error'
+    reportApiError(e, { silent: true })
+  }
 }
-
-const data = ref<ProgressData | null>(null)
-const loading = ref(true)
-
-const totalCards = computed(() => {
-  if (!data.value) return 1
-  const s = data.value.card_states
-  return s.new + s.learning + s.mature || 1
+const scopedRows = computed(() => {
+  if (!scope.value) return performance.value
+  const keep = new Set([scope.value])
+  for (const r of performance.value) if (r.parent_id && keep.has(r.parent_id)) keep.add(r.topic_id)
+  return performance.value.filter(r => keep.has(r.topic_id))
 })
 
-function pct(count: number) {
-  return Math.round((count / totalCards.value) * 100) + '%'
-}
+const stats = ref<Stats | null>(null)
+const noCards = computed(() => perfState.value === 'ready' && stats.value !== null && stats.value.total_cards === 0 && roots.value.every(r => r.cards === 0))
 
-function retentionColor(val: number | null) {
-  if (val == null) return 'text-base-muted'
-  if (val >= 80) return 'text-[var(--state-success)]'
-  if (val >= 60) return 'text-[var(--state-warning)]'
-  return 'text-[var(--state-danger)]'
-}
-
-const heatmapDays = computed(() => {
-  const days: { date: string; count: number }[] = []
-  for (let i = 89; i >= 0; i--) {
-    const d = new Date()
-    d.setDate(d.getDate() - i)
-    const dateStr = d.toISOString().split('T')[0]
-    days.push({ date: dateStr, count: data.value?.heatmap[dateStr] ?? 0 })
+/** The one primary: the session of the exam's caderno (it has the boost of the coverage), else of the scope */
+const primary = computed(() => {
+  if (noCards.value) return null
+  const examRoot = nextExamRoot.value
+  if (examRoot) {
+    const n = performance.value.find(r => r.topic_id === examRoot)?.session_count ?? 0
+    if (n > 0) return { label: `Revisar para a prova · ${n}`, to: reviewPath(examRoot) }
   }
-  return days
+  const n = scope.value ? (performance.value.find(r => r.topic_id === scope.value)?.session_count ?? 0) : (stats.value?.due_today ?? 0)
+  return n > 0 ? { label: `Revisar hoje · ${n}`, to: scope.value ? reviewPath(scope.value) : '/revisar' } : null
 })
 
-function heatmapColor(count: number) {
-  if (count === 0) return 'bg-[var(--line)]'
-  if (count <= 5) return 'bg-success/20'
-  if (count <= 15) return 'bg-success/50'
-  if (count <= 30) return 'bg-success/80'
-  return 'bg-success'
-}
-
-const loadError = ref(false)
-
-async function load() {
-  loading.value = true
-  loadError.value = false
-  if (examsError.value) void loadExams()
+// History
+const history = ref<StudyHistory | null>(null)
+const historyState = ref<Load>('loading')
+async function loadHistory() {
+  historyState.value = 'loading'
   try {
-    const res = await $api<any>('/stats/progress')
-    data.value = res.data
+    history.value = (await $api<{ data: StudyHistory }>('/stats/history', { params: { days: 182 } })).data
+    historyState.value = 'ready'
   } catch (e) {
-    loadError.value = true
+    historyState.value = 'error'
     reportApiError(e, { silent: true })
-  } finally {
-    loading.value = false
   }
 }
+const day = ref<string | null>(null)
+const dayLoaded = useLoadedOnce(() => !!day.value)
 
-onMounted(() => {
-  void load()
+// Exam dialog (?nova_prova=1, the old /provas?nova=1)
+const examOpen = ref(route.query.nova_prova === '1' || route.query.nova === '1')
+const examLoaded = useLoadedOnce(() => examOpen.value)
+const editing = ref<Exam | null>(null)
+// "Cadastrar nova prova" of the public result (?from={exam}): the same coverage as that exam
+const fromExam = typeof route.query.from === 'string' ? route.query.from : null
+const dialogTopicIds = computed(() => {
+  const from = fromExam ? examStore.exams.find(e => e.id === fromExam) : null
+  if (from) return from.coverage?.map(c => c.topic_id) ?? from.topics.map(t => t.id)
+  return scope.value ? [scope.value] : undefined
+})
+function openExam(exam: Exam | null) {
+  editing.value = exam
+  examOpen.value = true
+}
+function onSaved() {
   void loadExams()
+  void loadSummary()
+  if (route.query.nova_prova || route.query.nova) void router.replace({ query: { ...route.query, nova_prova: undefined, nova: undefined, from: undefined }, hash: '#provas' })
+}
+
+const toDelete = ref<Exam | null>(null)
+const confirmOpen = ref(false)
+const confirmLoaded = useLoadedOnce(() => confirmOpen.value)
+const { run: runDelete, pending: deleting } = useApiAction()
+function askDelete(exam: Exam) {
+  toDelete.value = exam
+  confirmOpen.value = true
+}
+async function confirmDelete() {
+  if (!toDelete.value) return
+  await runDelete(() => examStore.deleteExam(toDelete.value!.id), { success: 'Prova excluída.', error: 'Não foi possível excluir a prova.' })
+  confirmOpen.value = false
+  toDelete.value = null
+}
+
+const { run } = useApiAction()
+function toggleReta(exam: Exam) {
+  void run(() => examStore.toggleRetaFinal(exam.id), {
+    success: exam.reta_final_enabled ? 'Reta final desligada.' : 'Reta final ligada.',
+    error: 'Não foi possível mudar a Reta final.',
+  })
+}
+async function exportIcs(exam: Exam) {
+  const ok = await run(() => downloadExamIcs(exam).then(() => true), { error: 'Não foi possível baixar o arquivo da agenda.' })
+  if (ok) useAnalytics().track('exam_export', { kind: 'ics' })
+}
+async function exportGoogle(exam: Exam) {
+  // The tab opens before the await: a popup after it would be blocked
+  const tab = window.open('', '_blank')
+  const url = await run(() => examCalendarLink(exam.id), { error: 'Não foi possível abrir o Google Agenda.' })
+  if (!url) return tab?.close()
+  if (tab) tab.location.href = url
+  else window.location.href = url
+  useAnalytics().track('exam_export', { kind: 'google' })
+}
+const savingOutcome = ref<{ id: string; outcome: ExamOutcome } | null>(null)
+async function answerOutcome(exam: Exam, outcome: ExamOutcome) {
+  savingOutcome.value = { id: exam.id, outcome }
+  await run(() => examStore.recordOutcome(exam.id, outcome), {
+    success: outcome === 'passed' ? 'Parabéns pela aprovação!' : 'Resposta registrada. Bora para a próxima.',
+    error: 'Não foi possível salvar sua resposta.',
+  })
+  savingOutcome.value = null
+}
+
+// "Treinar": 20 questions of the weak assunto (the sheet of Praticar)
+const quizOpen = ref(false)
+const quizLoaded = useLoadedOnce(() => quizOpen.value)
+const quizTopic = ref<string | null>(null)
+function train(topicId: string) {
+  quizTopic.value = topicId
+  quizOpen.value = true
+}
+function onQuizCreated(quiz: Quiz) {
+  quizOpen.value = false
+  void navigateTo(`/simulados/${quiz.id}`)
+}
+
+/** "Tentar de novo" of any section: every section that failed loads again (one tap after a network blip) */
+function retryFailed() {
+  if (summaryState.value === 'error') void loadSummary()
+  if (examsState.value === 'error') void loadExams()
+  if (perfState.value === 'error') void loadPerformance()
+  if (historyState.value === 'error') void loadHistory()
+  if (!stats.value) void loadStats()
+}
+
+async function loadStats() {
+  try {
+    stats.value = (await $api<{ data: Stats }>('/stats')).data
+  } catch (e) {
+    reportApiError(e, { silent: true })
+  }
+}
+
+onMounted(async () => {
+  const lists = Promise.allSettled([loadExams(), loadPerformance()])
+  if (scopeChosen) void loadSummary()
+  else void lists.then(() => { if (!applyDefaultScope()) void loadSummary() })
+  void loadHistory()
+  void loadStats()
 })
 </script>

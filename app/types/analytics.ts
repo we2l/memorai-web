@@ -76,6 +76,13 @@ export interface FrontEventProps {
   podcast_transcript_seek: Record<string, never>
   podcast_completed: { origin: 'manual' | 'daily' }
   daily_episode_toggle: { on: boolean }
+  /** Progresso e Provas v3 (prd-4f-progresso-v3 RF-F13) */
+  progress_scope: { scope: 'all' | 'notebook' }
+  performance_action: { action: 'train' | 'review' | 'open' }
+  heatmap_day_open: Record<string, never>
+  exam_create: { origin: 'progress' | 'scope' | 'hoje' }
+  exam_export: { kind: 'ics' | 'google' }
+  projection_explain_open: Record<string, never>
 }
 
 export type FrontEvent = keyof FrontEventProps

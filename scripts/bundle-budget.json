@@ -59,6 +59,11 @@
       "file": "pages/podcasts.vue",
       "gzKb": 6.5,
       "closureGzKb": 25.5
+    },
+    "/progresso": {
+      "file": "pages/progresso.vue",
+      "gzKb": 11.5,
+      "closureGzKb": 30
     }
   },
   "entryLayoutForbidden": {

@@ -27,15 +27,16 @@ test.describe('Cadernos (/cadernos)', () => {
     await page.waitForLoadState('networkidle')
   })
 
-  test('página carrega com título e botão Novo', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: 'Cadernos' })).toBeVisible()
-    await expect(page.getByText('Novo', { exact: true })).toBeVisible()
+  test('página carrega com título e "Novo caderno"', async ({ page }) => {
+    await expect(page.getByRole('heading', { level: 1, name: 'Cadernos' })).toBeVisible()
+    await expect(page.getByRole('button', { name: /Novo caderno|Criar caderno/ }).first()).toBeVisible()
   })
 
-  test('botão Novo abre menu com opções', async ({ page }) => {
-    await page.getByText('Novo', { exact: true }).click()
-    await expect(page.getByText('Novo caderno').first()).toBeVisible()
-    await expect(page.getByRole('link', { name: 'Importar Anki' })).toBeVisible()
+  test('"Novo caderno" abre o diálogo; o Anki fica a um link', async ({ page }) => {
+    await page.getByRole('button', { name: /Novo caderno|Criar caderno/ }).first().click()
+    await expect(page.getByRole('dialog', { name: 'Novo caderno' })).toBeVisible()
+    await page.getByRole('dialog', { name: 'Novo caderno' }).getByRole('button', { name: 'Cancelar' }).click()
+    await expect(page.getByRole('link', { name: /Importe seus baralhos|Importar do Anki/ }).first()).toBeVisible()
   })
 })
 

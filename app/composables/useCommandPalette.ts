@@ -204,7 +204,7 @@ export function useCommandPalette() {
     if (q.trim().length < 3) return
     cardTimer = setTimeout(async () => {
       const id = ++cardRequest
-      const scope = scopeTopicFromQuery(route.query)
+      const scope = scopeTopicOfRoute(route)
       const rootOf = (topicId: string) => {
         let t = topicStore.findById(topicId)
         while (t?.parent_id) t = topicStore.findById(t.parent_id)
@@ -227,7 +227,7 @@ export function useCommandPalette() {
             // The API already matched front/back: the query is a keyword so the card ranks
             keywords: [q.trim()],
             meta: root?.name,
-            handler: go(`/cadernos?topic=${encodeURIComponent(topicId)}&tab=cards&highlight=${encodeURIComponent(card.id)}`),
+            handler: go(`${cadernoPath(topicId, { view: 'cards' })}?highlight=${encodeURIComponent(card.id)}`),
           })
         }
       })
@@ -244,7 +244,7 @@ export function useCommandPalette() {
       icon: MessageCircle,
       keywords: [],
       handler: () => {
-        const topicId = scopeTopicFromQuery(route.query) ?? undefined
+        const topicId = scopeTopicOfRoute(route) ?? undefined
         useChatStore().ask({ topicId, source: 'search' }, q)
       },
     }

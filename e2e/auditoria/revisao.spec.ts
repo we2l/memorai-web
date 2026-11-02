@@ -175,9 +175,9 @@ test.describe('Revisar do caderno com volume (seed perf@audit.test, prd-performa
     const heavy = ((await apiCall(page, 'GET', '/topics')).data as any[]).find(t => t.name === 'Direito — TRF (pesado)')
     test.skip(!heavy, 'seed pesado ausente')
 
-    await gotoApp(page, `/cadernos?topic=${heavy.id}`)
-    const cta = page.getByRole('main').getByRole('link', { name: /^Revisar \d+ cards$/ }).first()
-    const n = Number((await cta.innerText()).match(/\d+/)![0])
+    await gotoApp(page, `/cadernos/${heavy.id}`)
+    const cta = page.getByTestId('scope-review')
+    const n = Number((await cta.innerText()).match(/· (\d+)/)![1])
     const session = page.waitForResponse(r => r.url().includes('/api/review/session'))
     await cta.click()
     const body = await (await session).json()

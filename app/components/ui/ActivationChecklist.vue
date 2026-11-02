@@ -63,7 +63,7 @@ const NuxtLink = resolveComponent('NuxtLink')
 const addSheet = useAddSheet()
 const uid = useId()
 
-const notebook = (tab?: 'cards') => cadernoPath(props.topicId, tab ? { tab } : {})
+const notebook = (view?: 'cards') => cadernoPath(props.topicId, view ? { view } : {})
 
 const items = computed<{ key: ChecklistItem; label: string; cta: string; done: boolean; to?: string }[]>(() => [
   { key: 'topic', label: 'Criar um caderno', cta: 'Criar caderno', done: props.hasTopics, to: '/cadernos?action=new-notebook' },

@@ -37,7 +37,7 @@
               Revisar {{ errorCards === 1 ? 'o card' : `os ${errorCards}` }} agora
             </UiButton>
             <UiButton v-else variant="primary" :to="reviewPath(topic?.id)">Revisar agora</UiButton>
-            <UiButton v-if="topic" :to="cadernoPath(topic.id, { tab: 'cards' })">Voltar ao caderno</UiButton>
+            <UiButton v-if="topic" :to="cadernoPath(topic.id, { view: 'cards' })">Voltar ao caderno</UiButton>
             <UiButton variant="ghost" :to="newQuizPath">Novo simulado</UiButton>
           </div>
         </div>

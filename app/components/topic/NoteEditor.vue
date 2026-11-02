@@ -323,6 +323,8 @@ const editor = useEditor({
     }, 200)
   },
   editorProps: {
+    // Accessible name of the text area (axe aria-input-field-name on the material route)
+    attributes: { role: 'textbox', 'aria-label': 'Conteúdo da nota', 'aria-multiline': 'true' },
     handleKeyDown: (_view, event) => {
       if (slashMenu.open) {
         if (event.key === 'ArrowDown') {

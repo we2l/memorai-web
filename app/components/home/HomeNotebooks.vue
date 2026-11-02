@@ -11,22 +11,7 @@
     </div>
     <ul v-else class="-mx-3 -my-2 divide-y divide-line">
       <li v-for="t in shown" :key="t.id">
-        <UiListRow :to="cadernoPath(t.id)" :title="t.name">
-          <template #leading>
-            <UiSubjectMark :color="t.color" />
-          </template>
-          <template #trailing>
-            <span v-if="t.session_count > 0" class="whitespace-nowrap">
-              <span class="font-semibold tabular-nums text-fg-strong">{{ t.session_count }}</span> hoje
-            </span>
-            <span v-else class="whitespace-nowrap">{{ t.flashcards_count > 0 ? 'em dia' : 'novo' }}</span>
-            <UiProgressBar
-              class="w-20"
-              :value="Math.round(t.progress * 100)"
-              :label="`Domínio de ${t.name}: ${Math.round(t.progress * 100)}%`"
-            />
-          </template>
-        </UiListRow>
+        <CadernoNotebookRow :topic="t" />
       </li>
     </ul>
   </UiSection>

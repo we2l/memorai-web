@@ -203,7 +203,7 @@ describe('HomeNotebooks', () => {
     ]
     const w = await mountSuspended(HomeNotebooks, { props: { topics }, attachTo: document.body })
     const rows = w.findAll('ul a')
-    expect(rows.map(r => r.attributes('href'))).toEqual(['b', 'a', 'c', 'e', 'f'].map(id => `/cadernos?topic=${id}`))
+    expect(rows.map(r => r.attributes('href'))).toEqual(['b', 'a', 'c', 'e', 'f'].map(id => `/cadernos/${id}`))
     expect(w.text()).not.toContain('sub')
     expect(w.text()).toContain('Ver todos (6)')
     expect(rows[0]!.text()).toContain('45 hoje')
@@ -233,7 +233,7 @@ describe('UiActivationChecklist (Hoje)', () => {
     await primary[0]!.trigger('click')
     expect(showAddMock).toHaveBeenCalledWith('checklist')
     expect(w.emitted('select')![0]).toEqual(['material'])
-    expect(w.get('a[href="/cadernos?topic=t1&tab=cards"]').text()).toContain('Gerar ou criar cards')
+    expect(w.get('a[href="/cadernos/t1/cards"]').text()).toContain('Gerar ou criar cards')
     expect(await axeViolations(w.element)).toEqual([])
   })
 

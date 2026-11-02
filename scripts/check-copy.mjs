@@ -7,7 +7,8 @@ import { join, relative } from 'node:path'
 const ROOT = new URL('../app', import.meta.url).pathname
 const ALLOW = new Set(['pages/importar.vue'])
 const RULES = [
-  { re: /\b(matéria|Matéria|subcaderno|Subcaderno)\b/, why: 'use Caderno / Tópico / Sub-tópico' },
+  // Caderno → matéria → assunto (prd-4b-caderno-v3, estudo §0.4.1/D5): "matéria" is a term of the UI now
+  { re: /\b(subcaderno|Subcaderno|sub-caderno|Sub-caderno)\b/, why: 'use Caderno / matéria / assunto' },
   { re: /(?<![\w-])Decks?\b/, why: '"Deck" não aparece na UI (use caderno ou "baralho do Anki")' },
   { re: /30 segundos/, why: 'promessa de tempo falsa' },
   { re: /cards em breve/i, why: 'promessa falsa' },

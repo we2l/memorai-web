@@ -41,7 +41,7 @@ describe('/simulados/[id]/resultado (prd-caderno-f1-pontes RF-F2)', () => {
   it('"Voltar ao caderno" leva ao caderno do simulado, e o novo simulado mantém o escopo', async () => {
     api()
     const wrapper = await mountPage()
-    expect(link(wrapper, 'Voltar ao caderno')?.attributes('href')).toBe('/cadernos?topic=t1')
+    expect(link(wrapper, 'Voltar ao caderno')?.attributes('href')).toBe('/cadernos/t1')
     expect(link(wrapper, 'Novo simulado')?.attributes('href')).toBe('/simulados?topic_id=t1')
   })
 
@@ -54,7 +54,7 @@ describe('/simulados/[id]/resultado (prd-caderno-f1-pontes RF-F2)', () => {
     expect(apiMock).toHaveBeenCalledWith('/quizzes/q1/create-cards', { method: 'POST' })
     expect(wrapper.get('[role="status"]').text()).toContain('1 card dos erros criado em Inglês.')
     expect(link(wrapper, 'Revisar agora')?.attributes('href')).toBe('/revisar?topic_id=t1')
-    expect(link(wrapper, 'Voltar ao caderno')?.attributes('href')).toBe('/cadernos?topic=t1&tab=cards')
+    expect(link(wrapper, 'Voltar ao caderno')?.attributes('href')).toBe('/cadernos/t1/cards')
   })
 
   it('cards já criados em outra visita: o mesmo retorno, sem número inventado', async () => {
@@ -72,7 +72,7 @@ describe('/simulados/[id]/resultado (prd-caderno-f1-pontes RF-F2)', () => {
       await flushPromises()
       expect(link(wrapper, 'Revisar os 2 agora')?.attributes('href')).toBe('/revisar?scope=quiz:q1')
       expect(link(wrapper, 'Revisar agora')).toBeUndefined()
-      expect(link(wrapper, 'Voltar ao caderno')?.attributes('href')).toBe('/cadernos?topic=t1&tab=cards')
+      expect(link(wrapper, 'Voltar ao caderno')?.attributes('href')).toBe('/cadernos/t1/cards')
     })
 
     it('ao recarregar: cards_from_errors do GET /quizzes/{id} mantém o botão', async () => {

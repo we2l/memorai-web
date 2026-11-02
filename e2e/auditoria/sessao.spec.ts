@@ -85,9 +85,8 @@ test.describe('Sessão expirada no meio do uso', () => {
   test('401 numa ação leva a /entrar com redirect e, após entrar, volta para a mesma tela', async ({ page, context }) => {
     await gotoApp(page, '/hoje')
     const t = await apiCall(page, 'POST', '/topics', { name: `Sessão ${uid()}` })
-    await gotoApp(page, `/cadernos?topic=${t.data.id}`)
+    await gotoApp(page, `/cadernos/${t.data.id}/cards`)
     await expireSession(context)
-    await page.getByRole('tab', { name: /^Cards/ }).click()
     await page.getByRole('button', { name: /Criar (primeiro )?card/ }).first().click()
     await page.waitForURL('**/entrar?redirect=**', { timeout: 10_000 }).catch(() => {})
     if (!page.url().includes('/entrar')) {
@@ -101,12 +100,12 @@ test.describe('Sessão expirada no meio do uso', () => {
       await page.waitForURL('**/entrar?redirect=**')
     }
     const redirect = new URL(page.url()).searchParams.get('redirect')
-    expect(redirect).toContain(`/cadernos?topic=${t.data.id}`)
+    expect(redirect).toContain(`/cadernos/${t.data.id}/cards`)
 
     await page.waitForLoadState('networkidle')
     await loginViaForm(page, USERS.session.email)
-    await page.waitForURL(u => u.pathname === '/cadernos' && u.searchParams.get('topic') === t.data.id, { timeout: 15_000 })
-    await expect(page.getByRole('heading', { level: 1, name: /^Sessão / })).toBeVisible()
+    await page.waitForURL(u => u.pathname === `/cadernos/${t.data.id}/cards`, { timeout: 15_000 })
+    await expect(page.getByRole('heading', { level: 1, name: 'Todos os cards' })).toBeVisible()
   })
 
   test('texto da nota digitado quando a sessão expira não se perde', async ({ page, context }) => {
@@ -115,8 +114,8 @@ test.describe('Sessão expirada no meio do uso', () => {
     const n = await apiCall(page, 'POST', `/topics/${t.data.id}/notes`, { title: 'Nota longa', content: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Início.' }] }] } })
     // The notes list has no content (prd-performance-caderno): the saved text is read from the note itself
     const noteText = async () => JSON.stringify((await apiCall(page, 'GET', `/notes/${n.data.id}`)).data.content)
-    await gotoApp(page, `/cadernos?topic=${t.data.id}`)
-    await page.locator('.note-card').filter({ hasText: 'Nota longa' }).click()
+    await gotoApp(page, `/cadernos/${t.data.id}`)
+    await page.getByTestId('material-row').filter({ hasText: 'Nota longa' }).getByTestId('material-title').click()
     const editor = page.locator('.ProseMirror').first()
     await expect(editor).toContainText('Início.')
 
@@ -128,12 +127,11 @@ test.describe('Sessão expirada no meio do uso', () => {
     await page.waitForURL('**/entrar?redirect=**', { timeout: 10_000 })
     await page.waitForLoadState('networkidle')
     await loginViaForm(page, USERS.session.email)
-    await page.waitForURL(u => u.pathname === '/cadernos', { timeout: 15_000 })
+    await page.waitForURL(u => u.pathname === `/cadernos/${t.data.id}/material/${n.data.id}`, { timeout: 15_000 })
     await page.waitForLoadState('networkidle')
     expect(await noteText()).not.toContain('Parágrafo importante')
 
-    // A volta para /cadernos?…&note= reabre a nota, que oferece o rascunho local (nunca aplicado sem a escolha da pessoa)
-    expect(new URL(page.url()).searchParams.get('note')).toBe(n.data.id)
+    // A volta para a rota do material reabre a nota, que oferece o rascunho local (nunca aplicado sem a escolha da pessoa)
     const offer = page.getByRole('status').filter({ hasText: /Você tem alterações não salvas de \d{2}:\d{2}\./ })
     await expect(offer).toBeVisible()
     await expect(page.locator('.ProseMirror').first()).not.toContainText('Parágrafo importante')

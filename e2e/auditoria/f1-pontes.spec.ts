@@ -10,10 +10,9 @@ import type { Page } from '@playwright/test'
  */
 test.use({ auditUser: 'scope' })
 
-const tree = (page: Page) => page.getByRole('complementary')
-// The row (role=button) that holds the name span; a subject's row name starts with its chevron
-const treeRow = (page: Page, name: string) => tree(page).getByRole('button').filter({ has: page.locator(`span[title="${name}"]`) }).first()
+// Since the 4b-1 the caderno is a hub (/cadernos/{id}): the tree left; the list and the subjects table carry the numbers
 const num = (text: string, label: RegExp) => Number(text.match(label)?.[1] ?? NaN)
+const reviewCta = (page: Page) => page.getByTestId('scope-review')
 
 /** Root caderno with no direct cards and one subject with `cards` new cards (the Anki shape). */
 async function ankiShapedCaderno(page: Page, cards = 3) {
@@ -48,36 +47,36 @@ test.describe('Um número só (seed perf@audit.test)', () => {
     const details = (await apiCall(page, 'GET', `/topics/${heavy.id}/details`)).data
 
     // Hoje: the caderno row ("N hoje", Hoje v3)
-    const homeCard = page.getByTestId('home-notebooks').locator(`a[href="/cadernos?topic=${heavy.id}"]`).first()
+    const homeCard = page.getByTestId('home-notebooks').locator(`a[href="/cadernos/${heavy.id}"]`).first()
     await expect(homeCard).toBeVisible()
     const home = num(await homeCard.innerText(), /(\d+)\s+hoje/)
 
-    // Caderno: header and CTA; tree: the root row
-    await gotoApp(page, `/cadernos?topic=${heavy.id}`)
-    const cta = page.getByRole('main').getByRole('link', { name: /^Revisar \d+ cards$/ }).first()
+    // List of cadernos (the old tree root row) and the hub header
+    await gotoApp(page, '/cadernos')
+    const row = num(await page.getByTestId('notebook-list').locator(`a[href="/cadernos/${heavy.id}"]`).innerText(), /(\d+)\s+hoje/)
+    await gotoApp(page, `/cadernos/${heavy.id}`)
+    const cta = reviewCta(page)
     await expect(cta).toBeVisible()
-    const header = num(await cta.innerText(), /(\d+)/)
-    const rowText = await treeRow(page, 'Direito — TRF (pesado)').innerText()
-    const row = num(rowText, /(\d+) pendentes/)
-    const rowCards = num(rowText, /(\d+) cards/)
-    await expect(page.getByRole('main').getByText(new RegExp(`^${details.flashcards_count} cards · ${header} pendentes hoje$`))).toBeVisible()
+    const header = num(await cta.innerText(), /· (\d+)/)
+    const summary = (await apiCall(page, 'GET', `/topics/${heavy.id}/summary`)).data
+    // The cards of the header are of the subtree (not the direct cards of GET /topics)
+    await expect(page.getByTestId('scope-header')).toContainText(`de ${details.flashcards_count.toLocaleString('pt-BR')} em dia`)
 
     // Session that the CTA opens
     const session = page.waitForResponse(r => r.url().includes('/api/review/session'))
     await cta.click()
     const sessionCount = (await (await session).json()).session_count
 
-    const evidence = `home=${home} caderno=${header} árvore=${row} sessão=${sessionCount} details=${details.session_count} · cards: árvore=${rowCards} details=${details.flashcards_count} diretos=${heavy.flashcards_count}`
+    const evidence = `home=${home} caderno=${header} lista=${row} sessão=${sessionCount} details=${details.session_count} · cards: resumo=${summary.counts.cards} details=${details.flashcards_count} diretos=${heavy.flashcards_count}`
     test.info().annotations.push({ type: 'evidência', description: evidence })
     console.log(`[f1 números] ${evidence}`)
     expect(new Set([home, header, row, sessionCount, details.session_count]).size).toBe(1)
-    // The tree counts the subtree, the same scope as the header (not the direct cards of GET /topics)
-    expect(rowCards).toBe(details.flashcards_count)
-    expect(rowCards).toBeGreaterThan(heavy.flashcards_count)
+    expect(summary.counts.cards).toBe(details.flashcards_count)
+    expect(summary.counts.cards).toBeGreaterThan(heavy.flashcards_count)
     await ctx.close()
   })
 
-  test('um assunto: a linha da árvore, o cabeçalho e a sessão dizem o mesmo número', async ({ browser }) => {
+  test('um assunto: a linha de Matérias, o cabeçalho dele e a sessão dizem o mesmo número', async ({ browser }) => {
     const ctx = await browser.newContext({ storageState: await cachedLoginState(browser, 'perf@audit.test', 'password') })
     const page = await ctx.newPage()
     await gotoApp(page, '/hoje')
@@ -85,10 +84,11 @@ test.describe('Um número só (seed perf@audit.test)', () => {
     test.skip(!heavy, 'seed pesado ausente')
     const subject = (heavy.children as any[]).find(c => c.name === 'Direito Administrativo') ?? heavy.children[0]
 
-    await gotoApp(page, `/cadernos?topic=${subject.id}`)
-    const cta = page.getByRole('main').getByRole('link', { name: /^Revisar \d+ cards$/ }).first()
-    const header = num(await cta.innerText(), /(\d+)/)
-    const badge = num(await treeRow(page, subject.name).innerText(), /(\d+)\s*$/)
+    await gotoApp(page, `/cadernos/${heavy.id}`)
+    const badge = num((await page.getByTestId('subject-row').filter({ hasText: subject.name }).first().getAttribute('aria-label'))!, /(\d+) para hoje/)
+    await gotoApp(page, `/cadernos/${subject.id}`)
+    const cta = reviewCta(page)
+    const header = num(await cta.innerText(), /· (\d+)/)
     const session = page.waitForResponse(r => r.url().includes('/api/review/session'))
     await cta.click()
     expect((await (await session).json()).session_count).toBe(header)
@@ -101,12 +101,12 @@ test.describe('Caderno raiz do Anki (cards só nos assuntos)', () => {
   test('mostra os cards da subárvore e tem botão Revisar com a sessão de todos os assuntos', async ({ page }) => {
     await gotoApp(page, '/hoje')
     const { root } = await ankiShapedCaderno(page, 3)
-    await gotoApp(page, `/cadernos?topic=${root.id}`)
+    await gotoApp(page, `/cadernos/${root.id}`)
 
-    await expect(page.getByRole('main').getByText(/^3 cards · 3 pendentes hoje$/)).toBeVisible()
-    await expect(treeRow(page, root.name)).toContainText('3 cards · 3 pendentes')
-    const cta = page.getByRole('main').getByRole('link', { name: 'Revisar 3 cards' }).first()
-    await expect(cta).toBeVisible()
+    await expect(page.getByTestId('scope-header')).toContainText('0 de 3 em dia')
+    await expect(page.getByTestId('subject-row').filter({ hasText: 'Vocabulary' })).toHaveAttribute('aria-label', /3 para hoje/)
+    const cta = reviewCta(page)
+    await expect(cta).toHaveText('Revisar hoje · 3')
 
     const session = page.waitForResponse(r => r.url().includes(`/api/review/session?topic_id=${root.id}`))
     await cta.click()
@@ -122,8 +122,8 @@ test.describe('Simulado devolve ao escopo', () => {
     const { root } = await ankiShapedCaderno(page, 1)
 
     // The caderno opens /simulados with its scope already chosen (RF-F1)
-    await gotoApp(page, `/cadernos?topic=${root.id}`)
-    await page.getByRole('main').getByRole('button', { name: /^Simulado/ }).click()
+    await gotoApp(page, `/cadernos/${root.id}`)
+    await page.getByTestId('practice-quiz').click()
     await expect(page).toHaveURL(new RegExp(`/simulados\\?topic_id=${root.id}`))
     const sheet = page.getByRole('dialog', { name: 'Novo simulado' })
     await expect(sheet).toBeVisible()
@@ -142,11 +142,14 @@ test.describe('Simulado devolve ao escopo', () => {
     await expect(next).toBeVisible()
     // F2: exactly the cards of these errors (scope=quiz:), no longer the whole caderno
     await expect(next.getByRole('link', { name: 'Revisar o card agora' })).toHaveAttribute('href', `/revisar?scope=quiz:${quizId}`)
+    // "Voltar ao caderno" opens its cards (the old Cards tab is the library of the scope)
     await next.getByRole('link', { name: 'Voltar ao caderno' }).click()
-    await expect(page).toHaveURL(new RegExp(`/cadernos\\?topic=${root.id}`))
-    await expect(page.getByRole('main').getByRole('heading', { level: 1, name: root.name })).toBeVisible()
-    // The card of the error is in the caderno now (subtree: 1 + 1)
-    await expect(page.getByRole('main').getByText(/^2 cards/)).toBeVisible()
+    await expect(page).toHaveURL(new RegExp(`/cadernos/${root.id}/cards$`))
+    await expect(page.getByRole('heading', { level: 1, name: 'Todos os cards' })).toBeVisible()
+    // The card of the error is in the caderno now (subtree: 1 + 1), and the hub has the line "Erros das questões"
+    await expect(page.getByText(/^2 cards em /)).toBeVisible()
+    await gotoApp(page, `/cadernos/${root.id}`)
+    await expect(page.getByTestId('special-quiz')).toContainText('1 card dos simulados')
   })
 })
 
@@ -166,35 +169,36 @@ test.describe('Revisão → nota', () => {
     await rated
     await expect(page.getByText('Da sua nota:')).toBeVisible()
     await page.getByRole('link', { name: 'Abrir na nota' }).click()
-    await expect(page).toHaveURL(new RegExp(`/cadernos\\?topic=${child.id}&note=${note.id}`))
+    await expect(page).toHaveURL(new RegExp(`/cadernos/${child.id}/material/${note.id}$`))
     await expect(page.getByText('três formas no presente')).toBeVisible()
   })
 })
 
-test.describe('Árvore: "Adicionar assunto"', () => {
-  test('cria matéria e assunto pelo menu, até 2 níveis abaixo do caderno', async ({ page }) => {
+test.describe('Hub: "+ Matéria" e "+ Assunto"', () => {
+  test('cria matéria e assunto no próprio hub, até 2 níveis abaixo do caderno', async ({ page }) => {
     await gotoApp(page, '/hoje')
     const root = (await apiCall(page, 'POST', '/topics', { name: `Direito ${uid()}` })).data
-    await gotoApp(page, `/cadernos?topic=${root.id}`)
+    await apiCall(page, 'POST', `/topics/${root.id}/notes`, { title: 'Material', content: null })
 
-    const addSubject = async (parent: string, name: string) => {
-      await page.getByRole('button', { name: `Opções de ${parent}`, exact: true }).click()
-      await page.getByRole('menuitem', { name: 'Adicionar assunto' }).click()
-      const dialog = page.getByRole('dialog', { name: 'Criar assunto' })
-      await expect(dialog.getByText(`Em ${parent}`)).toBeVisible()
-      await dialog.getByRole('textbox', { name: 'Nome do assunto' }).fill(name)
+    const addSubject = async (scopeId: string, kind: 'matéria' | 'assunto', name: string) => {
+      await gotoApp(page, `/cadernos/${scopeId}`)
+      await page.getByTestId('scope-add-subject').click()
+      const dialog = page.getByRole('dialog', { name: kind === 'matéria' ? 'Nova matéria' : 'Novo assunto' })
+      await dialog.getByRole('textbox', { name: kind === 'matéria' ? 'Nome da matéria' : 'Nome do assunto' }).fill(name)
       await dialog.getByRole('button', { name: 'Criar' }).click()
       await expect(dialog).toBeHidden()
-      await expect(page.getByRole('status').getByText('Assunto criado!').first()).toBeVisible()
-      await expect(treeRow(page, name)).toBeVisible()
+      await expect(page.getByRole('status').getByText(kind === 'matéria' ? 'Matéria criada!' : 'Assunto criado!').first()).toBeVisible()
+      await expect(page.getByTestId('subject-row').filter({ hasText: name })).toBeVisible()
     }
-    await addSubject(root.name, 'Administrativo')
-    await addSubject('Administrativo', 'Atos')
+    await addSubject(root.id, 'matéria', 'Administrativo')
+    const adm = ((await apiCall(page, 'GET', '/topics')).data as any[]).find(t => t.id === root.id).children[0]
+    await addSubject(adm.id, 'assunto', 'Atos')
 
-    // 3rd level below the caderno: the menu does not offer it
-    await page.getByRole('button', { name: 'Opções de Atos', exact: true }).click()
-    await expect(page.getByRole('menuitem', { name: 'Editar' })).toBeVisible()
-    await expect(page.getByRole('menuitem', { name: 'Adicionar assunto' })).toHaveCount(0)
+    // 3rd level below the caderno: the hub does not offer it
+    const atos = ((await apiCall(page, 'GET', '/topics')).data as any[]).find(t => t.id === root.id).children[0].children[0]
+    await gotoApp(page, `/cadernos/${atos.id}`)
+    await expect(page.getByTestId('scope-header').getByRole('heading', { level: 1 })).toHaveText('Atos')
+    await expect(page.getByTestId('scope-add-subject')).toHaveCount(0)
 
     const saved = ((await apiCall(page, 'GET', '/topics')).data as any[]).find(t => t.id === root.id)
     expect(saved.children.map((c: any) => c.name)).toEqual(['Administrativo'])
@@ -206,13 +210,12 @@ test.describe('Requisito antes da ação (sem material)', () => {
   test('podcast e simulado dizem o que falta, e não deixam gerar', async ({ page }) => {
     await gotoApp(page, '/hoje')
     const { root } = await ankiShapedCaderno(page, 2)
-    await gotoApp(page, `/cadernos?topic=${root.id}`)
-    const main = page.getByRole('main')
+    await gotoApp(page, `/cadernos/${root.id}`)
 
-    // On the caderno, before any click
-    const podcast = main.getByRole('button', { name: /^Podcast/ })
-    const quiz = main.getByRole('button', { name: /^Simulado/ })
-    await expect(podcast).toContainText('Revise 5 cards para liberar · faltam 5')
+    // On the hub, before any click: Praticar says what is missing
+    const podcast = page.getByTestId('scope-listen')
+    const quiz = page.getByTestId('practice-quiz')
+    await expect(page.getByTestId('practice-listen')).toContainText('Revise 5 cards para liberar · faltam 5')
     await expect(quiz).toContainText('Escreva 100 palavras em notas para liberar · faltam 100')
 
     // Podcast sheet: same text, button waits (no POST /podcasts: the aiGuard would record it)

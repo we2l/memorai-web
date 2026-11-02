@@ -11,9 +11,10 @@ const title = (page: Page) => page.locator('.notion-title')
 const saveIndicator = (page: Page) => page.getByRole('main').getByText(/^(Salvando\.\.\.|Salvo)$/)
 const notSaved = (page: Page) => page.getByRole('alert').filter({ hasText: 'Não salvo' })
 
+/** The hub of the caderno lists the material; its title opens the material route (4b-1). */
 async function openNote(page: Page, topicId: string, noteTitle: string) {
-  await gotoApp(page, `/cadernos?topic=${topicId}`)
-  await page.locator('.note-card').filter({ hasText: noteTitle }).click()
+  await gotoApp(page, `/cadernos/${topicId}`)
+  await page.getByTestId('material-row').filter({ hasText: noteTitle }).getByTestId('material-title').click()
   await expect(editor(page)).toBeVisible()
 }
 
@@ -31,10 +32,10 @@ async function noteText(page: Page, noteId: string) {
 test.describe('Nota — caminho feliz', () => {
   test('criar → editar título e corpo → autosave persiste após recarregar', async ({ page }) => {
     const topicId = await newTopic(page)
-    await gotoApp(page, `/cadernos?topic=${topicId}`)
+    await gotoApp(page, `/cadernos/${topicId}`)
 
     const created = page.waitForResponse(r => r.request().method() === 'POST' && /\/topics\/[^/]+\/notes$/.test(r.url()))
-    await page.getByRole('button', { name: /Escrever uma nota/ }).click()
+    await page.getByTestId('empty-note').click()
     const note = (await (await created).json()).data
     await expect(editor(page)).toBeVisible()
 
@@ -67,43 +68,41 @@ test.describe('Nota — caminho feliz', () => {
     await expect(editor(page)).toContainText('conteúdo antigo')
 
     await page.getByRole('button', { name: 'Mais opções' }).click()
-    await page.getByRole('button', { name: 'Excluir nota' }).click()
+    await page.getByRole('menuitem', { name: 'Excluir nota' }).click()
     const confirm = page.getByRole('alertdialog')
     await expect(confirm.getByRole('heading', { name: 'Excluir nota?' })).toBeVisible()
     await confirm.getByRole('button', { name: 'Cancelar' }).click()
     expect((await noteText(page, n.data.id)).title).toBe('Nota para excluir')
 
     await page.getByRole('button', { name: 'Mais opções' }).click()
-    await page.getByRole('button', { name: 'Excluir nota' }).click()
+    await page.getByRole('menuitem', { name: 'Excluir nota' }).click()
     await page.getByRole('alertdialog').getByRole('button', { name: 'Excluir' }).click()
     await expect(page.getByRole('status').getByText('Nota excluída.')).toBeVisible()
+    await expect(page).toHaveURL(new RegExp(`/cadernos/${topicId}$`))
     const res = await page.context().request.get(`http://localhost:8037/api/notes/${n.data.id}`, { headers: { Accept: 'application/json', Origin: 'http://localhost:3000', Referer: 'http://localhost:3000/' } })
     expect(res.status()).toBe(404)
   })
 })
 
 test.describe('Nota — navegação e acessibilidade', () => {
-  test('recarregar com ?note= na URL reabre a nota que estava aberta', async ({ page }) => {
+  test('recarregar a rota do material reabre a nota que estava aberta', async ({ page }) => {
     const topicId = await newTopic(page)
     await apiCall(page, 'POST', `/topics/${topicId}/notes`, { title: 'Nota do link', content: doc('corpo do link') })
     await openNote(page, topicId, 'Nota do link')
-    await expect(page).toHaveURL(/[?&]note=/)
+    await expect(page).toHaveURL(new RegExp(`/cadernos/${topicId}/material/[0-9a-f-]{36}$`))
     await page.reload()
     await page.waitForLoadState('networkidle')
-    // BUG: onMounted (pages/cadernos/index.vue) chama selectNote, não openNoteEditor — a URL mantém
-    // ?note= mas a tela volta para a lista.
     await expect(editor(page)).toContainText('corpo do link')
   })
 
   test('nota da lista abre pelo teclado (Tab + Enter)', async ({ page }) => {
     const topicId = await newTopic(page)
     await apiCall(page, 'POST', `/topics/${topicId}/notes`, { title: 'Nota teclado', content: doc('abre com Enter') })
-    await gotoApp(page, `/cadernos?topic=${topicId}`)
-    const card = page.locator('.note-card').filter({ hasText: 'Nota teclado' })
-    await expect(card).toBeVisible()
-    // BUG (a11y): o card é um <div @click> sem role/tabindex/keydown (HubNotesTab.vue)
-    await expect(card).toHaveAttribute('tabindex', '0', { timeout: 1000 })
-    await card.focus()
+    await gotoApp(page, `/cadernos/${topicId}`)
+    // The title of the material line is a link (it was a <div @click> without keyboard, HubNotesTab.vue)
+    const link = page.getByTestId('material-row').filter({ hasText: 'Nota teclado' }).getByRole('link', { name: 'Nota teclado' })
+    await expect(link).toBeVisible()
+    await link.focus()
     await page.keyboard.press('Enter')
     await expect(editor(page)).toContainText('abre com Enter')
   })
@@ -182,15 +181,15 @@ test.describe('Nota — caminho triste (conexão)', () => {
     expect(text).toContain('ONLINE')
   })
 
-  test('erro 500 ao abrir o material do caderno mostra erro com "Tentar de novo"', async ({ page }) => {
+  test('erro 500 ao abrir os materiais do caderno mostra erro com "Tentar de novo"', async ({ page }) => {
     const topicId = await newTopic(page)
     await apiCall(page, 'POST', `/topics/${topicId}/notes`, { title: 'Nota visível', content: doc('x') })
     let fail = true
-    await page.route(`**/api/topics/${topicId}/notes`, route => fail && route.request().method() === 'GET'
+    await page.route(`**/api/topics/${topicId}/materials**`, route => fail && route.request().method() === 'GET'
       ? route.fulfill({ status: 500, json: { message: 'Server Error' } })
       : route.fallback())
-    await gotoApp(page, `/cadernos?topic=${topicId}`)
-    const error = page.getByRole('alert').filter({ hasText: 'Não foi possível carregar o material' })
+    await gotoApp(page, `/cadernos/${topicId}`)
+    const error = page.getByRole('alert').filter({ hasText: 'Não foi possível carregar os materiais' })
     await expect(error).toBeVisible()
     fail = false
     await error.getByRole('button', { name: 'Tentar de novo' }).click()

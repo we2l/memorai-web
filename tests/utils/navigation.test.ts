@@ -21,6 +21,10 @@ function appRoutes(dir = join(process.cwd(), 'app/pages')): string[] {
 const EXPECTED: Record<string, string | null> = {
   '/hoje': 'hoje',
   '/cadernos': 'cadernos',
+  '/cadernos/:id': 'cadernos',
+  '/cadernos/:id/cards': 'cadernos',
+  '/cadernos/:id/mapa': 'cadernos',
+  '/cadernos/:id/material/:noteId': 'cadernos',
   '/importar': 'cadernos',
   '/praticar': 'praticar',
   '/revisar': 'praticar',

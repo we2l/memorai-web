@@ -135,11 +135,11 @@ test.describe('Plano do dia (e2e-hoje)', () => {
     const rows = block.getByRole('link')
     await expect(rows).toHaveCount(roots.length)
     await expect(block).not.toContainText(SUBJECT)
-    const trf = block.locator(`a[href="/cadernos?topic=${seed.rootId}"]`)
+    const trf = block.locator(`a[href="/cadernos/${seed.rootId}"]`)
     const sessionCount = progress.find(p => p.id === seed.rootId).session_count
     await expect(trf).toContainText(`${sessionCount} hoje`)
     await expect(trf.getByRole('progressbar', { name: new RegExp(`^Domínio de ${ROOT}: \\d+%$`) })).toBeVisible()
-    await expect(block.locator(`a[href="/cadernos?topic=${seed.otherRootId}"]`)).toContainText('novo')
+    await expect(block.locator(`a[href="/cadernos/${seed.otherRootId}"]`)).toContainText('novo')
   })
 
   test('"Continuar" abre a nota aberta por último; "Ouvir" toca no mini-player sem sair', async ({ page }) => {
@@ -152,7 +152,7 @@ test.describe('Plano do dia (e2e-hoje)', () => {
     await expect(page.getByText('Seus erros de Constitucional').last()).toBeVisible()
 
     await main(page).getByTestId('plan-step-material').getByRole('link', { name: 'Continuar' }).click()
-    await expect(page).toHaveURL(new RegExp(`/cadernos\\?topic=${seed.subjectId}&note=${seed.noteB}`))
+    await expect(page).toHaveURL(new RegExp(`/cadernos/${seed.subjectId}/material/${seed.noteB}$`))
     await expect(page.getByText('Ação direta de inconstitucionalidade.')).toBeVisible()
   })
 

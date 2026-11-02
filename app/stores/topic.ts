@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import type { Topic } from '~/types'
 
+let flushOnHideInstalled = false
+
 export const useTopicStore = defineStore('topic', {
   state: () => ({
     tree: [] as Topic[],
@@ -51,14 +53,14 @@ export const useTopicStore = defineStore('topic', {
       }
     },
 
-    async create(data: { name: string; parent_id?: string | null; description?: string }) {
+    async create(data: { name: string; parent_id?: string | null; description?: string } & Record<string, unknown>) {
       const { $api } = useNuxtApp()
       const res = await $api<any>('/topics', { method: 'POST', body: data })
       await this.fetchTree()
       return res.data
     },
 
-    async update(id: string, data: { name?: string; description?: string; position?: number }) {
+    async update(id: string, data: Record<string, unknown>) {
       const { $api } = useNuxtApp()
       const res = await $api<any>(`/topics/${id}`, { method: 'PUT', body: data })
       await this.fetchTree()
@@ -74,6 +76,11 @@ export const useTopicStore = defineStore('topic', {
       if (this.current?.id === topic.id) this.current = null
       const timer = setTimeout(() => { void this.commitRemove(topic.id) }, delayMs)
       this.pendingDeletes.set(topic.id, { topic, parentId: topic.parent_id, index, timer })
+      // Closing the tab inside the window still sends the DELETE (the hub navigates away right after)
+      if (import.meta.client && !flushOnHideInstalled) {
+        flushOnHideInstalled = true
+        window.addEventListener('pagehide', () => { void this.flushRemoves() })
+      }
     },
 
     /** "Desfazer" within the window: restores the item without any API call. */

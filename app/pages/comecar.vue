@@ -533,7 +533,7 @@ function goToAnkiImport() {
 }
 
 function goToNotebook() {
-  return finishAndGo(createdTopicId.value ? `/cadernos?topic=${createdTopicId.value}` : '/cadernos', 'notebook')
+  return finishAndGo(cadernoPath(createdTopicId.value), 'notebook')
 }
 
 function goToReview() {

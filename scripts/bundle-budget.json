@@ -7,8 +7,18 @@
   "routes": {
     "/cadernos": {
       "file": "pages/cadernos/index.vue",
-      "gzKb": 80,
-      "closureGzKb": 60
+      "gzKb": 8,
+      "closureGzKb": 20
+    },
+    "/cadernos/:id": {
+      "file": "pages/cadernos/[id]/index.vue",
+      "gzKb": 25,
+      "closureGzKb": 40
+    },
+    "/cadernos/:id/material/:noteId": {
+      "file": "pages/cadernos/[id]/material/[noteId].vue",
+      "gzKb": 20,
+      "closureGzKb": 57
     },
     "/": {
       "file": "pages/index.vue",

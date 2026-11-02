@@ -3,11 +3,11 @@
  * header on the phone, Alt+N and the search open it. It writes into the open scope (the caderno of the
  * route) or asks which caderno, with the last one used as the default.
  *
- * The flows that need the caderno screen (PDF, photo, blank note) are handed to /cadernos as an
- * intent: the sheet picks the file inside the click (the browser only opens the file picker on a user
- * gesture), stores the intent and opens the caderno, which runs its existing flow and clears it.
+ * The flows that need the caderno screen (PDF, photo, blank note) are handed to the hub of the scope
+ * (/cadernos/{id}) as an intent: the sheet picks the file inside the click (the browser only opens the
+ * file picker on a user gesture), stores the intent and opens the hub, which runs the flow and clears it
+ * (the photo goes on to the card library, /cadernos/{id}/cards, where the OCR lives).
  */
-import type { LocationQuery } from 'vue-router'
 import type { AddOpenOrigin } from '~/types/analytics'
 
 export type AddKind = 'pdf' | 'text' | 'photo' | 'note' | 'anki'
@@ -18,6 +18,8 @@ export interface AddIntent {
   kind: 'pdf' | 'photo' | 'note'
   topicId: string
   file?: File
+  /** PDF: "Criar cards automaticamente" as chosen in the sheet */
+  autoCards?: boolean
 }
 
 const LAST_TOPIC_KEY = 'baigi-add-last-topic'
@@ -41,19 +43,11 @@ export function useAddSheet() {
   return { open, preset, show, close }
 }
 
-/** Intent handed from the sheet to /cadernos (consumed once by the caderno that matches). */
+/** Intent handed from the sheet to the hub of the scope (consumed once by the scope that matches). */
 export function useAddIntent() {
   return useState<AddIntent | null>('add-intent', () => null)
 }
 
-/** The caderno (or subject) of the route: /cadernos?topic=, /revisar?topic_id=, /simulados?topic_id=. */
-export function scopeTopicFromQuery(query: LocationQuery): string | null {
-  for (const key of ['topic', 'topic_id']) {
-    const v = query[key]
-    if (typeof v === 'string' && v) return v
-  }
-  return null
-}
 
 export function lastAddTopic(): string | null {
   try {

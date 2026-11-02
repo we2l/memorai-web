@@ -345,6 +345,8 @@ export interface Document {
   /** Size of its session (`scope=document:`) and of "Praticar adiantado" (prd-caderno-f2-recorte RF-B4) */
   session_count?: number
   ahead_count?: number
+  /** Mode the note was generated with (the caderno may have changed since) */
+  learning_mode_used?: string | null
   created_at: string
 }
 
@@ -650,4 +652,96 @@ declare module '#app' {
     /** 'focus' hides BottomNav, FABs and the compact miniplayer (RF-F1.6). */
     chrome?: 'focus'
   }
+}
+
+/** Accuracy in questions of a scope (prd-4b-caderno-v3 RF-B3): `accuracy` only with ≥ 10 answered, else null. */
+export interface ScopeQuestions {
+  answered: number
+  correct?: number
+  accuracy: number | null
+}
+
+/** A matéria or assunto of the hub (up to 2 levels below the scope), GET /topics/{id}/summary `subjects`. */
+export interface ScopeSubject {
+  id: string
+  name: string
+  color: string | null
+  /** From the root (1 = matéria, 2 = assunto) */
+  depth: number
+  parent_id: string | null
+  cards: number
+  /** "Em dia" ÷ cards, 0–100; null without cards */
+  mastery: number | null
+  questions: ScopeQuestions | null
+  session_count: number
+  /** At most one item: the lowest accuracy (< 60%) or, without questions, the lowest mastery (< 40%) */
+  weak: boolean
+}
+
+export type NextStepKind = 'generate_cards' | 'review_errors' | 'quiz' | 'continue'
+
+export interface ScopeNextStep {
+  kind: NextStepKind
+  title: string
+  detail: string | null
+  target: { type: 'note' | 'topic'; id: string; topic_id: string }
+}
+
+/** GET /topics/{id}/summary (prd-4b-caderno-v3 RF-B1): everything the hub shows above the materials, aggregated. */
+export interface ScopeSummary {
+  topic: { id: string; name: string; color: string | null; depth: number; learning_mode: string | null; parent_id: string | null }
+  /** Ancestors, from the root to the parent */
+  path: { id: string; name: string }[]
+  counts: { cards: number; materials: number; subjects: number }
+  mastery: { percent: number | null; in_day: number; cards: number }
+  questions: ScopeQuestions | null
+  /** `count` = the "Revisar hoje · N" (the same as the list, Hoje and the session) */
+  session: { count: number; overdue: number; errors: number }
+  can_quiz?: StudyGate
+  can_podcast?: StudyGate
+  exam: { id: string; title: string; days_remaining: number; cards_per_day: number | null; reta_final_active: boolean } | null
+  next_step: ScopeNextStep | null
+  listen: { id: string; title: string; duration_seconds: number | null } | null
+  subjects: ScopeSubject[]
+  special: { quiz_errors: { cards: number; session_count: number }; loose: { cards: number; session_count: number } }
+}
+
+export type MaterialStatus = 'ready' | 'processing' | 'generating' | 'failed' | 'blocked'
+
+/** A line of GET /topics/{id}/materials (RF-B2): a PDF with its parts, or a manual note. */
+export interface MaterialRow {
+  kind: 'pdf' | 'note'
+  /** Document id (pdf) or note id (note) */
+  id: string
+  /** The note that opens (the 1st part of a PDF); null while a PDF has no note yet */
+  note_id: string | null
+  title: string
+  topic: { id: string; name: string }
+  pages: number | null
+  parts: number | null
+  words: number | null
+  cards: number
+  mastery: number | null
+  session_count: number
+  ahead_count: number
+  status: MaterialStatus
+  progress: { done: number; total: number } | null
+  updated_at: string
+}
+
+export interface MaterialsPage {
+  data: MaterialRow[]
+  meta: { next_cursor: string | null; total: number }
+}
+
+/** GET /topics/performance (RF-B3): a line per topic of the user, with the numbers of its subtree. */
+export interface TopicPerformance {
+  topic_id: string
+  parent_id: string | null
+  depth: number
+  name: string
+  cards: number
+  mastery: number | null
+  questions: ScopeQuestions
+  session_count: number
 }

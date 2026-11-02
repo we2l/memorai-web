@@ -26,6 +26,7 @@
           </UiListRow>
         </li>
       </ul>
+      <UiCheckbox v-if="step === 'menu'" v-model="autoCards" class="mt-3" label="Criar cards dos PDFs automaticamente" />
 
       <form v-else class="flex flex-col gap-3" @submit.prevent="saveText">
         <UiTextarea
@@ -51,7 +52,7 @@
 </template>
 
 <script setup lang="ts">
-// "+ Adicionar" of the shell (prd-navegacao-v3 RF-5, tasks 4.1/4.2): PDF, Colar texto, Foto, Nota em branco
+// "+ Adicionar" of the shell (prd-navegacao-v3 RF-5, tasks 4.1/4.2; scope of /cadernos/{id}, prd-4b-caderno-v3 RF-F10): PDF, Colar texto, Foto, Nota em branco
 // and Importar do Anki, each one the flow that already exists. It writes into the open scope (the caderno
 // or matéria of the route), else the last one used, else the first caderno. Replaces the FAB "Anotar" and
 // the QuickCapture modal: the pasted text is the old quick note, the blank note opens the editor (Alt+N).
@@ -59,6 +60,7 @@
 import type { Component } from 'vue'
 import { Camera, ClipboardPaste, Download, FileUp, PenLine } from 'lucide-vue-next'
 import type { AddIntent, AddKind } from '~/composables/useAddSheet'
+import { readAutoCardsPref, writeAutoCardsPref } from '~/utils/autoCardsPref'
 
 const { open, preset } = useAddSheet()
 const intent = useAddIntent()
@@ -68,12 +70,16 @@ const { $api } = useNuxtApp()
 const toast = useToast()
 
 const OPTIONS: { kind: AddKind, label: string, meta: string, icon: Component, kbd?: string }[] = [
-  { kind: 'pdf', label: 'PDF', meta: 'A IA resume, organiza em partes e cria os cards', icon: FileUp },
+  { kind: 'pdf', label: 'PDF', meta: 'A IA resume e organiza em partes', icon: FileUp },
   { kind: 'text', label: 'Colar texto', meta: 'Um resumo ou trecho vira uma nota', icon: ClipboardPaste },
   { kind: 'photo', label: 'Foto', meta: 'De uma página: a IA sugere os cards', icon: Camera },
   { kind: 'note', label: 'Nota em branco', meta: 'Abre o editor', icon: PenLine, kbd: 'Alt N' },
   { kind: 'anki', label: 'Importar do Anki', meta: 'Arquivo .apkg: cria um caderno novo', icon: Download },
 ]
+
+// "Criar cards automaticamente" of the PDF, explicit and remembered (prd-4b-caderno-v3 RF-F10)
+const autoCards = ref(readAutoCardsPref())
+watch(autoCards, writeAutoCardsPref)
 
 const step = ref<'menu' | 'text'>('menu')
 const text = ref('')
@@ -105,7 +111,7 @@ const description = computed(() => (topicName.value ? `Grava em ${topicName.valu
 /** The open scope, else the last used, else the first caderno. */
 function pickScope() {
   const known = (id: string | null) => (id && topicStore.findById(id) ? id : null)
-  topicId.value = known(scopeTopicFromQuery(route.query)) ?? known(lastAddTopic()) ?? topicStore.tree[0]?.id ?? ''
+  topicId.value = known(scopeTopicOfRoute(route)) ?? known(lastAddTopic()) ?? topicStore.tree[0]?.id ?? ''
 }
 
 watch(open, async (isOpen) => {
@@ -125,11 +131,13 @@ watch(open, async (isOpen) => {
 // The tree may arrive after the sheet opened
 watch(() => topicStore.tree, () => { if (open.value && !topicId.value) pickScope() })
 
+/** The hub of the scope runs the flow (and its material list shows the new line on top). */
 function handOff(next: AddIntent) {
   rememberAddTopic(next.topicId)
   intent.value = next
   open.value = false
-  if (!(route.path === '/cadernos' && route.query.topic === next.topicId)) void navigateTo(cadernoPath(next.topicId))
+  const hub = cadernoPath(next.topicId)
+  if (route.path !== hub) void navigateTo(hub)
 }
 
 function choose(kind: AddKind) {
@@ -139,7 +147,7 @@ function choose(kind: AddKind) {
   else if (kind === 'note') handOff({ kind: 'note', topicId: topicId.value })
   else if (kind === 'anki') {
     open.value = false
-    void navigateTo('/importar')
+    void navigateTo(topicId.value ? `/importar?topic_id=${topicId.value}` : '/importar')
   } else {
     step.value = 'text'
     nextTick(() => requestAnimationFrame(() => textRef.value?.focus()))
@@ -150,7 +158,7 @@ function onFile(e: Event, kind: 'pdf' | 'photo') {
   const input = e.target as HTMLInputElement
   const file = input.files?.[0]
   input.value = ''
-  if (file && topicId.value) handOff({ kind, topicId: topicId.value, file })
+  if (file && topicId.value) handOff({ kind, topicId: topicId.value, file, ...(kind === 'pdf' ? { autoCards: autoCards.value } : {}) })
 }
 
 /** The old quick note: paragraphs of the text, the first line as the title. */
@@ -172,8 +180,9 @@ async function saveText() {
       action: { label: 'Abrir', onClick: () => { void navigateTo(cadernoPath(target, { note: res.data.id })) } },
     })
     void topicStore.fetchTree()
-    // Saved into the caderno on screen: its material list shows the new note
-    if (route.path === '/cadernos' && route.query.topic === target) void useNoteStore().fetchForTopic(target)
+    // A hub on screen (this scope or one above it): its numbers and material list come again
+    const scope = useScopeStore()
+    if (scope.topicId && route.path === cadernoPath(scope.topicId)) void scope.refresh()
   } catch (err) {
     reportApiError(err, { error: 'Não foi possível salvar a nota. Tente de novo.' })
   } finally {

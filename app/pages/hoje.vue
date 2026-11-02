@@ -28,7 +28,7 @@
 // Hoje v3 (prd-4a-hoje-v3): greeting with the goal and the streak, the next exam, the plan of the day in up
 // to 4 steps, the cadernos (roots only) and the first steps of a new account. Eight requests in parallel;
 // the screen renders once they settle, so no block pushes another (CLS). Each block has its own error.
-import type { BacklogStats, PendingAction, RecentNote, Stats, TopicProgress, UserSettings } from '~/types'
+import type { BacklogStats, PendingAction, RecentNote, Stats, TopicPerformance, TopicProgress, UserSettings } from '~/types'
 import type { DayPlanStep } from '~/composables/useDayPlan'
 import { finishedPodcastIds } from '~/stores/player'
 
@@ -41,6 +41,7 @@ const { $api } = useNuxtApp()
 const stats = ref<Stats | null>(null)
 const backlog = ref<BacklogStats | null>(null)
 const progress = ref<TopicProgress[]>([])
+const performance = ref<TopicPerformance[]>([])
 const survivalMode = ref(false)
 const pendingActions = ref<PendingAction[]>([])
 const recentNote = ref<RecentNote | null>(null)
@@ -59,6 +60,7 @@ const steps = computed<DayPlanStep[]>(() => (statsError.value || !stats.value
       backlog: backlog.value,
       survivalMode: survivalMode.value,
       progress: progress.value,
+      performance: performance.value,
       pendingActions: pendingActions.value,
       podcasts: podcastStore.podcasts,
       recentNote: recentNote.value,
@@ -72,7 +74,7 @@ let loadSeq = 0
 async function loadData() {
   const seq = ++loadSeq
   loading.value = true
-  const [statsRes, backlogRes, progressRes, settingsRes, actionsRes, recentRes, podcastsRes] = await Promise.allSettled([
+  const [statsRes, backlogRes, progressRes, settingsRes, actionsRes, recentRes, podcastsRes, , performanceRes] = await Promise.allSettled([
     $api<{ data: Stats }>('/stats'),
     $api<{ data: BacklogStats }>('/review/backlog-stats'),
     $api<{ data: TopicProgress[] }>('/topics/progress'),
@@ -81,6 +83,7 @@ async function loadData() {
     $api<{ data: RecentNote[] }>('/notes/recent', { params: { limit: 1 } }),
     podcastStore.fetchPodcasts(),
     examStore.fetchUpcoming(),
+    $api<{ data: TopicPerformance[] }>('/topics/performance'),
   ])
   if (seq !== loadSeq) return
 
@@ -98,7 +101,8 @@ async function loadData() {
   survivalMode.value = settingsRes.status === 'fulfilled' ? !!settingsRes.value.data.survival_mode : false
   pendingActions.value = actionsRes.status === 'fulfilled' ? actionsRes.value.data : []
   recentNote.value = recentRes.status === 'fulfilled' ? recentRes.value.data[0] ?? null : null
-  for (const r of [settingsRes, actionsRes, recentRes, podcastsRes]) if (r.status === 'rejected') reportApiError(r.reason, { silent: true })
+  performance.value = performanceRes.status === 'fulfilled' ? performanceRes.value.data : []
+  for (const r of [settingsRes, actionsRes, recentRes, podcastsRes, performanceRes]) if (r.status === 'rejected') reportApiError(r.reason, { silent: true })
 
   loading.value = false
 }

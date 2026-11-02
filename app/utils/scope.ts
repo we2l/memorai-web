@@ -11,13 +11,64 @@ export function canAddSubtopic(depth: number): boolean {
   return depth < MAX_SUBTOPIC_DEPTH
 }
 
-/** The caderno hub, optionally with a note open or a tab. */
-export function cadernoPath(topicId?: string | null, extra: { note?: string; tab?: 'cards' } = {}): string {
+/** Views of a scope that live on their own route (prd-4b-caderno-v3 §3.2): the card library and the map. */
+export type ScopeView = 'cards' | 'mapa'
+
+export interface CadernoPathExtra {
+  /** Material open (`/cadernos/{id}/material/{note}`) */
+  note?: string | null
+  view?: ScopeView
+  /** Only on the card library: the cards that came from one note or PDF ("Ver e editar cards") */
+  sourceNoteId?: string | null
+}
+
+/**
+ * Routes of a scope (caderno, matéria or assunto; prd-4b-caderno-v3 RF-F1): the hub `/cadernos/{id}`,
+ * the material `/cadernos/{id}/material/{note}`, the library `/cadernos/{id}/cards` and the map
+ * `/cadernos/{id}/mapa`. Without a topic, the list of cadernos.
+ */
+export function cadernoPath(topicId?: string | null, extra: CadernoPathExtra = {}): string {
   if (!topicId) return '/cadernos'
-  const params = new URLSearchParams({ topic: topicId })
-  if (extra.note) params.set('note', extra.note)
-  if (extra.tab) params.set('tab', extra.tab)
-  return `/cadernos?${params}`
+  const base = `/cadernos/${encodeURIComponent(topicId)}`
+  if (extra.note) return `${base}/material/${encodeURIComponent(extra.note)}`
+  if (extra.view === 'cards') return extra.sourceNoteId ? `${base}/cards?source_note_id=${encodeURIComponent(extra.sourceNoteId)}` : `${base}/cards`
+  if (extra.view === 'mapa') return `${base}/mapa`
+  return base
+}
+
+/** The material of a scope (a note, or the first part of a PDF). */
+export function materialPath(topicId: string, noteId: string): string {
+  return cadernoPath(topicId, { note: noteId })
+}
+
+/**
+ * Where an old `/cadernos?topic=…` URL lands (favorites, e-mails, pending actions of the API):
+ * `?topic=X` → hub, `&note=Y` → material, `&tab=cards` (with `highlight`) → library, `&tab=map` → map.
+ * Null when the query has no caderno (the list stays).
+ */
+export function legacyCadernoRedirect(query: Record<string, unknown>): string | null {
+  const str = (v: unknown) => (typeof v === 'string' ? v : Array.isArray(v) && typeof v[0] === 'string' ? v[0] : '')
+  const topic = str(query.topic)
+  if (!topic) return null
+  const note = str(query.note)
+  if (note) return cadernoPath(topic, { note })
+  const tab = str(query.tab)
+  if (tab === 'map') return cadernoPath(topic, { view: 'mapa' })
+  if (tab === 'cards' || str(query.highlight)) {
+    const highlight = str(query.highlight)
+    return cadernoPath(topic, { view: 'cards' }) + (highlight ? `?highlight=${encodeURIComponent(highlight)}` : '')
+  }
+  return cadernoPath(topic)
+}
+
+/** The scope a route is in: `/cadernos/{id}` and its material/cards/map routes, or `?topic_id=` (revisão, simulados). */
+export function scopeTopicOfRoute(route: { path: string; params: Record<string, unknown>; query: Record<string, unknown> }): string | null {
+  if (route.path.startsWith('/cadernos/') && typeof route.params.id === 'string' && route.params.id) return route.params.id
+  for (const key of ['topic_id', 'topic']) {
+    const v = route.query[key]
+    if (typeof v === 'string' && v) return v
+  }
+  return null
 }
 
 interface NamedTopic { id: string; name: string; parent_id?: string | null }

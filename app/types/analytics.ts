@@ -16,7 +16,7 @@ export type ReminderSource = 'settings' | 'session_end' | 'onboarding'
 /** Navegação v3 (prd-navegacao-v3 RF-12) */
 export type NavItem = 'hoje' | 'cadernos' | 'praticar' | 'progresso'
 export type NavSurface = 'top' | 'bottom'
-export type AddOpenOrigin = 'topnav' | 'header' | 'shortcut' | 'search' | 'checklist'
+export type AddOpenOrigin = 'topnav' | 'header' | 'shortcut' | 'search' | 'checklist' | 'scope'
 export type SearchOpenOrigin = 'shortcut' | 'topnav' | 'header'
 export type PracticeMode = 'review' | 'quiz' | 'listen'
 /** Which entry of the mode card on /praticar */
@@ -44,6 +44,11 @@ export interface FrontEventProps {
   home_goal_met: { target_batches: number }
   home_checklist_click: { item: HomeChecklistItem }
   home_exam_click: Record<string, never>
+  scope_open: { depth: number, mode: string | null }
+  next_step_click: { kind: 'generate_cards' | 'review_errors' | 'quiz' | 'continue' }
+  subject_open: { depth: number }
+  material_search: Record<string, never>
+  material_load_more: { rows: number }
 }
 
 export type FrontEvent = keyof FrontEventProps

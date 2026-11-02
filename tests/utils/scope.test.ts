@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { cadernoPath, canAddSubtopic, consumeScopeCleared, findImportedRoot, markScopeCleared } from '~/utils/scope'
+import { cadernoPath, canAddSubtopic, consumeScopeCleared, findImportedRoot, legacyCadernoRedirect, markScopeCleared, materialPath, scopeTopicOfRoute } from '~/utils/scope'
 import { reviewPath, scopeBackPath, scopeOf, scopeQuery, sessionScopeFromQuery } from '~/utils/reviewScope'
 
 describe('scope (prd-caderno-f1-pontes)', () => {
@@ -13,12 +13,34 @@ describe('scope (prd-caderno-f1-pontes)', () => {
   })
 
   it('caminhos que devolvem a pessoa ao caderno e à sessão do escopo', () => {
-    expect(cadernoPath('t1')).toBe('/cadernos?topic=t1')
-    expect(cadernoPath('t1', { note: 'n1' })).toBe('/cadernos?topic=t1&note=n1')
-    expect(cadernoPath('t1', { tab: 'cards' })).toBe('/cadernos?topic=t1&tab=cards')
+    expect(cadernoPath('t1')).toBe('/cadernos/t1')
+    expect(cadernoPath('t1', { note: 'n1' })).toBe('/cadernos/t1/material/n1')
+    expect(materialPath('t1', 'n1')).toBe('/cadernos/t1/material/n1')
+    expect(cadernoPath('t1', { view: 'cards' })).toBe('/cadernos/t1/cards')
+    expect(cadernoPath('t1', { view: 'cards', sourceNoteId: 'n1' })).toBe('/cadernos/t1/cards?source_note_id=n1')
+    expect(cadernoPath('t1', { view: 'mapa' })).toBe('/cadernos/t1/mapa')
     expect(cadernoPath(null)).toBe('/cadernos')
     expect(reviewPath('t1')).toBe('/revisar?topic_id=t1')
     expect(reviewPath(undefined)).toBe('/revisar')
+  })
+
+  it('URLs antigas (?topic=, &note=, &tab=cards|map, &highlight=) vão para as rotas novas (4b-1 RF-F1)', () => {
+    expect(legacyCadernoRedirect({})).toBeNull()
+    expect(legacyCadernoRedirect({ action: 'new-notebook' })).toBeNull()
+    expect(legacyCadernoRedirect({ topic: 't1' })).toBe('/cadernos/t1')
+    expect(legacyCadernoRedirect({ topic: 't1', note: 'n1', tab: 'cards' })).toBe('/cadernos/t1/material/n1')
+    expect(legacyCadernoRedirect({ topic: 't1', tab: 'cards' })).toBe('/cadernos/t1/cards')
+    expect(legacyCadernoRedirect({ topic: 't1', tab: 'cards', highlight: 'c9' })).toBe('/cadernos/t1/cards?highlight=c9')
+    expect(legacyCadernoRedirect({ topic: 't1', tab: 'map' })).toBe('/cadernos/t1/mapa')
+    expect(legacyCadernoRedirect({ topic: ['t1'], tab: 'notes' })).toBe('/cadernos/t1')
+  })
+
+  it('escopo da rota: o hub e as rotas dele pelo parâmetro; revisão e simulados por ?topic_id=', () => {
+    expect(scopeTopicOfRoute({ path: '/cadernos/t1', params: { id: 't1' }, query: {} })).toBe('t1')
+    expect(scopeTopicOfRoute({ path: '/cadernos/t1/material/n1', params: { id: 't1', noteId: 'n1' }, query: {} })).toBe('t1')
+    expect(scopeTopicOfRoute({ path: '/revisar', params: {}, query: { topic_id: 't2' } })).toBe('t2')
+    expect(scopeTopicOfRoute({ path: '/cadernos', params: {}, query: {} })).toBeNull()
+    expect(scopeTopicOfRoute({ path: '/hoje', params: {}, query: {} })).toBeNull()
   })
 
   it('recortes da F2: reviewPath com scope, card_ids, origin, ahead e errors_only', () => {
@@ -43,9 +65,9 @@ describe('scope (prd-caderno-f1-pontes)', () => {
 
   it('voltar ao recorte: caderno, caderno com a nota, resultado do simulado, episódios; lista = sem destino', () => {
     const topic = { id: 't1', name: 'Constitucional' }
-    expect(scopeBackPath({ type: 'topic', id: 't1', label: 'TRF', topic: null })).toBe('/cadernos?topic=t1')
-    expect(scopeBackPath({ type: 'document', id: 'd1', label: 'Apostila', topic })).toBe('/cadernos?topic=t1')
-    expect(scopeBackPath({ type: 'note', id: 'n1', label: 'Nota', topic })).toBe('/cadernos?topic=t1&note=n1')
+    expect(scopeBackPath({ type: 'topic', id: 't1', label: 'TRF', topic: null })).toBe('/cadernos/t1')
+    expect(scopeBackPath({ type: 'document', id: 'd1', label: 'Apostila', topic })).toBe('/cadernos/t1')
+    expect(scopeBackPath({ type: 'note', id: 'n1', label: 'Nota', topic })).toBe('/cadernos/t1/material/n1')
     expect(scopeBackPath({ type: 'quiz', id: 'q1', label: 'Simulado', topic })).toBe('/simulados/q1/resultado')
     expect(scopeBackPath({ type: 'podcast', id: 'p1', label: 'Episódio', topic })).toBe('/podcasts')
     expect(scopeBackPath({ type: 'cards', id: null, label: 'Cards selecionados', topic: null })).toBeNull()

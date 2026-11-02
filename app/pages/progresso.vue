@@ -134,7 +134,7 @@
                 <span class="text-label text-fg-muted">{{ topic.mastery_pct }}%</span>
               </div>
             </div>
-            <UiButton variant="secondary" size="sm" :to="`/cadernos?topic=${topic.id}`"
+            <UiButton variant="secondary" size="sm" :to="cadernoPath(topic.id)"
               class="text-label shrink-0">
               Ver caderno
             </UiButton>

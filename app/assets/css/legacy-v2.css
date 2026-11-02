@@ -7,7 +7,7 @@
      ficam em @theme inline: a utility (bg-accent-primary, rounded-xl, shadow-lg) lê o token v3.
    - O resto é variável crua em :root, lida por var() nas telas e nos <style>.
    - --text-body (cor v2) não existe mais: o nome é do tamanho de texto v3. As telas usam var(--fg).
-   - A casca (--nav-h, --sidebar-w...) guarda os valores v2 até a navegação no topo (Fase 3).
+   - A casca v2 (--sidebar-w, --fab-bottom) saiu na Fase 3; as medidas da casca v3 ficam em tokens.css.
    ============================================ */
 
 @theme inline {
@@ -110,31 +110,6 @@
   /* Movimento */
   --transition-default: all var(--motion-nav) ease-in-out;
   --transition-slow: all var(--motion-respond) ease-in-out;
-}
-
-/* Casca v2 (prd-ux-critica RF-F1.5): no :root porque toasts e FABs são teleportados para fora do
-   layout. O layout escreve os *-set; breakpoint e modo foco sobrescrevem. Sai na Fase 3. */
-:root {
-  --nav-h: 64px;
-  --miniplayer-h: var(--miniplayer-h-set, 0px);
-  --sticky-action-h: var(--sticky-action-h-set, 0px);
-  --sidebar-w: 0px;
-  --fab-bottom: calc(var(--nav-h) + var(--miniplayer-h) + var(--sticky-action-h) + 16px + env(safe-area-inset-bottom));
-  /* Toast (ShellToastHost, bottom-toast) acima da navegação inferior e do mini-player */
-  --toast-bottom: calc(var(--nav-h) + var(--miniplayer-h) + 12px + env(safe-area-inset-bottom));
-}
-@media (min-width: 1024px) {
-  :root {
-    --nav-h: 0px;
-    --sticky-action-h: 0px;
-    --sidebar-w: var(--sidebar-w-set, 240px);
-    --fab-bottom: calc(var(--miniplayer-h) + 24px);
-  }
-}
-:root[data-chrome="focus"] {
-  --nav-h: 0px;
-  --miniplayer-h: 0px;
-  --sticky-action-h: 0px;
 }
 
 /* ============================================

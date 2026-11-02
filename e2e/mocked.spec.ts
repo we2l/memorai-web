@@ -225,22 +225,27 @@ test.describe('Mock: Sugestão de retenção', () => {
 })
 
 test.describe('Layout lazy (prd-performance-frontend RF-03)', () => {
-  test('⌘K abre a paleta mesmo com ela carregada sob demanda', async ({ page }) => {
+  test('⌘K abre a busca mesmo com ela carregada sob demanda', async ({ page }) => {
     await login(page)
     await page.waitForLoadState('networkidle')
     await page.keyboard.press('Control+k')
-    await expect(page.getByRole('dialog', { name: 'Busca rápida' })).toBeVisible()
-    await expect(page.getByPlaceholder('Buscar cadernos, notas, ações...')).toBeFocused()
+    await expect(page.getByRole('dialog', { name: 'Buscar' })).toBeVisible()
+    await expect(page.getByRole('combobox')).toBeFocused()
     await page.keyboard.press('Escape')
-    await expect(page.getByRole('dialog', { name: 'Busca rápida' })).toBeHidden()
+    await expect(page.getByRole('dialog', { name: 'Buscar' })).toBeHidden()
   })
 
-  test('FAB de captura abre o modal', async ({ page }) => {
+  test('"+ Adicionar" (e Alt+N) abre a folha sob demanda; sem FAB de captura', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 })
     await login(page)
-    await page.getByTitle('Anotar rapidamente (Ctrl+N)').click()
-    await expect(page.getByText('Anotação rápida')).toBeVisible()
-    await expect(page.getByPlaceholder('Escreva uma ideia, conceito ou anotação...')).toBeFocused()
+    await expect(page.getByTitle('Anotar rapidamente (Ctrl+N)')).toHaveCount(0)
+    await page.getByRole('banner').getByRole('button', { name: 'Adicionar' }).click()
+    const sheet = page.getByRole('dialog', { name: 'Adicionar' })
+    await expect(sheet).toBeVisible()
+    // With cadernos: the 5 options; with none: create one (or import from Anki) first
+    await expect(sheet.getByRole('button', { name: /Nota em branco/ }).or(sheet.getByRole('link', { name: 'Criar caderno' }))).toBeVisible()
+    await page.keyboard.press('Escape')
+    await expect(sheet).toBeHidden()
   })
 
   test('402 mockado abre o UpgradeModal', async ({ page }) => {

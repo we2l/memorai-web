@@ -281,8 +281,11 @@ function triggerOcr() {
 
 async function handleOcrFile(e: Event) {
   const file = (e.target as HTMLInputElement).files?.[0]
-  if (!file) return
+  if (file) await processImage(file)
+}
 
+/** Photo of a page → suggested cards. Also the "Foto" of the shell's "+ Adicionar" (RF-5). */
+async function processImage(file: File) {
   ocrLoading.value = true
   try {
     const formData = new FormData()
@@ -320,4 +323,6 @@ async function pollOcrStatus(jobId: string): Promise<any[] | null> {
   }
   return null
 }
+
+defineExpose({ processImage })
 </script>

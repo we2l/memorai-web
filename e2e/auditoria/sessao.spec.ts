@@ -25,6 +25,12 @@ async function loginViaForm(page: Page, email: string) {
   await page.locator('button[type="submit"]').click()
 }
 
+/** "Sair" lives in the account menu of the TopNav (navegação v3; it was the sidebar footer). */
+async function signOut(page: import('@playwright/test').Page) {
+  await page.getByRole('banner').getByRole('button', { name: 'Menu da conta' }).click()
+  await page.getByRole('menuitem', { name: 'Sair' }).click()
+}
+
 test.describe('Logout', () => {
   test('"Sair" encerra a sessão no servidor e rotas privadas voltam para /entrar', async ({ browser }) => {
     const state = await loginState(browser, 'logout', { fresh: true })
@@ -32,7 +38,7 @@ test.describe('Logout', () => {
     const page = await context.newPage()
     try {
       await gotoApp(page, '/progresso')
-      await page.getByRole('complementary').getByRole('button', { name: 'Sair' }).click()
+      await signOut(page)
       await page.waitForURL('**/entrar**')
       expect((await me(context)).status()).toBe(401)
 
@@ -55,7 +61,7 @@ test.describe('Logout', () => {
     try {
       await gotoApp(page, '/hoje')
       await page.route('**/api/logout', route => route.abort('internetdisconnected'))
-      await page.getByRole('complementary').getByRole('button', { name: 'Sair' }).click()
+      await signOut(page)
       await page.waitForURL('**/entrar**', { timeout: 10_000 })
       await page.unroute('**/api/logout')
       // A pessoa seguinte neste navegador abre uma rota privada

@@ -214,6 +214,9 @@
           <p v-if="!review.flipped && !review.showErrorDiary" class="kbd-only text-micro text-base-muted">
             <kbd class="kbd">Espaço</kbd> para virar
           </p>
+          <UiButton v-if="review.flipped && !review.showErrorDiary" size="sm" variant="ghost" :icon-left="MessageCircle" @click="explainCard">
+            Explicar este card
+          </UiButton>
           <p v-if="showShortcutTip && !review.flipped" class="kbd-only text-micro text-base-muted">
             Pressione <kbd class="kbd">?</kbd> para ver atalhos
           </p>
@@ -344,7 +347,7 @@
 <script setup lang="ts">
 import type { TomorrowForecast } from '~/types'
 import { cadernoPath, markScopeCleared } from '~/utils/scope'
-import { Flame, AlertOctagon, AlertTriangle, Timer, Zap, CalendarClock, GitBranch, FastForward, Undo2, XCircle, Lightbulb, Pencil } from 'lucide-vue-next'
+import { Flame, AlertOctagon, AlertTriangle, Timer, Zap, CalendarClock, GitBranch, FastForward, Undo2, XCircle, Lightbulb, Pencil, MessageCircle } from 'lucide-vue-next'
 
 definePageMeta({ chrome: 'focus' })
 
@@ -707,19 +710,29 @@ function dismissErrorDiary() {
   review.dismissDiary()
 }
 
+// Tira-dúvidas in context (prd-navegacao-v3 RF-9): the card, its caderno and a ready question. Nothing
+// goes to the AI before the person presses Enviar (the old flow sent the question by itself).
 function openChatForError() {
   const card = review.diary?.card ?? lastErrorCard.value
   if (!card) return
-  chat.newConversation()
-  chat.open({
+  chat.ask({
     cardId: card.id,
     cardFront: card.front,
-    topicId: card.topic_id,
+    topicId: card.topic_id ?? scopeTopicId.value ?? undefined,
     source: 'review_error',
-  })
-  nextTick(() => {
-    chat.sendMessage(`Me explica esse card que errei: "${stripHtml(card.front)}"`)
-  })
+  }, `Me explica esse card que errei: "${stripHtml(card.front)}"`)
+}
+
+/** "Explicar este card" (RF-9), once the answer is shown. */
+function explainCard() {
+  const card = review.currentCard
+  if (!card) return
+  chat.ask({
+    cardId: card.id,
+    cardFront: card.front,
+    topicId: card.topic_id ?? scopeTopicId.value ?? undefined,
+    source: 'review_card',
+  }, `Me explica este card: "${stripHtml(card.front)}". A resposta é "${stripHtml(card.back)}".`)
 }
 
 function stripHtml(html: string): string {

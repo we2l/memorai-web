@@ -88,6 +88,9 @@
               </dl>
               <p v-if="q.explanation" class="mt-3 border-l-2 border-line pl-3 text-meta text-fg-muted">{{ q.explanation }}</p>
               <p v-if="q.ai_feedback" class="mt-2 text-meta text-fg-muted">Correção IA: {{ q.ai_feedback }} ({{ Math.round((q.ai_score ?? 0) * 100) }}%)</p>
+              <UiButton v-if="q.is_correct === false" size="sm" variant="ghost" :icon-left="MessageCircle" class="-ml-3 mt-2" @click="askWhyWrong(q)">
+                Por que errei?
+              </UiButton>
             </div>
           </li>
         </ol>
@@ -98,7 +101,7 @@
 </template>
 
 <script setup lang="ts">
-import { CheckCircle2, XCircle } from 'lucide-vue-next'
+import { CheckCircle2, MessageCircle, XCircle } from 'lucide-vue-next'
 import type { QuizQuestion } from '~/types'
 import { cadernoPath, reviewPath } from '~/utils/scope'
 
@@ -168,6 +171,17 @@ async function createCards() {
   } finally {
     creatingCards.value = false
   }
+}
+
+/** "Por que errei?" (prd-navegacao-v3 RF-9): the tira-dúvidas with the question, the answers and the caderno. */
+function askWhyWrong(q: QuizQuestion) {
+  const answered = q.user_answer ? formatAnswer(q, q.user_answer) : 'nada'
+  useChatStore().ask({
+    topicId: topic.value?.id,
+    topicName: topic.value?.name,
+    cardFront: escapeHtml(q.stem),
+    source: 'quiz_error',
+  }, `Por que errei esta questão? "${q.stem}" Eu respondi "${answered}" e a correta é "${formatAnswer(q, q.correct_answer ?? '')}".`)
 }
 
 function formatAnswer(q: QuizQuestion, answer: string) {

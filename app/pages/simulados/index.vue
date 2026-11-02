@@ -87,7 +87,8 @@ const topicStore = useTopicStore()
 
 // /simulados?topic_id= (from the caderno): the sheet opens already with that scope (RF-F1)
 const scopeTopicId = computed(() => (typeof route.query.topic_id === 'string' && route.query.topic_id) || null)
-const showConfig = ref(!!scopeTopicId.value)
+// ?action=new: "Novo simulado" of the search and of Praticar
+const showConfig = ref(!!scopeTopicId.value || route.query.action === 'new')
 watch(scopeTopicId, (id) => { if (id) showConfig.value = true })
 
 const scopeName = computed(() => (scopeTopicId.value ? topicStore.findById(scopeTopicId.value)?.name : null) ?? null)

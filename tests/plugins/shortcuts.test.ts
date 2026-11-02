@@ -32,6 +32,29 @@ describe('atalhos globais (plugin)', () => {
     expect(navigateToMock).toHaveBeenCalledWith('/revisar')
   })
 
+  it('Alt+N abre o "+ Adicionar" já na nota em branco (Ctrl+N é do navegador); funciona pelo code no macOS', () => {
+    const add = useAddSheet()
+    add.open.value = false
+    const e = press({ key: '˜', code: 'KeyN', altKey: true })
+    expect(e.defaultPrevented).toBe(true)
+    expect(add.open.value).toBe(true)
+    expect(add.preset.value).toBe('note')
+    add.open.value = false
+    const ctrlN = press({ key: 'n', ctrlKey: true })
+    expect(ctrlN.defaultPrevented).toBe(false)
+    expect(add.open.value).toBe(false)
+  })
+
+  it('"?" abre a ajuda dos atalhos, menos na revisão (que tem o próprio "?")', () => {
+    press({ key: '?' })
+    expect(navigateToMock).toHaveBeenCalledWith('/ajuda?tab=atalhos')
+    navigateToMock.mockReset()
+    document.documentElement.dataset.chrome = 'focus'
+    press({ key: '?' })
+    expect(navigateToMock).not.toHaveBeenCalled()
+    delete document.documentElement.dataset.chrome
+  })
+
   it('não dispara em input, exceto ⌘K', () => {
     const input = document.createElement('input')
     press({ key: 'r', altKey: true }, input)

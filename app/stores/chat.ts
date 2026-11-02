@@ -1,12 +1,19 @@
 import type { Conversation, ChatMessage, ChatResponse } from '~/types'
 
-interface ChatContext {
+/**
+ * What the tira-dúvidas is about (prd-navegacao-v3 RF-9). The API takes topic_id and document_id
+ * (SendMessageRequest); the card, the question and the excerpt travel in the prepared question.
+ */
+export interface ChatContext {
   topicId?: string
   topicName?: string
+  /** The card of the review ("Explicar este card"); shown attached above the conversation */
   cardId?: string
   cardFront?: string
   documentId?: string
-  source?: 'review_error' | 'pdf_summary' | 'note_help' | 'manual'
+  /** Selected text of the note ("Perguntar sobre este trecho") */
+  excerpt?: string
+  source?: 'review_error' | 'review_card' | 'quiz_error' | 'pdf_summary' | 'note_help' | 'search' | 'manual'
 }
 
 export const useChatStore = defineStore('chat', {
@@ -18,12 +25,21 @@ export const useChatStore = defineStore('chat', {
     sending: false,
     isOpen: false,
     currentContext: {} as ChatContext,
+    /** Prepared question: fills the input when the drawer opens; the person sends it (no AI call before) */
+    draft: '',
   }),
 
   actions: {
     open(context?: ChatContext) {
       this.currentContext = context ?? {}
       this.isOpen = true
+    },
+
+    /** Contextual entry (card, wrong question, excerpt, search): a new conversation with a ready question. */
+    ask(context: ChatContext, draft = '') {
+      this.newConversation()
+      this.draft = draft
+      this.open(context)
     },
 
     close() {
@@ -73,7 +89,6 @@ export const useChatStore = defineStore('chat', {
           message,
         }
         if (this.currentContext.topicId) body.topic_id = this.currentContext.topicId
-        if (this.currentContext.cardId) body.card_id = this.currentContext.cardId
         if (this.currentContext.documentId) body.document_id = this.currentContext.documentId
 
         const res = await $api<{ data: ChatResponse }>('/chat', {

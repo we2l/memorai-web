@@ -113,9 +113,11 @@ test.describe('Cadastro', () => {
     await expect(page.getByRole('status').getByText('Card criado!')).toBeVisible()
 
     // Primeira revisão
-    await page.getByRole('navigation', { name: 'Navegação principal' }).getByRole('link', { name: 'Revisão' }).click()
+    // Revisar mora em Praticar (navegação v3)
+    await page.getByRole('navigation', { name: 'Navegação principal' }).getByRole('link', { name: 'Praticar' }).click()
+    await page.getByRole('link', { name: 'Revisar agora' }).click()
     await expect(page.locator('.review-card').first()).toContainText('Organela da fotossíntese?')
-    // Obs.: aqui o Espaço não vira o card — o foco ficou no link "Revisão" da sidebar e o atalho
+    // Obs.: aqui o Espaço não vira o card — o foco ficou no link "Revisar agora" e o atalho
     // ignora Espaço com foco em <a> (useReviewShortcuts). Vira com clique.
     await page.locator('.review-card').first().click()
     await expect(page.getByRole('button', { name: 'Verso do card' })).toContainText('Cloroplasto')

@@ -11,6 +11,15 @@ export type OnboardingStepName = 'learning_mode' | 'choose_path' | 'processing' 
 export type OnboardingPath = 'review' | 'home' | 'notebook' | 'import_anki' | 'skip'
 export type UploadSource = 'onboarding' | 'caderno' | 'other'
 export type ReminderSource = 'settings' | 'session_end' | 'onboarding'
+/** Navegação v3 (prd-navegacao-v3 RF-12) */
+export type NavItem = 'hoje' | 'cadernos' | 'praticar' | 'progresso'
+export type NavSurface = 'top' | 'bottom'
+export type AddOpenOrigin = 'topnav' | 'header' | 'shortcut' | 'search'
+export type SearchOpenOrigin = 'shortcut' | 'topnav' | 'header'
+export type PracticeMode = 'review' | 'quiz' | 'listen'
+/** Which entry of the mode card on /praticar */
+export type PracticeEntry = 'main' | 'blitz' | 'errors_only' | 'backlog' | 'one_subject' | 'new_quiz' | 'history' | 'continue' | 'generate' | 'library'
+export type MiniplayerAction = 'play' | 'pause' | 'expand' | 'close'
 
 export interface FrontEventProps {
   onboarding_step_viewed: { step: 0 | 1 | 2 | 3 | 4, step_name: OnboardingStepName }
@@ -21,6 +30,11 @@ export interface FrontEventProps {
   paywall_viewed: { feature: string | null, source: 'limit_402' | 'planos_page', plan_required: 'pro' | null }
   upgrade_clicked: { feature: string | null, billing: AnalyticsBilling | null, source: 'upgrade_modal' | 'planos_page' }
   reminder_toggled: { on: boolean, hour: number, source: ReminderSource }
+  nav_clicked: { item: NavItem, surface: NavSurface }
+  add_opened: { origin: AddOpenOrigin }
+  search_opened: { origin: SearchOpenOrigin }
+  practice_mode_started: { mode: PracticeMode, entry: PracticeEntry, scope: 'topic' | 'all' }
+  miniplayer_toggled: { action: MiniplayerAction }
 }
 
 export type FrontEvent = keyof FrontEventProps

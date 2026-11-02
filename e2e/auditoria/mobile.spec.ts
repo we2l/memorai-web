@@ -22,13 +22,13 @@ async function openTree(page: Page) {
 
 test.describe('Mobile 390px', () => {
   test('telas principais sem scroll horizontal e com navegação inferior', async ({ page }) => {
-    for (const path of ['/hoje', '/cadernos', '/progresso', '/simulados', '/provas', '/podcasts', '/configuracoes', '/planos', '/importar']) {
+    for (const path of ['/hoje', '/cadernos', '/praticar', '/progresso', '/simulados', '/provas', '/podcasts', '/configuracoes', '/planos', '/importar']) {
       await gotoApp(page, path)
       await noHorizontalOverflow(page, path)
     }
     await gotoApp(page, '/hoje')
     await expect(bottomNav(page)).toBeVisible()
-    for (const label of ['Hoje', 'Cadernos', 'Revisão']) await expect(bottomNav(page).getByRole('link', { name: label })).toBeVisible()
+    await expect(bottomNav(page).getByRole('link')).toHaveText(['Hoje', 'Cadernos', 'Praticar', 'Progresso'])
   })
 
   test('caderno → card → revisão inteira por toque', async ({ page }) => {
@@ -60,7 +60,9 @@ test.describe('Mobile 390px', () => {
     await expect(page.getByRole('status').getByText('Card criado!')).toBeVisible()
     await noHorizontalOverflow(page, '/cadernos (aba Cards)')
 
-    await bottomNav(page).getByRole('link', { name: 'Revisão' }).tap()
+    // Revisar mora em Praticar (navegação v3: 4 abas, sem "Revisão" nem "Mais")
+    await bottomNav(page).getByRole('link', { name: 'Praticar' }).tap()
+    await page.getByRole('link', { name: 'Revisar agora' }).tap()
     await page.waitForURL('**/revisar**')
     const face = page.locator('.review-card').first()
     await expect(face).toContainText('Capital do Peru?')
@@ -95,12 +97,11 @@ test.describe('Mobile 390px', () => {
     expect(opacity, 'botões Editar/Excluir invisíveis sem hover').toBeGreaterThan(0.5)
   })
 
-  test('configurações pelo menu "Mais"', async ({ page }) => {
+  test('configurações pelo menu da conta (avatar no cabeçalho do Hoje)', async ({ page }) => {
     await gotoApp(page, '/hoje')
-    await page.getByRole('button', { name: 'Mais' }).tap()
-    const sheet = page.getByRole('dialog', { name: 'Mais opções' })
-    await sheet.getByRole('link', { name: 'Configurações' }).tap()
-    await page.waitForURL('**/configuracoes')
+    await page.getByRole('button', { name: 'Menu da conta' }).tap()
+    await page.getByRole('menuitem', { name: 'Conta e segurança' }).tap()
+    await page.waitForURL('**/configuracoes**')
     await expect(page.getByRole('heading', { name: 'Configurações' })).toBeVisible()
     await noHorizontalOverflow(page, '/configuracoes')
   })

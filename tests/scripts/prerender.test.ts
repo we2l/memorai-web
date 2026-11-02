@@ -20,9 +20,10 @@ describe.skipIf(skipWithoutBuild)('páginas pré-renderizadas (build)', () => {
     expect(emails.filter(e => !e.endsWith('@baigi.com.br') && e !== 'seu@email.com')).toEqual([])
   })
 
-  it('landing não pré-carrega o chunk do MockGraph (d3)', async () => {
+  // The graph demo left with the graph of all cadernos (navegação v3); markmap (d3) is the heavy one now
+  it('landing não pré-carrega o chunk do MockMindMap (markmap/d3)', async () => {
     const manifest = (await import(pathToFileURL(MANIFEST).href)).default
-    const key = Object.keys(manifest).find(k => k.endsWith('components/landing/MockGraph.vue'))
+    const key = Object.keys(manifest).find(k => k.endsWith('components/landing/MockMindMap.vue'))
     expect(key).toBeDefined()
     const chunk = manifest[key!].file as string
     const html = readFileSync(join(PUBLIC_DIR, 'index.html'), 'utf8')

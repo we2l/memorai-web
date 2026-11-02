@@ -14,12 +14,11 @@ test.use({ auditUser: 'recorte' })
 test.describe.configure({ mode: 'serial' })
 
 const main = (page: Page) => page.getByRole('main')
-/** The caderno opens on its last tab: the PDFs live in "Material". */
+/** The hub of the scope lists the materials (4b-1: no tabs). */
 async function openMaterial(page: Page, topicId: string) {
-  await gotoApp(page, `/cadernos?topic=${topicId}`)
-  const tab = main(page).getByRole('tab', { name: /^Material/ })
-  if (await tab.getAttribute('aria-selected') !== 'true') await tab.click()
+  await gotoApp(page, `/cadernos/${topicId}`)
 }
+const materialRow = (page: Page, title: string) => page.getByTestId('material-row').filter({ hasText: title })
 const sessionOf = (page: Page) => page.waitForResponse(r => r.url().includes('/api/review/session?') && r.request().method() === 'GET')
 
 /** Rates every card of the screen "Fácil demais" (4), through the keyboard, until the session ends. */
@@ -41,7 +40,8 @@ test('PDF: "Revisar N" abre só os cards daquele material, com o caminho do reco
   expect(pdf.session_count).toBe(3)
 
   await openMaterial(page, seed.subjectId)
-  const review = main(page).getByRole('link', { name: 'Revisar 3 cards' })
+  const review = materialRow(page, F2.pdf).getByTestId('material-review')
+  await expect(review).toHaveText('Revisar 3')
   await expect(review).toHaveAttribute('href', `/revisar?scope=document:${seed.docId}`)
   const session = sessionOf(page)
   await review.click()
@@ -54,7 +54,7 @@ test('PDF: "Revisar N" abre só os cards daquele material, com o caminho do reco
 
   // The end of the session goes back to the material
   await finishSession(page, 3)
-  await expect(page.getByRole('link', { name: `Voltar a ${F2.pdf}` }).first()).toHaveAttribute('href', `/cadernos?topic=${seed.subjectId}`)
+  await expect(page.getByRole('link', { name: `Voltar a ${F2.pdf}` }).first()).toHaveAttribute('href', `/cadernos/${seed.subjectId}`)
 })
 
 test('PDF sem nada vencido: "Praticar adiantado (N)" com o aviso na sessão', async ({ page }) => {
@@ -63,7 +63,8 @@ test('PDF sem nada vencido: "Praticar adiantado (N)" com o aviso na sessão', as
   const pdf = ((await apiCall(page, 'GET', `/documents?topic_id=${seed.subjectId}`)).data as any[]).find(d => d.id === seed.aheadDocId)
   expect(pdf).toMatchObject({ session_count: 0, ahead_count: 2 })
   await openMaterial(page, seed.subjectId)
-  const ahead = main(page).getByRole('link', { name: 'Praticar adiantado (2)' })
+  await materialRow(page, F2.aheadPdf).getByRole('button', { name: `Mais ações de ${F2.aheadPdf}` }).click()
+  const ahead = page.getByRole('menuitem', { name: 'Praticar adiantado (2)' })
   await expect(ahead).toHaveAttribute('href', `/revisar?scope=document:${seed.aheadDocId}&ahead=1`)
   const session = sessionOf(page)
   await ahead.click()
@@ -90,7 +91,7 @@ test('"Só erros (N)" no menu do PDF conta e abre só os erros dele', async ({ p
 test('nota: "Revisar estes N" no rodapé da nota abre scope=note:', async ({ page }) => {
   await gotoApp(page, '/hoje')
   const seed = await ensureF2Seed(page)
-  await gotoApp(page, `/cadernos?topic=${seed.subjectId}&note=${seed.noteId}`)
+  await gotoApp(page, `/cadernos/${seed.subjectId}/material/${seed.noteId}`)
   const link = main(page).getByRole('link', { name: 'Revisar estes 2' })
   await expect(link).toHaveAttribute('href', `/revisar?scope=note:${seed.noteId}`)
   const session = sessionOf(page)

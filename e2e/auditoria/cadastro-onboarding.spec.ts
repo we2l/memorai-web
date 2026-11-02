@@ -94,16 +94,14 @@ test.describe('Cadastro', () => {
 
     // Primeiro caderno
     await page.getByRole('navigation', { name: 'Navegação principal' }).getByRole('link', { name: 'Cadernos' }).click()
-    await page.getByRole('button', { name: 'Novo', exact: true }).click()
-    await page.getByRole('button', { name: 'Novo caderno' }).first().click()
-    const createDialog = page.getByRole('dialog', { name: 'Criar caderno' })
+    await page.getByRole('button', { name: 'Criar caderno' }).click()
+    const createDialog = page.getByRole('dialog', { name: 'Novo caderno' })
     await createDialog.getByRole('textbox', { name: 'Nome do caderno' }).fill('Biologia')
     await createDialog.getByRole('button', { name: 'Criar' }).click()
-    await page.getByRole('complementary').getByRole('button', { name: /^Biologia/ }).click()
+    await expect(page.getByTestId('scope-header').getByRole('heading', { level: 1 })).toHaveText('Biologia')
 
-    // Primeiro card
-    await page.getByRole('tab', { name: /^Cards/ }).click()
-    await page.getByRole('button', { name: /Criar (primeiro )?card/ }).first().click()
+    // Primeiro card: o caderno vazio oferece criar à mão (abre a biblioteca com o formulário)
+    await page.getByTestId('empty-card').click()
     const dialog = page.getByRole('dialog', { name: /flashcard/ })
     await dialog.locator('.ProseMirror').nth(0).click()
     await page.keyboard.type('Organela da fotossíntese?')

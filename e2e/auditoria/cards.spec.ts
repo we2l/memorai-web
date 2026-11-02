@@ -2,7 +2,7 @@ import { test, expect, gotoApp, apiCall, uid } from './support/fixtures'
 import type { Page } from '@playwright/test'
 
 /**
- * Card: criar, editar, excluir, cloze válido e inválido (aba Cards do caderno).
+ * Card: criar, editar, excluir, cloze válido e inválido (biblioteca de cards do caderno, /cadernos/{id}/cards).
  */
 test.use({ auditUser: 'pro' })
 
@@ -14,8 +14,8 @@ async function openCardsTab(page: Page) {
   await gotoApp(page, '/hoje')
   const name = `Cards ${uid()}`
   const t = await apiCall(page, 'POST', '/topics', { name })
-  await gotoApp(page, `/cadernos?topic=${t.data.id}`)
-  await page.getByRole('tab', { name: /^Cards/ }).click()
+  // The old Cards tab is the card library of the scope (4b-1)
+  await gotoApp(page, `/cadernos/${t.data.id}/cards`)
   return t.data.id as string
 }
 
@@ -39,7 +39,7 @@ test.describe('Card — caminho feliz', () => {
     await cardDialog(page).getByRole('button', { name: 'Salvar', exact: true }).click()
     await expect(page.getByRole('status').getByText('Card criado!')).toBeVisible()
     await expect(cardDialog(page)).toBeHidden()
-    await expect(page.getByRole('tab', { name: /^Cards\s*\(1\)/ })).toBeVisible()
+    await expect(page.getByText(/^1 card em /)).toBeVisible()
     let cards = await cardsOf(page, topicId)
     expect(cards).toHaveLength(1)
     expect(cards[0].front).toContain('Capital da França?')

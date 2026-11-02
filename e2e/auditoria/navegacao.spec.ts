@@ -182,7 +182,7 @@ test.describe('Navegação v3 — busca e "+ Adicionar"', () => {
         await expect(dialog.getByRole('option', { name: new RegExp(name) })).toBeVisible()
         await dialog.getByRole('combobox').fill(name)
         await page.keyboard.press('Enter')
-        await expect(page).toHaveURL(new RegExp(`/cadernos\\?topic=${topic.id}`))
+        await expect(page).toHaveURL(new RegExp(`/cadernos/${topic.id}$`))
       })
     }
   })
@@ -202,7 +202,7 @@ test.describe('Navegação v3 — busca e "+ Adicionar"', () => {
     await gotoApp(page, '/hoje')
     const root = (await apiCall(page, 'POST', '/topics', { name: `Adicionar ${uid()}` })).data
     const other = (await apiCall(page, 'POST', '/topics', { name: `Outro ${uid()}` })).data
-    await gotoApp(page, `/cadernos?topic=${root.id}`)
+    await gotoApp(page, `/cadernos/${root.id}`)
 
     await banner(page).getByRole('button', { name: 'Adicionar' }).click()
     const sheet = page.getByRole('dialog', { name: 'Adicionar' })

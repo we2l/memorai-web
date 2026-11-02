@@ -14,12 +14,6 @@ async function noHorizontalOverflow(page: Page, where: string) {
   expect(overflow, `scroll horizontal em ${where}`).toBeLessThanOrEqual(1)
 }
 
-async function openTree(page: Page) {
-  const novo = page.getByRole('button', { name: 'Novo', exact: true })
-  if (!(await novo.isVisible())) await page.getByRole('button', { name: /Ver cadernos|Cadernos/i }).first().tap()
-  await expect(novo).toBeVisible()
-}
-
 test.describe('Mobile 390px', () => {
   test('telas principais sem scroll horizontal e com navegação inferior', async ({ page }) => {
     for (const path of ['/hoje', '/cadernos', '/praticar', '/progresso', '/simulados', '/provas', '/podcasts', '/configuracoes', '/planos', '/importar']) {
@@ -35,19 +29,18 @@ test.describe('Mobile 390px', () => {
     test.setTimeout(60_000)
     const name = `Mobile ${uid()}`
     await gotoApp(page, '/cadernos')
-    await openTree(page)
-    await page.getByRole('button', { name: 'Novo', exact: true }).tap()
-    await page.getByRole('button', { name: 'Novo caderno' }).first().tap()
-    const dialog = page.getByRole('dialog', { name: 'Criar caderno' })
+    await page.getByRole('button', { name: /Novo caderno|Criar caderno/ }).first().tap()
+    const dialog = page.getByRole('dialog', { name: 'Novo caderno' })
     await dialog.getByRole('textbox', { name: 'Nome do caderno' }).fill(name)
     const box = await dialog.boundingBox()
     expect(box!.width).toBeLessThanOrEqual(390)
     await dialog.getByRole('button', { name: 'Criar' }).tap()
     await expect(dialog).toBeHidden()
 
-    await openTree(page)
-    await page.getByRole('button', { name: new RegExp(`^${name}`) }).first().tap()
-    await page.getByRole('tab', { name: /^Cards/ }).tap()
+    // The new caderno opens its hub; "Todos os cards" (Praticar) is the old Cards tab
+    await expect(page.getByTestId('scope-header').getByRole('heading', { level: 1 })).toHaveText(name)
+    await page.goto(page.url() + '/cards')
+    await page.waitForLoadState('networkidle')
     await page.getByRole('button', { name: /Criar (primeiro )?card/ }).first().tap()
     const card = page.getByRole('dialog', { name: /flashcard/ })
     await card.locator('.ProseMirror').nth(0).tap()
@@ -58,7 +51,7 @@ test.describe('Mobile 390px', () => {
     await save.scrollIntoViewIfNeeded()
     await save.tap()
     await expect(page.getByRole('status').getByText('Card criado!')).toBeVisible()
-    await noHorizontalOverflow(page, '/cadernos (aba Cards)')
+    await noHorizontalOverflow(page, '/cadernos/{id}/cards')
 
     // Revisar mora em Praticar (navegação v3: 4 abas, sem "Revisão" nem "Mais")
     await bottomNav(page).getByRole('link', { name: 'Praticar' }).tap()
@@ -83,8 +76,7 @@ test.describe('Mobile 390px', () => {
     await gotoApp(page, '/hoje')
     const t = await apiCall(page, 'POST', '/topics', { name: `Toque ${uid()}` })
     await apiCall(page, 'POST', '/ai/accept-cards', { topic_id: t.data.id, cards: [{ front: 'Frente toque', back: 'Verso toque' }] })
-    await gotoApp(page, `/cadernos?topic=${t.data.id}`)
-    await page.getByRole('tab', { name: /^Cards/ }).tap()
+    await gotoApp(page, `/cadernos/${t.data.id}/cards`)
     await expect(page.getByText('Frente toque')).toBeVisible()
     const edit = page.getByRole('button', { name: 'Editar card' }).first()
     const opacity = await edit.evaluate(el => {

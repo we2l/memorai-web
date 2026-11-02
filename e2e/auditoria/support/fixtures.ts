@@ -21,7 +21,7 @@ export const API = `${API_ORIGIN}/api`
 export const AUDIT_PASSWORD = 'Senha-Audit-2026'
 const CONTAINER = process.env.E2E_API_CONTAINER || 'baigi-app'
 
-export type UserKey = 'pro' | 'free' | 'quota' | 'unverified' | 'onboarding' | 'onboardingUnverified' | 'empty' | 'session' | 'logout' | 'account' | 'mobile' | 'legacy' | 'scope' | 'nav' | 'hoje' | 'hojeNew' | 'hojeGoal' | 'recorte'
+export type UserKey = 'pro' | 'free' | 'quota' | 'unverified' | 'onboarding' | 'onboardingUnverified' | 'empty' | 'session' | 'logout' | 'account' | 'mobile' | 'legacy' | 'scope' | 'nav' | 'hoje' | 'hojeNew' | 'hojeGoal' | 'recorte' | 'hub'
 
 type UserSpec = { email: string; plan: 'free' | 'pro'; verified: boolean; onboarded: boolean; reset: true; quota_exhausted?: Record<string, number> }
 
@@ -51,6 +51,8 @@ export const USERS: Record<UserKey, UserSpec> = {
   hojeGoal: { email: 'e2e-hoje-goal@audit.test', plan: 'free', verified: true, onboarded: true, reset: true },
   // Caderno F2 (f2-recorte.spec.ts): a PDF, a note, a quiz and an episode, each one its own session
   recorte: { email: 'e2e-recorte@audit.test', plan: 'pro', verified: true, onboarded: true, reset: true },
+  // Caderno v3 (prd-4b-caderno-v3, e2e/auditoria/caderno-v3.spec.ts)
+  hub: { email: 'e2e-hub@audit.test', plan: 'pro', verified: true, onboarded: true, reset: true },
 }
 
 const AUTH_DIR = path.join(__dirname, '..', '..', '.auth')

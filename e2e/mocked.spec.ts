@@ -258,7 +258,7 @@ test.describe('Layout lazy (prd-performance-frontend RF-03)', () => {
 })
 
 test.describe('/cadernos sob demanda (prd-performance-frontend RF-02)', () => {
-  test('troca de abas e modal de card sem erro de console; editor só monta ao abrir', async ({ page }) => {
+  test('hub, biblioteca e mapa sem erro de console; editor do card só monta ao abrir', async ({ page }) => {
     const errors: string[] = []
     page.on('pageerror', e => errors.push(e.message))
     page.on('console', m => { if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) errors.push(m.text()) })
@@ -271,11 +271,10 @@ test.describe('/cadernos sob demanda (prd-performance-frontend RF-02)', () => {
       return res.data.id as string
     })
 
-    await page.goto(`/cadernos?topic=${topicId}`)
-    await page.waitForLoadState('networkidle')
-    for (const tab of ['Material', 'Cards', 'Mapa', 'Cards']) {
-      await page.getByRole('tab', { name: new RegExp(tab) }).click()
-      await page.waitForTimeout(300)
+    // The old tabs are routes of the scope (4b-1): hub, map and card library
+    for (const path of [`/cadernos/${topicId}`, `/cadernos/${topicId}/mapa`, `/cadernos/${topicId}/cards`]) {
+      await page.goto(path)
+      await page.waitForLoadState('networkidle')
     }
 
     // Tiptap only exists after opening the card form (Lazy + v-if)
@@ -450,9 +449,9 @@ test.describe('Estados honestos (RF-F3.6–F3.9)', () => {
     await expect(page.getByText('Não foi possível carregar seu progresso')).toBeHidden()
   })
 
-  test('/cadernos com /topics 500 mostra erro inline na árvore', async () => {
+  test('/cadernos com /topics/progress 500 mostra erro inline na lista', async () => {
     let fail = true
-    await page.route(/\/api\/topics$/, r => fail && r.request().method() === 'GET' ? r.fulfill(json({ message: 'x' }, 500)) : r.continue())
+    await page.route(/\/api\/topics\/progress$/, r => fail && r.request().method() === 'GET' ? r.fulfill(json({ message: 'x' }, 500)) : r.continue())
     await page.goto('/cadernos')
     await expect(page.getByText('Não foi possível carregar seus cadernos').first()).toBeVisible()
     fail = false
@@ -565,26 +564,35 @@ test.describe('Onboarding sem armadilhas (RF-F4)', () => {
 })
 
 test.describe('PDF → cards automático (RF-F5.2)', () => {
-  test('polling pending → completed mostra "Revisar 12 cards"', async ({ page }) => {
+  test('PDF lendo: só a linha dele consulta o documento e, pronta, mostra "Revisar 12" do próprio PDF', async ({ page }) => {
     test.setTimeout(45_000)
     await login(page)
     const topic = { id: '00000000-0000-4000-8000-0000000000bb', name: 'Constitucional', parent_id: null, children: [], color: null, flashcards_count: 0, position: 0, learning_mode: 'exam' }
-    const doc = (status: string, count = 0) => ({
-      id: '00000000-0000-4000-8000-0000000000dd', original_name: 'apostila.pdf', file_size: 1000, pages_count: 20, processed_pages: 20,
-      status: 'completed', topic_id: topic.id, has_generated_note: true, note_generation_status: 'completed',
-      note_id: 'n1', auto_cards: true, auto_cards_status: status, auto_cards_count: count, created_at: '2026-09-29T10:00:00Z',
-      // Caderno F2: the button shows the session of the PDF itself
-      session_count: count, ahead_count: 0,
+    const DOC = '00000000-0000-4000-8000-0000000000dd'
+    const summary = {
+      topic: { id: topic.id, name: topic.name, color: null, depth: 0, learning_mode: 'exam', parent_id: null }, path: [],
+      counts: { cards: 0, materials: 1, subjects: 0 }, mastery: { percent: null, in_day: 0, cards: 0 }, questions: null,
+      session: { count: 0, overdue: 0, errors: 0 }, can_quiz: { ok: true }, can_podcast: { ok: true }, exam: null, next_step: null,
+      listen: null, subjects: [], special: { quiz_errors: { cards: 0, session_count: 0 }, loose: { cards: 0, session_count: 0 } },
+    }
+    const row = (ready: boolean) => ({
+      kind: 'pdf', id: DOC, note_id: ready ? 'n1' : null, title: 'apostila.pdf', topic: { id: topic.id, name: topic.name }, pages: 20, parts: ready ? 3 : null,
+      words: null, cards: ready ? 12 : 0, mastery: ready ? 0 : null, session_count: ready ? 12 : 0, ahead_count: ready ? 12 : 0,
+      status: ready ? 'ready' : 'generating', progress: ready ? null : { done: 1, total: 3 }, updated_at: '2026-09-29T10:00:00Z',
     })
-    let calls = 0
+    let docCalls = 0
+    let listCalls = 0
     await page.route(/\/api\/topics$/, r => r.request().method() === 'GET' ? r.fulfill(json({ data: [topic] })) : r.continue())
-    await page.route(`**/api/topics/${topic.id}/notes`, r => r.fulfill(json({ data: [] })))
-    await page.route(/\/api\/documents\?/, r => { calls++; return r.fulfill(json({ data: [calls < 2 ? doc('generating') : doc('completed', 12)] })) })
-    await page.goto(`/cadernos?topic=${topic.id}`)
-    await expect(page.getByText('Resumo pronto · Criando cards…')).toBeVisible()
-    await expect(page.getByRole('link', { name: 'Revisar 12 cards' })).toBeVisible({ timeout: 15_000 })
-    // Only this PDF (prd-caderno-f2-recorte RF-F3), no longer the whole caderno
-    await expect(page.getByRole('link', { name: 'Revisar 12 cards' })).toHaveAttribute('href', '/revisar?scope=document:00000000-0000-4000-8000-0000000000dd')
+    await page.route(`**/api/topics/${topic.id}/summary`, r => r.fulfill(json({ data: summary })))
+    await page.route(`**/api/topics/${topic.id}/materials**`, r => { listCalls++; return r.fulfill(json({ data: [row(docCalls >= 2)], meta: { next_cursor: null, total: 1 } })) })
+    await page.route(`**/api/documents/${DOC}`, r => { docCalls++; return r.fulfill(json({ data: { id: DOC, status: 'completed', note_generation_status: docCalls < 2 ? 'generating' : 'completed', has_generated_note: true, note_generation_progress: docCalls, note_total_batches: 3, note_id: 'n1' } })) })
+    await page.goto(`/cadernos/${topic.id}`)
+    await expect(page.getByTestId('material-row')).toContainText('Lendo o PDF · 1 de 3')
+    const review = page.getByTestId('material-review')
+    await expect(review).toHaveText('Revisar 12', { timeout: 15_000 })
+    // Only this PDF (prd-caderno-f2-recorte RF-F3), no longer the whole caderno; the list was not polled
+    await expect(review).toHaveAttribute('href', `/revisar?scope=document:${DOC}`)
+    expect(listCalls).toBe(2)
   })
 })
 

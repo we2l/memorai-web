@@ -85,8 +85,9 @@ test.describe('Paywall: Free com cota de IA esgotada', () => {
     expect(quotaSpent(), 'pré-condição: cota cards_ai esgotada').toBe(true)
     const gate = await realGate(page, /\/api\/ai\/generate-cards$/, 'quota', quotaSpent)
 
-    await gotoApp(page, `/cadernos?topic=${t.data.id}`)
-    await page.getByRole('main').getByRole('button', { name: 'Gerar cards', exact: true }).first().click()
+    // The hub of a caderno with material and no cards: "Gerar cards de…" opens the material and its workshop
+    await gotoApp(page, `/cadernos/${t.data.id}`)
+    await page.getByTestId('scope-generate').click()
     const modal = page.getByRole('dialog', { name: 'Limite do plano' })
     await expect(modal).toBeVisible()
     expect(gate.map(g => g.status)).toEqual([402])
@@ -107,8 +108,8 @@ test.describe('Usuário não verificado', () => {
     await apiCall(page, 'POST', `/topics/${t.data.id}/notes`, { title: 'Material', content: doc('Conteúdo para gerar cards.') })
     const gate = await realGate(page, /\/api\/ai\/generate-cards$/, 'unverified', unverified)
 
-    await gotoApp(page, `/cadernos?topic=${t.data.id}`)
-    await page.getByRole('main').getByRole('button', { name: 'Gerar cards', exact: true }).first().click()
+    await gotoApp(page, `/cadernos/${t.data.id}`)
+    await page.getByTestId('scope-generate').click()
     await expect(page.getByRole('dialog', { name: 'Confirme seu e-mail' })).toBeVisible()
     expect(gate.map(g => g.status)).toEqual([403])
     expect(gate[0].body.code).toBe('email_unverified')

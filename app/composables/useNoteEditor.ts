@@ -77,7 +77,9 @@ export function useNoteEditor(topicId: Ref<string | null>) {
   }
 
   /** Server version the edits of a note start from (draft base: no clock comparison needed). */
-  const baseOf = (noteId: string) => noteStore.notes.find(n => n.id === noteId)?.updated_at ?? null
+  // The material route has no list: the open note (merged with each PUT answer) carries it
+  const baseOf = (noteId: string) => noteStore.notes.find(n => n.id === noteId)?.updated_at
+    ?? (noteStore.current?.id === noteId ? noteStore.current.updated_at : null)
 
   async function persist(noteId: string, data: NoteSaveData) {
     data = { ...unsaved.get(noteId), ...data }
@@ -271,6 +273,8 @@ export function useNoteEditor(topicId: Ref<string | null>) {
         return null
       }
       if (seq !== openSeq) return null
+      // Opened by id (the material route has no list item): the title comes with the note
+      if (!local?.title) noteTitle.value = full.title
     }
     noteContent.value = local && 'content' in local ? local.content ?? null : full.content
     pendingDraft.value = local ? null : draftNewerThan(full)

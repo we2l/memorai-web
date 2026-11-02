@@ -10,7 +10,13 @@
       </UiButton>
     </div>
 
-    <PodcastGenerateSheet v-model="showGenerate" @generated="onGenerated" />
+    <PodcastGenerateSheet v-model="showGenerate" :topic-id="scopeTopicId ?? undefined" :topic-name="scopeName || undefined" @generated="onGenerated" />
+
+    <!-- ?topic_id= (Praticar do caderno): only the episodes of that scope, filtered here (GET /podcasts has no topic filter) -->
+    <div v-if="scopeTopicId" class="mb-6 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-row bg-subtle px-3 py-2" role="status" data-testid="podcasts-scope">
+      <p class="min-w-0 flex-1 text-meta text-fg">Episódios de <span class="font-semibold text-fg-strong">{{ scopeName || 'este caderno' }}</span></p>
+      <UiButton size="sm" variant="ghost" to="/podcasts">Ver todos</UiButton>
+    </div>
 
     <!-- Loading -->
     <div v-if="store.loading && !store.podcasts.length" class="text-center py-12">
@@ -18,7 +24,7 @@
     </div>
 
     <!-- Empty state -->
-    <div v-else-if="!store.podcasts.length" class="text-center py-16">
+    <div v-else-if="!visiblePodcasts.length" class="text-center py-16">
       <picture class="contents"><source srcset="~/assets/mascots/mascot-baigi-podcast.avif" type="image/avif"><img src="~/assets/mascots/mascot-baigi-podcast.webp" alt="Baigi com fones" class="w-28 h-28 object-contain mx-auto mb-4" width="112" height="112" loading="lazy" decoding="async" /></picture>
       <p class="text-section text-fg">Nenhum podcast ainda</p>
       <p class="text-meta text-fg-muted mt-1 max-w-xs mx-auto">Gere seu primeiro podcast dentro de um caderno e ouça seus pontos fracos!</p>
@@ -146,13 +152,32 @@ async function confirmDelete(podcast: Podcast) {
   }
 }
 
+const topicStore = useTopicStore()
+const scopeTopicId = computed(() => (typeof route.query.topic_id === 'string' && route.query.topic_id) || null)
+const scopeName = computed(() => (scopeTopicId.value ? topicStore.findById(scopeTopicId.value)?.name ?? '' : ''))
+/** The scope and its subtree (a caderno includes its matérias' episodes) */
+const scopeIds = computed(() => {
+  const root = scopeTopicId.value ? topicStore.findById(scopeTopicId.value) : null
+  if (!root) return null
+  const ids = new Set<string>()
+  const walk = (t: { id: string; children?: { id: string }[] }) => { ids.add(t.id); (t.children as any[] | undefined)?.forEach(walk) }
+  walk(root)
+  return ids
+})
+const visiblePodcasts = computed(() => {
+  if (!scopeTopicId.value) return store.podcasts
+  if (!scopeIds.value) return store.podcasts.filter(p => p.topic_id === scopeTopicId.value)
+  return store.podcasts.filter(p => !!p.topic_id && scopeIds.value!.has(p.topic_id))
+})
+onMounted(() => { if (scopeTopicId.value && !topicStore.tree.length && !topicStore.loading) void topicStore.fetchTree() })
+
 function onGenerated() {
   store.startPolling()
 }
 
 const groupedPodcasts = computed(() => {
   const groups: Record<string, { topicName: string; podcasts: Podcast[] }> = {}
-  for (const p of store.podcasts) {
+  for (const p of visiblePodcasts.value) {
     const name = p.topic_name ?? 'Geral'
     if (!groups[name]) groups[name] = { topicName: name, podcasts: [] }
     groups[name].podcasts.push(p)

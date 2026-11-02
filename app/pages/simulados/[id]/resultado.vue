@@ -28,9 +28,15 @@
             <template v-else>Os cards dos erros já foram criados</template>
             <template v-if="topic"> em {{ topic.name }}</template>.
           </p>
-          <p class="text-meta text-fg-muted">{{ createdCount === 1 ? 'Ele entra como card novo' : 'Eles entram como cards novos' }} na revisão do caderno.</p>
+          <p class="text-meta text-fg-muted">
+            {{ errorCards ? 'Revise agora só os cards destes erros, fora do limite de novos do dia.' : `${createdCount === 1 ? 'Ele entra como card novo' : 'Eles entram como cards novos'} na revisão do caderno.` }}
+          </p>
           <div class="flex flex-wrap gap-3">
-            <UiButton variant="primary" :to="reviewPath(topic?.id)">Revisar agora</UiButton>
+            <!-- Exactly the cards of these errors (prd-caderno-f2-recorte RF-F4, closes F1 6.2); an older quiz without the link keeps the caderno session -->
+            <UiButton v-if="errorCards" variant="primary" :to="reviewPath({ type: 'quiz', id: quiz.id })">
+              Revisar {{ errorCards === 1 ? 'o card' : `os ${errorCards}` }} agora
+            </UiButton>
+            <UiButton v-else variant="primary" :to="reviewPath(topic?.id)">Revisar agora</UiButton>
             <UiButton v-if="topic" :to="cadernoPath(topic.id, { tab: 'cards' })">Voltar ao caderno</UiButton>
             <UiButton variant="ghost" :to="newQuizPath">Novo simulado</UiButton>
           </div>
@@ -103,7 +109,8 @@
 <script setup lang="ts">
 import { CheckCircle2, MessageCircle, XCircle } from 'lucide-vue-next'
 import type { QuizQuestion } from '~/types'
-import { cadernoPath, reviewPath } from '~/utils/scope'
+import { cadernoPath } from '~/utils/scope'
+import { reviewPath } from '~/utils/reviewScope'
 
 definePageMeta({ layout: 'default' })
 
@@ -120,6 +127,8 @@ const topic = computed(() => quiz.value?.topic ?? null)
 const questions = computed(() => quizStore.questions)
 const wrongCount = computed(() => questions.value.filter(q => q.is_correct === false).length)
 const cardsCreated = computed(() => createdCount.value !== null || !!quiz.value?.cards_created_at)
+/** Session of the cards born from these errors (`scope=quiz:`): 0 = nothing to review now or an older quiz */
+const errorCards = computed(() => quiz.value?.cards_from_errors?.session_count ?? 0)
 // A new quiz keeps the scope of this one (/simulados?topic_id=, RF-F1)
 const newQuizPath = computed(() => (topic.value ? `/simulados?topic_id=${topic.value.id}` : '/simulados'))
 
@@ -165,7 +174,9 @@ async function createCards() {
   if (!quiz.value?.id) return
   creatingCards.value = true
   try {
-    createdCount.value = await quizStore.createCardsFromErrors(quiz.value.id)
+    const res = await quizStore.createCardsFromErrors(quiz.value.id)
+    // A 2nd call (another tab) creates nothing and answers the same ids: "já foram criados"
+    createdCount.value = res.cards_created > 0 ? res.cards_created : null
   } catch (e) {
     reportApiError(e, { error: 'Não foi possível criar os cards. Tente de novo.' })
   } finally {

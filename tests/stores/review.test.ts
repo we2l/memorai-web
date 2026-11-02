@@ -350,7 +350,7 @@ describe('sessão em páginas (prd-performance-caderno RF-F7)', () => {
       { data: [...ids('a', 11, 1), ...ids('b', 8)], total: 19, session_count: 28, has_more: false },
     )
     const store = useReviewStore()
-    await store.fetchSession(undefined, 't1')
+    await store.fetchSession({ topicId: 't1' })
     expect(store.remaining).toBe(30) // "restantes" counts the whole session, not the page
     expect(sessionCalls()).toHaveLength(1)
 

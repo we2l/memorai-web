@@ -25,8 +25,14 @@
     <!-- Filled by prd-retencao-lembretes ("Amanhã: N cards + streak"), above the suggestion (RF-F05) -->
     <slot name="tomorrow" />
 
-    <!-- Post-session suggestion -->
-    <div v-if="topErrorTopic" class="mt-6 card border border-[var(--badge-warning-text)]/30">
+    <!-- "Reforçar erros" in the same slice (prd-caderno-f2-recorte RF-F2): N = the session it opens -->
+    <div v-if="errorsTo && errorsCount" class="mt-6 flex flex-wrap items-center justify-center gap-3" data-testid="summary-errors">
+      <p class="text-meta text-fg">{{ errorsCount === 1 ? '1 card' : `${errorsCount} cards` }} com erro neste recorte.</p>
+      <UiButton size="sm" :to="errorsTo">Reforçar erros ({{ errorsCount }})</UiButton>
+    </div>
+
+    <!-- Post-session suggestion (global session: the subject with most errors) -->
+    <div v-else-if="!errorsTo && topErrorTopic" class="mt-6 card border border-[var(--badge-warning-text)]/30">
       <p class="text-small text-base-primary">Você errou {{ topErrorTopic.count }}x em "{{ topErrorTopic.name }}".</p>
       <div class="flex gap-2 mt-3 justify-center">
         <UiButton size="sm" :to="`/revisar?topic_id=${topErrorTopic.id}&errors_only=1&t=${Date.now()}`">
@@ -35,10 +41,10 @@
       </div>
     </div>
 
-    <!-- A session of a caderno returns to it (F1: the areas give the person back) -->
+    <!-- A scoped session returns to its slice (F1/F2: the areas give the person back) -->
     <div class="flex flex-col min-[420px]:flex-row gap-3 justify-center mt-8">
-      <UiButton v-if="cadernoTo" variant="primary" :to="cadernoTo">Voltar ao caderno</UiButton>
-      <UiButton :variant="cadernoTo ? 'secondary' : 'primary'" to="/hoje">Voltar para Hoje</UiButton>
+      <UiButton v-if="backTo" variant="primary" :to="backTo">{{ backLabel ?? 'Voltar ao caderno' }}</UiButton>
+      <UiButton :variant="backTo ? 'secondary' : 'primary'" to="/hoje">Voltar para Hoje</UiButton>
       <UiButton v-if="hasBacklog" :to="`/revisar?backlog=1&t=${Date.now()}`">Revisar mais</UiButton>
     </div>
   </section>
@@ -52,8 +58,13 @@ const props = defineProps<{
   pendingLearning: number
   topErrorTopic: { id: string; name: string; count: number } | null
   hasBacklog?: boolean
-  /** The caderno of a scoped session (/revisar?topic_id=): "Voltar ao caderno" leads */
-  cadernoTo?: string | null
+  /** Where a scoped session goes back to (caderno, note, quiz result, episodes): it leads */
+  backTo?: string | null
+  /** "Voltar a {label}" */
+  backLabel?: string
+  /** "Reforçar erros" of the same slice, with its size from /review/session-count; hidden when 0 */
+  errorsTo?: string | null
+  errorsCount?: number | null
 }>()
 
 const rememberedPct = computed(() => {

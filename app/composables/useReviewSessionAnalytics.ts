@@ -3,7 +3,8 @@
  * Completed fires once per session, on the transition to finished with ≥ 1 card reviewed.
  */
 import type { LocationQuery } from 'vue-router'
-import type { ReviewMode, ReviewScope } from '~/types/analytics'
+import type { ReviewMode, ReviewScope, ReviewScopeType } from '~/types/analytics'
+import { sessionScopeFromQuery } from '~/utils/reviewScope'
 
 export function reviewModeOf(query: LocationQuery, survival: boolean): ReviewMode {
   if (query.mode === 'blitz') return 'blitz'
@@ -13,9 +14,20 @@ export function reviewModeOf(query: LocationQuery, survival: boolean): ReviewMod
 }
 
 export function reviewScopeOf(query: LocationQuery): ReviewScope {
-  if (query.topic_id) return 'topic'
+  if (query.topic_id || String(query.scope ?? '').startsWith('topic:')) return 'topic'
   if (query.deck_id) return 'deck'
   return 'none'
+}
+
+/** The F2 slice of a /revisar URL: scope_type, origin, ahead and errors_only (RF-F7). */
+export function reviewSliceOf(query: LocationQuery): { scope_type: ReviewScopeType | null, origin: 'quiz' | 'loose' | null, ahead: boolean, errors_only: boolean } {
+  const slice = sessionScopeFromQuery(query)
+  return {
+    scope_type: slice.scope?.type ?? (slice.topicId ? 'topic' : null),
+    origin: slice.origin ?? null,
+    ahead: !!slice.ahead,
+    errors_only: !!slice.errorsOnly,
+  }
 }
 
 export function useReviewSessionAnalytics() {
@@ -29,7 +41,7 @@ export function useReviewSessionAnalytics() {
     startedAt = Date.now()
     mode = reviewModeOf(query, survival)
     completedSent = false
-    track('review_session_started', { mode, scoped: reviewScopeOf(query), cards_available: cardsAvailable })
+    track('review_session_started', { mode, scoped: reviewScopeOf(query), cards_available: cardsAvailable, ...reviewSliceOf(query) })
   }
 
   /** @param ratings count per rating (1 = Errei) of the finished session */

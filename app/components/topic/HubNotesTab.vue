@@ -194,10 +194,15 @@
         <span v-else-if="wordCount >= 100" class="text-small text-base-muted">{{ wordCount }} palavras · Quase lá — mais um pouco pra IA funcionar</span>
         <span v-else-if="wordCount > 0" class="text-small text-base-muted">{{ wordCount }} palavras · Continue escrevendo...</span>
         <span v-else class="text-small text-base-muted">0 palavras</span>
-        <!-- Cards that came from this note (RF-F4): the Cards tab filtered by it -->
-        <UiButton v-if="activeNoteCards > 0" size="sm" variant="ghost" @click="activeNote && emit('view-cards', activeNote.id)">
-          Ver e editar os {{ activeNoteCards }} cards
-        </UiButton>
+        <!-- Cards that came from this note (RF-F4): review only them (F2, scope=note:) or see them in the Cards tab -->
+        <span v-if="activeNoteCards > 0" class="flex flex-wrap items-center justify-end gap-2">
+          <UiButton v-if="activeNoteSession > 0 && activeNote" size="sm" :to="reviewPath({ type: 'note', id: activeNote.id })">
+            Revisar {{ activeNoteSession === 1 ? 'este 1' : `estes ${activeNoteSession}` }}
+          </UiButton>
+          <UiButton size="sm" variant="ghost" @click="activeNote && emit('view-cards', activeNote.id)">
+            Ver e editar os {{ activeNoteCards }} cards
+          </UiButton>
+        </span>
         <span v-else-if="wordCount >= 200" class="text-small font-medium text-[var(--badge-success-text)] bg-[var(--badge-success-bg)] px-2.5 py-1 rounded-full">Material suficiente pra flashcards ✓</span>
       </div>
 
@@ -263,6 +268,8 @@ const emit = defineEmits<{
 }>()
 
 const activeNoteCards = computed(() => (props.activeNote ? cardCount(props.activeNote) : 0))
+// Size of the note's own session (F2): the list item carries it, the opened note (GET /notes/{id}) does not
+const activeNoteSession = computed(() => props.notes.find(n => n.id === props.activeNote?.id)?.session_count ?? 0)
 
 const showMenu = ref(false)
 const showMindMap = ref(false)

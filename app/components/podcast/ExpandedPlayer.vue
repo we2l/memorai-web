@@ -166,14 +166,16 @@
           >
             <Download :size="16" />
           </button>
-          <NuxtLink
-            v-if="linkedCards.length && player.currentPodcast.topic_id"
-            :to="`/revisar?topic_id=${player.currentPodcast.topic_id}&errors_only=1`"
-            class="btn-primary flex-1 justify-center items-center text-center"
+          <!-- Exactly the cards the episode talked about (prd-caderno-f2-recorte RF-F5) -->
+          <UiButton
+            v-if="episodeCards > 0"
+            variant="primary"
+            class="flex-1"
+            :to="reviewPath({ type: 'podcast', id: player.currentPodcast.id })"
             @click="player.collapse()"
           >
-            Revisar cartões deste caderno
-          </NuxtLink>
+            Revisar {{ episodeCards === 1 ? 'o card' : `os ${episodeCards}` }} do episódio
+          </UiButton>
         </div>
       </div>
     </Transition>
@@ -185,6 +187,7 @@ import { Headphones, Play, Pause, RotateCcw, RotateCw, Download, X, SkipBack, Sk
 
 const { sanitize } = useSanitize()
 const player = usePlayerStore()
+const episodeCards = computed(() => episodeCardsCount(player.currentPodcast))
 
 // Teaser CTA copy comes from the offer catalog (RF-62)
 const plans = usePlans()

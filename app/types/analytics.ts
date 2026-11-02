@@ -5,6 +5,8 @@
 
 export type ReviewMode = 'normal' | 'blitz' | 'survival' | 'errors_only' | 'backlog'
 export type ReviewScope = 'topic' | 'deck' | 'none'
+/** Slice of the session (prd-caderno-f2-recorte RF-F7); null = global or deck session */
+export type ReviewScopeType = 'topic' | 'document' | 'note' | 'quiz' | 'podcast' | 'cards'
 /** `annual` = annual chosen before Stripe decides between Pix and card. */
 export type AnalyticsBilling = 'monthly' | 'annual' | 'annual_pix' | 'annual_card'
 export type OnboardingStepName = 'learning_mode' | 'choose_path' | 'processing' | 'cards_ready' | 'pdf_sent'
@@ -28,7 +30,7 @@ export interface FrontEventProps {
   onboarding_step_viewed: { step: 0 | 1 | 2 | 3 | 4, step_name: OnboardingStepName }
   onboarding_completed: { path: OnboardingPath, learning_mode: string | null }
   pdf_upload_started: { size_mb: number, source: UploadSource }
-  review_session_started: { mode: ReviewMode, scoped: ReviewScope, cards_available: number }
+  review_session_started: { mode: ReviewMode, scoped: ReviewScope, cards_available: number, scope_type: ReviewScopeType | null, origin: 'quiz' | 'loose' | null, ahead: boolean, errors_only: boolean }
   review_session_completed: { cards: number, duration_s: number, mode: ReviewMode, again_rate: number }
   paywall_viewed: { feature: string | null, source: 'limit_402' | 'planos_page', plan_required: 'pro' | null }
   upgrade_clicked: { feature: string | null, billing: AnalyticsBilling | null, source: 'upgrade_modal' | 'planos_page' }

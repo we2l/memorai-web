@@ -18,12 +18,10 @@
           {{ reasonLabel(reason as string) }} {{ count }}x
         </span>
       </div>
-      <NuxtLink
-        :to="`/revisar?topic_id=${topicId}&errors_only=1`"
-        class="text-small text-accent-primary hover:underline shrink-0"
-      >
-        Reforçar
-      </NuxtLink>
+      <!-- "Só erros (N)": N = the session it opens (prd-caderno-f2-recorte RF-F6); hidden while nothing is due -->
+      <UiLink v-if="errorsCount" :to="reviewPath(topicId, { errorsOnly: true })" class="shrink-0">
+        Só erros ({{ errorsCount }})
+      </UiLink>
     </div>
 
     <!-- Actions -->
@@ -185,6 +183,18 @@ const props = defineProps<{
   hasMore?: boolean
   loadingMore?: boolean
 }>()
+
+const errorsCount = ref(0)
+watch(() => [props.topicId, props.errorPatterns?.total_errors ?? 0] as const, async ([topicId, errors]) => {
+  errorsCount.value = 0
+  if (!topicId || !errors) return
+  try {
+    const res = await useNuxtApp().$api<{ data: { session_count: number } }>(`/review/session-count?${scopeQuery({ type: 'topic', id: topicId }, { errorsOnly: true })}`)
+    if (topicId === props.topicId) errorsCount.value = res.data.session_count
+  } catch (e) {
+    reportApiError(e, { silent: true })
+  }
+}, { immediate: true })
 
 const emit = defineEmits<{
   (e: 'create-card'): void

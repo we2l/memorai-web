@@ -85,9 +85,14 @@
 
             <!-- Card count badge + delete -->
             <div class="flex items-center gap-2 shrink-0">
-              <span v-if="podcast.card_ids?.length && podcast.status === 'ready'" class="text-label text-fg-muted">
-                {{ podcast.card_ids.length }} cards
-              </span>
+              <!-- The cards of this episode only (prd-caderno-f2-recorte RF-F5) -->
+              <UiButton
+                v-if="podcast.status === 'ready' && episodeCardsCount(podcast) > 0"
+                size="sm"
+                :to="reviewPath({ type: 'podcast', id: podcast.id })"
+              >
+                Revisar {{ episodeCardsCount(podcast) }}<span class="sr-only"> cards do episódio {{ podcast.title }}</span>
+              </UiButton>
               <button
                 @click.stop="confirmDelete(podcast)"
                 class="w-8 h-8 rounded-control flex items-center justify-center text-fg-muted hover:text-danger hover:bg-danger-subtle transition-colors"

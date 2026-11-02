@@ -52,8 +52,8 @@
         </ul>
       </UiSection>
 
-      <!-- Questões -->
-      <UiSection as="article" class="flex flex-col gap-4" aria-labelledby="mode-quiz">
+      <!-- Questões (prd-4e-praticar-v3 RF-F1): the accuracy of the scope and the shortest way to the weakest assunto -->
+      <UiSection as="article" class="flex flex-col gap-4" aria-labelledby="mode-quiz" data-testid="practice-quiz">
         <header class="flex items-center gap-3">
           <UiPracticeIcon mode="quiz" size="lg" />
           <div>
@@ -63,26 +63,34 @@
         </header>
         <UiSkeleton v-if="loading" variant="block" />
         <UiStat
-          v-else
-          :value="quizStats?.average_score != null ? `${Math.round(quizStats.average_score)}%` : '—'"
-          label="de acerto"
-          :hint="quizStats?.total_completed ? `em ${quizStats.total_completed} simulado${quizStats.total_completed !== 1 ? 's' : ''}` : 'nenhum simulado ainda'"
+          v-else-if="scopeAccuracy"
+          :value="`${scopeAccuracy.accuracy}%`"
+          :label="`de acerto em ${plural(scopeAccuracy.answered, 'questão', 'questões')}`"
         />
-        <UiButton block icon-tone="quiz" :icon-left="CircleHelp" :to="withScope('/simulados', { action: 'new' }, 'topic_id')" @click="started('quiz', 'new_quiz')">
-          Novo simulado
+        <UiStat v-else value="—" label="Faça 10 questões para ver seu acerto" />
+        <UiButton block icon-tone="quiz" :icon-left="CircleHelp" data-testid="practice-weak" @click="openQuiz({ topicId: weak?.topic_id ?? (scope || null), quantity: 20 }, 'new_quiz')">
+          {{ weak ? '20 questões do pior assunto' : '20 questões' }}
         </UiButton>
+        <p v-if="weak" class="-mt-2 text-meta text-fg-muted">{{ weak.name }}<template v-if="weak.questions.accuracy !== null"> · {{ weak.questions.accuracy }}% de acerto</template></p>
         <ul class="-mx-3 divide-y divide-line border-t border-line">
           <li v-if="inProgress">
-            <UiListRow title="Continuar simulado" :meta="inProgress.title" :to="`/simulados/${inProgress.id}`" @click="started('quiz', 'continue')" />
+            <UiListRow title="Continuar" :meta="inProgress.title" :to="`/simulados/${inProgress.id}`" @click="started('quiz', 'continue')" />
           </li>
-          <li>
-            <UiListRow title="Histórico e evolução" :meta="completedMeta" :to="withScope('/simulados', {}, 'topic_id')" @click="started('quiz', 'history')" />
+          <li><UiListRow title="Escolher matéria" meta="10 a 50 questões" as="button" @click="openQuiz({ topicId: scope || null }, 'one_subject')" /></li>
+          <li v-if="examRoot">
+            <UiListRow :title="`Simulado do ${examRoot.name}`" :meta="isFree ? 'No Pro · 30 a 120 questões' : `60 questões · ${timerLabel(suggestedTimer(60))}`" as="button" @click="openQuiz({ topicId: examRoot.id, tab: 'exam' }, 'new_quiz')" />
           </li>
+          <li v-if="lastWithErrors">
+            <UiListRow title="Refazer as que errei" :meta="`${plural(lastWrong, 'questão', 'questões')} · sem gastar geração`" as="button" :disabled="retrying" data-testid="practice-retry" @click="retryLast">
+              <template #trailing><span class="font-semibold tabular-nums text-fg-strong">{{ lastWrong }}</span></template>
+            </UiListRow>
+          </li>
+          <li><UiListRow title="Questões e simulados" :meta="completedMeta" :to="withScope('/simulados', {}, 'caderno', true)" @click="started('quiz', 'history')" /></li>
         </ul>
       </UiSection>
 
-      <!-- Ouvir -->
-      <UiSection as="article" class="flex flex-col gap-4" aria-labelledby="mode-listen">
+      <!-- Ouvir (RF-F6): the episode of today (or the latest not finished), continue and the library -->
+      <UiSection as="article" class="flex flex-col gap-4" aria-labelledby="mode-listen" data-testid="practice-listen">
         <header class="flex items-center gap-3">
           <UiPracticeIcon mode="listen" size="lg" />
           <div>
@@ -94,7 +102,7 @@
         <UiStat
           v-else
           :value="latest?.duration_seconds ? `${Math.max(1, Math.round(latest.duration_seconds / 60))} min` : '—'"
-          :label="latest ? 'episódio mais recente' : 'nenhum episódio pronto'"
+          :label="latest ? (latest.origin === 'daily' ? 'episódio do dia pronto' : 'episódio para ouvir') : 'nenhum episódio pronto'"
           :hint="latest?.title"
         />
         <UiButton v-if="latest" block icon-tone="listen" :icon-left="Headphones" @click="listen(latest)">
@@ -104,23 +112,23 @@
           Gerar um episódio
         </UiButton>
         <ul class="-mx-3 divide-y divide-line border-t border-line">
-          <li v-if="player.currentPodcast && player.currentPodcast.id !== latest?.id">
-            <UiListRow title="Continuar" :meta="player.currentPodcast.title" as="button" @click="resume" />
+          <li v-if="continuing">
+            <UiListRow :title="`Continuar · ${continuing.title}`" :meta="`ouvido ${Math.round((continuing.progress ?? 0) * 100)}%`" as="button" @click="listen(continuing, 'continue')" />
           </li>
           <li v-if="latest">
-            <UiListRow title="Gerar de um assunto" meta="Do caderno, de um assunto ou dos seus erros" :to="withScope('/podcasts', { action: 'generate' }, 'topic_id')" @click="started('listen', 'generate')" />
+            <UiListRow title="Gerar de um assunto" :meta="podcastQuotaText ?? 'Do caderno, de uma matéria ou de um assunto'" :to="withScope('/podcasts', { action: 'generate' }, 'topic_id')" @click="started('listen', 'generate')" />
           </li>
           <li>
-            <UiListRow title="Todos os episódios" :meta="episodesMeta" to="/podcasts" @click="started('listen', 'library')" />
+            <UiListRow title="Todos os episódios" :meta="episodesMeta" :to="withScope('/podcasts', {}, 'topic_id')" @click="started('listen', 'library')" />
           </li>
         </ul>
       </UiSection>
     </section>
 
-    <UiSection v-if="recent.length" title="Últimos simulados" flush class="px-5 pt-5 sm:px-6">
+    <UiSection v-if="recent.length" title="Últimas questões" flush class="px-5 pt-5 sm:px-6" data-testid="practice-history">
       <ul class="-mx-3 divide-y divide-line pb-2">
         <li v-for="quiz in recent" :key="quiz.id">
-          <UiListRow :to="`/simulados/${quiz.id}/resultado`" :title="quiz.title" :meta="`${quiz.correct_count ?? 0} de ${quiz.total_questions}${quiz.topic ? ` · ${quiz.topic.name}` : ''}`">
+          <UiListRow :to="`/simulados/${quiz.id}/resultado`" :title="historyTitle(quiz)" :meta="historyMeta(quiz)">
             <template #leading><UiPracticeIcon mode="quiz" size="sm" /></template>
             <template #trailing>
               <span class="font-semibold tabular-nums text-fg-strong">{{ Math.round(quiz.score_percent ?? 0) }}%</span>
@@ -129,18 +137,22 @@
         </li>
       </ul>
     </UiSection>
+
+    <LazyQuizConfigSheet v-if="configLoaded" v-model="config.open" :topic-id="config.topicId" :tab="config.tab" :quantity="config.quantity" @created="onQuizCreated" />
   </div>
 </template>
 
 <script setup lang="ts">
-// Praticar (prd-navegacao-v3 RF-7, canvas PraticarV4): the 3 practice modes of the same scope, side by side,
-// over the data and routes that already exist. Revisar: the session size (`session_count` of the scope,
-// /stats due_today for all) and the /revisar modes. Questões: /quizzes/stats of the scope, the new quiz sheet
-// and the history in /simulados. Ouvir: the latest ready episode (plays in the mini-player), generate and the
-// library in /podcasts. The scope is the caderno of ?topic_id= (from a caderno) or all of them.
+// Praticar (prd-navegacao-v3 RF-7, prd-4e-praticar-v3 RF-F1, canvas PraticarV4): the 3 practice modes of the
+// same scope, side by side. Revisar: the session size (`session_count` of the scope, /stats due_today for all)
+// and the /revisar modes. Questões: the accuracy of the scope (/topics/performance, ≥ 10 answered), "20
+// questões do pior assunto", a matéria, the simulado do caderno and "Refazer as que errei" (no AI, no quota).
+// Ouvir: the episode of today or the latest one not finished, continue and generate. The scope is the caderno
+// of ?topic_id= (from a caderno) or all of them.
 import { CircleHelp, Headphones } from 'lucide-vue-next'
-import type { BacklogStats, Podcast, Quiz, QuizStats, Stats, TopicProgress } from '~/types'
+import type { BacklogStats, Podcast, Quiz, Stats, TopicPerformance, TopicProgress } from '~/types'
 import type { PracticeEntry, PracticeMode } from '~/types/analytics'
+import { suggestedTimer, timerLabel } from '~/utils/quizDistribution'
 
 useHead({ title: 'Praticar · Baigi' })
 
@@ -151,6 +163,8 @@ const topicStore = useTopicStore()
 const quizStore = useQuizStore()
 const podcastStore = usePodcastStore()
 const player = usePlayerStore()
+const auth = useAuthStore()
+const isFree = computed(() => auth.user?.plan === 'free')
 
 /** '' = all cadernos; else a caderno, matéria or assunto (its subtree) */
 const scope = ref((typeof route.query.topic_id === 'string' && route.query.topic_id) || '')
@@ -159,17 +173,7 @@ watch(scope, (id) => {
   void load()
 })
 
-const scopeOptions = computed(() => {
-  const out = [{ value: '', label: 'Todos os cadernos' }]
-  const walk = (topics: typeof topicStore.tree, depth: number) => {
-    for (const t of topics) {
-      out.push({ value: t.id, label: `${'— '.repeat(depth)}${t.name}` })
-      if (t.children?.length) walk(t.children, depth + 1)
-    }
-  }
-  walk(topicStore.tree, 0)
-  return out
-})
+const scopeOptions = computed(() => [{ value: '', label: 'Todos os cadernos' }, ...topicTreeOptions(topicStore.tree)])
 
 /** "Um assunto": the matérias/assuntos below the scope (all of them when the scope is all cadernos). */
 const subjectOptions = computed(() => {
@@ -182,26 +186,27 @@ const scopeIds = computed(() => {
   const t = topicStore.findById(scope.value)
   return new Set(t ? flattenTopics([t]).map(x => x.id) : [scope.value])
 })
+const inScope = (topicId: string | null | undefined) => !scopeIds.value || (!!topicId && scopeIds.value.has(topicId))
 
 const loading = ref(true)
 const loadError = ref(false)
 const stats = ref<Stats | null>(null)
 const progress = ref<TopicProgress[]>([])
 const backlog = ref<BacklogStats | null>(null)
-const quizStats = ref<QuizStats | null>(null)
+const performance = ref<TopicPerformance[]>([])
 
 let request = 0
 async function load() {
   const id = ++request
   loading.value = true
   loadError.value = false
-  const topicId = scope.value || undefined
-  const [statsRes, progressRes, backlogRes, quizStatsRes, quizzesRes] = await Promise.allSettled([
+  const [statsRes, progressRes, backlogRes, perfRes, quizzesRes, podcastsRes] = await Promise.allSettled([
     $api<{ data: Stats }>('/stats'),
     $api<{ data: TopicProgress[] }>('/topics/progress'),
     $api<{ data: BacklogStats }>('/review/backlog-stats'),
-    quizStore.fetchStats(topicId),
-    quizStore.fetchQuizzes(topicId),
+    $api<{ data: TopicPerformance[] }>('/topics/performance'),
+    quizStore.fetchQuizzes(),
+    podcastStore.setScope(scope.value || null),
   ])
   if (id !== request) return
   // The number of Revisar is the one block that must load; the others degrade to "—"
@@ -213,8 +218,8 @@ async function load() {
     progress.value = progressRes.value.data
   }
   backlog.value = backlogRes.status === 'fulfilled' ? backlogRes.value.data : null
-  quizStats.value = quizStatsRes.status === 'fulfilled' ? quizStatsRes.value : null
-  for (const r of [backlogRes, quizStatsRes, quizzesRes]) if (r.status === 'rejected') reportApiError(r.reason, { silent: true })
+  performance.value = perfRes.status === 'fulfilled' ? perfRes.value.data : []
+  for (const r of [backlogRes, perfRes, quizzesRes, podcastsRes]) if (r.status === 'rejected') reportApiError(r.reason, { silent: true })
   loading.value = false
 }
 
@@ -229,28 +234,104 @@ const backlogMeta = computed(() => {
   return !scope.value && n ? `${n} atrasados, espalhados nos próximos dias` : 'Os atrasados, espalhados nos próximos dias'
 })
 
-const inProgress = computed<Quiz | undefined>(() => quizStore.quizzes.find(q => q.status === 'in_progress'))
-const completed = computed(() => quizStore.quizzes.filter(q => q.status === 'completed'))
-const recent = computed(() => completed.value.slice(0, 3))
-const completedMeta = computed(() => {
-  const n = completed.value.length
-  return n ? `${n} simulado${n !== 1 ? 's' : ''} feito${n !== 1 ? 's' : ''}` : 'Seus resultados ficam aqui'
+// Questões: the accuracy of the scope (all cadernos = the sum of the roots), only with ≥ 10 answered
+const scopeAccuracy = computed(() => {
+  const rows = scope.value ? performance.value.filter(r => r.topic_id === scope.value) : performance.value.filter(r => r.depth === 0)
+  const answered = rows.reduce((a, r) => a + r.questions.answered, 0)
+  const correct = rows.reduce((a, r) => a + (r.questions.correct ?? 0), 0)
+  return answered >= 10 ? { answered, accuracy: Math.round((correct * 100) / answered) } : null
+})
+/**
+ * The weakest assunto of the scope, by the rule of the API (PerformanceService::markWeak): the lowest
+ * accuracy below 60% among those with ≥ 10 answered; without any, the lowest mastery below 40% with ≥ 20
+ * cards. On a tie the deepest (an assunto over its matéria).
+ */
+const weak = computed<TopicPerformance | null>(() => {
+  // An assunto or matéria below the scope (all cadernos: never a caderno itself)
+  const rows = performance.value.filter(r => inScope(r.topic_id) && r.topic_id !== scope.value && (scope.value || r.depth > 0))
+  const withAccuracy = rows.filter(r => r.questions.accuracy !== null)
+  const pick = (list: TopicPerformance[], value: (r: TopicPerformance) => number) =>
+    [...list].sort((a, b) => value(a) - value(b) || b.depth - a.depth)[0] ?? null
+  if (withAccuracy.length) return pick(withAccuracy.filter(r => r.questions.accuracy! < 60), r => r.questions.accuracy!)
+  return pick(rows.filter(r => r.mastery !== null && r.cards >= 20 && r.mastery < 40), r => r.mastery!)
+})
+/** The caderno of the simulado: the root of the scope, or the one with the most cards */
+const examRoot = computed(() => {
+  if (scope.value) {
+    const t = topicStore.findById(scope.value)
+    if (!t) return null
+    return t.parent_id ? (topicStore.findById(t.parent_id)?.parent_id ? null : t) : t
+  }
+  const roots = performance.value.filter(r => r.depth === 0).sort((a, b) => b.cards - a.cards)
+  const top = roots[0]
+  return top ? { id: top.topic_id, name: top.name } : null
 })
 
-const scopedPodcasts = computed(() => {
-  const ids = scopeIds.value
-  return podcastStore.podcasts.filter(p => !ids || (p.topic_id && ids.has(p.topic_id)))
+const scopedQuizzes = computed(() => quizStore.quizzes.filter(q => inScope(q.topic?.id)))
+const inProgress = computed<Quiz | undefined>(() => scopedQuizzes.value.find(q => q.status === 'in_progress'))
+const completed = computed(() => scopedQuizzes.value.filter(q => q.status === 'completed'))
+const recent = computed(() => completed.value.slice(0, 3))
+const lastWithErrors = computed(() => completed.value.find(q => q.total_questions - (q.correct_count ?? 0) > 0) ?? null)
+const lastWrong = computed(() => (lastWithErrors.value ? lastWithErrors.value.total_questions - (lastWithErrors.value.correct_count ?? 0) : 0))
+const completedMeta = computed(() => {
+  const n = completed.value.length
+  return n ? `${n} ${n === 1 ? 'bateria feita' : 'baterias feitas'}` : 'Seus resultados ficam aqui'
 })
-const latest = computed<Podcast | undefined>(() => scopedPodcasts.value.find(p => p.status === 'ready' && p.audio_url))
+
+function historyTitle(quiz: Quiz) {
+  return [quiz.kind === 'exam' ? 'Simulado' : 'Questões', quiz.topic?.name, quiz.completed_at ? relativeDate(quiz.completed_at) : null].filter(Boolean).join(' · ')
+}
+function historyMeta(quiz: Quiz) {
+  const wrong = quiz.total_questions - (quiz.correct_count ?? 0)
+  return [`${quiz.correct_count ?? 0} de ${quiz.total_questions}`, wrong ? (quiz.cards_created_at ? `${plural(wrong, 'erro', 'erros')} · cards criados` : plural(wrong, 'erro', 'erros')) : null].filter(Boolean).join(' · ')
+}
+
+// The sheet of questions opens here, already filled (RF-F1)
+const config = reactive({ open: false, topicId: null as string | null, tab: 'battery' as 'battery' | 'exam', quantity: undefined as number | undefined })
+const configLoaded = useLoadedOnce(() => config.open)
+function openQuiz(opts: { topicId: string | null; tab?: 'battery' | 'exam'; quantity?: number }, entry: PracticeEntry) {
+  started('quiz', entry)
+  config.topicId = opts.topicId
+  config.tab = opts.tab ?? 'battery'
+  config.quantity = opts.quantity
+  config.open = true
+}
+function onQuizCreated(quiz: Quiz) {
+  config.open = false
+  void navigateTo(`/simulados/${quiz.id}`)
+}
+
+const { run: runRetry, pending: retrying } = useApiAction()
+async function retryLast() {
+  const source = lastWithErrors.value
+  if (!source) return
+  started('quiz', 'continue')
+  const retry = await runRetry(() => quizStore.retryErrors(source.id), { error: 'Não foi possível montar as questões de novo.' })
+  if (!retry) return
+  useAnalytics().track('quiz_retry_errors', { errors: lastWrong.value })
+  await navigateTo(`/simulados/${retry.id}`)
+}
+
+// Ouvir: GET /podcasts?topic_id= of the scope (server side, the subtree)
+const isDone = (p: Podcast) => !!p.completed_at || (p.progress ?? 0) >= 0.95
+const ready = computed(() => podcastStore.podcasts.filter(p => p.status === 'ready' && p.audio_url && !isDone(p)))
+const latest = computed<Podcast | undefined>(() => ready.value.find(p => p.origin === 'daily' && Date.now() - new Date(p.created_at).getTime() < 86_400_000) ?? ready.value.find(p => !(p.progress ?? 0)) ?? ready.value[0])
+const continuing = computed(() => ready.value.find(p => (p.progress ?? 0) > 0 && p.id !== latest.value?.id) ?? null)
 const episodesMeta = computed(() => {
   const n = podcastStore.podcasts.filter(p => p.status === 'ready').length
   return n ? `${n} episódio${n !== 1 ? 's' : ''}` : 'A sua biblioteca de áudio'
 })
+const usage = useFeatureUsage()
+const podcastQuotaText = computed(() => {
+  const q = usage.usage.value?.features?.podcast
+  return q && q.limit !== null ? `${q.used} de ${q.limit} este mês` : null
+})
 
-/** A route of the scope: /revisar?topic_id=, /simulados?topic_id=… (the key the page reads). */
-function withScope(path: string, extra: Record<string, string> = {}, key = 'topic_id') {
+/** A route of the scope: /revisar?topic_id=, /podcasts?topic_id=… (the key the page reads). */
+function withScope(path: string, extra: Record<string, string> = {}, key = 'topic_id', rootOnly = false) {
   const params = new URLSearchParams(extra)
-  if (scope.value) params.set(key, scope.value)
+  const value = rootOnly ? (scope.value && !topicStore.findById(scope.value)?.parent_id ? scope.value : '') : scope.value
+  if (value) params.set(key, value)
   const q = params.toString()
   return q ? `${path}?${q}` : path
 }
@@ -265,8 +346,8 @@ function reviewSubject(id: string) {
   void navigateTo(reviewPath(id))
 }
 
-function listen(podcast: Podcast) {
-  started('listen', 'main')
+function listen(podcast: Podcast, entry: PracticeEntry = 'main') {
+  started('listen', entry)
   if (player.currentPodcast?.id === podcast.id) {
     if (!player.isPlaying) player.resume()
     return
@@ -274,14 +355,9 @@ function listen(podcast: Podcast) {
   player.play(podcast)
 }
 
-function resume() {
-  started('listen', 'continue')
-  if (!player.isPlaying) player.resume()
-}
-
 onMounted(() => {
   void load()
+  void usage.fetchUsage()
   if (!topicStore.tree.length) void topicStore.fetchTree()
-  podcastStore.fetchPodcasts().catch((e: unknown) => reportApiError(e, { silent: true }))
 })
 </script>

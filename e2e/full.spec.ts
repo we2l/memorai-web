@@ -108,14 +108,14 @@ test.describe('Podcasts (/podcasts)', () => {
   })
 
   test('página carrega com título e botão gerar', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: 'Podcasts' })).toBeVisible()
-    await expect(page.getByText('Gerar podcast')).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: 'Ouvir' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Gerar episódio' })).toBeVisible()
   })
 
   test('exibe lista de podcasts ou estado vazio', async ({ page }) => {
-    const empty = page.getByText('Nenhum podcast ainda')
-    const list = page.getByText('Tocando agora').or(page.locator('[class*="space-y"]'))
-    await expect(empty.or(list)).toBeVisible()
+    const empty = page.getByTestId('podcasts-empty')
+    const list = page.getByTestId('podcasts-today').or(page.getByTestId('podcasts-continue')).or(page.getByTestId('podcasts-library'))
+    await expect(empty.or(list).first()).toBeVisible()
   })
 })
 

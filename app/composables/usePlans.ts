@@ -38,11 +38,11 @@ export function usePlans() {
   }
 
   function feature(key: string): CatalogFeature | null {
-    return plans.value?.features[key] ?? null
+    return plans.value?.features?.[key] ?? null
   }
 
   function limitOf(planKey: PlanKey): CatalogPlan | null {
-    return plans.value?.plans.find(p => p.key === planKey) ?? null
+    return plans.value?.plans?.find(p => p.key === planKey) ?? null
   }
 
   function formatPrice(cents: number): string {

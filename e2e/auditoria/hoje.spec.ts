@@ -108,7 +108,7 @@ test.describe('Plano do dia (e2e-hoje)', () => {
     // Questões opens the quiz sheet with the subject, generating nothing by itself
     await main(page).getByTestId('plan-step-quiz').getByRole('link', { name: 'Fazer' }).click()
     await expect(page).toHaveURL(/\/simulados\?topic_id=/)
-    await expect(page.getByRole('dialog', { name: 'Novo simulado' })).toBeVisible()
+    await expect(page.getByRole('dialog', { name: 'Novas questões' })).toBeVisible()
   })
 
   test('"Revisar N" do plano = /stats.due_today = a sessão que ele abre', async ({ page }) => {

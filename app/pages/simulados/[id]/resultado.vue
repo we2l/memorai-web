@@ -1,212 +1,152 @@
 <template>
-  <div class="mx-auto flex max-w-3xl flex-col gap-6 p-4 pb-20 sm:p-6 lg:pb-6">
-    <div v-if="!quiz" class="flex flex-col gap-3" aria-busy="true">
-      <span class="sr-only">Carregando resultado...</span>
+  <div class="mx-auto flex max-w-prose flex-col gap-5 px-gutter pt-2 pb-6 md:pt-8">
+    <UiLink v-if="scope" :to="scope.to" variant="muted" standalone class="-ml-1 self-start px-1">
+      <ChevronLeft class="size-4" aria-hidden="true" />
+      {{ scope.name }}
+    </UiLink>
+
+    <div v-if="state === 'loading'" class="flex flex-col gap-3" aria-busy="true">
+      <span class="sr-only">Carregando o resultado…</span>
       <UiSkeleton variant="block" size="lg" />
+      <UiSkeleton variant="block" />
       <UiSkeleton variant="row" />
     </div>
 
-    <template v-else>
-      <UiPageHeader :title="quiz.title" :back="{ to: '/simulados', label: 'Simulados' }">
-        <template #meta>
-          <span>{{ quiz.correct_count ?? 0 }} certas · {{ wrongCount }} erradas</span>
-          <span v-if="quiz.time_spent_seconds"> · {{ formatTime(quiz.time_spent_seconds) }}</span>
-          <span v-if="topic"> · {{ topic.name }}</span>
-        </template>
-      </UiPageHeader>
+    <!-- Never an endless spinner (03 Q14): the error says it and retries -->
+    <UiErrorState v-else-if="state === 'error'" variant="hero" title="Não foi possível carregar o resultado" description="Verifique sua conexão e tente de novo." @retry="load" />
 
-      <UiSection>
-        <div class="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-          <UiStat :value="`${Math.round(quiz.score_percent ?? 0)}%`" label="de acerto" size="lg" />
-          <UiTag :tone="scoreTone">{{ scoreLabel }}</UiTag>
-        </div>
-
-        <!-- After the cards: the next step in the same scope, not only a toast (RF-F2, N12) -->
-        <div v-if="cardsCreated" class="mt-5 flex flex-col gap-3 border-t border-line pt-5" role="status">
-          <p class="text-body text-fg-strong">
-            <template v-if="createdCount !== null">{{ createdCount }} card{{ createdCount !== 1 ? 's' : '' }} dos erros criado{{ createdCount !== 1 ? 's' : '' }}</template>
-            <template v-else>Os cards dos erros já foram criados</template>
-            <template v-if="topic"> em {{ topic.name }}</template>.
-          </p>
-          <p class="text-meta text-fg-muted">
-            {{ errorCards ? 'Revise agora só os cards destes erros, fora do limite de novos do dia.' : `${createdCount === 1 ? 'Ele entra como card novo' : 'Eles entram como cards novos'} na revisão do caderno.` }}
-          </p>
-          <div class="flex flex-wrap gap-3">
-            <!-- Exactly the cards of these errors (prd-caderno-f2-recorte RF-F4, closes F1 6.2); an older quiz without the link keeps the caderno session -->
-            <UiButton v-if="errorCards" variant="primary" :to="reviewPath({ type: 'quiz', id: quiz.id })">
-              Revisar {{ errorCards === 1 ? 'o card' : `os ${errorCards}` }} agora
-            </UiButton>
-            <UiButton v-else variant="primary" :to="reviewPath(topic?.id)">Revisar agora</UiButton>
-            <UiButton v-if="topic" :to="cadernoPath(topic.id, { view: 'cards' })">Voltar ao caderno</UiButton>
-            <UiButton variant="ghost" :to="newQuizPath">Novo simulado</UiButton>
-          </div>
-        </div>
-        <div v-else class="mt-5 flex flex-wrap gap-3 border-t border-line pt-5">
-          <UiButton variant="primary" :loading="creatingCards" :disabled="wrongCount === 0" @click="createCards">
-            {{ wrongCount === 0 ? 'Nenhum erro para virar card' : `Criar cards dos erros (${wrongCount})` }}
-          </UiButton>
-          <UiButton v-if="topic" :to="cadernoPath(topic.id)">Voltar ao caderno</UiButton>
-          <UiButton variant="ghost" :to="newQuizPath">Novo simulado</UiButton>
-        </div>
-      </UiSection>
-
-      <UiSection v-if="breakdown.length > 1" title="Desempenho por tema">
-        <p v-if="weakText" class="-mt-1 mb-4 text-meta text-fg">{{ weakText }}</p>
-        <ul class="flex flex-col gap-4">
-          <li v-for="item in breakdown" :key="item.tag">
-            <div class="mb-1.5 flex justify-between gap-3 text-meta">
-              <span class="font-medium text-fg-strong">{{ item.tag }}</span>
-              <span class="text-fg-muted">{{ item.correct }}/{{ item.total }}</span>
-            </div>
-            <UiProgressBar :value="item.percent" :label="`Acerto em ${item.tag}`" tone="neutral" size="md" show-value />
-          </li>
-        </ul>
-      </UiSection>
-
-      <UiSection title="Gabarito">
-        <UiTabs
-          v-model="filter"
-          label="Questões do gabarito"
-          :tabs="[{ key: 'all', label: 'Todas', count: questions.length }, { key: 'wrong', label: 'Só erros', count: wrongCount }]"
-        >
-        <ol class="divide-y divide-line">
-          <li v-for="q in filteredQuestions" :id="`q${q.position}`" :key="q.id" class="flex scroll-mt-24 items-start gap-3 py-5">
-            <span class="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full" :class="q.is_correct ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'">
-              <CheckCircle2 v-if="q.is_correct" class="size-4" aria-hidden="true" />
-              <XCircle v-else class="size-4" aria-hidden="true" />
-              <span class="sr-only">{{ q.is_correct ? 'Certa' : 'Errada' }}</span>
-            </span>
-            <div class="min-w-0 flex-1">
-              <div class="mb-1 flex flex-wrap items-center gap-2">
-                <UiTag>{{ q.position }}</UiTag>
-                <UiTag v-if="q.topic_tag">{{ q.topic_tag }}</UiTag>
-              </div>
-              <p class="text-body text-fg-strong">{{ q.stem }}</p>
-              <dl class="mt-3 flex flex-col gap-1.5 text-meta">
-                <div v-if="!q.is_correct && q.user_answer" class="flex items-start gap-2">
-                  <dt class="shrink-0 font-semibold text-danger">Você:</dt>
-                  <dd class="text-fg">{{ formatAnswer(q, q.user_answer) }}</dd>
-                </div>
-                <div class="flex items-start gap-2">
-                  <dt class="shrink-0 font-semibold text-success">Correta:</dt>
-                  <dd class="font-medium text-fg-strong">{{ formatAnswer(q, q.correct_answer ?? '') }}</dd>
-                </div>
-              </dl>
-              <p v-if="q.explanation" class="mt-3 border-l-2 border-line pl-3 text-meta text-fg-muted">{{ q.explanation }}</p>
-              <p v-if="q.ai_feedback" class="mt-2 text-meta text-fg-muted">Correção IA: {{ q.ai_feedback }} ({{ Math.round((q.ai_score ?? 0) * 100) }}%)</p>
-              <UiButton v-if="q.is_correct === false" size="sm" variant="ghost" :icon-left="MessageCircle" class="-ml-3 mt-2" @click="askWhyWrong(q)">
-                Por que errei?
-              </UiButton>
-            </div>
-          </li>
-        </ol>
-        </UiTabs>
-      </UiSection>
+    <template v-else-if="quiz">
+      <QuizScore :quiz="quiz" :scope-name="quiz.topic?.name" />
+      <QuizByTopic v-if="byTopic.length" :rows="byTopic" />
+      <QuizErrorCards v-if="errors.length" v-model="selected" :errors="errors" />
+      <QuizNextStep
+        :state="nextState"
+        :selected="selected.length"
+        :cards-count="cardsCount"
+        :session-count="sessionCount"
+        :creating="creating"
+        :review-to="reviewPath({ type: 'quiz', id: quiz.id })"
+        :new-quiz-to="newQuizPath"
+        :scope-to="scope?.to"
+        :scope-name="scope?.name"
+        @create="createCards"
+        @review="trackReview"
+      />
+      <QuizAnswerKey ref="answerKey" :questions="questions" :initially-open="/^#q\d+$/.test(route.hash)" @ask="askWhyWrong" />
+      <UiButton v-if="wrongCount > 0" variant="ghost" class="self-start" :loading="retrying" data-testid="quiz-retry-errors" @click="retryErrors">
+        Refazer as que errei ({{ wrongCount }})
+      </UiButton>
     </template>
   </div>
 </template>
 
 <script setup lang="ts">
-import { CheckCircle2, MessageCircle, XCircle } from 'lucide-vue-next'
+// Result of a quiz (prd-4e-praticar-v3 RF-F4, canvas Questoes): the score against the last time, the
+// accuracy by assunto, the errors that become cards (chosen, each in its assunto), the next step as the one
+// tinted block ("Criar N cards" → "Revisar os N agora", scope=quiz:), the answer key folded and "Refazer as
+// que errei" (copies, no AI and no quota).
+import { ChevronLeft } from 'lucide-vue-next'
 import type { QuizQuestion } from '~/types'
 import { cadernoPath } from '~/utils/scope'
 import { reviewPath } from '~/utils/reviewScope'
+import { formatAnswer } from '~/utils/quizAnswer'
 
-definePageMeta({ layout: 'default' })
+useHead({ title: 'Resultado · Baigi' })
 
 const route = useRoute()
 const quizStore = useQuizStore()
+const quizId = computed(() => String(route.params.id))
 
-const filter = ref('all')
-const creatingCards = ref(false)
-/** Cards created now (the count of this answer); null when they were created on another visit */
-const createdCount = ref<number | null>(null)
-
-const quiz = computed(() => quizStore.currentQuiz)
-const topic = computed(() => quiz.value?.topic ?? null)
+const state = ref<'loading' | 'error' | 'ready'>('loading')
+const quiz = computed(() => (quizStore.currentQuiz?.id === quizId.value ? quizStore.currentQuiz : null))
 const questions = computed(() => quizStore.questions)
+const byTopic = computed(() => quiz.value?.by_topic ?? [])
+const errors = computed(() => quiz.value?.error_cards_preview ?? [])
 const wrongCount = computed(() => questions.value.filter(q => q.is_correct === false).length)
-const cardsCreated = computed(() => createdCount.value !== null || !!quiz.value?.cards_created_at)
-/** Session of the cards born from these errors (`scope=quiz:`): 0 = nothing to review now or an older quiz */
-const errorCards = computed(() => quiz.value?.cards_from_errors?.session_count ?? 0)
-// A new quiz keeps the scope of this one (/simulados?topic_id=, RF-F1)
-const newQuizPath = computed(() => (topic.value ? `/simulados?topic_id=${topic.value.id}` : '/simulados'))
 
-const filteredQuestions = computed(() => (filter.value === 'wrong' ? questions.value.filter(q => q.is_correct === false) : questions.value))
+/** The scope the quiz came from ("Voltar a …"); a caderno in the trash is not a destination */
+const scope = computed(() => {
+  const t = quiz.value?.topic
+  return t && !t.in_trash ? { to: cadernoPath(t.id), name: t.name } : null
+})
+const newQuizPath = computed(() => (quiz.value?.topic ? `/simulados?topic_id=${quiz.value.topic.id}` : '/simulados?action=new'))
 
-const breakdown = computed(() => {
-  const map = new Map<string, { correct: number; total: number }>()
-  for (const q of questions.value) {
-    const tag = q.topic_tag || 'Geral'
-    const entry = map.get(tag) ?? { correct: 0, total: 0 }
-    entry.total++
-    if (q.is_correct) entry.correct++
-    map.set(tag, entry)
-  }
-  return Array.from(map.entries()).map(([tag, data]) => ({
-    tag,
-    ...data,
-    percent: data.total > 0 ? Math.round((data.correct / data.total) * 100) : 0,
-  }))
+/** Errors chosen to become cards: every error without a card, by default */
+const selected = ref<string[]>([])
+const pending = computed(() => errors.value.filter(e => !e.card_id))
+watch(pending, (list) => { selected.value = selected.value.filter(id => list.some(e => e.question_id === id)) })
+
+const cardsCount = computed(() => quiz.value?.cards_from_errors?.count ?? errors.value.filter(e => e.card_id).length)
+const sessionCount = computed(() => quiz.value?.cards_from_errors?.session_count ?? 0)
+const nextState = computed<'create' | 'review' | 'done'>(() => {
+  if (pending.value.length && (selected.value.length || !cardsCount.value)) return 'create'
+  if (cardsCount.value > 0) return 'review'
+  return 'done'
 })
 
-const weakText = computed(() => {
-  const weak = breakdown.value.filter(t => t.percent < 50 && t.total >= 2).slice(0, 2)
-  if (!weak.length) return null
-  return weak.length === 1
-    ? `${weak[0]!.tag}: ${weak[0]!.percent}% de acerto. Vale revisar este tema.`
-    : `${weak.map(t => t.tag).join(' e ')}: abaixo de 50%. Vale revisar.`
-})
+const answerKey = ref<{ open: () => void } | null>(null)
 
-const scoreTone = computed(() => {
-  const s = quiz.value?.score_percent ?? 0
-  if (s >= 70) return 'success' as const
-  if (s >= 50) return 'warning' as const
-  return 'danger' as const
-})
-const scoreLabel = computed(() => ({ success: 'Bom resultado', warning: 'Quase lá', danger: 'Precisa de reforço' })[scoreTone.value])
-
-onMounted(async () => {
-  await quizStore.fetchQuiz(route.params.id as string)
-  // "Ver a questão" of the review (4d): #q7 lands on that question once the list is drawn
-  if (/^#q\d+$/.test(route.hash)) {
-    await nextTick()
-    document.getElementById(route.hash.slice(1))?.scrollIntoView({ block: 'start' })
-  }
-})
-
-async function createCards() {
-  if (!quiz.value?.id) return
-  creatingCards.value = true
+async function load() {
+  state.value = 'loading'
   try {
-    const res = await quizStore.createCardsFromErrors(quiz.value.id)
-    // A 2nd call (another tab) creates nothing and answers the same ids: "já foram criados"
-    createdCount.value = res.cards_created > 0 ? res.cards_created : null
+    const q = await quizStore.fetchQuiz(quizId.value)
+    if (q.status !== 'completed') return navigateTo(`/simulados/${quizId.value}`, { replace: true })
+    selected.value = (q.error_cards_preview ?? []).filter(e => !e.card_id).map(e => e.question_id)
+    state.value = 'ready'
+    // "Ver a questão" of the review (4d): #q7 lands on that question once the key is open
+    if (/^#q\d+$/.test(route.hash)) {
+      answerKey.value?.open()
+      // The list is a lazy chunk: wait for the question to exist (up to 3 s)
+      const id = route.hash.slice(1)
+      for (let i = 0; i < 30 && !document.getElementById(id); i++) await new Promise(r => setTimeout(r, 100))
+      document.getElementById(id)?.scrollIntoView({ block: 'start' })
+    }
+  } catch (e) {
+    reportApiError(e, { silent: true })
+    state.value = 'error'
+  }
+}
+
+const creating = ref(false)
+async function createCards() {
+  if (!quiz.value || !selected.value.length) return
+  creating.value = true
+  const chosen = [...selected.value]
+  try {
+    await quizStore.createCardsFromErrors(quiz.value.id, chosen)
+    useAnalytics().track('quiz_error_cards', { selected: chosen.length, total: errors.value.length })
+    // The preview now carries the card ids (and the session of these cards)
+    await quizStore.fetchQuiz(quiz.value.id)
+    selected.value = []
   } catch (e) {
     reportApiError(e, { error: 'Não foi possível criar os cards. Tente de novo.' })
   } finally {
-    creatingCards.value = false
+    creating.value = false
   }
+}
+
+function trackReview() {
+  useAnalytics().track('quiz_review_errors_now', { cards: sessionCount.value })
+}
+
+const { run: runRetry, pending: retrying } = useApiAction()
+async function retryErrors() {
+  if (!quiz.value) return
+  const retry = await runRetry(() => quizStore.retryErrors(quiz.value!.id), { error: 'Não foi possível montar as questões de novo.' })
+  if (!retry) return
+  useAnalytics().track('quiz_retry_errors', { errors: wrongCount.value })
+  await navigateTo(`/simulados/${retry.id}`)
 }
 
 /** "Por que errei?" (prd-navegacao-v3 RF-9): the tira-dúvidas with the question, the answers and the caderno. */
 function askWhyWrong(q: QuizQuestion) {
-  const answered = q.user_answer ? formatAnswer(q, q.user_answer) : 'nada'
   useChatStore().ask({
-    topicId: topic.value?.id,
-    topicName: topic.value?.name,
+    topicId: quiz.value?.topic?.id,
+    topicName: quiz.value?.topic?.name,
     cardFront: escapeHtml(q.stem),
     source: 'quiz_error',
-  }, `Por que errei esta questão? "${q.stem}" Eu respondi "${answered}" e a correta é "${formatAnswer(q, q.correct_answer ?? '')}".`)
+  }, `Por que errei esta questão? "${q.stem}" Eu respondi "${formatAnswer(q, q.user_answer)}" e a correta é "${formatAnswer(q, q.correct_answer)}".`)
 }
 
-function formatAnswer(q: QuizQuestion, answer: string) {
-  if (q.type === 'true_false') return answer === 'true' ? 'Verdadeiro' : 'Falso'
-  if (q.type === 'multiple_choice' && q.options) {
-    const letter = answer.toLowerCase().trim()
-    const match = q.options.find(o => o.toLowerCase().startsWith(letter + ')'))
-    if (match) return match
-  }
-  return answer
-}
+onMounted(load)
 </script>

@@ -20,7 +20,6 @@
     "app/components/help/HowItWorks.vue": 3,
     "app/components/legal/LegalLayout.vue": 1,
     "app/components/onboarding/ReminderRow.vue": 1,
-    "app/components/podcast/ExpandedPlayer.vue": 2,
     "app/components/topic/GenerateNoteSheet.vue": 2,
     "app/components/topic/MindMapView.vue": 6,
     "app/pages/ajuda.vue": 4,
@@ -30,22 +29,17 @@
     "app/pages/importar.vue": 10,
     "app/pages/lembretes/desativado.vue": 4,
     "app/pages/planos.vue": 13,
-    "app/pages/podcasts.vue": 1,
     "app/pages/progresso.vue": 7,
-    "app/pages/provas/resultado.vue": 14,
-    "app/pages/simulados/[id]/index.vue": 5
+    "app/pages/provas/resultado.vue": 14
   },
   "overlay": {
-    "app/components/podcast/ExpandedPlayer.vue": 1,
     "app/components/ui/Confetti.vue": 1,
     "app/components/ui/Modal.vue": 1
   },
   "spin": {
     "app/components/topic/MindMapView.vue": 1,
     "app/pages/checkout/sucesso.vue": 2,
-    "app/pages/comecar.vue": 1,
-    "app/pages/podcasts.vue": 3,
-    "app/pages/simulados/[id]/index.vue": 1
+    "app/pages/comecar.vue": 1
   },
   "switch-role": {
     "app/components/onboarding/ReminderRow.vue": 1,
@@ -58,7 +52,6 @@
     "app/components/landing/MockMindMap.vue": 8,
     "app/components/legal/LegalLayout.vue": 4,
     "app/components/onboarding/ReminderRow.vue": 4,
-    "app/components/podcast/ExpandedPlayer.vue": 5,
     "app/components/settings/ReminderPreferences.vue": 1,
     "app/components/topic/GenerateNoteSheet.vue": 1,
     "app/components/topic/MindMapRenderer.vue": 2,
@@ -79,21 +72,17 @@
     "app/pages/index.vue": 111,
     "app/pages/lembretes/desativado.vue": 3,
     "app/pages/planos.vue": 10,
-    "app/pages/podcasts.vue": 1,
     "app/pages/progresso.vue": 1,
     "app/pages/provas/index.vue": 17,
-    "app/pages/provas/resultado.vue": 7,
-    "app/pages/simulados/[id]/index.vue": 18
+    "app/pages/provas/resultado.vue": 7
   },
   "important": {
     "app/components/help/HowItWorks.vue": 1,
     "app/components/onboarding/ReminderRow.vue": 3,
-    "app/components/podcast/ExpandedPlayer.vue": 1,
     "app/components/topic/MindMapView.vue": 9,
     "app/pages/ajuda.vue": 3,
     "app/pages/comecar.vue": 14,
-    "app/pages/provas/index.vue": 5,
-    "app/pages/simulados/[id]/index.vue": 12
+    "app/pages/provas/index.vue": 5
   },
   "inline-style": {
     "app/pages/provas/index.vue": 32
@@ -103,9 +92,7 @@
   },
   "z-index": {
     "app/components/landing/HeroPipeline.vue": 1,
-    "app/components/podcast/ExpandedPlayer.vue": 1,
-    "app/pages/index.vue": 1,
-    "app/pages/simulados/[id]/index.vue": 1
+    "app/pages/index.vue": 1
   },
   "deprecated": {
     "app/components/exam/CreateModal.vue": 26,
@@ -114,7 +101,6 @@
     "app/components/landing/MockMindMap.vue": 5,
     "app/components/legal/LegalLayout.vue": 31,
     "app/components/onboarding/ReminderRow.vue": 11,
-    "app/components/podcast/ExpandedPlayer.vue": 57,
     "app/components/topic/GenerateNoteSheet.vue": 17,
     "app/components/topic/MindMapRenderer.vue": 10,
     "app/components/topic/MindMapView.vue": 57,
@@ -138,10 +124,8 @@
     "app/pages/index.vue": 87,
     "app/pages/lembretes/desativado.vue": 20,
     "app/pages/planos.vue": 45,
-    "app/pages/podcasts.vue": 6,
     "app/pages/progresso.vue": 6,
     "app/pages/provas/index.vue": 19,
-    "app/pages/provas/resultado.vue": 36,
-    "app/pages/simulados/[id]/index.vue": 67
+    "app/pages/provas/resultado.vue": 36
   }
 }

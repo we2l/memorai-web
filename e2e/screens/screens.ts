@@ -90,6 +90,22 @@ export const SCREENS: Screen[] = [
     run: async (page) => { await page.goto('/revisar'); await settle(page, 1500) },
   },
   {
+    // Praticar v3 (4e): the 3 modes with the accuracy of the scope and the episode of the day
+    name: 'praticar',
+    fullPage: true,
+    dark: true,
+    run: async (page) => { await page.goto('/praticar'); await settle(page, 1500) },
+  },
+  {
+    name: 'questoes',
+    run: async (page) => { await page.goto('/simulados'); await settle(page) },
+  },
+  {
+    name: 'ouvir',
+    fullPage: true,
+    run: async (page) => { await page.goto('/podcasts'); await settle(page) },
+  },
+  {
     name: 'planos',
     fullPage: true,
     run: async (page) => { await page.goto('/planos'); await settle(page) },

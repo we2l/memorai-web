@@ -30,7 +30,6 @@
 // the screen renders once they settle, so no block pushes another (CLS). Each block has its own error.
 import type { BacklogStats, PendingAction, RecentNote, Stats, TopicPerformance, TopicProgress, UserSettings } from '~/types'
 import type { DayPlanStep } from '~/composables/useDayPlan'
-import { finishedPodcastIds } from '~/stores/player'
 
 const auth = useAuthStore()
 const examStore = useExamStore()
@@ -65,7 +64,6 @@ const steps = computed<DayPlanStep[]>(() => (statsError.value || !stats.value
       podcasts: podcastStore.podcasts,
       recentNote: recentNote.value,
       learningMode: auth.user?.default_learning_mode,
-      finishedPodcastIds: import.meta.client ? finishedPodcastIds() : [],
     })))
 const minutes = computed(() => dayMinutes(steps.value))
 
@@ -81,7 +79,7 @@ async function loadData() {
     $api<{ data: UserSettings }>('/settings'),
     $api<{ data: PendingAction[] }>('/stats/pending-actions'),
     $api<{ data: RecentNote[] }>('/notes/recent', { params: { limit: 1 } }),
-    podcastStore.fetchPodcasts(),
+    podcastStore.setScope(null),
     examStore.fetchUpcoming(),
     $api<{ data: TopicPerformance[] }>('/topics/performance'),
   ])

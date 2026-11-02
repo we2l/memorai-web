@@ -122,7 +122,7 @@ describe('buildDayPlan (prd-4a-hoje-v3 §5.2)', () => {
     expect(listen.minutes).toBe(12)
 
     const keys = (over: Partial<DayPlanInput>) => buildDayPlan(input(over)).map(s => s.key)
-    expect(keys({ finishedPodcastIds: ['p1'] })).not.toContain('listen')
+    expect(keys({ podcasts: [podcast({ completed_at: '2026-11-02T10:00:00Z' })] })).not.toContain('listen')
     expect(keys({ podcasts: [podcast({ created_at: '2026-10-20T10:00:00Z' })] })).not.toContain('listen')
     expect(keys({ podcasts: [podcast({ status: 'generating_audio' })] })).not.toContain('listen')
     expect(keys({ podcasts: [] })).not.toContain('listen')

@@ -240,6 +240,9 @@ export interface UserSettings {
   reminder_enabled?: boolean
   reminder_hour?: number
   email_suppressed?: boolean
+  /** "Episódio da manhã" (prd-4e-praticar-v3 RF-B11): only Pro can turn it on (422 pro_only) */
+  daily_episode?: boolean
+  daily_goal_batches?: number
 }
 
 /** GET /review/tomorrow (prd-retencao-lembretes §4.3). Dates in America/Sao_Paulo. */
@@ -409,10 +412,29 @@ export interface Podcast {
   card_ids?: string[] | null
   /** How many of card_ids still exist (prd-caderno-f2-recorte RF-B4): "Revisar os N do episódio" */
   cards_available?: number
-  timestamps?: { type: string; start_ms: number; end_ms: number; flip_ms?: number; card_index?: number }[] | null
+  timestamps?: { type: string; start_ms: number; end_ms: number; card_index?: number }[] | null
   session_id?: string | null
   episode_number?: number | null
+  /** Ouvir v3 (prd-4e-praticar-v3 RF-B7): "daily" = the episódio da manhã (RF-B12) */
+  origin?: 'manual' | 'daily'
+  /** Furthest point heard, on the server (PUT /podcasts/{id}/progress) */
+  listened_seconds?: number
+  /** Heard to the end (≥ 95%) */
+  completed_at?: string | null
+  /** 0–1 */
+  progress?: number
+  topic_in_trash?: boolean
+  /** Only on GET /podcasts/{id} (RF-B8) */
+  transcript?: PodcastTranscriptLine[]
   created_at: string
+}
+
+/** A line of the transcript: one speech of the debate or a paragraph, with its time in the audio. */
+export interface PodcastTranscriptLine {
+  speaker: string | null
+  text: string
+  start_ms: number
+  end_ms: number
 }
 
 export type PodcastContentMode = 'weak_points' | 'general_review' | 'pre_exam'
@@ -468,14 +490,57 @@ export interface Quiz {
   score_percent: number | null
   time_limit_seconds: number | null
   time_spent_seconds: number | null
-  topic?: { id: string; name: string } | null
+  topic?: { id: string; name: string; in_trash?: boolean } | null
   questions?: QuizQuestion[]
   started_at: string | null
   completed_at: string | null
   cards_created_at: string | null
   /** Cards born from the errors (prd-caderno-f2-recorte RF-B6); count 0 = older quiz, without the link */
   cards_from_errors?: { count: number; session_count: number } | null
+  /** Praticar v3 (prd-4e-praticar-v3): bateria of a scope or simulado do caderno split by matéria */
+  kind?: QuizKind
+  scope?: { type: QuizScopeType; id: string } | null
+  /** Simulado do caderno: questions by matéria (sums to the quantity asked) */
+  distribution?: QuizDistributionRow[] | null
+  /** Questions asked − delivered: said on screen, never in silence (RF-B3) */
+  shortfall?: number
+  /** "Refazer as que errei": the quiz this one copies */
+  retry_of?: string | null
+  /** Completed quizzes only (GET /quizzes/{id}, RF-B5/B6) */
+  by_topic?: QuizTopicResult[]
+  previous?: { quiz_id: string; score_percent: number; delta: number } | null
+  error_cards_preview?: QuizErrorCard[]
   created_at: string
+}
+
+export type QuizKind = 'battery' | 'exam'
+export type QuizScopeType = 'topic' | 'document' | 'note'
+
+export interface QuizDistributionRow {
+  topic_id: string
+  name: string
+  questions: number
+}
+
+/** Accuracy of one assunto in this quiz and in the history without it (null below 10 answered). */
+export interface QuizTopicResult {
+  topic_id: string
+  name: string
+  answered: number
+  correct: number
+  accuracy: number
+  history_accuracy: number | null
+}
+
+/** The card a wrong question becomes (the same builder as create-cards, no AI); card_id once created. */
+export interface QuizErrorCard {
+  question_id: string
+  number: number
+  topic_id: string | null
+  topic_name: string
+  front: string
+  back: string
+  card_id: string | null
 }
 
 export interface QuizConfig {
@@ -483,6 +548,8 @@ export interface QuizConfig {
   types: ('multiple_choice' | 'true_false' | 'short_answer')[]
   difficulty: 'easy' | 'mixed' | 'hard'
   time_limit: number | null
+  shortfall?: number
+  retry_of?: string
 }
 
 export interface QuizQuestion {
@@ -500,6 +567,8 @@ export interface QuizQuestion {
   ai_feedback?: string | null
   ai_score?: number | null
   answered_at: string | null
+  /** Card created from this question's error */
+  flashcard_id?: string | null
 }
 
 export interface QuizStats {

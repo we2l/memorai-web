@@ -1,329 +1,285 @@
 <template>
-  <div class="min-h-screen bg-[var(--bg-base)] flex flex-col">
-    <!-- Header -->
-    <header class="sticky top-0 z-40 bg-[var(--bg-card)] border-b border-[var(--border-divider)] px-4 py-3">
-      <div class="max-w-3xl mx-auto flex items-center justify-between">
-        <button class="text-base-muted hover:text-base-primary text-sm flex items-center gap-1" @click="handleExit">
-          <ArrowLeft :size="16" /> Sair
-        </button>
+  <div class="flex min-h-dvh flex-col bg-page">
+    <QuizTopBar
+      :current="quizStore.currentIndex + 1"
+      :total="questions.length"
+      :answered="quizStore.answeredCount"
+      :time-remaining="quizStore.hasTimer && state === 'answering' ? quizStore.timeRemaining : null"
+      @exit="exit"
+    />
 
-        <div class="flex items-center gap-3">
-          <!-- Timer -->
-          <div v-if="quizStore.hasTimer" class="flex items-center gap-1.5 text-sm font-mono" :class="timeWarning ? 'text-[var(--badge-danger-text)]' : 'text-base-secondary'">
-            <Clock :size="14" />
-            {{ formattedTime }}
-          </div>
-
-          <!-- Progress -->
-          <span class="text-sm text-base-muted">{{ quizStore.progress.current }} de {{ quizStore.progress.total }}</span>
-        </div>
+    <main class="mx-auto flex w-full max-w-prose flex-1 flex-col gap-5 px-gutter py-6">
+      <div v-if="state === 'loading'" class="flex flex-col gap-3" aria-busy="true">
+        <span class="sr-only">Carregando as questões…</span>
+        <UiSkeleton variant="block" />
+        <UiSkeleton v-for="i in 4" :key="i" variant="row" />
       </div>
 
-      <!-- Progress bar -->
-      <div class="max-w-3xl mx-auto mt-2">
-        <div class="h-1 bg-[var(--border-divider)] rounded-full overflow-hidden">
-          <div class="h-full bg-[var(--color-primary-500)] rounded-full transition-all duration-300" :style="{ width: `${quizStore.progress.percent}%` }" />
-        </div>
-      </div>
-    </header>
+      <!-- Generating in blocks of 15 (RF-B3): the poll, with what is being written -->
+      <UiSection v-else-if="state === 'generating'" class="flex flex-col items-center gap-3 py-10 text-center" data-testid="quiz-generating">
+        <UiSpinner />
+        <h1 class="text-section text-fg-strong">Escrevendo {{ plural(requested, 'questão', 'questões') }}</h1>
+        <p class="text-meta text-fg-muted">{{ blocks > 1 ? `Em ${blocks} blocos ao mesmo tempo. ` : '' }}Leva até 1 minuto.</p>
+        <p v-if="distributionText" class="max-w-md text-meta text-fg">{{ distributionText }}</p>
+      </UiSection>
 
-    <!-- Content -->
-    <main class="flex-1 flex items-start justify-center px-4 py-8">
-      <div v-if="loadingQuiz" class="text-center py-16">
-        <div class="animate-spin w-8 h-8 border-2 border-[var(--color-primary-500)] border-t-transparent rounded-full mx-auto mb-4" />
-        <p class="text-base-muted">Gerando questões...</p>
-        <p class="text-xs text-base-muted mt-1">Isso pode levar alguns segundos</p>
-      </div>
+      <UiErrorState
+        v-else-if="state === 'failed'"
+        variant="hero"
+        title="Não conseguimos gerar as questões"
+        description="Esta tentativa não contou na sua cota. Tente de novo ou escolha outro assunto."
+        data-testid="quiz-failed"
+        @retry="retryGeneration"
+      />
 
-      <div v-else-if="question" class="w-full max-w-[640px]">
-        <!-- Question stem -->
-        <div class="mb-6">
-          <span class="inline-flex items-center gap-1.5 text-xs font-medium text-base-muted mb-3">
-            <span class="px-1.5 py-0.5 rounded bg-[var(--bg-soft)]">{{ questionTypeLabel }}</span>
-            <span v-if="question.topic_tag" class="px-1.5 py-0.5 rounded bg-[var(--bg-soft)]">{{ question.topic_tag }}</span>
-          </span>
-          <p class="text-lg text-base-primary leading-relaxed">{{ question.stem }}</p>
-        </div>
+      <UiErrorState v-else-if="state === 'error'" variant="hero" title="Não foi possível abrir as questões" description="Verifique sua conexão e tente de novo." @retry="load" />
 
-        <!-- Multiple Choice -->
-        <div v-if="question.type === 'multiple_choice'" class="space-y-3">
-          <button
-            v-for="(option, i) in question.options"
-            :key="i"
-            class="w-full text-left p-4 rounded-xl border transition-all"
-            :class="getOptionClass(option, i)"
-            :disabled="isAnswered && isLearning"
-            @click="selectOption(option)"
-          >
-            <span class="text-sm">{{ option }}</span>
-          </button>
-        </div>
+      <template v-else-if="question">
+        <!-- Never in silence: what the generation could not deliver (RF-B3) -->
+        <p v-if="shortfall > 0 && quizStore.currentIndex === 0" role="status" class="rounded-row bg-subtle px-4 py-3 text-meta text-fg" data-testid="quiz-shortfall">
+          Saíram {{ questions.length }} de {{ requested }} questões. As que faltaram não vieram do gerador desta vez.
+        </p>
 
-        <!-- True/False -->
-        <div v-else-if="question.type === 'true_false'" class="grid grid-cols-2 gap-4">
-          <button
-            class="p-6 rounded-xl border text-center font-medium transition-all"
-            :class="getTFClass('true')"
-            :disabled="isAnswered && isLearning"
-            @click="selectOption('true')"
-          >
-            Verdadeiro
-          </button>
-          <button
-            class="p-6 rounded-xl border text-center font-medium transition-all"
-            :class="getTFClass('false')"
-            :disabled="isAnswered && isLearning"
-            @click="selectOption('false')"
-          >
-            Falso
-          </button>
-        </div>
-
-        <!-- Short Answer -->
-        <div v-else-if="question.type === 'short_answer'">
-          <textarea
-            v-model="shortAnswer"
-            class="input-base w-full min-h-[120px] resize-y"
-            placeholder="Digite sua resposta..."
-            :disabled="isAnswered && isLearning"
-          />
-          <p class="text-xs text-base-muted mt-1 text-right">{{ shortAnswer.length }} caracteres</p>
-        </div>
-
-        <!-- Feedback (learning mode, after answering) -->
-        <Transition enter-active-class="transition-all duration-200" enter-from-class="opacity-0 translate-y-2" enter-to-class="opacity-100 translate-y-0">
-          <div v-if="isAnswered && isLearning && question.type !== 'short_answer' && question.is_correct !== null" class="mt-6 p-4 rounded-xl border" :class="question.is_correct ? 'bg-success/5 border-success/30' : 'bg-danger/5 border-danger/30'">
-            <p class="font-medium text-sm" :class="question.is_correct ? 'text-[var(--badge-success-text)]' : 'text-[var(--badge-danger-text)]'">
-              {{ question.is_correct ? '✓ Correto!' : '✗ Incorreto' }}
-            </p>
-            <p v-if="question.correct_answer && !question.is_correct" class="text-sm text-base-secondary mt-1">
-              Resposta correta: <strong>{{ formatCorrectAnswer() }}</strong>
-            </p>
-            <p v-if="question.explanation" class="text-sm text-base-secondary mt-2">{{ question.explanation }}</p>
-          </div>
-          <div v-else-if="isAnswered && isLearning && question.type === 'short_answer'" class="mt-6 p-4 rounded-xl border border-[var(--border-base)] bg-[var(--bg-soft)]">
-            <p class="text-sm text-base-secondary">✓ Resposta salva. Será corrigida ao finalizar o simulado.</p>
-          </div>
-        </Transition>
-      </div>
+        <QuizQuestion
+          :key="question.id"
+          v-model="selection"
+          :question="question"
+          :learning="learning"
+          :topic-name="questionTopic"
+          @ask="askWhyWrong"
+        />
+      </template>
     </main>
 
-    <!-- Footer -->
-    <footer class="sticky bottom-0 bg-[var(--bg-card)] border-t border-[var(--border-divider)] px-4 py-3">
-      <div class="max-w-[640px] mx-auto flex items-center justify-between">
-        <button
-          class="btn-secondary !py-2 !px-4 !text-sm"
-          :disabled="quizStore.currentIndex === 0"
-          @click="quizStore.prevQuestion()"
-        >
-          ← Anterior
-        </button>
-
-        <div v-if="!isAnswered && question?.type !== 'short_answer'" class="text-xs text-base-muted">
-          Selecione uma opção
-        </div>
-        <button
-          v-else-if="!isAnswered && question?.type === 'short_answer'"
-          class="btn-primary !py-2 !px-4 !text-sm"
-          :disabled="!shortAnswer.trim()"
-          @click="submitShortAnswer"
-        >
-          Confirmar
-        </button>
-
-        <button
-          v-if="isLastQuestion && isAnswered"
-          class="btn-primary !py-2 !px-4 !text-sm"
-          @click="handleFinish"
-        >
-          Finalizar
-        </button>
-        <button
-          v-else-if="isAnswered"
-          class="btn-primary !py-2 !px-4 !text-sm"
-          @click="quizStore.nextQuestion()"
-        >
-          Próxima →
-        </button>
+    <footer v-if="state === 'answering' && question" class="sticky bottom-0 border-t border-line bg-raised pb-safe-bottom">
+      <div class="mx-auto flex max-w-prose items-center gap-2 px-gutter py-3">
+        <UiButton variant="ghost" :icon-left="ArrowLeft" :disabled="quizStore.currentIndex === 0" @click="quizStore.prevQuestion()">Anterior</UiButton>
+        <span class="flex-1" />
+        <UiButton v-if="!answered && !isLast" variant="ghost" @click="quizStore.nextQuestion()">Pular</UiButton>
+        <UiButton variant="primary" :loading="saving || finishing" :disabled="!canAct" data-testid="quiz-primary" @click="primaryAction">
+          {{ primaryLabel }}
+        </UiButton>
       </div>
+      <p class="sr-only">Atalhos: 1 a 5 ou A a E escolhem, Enter confirma, setas esquerda e direita trocam de questão.</p>
     </footer>
+
+    <LazyUiConfirmModal
+      v-if="confirmLoaded"
+      v-model="confirmFinish"
+      title="Finalizar agora?"
+      :message="`${plural(unanswered, 'questão ficou', 'questões ficaram')} sem resposta e ${unanswered === 1 ? 'conta' : 'contam'} como erro.`"
+      confirm-label="Finalizar"
+      variant="primary"
+      :loading="finishing"
+      @confirm="finish"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ArrowLeft, Clock } from 'lucide-vue-next'
+// Answer a bateria or a simulado (prd-4e-praticar-v3 RF-F3): one question per screen, the alternatives as
+// cards (keys 1–5/A–E choose, Enter confirms, ←/→ move between questions), the correction right away in the
+// Treino mode, the countdown in the Prova mode and "Saíram 47 de 50" when the generation came short.
+// "‹ Sair" pauses and goes back to the scope; a completed quiz opens its result (never the answers greyed).
+import { ArrowLeft } from 'lucide-vue-next'
+import { cadernoPath } from '~/utils/scope'
+import { distributionLabel } from '~/utils/quizDistribution'
+import { formatAnswer } from '~/utils/quizAnswer'
 
-definePageMeta({ layout: false, chrome: 'focus' })
+definePageMeta({ chrome: 'focus' })
+useHead({ title: 'Questões · Baigi' })
 
 const route = useRoute()
 const quizStore = useQuizStore()
-const toast = useToast()
+const topicStore = useTopicStore()
 
-const loadingQuiz = ref(true)
-const shortAnswer = ref('')
-const selectedAnswer = ref<string | null>(null)
-
+type State = 'loading' | 'generating' | 'failed' | 'error' | 'answering'
+const state = ref<State>('loading')
+const quizId = computed(() => String(route.params.id))
+const quiz = computed(() => quizStore.currentQuiz)
+const questions = computed(() => quizStore.questions)
 const question = computed(() => quizStore.currentQuestion)
-const isLearning = computed(() => quizStore.currentQuiz?.mode === 'learning')
-const isAnswered = computed(() => question.value?.user_answer !== null)
-const isLastQuestion = computed(() => quizStore.currentIndex === quizStore.questions.length - 1)
-const timeWarning = computed(() => quizStore.timeRemaining > 0 && quizStore.timeRemaining < 60)
+const learning = computed(() => quiz.value?.mode === 'learning')
+const answered = computed(() => question.value?.user_answer != null)
+const isLast = computed(() => quizStore.currentIndex === questions.value.length - 1)
+const unanswered = computed(() => questions.value.filter(q => q.user_answer == null).length)
 
-const formattedTime = computed(() => {
-  const t = quizStore.timeRemaining
-  const m = Math.floor(t / 60)
-  const s = t % 60
-  return `${m}:${String(s).padStart(2, '0')}`
+const requested = computed(() => quiz.value?.config?.quantity ?? quiz.value?.total_questions ?? 0)
+const shortfall = computed(() => quiz.value?.shortfall ?? quiz.value?.config?.shortfall ?? 0)
+const blocks = computed(() => Math.ceil(requested.value / 15))
+const distributionText = computed(() => distributionLabel((quiz.value?.distribution ?? []).map(d => ({ name: d.name, questions: d.questions }))))
+const questionTopic = computed(() => question.value?.topic_tag || null)
+
+/** The alternative chosen and not confirmed yet (the answered one once saved) */
+const selection = ref<string | null>(null)
+watch(question, (q) => { selection.value = q?.user_answer ?? null }, { immediate: true })
+
+const saving = ref(false)
+const finishing = ref(false)
+const confirmFinish = ref(false)
+const confirmLoaded = useLoadedOnce(() => confirmFinish.value)
+
+const canAct = computed(() => {
+  if (!answered.value) return !!selection.value?.trim()
+  // Prova: changing a saved answer is allowed (Confirmar again)
+  return true
+})
+const changed = computed(() => !learning.value && answered.value && selection.value !== question.value?.user_answer)
+const primaryLabel = computed(() => {
+  if (!answered.value || changed.value) return 'Confirmar'
+  if (isLast.value) return learning.value ? 'Ver resultado' : 'Finalizar'
+  return 'Próxima'
 })
 
-const questionTypeLabel = computed(() => {
-  const labels: Record<string, string> = { multiple_choice: 'Múltipla escolha', true_false: 'V ou F', short_answer: 'Dissertativa' }
-  return labels[question.value?.type ?? ''] ?? ''
-})
+async function primaryAction() {
+  if (!question.value) return
+  if (!answered.value || changed.value) return confirm()
+  if (isLast.value) return askFinish()
+  quizStore.nextQuestion()
+}
 
-onMounted(async () => {
-  const id = route.params.id as string
+async function confirm() {
+  const q = question.value
+  const answer = selection.value?.trim()
+  if (!q || !answer || saving.value) return
+  saving.value = true
   try {
-    const quiz = await quizStore.fetchQuiz(id)
-
-    // Quiz failed during generation
-    if (quiz.status === 'failed') {
-      toast.show('Falha ao gerar simulado. Tente novamente com outro caderno.', 'error')
-      await navigateTo('/simulados')
-      return
-    }
-
-    // Still generating — poll until ready
-    if (quiz.status === 'configuring') {
-      await quizStore.pollUntilReady(id)
-    }
-
-    // Check again after polling (might have failed)
-    if (quizStore.currentQuiz?.status === 'failed') {
-      toast.show('Falha ao gerar simulado. Tente novamente.', 'error')
-      await navigateTo('/simulados')
-      return
-    }
-
-    if (quizStore.currentQuiz?.status === 'in_progress' && !quizStore.currentQuiz.started_at) {
-      await quizStore.startQuiz(id)
-    } else if (quizStore.currentQuiz?.status === 'in_progress') {
-      // Resuming — start timer if needed
-      if (quizStore.currentQuiz.time_limit_seconds) {
-        quizStore.timeRemaining = quizStore.currentQuiz.time_limit_seconds - (quizStore.currentQuiz.time_spent_seconds ?? 0)
-        quizStore.startTimer()
-      }
-    }
-    // Jump to first unanswered question
-    const firstUnanswered = quizStore.questions.findIndex((q) => !q.user_answer)
-    if (firstUnanswered > 0) quizStore.goToQuestion(firstUnanswered)
-  } catch (e: any) {
-    toast.show(e?.message || 'Erro ao carregar simulado', 'error')
-    await navigateTo('/simulados')
+    await quizStore.answerQuestion(q.id, answer)
+    // Prova: straight to the next one; Treino stays for the correction
+    if (!learning.value && !isLast.value) quizStore.nextQuestion()
+  } catch (e) {
+    reportApiError(e, { error: 'Não foi possível salvar a resposta. Tente de novo.' })
   } finally {
-    loadingQuiz.value = false
-  }
-})
-
-onUnmounted(() => {
-  quizStore.stopTimer()
-})
-
-// Watch question change to reset local state
-watch(() => quizStore.currentIndex, () => {
-  shortAnswer.value = question.value?.user_answer ?? ''
-  selectedAnswer.value = question.value?.user_answer ?? null
-})
-
-async function selectOption(answer: string) {
-  if (isAnswered.value && isLearning.value) return
-  selectedAnswer.value = answer
-  try {
-    await quizStore.answerQuestion(question.value!.id, answer)
-    // In exam mode, auto-advance
-    if (!isLearning.value && !isLastQuestion.value) {
-      setTimeout(() => quizStore.nextQuestion(), 300)
-    }
-  } catch (e: any) {
-    toast.show('Erro ao salvar resposta', 'error')
+    saving.value = false
   }
 }
 
-async function submitShortAnswer() {
-  if (!shortAnswer.value.trim()) return
-  try {
-    await quizStore.answerQuestion(question.value!.id, shortAnswer.value.trim())
-  } catch (e: any) {
-    toast.show('Erro ao salvar resposta', 'error')
-  }
+function askFinish() {
+  if (unanswered.value > 0) confirmFinish.value = true
+  else void finish()
 }
 
-async function handleFinish() {
-  const quizId = quizStore.currentQuiz?.id
-  if (!quizId) return
+async function finish() {
+  if (finishing.value) return
+  finishing.value = true
   try {
     await quizStore.finishQuiz()
-    await navigateTo(`/simulados/${quizId}/resultado`)
-  } catch (e: any) {
-    console.error('Finish error:', e)
-    toast.show('Erro ao finalizar', 'error')
+    confirmFinish.value = false
+    await navigateTo(`/simulados/${quizId.value}/resultado`, { replace: true })
+  } catch (e) {
+    reportApiError(e, { error: 'Não foi possível finalizar. Tente de novo.' })
+  } finally {
+    finishing.value = false
   }
 }
 
-function handleExit() {
-  if (quizStore.answeredCount > 0) {
-    quizStore.pauseQuiz()
+/** Back to the scope: the caderno/assunto of the quiz, else Praticar. Pauses (keeps the time) first. */
+async function exit() {
+  const target = quiz.value?.topic && !quiz.value.topic.in_trash ? cadernoPath(quiz.value.topic.id) : '/praticar'
+  if (quiz.value?.status === 'in_progress') {
+    try {
+      await quizStore.pauseQuiz()
+    } catch (e) {
+      reportApiError(e, { silent: true })
+    }
   }
-  navigateTo('/simulados')
+  quizStore.reset()
+  await navigateTo(target)
 }
 
-function formatCorrectAnswer(): string {
+function retryGeneration() {
+  const topicId = quiz.value?.topic?.id
+  void navigateTo(topicId ? `/simulados?topic_id=${topicId}&tab=${quiz.value?.kind === 'exam' ? 'exam' : 'battery'}` : '/simulados?action=new')
+}
+
+/** "Por que errei?" (prd-navegacao-v3 RF-9): the tira-dúvidas with the question and both answers. */
+function askWhyWrong() {
   const q = question.value
-  if (!q || !q.correct_answer) return ''
-  if (q.type === 'multiple_choice' && q.options) {
-    // correct_answer is a letter like "b" — find the matching option
-    const letter = q.correct_answer.toLowerCase().trim()
-    const match = q.options.find((o) => o.toLowerCase().startsWith(letter + ')'))
-    return match ?? q.correct_answer
-  }
-  if (q.type === 'true_false') {
-    return q.correct_answer === 'true' ? 'Verdadeiro' : 'Falso'
-  }
-  return q.correct_answer
+  if (!q) return
+  useChatStore().ask({
+    topicId: quiz.value?.topic?.id,
+    topicName: quiz.value?.topic?.name,
+    cardFront: escapeHtml(q.stem),
+    source: 'quiz_error',
+  }, `Por que errei esta questão? "${q.stem}" Eu respondi "${formatAnswer(q, q.user_answer)}" e a correta é "${formatAnswer(q, q.correct_answer)}".`)
 }
 
-function getOptionClass(option: string, index: number) {
-  const answer = question.value?.user_answer
-  const correct = question.value?.correct_answer
-  const letter = option.charAt(0).toLowerCase()
-
-  if (!answer) {
-    return 'border-[var(--border-base)] hover:border-[var(--color-primary-300)] hover:bg-[var(--color-primary-50)]'
+async function load() {
+  state.value = 'loading'
+  try {
+    let current = await quizStore.fetchQuiz(quizId.value)
+    if (current.status === 'completed') return navigateTo(`/simulados/${quizId.value}/resultado`, { replace: true })
+    if (current.status === 'configuring') {
+      state.value = 'generating'
+      current = await quizStore.pollUntilReady(quizId.value).catch(() => quizStore.currentQuiz ?? current)
+    }
+    if (current.status === 'failed' || current.status === 'configuring') {
+      state.value = 'failed'
+      return
+    }
+    if (current.status === 'in_progress' && !current.started_at) {
+      await quizStore.startQuiz(quizId.value)
+    } else if (current.time_limit_seconds) {
+      // Resuming: the timer continues from the time spent
+      quizStore.timeRemaining = Math.max(0, current.time_limit_seconds - (current.time_spent_seconds ?? 0))
+      quizStore.startTimer()
+    }
+    const firstOpen = quizStore.questions.findIndex(q => q.user_answer == null)
+    quizStore.goToQuestion(firstOpen >= 0 ? firstOpen : 0)
+    state.value = 'answering'
+    if (shortfall.value > 0) useAnalytics().track('quiz_shortfall', { requested: requested.value, delivered: questions.value.length })
+  } catch (e) {
+    if (quizStore.currentQuiz?.status === 'failed') {
+      state.value = 'failed'
+      return
+    }
+    reportApiError(e, { silent: true })
+    state.value = 'error'
   }
-
-  if (isLearning.value && question.value?.is_correct !== null) {
-    if (letter === correct?.toLowerCase()) return 'border-success bg-success/5'
-    if (letter === answer?.toLowerCase() && !question.value?.is_correct) return 'border-danger bg-danger/5'
-  }
-
-  if (letter === answer?.toLowerCase()) return 'border-[var(--color-primary-500)] bg-[var(--color-primary-50)]'
-  return 'border-[var(--border-base)] opacity-60'
 }
 
-function getTFClass(value: string) {
-  const answer = question.value?.user_answer
-  const correct = question.value?.correct_answer
+// The timer of the Prova mode ends the quiz in the store: open the result
+watch(() => quiz.value?.status, (s) => {
+  if (s === 'completed' && state.value === 'answering') void navigateTo(`/simulados/${quizId.value}/resultado`, { replace: true })
+})
 
-  if (!answer) {
-    return 'border-[var(--border-base)] hover:border-[var(--color-primary-300)] hover:bg-[var(--color-primary-50)] text-base-primary'
+/** 1–5 / A–E choose, Enter confirms, ←/→ move (capture: the arrows never change a radio here; ↑/↓ still do). */
+function onKeydown(e: KeyboardEvent) {
+  if (state.value !== 'answering' || !question.value || e.ctrlKey || e.metaKey || e.altKey) return
+  if (document.querySelector('[role="dialog"], [role="alertdialog"]')) return
+  const target = e.target as HTMLElement | null
+  const typing = !!target?.closest('textarea, input:not([type="radio"]), [contenteditable="true"]')
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+    if (typing) return
+    e.preventDefault()
+    e.stopPropagation()
+    if (e.key === 'ArrowLeft') quizStore.prevQuestion()
+    else quizStore.nextQuestion()
+    return
   }
-
-  if (isLearning.value && question.value?.is_correct !== null) {
-    if (value === correct) return 'border-success bg-success/5 text-[var(--badge-success-text)]'
-    if (value === answer && !question.value?.is_correct) return 'border-danger bg-danger/5 text-[var(--badge-danger-text)]'
+  if (e.key === 'Enter' && !typing) {
+    if (target?.closest('button, a')) return
+    e.preventDefault()
+    if (canAct.value) void primaryAction()
+    return
   }
-
-  if (value === answer) return 'border-[var(--color-primary-500)] bg-[var(--color-primary-50)] text-[var(--color-primary-700)]'
-  return 'border-[var(--border-base)] opacity-60 text-base-muted'
+  if (typing || (answered.value && learning.value)) return
+  const q = question.value
+  const count = q.type === 'true_false' ? 2 : (q.options?.length ?? 0)
+  const key = e.key.toLowerCase()
+  const index = /^[1-5]$/.test(key) ? Number(key) - 1 : 'abcde'.indexOf(key)
+  if (index < 0 || index >= count || key.length !== 1) return
+  e.preventDefault()
+  selection.value = q.type === 'true_false' ? (index === 0 ? 'true' : 'false') : q.options![index]!
 }
+
+onMounted(() => {
+  window.addEventListener('keydown', onKeydown, true)
+  if (!topicStore.tree.length) void topicStore.fetchTree()
+  void load()
+})
+onUnmounted(() => {
+  window.removeEventListener('keydown', onKeydown, true)
+  quizStore.stopTimer()
+})
 </script>

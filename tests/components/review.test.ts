@@ -70,7 +70,7 @@ describe('fim do lote (RF-F5)', () => {
     const w = await mountSuspended(ReviewBatchEnd, { props: { ...base, summary: weak, goalMet: true } })
     expect(w.attributes('data-kind')).toBe('goal')
     expect(w.find('h1').text()).toBe('Meta de hoje cumprida!')
-    expect(w.find('[data-testid=batch-weak] a').attributes('href')).toBe('/simulados?topic_id=t2')
+    expect(w.find('[data-testid=batch-weak] a').attributes('href')).toBe('/simulados?topic_id=t2&count=10')
     const lang = await mountSuspended(ReviewBatchEnd, { props: { ...base, summary: weak, goalMet: false, language: true } })
     expect(lang.find('[data-testid=batch-weak] a').attributes('href')).toBe('/revisar?scope=cards&card_ids=a,b,c')
   })

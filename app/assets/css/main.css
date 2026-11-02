@@ -4,6 +4,10 @@
    base.css      @layer base
    legacy-v2.css ponteiros v2 → v3 (temporário; sai na Fase 5) */
 @import 'tailwindcss';
+/* Só o app gera classes: o mapa do codemod e as guardas (scripts/) e os testes citam nomes v2 e v3 */
+@source not "../../../scripts";
+@source not "../../../tests";
+@source not "../../../e2e";
 @import './tokens.css';
 @import './theme.css';
 @import './base.css';

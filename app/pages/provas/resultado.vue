@@ -71,7 +71,7 @@
       </template>
     </div>
 
-    <UiToast />
+    <ShellToastHost />
   </div>
 </template>
 

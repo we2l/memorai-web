@@ -2,8 +2,7 @@
   <div class="w-full max-w-sm sm:max-w-md mx-auto mt-6 text-left" data-testid="session-tomorrow">
     <!-- Fixed height: no layout shift when the data arrives -->
     <div v-if="loading || !forecast" class="card p-4 space-y-3 h-[5.5rem]" aria-hidden="true">
-      <div class="skeleton h-4 w-3/4 rounded" />
-      <div class="skeleton h-4 w-1/2 rounded" />
+      <UiSkeleton :lines="2" />
     </div>
 
     <template v-else>

@@ -61,6 +61,22 @@
   --container-prose: 42rem;
 
   --ease-calm: cubic-bezier(0.2, 0, 0, 1);
+
+  /* Conquista (UiCelebration): <= 700 ms (--motion-celebrate); prefers-reduced-motion zera em base.css */
+  --animate-celebrate-pop: celebrate-pop var(--motion-celebrate) var(--ease-calm) both;
+  --animate-celebrate-burst: celebrate-burst var(--motion-celebrate) var(--ease-calm) both;
+
+  @keyframes celebrate-pop {
+    0% { opacity: 0; transform: scale(0.6); }
+    60% { opacity: 1; transform: scale(1.06); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+
+  /* Partícula: sai do centro até (--burst-x, --burst-y), definidos por partícula no UiCelebration */
+  @keyframes celebrate-burst {
+    0% { opacity: 1; transform: translate(-50%, -50%) scale(0.4); }
+    100% { opacity: 0; transform: translate(calc(-50% + var(--burst-x)), calc(-50% + var(--burst-y))) scale(1); }
+  }
 }
 
 @theme inline {
@@ -138,6 +154,9 @@
   /* Espaço que muda no lg */
   --spacing-gutter: var(--gutter);
   --spacing-section: var(--section-gap);
+  /* Área segura do iPhone (pb-safe-bottom em folhas) e altura do toast acima da navegação inferior */
+  --spacing-safe-bottom: env(safe-area-inset-bottom);
+  --spacing-toast: var(--toast-bottom);
 }
 
 /* Sem namespace no Tailwind: utilities nomeadas */

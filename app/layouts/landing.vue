@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-surface">
     <slot />
-    <UiToast />
+    <ShellToastHost />
   </div>
 </template>

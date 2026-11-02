@@ -1,12 +1,12 @@
 <template>
   <div class="min-h-screen bg-page text-fg" data-ds-page>
-    <header class="sticky top-0 z-sticky border-b border-line bg-raised px-gutter py-3">
-      <div class="mx-auto flex max-w-page flex-wrap items-center justify-between gap-4">
+    <header class="border-b border-line bg-raised px-4 py-3 sm:px-6">
+      <div class="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4">
         <div>
           <h1 class="text-section text-fg-strong">Design system v3</h1>
           <p class="text-meta text-fg-muted">Referência interna dos componentes-base (ADR-027). Só em dev ou com NUXT_DS_PAGE=1.</p>
         </div>
-        <UiTabs v-model="mode" :tabs="MODES" label="Tema da página" class="-mb-3" />
+        <UiTabs v-model="mode" :tabs="MODES" label="Tema da página" />
       </div>
     </header>
 
@@ -17,11 +17,11 @@
       <main
         v-for="pane in panes"
         :key="pane.key"
-        class="min-w-0 bg-page px-gutter py-8 text-fg"
+        class="min-w-0 bg-page px-4 py-8 text-fg sm:px-6"
         :class="pane.dark && 'dark'"
         :aria-label="pane.label"
       >
-        <div class="mx-auto flex max-w-page flex-col gap-section">
+        <div class="mx-auto flex max-w-5xl flex-col gap-8">
           <p class="text-label font-semibold text-fg-muted">{{ pane.label }}</p>
 
           <!-- Ações -->
@@ -87,7 +87,7 @@
 
             <UiSection title="Tópicos">
               <template #action><UiLink to="/_ds" standalone>+ Tópico</UiLink></template>
-              <div class="-mx-3 divide-y divide-line">
+              <div class="-mx-2 divide-y divide-line">
                 <UiListRow v-for="(s, i) in SUBJECTS" :key="s.name" :title="s.name" :meta="s.meta" to="/_ds" :active="i === 1">
                   <template #leading><UiSubjectMark :color="s.color" /></template>
                   <template #trailing>
@@ -169,12 +169,72 @@
                 <UiSwitch :model-value="true" label="Desabilitado" disabled />
               </div>
               <UiRadioGroup v-model="form.mode" label="Modo da revisão" :options="RADIO" />
-              <UiRadioGroup v-model="form.mode" label="Modo (cartões)" :options="RADIO" variant="cards" :columns="3" class="md:col-span-2" />
+            </div>
+            <UiRadioGroup v-model="form.mode" label="Modo (cartões)" :options="RADIO" variant="cards" :columns="3" class="mt-6" />
+          </UiSection>
+
+          <!-- Sobreposições -->
+          <UiSection title="Sobreposições" description="Diálogo e folha com a lógica do UiModal (Esc no do topo, foco preso e devolvido, rolagem travada); menu com teclado completo." data-ds-scope>
+            <div class="flex flex-wrap items-center gap-3">
+              <UiButton @click="overlay.dialog = true">Abrir diálogo</UiButton>
+              <UiButton @click="overlay.bottom = true">Folha de baixo</UiButton>
+              <UiButton @click="overlay.right = true">Painel lateral</UiButton>
+              <UiMenu :items="MENU" label="Ações do caderno" />
+              <UiMenu :items="MENU" align="start">
+                <template #trigger="{ props }">
+                  <UiButton v-bind="props" :icon-right="ChevronDown">Opções</UiButton>
+                </template>
+              </UiMenu>
+              <UiButton variant="ghost" @click="toast.show('Cards gerados', 'success')">Toast de sucesso</UiButton>
+              <UiButton variant="ghost" @click="toast.show('Card excluído', 'info', { action: { label: 'Desfazer', onClick: () => {} } })">Toast com ação</UiButton>
+              <UiButton variant="ghost" @click="toast.show('Não foi possível salvar', 'error')">Toast de erro</UiButton>
+            </div>
+            <div class="mt-6 flex flex-col gap-2">
+              <UiToast message="Cards gerados" tone="success" />
+              <UiToast message="Card excluído" tone="info" :action="{ label: 'Desfazer' }" />
+              <UiToast message="Sua sessão expira em 5 minutos" tone="warning" />
+              <UiToast message="Não foi possível salvar" tone="error" />
+            </div>
+            <UiDialog v-model="overlay.dialog" title="Excluir caderno?" description="Os cards e as notas vão junto. Não dá para desfazer.">
+              <UiInput v-model="form.name" label="Digite o nome do caderno para confirmar" />
+              <template #footer="{ close }">
+                <UiButton variant="ghost" @click="close">Cancelar</UiButton>
+                <UiButton variant="danger" @click="close">Excluir</UiButton>
+              </template>
+            </UiDialog>
+            <UiSheet v-model="overlay.bottom" title="Gerar podcast" description="Dos seus pontos fracos de hoje.">
+              <UiRadioGroup v-model="form.mode" label="Duração" :options="RADIO" />
+              <template #footer="{ close }"><UiButton variant="primary" block @click="close">Gerar</UiButton></template>
+            </UiSheet>
+            <UiSheet v-model="overlay.right" side="right" title="Detalhes do card">
+              <p class="text-body">Painel lateral para detalhe e edição.</p>
+            </UiSheet>
+          </UiSection>
+
+          <!-- Feedback -->
+          <UiSection title="Feedback" description="Vazio com 1 CTA, erro com tentar de novo, esqueleto no formato do conteúdo e conquista (≤ 700 ms, respeita movimento reduzido)." data-ds-scope>
+            <div class="grid gap-6 md:grid-cols-2">
+              <UiEmptyState title="Nenhum podcast ainda" description="Gere um a partir dos seus pontos fracos." mascot :level="3">
+                <template #action><UiButton data-ds-scope variant="primary">Gerar podcast</UiButton></template>
+              </UiEmptyState>
+              <UiErrorState description="Confira sua conexão e tente de novo." />
+              <div class="flex flex-col gap-4">
+                <UiSkeleton />
+                <UiSkeleton variant="row" />
+                <UiSkeleton variant="block" size="sm" />
+              </div>
+              <div>
+                <UiCelebration :key="celebrateKey" kind="batch" title="Lote concluído!" :stats="[{ value: 20, label: 'cards' }, { value: '86%', label: 'de acerto' }]">
+                  <UiButton data-ds-scope variant="primary">Próximo lote</UiButton>
+                  <UiButton @click="celebrateKey++">Repetir animação</UiButton>
+                </UiCelebration>
+              </div>
             </div>
           </UiSection>
         </div>
       </main>
     </div>
+    <ShellToastHost />
   </div>
 </template>
 
@@ -183,7 +243,7 @@
 // variants, tones and states, both themes side by side. Dev only: nuxt.config.ts drops the route from the
 // production build (and keeps the chunk out of the precache under NUXT_DS_PAGE=1). Each block is its own
 // [data-ds-scope], so the "one primary per screen" dev warning counts per block.
-import { ArrowRight, CircleHelp, Ellipsis, Headphones, Pencil, Plus, RotateCw, Search, Star, Trash2, X } from 'lucide-vue-next'
+import { ArrowRight, ChevronDown, CircleHelp, Copy, Ellipsis, Headphones, Pencil, Plus, RotateCw, Search, Star, Trash2, X } from 'lucide-vue-next'
 import type { TagTone } from '~/components/ui/Tag.vue'
 import type { PracticeMode } from '~/components/ui/PracticeIcon.vue'
 
@@ -236,6 +296,15 @@ const RADIO = [
   { value: 'normal', label: 'Normal', description: 'Lotes de ~20 cards' },
   { value: 'relampago', label: 'Relâmpago', description: '5 minutos, os mais urgentes' },
   { value: 'erros', label: 'Só erros', description: 'O que você errou ontem' },
+]
+const toast = useToast()
+const overlay = reactive({ dialog: false, bottom: false, right: false })
+const celebrateKey = ref(0)
+const MENU = [
+  { label: 'Renomear', icon: Pencil, onSelect: () => toast.show('Renomear', 'info') },
+  { label: 'Duplicar', icon: Copy, meta: 'Ctrl D' },
+  { label: 'Mover', disabled: true },
+  { label: 'Excluir', icon: Trash2, tone: 'danger' as const, onSelect: () => toast.show('Excluir', 'warning') },
 ]
 const form = reactive({
   name: '', search: '', email: 'rafael@', note: '', hour: '', voice: '7',

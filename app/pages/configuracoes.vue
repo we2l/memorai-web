@@ -90,7 +90,7 @@
             <div v-if="data.limit !== null" class="h-2 rounded-full bg-[var(--border-divider)] overflow-hidden">
               <div
                 class="h-2 rounded-full transition-all"
-                :class="data.remaining === 0 ? 'bg-danger' : 'bg-accent-primary'"
+                :class="data.remaining === 0 ? 'bg-danger' : 'bg-action'"
                 :style="{ width: Math.min(100, (data.used / Math.max(1, data.limit)) * 100) + '%' }"
               />
             </div>
@@ -159,7 +159,7 @@
         </span>
         <span
           class="relative w-10 h-6 rounded-full transition-colors shrink-0"
-          :class="consent.analytics.value === true ? 'bg-[var(--color-accent-primary)]' : 'bg-[var(--border-hover)]'"
+          :class="consent.analytics.value === true ? 'bg-action' : 'bg-[var(--border-hover)]'"
           aria-hidden="true"
         >
           <span class="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all" :class="consent.analytics.value === true ? 'left-[18px]' : 'left-0.5'" />

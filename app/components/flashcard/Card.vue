@@ -99,19 +99,19 @@ const currentAudio = computed(() =>
 
 /* Micro feedback — purple glow on success */
 .feedback-success {
-  border-color: rgba(34, 197, 94, 0.4);
+  border-color: color-mix(in srgb, var(--state-success) 40%, transparent);
   box-shadow:
     var(--shadow-lg),
-    0 0 40px rgba(34, 197, 94, 0.1);
+    0 0 40px color-mix(in srgb, var(--state-success) 10%, transparent);
   animation: settle 0.3s ease;
 }
 
 /* Micro feedback — red glow + shake on error */
 .feedback-error {
-  border-color: rgba(239, 68, 68, 0.4);
+  border-color: color-mix(in srgb, var(--state-danger) 40%, transparent);
   box-shadow:
     var(--shadow-lg),
-    0 0 40px rgba(239, 68, 68, 0.12);
+    0 0 40px color-mix(in srgb, var(--state-danger) 12%, transparent);
   animation: shake 0.3s ease;
 }
 

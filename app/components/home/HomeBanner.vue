@@ -47,7 +47,7 @@ defineEmits<{
   border: 1px solid color-mix(in srgb, var(--color-warning) 10%, transparent);
   margin-bottom: 14px;
   font-size: 12.5px;
-  color: var(--text-body);
+  color: var(--fg);
 }
 .home-banner--danger {
   background: color-mix(in srgb, var(--color-danger) 4%, var(--bg-card));

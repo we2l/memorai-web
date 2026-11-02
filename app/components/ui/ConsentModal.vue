@@ -9,7 +9,7 @@
             <p id="consent-essential" class="text-base-primary font-medium">Essenciais</p>
             <p class="text-micro text-base-muted">Sessão, segurança (CSRF), preferência de tema e esta escolha. Sempre ativos.</p>
           </div>
-          <button type="button" role="switch" aria-checked="true" aria-labelledby="consent-essential" disabled class="relative w-10 h-6 mt-0.5 rounded-full shrink-0 bg-[var(--color-accent-primary)] opacity-60 cursor-not-allowed">
+          <button type="button" role="switch" aria-checked="true" aria-labelledby="consent-essential" disabled class="relative w-10 h-6 mt-0.5 rounded-full shrink-0 bg-action opacity-60 cursor-not-allowed">
             <span class="absolute top-0.5 left-[18px] w-5 h-5 rounded-full bg-white shadow" aria-hidden="true" />
           </button>
         </div>
@@ -25,7 +25,7 @@
             :aria-checked="draft"
             aria-labelledby="consent-analytics"
             class="relative w-10 h-6 mt-0.5 rounded-full shrink-0 transition-colors"
-            :class="draft ? 'bg-[var(--color-accent-primary)]' : 'bg-[var(--border-hover)]'"
+            :class="draft ? 'bg-action' : 'bg-[var(--border-hover)]'"
             data-testid="consent-analytics-switch"
             @click="draft = !draft"
           >

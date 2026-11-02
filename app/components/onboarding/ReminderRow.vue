@@ -9,7 +9,7 @@
     >
       <span
         class="relative w-10 h-6 rounded-full transition-colors shrink-0"
-        :class="enabled ? 'bg-[var(--color-accent-primary)]' : 'bg-[var(--border-hover)]'"
+        :class="enabled ? 'bg-action' : 'bg-[var(--border-hover)]'"
         aria-hidden="true"
       >
         <span class="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all" :class="enabled ? 'left-[18px]' : 'left-0.5'" />

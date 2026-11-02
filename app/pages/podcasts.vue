@@ -42,7 +42,7 @@
             <p class="text-xs text-base-muted mt-0.5">{{ formatTime(player.currentTime) }} / {{ formatTime(player.duration) }}</p>
           </div>
           <button
-            class="w-11 h-11 rounded-full bg-[var(--color-accent-primary)] text-[var(--color-accent-primary-text)] flex items-center justify-center shrink-0 hover:brightness-110 transition-all"
+            class="w-11 h-11 rounded-full bg-action text-[var(--color-accent-primary-text)] flex items-center justify-center shrink-0 hover:brightness-110 transition-all"
             :aria-label="player.isPlaying ? 'Pausar' : 'Tocar'"
             @click.stop="player.togglePlay()"
           >

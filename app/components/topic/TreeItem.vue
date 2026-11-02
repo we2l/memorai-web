@@ -247,7 +247,7 @@ watch(() => props.selectedId, (newId) => {
 
 .child-item:hover {
   background: var(--bg-soft);
-  color: var(--text-body);
+  color: var(--fg);
 }
 
 .child-item--active {

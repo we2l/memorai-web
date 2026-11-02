@@ -29,7 +29,7 @@
         </span>
         <span
           class="relative w-10 h-6 rounded-full transition-colors shrink-0"
-          :class="enabled ? 'bg-[var(--color-accent-primary)]' : 'bg-[var(--border-hover)]'"
+          :class="enabled ? 'bg-action' : 'bg-[var(--border-hover)]'"
           aria-hidden="true"
         >
           <span

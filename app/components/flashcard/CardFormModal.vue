@@ -88,7 +88,7 @@
             :key="idx"
             type="button"
             class="px-2 py-0.5 rounded text-micro font-medium transition-colors"
-            :class="previewClozeIndex === idx ? 'bg-accent-primary text-accent-primary-text' : 'bg-[var(--border-divider)] text-base-muted hover:text-base-primary'"
+            :class="previewClozeIndex === idx ? 'bg-action text-accent-primary-text' : 'bg-[var(--border-divider)] text-base-muted hover:text-base-primary'"
             @click="previewClozeIndex = idx"
           >
             c{{ idx }}
@@ -372,7 +372,7 @@ watch(open, (val) => {
   background: var(--bg-secondary);
   border: 2px solid var(--border-strong);
   border-radius: 1rem;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--elev-raised);
 }
 .preview-content p { margin: 0.25em 0; }
 </style>

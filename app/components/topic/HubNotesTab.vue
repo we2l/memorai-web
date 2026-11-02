@@ -478,14 +478,14 @@ onBeforeUnmount(() => {
   border-radius: 16px;
   cursor: pointer;
   transition: all 150ms ease-out;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+  box-shadow: var(--elev-card);
   overflow: hidden;
 }
 
 .note-card:hover {
   transform: translateY(-2px);
   border-color: color-mix(in srgb, var(--color-accent-primary) 20%, var(--border-base));
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.07), 0 2px 8px rgba(0, 0, 0, 0.03);
+  box-shadow: var(--elev-raised);
 }
 
 /* Document thumbnail — mini A4 with real content (~15% larger) */
@@ -497,7 +497,7 @@ onBeforeUnmount(() => {
   border-radius: 8px;
   background: var(--bg-card);
   border: 1px solid var(--border-base);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--elev-card);
   padding: 14px 11px;
   overflow: hidden;
   transition: all 150ms ease-out;
@@ -509,7 +509,7 @@ onBeforeUnmount(() => {
 
 .note-card:hover .note-card__thumb {
   border-color: color-mix(in srgb, var(--color-accent-primary) 25%, var(--border-base));
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--elev-card);
 }
 
 @media (min-width: 640px) {
@@ -621,7 +621,7 @@ onBeforeUnmount(() => {
 .note-card__preview {
   font-size: 13.5px;
   line-height: 1.7;
-  color: var(--text-body);
+  color: var(--fg);
   max-height: 4.8em; /* ~3 full lines */
   overflow: hidden;
   position: relative;
@@ -633,7 +633,7 @@ onBeforeUnmount(() => {
   display: block;
   font-size: 13.5px;
   line-height: 1.7;
-  color: var(--text-body);
+  color: var(--fg);
 }
 
 /* Badges */

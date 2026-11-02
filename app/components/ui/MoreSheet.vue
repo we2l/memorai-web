@@ -31,7 +31,7 @@
             <span class="flex-1 text-left">Modo escuro</span>
             <span
               class="relative w-10 h-6 rounded-full transition-colors"
-              :class="colorMode === 'dark' ? 'bg-[var(--color-accent-primary)]' : 'bg-[var(--border-hover)]'"
+              :class="colorMode === 'dark' ? 'bg-action' : 'bg-[var(--border-hover)]'"
               aria-hidden="true"
             >
               <span

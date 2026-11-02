@@ -99,6 +99,6 @@ function navigateToTopic() {
 
 .subpage-node-wrapper.selected .subpage-card {
   border-color: var(--color-accent-primary);
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--focus-ring) 15%, transparent);
 }
 </style>

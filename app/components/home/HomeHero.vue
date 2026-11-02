@@ -34,68 +34,68 @@
     <!-- Knowledge network: organic synapse connections -->
     <svg class="hero__synapse" aria-hidden="true" viewBox="0 0 460 200" fill="none" xmlns="http://www.w3.org/2000/svg">
       <!-- Glow halos behind hub nodes -->
-      <circle cx="190" cy="88" r="22" fill="#6D3DF5" opacity="0.07" class="synapse__halo synapse__halo--a" />
-      <circle cx="330" cy="100" r="24" fill="#6D3DF5" opacity="0.06" class="synapse__halo synapse__halo--b" />
+      <circle cx="190" cy="88" r="22" fill="currentColor" opacity="0.07" class="synapse__halo synapse__halo--a" />
+      <circle cx="330" cy="100" r="24" fill="currentColor" opacity="0.06" class="synapse__halo synapse__halo--b" />
 
       <!-- === CONNECTIONS (all terminate exactly at node centers) === -->
 
       <!-- Hub A (190,88) branches -->
-      <path d="M95 72 C 125 68, 155 74, 190 88" stroke="#6D3DF5" stroke-width="0.7" stroke-linecap="round" opacity="0.24" />
-      <path d="M130 125 C 150 115, 170 100, 190 88" stroke="#6D3DF5" stroke-width="0.6" stroke-linecap="round" opacity="0.20" />
-      <path d="M155 42 C 168 55, 180 70, 190 88" stroke="#6D3DF5" stroke-width="0.5" stroke-linecap="round" opacity="0.16" />
-      <path id="conn-ab" d="M190 88 C 210 90, 230 92, 255 95" stroke="#6D3DF5" stroke-width="0.8" stroke-linecap="round" opacity="0.28" />
-      <path d="M190 88 C 200 105, 210 120, 218 138" stroke="#6D3DF5" stroke-width="0.5" stroke-linecap="round" opacity="0.17" />
+      <path d="M95 72 C 125 68, 155 74, 190 88" stroke="currentColor" stroke-width="0.7" stroke-linecap="round" opacity="0.24" />
+      <path d="M130 125 C 150 115, 170 100, 190 88" stroke="currentColor" stroke-width="0.6" stroke-linecap="round" opacity="0.20" />
+      <path d="M155 42 C 168 55, 180 70, 190 88" stroke="currentColor" stroke-width="0.5" stroke-linecap="round" opacity="0.16" />
+      <path id="conn-ab" d="M190 88 C 210 90, 230 92, 255 95" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" opacity="0.28" />
+      <path d="M190 88 C 200 105, 210 120, 218 138" stroke="currentColor" stroke-width="0.5" stroke-linecap="round" opacity="0.17" />
 
       <!-- Bridge: mid-node (255,95) to Hub B -->
-      <path id="conn-bridge" d="M255 95 C 275 96, 300 98, 330 100" stroke="#6D3DF5" stroke-width="0.8" stroke-linecap="round" opacity="0.30" />
-      <path d="M255 95 C 250 110, 248 128, 250 148" stroke="#6D3DF5" stroke-width="0.5" stroke-linecap="round" opacity="0.15" />
+      <path id="conn-bridge" d="M255 95 C 275 96, 300 98, 330 100" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" opacity="0.30" />
+      <path d="M255 95 C 250 110, 248 128, 250 148" stroke="currentColor" stroke-width="0.5" stroke-linecap="round" opacity="0.15" />
 
       <!-- Hub B (330,100) branches -->
-      <path id="conn-b-top" d="M330 100 C 350 88, 365 76, 380 62" stroke="#6D3DF5" stroke-width="0.6" stroke-linecap="round" opacity="0.22" />
-      <path d="M330 100 C 348 108, 362 118, 375 130" stroke="#6D3DF5" stroke-width="0.6" stroke-linecap="round" opacity="0.20" />
-      <path d="M330 100 C 340 118, 348 135, 355 155" stroke="#6D3DF5" stroke-width="0.5" stroke-linecap="round" opacity="0.16" />
-      <path d="M330 100 C 350 95, 370 92, 395 88" stroke="#6D3DF5" stroke-width="0.5" stroke-linecap="round" opacity="0.18" />
+      <path id="conn-b-top" d="M330 100 C 350 88, 365 76, 380 62" stroke="currentColor" stroke-width="0.6" stroke-linecap="round" opacity="0.22" />
+      <path d="M330 100 C 348 108, 362 118, 375 130" stroke="currentColor" stroke-width="0.6" stroke-linecap="round" opacity="0.20" />
+      <path d="M330 100 C 340 118, 348 135, 355 155" stroke="currentColor" stroke-width="0.5" stroke-linecap="round" opacity="0.16" />
+      <path d="M330 100 C 350 95, 370 92, 395 88" stroke="currentColor" stroke-width="0.5" stroke-linecap="round" opacity="0.18" />
 
       <!-- Cross-connections (create density without chaos) -->
-      <path d="M95 72 C 105 85, 115 100, 130 125" stroke="#6D3DF5" stroke-width="0.4" stroke-linecap="round" opacity="0.13" />
-      <path d="M218 138 C 230 142, 240 145, 250 148" stroke="#6D3DF5" stroke-width="0.4" stroke-linecap="round" opacity="0.13" />
-      <path d="M375 130 C 380 138, 383 145, 385 155" stroke="#6D3DF5" stroke-width="0.4" stroke-linecap="round" opacity="0.12" />
-      <path d="M380 62 C 385 70, 390 78, 395 88" stroke="#6D3DF5" stroke-width="0.4" stroke-linecap="round" opacity="0.12" />
+      <path d="M95 72 C 105 85, 115 100, 130 125" stroke="currentColor" stroke-width="0.4" stroke-linecap="round" opacity="0.13" />
+      <path d="M218 138 C 230 142, 240 145, 250 148" stroke="currentColor" stroke-width="0.4" stroke-linecap="round" opacity="0.13" />
+      <path d="M375 130 C 380 138, 383 145, 385 155" stroke="currentColor" stroke-width="0.4" stroke-linecap="round" opacity="0.12" />
+      <path d="M380 62 C 385 70, 390 78, 395 88" stroke="currentColor" stroke-width="0.4" stroke-linecap="round" opacity="0.12" />
 
       <!-- Peripheral branches -->
-      <path d="M60 95 C 70 88, 80 80, 95 72" stroke="#6D3DF5" stroke-width="0.4" stroke-linecap="round" opacity="0.12" />
-      <path d="M130 125 C 135 140, 138 152, 140 165" stroke="#6D3DF5" stroke-width="0.4" stroke-linecap="round" opacity="0.11" />
+      <path d="M60 95 C 70 88, 80 80, 95 72" stroke="currentColor" stroke-width="0.4" stroke-linecap="round" opacity="0.12" />
+      <path d="M130 125 C 135 140, 138 152, 140 165" stroke="currentColor" stroke-width="0.4" stroke-linecap="round" opacity="0.11" />
 
       <!-- === NODES === -->
 
       <!-- Hub nodes (2) — primary knowledge centers -->
-      <circle cx="190" cy="88" r="7" fill="#6D3DF5" opacity="0.84" class="synapse__node synapse__node--hub-a" />
-      <circle cx="330" cy="100" r="7.5" fill="#6D3DF5" opacity="0.90" class="synapse__node synapse__node--hub-b" />
+      <circle cx="190" cy="88" r="7" fill="currentColor" opacity="0.84" class="synapse__node synapse__node--hub-a" />
+      <circle cx="330" cy="100" r="7.5" fill="currentColor" opacity="0.90" class="synapse__node synapse__node--hub-b" />
 
       <!-- Secondary nodes (5) — established connections -->
-      <circle cx="95" cy="72" r="4" fill="#6D3DF5" opacity="0.50" class="synapse__node synapse__node--secondary synapse__node--s1" />
-      <circle cx="255" cy="95" r="4.5" fill="#6D3DF5" opacity="0.58" class="synapse__node synapse__node--secondary synapse__node--s2" />
-      <circle cx="130" cy="125" r="3.5" fill="#6D3DF5" opacity="0.42" class="synapse__node synapse__node--secondary synapse__node--s3" />
-      <circle cx="380" cy="62" r="3.5" fill="#6D3DF5" opacity="0.44" class="synapse__node synapse__node--secondary synapse__node--s4" />
-      <circle cx="375" cy="130" r="3.5" fill="#6D3DF5" opacity="0.40" class="synapse__node synapse__node--secondary synapse__node--s5" />
+      <circle cx="95" cy="72" r="4" fill="currentColor" opacity="0.50" class="synapse__node synapse__node--secondary synapse__node--s1" />
+      <circle cx="255" cy="95" r="4.5" fill="currentColor" opacity="0.58" class="synapse__node synapse__node--secondary synapse__node--s2" />
+      <circle cx="130" cy="125" r="3.5" fill="currentColor" opacity="0.42" class="synapse__node synapse__node--secondary synapse__node--s3" />
+      <circle cx="380" cy="62" r="3.5" fill="currentColor" opacity="0.44" class="synapse__node synapse__node--secondary synapse__node--s4" />
+      <circle cx="375" cy="130" r="3.5" fill="currentColor" opacity="0.40" class="synapse__node synapse__node--secondary synapse__node--s5" />
 
       <!-- Small nodes (8) — peripheral memories / associations -->
-      <circle cx="155" cy="42" r="2.5" fill="#6D3DF5" opacity="0.28" class="synapse__node synapse__node--small synapse__node--sm1" />
-      <circle cx="218" cy="138" r="2.5" fill="#6D3DF5" opacity="0.26" class="synapse__node synapse__node--small synapse__node--sm2" />
-      <circle cx="250" cy="148" r="2" fill="#6D3DF5" opacity="0.22" class="synapse__node synapse__node--small synapse__node--sm3" />
-      <circle cx="355" cy="155" r="2.5" fill="#6D3DF5" opacity="0.24" class="synapse__node synapse__node--small synapse__node--sm4" />
-      <circle cx="395" cy="88" r="2.5" fill="#6D3DF5" opacity="0.25" class="synapse__node synapse__node--small synapse__node--sm5" />
-      <circle cx="60" cy="95" r="2" fill="#6D3DF5" opacity="0.18" class="synapse__node synapse__node--small synapse__node--sm6" />
-      <circle cx="140" cy="165" r="2" fill="#6D3DF5" opacity="0.16" class="synapse__node synapse__node--small synapse__node--sm7" />
-      <circle cx="385" cy="155" r="1.8" fill="#6D3DF5" opacity="0.15" class="synapse__node synapse__node--small synapse__node--sm8" />
+      <circle cx="155" cy="42" r="2.5" fill="currentColor" opacity="0.28" class="synapse__node synapse__node--small synapse__node--sm1" />
+      <circle cx="218" cy="138" r="2.5" fill="currentColor" opacity="0.26" class="synapse__node synapse__node--small synapse__node--sm2" />
+      <circle cx="250" cy="148" r="2" fill="currentColor" opacity="0.22" class="synapse__node synapse__node--small synapse__node--sm3" />
+      <circle cx="355" cy="155" r="2.5" fill="currentColor" opacity="0.24" class="synapse__node synapse__node--small synapse__node--sm4" />
+      <circle cx="395" cy="88" r="2.5" fill="currentColor" opacity="0.25" class="synapse__node synapse__node--small synapse__node--sm5" />
+      <circle cx="60" cy="95" r="2" fill="currentColor" opacity="0.18" class="synapse__node synapse__node--small synapse__node--sm6" />
+      <circle cx="140" cy="165" r="2" fill="currentColor" opacity="0.16" class="synapse__node synapse__node--small synapse__node--sm7" />
+      <circle cx="385" cy="155" r="1.8" fill="currentColor" opacity="0.15" class="synapse__node synapse__node--small synapse__node--sm8" />
 
       <!-- Coral accents (2) — recently recalled -->
-      <circle cx="270" cy="96" r="2" fill="#F27059" opacity="0.45" class="synapse__node synapse__node--small synapse__node--coral1" />
-      <circle cx="348" cy="118" r="1.8" fill="#F27059" opacity="0.35" class="synapse__node synapse__node--small synapse__node--coral2" />
+      <circle cx="270" cy="96" r="2" opacity="0.45" class="synapse__node synapse__node--small synapse__node--coral1" />
+      <circle cx="348" cy="118" r="1.8" opacity="0.35" class="synapse__node synapse__node--small synapse__node--coral2" />
 
       <!-- === TRAVELING SIGNALS (information flowing through network) === -->
       <!-- Signal 1: Hub A → mid-node (via conn-ab) -->
-      <circle r="2" fill="#BEA6FF" opacity="0" class="synapse__signal">
+      <circle r="2" fill="currentColor" opacity="0" class="synapse__signal">
         <animateMotion dur="2.5s" begin="0s;signal1end.end+5s" fill="freeze" id="signal1move">
           <mpath href="#conn-ab" />
         </animateMotion>
@@ -103,7 +103,7 @@
       </circle>
 
       <!-- Signal 2: mid-node → Hub B (via conn-bridge) -->
-      <circle r="1.8" fill="#BEA6FF" opacity="0" class="synapse__signal">
+      <circle r="1.8" fill="currentColor" opacity="0" class="synapse__signal">
         <animateMotion dur="2s" begin="3s;signal2end.end+7s" fill="freeze" id="signal2move">
           <mpath href="#conn-bridge" />
         </animateMotion>
@@ -111,7 +111,7 @@
       </circle>
 
       <!-- Signal 3: Hub B → top-right (via conn-b-top) -->
-      <circle r="1.5" fill="#BEA6FF" opacity="0" class="synapse__signal">
+      <circle r="1.5" fill="currentColor" opacity="0" class="synapse__signal">
         <animateMotion dur="2s" begin="8s;signal3end.end+9s" fill="freeze" id="signal3move">
           <mpath href="#conn-b-top" />
         </animateMotion>
@@ -284,22 +284,12 @@ watch(isUpToDate, async (upToDate) => {
 }
 .hero {
   position: relative;
-  background: var(--bg-card);
-  border: 1px solid color-mix(in srgb, var(--color-accent-primary) 18%, var(--border-base));
-  border-radius: 16px;
+  /* O bloco tingido do Hoje (v4: no máximo um por tela), sem borda nem sombra */
+  background: var(--surface-tinted);
+  border: 1px solid transparent;
+  border-radius: var(--radius-card);
   padding: 28px 32px;
   overflow: hidden;
-  box-shadow:
-    0 2px 4px rgba(111, 63, 245, 0.04),
-    0 8px 24px rgba(111, 63, 245, 0.06),
-    0 16px 48px rgba(111, 63, 245, 0.03);
-}
-.dark .hero {
-  background: var(--bg-card);
-  border-color: color-mix(in srgb, var(--color-accent-primary) 15%, var(--border-base));
-  box-shadow:
-    0 2px 4px rgba(0, 0, 0, 0.2),
-    0 8px 24px rgba(0, 0, 0, 0.15);
 }
 .hero--compact {
   padding: 24px 28px;
@@ -312,13 +302,8 @@ watch(isUpToDate, async (upToDate) => {
   pointer-events: none;
   border-radius: inherit;
   background:
-    radial-gradient(ellipse 45% 65% at 55% 48%, rgba(109, 61, 245, 0.05), transparent 55%),
-    radial-gradient(ellipse 25% 40% at 68% 42%, rgba(190, 166, 255, 0.035), transparent 45%);
-}
-.dark .hero__atmosphere {
-  background:
-    radial-gradient(ellipse 45% 65% at 55% 48%, rgba(109, 61, 245, 0.09), transparent 55%),
-    radial-gradient(ellipse 25% 40% at 68% 42%, rgba(156, 114, 255, 0.06), transparent 45%);
+    radial-gradient(ellipse 45% 65% at 55% 48%, color-mix(in srgb, var(--action) 6%, transparent), transparent 55%),
+    radial-gradient(ellipse 25% 40% at 68% 42%, color-mix(in srgb, var(--action-fg) 4%, transparent), transparent 45%);
 }
 
 /* ===== Synapse network ===== */
@@ -332,6 +317,11 @@ watch(isUpToDate, async (upToDate) => {
   max-width: 500px;
   pointer-events: none;
   z-index: 0;
+  color: var(--action);
+}
+.synapse__node--coral1,
+.synapse__node--coral2 {
+  fill: var(--streak);
 }
 
 /* --- Hub nodes: pulse + drift + glow --- */
@@ -376,12 +366,12 @@ watch(isUpToDate, async (upToDate) => {
 
 /* Hub glow (drop-shadow intensifies with pulse) */
 @keyframes hubGlowA {
-  0%, 100% { filter: drop-shadow(0 0 2px rgba(109, 61, 245, 0.15)); }
-  50% { filter: drop-shadow(0 0 7px rgba(109, 61, 245, 0.40)); }
+  0%, 100% { filter: drop-shadow(0 0 2px color-mix(in srgb, var(--action) 15%, transparent)); }
+  50% { filter: drop-shadow(0 0 7px color-mix(in srgb, var(--action) 40%, transparent)); }
 }
 @keyframes hubGlowB {
-  0%, 100% { filter: drop-shadow(0 0 2px rgba(109, 61, 245, 0.15)); }
-  50% { filter: drop-shadow(0 0 8px rgba(109, 61, 245, 0.45)); }
+  0%, 100% { filter: drop-shadow(0 0 2px color-mix(in srgb, var(--action) 15%, transparent)); }
+  50% { filter: drop-shadow(0 0 8px color-mix(in srgb, var(--action) 45%, transparent)); }
 }
 
 /* Hub halos breathe with the nodes */
@@ -560,7 +550,7 @@ watch(isUpToDate, async (upToDate) => {
 .hero__salute {
   font-size: 13.5px;
   font-weight: 450;
-  color: var(--text-body);
+  color: var(--fg);
 }
 .hero__exam {
   font-size: 10.5px;
@@ -574,10 +564,10 @@ watch(isUpToDate, async (upToDate) => {
 .hero__streak {
   font-size: 10.5px;
   font-weight: 530;
-  color: var(--text-body);
+  color: var(--streak-fg);
   padding: 2px 7px;
   border-radius: 4px;
-  background: color-mix(in srgb, var(--color-accent-primary) 10%, transparent);
+  background: color-mix(in srgb, var(--streak) 12%, transparent);
   margin-left: 4px;
 }
 .hero__streak--risk {
@@ -587,7 +577,7 @@ watch(isUpToDate, async (upToDate) => {
 .hero__eyebrow {
   font-size: 14px;
   font-weight: 420;
-  color: var(--text-body);
+  color: var(--fg);
   margin-bottom: 6px;
 }
 .hero__number {
@@ -608,10 +598,7 @@ watch(isUpToDate, async (upToDate) => {
   }
 }
 .hero__value {
-  color: #6D3DF5;
-}
-.dark .hero__value {
-  color: var(--color-accent-primary);
+  color: var(--fg-strong);
 }
 .hero__unit {
   color: var(--text-heading);
@@ -632,19 +619,10 @@ watch(isUpToDate, async (upToDate) => {
   flex-direction: column;
   gap: 12px;
   padding: 18px 20px 16px;
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(216, 207, 240, 0.60);
-  border-radius: 12px;
-  box-shadow:
-    0 2px 8px rgba(111, 63, 245, 0.05),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(10px);
-}
-.dark .hero__panel {
-  background: color-mix(in srgb, var(--bg-soft) 80%, var(--bg-card));
-  border-color: color-mix(in srgb, var(--color-accent-primary) 12%, var(--border-base));
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  backdrop-filter: blur(10px);
+  background: var(--surface-raised);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  box-shadow: var(--elev-card);
 }
 .hero__panel--simple {
   background: transparent;
@@ -658,12 +636,9 @@ watch(isUpToDate, async (upToDate) => {
 .hero__panel-title {
   font-size: 10px;
   font-weight: 650;
-  color: #5A2EE6;
+  color: var(--action-fg);
   text-transform: uppercase;
   letter-spacing: 0.1em;
-}
-.dark .hero__panel-title {
-  color: var(--color-accent-primary);
 }
 
 /* Session viz */
@@ -676,19 +651,13 @@ watch(isUpToDate, async (upToDate) => {
   width: 10px;
   height: 10px;
   border-radius: 3px;
-  background: #E8E0F8;
+  background: var(--progress-track);
   transition: background 200ms ease-out, transform 200ms ease-out;
   animation: segmentAppear 300ms ease-out both;
 }
-.dark .hero__segment {
-  background: color-mix(in srgb, var(--color-accent-primary) 15%, var(--bg-soft));
-}
 .hero__segment--done {
-  background: #6D3DF5;
+  background: var(--action);
   transform: scale(1.05);
-}
-.dark .hero__segment--done {
-  background: var(--color-accent-primary);
 }
 @keyframes segmentAppear {
   from { opacity: 0; transform: scale(0.4); }
@@ -700,7 +669,7 @@ watch(isUpToDate, async (upToDate) => {
   color: var(--text-muted);
 }
 
-/* CTA */
+/* CTA: a ação principal da tela, roxa com "volume" (v4) */
 .hero__cta {
   display: inline-flex;
   align-items: center;
@@ -709,43 +678,24 @@ watch(isUpToDate, async (upToDate) => {
   width: 100%;
   height: 44px;
   padding: 0 24px;
-  font-size: 14px;
-  font-weight: 620;
-  color: #fff;
-  background: #6D3DF5;
-  border-radius: 10px;
-  transition: all 180ms ease-out;
-  box-shadow:
-    0 2px 4px rgba(109, 61, 245, 0.15),
-    0 6px 16px rgba(109, 61, 245, 0.12);
+  font-size: var(--text-body);
+  font-weight: 600;
+  color: var(--on-action);
+  background: var(--action);
+  border-radius: var(--radius-control);
+  transition: background-color var(--motion-nav) ease, box-shadow var(--motion-nav) ease, transform var(--motion-nav) ease;
+  box-shadow: 0 3px 0 var(--action-press);
   letter-spacing: 0.01em;
 }
-.dark .hero__cta {
-  background: var(--color-accent-primary);
-  color: var(--color-accent-primary-text);
-  box-shadow:
-    0 2px 4px rgba(0, 0, 0, 0.25),
-    0 6px 16px color-mix(in srgb, var(--color-accent-primary) 15%, transparent);
-}
 .hero__cta:hover {
-  transform: translateY(-2px);
-  box-shadow:
-    0 4px 8px rgba(109, 61, 245, 0.18),
-    0 12px 28px rgba(109, 61, 245, 0.15);
-  background: #5A2EE6;
-}
-.dark .hero__cta:hover {
-  background: var(--color-accent-primary-hover);
-  box-shadow:
-    0 4px 8px rgba(0, 0, 0, 0.3),
-    0 12px 28px color-mix(in srgb, var(--color-accent-primary) 18%, transparent);
+  background: var(--action-hover);
 }
 .hero__cta:active {
-  transform: translateY(0) scale(0.98);
-  box-shadow: 0 2px 4px rgba(109, 61, 245, 0.1);
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--action-press);
 }
 .hero__cta:focus-visible {
-  outline: 2px solid #BEA6FF;
+  outline: 2px solid var(--focus-ring);
   outline-offset: 3px;
 }
 .hero__cta-arrow {
@@ -756,30 +706,26 @@ watch(isUpToDate, async (upToDate) => {
   transform: translateX(3px);
   opacity: 1;
 }
+/* Secundária: neutra, branca com borda */
 .hero__cta--secondary {
-  background: transparent;
-  color: #6D3DF5;
-  border: 1px solid color-mix(in srgb, #6D3DF5 18%, var(--border-base));
+  background: var(--surface-raised);
+  color: var(--fg-strong);
+  border: 1px solid var(--line-strong);
   box-shadow: none;
   width: auto;
 }
-.dark .hero__cta--secondary {
-  color: var(--color-accent-primary);
-  border-color: color-mix(in srgb, var(--color-accent-primary) 18%, var(--border-base));
-}
 .hero__cta--secondary:hover {
-  background: color-mix(in srgb, #6D3DF5 5%, transparent);
+  background: var(--surface-subtle);
+}
+.hero__cta--secondary:active {
   transform: none;
   box-shadow: none;
 }
 .hero__link {
   font-size: 13px;
   font-weight: 500;
-  color: #6D3DF5;
+  color: var(--action-fg);
   transition: opacity 150ms;
-}
-.dark .hero__link {
-  color: var(--color-accent-primary);
 }
 .hero__link:hover {
   opacity: 0.7;

@@ -769,7 +769,7 @@ watch(() => route.query, (newQ, oldQ) => {
   border: 1px solid var(--border-hover);
   font-family: ui-monospace, monospace;
   font-size: 0.75rem;
-  color: var(--text-body);
+  color: var(--fg);
 }
 .review-bg {
   background: var(--bg-base);
@@ -777,14 +777,14 @@ watch(() => route.query, (newQ, oldQ) => {
 }
 
 .progress-pulse {
-  box-shadow: 0 0 8px rgba(111, 63, 245, 0.3);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--action) 30%, transparent);
   animation: pulse-glow 0.6s ease;
 }
 
 @keyframes pulse-glow {
-  0% { box-shadow: 0 0 4px rgba(111, 63, 245, 0.1); }
-  50% { box-shadow: 0 0 12px rgba(111, 63, 245, 0.4); }
-  100% { box-shadow: 0 0 4px rgba(111, 63, 245, 0.1); }
+  0% { box-shadow: 0 0 4px color-mix(in srgb, var(--action) 10%, transparent); }
+  50% { box-shadow: 0 0 12px color-mix(in srgb, var(--action) 40%, transparent); }
+  100% { box-shadow: 0 0 4px color-mix(in srgb, var(--action) 10%, transparent); }
 }
 
 .reward-pop-enter-active {

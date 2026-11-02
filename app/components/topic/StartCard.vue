@@ -58,7 +58,7 @@ function handleFileSelect(event: Event) {
   border: 1px solid var(--border-base);
   border-radius: 16px;
   padding: 28px 24px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.02);
+  box-shadow: var(--elev-card);
 }
 
 .start-card__header {
@@ -103,14 +103,14 @@ function handleFileSelect(event: Event) {
   border-radius: 14px;
   cursor: pointer;
   transition: all 150ms ease-out;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  box-shadow: var(--elev-card);
   text-align: left;
 }
 
 .start-card__action:hover {
   transform: translateY(-2px);
   border-color: color-mix(in srgb, var(--color-accent-primary) 40%, var(--border-base));
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.03);
+  box-shadow: var(--elev-raised);
 }
 
 .start-card__action:hover .start-card__arrow {

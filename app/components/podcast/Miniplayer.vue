@@ -23,7 +23,7 @@
         </div>
       </div>
       <button
-        class="w-9 h-9 rounded-full bg-accent-primary flex items-center justify-center shrink-0"
+        class="w-9 h-9 rounded-full bg-action flex items-center justify-center shrink-0"
         :aria-label="player.isPlaying ? 'Pausar' : 'Reproduzir'"
         @click="player.togglePlay()"
       >

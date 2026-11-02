@@ -18,7 +18,7 @@
       >
         <!-- Overlay -->
         <div
-          class="absolute inset-0 bg-[rgba(31,35,67,0.4)] backdrop-blur-sm"
+          class="absolute inset-0 bg-scrim backdrop-blur-sm"
           @click="close"
         />
 
@@ -35,7 +35,7 @@
             v-if="isOpen"
             class="relative w-full max-w-[560px] mx-4 mt-[12vh] sm:mt-[18vh] h-fit"
           >
-            <div class="bg-[var(--bg-card)] rounded-3xl shadow-[0_24px_48px_rgba(45,35,66,0.15)] dark:shadow-[0_24px_48px_rgba(0,0,0,0.4)] overflow-hidden border border-[var(--border-base)]">
+            <div class="bg-[var(--bg-card)] rounded-3xl shadow-float overflow-hidden border border-[var(--border-base)]">
               <!-- Input -->
               <div class="flex items-center gap-3 px-5 py-4 border-b border-[var(--border-divider)]">
                 <Search :size="20" class="text-[var(--text-muted)] shrink-0" />
@@ -107,7 +107,7 @@
 
                 <!-- Empty state -->
                 <div v-else-if="query" class="py-12 text-center">
-                  <p class="text-[var(--text-muted)] text-sm">Nenhum resultado para "<span class="text-[var(--text-body)]">{{ query }}</span>"</p>
+                  <p class="text-[var(--text-muted)] text-sm">Nenhum resultado para "<span class="text-[var(--fg)]">{{ query }}</span>"</p>
                 </div>
               </div>
 

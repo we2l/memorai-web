@@ -132,7 +132,7 @@ function exitDive() {
 }
 
 .wave {
-  fill: rgba(111, 63, 245, 0.1);
+  fill: color-mix(in srgb, var(--action) 10%, transparent);
 }
 
 .wave-1 {
@@ -140,7 +140,7 @@ function exitDive() {
 }
 
 .wave-2 {
-  fill: rgba(111, 63, 245, 0.05);
+  fill: color-mix(in srgb, var(--action) 5%, transparent);
   animation: wave-move 2.5s ease-in-out infinite 0.4s;
 }
 
@@ -156,7 +156,7 @@ function exitDive() {
   width: 20px;
   height: 8px;
   border-radius: 50%;
-  border: 1px solid rgba(111, 63, 245, 0.25);
+  border: 1px solid color-mix(in srgb, var(--action) 25%, transparent);
   opacity: 0;
 }
 
@@ -175,7 +175,7 @@ function exitDive() {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: rgba(111, 63, 245, 0.2);
+  background: color-mix(in srgb, var(--action) 20%, transparent);
   opacity: 0;
 }
 
@@ -207,13 +207,13 @@ function exitDive() {
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  background: rgba(111, 63, 245, 0.2);
+  background: color-mix(in srgb, var(--action) 20%, transparent);
   animation: big-splash 0.5s ease-out 0.15s both;
 }
 
 .emerge-splash-2 {
   animation-delay: 0.25s;
-  background: rgba(111, 63, 245, 0.12);
+  background: color-mix(in srgb, var(--action) 12%, transparent);
 }
 
 /* Water drops flying up on emerge */
@@ -223,7 +223,7 @@ function exitDive() {
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: rgba(111, 63, 245, 0.35);
+  background: color-mix(in srgb, var(--action) 35%, transparent);
   opacity: 0;
 }
 
@@ -271,7 +271,7 @@ function exitDive() {
   gap: 8px;
   padding: 6px 16px;
   border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.9);
+  background: color-mix(in srgb, var(--surface-float) 90%, transparent);
   border: 1px solid var(--border-base);
   box-shadow: var(--shadow-sm);
   backdrop-filter: blur(8px);
@@ -285,8 +285,8 @@ function exitDive() {
   transform: translateX(-50%);
   padding: 8px 20px;
   border-radius: 9999px;
-  background: rgba(111, 63, 245, 0.08);
-  border: 1px solid rgba(111, 63, 245, 0.2);
+  background: color-mix(in srgb, var(--action) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--action) 20%, transparent);
   color: var(--color-accent-primary);
   font-size: 0.8rem;
   font-weight: 500;
@@ -296,7 +296,7 @@ function exitDive() {
 }
 
 .dive-exit:hover {
-  background: rgba(111, 63, 245, 0.15);
+  background: color-mix(in srgb, var(--action) 15%, transparent);
 }
 
 /* DIVE: bico aponta pra baixo a 90°, mergulha rápido */

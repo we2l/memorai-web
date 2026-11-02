@@ -2,14 +2,16 @@
 // Color utility guard (prd-correcoes-experiencia RF-F6): Tailwind 4 only generates `bg-x` when
 // `--color-x` is in an @theme block. A token declared only in :root/.dark (B5: bg-accent-primary)
 // silently produces no CSS. Fails when app/**/*.{vue,ts} uses a color utility of a project color
-// family whose name is neither an @theme color nor an exact @utility of main.css (custom @utility
+// family whose name is neither an @theme color nor an exact @utility of app/assets/css (custom @utility
 // classes take no opacity modifier: `text-base-muted/40` generates nothing either).
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const ROOT = fileURLToPath(new URL('../app', import.meta.url))
-const CSS = readFileSync(join(ROOT, 'assets/css/main.css'), 'utf8')
+// main.css only imports tokens/theme/base/legacy-v2 (DS v3): read every file of the folder
+const CSS_DIR = join(ROOT, 'assets/css')
+const CSS = readdirSync(CSS_DIR).filter(f => f.endsWith('.css')).sort().map(f => readFileSync(join(CSS_DIR, f), 'utf8')).join('\n')
 const PREFIXES = 'bg|text|border(?:-[xytrbl]|-[se])?|ring|ring-offset|outline|fill|stroke|from|via|to|divide|placeholder|caret|accent|decoration|shadow'
 
 const themeBlocks = [...CSS.matchAll(/@theme\b[^{]*\{([\s\S]*?)\}/g)].map(m => m[1]).join('\n')
@@ -57,7 +59,7 @@ for (const file of walk(ROOT)) {
 }
 
 if (problems.length) {
-  console.error(`check-theme-classes: ${problems.length} classe(s) de cor sem regra no CSS (declare o token no @theme de main.css)\n` + problems.map(p => `  - ${p}`).join('\n'))
+  console.error(`check-theme-classes: ${problems.length} classe(s) de cor sem regra no CSS (declare o token no @theme de app/assets/css (theme.css))\n` + problems.map(p => `  - ${p}`).join('\n'))
   process.exit(1)
 }
 console.log('check-theme-classes: ok')

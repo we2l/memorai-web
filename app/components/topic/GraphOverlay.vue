@@ -54,7 +54,7 @@
         <!-- Weak topics banner -->
         <div v-else-if="weakNodesCount > 0" class="px-4 py-2.5 bg-danger/10 text-[var(--badge-danger-text)] text-small text-center shrink-0 flex items-center justify-center gap-3 flex-wrap">
           <span>{{ weakNodesCount }} {{ weakNodesCount === 1 ? 'caderno precisa' : 'cadernos precisam' }} de atenção</span>
-          <button class="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-danger text-base-primary text-micro font-medium hover:bg-danger/90 transition-colors" @click="showOnlyWeak = !showOnlyWeak">
+          <button class="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-danger-subtle text-danger text-micro font-medium hover:bg-danger/15 transition-colors" @click="showOnlyWeak = !showOnlyWeak">
             {{ showOnlyWeak ? 'Mostrar todos' : 'Ver quais' }}
           </button>
         </div>

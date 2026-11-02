@@ -27,6 +27,17 @@ const CSP = [
 
 const SESSION_HINT_SCRIPT = `(function(){var d=document.documentElement;if(['/','/entrar','/criar-conta','/planos','/ajuda'].indexOf(location.pathname.replace(/\\/$/,'')||'/')<0)return;if(!/(?:^|;\\s*)baigi_logged_in=1/.test(document.cookie))return;d.classList.add('baigi-session');setTimeout(function(){d.classList.remove('baigi-session')},4000)})()`
 
+// Page color of the DS v3 (--surface-page in app/assets/css/tokens.css, light and dark): the manifest and
+// the theme-color metas need the literal. tests/scripts/pwaManifest.test.ts keeps both in sync with tokens.css.
+const THEME_COLOR = { light: '#FAFAFB', dark: '#141218' }
+
+// Theme before the first paint (prd-ds-v3-fundacao RF-1.4): localStorage['color-mode'] is light | dark |
+// system (missing = system, the key the E2E set). .dark goes on <html> and color-scheme inline paints the
+// canvas dark even before the CSS arrives; "system" follows prefers-color-scheme and its changes. The
+// theme-color metas follow the app theme (not only the OS) once parsed. composables/useColorMode.ts
+// does the same at runtime.
+const THEME_SCRIPT = `(function(){var d=document.documentElement,q=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)');function pref(){try{var v=localStorage.getItem('color-mode');return v==='light'||v==='dark'?v:'system'}catch(e){return 'system'}}function meta(){var dark=d.classList.contains('dark'),m=document.querySelectorAll('meta[name="theme-color"]');for(var i=0;i<m.length;i++){m[i].setAttribute('content',dark?'${THEME_COLOR.dark}':'${THEME_COLOR.light}');m[i].removeAttribute('media')}}function apply(){var p=pref(),dark=p==='dark'||(p==='system'&&!!q&&q.matches);d.classList.toggle('dark',dark);d.style.colorScheme=dark?'dark':'light';meta()}apply();document.addEventListener('DOMContentLoaded',meta);if(q){var f=function(){if(pref()==='system')apply()};if(q.addEventListener)q.addEventListener('change',f);else if(q.addListener)q.addListener(f)}})()`
+
 // Public pages opened from study e-mails (prd-retencao-lembretes): online-only like
 // termos/privacidade, so their chunks carry a prefix and stay out of the SW precache.
 const EMAIL_PAGE_CHUNK = /\/pages\/(lembretes\/desativado|provas\/resultado)\.vue/
@@ -95,9 +106,9 @@ export default defineNuxtConfig({
       name: 'BAIGI',
       short_name: 'BAIGI',
       description: 'Estude de forma mais inteligente — repetição espaçada com IA',
-      // DS v2 light surface (--bg-base in assets/css/main.css)
-      theme_color: '#F9FAFD',
-      background_color: '#F9FAFD',
+      // DS v3 light page (--surface-page in assets/css/tokens.css)
+      theme_color: THEME_COLOR.light,
+      background_color: THEME_COLOR.light,
       display: 'standalone',
       scope: '/',
       start_url: '/hoje',
@@ -189,8 +200,9 @@ export default defineNuxtConfig({
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
         { name: 'description', content: 'Estude de forma mais inteligente — repetição espaçada com IA' },
-        { name: 'theme-color', content: '#F9FAFD', media: '(prefers-color-scheme: light)' },
-        { name: 'theme-color', content: '#0F001F', media: '(prefers-color-scheme: dark)' },
+        // Follow the OS until THEME_SCRIPT syncs them with the app theme (light, dark or system)
+        { name: 'theme-color', content: THEME_COLOR.light, media: '(prefers-color-scheme: light)' },
+        { name: 'theme-color', content: THEME_COLOR.dark, media: '(prefers-color-scheme: dark)' },
         { name: 'apple-mobile-web-app-capable', content: 'yes' },
         { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
       ],
@@ -198,6 +210,7 @@ export default defineNuxtConfig({
         // Prerendered /, /entrar, /criar-conta: a user with the session hint cookie is
         // redirected to /hoje by the middleware once JS runs; hide the static page until
         // then (no landing flash). plugins/auth.client.ts removes the class; 4 s failsafe.
+        { innerHTML: THEME_SCRIPT, tagPosition: 'head' },
         { innerHTML: SESSION_HINT_SCRIPT, tagPosition: 'head' },
       ],
       style: [

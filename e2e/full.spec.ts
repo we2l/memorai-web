@@ -49,14 +49,14 @@ test.describe('Revisão (/revisar)', () => {
 
   test('carrega sessão de revisão ou mostra tudo em dia', async ({ page }) => {
     await page.waitForTimeout(2000)
-    const hasCards = await page.locator('.review-card').count() > 0
-    const finished = await page.getByText(/Tudo em dia|Missão de hoje concluída/i).count() > 0
-    const waiting = await page.getByText('Aguardando').count() > 0
+    const hasCards = await page.getByTestId('review-card').count() > 0
+    const finished = await page.getByTestId('review-all-done').or(page.getByTestId('review-session-end')).or(page.getByTestId('review-no-cards')).count() > 0
+    const waiting = await page.getByTestId('review-waiting').count() > 0
     expect(hasCards || finished || waiting).toBeTruthy()
   })
 
   test('botão Voltar leva ao dashboard', async ({ page }) => {
-    await page.getByText('← Voltar').click()
+    await page.getByTestId('review-exit').click()
     await expect(page).toHaveURL(/\/hoje/)
   })
 })

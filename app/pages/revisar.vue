@@ -1,368 +1,237 @@
 <template>
-  <div class="review-bg review-shell flex flex-col overflow-hidden">
-    <!-- Top bar — minimal -->
-    <div v-show="!dive.active.value" class="flex items-center justify-between gap-2 px-4 py-2">
-      <div class="flex items-center gap-1">
-        <NuxtLink :to="backTo" class="inline-flex items-center min-h-[44px] px-1 text-sm text-base-muted hover:text-base-primary transition-opacity">
-          ← Voltar
-        </NuxtLink>
-        <button
-          v-if="review.canUndo"
-          type="button"
-          class="inline-flex items-center gap-1.5 min-h-[44px] px-3 rounded-full text-small text-base-secondary hover:text-base-primary hover:bg-[var(--border-divider)] transition-colors"
-          aria-keyshortcuts="U Control+Z"
-          @click="handleUndo"
-        >
-          <Undo2 :size="16" aria-hidden="true" />
-          Desfazer
-        </button>
-        <button
-          v-if="review.currentCard && !review.showErrorDiary"
-          type="button"
-          class="inline-flex items-center justify-center w-11 h-11 rounded-full text-base-muted hover:text-base-primary hover:bg-[var(--border-divider)] transition-colors"
-          aria-label="Editar card"
-          aria-keyshortcuts="E"
-          @click="openEdit"
-        >
-          <Pencil :size="16" aria-hidden="true" />
-        </button>
-      </div>
-      <div class="flex items-center gap-3 text-small text-base-secondary min-w-0">
-        <span v-if="isSurvivalMode" class="px-2 py-0.5 rounded-full text-micro uppercase tracking-wide font-medium bg-[var(--badge-warning-bg)] text-[var(--badge-warning-text)]">Sobrevivência</span>
-        <span v-if="isBlitz" class="px-2 py-0.5 rounded-full text-micro uppercase tracking-wide font-medium bg-[var(--badge-primary-bg)] text-[var(--badge-primary-text)] inline-flex items-center gap-1"><Zap :size="10" aria-hidden="true" /> Relâmpago</span>
-        <span v-if="sessionTimer > 0" class="font-mono" :class="sessionTimer <= 60 ? 'text-[var(--badge-danger-text)]' : ''" aria-live="polite" :aria-label="`${formatTime(sessionTimer)} restantes`">
+  <div class="flex h-dvh flex-col bg-page text-fg">
+    <ReviewTopBar
+      v-if="!focusMode"
+      :back-to="backTo"
+      :scope-text="scopeText"
+      :scope-note="scopeNote"
+      :batch="showBatchBar ? batches.position.value : null"
+      :can-undo="review.canUndo"
+      :can-edit="!!review.currentCard && !review.showErrorDiary && !batchEndIndex"
+      :blitz-to="isBlitz ? null : blitzTo"
+      @undo="handleUndo"
+      @edit="openEdit"
+      @focus-mode="enterFocus"
+      @shortcuts="showShortcuts = true"
+    >
+      <template v-if="isBlitz || sessionTimer > 0" #status>
+        <span class="ml-auto text-meta font-medium tabular-nums sm:ml-0" :class="sessionTimer <= 60 ? 'text-danger' : 'text-fg-strong'" role="timer" :aria-label="`${formatTime(sessionTimer)} restantes`">
           {{ formatTime(sessionTimer) }}
         </span>
-        <span v-if="review.currentCard" class="font-medium text-base-primary">{{ review.remaining <= 1 ? 'Último!' : `${review.remaining - 1} restante${review.remaining - 1 !== 1 ? 's' : ''}` }}</span>
-        <span class="hidden min-[400px]:inline text-micro text-base-muted">{{ reviewMood }}</span>
-      </div>
-      <button class="min-h-[44px] px-3 rounded-full text-micro font-medium bg-accent-primary-subtle text-accent-primary border border-[var(--color-accent-primary)]/20 hover:bg-[var(--badge-primary-bg)] transition-colors" @click="dive.start()">
-        Mergulhar
-      </button>
-    </div>
+      </template>
+    </ReviewTopBar>
 
-    <!-- Screen reader announcements (undo) -->
+    <!-- One line of context in place of the old banners -->
+    <p v-if="contextText && !focusMode && !review.loading" class="px-gutter pt-2 text-center text-meta text-fg-muted" data-testid="review-context">{{ contextText }}</p>
+
+    <!-- Screen reader: undo and the end of a batch -->
     <p class="sr-only" aria-live="polite">{{ review.undoAnnouncement }}</p>
+    <p class="sr-only" aria-live="polite" data-testid="review-announce">{{ announcement }}</p>
 
     <!-- Unsent ratings (RF-F2.4) -->
-    <div
-      v-if="review.queuePaused"
-      role="alert"
-      class="flex items-center justify-center gap-3 px-4 py-2 bg-[var(--badge-warning-bg)] text-[var(--badge-warning-text)] text-small font-medium"
-    >
+    <div v-if="review.queuePaused" role="alert" class="flex items-center justify-center gap-3 bg-warning-subtle px-4 py-2 text-meta font-medium text-warning">
       <span>{{ review.pendingCount }} avaliaç{{ review.pendingCount === 1 ? 'ão não enviada' : 'ões não enviadas' }}</span>
-      <button type="button" class="min-h-[44px] px-3 underline underline-offset-2 font-semibold" @click="review.retryQueue()">
-        Tentar de novo
-      </button>
+      <UiButton size="sm" variant="ghost" @click="review.retryQueue()">Tentar de novo</UiButton>
     </div>
 
-    <!-- Progress bar — thin, with pulse on update -->
-    <div class="w-full h-[3px] bg-[var(--border-base)]">
-      <div
-        class="h-[3px] transition-all duration-500 ease-out bg-[var(--color-accent-soft)]"
-        :class="progressPulse ? 'progress-pulse' : ''"
-        :style="{ width: review.progress + '%' }"
-      />
-    </div>
-
-    <!-- Micro reward toast -->
-    <Transition name="reward-pop">
-      <div v-if="rewardMessage" class="fixed top-16 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-[var(--bg-card)] border border-[var(--color-accent-primary)]/20 text-sm text-accent-primary shadow-lg">
-        {{ rewardMessage }}
+    <div class="min-h-0 flex-1 overflow-y-auto">
+      <!-- Loading: the card and the bar keep their place -->
+      <div v-if="review.loading" class="mx-auto flex w-full max-w-3xl flex-col gap-4 px-gutter py-6" aria-busy="true">
+        <span class="sr-only" role="status">Carregando a revisão…</span>
+        <UiSkeleton variant="block" size="lg" />
+        <UiSkeleton variant="text" :lines="2" />
       </div>
-    </Transition>
 
-    <!-- The slice of this session (prd-caderno-f2-recorte RF-F2): "TRF 4ª Região › Apostila" -->
-    <p v-if="scopeTrail && !review.loading" class="px-4 pt-2 text-center text-meta text-fg-muted truncate" data-testid="review-scope">
-      <span class="sr-only">Revisando: </span>{{ scopeTrail }}
-    </p>
-
-    <!-- Insight banners -->
-    <div v-if="!review.loading && !review.finished && !review.sessionError" class="px-4 space-y-2 mt-2">
-      <UiInsightBanner
-        v-if="isAhead"
-        :icon="FastForward"
-        text="Praticando adiantado: o agendamento continua sendo atualizado"
-        variant="info"
-      />
-      <UiInsightBanner
-        v-if="review.retaFinal?.active"
-        :icon="Flame"
-        :text="`Reta Final — +${review.retaFinal.extra_count} cards extras de ${review.retaFinal.exam_titles.join(', ')}`"
-        variant="accent"
-      />
-      <UiInsightBanner
-        v-if="isSurvivalMode"
-        :icon="AlertOctagon"
-        text="Modo Sobrevivência — apenas os 20 mais urgentes"
-        variant="warning"
-        dismissible
-        persist-key="survival-review"
-      />
-      <UiInsightBanner
-        v-if="isBlitz"
-        :icon="Timer"
-        text="Revisão relâmpago — só cards pendentes, sem novos"
-        variant="info"
-        dismissible
-        persist-key="blitz-review"
-      />
-    </div>
-
-    <!-- Loading -->
-    <div v-if="review.loading" class="flex-1 flex flex-col items-center justify-center px-4 gap-6">
-      <div class="w-full max-w-2xl">
-        <div class="review-card rounded-2xl px-12 py-12 min-h-[360px] flex flex-col items-center justify-center gap-4">
-          <div class="skeleton h-4 w-24 rounded" />
-          <div class="skeleton h-6 w-64 rounded mt-4" />
-          <div class="skeleton h-4 w-48 rounded" />
-        </div>
-      </div>
-      <p class="text-small text-base-muted animate-pulse">Carregando sessão...</p>
-    </div>
-
-    <!-- Load error: never "Tudo em dia" (RN-UX-03) -->
-    <div v-else-if="review.sessionError" class="flex-1 flex flex-col items-center justify-center px-4">
+      <!-- Load error: never "Tudo em dia" (RN-UX-03) -->
       <UiErrorState
+        v-else-if="review.sessionError"
         variant="page"
         title="Não foi possível carregar sua revisão"
         description="Verifique sua conexão e tente de novo."
         @retry="loadSession"
       >
         <template #actions>
-          <NuxtLink to="/hoje" class="btn-ghost min-h-[44px]">Voltar</NuxtLink>
+          <UiButton variant="ghost" :to="backTo">Voltar</UiButton>
         </template>
       </UiErrorState>
-    </div>
 
-    <!-- Queue still draining -->
-    <div v-else-if="review.saving && !review.showErrorDiary" class="flex-1 flex flex-col items-center justify-center px-4 text-center" role="status">
-      <div class="w-8 h-8 border-2 border-[var(--color-accent-primary)] border-t-transparent rounded-full animate-spin mb-4" aria-hidden="true" />
-      <p class="text-body text-base-secondary">Salvando suas avaliações…</p>
-    </div>
+      <!-- Queue still draining / next page on its way -->
+      <div v-else-if="(review.saving || review.awaitingPage) && !review.showErrorDiary" class="flex flex-col items-center gap-4 px-gutter py-16 text-center" role="status">
+        <UiSpinner />
+        <p class="text-body text-fg">{{ review.saving ? 'Salvando suas avaliações…' : 'Carregando mais cards…' }}</p>
+      </div>
 
-    <!-- Next page of the session on its way (pages of 100 cards) -->
-    <div v-else-if="review.awaitingPage && !review.showErrorDiary" class="flex-1 flex flex-col items-center justify-center px-4 text-center" role="status">
-      <div class="w-8 h-8 border-2 border-[var(--color-accent-primary)] border-t-transparent rounded-full animate-spin mb-4" aria-hidden="true" />
-      <p class="text-body text-base-secondary">Carregando mais cards…</p>
-    </div>
+      <!-- End of a batch: the reward lives here, not on each rating -->
+      <LazyReviewBatchEnd
+        v-else-if="batchEndIndex && !review.showErrorDiary"
+        :index="batchEndIndex"
+        :summary="batchEndSummary!"
+        :goal="statsNow?.goal ?? null"
+        :goal-met="goalCelebrated"
+        :streak="streakInfo"
+        :stats-loading="statsLoading"
+        :next-count="Math.min(REVIEW_BATCH, review.remaining)"
+        :back-to="backTo"
+        :back-label="backLabel"
+        :language="language"
+        @next="nextBatch"
+        @stop="stopAtBatch"
+      />
 
-    <!-- Finished -->
-    <div v-else-if="review.finished && !review.showErrorDiary" class="flex-1 min-h-0 overflow-y-auto flex flex-col items-center justify-center px-4 py-6 text-center">
-      <!-- Empty session (no cards found) -->
-      <template v-if="review.reviewed === 0">
-        <picture class="contents"><source srcset="~/assets/mascots/mascot-baigi-celebrating.avif" type="image/avif"><img src="~/assets/mascots/mascot-baigi-celebrating.webp" alt="Baigi celebrando" class="w-24 h-24 object-contain mb-4" width="96" height="96" loading="lazy" decoding="async" /></picture>
-        <h2 class="text-display">{{ isErrorsOnly ? 'Sem erros pra revisar' : 'Tudo em dia!' }}</h2>
-        <p class="text-body text-base-muted mt-3 max-w-sm">
-          {{ isErrorsOnly
-            ? 'Seus cards errados já foram revisados ou ainda não estão na hora de voltar. Eles vão reaparecer automaticamente.'
-            : 'Nenhum card pendente agora. Que tal criar novos cards?'
-          }}
-        </p>
-        <UiButton variant="primary" class="mt-8" :to="backTo">
-          {{ backLabel }}
-        </UiButton>
+      <!-- The session ended -->
+      <template v-else-if="review.finished && !review.showErrorDiary">
+        <LazyReviewSessionEnd
+          v-if="review.totalRated > 0"
+          :summary="sessionSummary"
+          :scope-label="scopeEndLabel"
+          :goal="statsNow?.goal ?? null"
+          :goal-met="goalCelebrated"
+          :streak="streakInfo"
+          :back-to="backTo"
+          :back-label="backLabel"
+          :errors-to="errorsScope ? reviewPath(errorsScope, { errorsOnly: true, origin: scopeOrigin }) : null"
+          :errors-count="errorsCount"
+          :retention="!isBlitz && !isErrorsOnly"
+        >
+          <template v-if="!tomorrowFailed" #tomorrow>
+            <LazyReviewSessionTomorrow :forecast="tomorrow" :loading="tomorrowLoading" :enabling="enablingReminder" @enable-reminder="enableReminder" />
+          </template>
+        </LazyReviewSessionEnd>
+
+        <!-- No card in the whole account: never "Tudo em dia" for someone without cards (03 Q6) -->
+        <LazyUiEmptyState
+          v-else-if="statsBefore && statsBefore.total_cards === 0"
+          title="Você ainda não tem cards"
+          description="Mande um PDF, cole um texto ou crie à mão: a revisão começa com eles."
+          mascot="idle"
+          data-testid="review-no-cards"
+        >
+          <template #action>
+            <UiButton variant="primary" @click="addSheet.show('review')">Criar meus primeiros cards</UiButton>
+          </template>
+        </LazyUiEmptyState>
+
+        <!-- All done (has cards, nothing to review now): no celebration, nothing was achieved here -->
+        <div v-else class="mx-auto flex w-full max-w-md flex-col items-center gap-4 px-gutter py-12 text-center" data-testid="review-all-done">
+          <LazyUiBaigiMascot :size="88" state="idle" />
+          <h1 class="text-page-title-sm text-fg-strong">{{ isErrorsOnly ? 'Sem erros para revisar' : 'Tudo em dia' }}</h1>
+          <p class="text-body text-fg-muted">
+            {{ isErrorsOnly ? 'Os cards que você errou já foram revisados ou ainda não estão na hora de voltar.' : 'Nada para revisar agora neste recorte.' }}
+          </p>
+          <LazyReviewSessionTomorrow v-if="!tomorrowFailed" :forecast="tomorrow" :loading="tomorrowLoading" :enabling="enablingReminder" @enable-reminder="enableReminder" />
+          <UiButton variant="primary" :to="backTo">{{ backLabel }}</UiButton>
+        </div>
       </template>
 
-      <!-- Normal finish (reviewed some cards) — RF-F2.10 -->
-      <FlashcardReviewSessionSummary
-        v-else
-        :reviewed="review.totalRated"
-        :ratings="review.ratingsCount"
-        :started-at="review.sessionStartedAt"
-        :pending-learning="review.pendingLearning"
-        :top-error-topic="topErrorTopic ?? null"
-        :has-backlog="hasBacklog"
-        :back-to="scopeBack"
-        :back-label="backLabel"
-        :errors-to="errorsScope ? reviewPath(errorsScope, { errorsOnly: true, origin: scopeOrigin }) : null"
-        :errors-count="errorsCount"
-      >
-        <template v-if="!tomorrowFailed" #tomorrow>
-          <ReviewSessionTomorrow
-            :forecast="tomorrow"
-            :loading="tomorrowLoading"
-            :enabling="enablingReminder"
-            @enable-reminder="enableReminder"
-          />
-        </template>
-      </FlashcardReviewSessionSummary>
-    </div>
+      <!-- Waiting for cards in learning -->
+      <div v-else-if="!review.currentCard && review.pendingLearning > 0 && !review.showErrorDiary" class="mx-auto flex max-w-md flex-col items-center gap-3 px-gutter py-16 text-center" data-testid="review-waiting">
+        <h1 class="text-section text-fg-strong">Volta em 1 min</h1>
+        <p class="text-body text-fg-muted">{{ review.pendingLearning }} {{ review.pendingLearning === 1 ? 'card que você está aprendendo volta' : 'cards que você está aprendendo voltam' }} em instantes.</p>
+        <UiButton variant="primary" :to="backTo">Encerrar por hoje</UiButton>
+      </div>
 
-    <!-- Waiting for learning cards -->
-    <div v-else-if="!review.currentCard && review.pendingLearning > 0 && !review.showErrorDiary" class="flex-1 flex flex-col items-center justify-center px-4 text-center">
-      <p class="text-4xl mb-4">⏳</p>
-      <h2 class="text-display">Aguardando...</h2>
-      <p class="text-base-muted text-small mt-2">
-        {{ review.pendingLearning }} card{{ review.pendingLearning !== 1 ? 's' : '' }} em aprendizado — {{ review.pendingLearning === 1 ? 'volta' : 'voltam' }} em breve.
-      </p>
-      <NuxtLink to="/hoje" class="btn-secondary mt-8">Voltar</NuxtLink>
-    </div>
-
-    <!-- Review -->
-    <template v-else-if="review.currentCard">
-      <div class="flex-1 min-h-0 overflow-y-auto">
-        <div class="min-h-full flex flex-col items-center justify-center px-4 py-4 gap-4">
-          <!-- State badge -->
-          <div v-if="review.currentCard.is_learning || review.currentCard.state === 'new'" class="flex items-center gap-2">
-            <span class="px-3 py-1 rounded-full text-xs tracking-wide uppercase font-medium bg-surface-secondary border border-base text-base-muted">
-              {{ review.currentCard.state === 'relearning' ? 'Reaprendendo' : review.currentCard.state === 'new' ? 'Novo' : 'Aprendendo' }}
-            </span>
-          </div>
-
-          <!-- Context badge -->
-          <UiTooltip v-if="contextBadge" :text="contextBadge.tooltip">
-            <span class="px-3 py-1 rounded-full text-xs font-medium inline-flex items-center gap-1.5" :class="contextBadge.classes">
-              <component :is="contextBadge.icon" :size="12" aria-hidden="true" />
-              {{ contextBadge.label }}
-            </span>
-          </UiTooltip>
-
-          <FlashcardCard
-            :card="review.showErrorDiary && review.diary ? review.diary.card : review.currentCard"
-            :flipped="review.flipped || review.showErrorDiary"
-            :feedback="cardFeedback"
-            @flip="review.flip()"
-          />
-
-          <p v-if="!review.flipped && !review.showErrorDiary" class="kbd-only text-micro text-base-muted">
-            <kbd class="kbd">Espaço</kbd> para virar
-          </p>
-          <UiButton v-if="review.flipped && !review.showErrorDiary" size="sm" variant="ghost" :icon-left="MessageCircle" @click="explainCard">
-            Explicar este card
-          </UiButton>
-          <p v-if="showShortcutTip && !review.flipped" class="kbd-only text-micro text-base-muted">
-            Pressione <kbd class="kbd">?</kbd> para ver atalhos
-          </p>
-
-          <!-- Error diary (replaces buttons after error) -->
-          <div v-if="review.showErrorDiary" class="w-full max-w-lg space-y-3">
-            <FlashcardErrorDiary
-              :visible="true"
-              :flashcard-id="review.diary?.flashcard_id ?? ''"
-              :review-id="review.diary?.review_id ?? ''"
-              @saved="dismissErrorDiary"
-              @skipped="dismissErrorDiary"
+      <!-- The card -->
+      <div v-else-if="review.currentCard" class="mx-auto flex w-full max-w-3xl flex-col gap-4 px-gutter py-6">
+        <ReviewCard
+          :card="review.showErrorDiary && review.diary ? review.diary.card : review.currentCard"
+          :flipped="review.flipped || review.showErrorDiary"
+          :label="cardLabel"
+          @flip="review.flip()"
+        >
+          <template #origin>
+            <ReviewOrigin
+              :origin="shownCard?.origin"
+              :lapses="shownCard?.lapses"
+              :topic-id="shownCard?.topic_id"
+              :back-to="route.fullPath"
+              @open="(kind) => track('review_origin_open', { kind })"
             />
-            <!-- Note snippet -->
-            <div v-if="review.noteSnippet" class="p-3 rounded-lg bg-subtle text-left">
-              <p class="text-label text-fg-muted">Da sua nota: <span class="font-semibold text-fg-strong">{{ review.noteSnippet.title }}</span></p>
-              <p class="mt-1 text-meta text-fg">{{ review.noteSnippet.snippet }}</p>
-              <!-- Bridge to the material (RF-F3): the caderno with that note open -->
-              <UiLink :to="cadernoPath(review.noteSnippet.topic_id, { note: review.noteSnippet.note_id })" standalone>
-                Abrir na nota
-              </UiLink>
-            </div>
-            <!-- Actions -->
-            <div class="flex gap-2 justify-center">
-              <button class="btn-secondary min-h-[44px] !py-1.5 !px-3 text-sm" @click="openChatForError">
-                Me explica esse erro
-              </button>
-            </div>
-          </div>
+          </template>
+        </ReviewCard>
 
-          <!-- Hints after an error (RF-F2.9): optional context, never blocks -->
-          <section
-            v-if="!review.showErrorDiary && (review.hintsLoading || review.hints.length)"
-            class="w-full max-w-lg"
-            aria-live="polite"
-            aria-label="Dicas da sua nota"
-          >
-            <div v-if="review.hintsLoading" class="space-y-2" aria-busy="true">
-              <div class="skeleton h-4 w-full rounded" />
-              <div class="skeleton h-4 w-2/3 rounded" />
-            </div>
-            <template v-else>
-              <ul class="space-y-2">
-                <li
-                  v-for="(hint, i) in visibleHints"
-                  :key="i"
-                  class="flex gap-2 p-3 rounded-lg border text-small text-left"
-                  :class="hintStyle(hint.type).box"
-                >
-                  <component :is="hintStyle(hint.type).icon" :size="16" class="shrink-0 mt-0.5" aria-hidden="true" />
-                  <span><span class="sr-only">{{ hintStyle(hint.type).label }}: </span><span v-html="sanitize(hint.text)" /></span>
-                </li>
-              </ul>
-              <button
-                v-if="!showAllHints && review.hints.length > 2"
-                type="button"
-                class="mt-2 text-small text-accent-primary underline underline-offset-2 min-h-[44px]"
-                @click="showAllHints = true"
-              >
-                Ver mais {{ review.hints.length - 2 }}
-              </button>
-            </template>
-          </section>
-
-          <!-- Weak connection suggestion -->
-          <div v-if="review.weakSuggestion?.length && !review.showErrorDiary" class="w-full max-w-lg px-4">
-            <div class="card border border-warning/30 text-center">
-              <p class="text-small text-base-muted mb-2">Caderno conectado também está fraco:</p>
-              <div v-for="w in review.weakSuggestion" :key="w.id" class="flex items-center justify-center gap-2 text-small">
-                <AlertTriangle :size="14" class="text-[var(--badge-warning-text)]" aria-hidden="true" />
-                <span class="text-base-primary font-medium">{{ w.name }}</span>
-                <span class="text-base-muted">({{ Math.round(w.progress * 100) }}%)</span>
-              </div>
-            </div>
-          </div>
+        <div v-if="review.flipped && !review.showErrorDiary" class="flex flex-wrap items-center justify-center gap-x-3">
+          <UiButton size="sm" variant="ghost" :icon-left="MessageCircle" data-testid="review-explain" @click="explainCard">Explicar este card</UiButton>
+          <span v-if="chatQuota" class="text-label text-fg-muted">{{ chatQuota }}</span>
         </div>
+
+        <!-- Error diary (replaces the ratings after an error) -->
+        <template v-if="review.showErrorDiary">
+          <LazyFlashcardErrorDiary
+            :visible="true"
+            :flashcard-id="review.diary?.flashcard_id ?? ''"
+            :review-id="review.diary?.review_id ?? ''"
+            @saved="dismissErrorDiary"
+            @skipped="dismissErrorDiary"
+          />
+          <div class="flex justify-center">
+            <UiButton size="sm" variant="ghost" :icon-left="MessageCircle" @click="openChatForError">Me explica esse erro</UiButton>
+          </div>
+        </template>
+
+        <!-- Hints after an error and a weak connected caderno: optional context, never blocks -->
+        <LazyReviewHints v-if="!review.showErrorDiary && (review.hintsLoading || review.hints.length || review.weakSuggestion?.length)" />
       </div>
 
-      <!-- Rating footer (fixed inside the shell, safe-area aware) -->
-      <div v-if="review.flipped && !review.showErrorDiary" class="review-footer shrink-0 px-4 pt-3 border-t border-base bg-[var(--bg-base)]">
-        <FlashcardButtons :intervals="review.currentIntervals" @rate="handleRate" />
+      <!-- No card at all to show (the API answered nothing; should not happen once finished) -->
+      <div v-else-if="!review.showErrorDiary" class="flex flex-col items-center gap-4 px-gutter py-16 text-center">
+        <p class="text-body text-fg">Nada para revisar agora.</p>
+        <UiButton variant="primary" :to="backTo">{{ backLabel }}</UiButton>
       </div>
-    </template>
-
-    <!-- No cards -->
-    <div v-else-if="!review.showErrorDiary" class="flex-1 flex flex-col items-center justify-center px-4 text-center">
-      <p class="text-base-secondary text-title">Tudo em dia! 🎉 Que tal gerar novos cards?</p>
-      <p class="text-base-muted text-small mt-1">Suba um PDF ou peça pra IA gerar.</p>
-      <NuxtLink to="/cadernos" class="btn-primary mt-6">Ir pra Cadernos</NuxtLink>
     </div>
 
-    <!-- Timer expired modal -->
-    <UiModal v-model="showTimerModal" size="sm" aria-label="Tempo esgotado">
-      <div class="text-center">
-        <p class="text-4xl mb-4"></p>
-        <h2 class="text-title">{{ isBlitz ? 'Revisão relâmpago concluída!' : 'Tempo esgotado!' }}</h2>
-        <p class="text-base-muted text-small mt-2">
-          Você revisou <span class="text-accent-primary font-medium">{{ review.reviewed }}</span> card{{ review.reviewed !== 1 ? 's' : '' }}{{ isBlitz ? ' em 5 min' : '' }}.
+    <!-- Bottom bar: "Mostrar resposta" (the primary before the turn) or the 4 ratings, fixed on the phone -->
+    <footer
+      v-if="review.currentCard && !review.showErrorDiary && !batchEndIndex && !review.finished && !review.saving && !review.awaitingPage"
+      class="shrink-0 border-t border-line bg-raised px-gutter pt-3 pb-safe-bottom"
+      data-testid="review-footer"
+    >
+      <div class="mx-auto w-full max-w-3xl pb-3">
+        <ReviewRatings v-if="review.flipped" :intervals="review.currentIntervals" @rate="handleRate" />
+        <UiButton v-else variant="primary" block aria-keyshortcuts="Space" data-testid="review-show" @click="review.flip()">Mostrar resposta</UiButton>
+        <p class="mt-2 hidden text-center text-label text-fg-muted pointer-fine:block" data-testid="review-keys">
+          <kbd class="font-sans">1</kbd> <kbd class="font-sans">2</kbd> <kbd class="font-sans">3</kbd> <kbd class="font-sans">4</kbd> · Espaço mostrar · U desfazer<template v-if="showShortcutTip"> · ? atalhos</template>
         </p>
-        <div class="flex gap-3 mt-6 justify-center">
-          <NuxtLink to="/hoje" class="btn-secondary">Encerrar</NuxtLink>
-          <button class="btn-primary" @click="continueAfterTimer">{{ isBlitz ? 'Mais 5 min' : 'Continuar' }}</button>
-        </div>
       </div>
-    </UiModal>
+    </footer>
+
+    <!-- Timer expired -->
+    <UiDialog v-model="showTimerModal" :title="isBlitz ? 'Relâmpago concluído!' : 'Tempo esgotado'" size="sm">
+      <p class="text-body text-fg">Você revisou <span class="font-semibold text-fg-strong">{{ review.reviewed }}</span> {{ review.reviewed === 1 ? 'card' : 'cards' }}{{ isBlitz ? ' em 5 min' : '' }}.</p>
+      <template #footer>
+        <UiButton variant="ghost" :to="backTo">Encerrar</UiButton>
+        <UiButton variant="primary" @click="continueAfterTimer">{{ isBlitz ? 'Mais 5 min' : 'Continuar' }}</UiButton>
+      </template>
+    </UiDialog>
 
     <!-- Edit current card (E) -->
-    <LazyFlashcardCardFormModal
-      v-if="editLoaded && editingCard"
-      v-model="showEditCard"
-      :card="editingCard"
-      @updated="onCardUpdated"
-    />
+    <LazyFlashcardCardFormModal v-if="editLoaded && editingCard" v-model="showEditCard" :card="editingCard" @updated="onCardUpdated" />
 
     <!-- Shortcuts help (?) -->
-    <UiModal v-model="showShortcuts" size="sm">
-      <h2 class="text-title mb-4">Atalhos da revisão</h2>
-      <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-small">
+    <UiDialog v-model="showShortcuts" title="Atalhos da revisão" size="sm">
+      <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-meta">
         <template v-for="s in shortcutList" :key="s.keys">
-          <dt><kbd class="kbd">{{ s.keys }}</kbd></dt>
-          <dd class="text-base-secondary">{{ s.label }}</dd>
+          <dt><kbd class="rounded-tag border border-line-strong px-1.5 font-sans text-label text-fg">{{ s.keys }}</kbd></dt>
+          <dd class="text-fg">{{ s.label }}</dd>
         </template>
       </dl>
-    </UiModal>
+    </UiDialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { TomorrowForecast } from '~/types'
+// Review v3 (prd-4d-revisao-v3): batches of 20 with a visible end, the origin of each card with a link to the
+// excerpt, the 4 ratings in the same order on every screen, the end of a batch with the celebration, the goal
+// of the day and the streak, and the end of the session with tomorrow and the retention suggestion. The
+// reward moved from each rating (the old toasts) to the end of the batch; the 3 banners became one line; the
+// "Mergulhar" became the focus mode. Slices of the F2 (scope=, card_ids, origin, ahead, errors_only), the
+// blitz (5 min, no batches), the session timer, undo, the error diary and the unsent ratings stay as they were.
+import type { Stats, TomorrowForecast } from '~/types'
 import { cadernoPath, markScopeCleared } from '~/utils/scope'
 import { reviewPath, scopeBackPath, scopeOf, scopeQuery, sessionScopeFromQuery } from '~/utils/reviewScope'
-import { Flame, AlertOctagon, AlertTriangle, Timer, Zap, CalendarClock, GitBranch, FastForward, Undo2, XCircle, Lightbulb, Pencil, MessageCircle } from 'lucide-vue-next'
+import { batchSummary, studyDayEnd } from '~/composables/useReviewBatches'
+import type { StreakInfo } from '~/components/review/ReviewBatchEnd.vue'
+import { REVIEW_BATCH } from '~/stores/review'
+import { MessageCircle } from 'lucide-vue-next'
 
 definePageMeta({ chrome: 'focus' })
 
@@ -370,61 +239,164 @@ const review = useReviewStore()
 const deckStore = useDeckStore()
 const chat = useChatStore()
 const examStore = useExamStore()
+const topicStore = useTopicStore()
+const addSheet = useAddSheet()
 const route = useRoute()
-const dive = useDiveMode()
+const { $api } = useNuxtApp()
+const { track } = useAnalytics()
+const featureUsage = useFeatureUsage()
 const lastErrorCard = ref<any>(null)
-const cardFeedback = ref<'success' | 'error' | null>(null)
-const correctStreak = ref(0)
-const rewardMessage = ref('')
-const progressPulse = ref(false)
-const errorsByTopic = ref<Record<string, { name: string; count: number; id: string }>>({})
-const showAllHints = ref(false)
-let rewardTimeout: ReturnType<typeof setTimeout> | null = null
 
-const visibleHints = computed(() =>
-  showAllHints.value ? review.hints : review.hints.slice(0, 2),
-)
+// === Session modes ===
+const sessionTimer = ref(0)
+const showTimerModal = ref(false)
+const isSurvivalMode = ref(false)
+const isBlitz = ref(false)
+const isErrorsOnly = computed(() => route.query.errors_only === '1')
+const querySlice = computed(() => sessionScopeFromQuery(route.query))
+const scopeTopicId = computed(() => querySlice.value.topicId ?? (querySlice.value.scope?.type === 'topic' ? querySlice.value.scope.id : null))
+const isAhead = computed(() => !!querySlice.value.ahead)
+const scopeOrigin = computed(() => querySlice.value.origin)
+const blitzTo = computed(() => (scopeTopicId.value ? `/revisar?mode=blitz&topic_id=${scopeTopicId.value}` : '/revisar?mode=blitz'))
 
-const { sanitize } = useSanitize()
+// === Batches (RF-F1) ===
+const batches = useReviewBatches(isBlitz)
+const showBatchBar = computed(() => batches.enabled.value && !review.loading && !review.sessionError && !review.finished)
+const batchEndIndex = computed(() => batches.ended.value)
+const batchEndSummary = computed(() => (batchEndIndex.value ? batchSummary(review.log, batchEndIndex.value, studyDayEnd()) : null))
+const sessionSummary = computed(() => batchSummary(review.log, null, studyDayEnd()))
 
-function hintStyle(type: string) {
-  if (type === 'error') return { icon: XCircle, label: 'Erro comum', box: 'bg-[var(--badge-danger-bg)] border-[var(--badge-danger-text)]/20 text-base-primary' }
-  if (type === 'gotcha') return { icon: AlertTriangle, label: 'Pegadinha', box: 'bg-[var(--badge-warning-bg)] border-[var(--badge-warning-text)]/20 text-base-primary' }
-  return { icon: Lightbulb, label: 'Dica', box: 'bg-[var(--badge-info-bg)] border-[var(--badge-info-text)]/20 text-base-primary' }
-}
-
-// "Revisar mais" on the summary when there is backlog (silent: decorative)
-const hasBacklog = ref(false)
-watch(() => review.finished, async (done) => {
-  if (!done || review.reviewed === 0) return
-  try {
-    const res = await useNuxtApp().$api<any>('/review/backlog-stats')
-    hasBacklog.value = (res.data?.overdue_count ?? 0) > 0
-  } catch (e) {
-    reportApiError(e, { silent: true })
-  }
+// === Where the session goes back to and what it is about ===
+const scopeBack = computed(() => scopeBackPath(review.scope) ?? (scopeTopicId.value ? cadernoPath(scopeTopicId.value) : null))
+const backTo = computed(() => scopeBack.value ?? '/hoje')
+const backLabel = computed(() => {
+  if (review.scope?.label && scopeBack.value) return `Voltar a ${review.scope.label}`
+  return scopeTopicId.value ? 'Voltar ao caderno' : 'Ir para o Hoje'
+})
+/** "TRF 4ª Região" (+ "(todas as matérias)") or the path of the slice "TRF 4ª Região › Apostila" */
+const scopeText = computed(() => {
+  const sc = review.scope
+  if (!sc?.label) return ''
+  return sc.topic && sc.topic.name !== sc.label && sc.type !== 'topic' ? `${sc.topic.name} › ${sc.label}` : sc.label
+})
+const scopeNote = computed(() => (review.scope?.type === 'topic' && !review.scope.origin && !isErrorsOnly.value ? '(todas as matérias)' : ''))
+const scopeEndLabel = computed(() => (review.scope?.label && review.scope.type !== 'cards' ? review.scope.label : null))
+const language = computed(() => {
+  const id = review.scope?.topic?.id ?? scopeTopicId.value
+  return !!id && topicStore.rootOf(id)?.learning_mode === 'language'
 })
 
-// "Amanhã: N cards" + dias seguidos (prd-retencao-lembretes RF-F04): one fetch, after the queue drains
+/** The one line of context (in place of the Reta final / Sobrevivência / Relâmpago banners) */
+const contextText = computed(() => {
+  if (isBlitz.value) return 'Relâmpago: só os cards pendentes, sem novos'
+  if (review.retaFinal?.active) {
+    const exam = examStore.upcoming.find(e => review.retaFinal?.exam_titles.includes(e.title))
+    return exam ? `Prova em ${exam.days_remaining} dias: estes cards valem mais` : `Reta final: +${review.retaFinal.extra_count} cards da prova`
+  }
+  if (isSurvivalMode.value) return 'Modo recuperação ligado: só os 20 mais urgentes'
+  if (isAhead.value) return 'Praticando adiantado: o agendamento continua sendo atualizado'
+  return ''
+})
+
+// The card on screen (the diary keeps the card that was missed)
+const shownCard = computed(() => (review.showErrorDiary && review.diary ? review.diary.card : review.currentCard))
+const cardLabel = computed(() => shownCard.value?.topic_name ?? '')
+
+// === Stats: before the session (goal, streak, cards in the account) and at each end ===
+const statsBefore = shallowRef<Stats | null>(null)
+const statsNow = shallowRef<Stats | null>(null)
+const statsLoading = ref(false)
+const goalCelebrated = ref(false)
+const streakAnimated = ref(false)
+async function fetchStats(): Promise<Stats | null> {
+  try {
+    return (await $api<{ data: Stats }>('/stats')).data
+  } catch (e) {
+    reportApiError(e, { silent: true })
+    return null
+  }
+}
+/** At the end of a batch or of the session, once the ratings reached the server: fresh numbers. */
+async function refreshStats() {
+  statsLoading.value = true
+  const s = await fetchStats()
+  statsLoading.value = false
+  if (!s) return
+  statsNow.value = s
+  const goal = s.goal
+  if (goal?.met && statsBefore.value?.goal && !statsBefore.value.goal.met && !goalCelebrated.value) {
+    // Once per study day on this device, shared with Hoje (prd-4a-hoje-v3)
+    const key = `baigi-goal-celebrated-${studyDay()}`
+    try {
+      if (!localStorage.getItem(key)) {
+        localStorage.setItem(key, '1')
+        goalCelebrated.value = true
+        track('review_goal_met', { target_batches: goal.target_batches })
+      }
+    } catch { /* intencional: localStorage bloqueado, a meta não é celebrada de novo neste aparelho */ }
+  }
+}
+const streakInfo = computed<StreakInfo | null>(() => {
+  const s = statsNow.value
+  if (!s) return null
+  const extendedNow = !!s.streak_extended_today && !statsBefore.value?.streak_extended_today && !streakAnimated.value
+  return { current: s.streak, record: s.streak >= 3 && s.streak === (s.streak_longest ?? 0), extendedNow }
+})
+
+const announcement = ref('')
+watch(batchEndIndex, async (index, prev) => {
+  if (!index) {
+    if (prev) streakAnimated.value = streakAnimated.value || !!streakInfo.value?.extendedNow
+    return
+  }
+  const sum = batchEndSummary.value!
+  announcement.value = `Lote ${index} concluído, ${sum.remembered} de ${sum.size} lembrados.`
+  track('review_batch_end', { batch_index: index, batches_total: batches.position.value.total, remembered: sum.remembered, size: sum.size, scope_type: review.scope?.type ?? null })
+  await until(() => review.pendingCount === 0)
+  if (batchEndIndex.value === index) await refreshStats()
+})
+watch(() => review.finished && review.totalRated > 0 && !review.saving, (done) => {
+  if (done) void refreshStats()
+})
+
+function nextBatch() {
+  const index = batchEndIndex.value
+  if (!index) return
+  track('review_batch_continue', { batch_index: index })
+  goalCelebrated.value = false
+  if (statsNow.value) statsBefore.value = statsNow.value
+  review.ackBatch(index)
+  announcement.value = ''
+}
+function stopAtBatch() {
+  if (batchEndIndex.value) track('review_batch_stop', { batch_index: batchEndIndex.value })
+}
+
+/** Resolves when `cond` holds (or after 8 s: the numbers are then the last known). */
+function until(cond: () => boolean): Promise<void> {
+  if (cond()) return Promise.resolve()
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => { stop(); resolve() }, 8000)
+    const stop = watch(cond, (ok) => { if (ok) { clearTimeout(timer); stop(); resolve() } })
+  })
+}
+
+// === "Amanhã: N cards" + the reminder (prd-retencao-lembretes RF-F04): after the queue drains ===
 const tomorrow = ref<TomorrowForecast | null>(null)
 const tomorrowLoading = ref(false)
 const tomorrowFailed = ref(false)
-watch(() => review.finished && review.reviewed > 0 && !review.saving, async (ready) => {
+watch(() => review.finished && !review.saving, async (ready) => {
   if (!ready || tomorrow.value || tomorrowLoading.value) return
   tomorrowLoading.value = true
   try {
-    const res = await useNuxtApp().$api<{ data: TomorrowForecast }>('/review/tomorrow')
-    tomorrow.value = res.data
+    tomorrow.value = (await $api<{ data: TomorrowForecast }>('/review/tomorrow')).data
   } catch (e) {
-    // Never lie: the block simply does not render
-    tomorrowFailed.value = true
+    tomorrowFailed.value = true // never lie: the block simply does not render
     reportApiError(e, { silent: true })
   } finally {
     tomorrowLoading.value = false
   }
 })
-
-// A new session in the same page ("Revisar mais") gets a fresh forecast
 watch(() => review.finished, (done) => {
   if (done) return
   tomorrow.value = null
@@ -436,140 +408,90 @@ async function enableReminder() {
   const f = tomorrow.value
   if (!f) return
   try {
-    await runReminder(() => useNuxtApp().$api('/settings', { method: 'PUT', body: { reminder_enabled: true } }), {
+    await runReminder(() => $api('/settings', { method: 'PUT', body: { reminder_enabled: true } }), {
       success: `Lembrete ativado para ${formatReminderHour(f.reminder.hour)}`,
       error: 'Não foi possível ativar o lembrete.',
       rethrow: true,
     })
     f.reminder.enabled = true
-    useAnalytics().track('reminder_toggled', { on: true, hour: f.reminder.hour, source: 'session_end' })
+    track('reminder_toggled', { on: true, hour: f.reminder.hour, source: 'session_end' })
   } catch (e) {
     if (isEmailSuppressedError(e)) f.reminder.suppressed = true
   }
 }
 
-const topErrorTopic = computed(() => {
-  const entries = Object.values(errorsByTopic.value).filter(e => e.count >= 2)
-  if (!entries.length) return null
-  return entries.sort((a, b) => b.count - a.count)[0]
+// "Reforçar erros (N)" in the same slice (F2): its size from /review/session-count, hidden when 0
+const errorsScope = computed(() => (isErrorsOnly.value ? null : scopeOf(review.scope, querySlice.value.scope?.type === 'cards' ? querySlice.value.scope.ids : [])))
+const errorsCount = ref<number | null>(null)
+watch(() => review.finished && !review.saving && review.totalRated > 0, async (done) => {
+  errorsCount.value = null
+  if (!done || !errorsScope.value) return
+  try {
+    const res = await $api<{ data: { session_count: number } }>(`/review/session-count?${scopeQuery(errorsScope.value, { errorsOnly: true, origin: scopeOrigin.value })}`)
+    errorsCount.value = res.data.session_count
+  } catch (e) {
+    reportApiError(e, { silent: true })
+  }
 })
 
-const contextBadge = computed(() => {
-  const card = review.currentCard
-  if (!card) return null
-
-  // Priority 1: Exam boost
-  if (card.topic_id && examStore.upcoming.length) {
-    const exam = examStore.upcoming.find(e =>
-      e.days_remaining <= 14 && e.topics.some(t => t.id === card.topic_id)
-    )
-    if (exam) {
-      return {
-        icon: CalendarClock,
-        label: `Prova em ${exam.days_remaining}d`,
-        tooltip: `Priorizado porque você tem prova de "${exam.title}" em ${exam.days_remaining} dias`,
-        classes: 'bg-warning/15 text-[var(--badge-warning-text)] border border-warning/20',
-      }
-    }
-  }
-
-  // Priority 2: Interleaved, only in the optional "+ related" mode: a card of a subject of the
-  // caderno has another topic_id and is part of the caderno itself (F1 D1, subtree scope)
-  const queryTopicId = route.query.topic_id as string | undefined
-  const withRelated = route.query.include_related === '1'
-  if (withRelated && queryTopicId && card.topic_id && card.topic_id !== queryTopicId) {
-    return {
-      icon: GitBranch,
-      label: 'Tópico conectado',
-      tooltip: 'Cards de cadernos conectados são revisados juntos pra fortalecer relações',
-      classes: 'bg-info/15 text-info border border-info/20',
-    }
-  }
-
-  // Priority 3: Learn ahead
-  const isLearnAhead = !review.cards[review.currentIndex] && review.pendingLearning > 0
-  if (isLearnAhead && card.due && new Date(card.due).getTime() > Date.now()) {
-    return {
-      icon: FastForward,
-      label: 'Adiantando',
-      tooltip: 'Não tem mais cards pendentes — você está revisando adiantado',
-      classes: 'bg-surface-secondary text-base-muted border border-base',
-    }
-  }
-
-  return null
+// The person's own session emptied the caderno: its page celebrates once (05/#11)
+watch(() => review.finished && !review.saving, (done) => {
+  const topicId = scopeTopicId.value
+  if (!done || !topicId || review.totalRated === 0 || review.pendingLearning > 0) return
+  if (isErrorsOnly.value || isBlitz.value || route.query.backlog === '1') return
+  markScopeCleared(topicId)
 })
 
-let feedbackTimeout: ReturnType<typeof setTimeout> | null = null
-
+// === Rating ===
 function handleRate(rating: number) {
   const card = review.currentCard
-  if (!card || review.showErrorDiary) return
-  showAllHints.value = false
-
-  // Visual feedback only (150ms via CSS) — never blocks the next card
-  cardFeedback.value = rating >= 3 ? 'success' : 'error'
-  if (feedbackTimeout) clearTimeout(feedbackTimeout)
-  feedbackTimeout = setTimeout(() => { cardFeedback.value = null }, 150)
-
-  // Micro reaction
-  if (rating === 4) showReward('Fácil demais — esse você dominou')
-  else if (rating === 3) showReward('Boa — conceito reforçado 👏')
-  else if (rating === 2) showReward('Quase — vai fixar na próxima')
-  else if (rating === 1) showReward('Normal — você vai fixar isso agora')
-
-  // Track streak
-  if (rating >= 3) {
-    correctStreak.value++
-    if (correctStreak.value === 5) showReward('5 seguidos — você está no ritmo!')
-    else if (correctStreak.value === 10) showReward('10 seguidos — seu cérebro tá voando!')
-    else if (correctStreak.value > 10 && correctStreak.value % 10 === 0) showReward(`${correctStreak.value} seguidos!`)
-  } else {
-    correctStreak.value = 0
-    // Track errors by topic for post-session suggestion
-    if (card.topic_id) {
-      const key = card.topic_id
-      if (!errorsByTopic.value[key]) {
-        errorsByTopic.value[key] = { id: card.topic_id, name: card.topic_name ?? 'Caderno', count: 0 }
-      }
-      errorsByTopic.value[key].count++
-    }
-  }
+  if (!card || review.showErrorDiary || batchEndIndex.value) return
   if (rating <= 2) lastErrorCard.value = { ...card }
-
-  // Progress pulse
-  progressPulse.value = true
-  setTimeout(() => { progressPulse.value = false }, 600)
-
   review.rate(rating as 1 | 2 | 3 | 4)
 }
 
 async function handleUndo() {
-  const entry = review.undoStack[review.undoStack.length - 1]
-  const ok = await review.undo()
-  if (ok && entry && entry.rating <= 2 && entry.cardSnapshot.topic_id) {
-    const e = errorsByTopic.value[entry.cardSnapshot.topic_id]
-    if (e) e.count = Math.max(0, e.count - 1)
-  }
+  await review.undo()
 }
 
-// Shortcuts (RF-F2.1) + help overlay
+function dismissErrorDiary() {
+  review.dismissDiary()
+}
+
+// === Focus mode (in place of "Mergulhar"): no top, no context, full screen when the browser allows ===
+const focusMode = ref(false)
+function enterFocus() {
+  focusMode.value = true
+  document.documentElement.requestFullscreen?.().catch(() => { /* intencional: sem tela cheia, o modo foco só esconde o topo */ })
+}
+function exitFocus() {
+  focusMode.value = false
+  if (document.fullscreenElement) void document.exitFullscreen?.()
+}
+function onFullscreenChange() {
+  if (!document.fullscreenElement && focusMode.value) focusMode.value = false
+}
+onMounted(() => document.addEventListener('fullscreenchange', onFullscreenChange))
+onBeforeUnmount(() => document.removeEventListener('fullscreenchange', onFullscreenChange))
+
+// === Shortcuts (RF-F8) ===
 const showShortcuts = ref(false)
 const shortcutList = [
-  { keys: 'Espaço / Enter', label: 'Virar; com o card virado, "Lembrei"' },
-  { keys: '1 2 3 4', label: 'Não lembrei · Quase · Lembrei · Fácil demais' },
+  { keys: 'Espaço / Enter', label: 'Mostrar a resposta; com ela na tela, "Bom"' },
+  { keys: '1 2 3 4', label: 'De novo · Difícil · Bom · Fácil' },
+  { keys: 'O', label: 'Abrir a origem do card' },
   { keys: 'U / Ctrl+Z', label: 'Desfazer a última avaliação' },
   { keys: 'E', label: 'Editar o card atual' },
+  { keys: 'Enter / Esc', label: 'No fim do lote: próximo lote / voltar' },
   { keys: '?', label: 'Mostrar ou esconder os atalhos' },
-  { keys: 'Esc', label: 'Fechar o diário; senão, voltar para Hoje' },
+  { keys: 'Esc', label: 'Sair do modo foco; fechar o diário; senão, sair' },
 ]
 
-// Edit the current card (E) — content only, scheduling untouched (RF-F2.11)
 const showEditCard = ref(false)
 const editLoaded = useLoadedOnce(() => showEditCard.value)
 const editingCard = ref<any>(null)
 function openEdit() {
-  if (!review.currentCard || review.showErrorDiary) return
+  if (!review.currentCard || review.showErrorDiary || batchEndIndex.value) return
   editingCard.value = { ...review.currentCard }
   showEditCard.value = true
 }
@@ -577,21 +499,31 @@ function onCardUpdated(card?: { id: string; front: string; back: string }) {
   if (card) review.updateCurrentContent(card)
 }
 
+function openOrigin() {
+  const link = document.querySelector<HTMLAnchorElement>('[data-testid=review-origin-link]')
+  link?.click()
+}
+
 useReviewShortcuts({
   edit: openEdit,
+  openOrigin,
   flip: () => { if (review.currentCard && !review.showErrorDiary) review.flip() },
   rate: (r) => { if (review.flipped && !review.showErrorDiary) handleRate(r) },
   undo: () => { if (review.canUndo) void handleUndo() },
   toggleHelp: () => { showShortcuts.value = !showShortcuts.value },
   escape: () => {
-    if (review.showErrorDiary) dismissErrorDiary()
-    else navigateTo('/hoje')
+    if (focusMode.value) exitFocus()
+    else if (review.showErrorDiary) dismissErrorDiary()
+    else void navigateTo(backTo.value)
   },
   isFlipped: () => review.flipped,
   isSuspended: () => showTimerModal.value || showEditCard.value,
+  batchEnd: () => (batchEndIndex.value && !review.showErrorDiary
+    ? { next: nextBatch, stop: () => { stopAtBatch(); void navigateTo(backTo.value) } }
+    : null),
 })
 
-// "Press ? for shortcuts" tip on the first 3 sessions (pointer: fine only, via CSS)
+// "? atalhos" on the first 3 sessions (pointer: fine only)
 const showShortcutTip = ref(false)
 onMounted(() => {
   try {
@@ -605,7 +537,32 @@ onMounted(() => {
   }
 })
 
-// Leaving with unsent ratings asks first (RF-F2.4)
+// === Tira-dúvidas in context: the card goes to the server (flashcard_id, RF-B4) ===
+const chatQuota = computed(() => {
+  if (!featureUsage.isLimited('agent_chat')) return ''
+  const f = featureUsage.usage.value?.features.agent_chat
+  return f && f.limit !== null ? `${f.remaining ?? 0} de ${f.limit} este mês` : ''
+})
+function askAbout(card: { id: string; front: string; back: string; topic_id?: string | null }, source: 'review_card' | 'review_error', draft: string) {
+  if (!featureUsage.canUse('agent_chat')) {
+    const f = featureUsage.usage.value?.features.agent_chat
+    window.dispatchEvent(new CustomEvent('feature-limit-reached', { detail: { feature: 'agent_chat', used: f?.used, limit: f?.limit, planRequired: 'pro' } }))
+    return
+  }
+  chat.ask({ cardId: card.id, cardFront: card.front, topicId: card.topic_id ?? scopeTopicId.value ?? undefined, source }, draft)
+}
+function openChatForError() {
+  const card = review.diary?.card ?? lastErrorCard.value
+  if (card) askAbout(card, 'review_error', `Me explica esse card que errei: "${htmlToPlain(card.front)}"`)
+}
+function explainCard() {
+  const card = review.currentCard
+  if (!card) return
+  track('review_explain_open', {})
+  askAbout(card, 'review_card', 'Me explica este card.')
+}
+
+// === Leaving with unsent ratings asks first (RF-F2.4) ===
 function onBeforeUnload(e: BeforeUnloadEvent) {
   if (review.pendingCount > 0) {
     e.preventDefault()
@@ -615,126 +572,51 @@ function onBeforeUnload(e: BeforeUnloadEvent) {
 onMounted(() => window.addEventListener('beforeunload', onBeforeUnload))
 onUnmounted(() => window.removeEventListener('beforeunload', onBeforeUnload))
 onBeforeRouteLeave(() => {
-  if (review.pendingCount > 0) {
-    return window.confirm(`${review.pendingCount} avaliação(ões) ainda não foram enviadas. Sair mesmo assim?`)
-  }
+  if (review.pendingCount > 0) return window.confirm(`${review.pendingCount} avaliação(ões) ainda não foram enviadas. Sair mesmo assim?`)
   return true
 })
 
+// === Loading the session ===
+const sessionAnalytics = useReviewSessionAnalytics()
+let timerInterval: ReturnType<typeof setInterval> | null = null
+
 async function loadSession() {
-  errorsByTopic.value = {}
   const deckId = route.query.deck_id as string | undefined
   const mode = route.query.mode as string | undefined
   const slice = sessionScopeFromQuery(route.query)
+  goalCelebrated.value = false
+  streakAnimated.value = false
+  statsNow.value = null
   if (deckId) await deckStore.fetchDeck(deckId)
-  await review.fetchSession({
-    ...slice,
-    deckId,
-    backlog: route.query.backlog === '1',
-    mode,
-    includeRelated: route.query.include_related === '1',
-  })
+  const [, before] = await Promise.all([
+    review.fetchSession({ ...slice, deckId, backlog: route.query.backlog === '1', mode, includeRelated: route.query.include_related === '1' }),
+    fetchStats(),
+  ])
+  statsBefore.value = before
 
-  // Blitz mode: fixed 5 min timer, ignore settings timer
   isBlitz.value = mode === 'blitz'
-  if (isBlitz.value) {
-    sessionTimer.value = 300
-    timerInterval = setInterval(() => {
-      if (sessionTimer.value > 0) sessionTimer.value--
-    }, 1000)
-  } else {
-    await loadSessionTimer()
-  }
-  // After the settings load: survival mode is known
+  if (timerInterval) clearInterval(timerInterval)
+  timerInterval = null
+  if (isBlitz.value) startTimer(300)
+  else await loadSessionTimer()
   sessionAnalytics.started(route.query, isSurvivalMode.value, review.total)
 }
 
-const sessionAnalytics = useReviewSessionAnalytics()
 watch(() => review.finished, (done) => {
   if (done) sessionAnalytics.completed(review.ratingsCount)
 })
 
-// Session timer & survival mode
-const sessionTimer = ref(0)
-const showTimerModal = ref(false)
-const isSurvivalMode = ref(false)
-const isBlitz = ref(false)
-const isErrorsOnly = computed(() => route.query.errors_only === '1')
-/** The caderno this session came from: the end of the session returns to it (F1 RF-F2, "voltar ao lugar certo") */
-const querySlice = computed(() => sessionScopeFromQuery(route.query))
-const scopeTopicId = computed(() => querySlice.value.topicId
-  ?? (querySlice.value.scope?.type === 'topic' ? querySlice.value.scope.id : null))
-const isAhead = computed(() => !!querySlice.value.ahead)
-const scopeOrigin = computed(() => querySlice.value.origin)
-
-// Where the session goes back to (prd-caderno-f2-recorte RF-F1): the slice the API reported, else the
-// caderno of the query; a list of ids goes back in history (or to Hoje)
-const scopeBack = computed(() => scopeBackPath(review.scope) ?? (scopeTopicId.value ? cadernoPath(scopeTopicId.value) : null))
-const backTo = computed(() => scopeBack.value ?? '/hoje')
-const backLabel = computed(() => {
-  if (review.scope?.label && scopeBack.value) return `Voltar a ${review.scope.label}`
-  return scopeTopicId.value ? 'Voltar ao caderno' : 'Voltar'
-})
-/** "TRF 4ª Região › Apostila de Constitucional" */
-const scopeTrail = computed(() => {
-  const sc = review.scope
-  if (!sc?.label) return ''
-  return sc.topic && sc.topic.name !== sc.label && sc.type !== 'topic' ? `${sc.topic.name} › ${sc.label}` : sc.label
-})
-
-// "Reforçar erros" in the same slice (RF-F2): its size comes from /review/session-count, hidden when 0
-const errorsScope = computed(() => (isErrorsOnly.value ? null : scopeOf(review.scope, querySlice.value.scope?.type === 'cards' ? querySlice.value.scope.ids : [])))
-const errorsCount = ref<number | null>(null)
-watch(() => review.finished && !review.saving && review.totalRated > 0, async (done) => {
-  errorsCount.value = null
-  if (!done || !errorsScope.value) return
-  try {
-    const query = scopeQuery(errorsScope.value, { errorsOnly: true, origin: scopeOrigin.value })
-    const res = await useNuxtApp().$api<{ data: { session_count: number } }>(`/review/session-count?${query}`)
-    errorsCount.value = res.data.session_count
-  } catch (e) {
-    reportApiError(e, { silent: true })
-  }
-})
-
-// The person's own session emptied the caderno: its page celebrates once (05/#11). Only the full session
-// of the scope counts (not "só erros", relâmpago or backlog) and only when nothing waits in learning.
-watch(() => review.finished && !review.saving, (done) => {
-  const topicId = scopeTopicId.value
-  if (!done || !topicId || review.totalRated === 0 || review.pendingLearning > 0) return
-  if (isErrorsOnly.value || isBlitz.value || route.query.backlog === '1') return
-  markScopeCleared(topicId)
-})
-let timerInterval: ReturnType<typeof setInterval> | null = null
-
-// Sync blitz countdown with dive mode
-watch(sessionTimer, (val) => {
-  if (isBlitz.value && dive.active.value) {
-    dive.setCountdown(val > 0 ? val : null)
-  }
-})
-
-watch(() => dive.active.value, (active) => {
-  if (active && isBlitz.value && sessionTimer.value > 0) {
-    dive.setCountdown(sessionTimer.value)
-  } else if (!active) {
-    dive.setCountdown(null)
-  }
-})
+function startTimer(seconds: number) {
+  sessionTimer.value = seconds
+  timerInterval = setInterval(() => { if (sessionTimer.value > 0) sessionTimer.value-- }, 1000)
+}
 
 async function loadSessionTimer() {
   try {
-    const { $api } = useNuxtApp()
     const res = await $api<any>('/settings')
     isSurvivalMode.value = res.data.survival_mode ?? false
     if (res.data.error_diary_mode) review.errorDiaryMode = res.data.error_diary_mode
-    const limit = res.data.session_time_limit
-    if (limit) {
-      sessionTimer.value = limit * 60
-      timerInterval = setInterval(() => {
-        if (sessionTimer.value > 0) sessionTimer.value--
-      }, 1000)
-    }
+    if (res.data.session_time_limit) startTimer(res.data.session_time_limit * 60)
   } catch (e) {
     reportApiError(e, { silent: true })
   }
@@ -750,142 +632,34 @@ watch(sessionTimer, (val, oldVal) => {
 
 function continueAfterTimer() {
   showTimerModal.value = false
-  if (isBlitz.value) {
-    sessionTimer.value = 300
-    timerInterval = setInterval(() => {
-      if (sessionTimer.value > 0) sessionTimer.value--
-    }, 1000)
-  }
+  if (isBlitz.value) startTimer(300)
 }
 
-function dismissErrorDiary() {
-  review.dismissDiary()
+function formatTime(s: number) {
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
 }
-
-// Tira-dúvidas in context (prd-navegacao-v3 RF-9): the card, its caderno and a ready question. Nothing
-// goes to the AI before the person presses Enviar (the old flow sent the question by itself).
-function openChatForError() {
-  const card = review.diary?.card ?? lastErrorCard.value
-  if (!card) return
-  chat.ask({
-    cardId: card.id,
-    cardFront: card.front,
-    topicId: card.topic_id ?? scopeTopicId.value ?? undefined,
-    source: 'review_error',
-  }, `Me explica esse card que errei: "${stripHtml(card.front)}"`)
-}
-
-/** "Explicar este card" (RF-9), once the answer is shown. */
-function explainCard() {
-  const card = review.currentCard
-  if (!card) return
-  chat.ask({
-    cardId: card.id,
-    cardFront: card.front,
-    topicId: card.topic_id ?? scopeTopicId.value ?? undefined,
-    source: 'review_card',
-  }, `Me explica este card: "${stripHtml(card.front)}". A resposta é "${stripHtml(card.back)}".`)
-}
-
-function stripHtml(html: string): string {
-  return html?.replace(/<[^>]*>/g, '').trim() ?? ''
-}
-
-
-function showReward(msg: string) {
-  rewardMessage.value = msg
-  if (rewardTimeout) clearTimeout(rewardTimeout)
-  rewardTimeout = setTimeout(() => { rewardMessage.value = '' }, 1800)
-}
-
-const reviewMood = computed(() => {
-  const pct = review.progress
-  if (pct === 0) return ''
-  if (pct < 30) return 'aquecendo'
-  if (pct < 70) return 'no ritmo'
-  if (pct < 100) return 'quase lá'
-  return 'concluído'
-})
 
 onMounted(loadSession)
-onMounted(() => examStore.fetchUpcoming())
+onMounted(() => {
+  void examStore.fetchUpcoming()
+  void featureUsage.fetchUsage()
+  if (!topicStore.tree.length && !topicStore.loading) void topicStore.fetchTree()
+})
 
-// Tick every 5s to re-evaluate learning queue due times
+// Tick every 5 s: cards in learning become due
 let tickInterval: ReturnType<typeof setInterval> | null = null
 onMounted(() => {
-  tickInterval = setInterval(() => {
-    if (review.learningQueue.length > 0) review._tick++
-  }, 5000)
+  tickInterval = setInterval(() => { if (review.learningQueue.length > 0) review._tick++ }, 5000)
 })
 onUnmounted(() => {
   if (tickInterval) clearInterval(tickInterval)
   if (timerInterval) clearInterval(timerInterval)
-  if (feedbackTimeout) clearTimeout(feedbackTimeout)
-  if (rewardTimeout) clearTimeout(rewardTimeout)
+  if (document.fullscreenElement) void document.exitFullscreen?.()
 })
 
 watch(() => route.query, (newQ, oldQ) => {
-  if (JSON.stringify(newQ) !== JSON.stringify(oldQ)) loadSession()
+  if (JSON.stringify(newQ) !== JSON.stringify(oldQ)) void loadSession()
 })
+
+useHead({ title: 'Revisão · Baigi' })
 </script>
-
-<style scoped>
-.review-shell {
-  height: 100vh;
-}
-@supports (height: 100dvh) {
-  .review-shell {
-    height: 100dvh;
-  }
-}
-.review-footer {
-  padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
-}
-.kbd-only {
-  display: none;
-}
-@media (pointer: fine) {
-  .kbd-only {
-    display: block;
-  }
-}
-.kbd {
-  display: inline-block;
-  padding: 0 0.35rem;
-  border-radius: 0.25rem;
-  border: 1px solid var(--border-hover);
-  font-family: ui-monospace, monospace;
-  font-size: 0.75rem;
-  color: var(--fg);
-}
-.review-bg {
-  background: var(--bg-base);
-  color: var(--text-heading);
-}
-
-.progress-pulse {
-  box-shadow: 0 0 8px color-mix(in srgb, var(--action) 30%, transparent);
-  animation: pulse-glow 0.6s ease;
-}
-
-@keyframes pulse-glow {
-  0% { box-shadow: 0 0 4px color-mix(in srgb, var(--action) 10%, transparent); }
-  50% { box-shadow: 0 0 12px color-mix(in srgb, var(--action) 40%, transparent); }
-  100% { box-shadow: 0 0 4px color-mix(in srgb, var(--action) 10%, transparent); }
-}
-
-.reward-pop-enter-active {
-  transition: opacity 0.2s ease, transform 0.2s ease;
-}
-.reward-pop-leave-active {
-  transition: opacity 0.3s ease, transform 0.3s ease;
-}
-.reward-pop-enter-from {
-  opacity: 0;
-  transform: translate(-50%, -8px) scale(0.95);
-}
-.reward-pop-leave-to {
-  opacity: 0;
-  transform: translate(-50%, -4px);
-}
-</style>

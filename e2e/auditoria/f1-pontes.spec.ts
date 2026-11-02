@@ -154,7 +154,7 @@ test.describe('Simulado devolve ao escopo', () => {
 })
 
 test.describe('Revisão → nota', () => {
-  test('"Da sua nota" no erro vira "Abrir na nota", que abre o caderno com a nota (RF-F3)', async ({ page }) => {
+  test('a origem do card (sempre depois de virar) leva à nota com "Voltar à revisão" (4d RF-F3)', async ({ page }) => {
     await gotoApp(page, '/hoje')
     const { root, child } = await ankiShapedCaderno(page, 0)
     const note = (await apiCall(page, 'POST', `/topics/${child.id}/notes`, { title: 'Verbo to be' })).data
@@ -163,14 +163,12 @@ test.describe('Revisão → nota', () => {
 
     await gotoApp(page, `/revisar?topic_id=${root.id}`)
     await page.keyboard.press('Space')
-    await expect(page.getByRole('button', { name: 'Verso do card' })).toBeVisible()
-    const rated = page.waitForResponse(r => r.request().method() === 'POST' && r.url().endsWith('/api/review'))
-    await page.keyboard.press('1')
-    await rated
-    await expect(page.getByText('Da sua nota:')).toBeVisible()
-    await page.getByRole('link', { name: 'Abrir na nota' }).click()
-    await expect(page).toHaveURL(new RegExp(`/cadernos/${child.id}/material/${note.id}$`))
+    await expect(page.getByTestId('review-answer')).toBeVisible()
+    await expect(page.getByTestId('review-origin')).toContainText('Origem: Verbo to be')
+    await page.getByRole('link', { name: /Abrir a nota/ }).click()
+    await expect(page).toHaveURL(new RegExp(`/cadernos/${child.id}/material/${note.id}\\?from=review`))
     await expect(page.getByText('três formas no presente')).toBeVisible()
+    await expect(page.getByTestId('material-back')).toHaveAccessibleName('Voltar à revisão')
   })
 })
 

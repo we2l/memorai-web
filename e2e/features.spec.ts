@@ -80,8 +80,8 @@ test.describe.serial('Fluxo completo: Caderno → Card → Revisão', () => {
       await expect(page).toHaveURL(/\/revisar/)
       await page.waitForTimeout(2000)
 
-      const hasCard = await page.locator('.review-card').count() > 0
-      const finished = await page.getByText(/Tudo em dia|Missão de hoje concluída/i).count() > 0
+      const hasCard = await page.getByTestId('review-card').count() > 0
+      const finished = await page.getByTestId('review-all-done').or(page.getByTestId('review-session-end')).count() > 0
       expect(hasCard || finished).toBeTruthy()
     }
   })
@@ -91,18 +91,18 @@ test.describe.serial('Fluxo completo: Caderno → Card → Revisão', () => {
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(2000)
 
-    const hasCard = await page.locator('.review-card').count() > 0
+    const hasCard = await page.getByTestId('review-card').count() > 0
     if (!hasCard) {
       test.skip()
       return
     }
 
     // Flip card
-    await page.locator('.review-card').click()
+    await page.getByTestId('review-card').click()
     await page.waitForTimeout(500)
 
     // Rating
-    const goodBtn = page.getByRole('button', { name: /^Lembrei/ })
+    const goodBtn = page.getByRole('button', { name: /^Bom/ })
     if (await goodBtn.count() > 0) {
       await goodBtn.click()
       await page.waitForTimeout(1000)
@@ -133,10 +133,10 @@ test.describe('Revisão relâmpago (blitz)', () => {
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(2000)
 
-    // Badge "⚡ Relâmpago" ou timer com aria-label ou "Tudo em dia"
-    const blitzBadge = page.getByText('⚡ Relâmpago')
+    // Linha de contexto do Relâmpago, timer com aria-label ou "Tudo em dia"
+    const blitzBadge = page.getByTestId('review-context').filter({ hasText: 'Relâmpago' })
     const timer = page.locator('[aria-label*="restantes"]')
-    const noCards = page.getByText(/Tudo em dia|Missão de hoje concluída/i)
+    const noCards = page.getByTestId('review-all-done').or(page.getByTestId('review-no-cards'))
 
     const visible = await blitzBadge.count() > 0 || await timer.count() > 0 || await noCards.count() > 0
     expect(visible).toBeTruthy()

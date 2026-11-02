@@ -74,6 +74,10 @@ export interface Stats {
   streak: number
   /** Studied yesterday (Brasília) and not yet today. */
   streak_at_risk?: boolean
+  /** Longest streak ever (prd-4d-revisao-v3 RF-B2); never below `streak` */
+  streak_longest?: number
+  /** Studied today already (the streak counts today) */
+  streak_extended_today?: boolean
   ratings_today: {
     again: number
     hard: number

@@ -70,7 +70,7 @@
           :tabs="[{ key: 'all', label: 'Todas', count: questions.length }, { key: 'wrong', label: 'Só erros', count: wrongCount }]"
         >
         <ol class="divide-y divide-line">
-          <li v-for="q in filteredQuestions" :key="q.id" class="flex items-start gap-3 py-5">
+          <li v-for="q in filteredQuestions" :id="`q${q.position}`" :key="q.id" class="flex scroll-mt-24 items-start gap-3 py-5">
             <span class="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full" :class="q.is_correct ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'">
               <CheckCircle2 v-if="q.is_correct" class="size-4" aria-hidden="true" />
               <XCircle v-else class="size-4" aria-hidden="true" />
@@ -168,6 +168,11 @@ const scoreLabel = computed(() => ({ success: 'Bom resultado', warning: 'Quase l
 
 onMounted(async () => {
   await quizStore.fetchQuiz(route.params.id as string)
+  // "Ver a questão" of the review (4d): #q7 lands on that question once the list is drawn
+  if (/^#q\d+$/.test(route.hash)) {
+    await nextTick()
+    document.getElementById(route.hash.slice(1))?.scrollIntoView({ block: 'start' })
+  }
 })
 
 async function createCards() {

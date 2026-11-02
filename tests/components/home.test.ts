@@ -56,7 +56,7 @@ describe('HomeGreeting', () => {
     expect(w.get('h1').text()).toMatch(/^(Bom dia|Boa tarde|Boa noite), Rafael\. Hoje são uns 35 minutos\.$/)
     const bar = w.get('[role="progressbar"]')
     expect(bar.attributes('aria-label')).toBe('Meta de hoje: 1 de 3 lotes')
-    expect(bar.findAll('span')).toHaveLength(3)
+    expect(bar.element.children).toHaveLength(3)
     expect(w.get('[data-testid="home-goal"]').text()).toContain('1 de 3 lotes')
     expect(w.get('[data-testid="hero-streak"]').text()).toBe('6 dias seguidos de estudo')
     // The only tinted block of the screen

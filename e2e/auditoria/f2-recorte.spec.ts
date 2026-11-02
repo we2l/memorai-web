@@ -21,11 +21,11 @@ async function openMaterial(page: Page, topicId: string) {
 const materialRow = (page: Page, title: string) => page.getByTestId('material-row').filter({ hasText: title })
 const sessionOf = (page: Page) => page.waitForResponse(r => r.url().includes('/api/review/session?') && r.request().method() === 'GET')
 
-/** Rates every card of the screen "Fácil demais" (4), through the keyboard, until the session ends. */
+/** Rates every card of the screen "Fácil" (4), through the keyboard, until the session ends. */
 async function finishSession(page: Page, n: number) {
   for (let i = 0; i < n; i++) {
     await page.keyboard.press('Space')
-    await expect(page.getByRole('button', { name: 'Verso do card' })).toBeVisible()
+    await expect(page.getByTestId('review-answer')).toBeVisible()
     const rated = page.waitForResponse(r => r.request().method() === 'POST' && r.url().endsWith('/api/review'))
     await page.keyboard.press('4')
     await rated
@@ -49,8 +49,8 @@ test('PDF: "Revisar N" abre só os cards daquele material, com o caminho do reco
   expect(body.session_count).toBe(3)
   expect(body.scope).toMatchObject({ type: 'document', id: seed.docId, label: F2.pdf, topic: { id: seed.subjectId } })
   expect(body.data.map((c: any) => c.id).sort()).toEqual([...seed.docCardIds].sort())
-  await expect(page.getByTestId('review-scope')).toHaveText(`Revisando: ${F2.subject} › ${F2.pdf}`)
-  await expect(page.getByText('2 restantes')).toBeVisible()
+  await expect(page.getByTestId('review-scope')).toHaveText(`Revisando ${F2.subject} › ${F2.pdf}`)
+  await expect(page.getByTestId('review-batch')).toContainText('Lote 1 de 1 · card 1 de 3')
 
   // The end of the session goes back to the material
   await finishSession(page, 3)
@@ -69,8 +69,8 @@ test('PDF sem nada vencido: "Praticar adiantado (N)" com o aviso na sessão', as
   const session = sessionOf(page)
   await ahead.click()
   expect((await (await session).json()).session_count).toBe(2)
-  await expect(page.getByText('Praticando adiantado: o agendamento continua sendo atualizado')).toBeVisible()
-  await expect(page.getByTestId('review-scope')).toHaveText(`Revisando: ${F2.subject} › ${F2.aheadPdf}`)
+  await expect(page.getByTestId('review-context')).toHaveText('Praticando adiantado: o agendamento continua sendo atualizado')
+  await expect(page.getByTestId('review-scope')).toHaveText(`Revisando ${F2.subject} › ${F2.aheadPdf}`)
 })
 
 test('"Só erros (N)" no menu do PDF conta e abre só os erros dele', async ({ page }) => {
@@ -98,7 +98,7 @@ test('nota: "Revisar estes N" no rodapé da nota abre scope=note:', async ({ pag
   await link.click()
   const body = await (await session).json()
   expect(body.data.map((c: any) => c.id).sort()).toEqual([...seed.noteCardIds].sort())
-  await expect(page.getByTestId('review-scope')).toHaveText(`Revisando: ${F2.subject} › Nota F2`)
+  await expect(page.getByTestId('review-scope')).toHaveText(`Revisando ${F2.subject} › Nota F2`)
 })
 
 test('simulado: "Revisar os N agora" traz só os cards dos erros (mesmo sem novos restantes no dia) e volta ao resultado', async ({ page }) => {

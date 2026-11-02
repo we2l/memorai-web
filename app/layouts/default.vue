@@ -2,7 +2,6 @@
   <div class="min-h-dvh bg-page">
     <LazyUiPaymentBanner v-if="subscription.isPastDue || subscription.inGracePeriod" />
     <ShellTopNav v-show="showChrome" />
-    <LazyUiDiveMode v-if="diveLoaded" />
 
     <main class="relative" :class="focusChrome ? '' : 'pb-[calc(var(--nav-h)+var(--miniplayer-h)+var(--sticky-action-h)+16px)]'">
       <ShellPageTools v-if="showChrome" />
@@ -14,7 +13,7 @@
     <ShellToastHost />
 
     <!-- Part of the shell: keeps playing while the person moves between the places -->
-    <LazyShellMiniPlayer v-if="hasMiniplayer && !focusChrome && !dive.active.value" />
+    <LazyShellMiniPlayer v-if="hasMiniplayer && !focusChrome" />
 
     <!-- Heavy overlays load on first open and stay mounted (keeps leave transitions) -->
     <LazyChatDrawer v-if="chatLoaded" />
@@ -38,16 +37,15 @@
 // App shell v3 (prd-navegacao-v3, ADR-027 §7): TopNav from 768 px, BottomNav below it (4 places, no
 // "Mais"), the phone header tools, the mini-player, the toasts and the overlays of the shell (search,
 // "+ Adicionar", tira-dúvidas). Pages opt into a distraction-free chrome with
-// definePageMeta({ chrome: 'focus' }) (revisão): the whole shell hides, like the dive mode.
+// definePageMeta({ chrome: 'focus' }) (revisão): the whole shell hides.
 import type { FeatureLimitDetail } from '~/types'
 
 const route = useRoute()
 const auth = useAuthStore()
-const dive = useDiveMode()
 const player = usePlayerStore()
 
 const focusChrome = computed(() => route.meta.chrome === 'focus')
-const showChrome = computed(() => !focusChrome.value && !dive.active.value)
+const showChrome = computed(() => !focusChrome.value)
 const hasMiniplayer = computed(() => !!player.currentPodcast)
 const stickyActionH = useState<number>('sticky-action-h', () => 0)
 
@@ -81,7 +79,6 @@ const expandedPlayerLoaded = useLoadedOnce(() => player.expanded)
 const paletteLoaded = useLoadedOnce(() => paletteOpen.value)
 const addLoaded = useLoadedOnce(() => addSheet.open.value)
 const upgradeLoaded = useLoadedOnce(() => showUpgrade.value)
-const diveLoaded = useLoadedOnce(() => dive.active.value)
 
 const subscription = useSubscriptionStore()
 

@@ -21,7 +21,7 @@ export const API = `${API_ORIGIN}/api`
 export const AUDIT_PASSWORD = 'Senha-Audit-2026'
 const CONTAINER = process.env.E2E_API_CONTAINER || 'baigi-app'
 
-export type UserKey = 'pro' | 'free' | 'quota' | 'unverified' | 'onboarding' | 'onboardingUnverified' | 'empty' | 'session' | 'logout' | 'account' | 'mobile' | 'legacy' | 'scope' | 'nav' | 'hoje' | 'hojeNew' | 'hojeGoal' | 'recorte' | 'hub' | 'material' | 'library'
+export type UserKey = 'pro' | 'free' | 'quota' | 'unverified' | 'onboarding' | 'onboardingUnverified' | 'empty' | 'session' | 'logout' | 'account' | 'mobile' | 'legacy' | 'scope' | 'nav' | 'hoje' | 'hojeNew' | 'hojeGoal' | 'recorte' | 'hub' | 'material' | 'library' | 'revisao' | 'revisaoEmpty'
 
 type UserSpec = { email: string; plan: 'free' | 'pro'; verified: boolean; onboarded: boolean; reset: true; quota_exhausted?: Record<string, number> }
 
@@ -56,6 +56,9 @@ export const USERS: Record<UserKey, UserSpec> = {
   // Material e biblioteca v3 (prd-4c-material-v3, material-v3.spec.ts e biblioteca.spec.ts)
   material: { email: 'e2e-material@audit.test', plan: 'pro', verified: true, onboarded: true, reset: true },
   library: { email: 'e2e-library@audit.test', plan: 'pro', verified: true, onboarded: true, reset: true },
+  // Revisão v3 (prd-4d-revisao-v3, revisao-v3.spec.ts): lotes, origem e celebração; e uma conta sem nenhum card
+  revisao: { email: 'e2e-revisao@audit.test', plan: 'pro', verified: true, onboarded: true, reset: true },
+  revisaoEmpty: { email: 'e2e-revisao-empty@audit.test', plan: 'free', verified: true, onboarded: true, reset: true },
 }
 
 const AUTH_DIR = path.join(__dirname, '..', '..', '.auth')

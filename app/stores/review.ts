@@ -1,12 +1,34 @@
 import { defineStore } from 'pinia'
-import type { Flashcard, WeakConnection } from '~/types'
+import type { CardOrigin, Flashcard, WeakConnection } from '~/types'
 import { getErrorStatus } from '~/utils/apiErrors'
 import { scopeQuery, type ReviewScope, type SessionScopeInfo } from '~/utils/reviewScope'
 
 export interface SessionCard extends Flashcard {
   next_intervals: { again: string; hard: string; good: string; easy: string }
   topic_name?: string | null
+  /** Where the card came from (prd-4d-revisao-v3 RF-B1): quiz question › part of a PDF › note */
+  origin?: CardOrigin | null
 }
+
+/** One rating of the session, for the batches (prd-4d-revisao-v3 RF-F1, RF-F5). */
+export interface RatingLog {
+  client_id: string
+  card_id: string
+  rating: Rating
+  /** Time on the card, from the moment it showed up to the rating */
+  duration_ms: number
+  topic_id: string | null
+  topic_name: string | null
+  /** The 1st rating of this card in the session (only those count in a batch) */
+  first: boolean
+  /** Batch (1-based) the rating belongs to */
+  batch: number
+  /** New due date from the server answer (null until it arrives) */
+  due: string | null
+}
+
+/** A batch is 20 distinct cards rated for the 1st time in the session (ReviewService::BATCH_SIZE). */
+export const REVIEW_BATCH = 20
 
 export type Rating = 1 | 2 | 3 | 4
 
@@ -110,6 +132,15 @@ export const useReviewStore = defineStore('review', {
     sessionStartedAt: 0,
     ratingsCount: { 1: 0, 2: 0, 3: 0, 4: 0 } as Record<Rating, number>,
     errorsThisSession: 0,
+    /** Size of the session the button promised (session_count of the 1st page) */
+    sessionCount: 0,
+    /** Cards rated at least once, in the order of their 1st rating */
+    firstPass: [] as string[],
+    log: [] as RatingLog[],
+    /** Batch ends the person already left ("Próximo lote") */
+    batchesAcked: 0,
+    /** When the current card showed up (duration of each rating) */
+    cardShownAt: 0,
     _tick: 0,
     _pendingAdvance: null as (() => void) | null,
   }),
@@ -186,6 +217,10 @@ export const useReviewStore = defineStore('review', {
       this.undoStack = []
       this.ratingsCount = { 1: 0, 2: 0, 3: 0, 4: 0 }
       this.errorsThisSession = 0
+      this.sessionCount = 0
+      this.firstPass = []
+      this.log = []
+      this.batchesAcked = 0
       this.hasMore = false
       this.loadingMore = false
       this.unloadedCount = 0
@@ -207,7 +242,9 @@ export const useReviewStore = defineStore('review', {
         this.addPage(res)
 
         this.initialTotal = this.cards.length
+        this.sessionCount = res.session_count ?? (this.cards.length + this.learningQueue.length)
         this.sessionStartedAt = Date.now()
+        this.cardShownAt = Date.now()
         // "Tudo em dia" only after a 2xx (RN-UX-03)
         this.checkFinished()
         this.prefetchPage()
@@ -301,6 +338,15 @@ export const useReviewStore = defineStore('review', {
       this.hints = []
       if (rating === 1) this.errorsThisSession++
 
+      // Batches: distinct cards in their 1st rating; a learning card that comes back belongs to the batch open now
+      const first = !this.firstPass.includes(card.id)
+      const batch = first ? Math.floor(this.firstPass.length / REVIEW_BATCH) + 1 : Math.max(1, this.batchesAcked + 1)
+      if (first) this.firstPass.push(card.id)
+      this.log.push({
+        client_id: clientId, card_id: card.id, rating, duration_ms: Math.max(0, Date.now() - (this.cardShownAt || Date.now())),
+        topic_id: card.topic_id ?? null, topic_name: card.topic_name ?? null, first, batch, due: null,
+      })
+
       // The rated card leaves the session until the server answers
       this.learningQueue = this.learningQueue.filter(q => q.card.id !== card.id)
 
@@ -314,6 +360,7 @@ export const useReviewStore = defineStore('review', {
           this.learningQueue = this.learningQueue.map(item => ({ ...item, dueAt: Date.now() }))
         }
         this.flipped = false
+        this.cardShownAt = Date.now()
         this._tick++
         this.checkFinished()
         this.prefetchPage()
@@ -399,6 +446,9 @@ export const useReviewStore = defineStore('review', {
 
       this.weakSuggestion = data?.weak_connections ?? null
       this.noteSnippet = data?.note_snippet ?? null
+
+      const logged = this.log.find(l => l.client_id === item.client_id)
+      if (logged) logged.due = data?.flashcard?.due ?? null
 
       const updatedCard = { ...data.flashcard, next_intervals: data.next_intervals } as SessionCard
       // The server answer is the source of truth for scheduling
@@ -494,6 +544,17 @@ export const useReviewStore = defineStore('review', {
     forgetRating(entry: UndoEntry) {
       this.ratingsCount[entry.rating] = Math.max(0, this.ratingsCount[entry.rating] - 1)
       if (entry.rating === 1) this.errorsThisSession = Math.max(0, this.errorsThisSession - 1)
+      const i = this.log.findIndex(l => l.client_id === entry.client_id)
+      if (i !== -1) {
+        const [gone] = this.log.splice(i, 1)
+        if (gone?.first) this.firstPass = this.firstPass.filter(id => id !== gone.card_id)
+      }
+    },
+
+    /** "Próximo lote": the batch end that is showing is left behind. */
+    ackBatch(index: number) {
+      this.batchesAcked = Math.max(this.batchesAcked, index)
+      this.cardShownAt = Date.now()
     },
 
     restoreCard(entry: UndoEntry, card: SessionCard, notAdvanced = false) {

@@ -166,9 +166,16 @@ describe('UiProgressBar', () => {
     const w = await mountSuspended(ProgressBar, { props: { value: 1, max: 3, segments: 3, label: 'Meta de hoje' } })
     const bar = w.get('[role="progressbar"]')
     expect(bar.attributes('aria-valuetext')).toBe('1 de 3')
-    const segs = bar.findAll('span')
+    const segs = [...bar.element.children]
     expect(segs).toHaveLength(3)
-    expect(segs.map(s => s.classes().includes('bg-action'))).toEqual([true, false, false])
+    expect(segs.map(s => !!s.querySelector('.bg-action'))).toEqual([true, false, false])
+  })
+
+  it('segmentos parciais: o lote em andamento enche só a sua parte (revisão v3)', async () => {
+    const w = await mountSuspended(ProgressBar, { props: { value: 0.7, max: 3, segments: 3, label: 'Lote 1 de 3, 70% feito' } })
+    const segs = [...w.get('[role="progressbar"]').element.children]
+    expect((segs[0]!.firstElementChild as HTMLElement).style.width).toBe('70%')
+    expect(segs[1]!.childElementCount).toBe(0)
   })
 })
 

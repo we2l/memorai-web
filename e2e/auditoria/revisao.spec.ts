@@ -7,8 +7,10 @@ import type { Page } from '@playwright/test'
  */
 test.use({ auditUser: 'pro' })
 
-const cardFace = (page: Page) => page.locator('.review-card').first()
-const RATINGS = ['Não lembrei', 'Quase', 'Lembrei', 'Fácil demais'] as const
+const cardFace = (page: Page) => page.getByTestId('review-card')
+// Revisão v3 (prd-4d-revisao-v3 RF-F4): the same order everywhere, Anki's labels
+const RATINGS = ['De novo', 'Difícil', 'Bom', 'Fácil'] as const
+const answer = (page: Page) => page.getByTestId('review-answer')
 
 async function seedTopic(page: Page, n: number) {
   await gotoApp(page, '/hoje')
@@ -28,39 +30,40 @@ test.describe('Revisão — caminho feliz', () => {
     await gotoApp(page, `/revisar?topic_id=${topicId}`)
     await expect(cardFace(page)).toContainText('Pergunta')
 
-    // Card 1: vira com clique e avalia "Fácil demais" pelo botão
+    // Card 1: vira com clique e avalia "Fácil" pelo botão
     await cardFace(page).click()
-    await expect(page.getByRole('button', { name: /^Fácil demais/ })).toBeVisible()
+    await expect(page.getByRole('button', { name: /^Fácil/ })).toBeVisible()
     for (const label of RATINGS) await expect(page.getByRole('button', { name: new RegExp(`^${label}`) })).toBeVisible()
-    await page.getByRole('button', { name: /^Fácil demais/ }).click()
+    await page.getByRole('button', { name: /^Fácil/ }).click()
 
-    // Cards 2–4: Espaço vira, 4 avalia (Fácil demais tira o card da sessão de hoje)
+    // Cards 2–4: Espaço vira, 4 avalia (Fácil tira o card da sessão de hoje)
     for (let i = 0; i < 3; i++) {
-      await expect(page.getByRole('button', { name: 'Toque para ver a resposta' })).toBeVisible()
+      await expect(page.getByRole('button', { name: 'Card: toque ou Espaço para ver a resposta' })).toBeVisible()
       await page.keyboard.press('Space')
-      await expect(page.getByRole('button', { name: 'Verso do card' })).toBeVisible()
+      await expect(answer(page)).toBeVisible()
       await page.keyboard.press('4')
     }
-    // Resumo da sessão (B1: a tag não resolvia e a tela ficava em branco), com o "Amanhã"
-    await expect(page.getByRole('heading', { name: 'Missão de hoje concluída!' })).toBeVisible({ timeout: 10_000 })
+    // Fim da sessão (B1: a tag não resolvia e a tela ficava em branco), com o "Amanhã"
+    await expect(page.getByTestId('review-session-end')).toBeVisible({ timeout: 10_000 })
     await expect(page.getByTestId('tomorrow-load')).toContainText('Amanhã')
 
     // Servidor registrou as 4 revisões
     await expect.poll(async () => (await Promise.all(cardIds.map(id => card(page, id)))).every((c: any) => c.reps === 1)).toBe(true)
   })
 
-  test('as 4 notas chegam ao servidor (1–4) e "Não lembrei" mantém o card na sessão', async ({ page }) => {
+  test('as 4 notas chegam ao servidor (1–4) e "De novo" mantém o card na sessão', async ({ page }) => {
     const { topicId } = await seedTopic(page, 2)
     const ratings: number[] = []
     page.on('request', (r) => { if (r.method() === 'POST' && r.url().endsWith('/api/review')) ratings.push(JSON.parse(r.postData() ?? '{}').rating) })
     await gotoApp(page, `/revisar?topic_id=${topicId}`)
     for (const key of ['1', '2']) {
       await page.keyboard.press('Space')
-      await expect(page.getByRole('button', { name: 'Verso do card' })).toBeVisible()
+      await expect(answer(page)).toBeVisible()
       await page.keyboard.press(key)
-      // "Não lembrei" abre o diário de erro: pula para seguir
-      const skip = page.getByRole('button', { name: /Pular|Agora não|Continuar/ })
-      if (await skip.first().isVisible({ timeout: 1500 }).catch(() => false)) await skip.first().click()
+      // "De novo" abre o diário de erro (carregado sob demanda): pula para seguir
+      const diary = page.getByTestId('error-diary')
+      await expect(diary.or(page.getByTestId('review-show'))).toBeVisible()
+      if (await diary.isVisible()) await diary.getByRole('button', { name: 'Pular' }).click()
     }
     await expect.poll(() => ratings).toEqual([1, 2])
   })
@@ -74,7 +77,7 @@ test.describe('Revisão — caminho feliz', () => {
     await page.keyboard.press('Space')
     await page.keyboard.press('4')
     await expect(cardFace(page)).not.toContainText(first)
-    await page.getByRole('button', { name: 'Desfazer' }).click()
+    await page.getByRole('button', { name: /^Desfazer/ }).click()
     await expect(cardFace(page)).toContainText(first)
     await expect(page.getByText('Avaliação desfeita')).toBeAttached()
 
@@ -112,7 +115,7 @@ test.describe('Revisão — caminho feliz', () => {
     await page.keyboard.press('3')
     await page.waitForTimeout(500)
     expect(posts).toBe(0)
-    await expect(page.getByRole('button', { name: 'Toque para ver a resposta' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Card: toque ou Espaço para ver a resposta' })).toBeVisible()
 
     await page.keyboard.press('e')
     await expect(page.getByRole('dialog', { name: 'Editar card' })).toBeVisible()
@@ -123,16 +126,19 @@ test.describe('Revisão — caminho feliz', () => {
 })
 
 test.describe('Revisão — caminho triste', () => {
-  test('sessão vazia (usuário sem cards) mostra "Tudo em dia!" e volta para /hoje', async ({ browser }) => {
-    const { loginState } = await import('./support/fixtures')
-    const context = await browser.newContext({ storageState: await loginState(browser, 'empty') })
-    const page = await context.newPage()
-    await gotoApp(page, '/revisar')
-    await expect(page.getByRole('heading', { name: 'Tudo em dia!' })).toBeVisible()
+  test('sessão vazia de quem tem cards: "Tudo em dia" (sem celebração) e volta ao caderno', async ({ page }) => {
+    const { topicId } = await seedTopic(page, 1)
+    await gotoApp(page, `/revisar?topic_id=${topicId}`)
+    await page.keyboard.press('Space')
+    await page.keyboard.press('4')
+    await expect(page.getByTestId('review-session-end')).toBeVisible({ timeout: 10_000 })
+    await gotoApp(page, `/revisar?topic_id=${topicId}`)
+    const done = page.getByTestId('review-all-done')
+    await expect(done.getByRole('heading', { name: 'Tudo em dia' })).toBeVisible()
+    await expect(page.locator('[data-celebration-title]')).toHaveCount(0)
     await page.keyboard.press('Space') // nenhum atalho quebra a tela vazia
-    await page.getByRole('main').getByRole('link', { name: 'Voltar' }).last().click()
-    await expect(page).toHaveURL(/\/hoje/)
-    await context.close()
+    await done.getByRole('link', { name: /^Voltar/ }).click()
+    await expect(page).toHaveURL(new RegExp(`/cadernos/${topicId}$`))
   })
 
   test('erro 500 ao carregar a sessão: erro com "Tentar de novo" (nunca "Tudo em dia")', async ({ page }) => {
@@ -183,8 +189,8 @@ test.describe('Revisar do caderno com volume (seed perf@audit.test, prd-performa
     const body = await (await session).json()
     expect(body.session_count).toBe(n)
     expect(body.data.length).toBeLessThanOrEqual(100)
-    // The card on screen + "restantes" = the session, across pages
-    await expect(page.getByText(`${n - 1} restantes`)).toBeVisible()
+    // The batches come from the same number: ceil(N / 20), across pages of 100
+    await expect(page.getByTestId('review-batch')).toContainText(`Lote 1 de ${Math.ceil(n / 20)}`)
     await ctx.close()
   })
 
@@ -200,7 +206,7 @@ test.describe('Revisar do caderno com volume (seed perf@audit.test, prd-performa
     const session = page.waitForResponse(r => r.url().includes('/api/review/session'))
     await gotoApp(page, '/revisar')
     expect((await (await session).json()).session_count).toBe(n)
-    await expect(page.getByText(`${n - 1} restantes`)).toBeVisible()
+    await expect(page.getByTestId('review-batch')).toContainText(`Lote 1 de ${Math.ceil(n / 20)}`)
     await ctx.close()
   })
 })

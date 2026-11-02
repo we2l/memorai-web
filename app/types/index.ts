@@ -104,17 +104,28 @@ export interface Topic {
   updated_at: string
 }
 
-export interface Note {
+/**
+ * Note as listed by GET /topics/{id}/notes and returned by PUT /notes/{id}: no Tiptap content
+ * (prd-performance-caderno RF-B1/RF-B3). `plain_preview` is null until the embedding job runs.
+ */
+export interface NoteSummary {
   id: string
   topic_id: string
   title: string
-  content: Record<string, any> | null
+  word_count: number
   plain_preview: string | null
+  /** Only in the list (the PUT answer does not count the cards) */
   flashcards_count: number
+  source_document_id: string | null
   last_ai_transform_at: string | null
   cards_generated_at: string | null
   created_at: string
   updated_at: string
+}
+
+/** GET /notes/{id} and POST /topics/{id}/notes: the summary plus the content. */
+export interface Note extends NoteSummary {
+  content: Record<string, any> | null
 }
 
 export interface GraphNode {
@@ -157,10 +168,11 @@ export interface TopicDetails {
   weak_count: number
   due_count: number
   new_count: number
-  /** Only the first 200 cards come in `flashcards`; the rest via GET /topics/{topic}/flashcards */
-  flashcards_truncated: boolean
-  flashcards: { id: string; front: string; back?: string | null; state: string; due: string | null; lapses?: number; source_note_id?: string | null }[]
-  notes: { id: string; title: string }[]
+  learning_count: number
+  /** Size of the review session GET /review/session?topic_id= would build now ("Revisar N") */
+  session_count: number
+  streak: number
+  evolution: { mastered: number; recovered: number; total: number }
   goal: { target_date: string; cards_per_day: number; remaining: number; days_left: number } | null
 }
 

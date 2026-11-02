@@ -12,14 +12,15 @@ mockNuxtImport('useNuxtApp', (original) => () => new Proxy(original(), {
 const base = { topicProgress: [], nextExam: null, userName: 'Ana Souza' }
 
 describe('HomeHero', () => {
-  it('conta revisados + restantes (due + atrasados) no denominador', async () => {
+  it('conta revisados + restantes no denominador; due_today já inclui os atrasados (não soma de novo)', async () => {
     const wrapper = await mountSuspended(HomeHero, {
       props: {
         ...base,
-        stats: { reviewed_today: 5, due_today: 10, total_cards: 40, streak: 0 } as any,
+        stats: { reviewed_today: 5, due_today: 13, total_cards: 40, streak: 0 } as any,
         backlog: { overdue_count: 3 } as any,
       },
     })
+    expect(wrapper.find('.hero__value').text()).toBe('13')
     expect(wrapper.text()).toContain('5 de 18 concluídos')
     expect(wrapper.findAll('.hero__segment')).toHaveLength(18)
     expect(wrapper.findAll('.hero__segment--done')).toHaveLength(5)

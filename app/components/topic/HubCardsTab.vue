@@ -61,8 +61,8 @@
       <p class="text-small text-accent-primary">Analisando imagem...</p>
     </div>
 
-    <!-- Card list -->
-    <div v-if="cards.length" class="space-y-4">
+    <!-- Card list (server mode keeps the search box when a search finds nothing) -->
+    <div v-if="cards.length || (serverMode && search.trim())" class="space-y-4">
       <div v-if="cards.length > 10 || serverMode" class="flex items-center gap-2 p-2 rounded-lg bg-[var(--border-divider)] mb-2">
         <Search :size="14" class="text-base-muted shrink-0" />
         <input
@@ -140,6 +140,8 @@
         </div>
       </div>
 
+      <p v-if="!cards.length && !loadingMore" class="text-center py-8 text-body text-base-muted">Nenhum card encontrado.</p>
+
       <button
         v-if="serverMode ? (visibleCount < filtered.length || hasMore) : visibleCount < filtered.length"
         class="w-full py-3 text-small text-accent-primary hover:underline disabled:opacity-60"
@@ -151,7 +153,11 @@
         <template v-else>Mostrar mais ({{ filtered.length - visibleCount }} restantes)</template>
       </button>
     </div>
-    <p v-else-if="serverMode && search.trim()" class="text-center py-8 text-body text-base-muted">Nenhum card encontrado.</p>
+    <!-- First page on its way (the list is not in /details anymore) -->
+    <div v-else-if="serverMode && loadingMore" class="space-y-4" aria-busy="true">
+      <span class="sr-only">Carregando cards...</span>
+      <div v-for="i in 3" :key="i" class="skeleton h-20 rounded-2xl" />
+    </div>
     <div v-else class="text-center py-8">
       <picture class="contents"><source srcset="~/assets/mascots/mascot-baigi-thinking.avif" type="image/avif"><img src="~/assets/mascots/mascot-baigi-thinking.webp" alt="Baigi pensando" class="w-20 h-20 object-contain mx-auto mb-3" width="80" height="80" loading="lazy" decoding="async" /></picture>
       <p class="text-body text-base-muted mb-3">Nenhum card ainda. Crie manualmente ou gere com IA.</p>
@@ -174,7 +180,7 @@ const props = defineProps<{
   noteNameById: (id: string) => string
   highlightId?: string
   canUseOcr?: boolean
-  /** Topic with > 200 cards: search and "mostrar mais" go to the server (useTopicCards) */
+  /** Search and "mostrar mais" go to the server, GET /topics/{id}/flashcards (useTopicCards) */
   serverMode?: boolean
   hasMore?: boolean
   loadingMore?: boolean

@@ -1,4 +1,4 @@
-import type { Note } from '~/types'
+import type { Note, NoteSummary } from '~/types'
 
 type ImproveState = 'idle' | 'loading' | 'preview'
 
@@ -45,11 +45,13 @@ export function useNoteImprove(topicId: Ref<string | null>) {
     return true
   })
 
-  async function improve(note: Note) {
+  async function improve(note: NoteSummary | Note) {
     if (!topicId.value || !note?.id) return
     if (state.value === 'loading') return
 
-    originalContent.value = note.content ? JSON.parse(JSON.stringify(note.content)) : null
+    // The open note comes from GET /notes/{id} (the list has no content)
+    const content = 'content' in note ? note.content : null
+    originalContent.value = content ? JSON.parse(JSON.stringify(content)) : null
     state.value = 'loading'
 
     try {

@@ -375,6 +375,36 @@ test.describe('Revisão rápida (RF-F2.1–F2.4)', () => {
     await expect(page.getByText('Pergunta 2')).toBeVisible()
   })
 
+  test('sessão em páginas (has_more): cruza a página sem tela de fim e "restantes" conta a sessão inteira', async () => {
+    const sessionUrls: string[] = []
+    await page.unroute('**/api/review/session*')
+    // Page 1: 2 cards of a 4-card session; page 2 repeats card 2 (still unrated when it was asked)
+    await page.route('**/api/review/session*', (r) => {
+      sessionUrls.push(r.request().url())
+      return r.fulfill(json(sessionUrls.length === 1
+        ? { data: [1, 2].map(mkCard), total: 2, session_count: 4, has_more: true }
+        : { data: [2, 3, 4].map(mkCard), total: 3, session_count: 3, has_more: false }))
+    })
+    await page.route(/\/api\/review$/, async (route) => {
+      const body = route.request().postDataJSON()
+      await route.fulfill(json({ data: { review: { id: crypto.randomUUID() }, flashcard: { ...mkCard(1), id: body.flashcard_id }, next_intervals: intervals } }))
+    })
+    await page.goto('/revisar')
+    await expect(page.getByText('Pergunta 1')).toBeVisible()
+    await expect(page.getByText('3 restantes')).toBeVisible()
+    for (const next of [2, 3, 4]) {
+      await page.keyboard.press('Space')
+      await page.keyboard.press('3')
+      await expect(page.getByText(`Pergunta ${next}`)).toBeVisible()
+    }
+    await expect(page.getByText('Último!')).toBeVisible()
+    expect(sessionUrls).toHaveLength(2)
+    expect(sessionUrls[1]).toBe(sessionUrls[0])
+    await page.keyboard.press('Space')
+    await page.keyboard.press('3')
+    await expect(page.getByRole('heading', { name: 'Missão de hoje concluída!' })).toBeVisible()
+  })
+
   test('erro 500 na sessão mostra "Tentar de novo" e nunca "Tudo em dia!"', async () => {
     let fail = true
     await page.unroute('**/api/review/session*')

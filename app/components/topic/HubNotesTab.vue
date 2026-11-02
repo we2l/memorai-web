@@ -19,15 +19,11 @@
         >
           <!-- Document thumbnail (mini A4 page with real content) -->
           <div class="note-card__thumb">
-            <div v-if="getPreviewBlocks(note).length" class="note-card__page-content">
+            <div v-if="previewOf(note).length" class="note-card__page-content">
               <span class="note-card__page-title">{{ note.title }}</span>
               <div class="note-card__page-divider" />
               <div class="note-card__page-body">
-                <template v-for="(block, i) in getPreviewBlocks(note).slice(0, 4)" :key="i">
-                  <span v-if="block.type === 'heading'" class="note-card__page-heading">{{ block.text }}</span>
-                  <span v-else-if="block.type === 'listItem'" class="note-card__page-bullet">• {{ block.text }}</span>
-                  <span v-else class="note-card__page-para">{{ block.text }}</span>
-                </template>
+                <span v-for="(line, i) in previewOf(note)" :key="i" class="note-card__page-para">{{ line }}</span>
               </div>
             </div>
             <div v-else class="note-card__page">
@@ -56,18 +52,11 @@
               <span v-if="note.last_ai_transform_at && !hasCards(note)" class="note-card__meta-sep">IA aplicada</span>
             </p>
 
-            <!-- Preview (structured, editor-like, 3 lines with fade) -->
-            <div v-if="getPreviewBlocks(note).length" class="note-card__preview mt-3">
-              <template v-for="(block, i) in getPreviewBlocks(note)" :key="i">
-                <strong v-if="block.type === 'heading'" class="note-card__preview-heading">{{ block.text }}</strong>
-                <span v-else-if="block.type === 'listItem'" class="note-card__preview-bullet">• {{ block.text }}</span>
-                <span v-else class="note-card__preview-para">{{ block.text }}</span>
-              </template>
+            <!-- Preview (plain text from the API, 3 lines with fade); no preview yet on a note with text: only title and meta -->
+            <div v-if="previewOf(note).length" class="note-card__preview mt-3">
+              <span v-for="(line, i) in previewOf(note)" :key="i" class="note-card__preview-para">{{ line }}</span>
             </div>
-            <p v-else-if="note.plain_preview" class="note-card__preview mt-3">
-              {{ note.plain_preview }}
-            </p>
-            <p v-else class="text-[13px] text-base-muted italic mt-3">
+            <p v-else-if="!note.word_count" class="text-[13px] text-base-muted italic mt-3">
               Nota vazia — clique para editar
             </p>
 
@@ -233,13 +222,15 @@
 
 <script setup lang="ts">
 import { ArrowLeft, Bookmark, ChevronRight, FileText, MoreHorizontal, Zap, Trash2, Brain, Sparkles } from 'lucide-vue-next'
-import { extractStructuredPreview, countWordsFromContent } from '~/utils/notePreview'
-import type { Note } from '~/types'
+import { previewLines } from '~/utils/notePreview'
+import type { Note, NoteSummary } from '~/types'
 import type { NoteSaveState } from '~/composables/useNoteEditor'
 
 const props = defineProps<{
-  notes: Note[]
-  activeNote: Note | null
+  /** List items, without content (prd-performance-caderno RF-F1) */
+  notes: NoteSummary[]
+  /** Open note: the summary while GET /notes/{id} loads, then the full note */
+  activeNote: NoteSummary | Note | null
   noteTitle: string
   saveState?: NoteSaveState
   /** savedAt of a local draft to offer (null: none). */
@@ -252,7 +243,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (e: 'open-note', note: Note): void
+  (e: 'open-note', note: NoteSummary): void
   (e: 'close-editor'): void
   (e: 'create-note'): void
   (e: 'generate-from-note', count?: number): void
@@ -286,7 +277,7 @@ function onPdfSelected(event: Event) {
   input.value = ''
   if (file) emit('select-file', file)
 }
-const noteToDelete = ref<Note | null>(null)
+const noteToDelete = ref<NoteSummary | null>(null)
 const showDeleteNoteConfirm = computed({
   get: () => noteToDelete.value !== null,
   set: (v) => { if (!v) noteToDelete.value = null },
@@ -303,24 +294,24 @@ async function confirmDeleteNote() {
   await topicStore.fetchTree()
 }
 
-function noteMature(note: Note): boolean {
+function noteMature(note: NoteSummary): boolean {
   if (!note.plain_preview) return false
   return note.plain_preview.length >= 148
 }
 
-function noteOutdated(note: Note): boolean {
+function noteOutdated(note: NoteSummary): boolean {
   return !!(note.flashcards_count > 0 && note.cards_generated_at && note.updated_at > note.cards_generated_at)
 }
 
-function hasCards(note: Note): boolean {
+function hasCards(note: NoteSummary): boolean {
   return (note.flashcards_count > 0) || (props.cardsFromNote(note.id) > 0)
 }
 
-function cardCount(note: Note): number {
+function cardCount(note: NoteSummary): number {
   return note.flashcards_count || props.cardsFromNote(note.id)
 }
 
-function getBadge(note: Note): { label: string; variant: string; icon: 'sparkles' | 'zap' | 'file-text' | 'bookmark' } | null {
+function getBadge(note: NoteSummary): { label: string; variant: string; icon: 'sparkles' | 'zap' | 'file-text' | 'bookmark' } | null {
   if (note.last_ai_transform_at && !note.cards_generated_at) {
     return { label: 'IA encontrou melhorias', variant: 'note-badge--accent', icon: 'sparkles' }
   }
@@ -340,31 +331,28 @@ function getBadge(note: Note): { label: string; variant: string; icon: 'sparkles
   return null
 }
 
-function estimateWords(note: Note): number {
+function estimateWords(note: NoteSummary): number {
   if (!note.plain_preview) return 0
   const previewWords = note.plain_preview.split(/\s+/).length
   // If preview is truncated (150 chars), estimate real total
   return note.plain_preview.length >= 148 ? previewWords * 3 : previewWords
 }
 
-// Structured preview from Tiptap content (cached per note id)
-const previewCache = new Map<string, ReturnType<typeof extractStructuredPreview>>()
+// Preview lines from plain_preview, memoized per note object (a save replaces the item)
+const previewCache = new WeakMap<NoteSummary, string[]>()
 
-function getPreviewBlocks(note: Note) {
-  if (previewCache.has(note.id)) return previewCache.get(note.id)!
-  const blocks = extractStructuredPreview(note.content, 200)
-  previewCache.set(note.id, blocks)
-  return blocks
+function previewOf(note: NoteSummary): string[] {
+  let lines = previewCache.get(note)
+  if (!lines) {
+    lines = previewLines(note)
+    previewCache.set(note, lines)
+  }
+  return lines
 }
 
-// Clear cache when notes list changes
-watch(() => props.notes, () => previewCache.clear())
-
-// Real word count from content, null if unavailable
-function getWordCount(note: Note): number | null {
-  const count = countWordsFromContent(note.content)
-  if (count && count >= 10) return count // only show if meaningful
-  return null
+// Word count from the API (word_count), null if not meaningful
+function getWordCount(note: NoteSummary): number | null {
+  return note.word_count >= 10 ? note.word_count : null
 }
 
 // Set title text on mount / note change
@@ -407,13 +395,20 @@ function updateWordCount() {
 }
 
 watch(() => props.activeNote?.id, (id) => {
+  if (wordCountInterval) clearInterval(wordCountInterval)
+  wordCountInterval = null
   if (id) {
+    // The API count while GET /notes/{id} loads; the editor's own count once it is on screen
+    wordCount.value = props.activeNote?.word_count ?? 0
     nextTick(updateWordCount)
     wordCountInterval = setInterval(updateWordCount, 2000)
-  } else {
-    if (wordCountInterval) clearInterval(wordCountInterval)
   }
 }, { immediate: true })
+
+// The full note replaces the list summary (same id) when its content arrives
+watch(() => props.activeNote, (note, prev) => {
+  if (note && prev && note.id === prev.id) setTimeout(updateWordCount, 100)
+})
 
 onUnmounted(() => {
   if (wordCountInterval) clearInterval(wordCountInterval)
@@ -470,7 +465,10 @@ onBeforeUnmount(() => {
 }
 
 /* === Note card — document-like, premium === */
+/* Off-screen cards skip layout and paint (prd-performance-caderno RF-F5); the size is remembered once rendered */
 .note-card {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 218px;
   position: relative;
   display: flex;
   gap: 20px;
@@ -556,28 +554,6 @@ onBeforeUnmount(() => {
   -webkit-mask-image: linear-gradient(to bottom, #000 60%, transparent 100%);
 }
 
-.note-card__page-heading {
-  display: block;
-  font-size: 6.5px;
-  font-weight: 600;
-  line-height: 1.4;
-  color: var(--color-text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.note-card__page-bullet {
-  display: block;
-  font-size: 5.5px;
-  line-height: 1.5;
-  color: var(--color-text-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  padding-left: 2px;
-}
-
 .note-card__page-para {
   display: block;
   font-size: 5.5px;
@@ -651,23 +627,6 @@ onBeforeUnmount(() => {
   position: relative;
   mask-image: linear-gradient(to bottom, #000 70%, transparent 100%);
   -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent 100%);
-}
-
-.note-card__preview-heading {
-  display: block;
-  font-size: 13.5px;
-  font-weight: 600;
-  color: var(--color-text-primary);
-  line-height: 1.5;
-  margin-bottom: 2px;
-}
-
-.note-card__preview-bullet {
-  display: block;
-  font-size: 13px;
-  line-height: 1.6;
-  padding-left: 4px;
-  color: var(--color-text-secondary);
 }
 
 .note-card__preview-para {

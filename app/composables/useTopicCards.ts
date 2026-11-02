@@ -5,24 +5,23 @@ const SEARCH_DEBOUNCE_MS = 300
 
 /**
  * Composable para gestão de cards de um tópico.
- * Gerencia refs de cards, computeds de estado (due, new, progress) e delete.
  *
- * Dois modos para a lista (RF-09): `client` quando /details trouxe todos os cards
- * (busca e "mostrar mais" locais); `server` quando veio truncado (> 200 cards):
- * a lista pagina e busca em GET /topics/{topic}/flashcards.
+ * Os números do caderno (total, progresso, pendentes, "Revisar N") vêm só dos agregados de
+ * GET /topics/{id}/details, que não traz mais a lista de cards (prd-performance-caderno RF-F6).
+ * A lista da aba Cards pagina e busca em GET /topics/{topic}/flashcards e só é pedida quando
+ * a aba abre (`ensureList`).
  */
 export function useTopicCards() {
   const { $api } = useNuxtApp()
   const toast = useToast()
 
-  const cards = ref<any[]>([])
+  const summary = shallowRef<TopicDetails | null>(null)
   const showDeleteModal = ref(false)
   const deleteId = ref<string | null>(null)
 
-  const mode = ref<'client' | 'server'>('client')
   const topicId = ref<string | null>(null)
-  const totals = ref<{ total: number, due: number, new: number } | null>(null)
-  const serverCards = ref<any[]>([])
+  const listCards = ref<any[]>([])
+  const listLoaded = ref(false)
   const page = ref(1)
   const lastPage = ref(1)
   const serverQuery = ref('')
@@ -30,45 +29,28 @@ export function useTopicCards() {
   let searchTimer: ReturnType<typeof setTimeout> | null = null
   let requestId = 0
 
-  /** Cards shown by the list (HubCardsTab) */
-  const listCards = computed(() => (mode.value === 'server' ? serverCards.value : cards.value))
-  const hasMorePages = computed(() => mode.value === 'server' && page.value < lastPage.value)
-  const totalCards = computed(() => totals.value?.total ?? cards.value.length)
+  const hasMorePages = computed(() => page.value < lastPage.value)
+  const totalCards = computed(() => summary.value?.flashcards_count ?? 0)
+  // "Em dia" (review with a future due) over all the cards of the topic, computed by the API
+  const memorizeProgress = computed(() => Math.round((summary.value?.progress ?? 0) * 100))
+  const dueCardsCount = computed(() => summary.value?.due_count ?? 0)
+  const newCardsCount = computed(() => summary.value?.new_count ?? 0)
+  const weakCardsCount = computed(() => summary.value?.weak_count ?? 0)
+  /** Size of the session "Revisar" opens (same rule and limits as GET /review/session) */
+  const pendingCount = computed(() => summary.value?.session_count ?? 0)
 
-  const memorizeProgress = computed(() => {
-    if (!cards.value.length) return 0
-    const now = new Date()
-    const upToDate = cards.value.filter(c => c.state === 'review' && c.due && new Date(c.due) > now).length
-    return Math.round((upToDate / cards.value.length) * 100)
-  })
-
-  // Truncated details: the partial list would undercount, use the server totals
-  const dueCardsCount = computed(() => {
-    if (totals.value) return totals.value.due
-    return cards.value.filter(c => c.due && new Date(c.due) <= new Date()).length
-  })
-
-  const newCardsCount = computed(() => {
-    if (totals.value) return totals.value.new
-    return cards.value.filter(c => c.state === 'new').length
-  })
-
-  const pendingCount = computed(() => dueCardsCount.value + newCardsCount.value)
-
-  function setCards(data: any[], details?: Pick<TopicDetails, 'id' | 'flashcards_truncated' | 'flashcards_count' | 'due_count' | 'new_count'>) {
-    cards.value = data
+  /** New /details of a topic: the numbers change now; the list reloads when the Cards tab needs it. */
+  function setSummary(details: TopicDetails | null) {
     clearSearchTimer()
     requestId++
+    summary.value = details
     topicId.value = details?.id ?? null
-    mode.value = details?.flashcards_truncated ? 'server' : 'client'
-    totals.value = details?.flashcards_truncated
-      ? { total: details.flashcards_count, due: details.due_count, new: details.new_count }
-      : null
+    listCards.value = []
+    listLoaded.value = false
+    loadingPage.value = false
     serverQuery.value = ''
-    // /details already sent the first pages (ordered by due, like the endpoint)
-    serverCards.value = mode.value === 'server' ? data : []
-    page.value = Math.max(1, Math.floor(data.length / PER_PAGE))
-    lastPage.value = mode.value === 'server' ? Math.ceil(details!.flashcards_count / PER_PAGE) : 1
+    page.value = 1
+    lastPage.value = 1
   }
 
   async function fetchPage(nextPage: number, q = serverQuery.value) {
@@ -81,14 +63,15 @@ export function useTopicCards() {
       const res = await $api<Paginated<any>>(`/topics/${topicId.value}/flashcards`, { query })
       if (id !== requestId) return // a newer search/page superseded this one
       if (nextPage === 1) {
-        serverCards.value = res.data
+        listCards.value = res.data
       } else {
-        const known = new Set(serverCards.value.map(c => c.id))
-        serverCards.value = [...serverCards.value, ...res.data.filter(c => !known.has(c.id))]
+        const known = new Set(listCards.value.map(c => c.id))
+        listCards.value = [...listCards.value, ...res.data.filter(c => !known.has(c.id))]
       }
       page.value = res.meta.current_page
       lastPage.value = res.meta.last_page
       serverQuery.value = q
+      listLoaded.value = true
     } catch {
       if (id === requestId) toast.show('Erro ao carregar cards.', 'error')
     } finally {
@@ -96,13 +79,22 @@ export function useTopicCards() {
     }
   }
 
+  /** First page of the list, once per /details (the Cards tab opened); none to ask for an empty topic. */
+  async function ensureList() {
+    if (listLoaded.value || loadingPage.value || !topicId.value) return
+    if (!summary.value?.flashcards_count) {
+      listLoaded.value = true
+      return
+    }
+    await fetchPage(1, '')
+  }
+
   function loadNextPage() {
     if (hasMorePages.value && !loadingPage.value) fetchPage(page.value + 1)
   }
 
-  /** Server mode: debounced search on front and back (plain text, server side). */
+  /** Debounced search on front and back (plain text, server side). */
   function searchCards(q: string) {
-    if (mode.value !== 'server') return
     clearSearchTimer()
     searchTimer = setTimeout(() => fetchPage(1, q.trim()), SEARCH_DEBOUNCE_MS)
   }
@@ -116,16 +108,16 @@ export function useTopicCards() {
 
   if (getCurrentScope()) onScopeDispose(clearSearchTimer)
 
+  /** Fallback of note.flashcards_count (the notes list counts them): cards of the note already listed. */
   function cardsFromNote(noteId: string): number {
-    return cards.value.filter(c => c.source_note_id === noteId).length
+    return listCards.value.filter(c => c.source_note_id === noteId).length
   }
 
   async function deleteCard(cardId: string) {
     try {
       await $api(`/flashcards/${cardId}`, { method: 'DELETE' })
-      cards.value = cards.value.filter(c => c.id !== cardId)
-      serverCards.value = serverCards.value.filter(c => c.id !== cardId)
-      if (totals.value) totals.value = { ...totals.value, total: totals.value.total - 1 }
+      listCards.value = listCards.value.filter(c => c.id !== cardId)
+      if (summary.value) summary.value = { ...summary.value, flashcards_count: Math.max(0, summary.value.flashcards_count - 1) }
       toast.show('Card excluído.', 'success')
     } catch {
       toast.show('Erro ao excluir card.', 'error')
@@ -145,15 +137,15 @@ export function useTopicCards() {
   }
 
   return {
-    topicCards: cards,
     showDeleteCard: showDeleteModal,
     deleteCardId: deleteId,
     memorizeProgress,
     dueCardsCount,
     newCardsCount,
+    weakCardsCount,
     pendingCount,
-    setCards,
-    listMode: mode,
+    setSummary,
+    ensureList,
     listCards,
     hasMorePages,
     loadingPage,

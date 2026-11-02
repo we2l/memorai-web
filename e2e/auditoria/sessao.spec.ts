@@ -106,7 +106,9 @@ test.describe('Sessão expirada no meio do uso', () => {
   test('texto da nota digitado quando a sessão expira não se perde', async ({ page, context }) => {
     await gotoApp(page, '/hoje')
     const t = await apiCall(page, 'POST', '/topics', { name: `Rascunho ${uid()}` })
-    await apiCall(page, 'POST', `/topics/${t.data.id}/notes`, { title: 'Nota longa', content: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Início.' }] }] } })
+    const n = await apiCall(page, 'POST', `/topics/${t.data.id}/notes`, { title: 'Nota longa', content: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Início.' }] }] } })
+    // The notes list has no content (prd-performance-caderno): the saved text is read from the note itself
+    const noteText = async () => JSON.stringify((await apiCall(page, 'GET', `/notes/${n.data.id}`)).data.content)
     await gotoApp(page, `/cadernos?topic=${t.data.id}`)
     await page.locator('.note-card').filter({ hasText: 'Nota longa' }).click()
     const editor = page.locator('.ProseMirror').first()
@@ -122,10 +124,10 @@ test.describe('Sessão expirada no meio do uso', () => {
     await loginViaForm(page, USERS.session.email)
     await page.waitForURL(u => u.pathname === '/cadernos', { timeout: 15_000 })
     await page.waitForLoadState('networkidle')
-    expect(JSON.stringify((await apiCall(page, 'GET', `/topics/${t.data.id}/notes`)).data)).not.toContain('Parágrafo importante')
+    expect(await noteText()).not.toContain('Parágrafo importante')
 
-    // Reabrir a nota oferece o rascunho local (nunca aplicado sem a escolha da pessoa)
-    await page.locator('.note-card').filter({ hasText: 'Nota longa' }).click()
+    // A volta para /cadernos?…&note= reabre a nota, que oferece o rascunho local (nunca aplicado sem a escolha da pessoa)
+    expect(new URL(page.url()).searchParams.get('note')).toBe(n.data.id)
     const offer = page.getByRole('status').filter({ hasText: /Você tem alterações não salvas de \d{2}:\d{2}\./ })
     await expect(offer).toBeVisible()
     await expect(page.locator('.ProseMirror').first()).not.toContainText('Parágrafo importante')
@@ -134,6 +136,6 @@ test.describe('Sessão expirada no meio do uso', () => {
     await expect(page.locator('.ProseMirror').first()).toContainText('Início. Parágrafo importante.')
     expect((await saved).status()).toBe(200)
     await expect(offer).toBeHidden()
-    await expect.poll(async () => JSON.stringify((await apiCall(page, 'GET', `/topics/${t.data.id}/notes`)).data)).toContain('Parágrafo importante')
+    await expect.poll(noteText).toContain('Parágrafo importante')
   })
 })

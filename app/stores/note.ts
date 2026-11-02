@@ -1,10 +1,18 @@
 import { defineStore } from 'pinia'
-import type { Note } from '~/types'
+import type { Note, NoteSummary } from '~/types'
+
+/** The list keeps only the summary: the content lives in the editor that opened the note (RF-F1). */
+function summaryOf(note: Partial<Note>): Partial<NoteSummary> {
+  const { content: _content, ...summary } = note
+  return summary
+}
 
 export const useNoteStore = defineStore('note', {
   state: () => ({
-    notes: [] as Note[],
-    current: null as Note | null,
+    notes: [] as NoteSummary[],
+    current: null as NoteSummary | null,
+    /** Caderno of the last list request: a slower answer of the previous one never replaces it */
+    topicId: null as string | null,
     loading: false,
     saving: false,
     error: null as unknown,
@@ -12,24 +20,33 @@ export const useNoteStore = defineStore('note', {
 
   actions: {
     async fetchForTopic(topicId: string) {
+      this.topicId = topicId
       this.loading = true
       this.error = null
       try {
         const { $api } = useNuxtApp()
-        const res = await $api<any>(`/topics/${topicId}/notes`)
-        this.notes = res.data
+        const res = await $api<{ data: NoteSummary[] }>(`/topics/${topicId}/notes`)
+        if (this.topicId === topicId) this.notes = res.data
       } catch (e) {
-        this.error = e
+        if (this.topicId === topicId) this.error = e
         reportApiError(e, { silent: true })
       } finally {
-        this.loading = false
+        if (this.topicId === topicId) this.loading = false
       }
     },
 
-    async create(topicId: string, data: { title: string }) {
+    /** Full note (GET /notes/{id}), opened in the editor; its summary refreshes the list item. */
+    async fetchOne(id: string): Promise<Note> {
       const { $api } = useNuxtApp()
-      const res = await $api<any>(`/topics/${topicId}/notes`, { method: 'POST', body: data })
-      this.notes.unshift(res.data)
+      const res = await $api<{ data: Note }>(`/notes/${id}`)
+      this.merge(id, summaryOf(res.data))
+      return res.data
+    },
+
+    async create(topicId: string, data: { title: string }): Promise<Note> {
+      const { $api } = useNuxtApp()
+      const res = await $api<{ data: Note }>(`/topics/${topicId}/notes`, { method: 'POST', body: data })
+      this.notes.unshift({ ...summaryOf(res.data), flashcards_count: res.data.flashcards_count ?? 0 } as NoteSummary)
       return res.data
     },
 
@@ -37,21 +54,24 @@ export const useNoteStore = defineStore('note', {
       this.saving = true
       try {
         const { $api } = useNuxtApp()
-        const res = await $api<any>(`/notes/${id}`, { method: 'PUT', body: data })
-        // Update local list without overwriting editor state via current
-        const idx = this.notes.findIndex(n => n.id === id)
-        if (idx !== -1) {
-          const { improved, ...rest } = data
-          // updated_at follows the server: it is the base of the local draft (useNoteDraft)
-          const updatedAt = res?.data?.updated_at
-          this.notes[idx] = { ...this.notes[idx], ...rest, ...(updatedAt ? { updated_at: updatedAt } : {}) }
-          if (improved) {
-            this.notes[idx].last_ai_transform_at = new Date().toISOString()
-          }
-        }
+        // The answer is only the note metadata (RF-B3): updated_at is the base of the local draft (useNoteDraft)
+        const res = await $api<{ data?: Partial<NoteSummary> }>(`/notes/${id}`, { method: 'PUT', body: data })
+        const meta = summaryOf(res?.data ?? {})
+        this.merge(id, {
+          ...(data.title !== undefined ? { title: data.title } : {}),
+          ...meta,
+          ...(data.improved && !meta.last_ai_transform_at ? { last_ai_transform_at: new Date().toISOString() } : {}),
+        })
       } finally {
         this.saving = false
       }
+    },
+
+    /** Joins fresh metadata into the list item and the open note (without overwriting editor state). */
+    merge(id: string, patch: Partial<NoteSummary>) {
+      const idx = this.notes.findIndex(n => n.id === id)
+      if (idx !== -1) this.notes[idx] = { ...this.notes[idx]!, ...patch }
+      if (this.current?.id === id) this.current = { ...this.current, ...patch }
     },
 
     async remove(id: string) {

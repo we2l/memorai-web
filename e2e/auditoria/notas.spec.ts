@@ -7,7 +7,7 @@ import type { Page } from '@playwright/test'
 test.use({ auditUser: 'pro' })
 
 const editor = (page: Page) => page.locator('.ProseMirror').first()
-const title = (page: Page) => page.locator('.notion-title')
+const title = (page: Page) => page.getByTestId('material-title-input')
 const saveIndicator = (page: Page) => page.getByRole('main').getByText(/^(Salvando\.\.\.|Salvo)$/)
 const notSaved = (page: Page) => page.getByRole('alert').filter({ hasText: 'Não salvo' })
 

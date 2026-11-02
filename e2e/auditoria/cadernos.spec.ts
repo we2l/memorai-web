@@ -237,7 +237,7 @@ test.describe('Caderno — PDF no escopo (upload interceptado, sem IA)', () => {
     expect(posts[0]).toMatchObject({ topic_id: childId })
     expect(['0', '1']).toContain(posts[0]!.auto_cards)
     expect(notePosts).toBe(0)
-    await expect(page.locator('.notion-title')).toHaveCount(0)
+    await expect(page.getByTestId('material-title-input')).toHaveCount(0)
   })
 
   test('"+ Adicionar → PDF" da lista grava num caderno escolhido, com "Criar cards" explícito (nunca cria caderno)', async ({ page }) => {

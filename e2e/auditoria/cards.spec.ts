@@ -6,7 +6,7 @@ import type { Page } from '@playwright/test'
  */
 test.use({ auditUser: 'pro' })
 
-const cardDialog = (page: Page) => page.getByRole('dialog', { name: /flashcard/ })
+const cardDialog = (page: Page) => page.getByRole('dialog', { name: /^(Novo|Editar) card$/ })
 const front = (page: Page) => cardDialog(page).locator('.ProseMirror').nth(0)
 const back = (page: Page) => cardDialog(page).locator('.ProseMirror').nth(1)
 
@@ -44,10 +44,11 @@ test.describe('Card — caminho feliz', () => {
     expect(cards).toHaveLength(1)
     expect(cards[0].front).toContain('Capital da França?')
 
-    // Editar
-    const row = page.getByRole('main').getByText('Capital da França?').first()
-    await row.hover()
-    await page.getByRole('button', { name: 'Editar card' }).first().click()
+    // Editar: a linha abre o card (4c-1), com "Editar" e "Excluir" à vista (sem hover)
+    const openCard = () => page.getByTestId('card-row-open').filter({ hasText: 'Capital da França?' }).click()
+    const viewer = page.getByRole('dialog', { name: 'Card' })
+    await openCard()
+    await viewer.getByRole('button', { name: 'Editar' }).click()
     await expect(cardDialog(page).getByRole('heading', { name: 'Editar card' })).toBeVisible()
     await back(page).click()
     await page.keyboard.press('Control+A')
@@ -58,13 +59,13 @@ test.describe('Card — caminho feliz', () => {
     expect(cards[0].back).toContain('Île-de-France')
 
     // Excluir (cancelar primeiro, depois confirmar)
-    await page.getByRole('main').getByText('Capital da França?').first().hover()
-    await page.getByRole('button', { name: 'Excluir card' }).first().click()
+    await openCard()
+    await viewer.getByRole('button', { name: 'Excluir' }).click()
     await expect(page.getByRole('alertdialog').getByRole('heading', { name: 'Excluir card?' })).toBeVisible()
     await page.getByRole('alertdialog').getByRole('button', { name: 'Cancelar' }).click()
     expect(await cardsOf(page, topicId)).toHaveLength(1)
-    await page.getByRole('main').getByText('Capital da França?').first().hover()
-    await page.getByRole('button', { name: 'Excluir card' }).first().click()
+    await openCard()
+    await viewer.getByRole('button', { name: 'Excluir' }).click()
     await page.getByRole('alertdialog').getByRole('button', { name: 'Excluir' }).click()
     await expect.poll(async () => (await cardsOf(page, topicId)).length).toBe(0)
   })

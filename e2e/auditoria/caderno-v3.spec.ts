@@ -135,7 +135,7 @@ test.describe('Escopo do usuário (e2e-hub)', () => {
     await page.getByTestId('scope-add-material').click()
     await page.getByRole('dialog', { name: 'Adicionar' }).getByRole('button', { name: /Nota em branco/ }).click()
     await expect(page).toHaveURL(new RegExp(`/cadernos/${subject.id}/material/[0-9a-f-]{36}$`))
-    await expect(page.locator('.notion-title')).toHaveText('Novo material')
+    await expect(page.getByTestId('material-title-input')).toHaveText('Novo material')
   })
 
   test('PDF pelo "+ Adicionar": vai com o topic_id do escopo e "Criar cards" explícito; a linha entra no topo lendo', async ({ page }) => {
@@ -261,7 +261,7 @@ test.describe('Escopo do usuário (e2e-hub)', () => {
 
     // Material: the editor autosaves; "‹ Constitucional" goes back to the hub
     await gotoApp(page, `/cadernos/${subject.id}/material/${note.id}`)
-    await expect(page.locator('.notion-title')).toHaveText('Nota antiga')
+    await expect(page.getByTestId('material-title-input')).toHaveText('Nota antiga')
     const put = page.waitForRequest(r => r.method() === 'PUT' && r.url().endsWith(`/api/notes/${note.id}`))
     await page.locator('.ProseMirror').first().click()
     await page.keyboard.type(' mais')
@@ -320,7 +320,7 @@ test.describe('Celular 390', () => {
     if (await review.count()) expect((await review.boundingBox())!.height).toBeGreaterThanOrEqual(36)
     // Inside the material the bar is gone
     await materials(page).first().getByTestId('material-title').click()
-    await expect(page.locator('.notion-title')).toBeVisible()
+    await expect(page.getByTestId('material-reader')).toBeVisible()
     await expect(page.getByTestId('scope-review-bar')).toHaveCount(0)
     await ctx.close()
   })

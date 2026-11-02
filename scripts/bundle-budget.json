@@ -18,7 +18,12 @@
     "/cadernos/:id/material/:noteId": {
       "file": "pages/cadernos/[id]/material/[noteId].vue",
       "gzKb": 20,
-      "closureGzKb": 57
+      "closureGzKb": 50
+    },
+    "/cadernos/:id/cards": {
+      "file": "pages/cadernos/[id]/cards.vue",
+      "gzKb": 15,
+      "closureGzKb": 35
     },
     "/": {
       "file": "pages/index.vue",

@@ -102,7 +102,7 @@ test.describe('Cadastro', () => {
 
     // Primeiro card: o caderno vazio oferece criar à mão (abre a biblioteca com o formulário)
     await page.getByTestId('empty-card').click()
-    const dialog = page.getByRole('dialog', { name: /flashcard/ })
+    const dialog = page.getByRole('dialog', { name: /^(Novo|Editar) card$/ })
     await dialog.locator('.ProseMirror').nth(0).click()
     await page.keyboard.type('Organela da fotossíntese?')
     await dialog.locator('.ProseMirror').nth(1).click()

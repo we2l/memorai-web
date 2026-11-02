@@ -1,3 +1,5 @@
+import type { StudyGate } from '~/utils/studyRequirement'
+
 export interface User {
   id: string
   name: string
@@ -171,18 +173,32 @@ export interface TopicDetails {
   learning_count: number
   /** Size of the review session GET /review/session?topic_id= would build now ("Revisar N") */
   session_count: number
+  /** What the subtree still needs for a quiz / a podcast (prd-caderno-f1-pontes RF-B6) */
+  can_quiz?: StudyGate
+  can_podcast?: StudyGate
   streak: number
   evolution: { mastered: number; recovered: number; total: number }
   goal: { target_date: string; cards_per_day: number; remaining: number; days_left: number } | null
 }
 
+/** GET /topics/progress: every number is of the topic's subtree, the same rule as its session (F1 D1) */
 export interface TopicProgress {
   id: string
   name: string
+  color?: string | null
   flashcards_count: number
   review_count: number
   progress: number
+  /** Size of the session of that subtree ("Revisar N"), with the daily limits */
+  session_count: number
+  /** Same value as session_count (kept by the API for older clients) */
+  pending_count?: number
+  last_reviewed_at?: string | null
+  updated_at?: string
 }
+
+/** Numbers of each tree row, by topic id: all of the subtree, from GET /topics/progress */
+export type TreeProgressMap = Record<string, Pick<TopicProgress, 'progress' | 'session_count' | 'flashcards_count'>>
 
 export interface WeakConnection {
   id: string

@@ -1,27 +1,25 @@
 <template>
-  <div class="mx-4 mt-3 mb-2 flex items-center gap-2">
-    <button
-      class="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl bg-[var(--bg-card)] border border-base hover:border-[var(--color-accent-primary)]/20 hover:bg-surface-secondary transition-all text-left"
-      @click="$emit('podcast')"
-    >
-      <Headphones :size="16" class="text-[var(--badge-primary-text)] shrink-0" />
-      <span class="text-small font-medium text-base-primary truncate">Podcast</span>
-      <ChevronRight :size="12" class="text-base-muted shrink-0 ml-auto" />
-    </button>
-
-    <button
-      class="flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl bg-[var(--bg-card)] border border-base hover:border-[var(--color-accent-primary)]/20 hover:bg-surface-secondary transition-all text-left"
-      @click="$emit('quiz')"
-    >
-      <ClipboardList :size="16" class="text-[var(--badge-primary-text)] shrink-0" />
-      <span class="text-small font-medium text-base-primary truncate">Simulado</span>
-      <ChevronRight :size="12" class="text-base-muted shrink-0 ml-auto" />
-    </button>
+  <!-- Practice of the caderno: each mode says what it still needs before the click (F1 RF-F5) -->
+  <div class="mx-4 mb-2 mt-3 grid gap-2" :class="requirementText(quizGate) || requirementText(podcastGate) ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-2'">
+    <UiListRow as="button" class="bg-raised shadow-card" title="Podcast" :meta="requirementText(podcastGate) ?? undefined" @click="$emit('podcast')">
+      <template #leading><Headphones class="size-4 text-listen" aria-hidden="true" /></template>
+      <template #trailing><ChevronRight class="size-4" aria-hidden="true" /></template>
+    </UiListRow>
+    <UiListRow as="button" class="bg-raised shadow-card" title="Simulado" :meta="requirementText(quizGate) ?? undefined" @click="$emit('quiz')">
+      <template #leading><ClipboardList class="size-4 text-quiz" aria-hidden="true" /></template>
+      <template #trailing><ChevronRight class="size-4" aria-hidden="true" /></template>
+    </UiListRow>
   </div>
 </template>
 
 <script setup lang="ts">
 import { Headphones, ClipboardList, ChevronRight } from 'lucide-vue-next'
+import { requirementText, type StudyGate } from '~/utils/studyRequirement'
+
+defineProps<{
+  quizGate?: StudyGate | null
+  podcastGate?: StudyGate | null
+}>()
 
 defineEmits<{
   (e: 'podcast'): void

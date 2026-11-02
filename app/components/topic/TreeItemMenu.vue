@@ -49,7 +49,9 @@
 <script setup lang="ts">
 import { MoreHorizontal } from 'lucide-vue-next'
 
-const props = defineProps<{ name: string; canAddChild?: boolean }>()
+// canAddChild is required: an absent optional boolean prop is cast to false by Vue, and the
+// "Adicionar assunto" item vanished in silence that way (04/B7)
+const props = defineProps<{ name: string; canAddChild: boolean }>()
 const emit = defineEmits<{ (e: 'action', key: 'add-child' | 'edit' | 'delete'): void }>()
 
 const open = ref(false)
@@ -59,7 +61,7 @@ const menu = ref<HTMLElement | null>(null)
 const menuId = `tree-menu-${Math.random().toString(36).slice(2, 9)}`
 
 const items = computed(() => [
-  ...(props.canAddChild !== false ? [{ key: 'add-child' as const, label: 'Adicionar tópico' }] : []),
+  ...(props.canAddChild ? [{ key: 'add-child' as const, label: 'Adicionar assunto' }] : []),
   { key: 'edit' as const, label: 'Editar' },
   { key: 'delete' as const, label: 'Excluir', danger: true },
 ])

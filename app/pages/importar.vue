@@ -116,30 +116,30 @@
       </p>
     </div>
 
-    <!-- Step 4: Completed -->
-    <div v-else-if="store.status?.status === 'completed'" class="card p-8 text-center">
-      <p class="text-5xl mb-4">🎉</p>
-      <h2 class="text-display mb-2">Importação concluída!</h2>
-      <div class="grid grid-cols-2 gap-3 max-w-xs mx-auto mt-4 mb-6">
-        <div class="bg-[var(--border-divider)] rounded-lg p-3">
-          <p class="text-title text-accent-primary">{{ store.status.stats?.decks_created }}</p>
-          <p class="text-micro text-base-muted">Cadernos criados</p>
+    <!-- Step 4: Completed: the CTA opens the caderno the import wrote to (N4), not the first of the tree -->
+    <UiSection v-else-if="store.status?.status === 'completed'" class="text-center">
+      <UiBaigiMascot :size="96" state="celebrating" class="mx-auto" />
+      <h2 class="mt-3 text-section text-fg-strong">Importação concluída!</h2>
+      <p class="mt-1 text-meta text-fg-muted">Seus baralhos do Anki viraram cadernos.</p>
+      <dl class="mx-auto mt-6 grid max-w-sm grid-cols-3 gap-3">
+        <div>
+          <dt class="text-label text-fg-muted">Cards</dt>
+          <dd class="text-section text-fg-strong tabular-nums">{{ store.status.stats?.cards_created ?? 0 }}</dd>
         </div>
-        <div class="bg-[var(--border-divider)] rounded-lg p-3">
-          <p class="text-title text-accent-primary">{{ store.status.stats?.cards_created }}</p>
-          <p class="text-micro text-base-muted">Cards</p>
+        <div>
+          <dt class="text-label text-fg-muted">Cadernos e assuntos</dt>
+          <dd class="text-section text-fg-strong tabular-nums">{{ store.status.stats?.topics_created ?? 0 }}</dd>
         </div>
-        <div class="bg-[var(--border-divider)] rounded-lg p-3">
-          <p class="text-title text-accent-primary">{{ store.status.stats?.topics_created }}</p>
-          <p class="text-micro text-base-muted">Cadernos</p>
+        <div>
+          <dt class="text-label text-fg-muted">Mídias</dt>
+          <dd class="text-section text-fg-strong tabular-nums">{{ store.status.stats?.media_extracted ?? 0 }}</dd>
         </div>
-        <div class="bg-[var(--border-divider)] rounded-lg p-3">
-          <p class="text-title text-accent-primary">{{ store.status.stats?.media_extracted }}</p>
-          <p class="text-micro text-base-muted">Media</p>
-        </div>
+      </dl>
+      <div class="mt-6 flex flex-wrap justify-center gap-3">
+        <UiButton v-if="importedRoot" variant="primary" :to="cadernoPath(importedRoot.id)">Abrir {{ importedRoot.name }}</UiButton>
+        <UiButton :variant="importedRoot ? 'secondary' : 'primary'" to="/cadernos">Ver cadernos</UiButton>
       </div>
-      <NuxtLink to="/cadernos" class="btn-primary">Ver cadernos</NuxtLink>
-    </div>
+    </UiSection>
 
     <!-- Failed -->
     <div v-else-if="store.status?.status === 'failed'" class="card p-8 text-center">
@@ -159,6 +159,7 @@
 <script setup lang="ts">
 import { Upload, XCircle, AlertTriangle } from 'lucide-vue-next'
 import { PREVIEW_TIMEOUT_MESSAGE } from '~/stores/import'
+import { cadernoPath, findImportedRoot } from '~/utils/scope'
 
 const store = useImportStore()
 const toast = useToast()
@@ -214,6 +215,21 @@ async function confirmImport() {
     toast.show('Erro ao iniciar importação.', 'error')
   }
 }
+
+// The caderno the import wrote to: the first imported (not skipped) root deck, by name (N4)
+const topicStore = useTopicStore()
+const importedRoot = ref<{ id: string; name: string } | null>(null)
+watch(() => store.status?.status, async (status) => {
+  if (status !== 'completed') return
+  const decks = (store.preview?.decks ?? []).map(d => d.name).filter(name => store.deckConflicts[name] !== 'skip')
+  try {
+    await topicStore.fetchTree()
+    importedRoot.value = findImportedRoot(topicStore.tree, decks)
+  } catch (e) {
+    // The generic "Ver cadernos" stays
+    reportApiError(e, { silent: true })
+  }
+})
 
 function startPolling() {
   statusPoll.start()

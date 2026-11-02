@@ -26,7 +26,7 @@ async function createViaUi(page: Page, name: string) {
   return dialog
 }
 
-async function menuAction(page: Page, name: string, action: 'Editar' | 'Excluir' | 'Adicionar tópico') {
+async function menuAction(page: Page, name: string, action: 'Editar' | 'Excluir' | 'Adicionar assunto') {
   await page.getByRole('button', { name: `Opções de ${name}`, exact: true }).click()
   await page.getByRole('menuitem', { name: action }).click()
 }
@@ -80,16 +80,16 @@ test.describe('Caderno — caminho feliz', () => {
     await expect.poll(async () => (await topicsByName(page, name)).length).toBe(0)
   })
 
-  // BUG: TreeItemMenu.vue declara `canAddChild?: boolean` — o cast booleano do Vue transforma a prop
-  // ausente em false e o item "Adicionar tópico" nunca aparece (regressão do commit 5a68b0d).
-  test('subtópico: "Adicionar tópico" cria filho dentro do caderno', async ({ page }) => {
+  // Era BUG (04/B7): `canAddChild?: boolean` virava false pelo cast booleano do Vue e o item sumia.
+  // Corrigido na F1 (prd-caderno-f1-pontes RF-F6): a prop é obrigatória e vem da profundidade.
+  test('subtópico: "Adicionar assunto" cria filho dentro do caderno', async ({ page }) => {
     const parent = `Pai ${uid()}`
     await gotoApp(page, '/cadernos')
     await apiCall(page, 'POST', '/topics', { name: parent })
     await page.reload()
     await page.getByRole('button', { name: `Opções de ${parent}`, exact: true }).click()
-    await expect(page.getByRole('menuitem', { name: 'Adicionar tópico' })).toBeVisible({ timeout: 3000 })
-    await page.getByRole('menuitem', { name: 'Adicionar tópico' }).click()
+    await expect(page.getByRole('menuitem', { name: 'Adicionar assunto' })).toBeVisible({ timeout: 3000 })
+    await page.getByRole('menuitem', { name: 'Adicionar assunto' }).click()
     const dialog = page.getByRole('dialog').filter({ has: page.getByRole('textbox') })
     await dialog.getByRole('textbox').first().fill('Filho 1')
     await dialog.getByRole('button', { name: 'Criar' }).click()
@@ -163,7 +163,7 @@ test.describe('Caderno — caminho triste', () => {
     await expect(page.getByRole('alert').getByText(`Não foi possível excluir "${name}".`)).toBeVisible()
   })
 
-  // Lacuna de produto, não de teste: o menu do tópico só tem Adicionar tópico/Editar/Excluir
+  // Lacuna de produto, não de teste: o menu do tópico só tem Adicionar assunto/Editar/Excluir
   // (TreeItemMenu.vue) e a árvore não tem drag-and-drop. Reativar quando "Mover" existir.
   test.fixme('mover caderno/tópico para outro caderno: a interface oferece a ação', async ({ page }) => {
     const name = `Mover ${uid()}`

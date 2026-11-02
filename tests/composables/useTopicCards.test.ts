@@ -98,4 +98,41 @@ describe('useTopicCards', () => {
     await vi.advanceTimersByTimeAsync(0)
     expect(tc.listCards.value.map(c => c.id)).toEqual(['y1'])
   })
+
+  it('"Ver e editar cards" de uma nota: a lista vem filtrada por source_note_id e volta a todos (RF-F4)', async () => {
+    const tc = useTopicCards()
+    tc.setSummary(details)
+    apiMock.mockResolvedValue({ ...page(1, ['n1', 'n2'], 1), meta: { current_page: 1, last_page: 1, per_page: 50, total: 2 } })
+    await tc.filterByNote('note-1')
+    expect(apiMock).toHaveBeenLastCalledWith('/topics/x/flashcards', { query: { page: 1, per_page: 50, source_note_id: 'note-1' } })
+    expect(tc.sourceNoteId.value).toBe('note-1')
+    expect(tc.filteredTotal.value).toBe(2)
+    expect(tc.totalCards.value).toBe(2200) // the caderno's numbers do not change
+
+    // The search stays inside the note
+    tc.searchCards('abc')
+    await vi.advanceTimersByTimeAsync(300)
+    expect(apiMock).toHaveBeenLastCalledWith('/topics/x/flashcards', { query: { page: 1, per_page: 50, q: 'abc', source_note_id: 'note-1' } })
+
+    apiMock.mockResolvedValue(page(1, ['c1']))
+    await tc.filterByNote(null)
+    expect(apiMock).toHaveBeenLastCalledWith('/topics/x/flashcards', { query: { page: 1, per_page: 50 } })
+    expect(tc.filteredTotal.value).toBeNull()
+  })
+
+  it('outro caderno limpa o filtro da nota', async () => {
+    const tc = useTopicCards()
+    tc.setSummary(details)
+    await tc.filterByNote('note-1')
+    tc.setSummary({ ...details, id: 'y' })
+    expect(tc.sourceNoteId.value).toBeNull()
+  })
+
+  it('requisitos do simulado e do podcast vêm do /details (RF-F5)', () => {
+    const tc = useTopicCards()
+    expect(tc.quizGate.value).toBeNull()
+    tc.setSummary({ ...details, can_quiz: { ok: false, code: 'needs_material', requirement: { required: 100, current: 60 } }, can_podcast: { ok: true } })
+    expect(tc.quizGate.value).toMatchObject({ ok: false, code: 'needs_material' })
+    expect(tc.podcastGate.value).toEqual({ ok: true })
+  })
 })

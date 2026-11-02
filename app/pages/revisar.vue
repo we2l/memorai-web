@@ -148,7 +148,9 @@
             : 'Nenhum card pendente agora. Que tal criar novos cards?'
           }}
         </p>
-        <NuxtLink to="/hoje" class="btn-primary mt-8">Voltar</NuxtLink>
+        <UiButton variant="primary" class="mt-8" :to="scopeTopicId ? cadernoPath(scopeTopicId) : '/hoje'">
+          {{ scopeTopicId ? 'Voltar ao caderno' : 'Voltar' }}
+        </UiButton>
       </template>
 
       <!-- Normal finish (reviewed some cards) — RF-F2.10 -->
@@ -160,6 +162,7 @@
         :pending-learning="review.pendingLearning"
         :top-error-topic="topErrorTopic ?? null"
         :has-backlog="hasBacklog"
+        :caderno-to="scopeTopicId ? cadernoPath(scopeTopicId) : null"
       >
         <template v-if="!tomorrowFailed" #tomorrow>
           <ReviewSessionTomorrow
@@ -225,9 +228,13 @@
               @skipped="dismissErrorDiary"
             />
             <!-- Note snippet -->
-            <div v-if="review.noteSnippet" class="p-3 rounded-lg bg-surface-secondary border border-base">
-              <p class="text-xs text-accent-primary font-medium mb-1">Da sua nota: {{ review.noteSnippet.title }}</p>
-              <p class="text-sm text-base-secondary">{{ review.noteSnippet.snippet }}</p>
+            <div v-if="review.noteSnippet" class="p-3 rounded-lg bg-subtle text-left">
+              <p class="text-label text-fg-muted">Da sua nota: <span class="font-semibold text-fg-strong">{{ review.noteSnippet.title }}</span></p>
+              <p class="mt-1 text-meta text-fg">{{ review.noteSnippet.snippet }}</p>
+              <!-- Bridge to the material (RF-F3): the caderno with that note open -->
+              <UiLink :to="cadernoPath(review.noteSnippet.topic_id, { note: review.noteSnippet.note_id })" standalone>
+                Abrir na nota
+              </UiLink>
             </div>
             <!-- Actions -->
             <div class="flex gap-2 justify-center">
@@ -336,6 +343,7 @@
 
 <script setup lang="ts">
 import type { TomorrowForecast } from '~/types'
+import { cadernoPath, markScopeCleared } from '~/utils/scope'
 import { Flame, AlertOctagon, AlertTriangle, Timer, Zap, CalendarClock, GitBranch, FastForward, Undo2, XCircle, Lightbulb, Pencil } from 'lucide-vue-next'
 
 definePageMeta({ chrome: 'focus' })
@@ -447,9 +455,11 @@ const contextBadge = computed(() => {
     }
   }
 
-  // Priority 2: Interleaved (card from different topic than query)
+  // Priority 2: Interleaved, only in the optional "+ related" mode: a card of a subject of the
+  // caderno has another topic_id and is part of the caderno itself (F1 D1, subtree scope)
   const queryTopicId = route.query.topic_id as string | undefined
-  if (queryTopicId && card.topic_id && card.topic_id !== queryTopicId) {
+  const withRelated = route.query.include_related === '1'
+  if (withRelated && queryTopicId && card.topic_id && card.topic_id !== queryTopicId) {
     return {
       icon: GitBranch,
       label: 'Tópico conectado',
@@ -600,8 +610,9 @@ async function loadSession() {
   const errorsOnly = route.query.errors_only === '1'
   const backlog = route.query.backlog === '1'
   const mode = route.query.mode as string | undefined
+  const includeRelated = route.query.include_related === '1'
   if (deckId) await deckStore.fetchDeck(deckId)
-  await review.fetchSession(deckId, topicId, errorsOnly, backlog, mode)
+  await review.fetchSession(deckId, topicId, errorsOnly, backlog, mode, includeRelated)
 
   // Blitz mode: fixed 5 min timer, ignore settings timer
   isBlitz.value = mode === 'blitz'
@@ -628,6 +639,17 @@ const showTimerModal = ref(false)
 const isSurvivalMode = ref(false)
 const isBlitz = ref(false)
 const isErrorsOnly = computed(() => route.query.errors_only === '1')
+/** The caderno this session came from: the end of the session returns to it (F1 RF-F2, "voltar ao lugar certo") */
+const scopeTopicId = computed(() => (typeof route.query.topic_id === 'string' && route.query.topic_id) || null)
+
+// The person's own session emptied the caderno: its page celebrates once (05/#11). Only the full session
+// of the scope counts (not "só erros", relâmpago or backlog) and only when nothing waits in learning.
+watch(() => review.finished && !review.saving, (done) => {
+  const topicId = scopeTopicId.value
+  if (!done || !topicId || review.totalRated === 0 || review.pendingLearning > 0) return
+  if (isErrorsOnly.value || isBlitz.value || route.query.backlog === '1') return
+  markScopeCleared(topicId)
+})
 let timerInterval: ReturnType<typeof setInterval> | null = null
 
 // Sync blitz countdown with dive mode

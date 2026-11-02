@@ -228,7 +228,7 @@ const segmentCount = computed(() => Math.min(totalDue.value, 24))
 const doneSegments = computed(() => totalDue.value <= 24
   ? reviewedToday.value
   : Math.round((reviewedToday.value / totalDue.value) * 24))
-const topicCount = computed(() => props.topicProgress.filter(t => (t as any).pending_count > 0).length || props.topicProgress.length)
+const topicCount = computed(() => props.topicProgress.filter(t => (t.session_count ?? t.pending_count ?? 0) > 0).length || props.topicProgress.length)
 const estimatedMinutes = computed(() => props.backlog?.estimated_minutes ?? Math.ceil(totalCards.value * 0.25))
 
 const heroMeta = computed(() => {

@@ -740,49 +740,60 @@
 }
 
 /* ============================================
-   Base styles
+   Base styles, in @layer base so utilities win over them:
+   a title with a color class keeps it, and so does a button
+   with focus-visible:outline-* (prd-ds-v3-fundacao RF-0.3)
    ============================================ */
 
-html {
-  background-color: var(--bg-base);
-  color: var(--text-body);
-  font-family: var(--font-sans);
-}
-
-h1, h2, h3, h4, h5, h6 {
-  color: var(--text-heading);
-}
-
-body {
-  background-color: var(--bg-base);
-  min-height: 100vh;
-}
-
-button {
-  cursor: pointer;
-  outline: none;
-  &:focus-visible {
-    box-shadow: 0 0 0 2px var(--bg-card), 0 0 0 4px var(--color-accent-soft);
-    border-radius: 8px;
+@layer base {
+  html {
+    background-color: var(--bg-base);
+    color: var(--text-body);
+    font-family: var(--font-sans);
   }
-}
 
-/* Scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-}
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--text-heading);
+  }
 
-::-webkit-scrollbar-track {
-  background: transparent;
-}
+  body {
+    background-color: var(--bg-base);
+    min-height: 100vh;
+  }
 
-::-webkit-scrollbar-thumb {
-  background: var(--border-base);
-  border-radius: 3px;
-}
+  button {
+    cursor: pointer;
+  }
 
-::-webkit-scrollbar-thumb:hover {
-  background: var(--border-hover);
+  /* Outline, not box-shadow: btn-* and shadow-* set box-shadow and would hide the ring */
+  button:focus-visible {
+    outline: 2px solid var(--color-accent-soft);
+    outline-offset: 2px;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-base);
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--border-hover);
+  }
+
+  /* Selection */
+  ::selection {
+    background-color: rgba(111, 63, 245, 0.15);
+    color: inherit;
+  }
 }
 
 .hide-scrollbar {
@@ -791,12 +802,6 @@ button {
   &::-webkit-scrollbar {
     display: none;
   }
-}
-
-/* Selection */
-::selection {
-  background-color: rgba(111, 63, 245, 0.15);
-  color: inherit;
 }
 
 /* Cloze deletion */

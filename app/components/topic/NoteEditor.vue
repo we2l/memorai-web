@@ -768,13 +768,13 @@ onBeforeUnmount(() => {
 /* === Dark mode === */
 :root.dark .bubble-menu,
 :root.dark .slash-menu {
-  background: var(--color-bg-card);
-  border-color: var(--color-border-base);
+  background: var(--bg-card);
+  border-color: var(--border-base);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
 
 :root.dark .slash-icon {
-  background: var(--color-bg-soft);
+  background: var(--bg-soft);
 }
 
 /* Editor hint */

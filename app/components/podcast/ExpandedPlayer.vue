@@ -156,7 +156,7 @@
         </div>
 
         <!-- Bottom actions -->
-        <div class="flex gap-3 px-6 py-4 pb-safe border-t border-base shrink-0 mb-16 sm:mb-0">
+        <div class="flex gap-3 px-6 py-4 border-t border-base shrink-0 mb-16 sm:mb-0">
           <button
             v-if="player.currentPodcast.audio_url"
             class="btn-secondary flex-none !py-2.5"

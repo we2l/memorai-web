@@ -1,14 +1,14 @@
 <template>
-  <section v-if="loading && !topics.length" class="library" aria-busy="true" aria-label="Carregando cadernos">
+  <section v-if="loading && !topics.length" aria-busy="true" aria-label="Carregando cadernos">
     <div class="library__header"><div class="skeleton h-3 w-32 rounded" /></div>
     <div class="library__grid">
       <div v-for="i in 3" :key="i" class="skeleton h-24 rounded-xl" />
     </div>
   </section>
-  <section v-else-if="error" class="library">
+  <section v-else-if="error">
     <UiErrorState title="Não foi possível carregar seus cadernos" @retry="$emit('retry')" />
   </section>
-  <section v-else-if="sortedTopics.length" class="library">
+  <section v-else-if="sortedTopics.length">
     <div class="library__header">
       <p class="library__label">Continuar estudando</p>
       <NuxtLink v-if="hasMore" to="/cadernos" class="library__link">Ver todos →</NuxtLink>

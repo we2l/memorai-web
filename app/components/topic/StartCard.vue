@@ -68,13 +68,13 @@ function handleFileSelect(event: Event) {
 .start-card__title {
   font-size: 1.125rem;
   font-weight: 700;
-  color: var(--color-text-heading, var(--color-text-primary));
+  color: var(--text-heading);
   line-height: 1.3;
 }
 
 .start-card__subtitle {
   font-size: 0.8125rem;
-  color: var(--color-text-muted);
+  color: var(--text-muted);
   margin-top: 4px;
 }
 
@@ -157,20 +157,20 @@ function handleFileSelect(event: Event) {
   display: block;
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--color-text-primary);
+  color: var(--text-heading);
   line-height: 1.3;
 }
 
 .start-card__action-desc {
   display: block;
   font-size: 0.75rem;
-  color: var(--color-text-muted);
+  color: var(--text-muted);
   margin-top: 2px;
   line-height: 1.4;
 }
 
 .start-card__arrow {
-  color: var(--color-text-muted);
+  color: var(--text-muted);
   opacity: 0;
   transition: all 150ms ease-out;
   flex-shrink: 0;

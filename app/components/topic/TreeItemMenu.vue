@@ -2,7 +2,7 @@
   <!-- Always visible below lg (touch), hover/focus on desktop (RF-F6.1) -->
   <div
     ref="root"
-    class="tree-menu relative max-lg:opacity-100 lg:opacity-0 lg:group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-150"
+    class="relative max-lg:opacity-100 lg:opacity-0 lg:group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-150"
     :class="{ '!opacity-100': open }"
     @click.stop
     @keydown.stop

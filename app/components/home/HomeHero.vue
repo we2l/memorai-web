@@ -70,8 +70,8 @@
       <!-- === NODES === -->
 
       <!-- Hub nodes (2) — primary knowledge centers -->
-      <circle cx="190" cy="88" r="7" fill="#6D3DF5" opacity="0.84" class="synapse__node synapse__node--hub synapse__node--hub-a" />
-      <circle cx="330" cy="100" r="7.5" fill="#6D3DF5" opacity="0.90" class="synapse__node synapse__node--hub synapse__node--hub-b" />
+      <circle cx="190" cy="88" r="7" fill="#6D3DF5" opacity="0.84" class="synapse__node synapse__node--hub-a" />
+      <circle cx="330" cy="100" r="7.5" fill="#6D3DF5" opacity="0.90" class="synapse__node synapse__node--hub-b" />
 
       <!-- Secondary nodes (5) — established connections -->
       <circle cx="95" cy="72" r="4" fill="#6D3DF5" opacity="0.50" class="synapse__node synapse__node--secondary synapse__node--s1" />
@@ -96,7 +96,7 @@
 
       <!-- === TRAVELING SIGNALS (information flowing through network) === -->
       <!-- Signal 1: Hub A → mid-node (via conn-ab) -->
-      <circle r="2" fill="#BEA6FF" opacity="0" class="synapse__signal synapse__signal--1">
+      <circle r="2" fill="#BEA6FF" opacity="0" class="synapse__signal">
         <animateMotion dur="2.5s" begin="0s;signal1end.end+5s" fill="freeze" id="signal1move">
           <mpath href="#conn-ab" />
         </animateMotion>
@@ -104,7 +104,7 @@
       </circle>
 
       <!-- Signal 2: mid-node → Hub B (via conn-bridge) -->
-      <circle r="1.8" fill="#BEA6FF" opacity="0" class="synapse__signal synapse__signal--2">
+      <circle r="1.8" fill="#BEA6FF" opacity="0" class="synapse__signal">
         <animateMotion dur="2s" begin="3s;signal2end.end+7s" fill="freeze" id="signal2move">
           <mpath href="#conn-bridge" />
         </animateMotion>
@@ -112,7 +112,7 @@
       </circle>
 
       <!-- Signal 3: Hub B → top-right (via conn-b-top) -->
-      <circle r="1.5" fill="#BEA6FF" opacity="0" class="synapse__signal synapse__signal--3">
+      <circle r="1.5" fill="#BEA6FF" opacity="0" class="synapse__signal">
         <animateMotion dur="2s" begin="8s;signal3end.end+9s" fill="freeze" id="signal3move">
           <mpath href="#conn-b-top" />
         </animateMotion>

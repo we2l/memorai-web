@@ -41,6 +41,11 @@ jobs:
       - name: Color classes without CSS
         run: npm run lint:classes
 
+      # Raw colors (hex, rgba/hsl/oklch, Tailwind palette) in a ratchet: fails when a file goes up
+      # (scripts/ds-baseline.json; exceptions in scripts/ds-allowlist.json, ADR-027 §8)
+      - name: Design tokens
+        run: npm run lint:tokens
+
       - name: Build
         run: npm run build
 
@@ -52,6 +57,10 @@ jobs:
 
       - name: Bundle budget
         run: npm run budget
+
+      # var(--x) and classes with no rule in the built CSS, in a ratchet (needs .output)
+      - name: Design system ghosts
+        run: npm run lint:ds
 
       - name: Bundle analyze
         run: npx nuxi analyze --no-serve

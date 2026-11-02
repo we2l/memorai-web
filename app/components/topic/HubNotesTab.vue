@@ -194,7 +194,11 @@
         <span v-else-if="wordCount >= 100" class="text-small text-base-muted">{{ wordCount }} palavras · Quase lá — mais um pouco pra IA funcionar</span>
         <span v-else-if="wordCount > 0" class="text-small text-base-muted">{{ wordCount }} palavras · Continue escrevendo...</span>
         <span v-else class="text-small text-base-muted">0 palavras</span>
-        <span v-if="wordCount >= 200" class="text-small font-medium text-[var(--badge-success-text)] bg-[var(--badge-success-bg)] px-2.5 py-1 rounded-full">Material suficiente pra flashcards ✓</span>
+        <!-- Cards that came from this note (RF-F4): the Cards tab filtered by it -->
+        <UiButton v-if="activeNoteCards > 0" size="sm" variant="ghost" @click="activeNote && emit('view-cards', activeNote.id)">
+          Ver e editar os {{ activeNoteCards }} cards
+        </UiButton>
+        <span v-else-if="wordCount >= 200" class="text-small font-medium text-[var(--badge-success-text)] bg-[var(--badge-success-bg)] px-2.5 py-1 rounded-full">Material suficiente pra flashcards ✓</span>
       </div>
 
       <!-- Selection toolbar (create card from selection) -->
@@ -255,7 +259,10 @@ const emit = defineEmits<{
   (e: 'discard-draft'): void
   (e: 'update:noteTitle', value: string): void
   (e: 'select-file', file: File): void
+  (e: 'view-cards', noteId: string): void
 }>()
+
+const activeNoteCards = computed(() => (props.activeNote ? cardCount(props.activeNote) : 0))
 
 const showMenu = ref(false)
 const showMindMap = ref(false)

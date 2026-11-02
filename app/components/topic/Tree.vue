@@ -54,12 +54,12 @@
 
 <script setup lang="ts">
 import { BookOpen, Plus, Upload, FileText } from 'lucide-vue-next'
-import type { Topic } from '~/types'
+import type { Topic, TreeProgressMap } from '~/types'
 
 defineProps<{
   topics: Topic[]
   selectedId?: string | null
-  progressMap?: Record<string, { progress: number; pending_count: number; last_reviewed_at: string | null; color: string | null }>
+  progressMap?: TreeProgressMap
   forceExpand?: boolean
 }>()
 

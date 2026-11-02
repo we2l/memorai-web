@@ -122,6 +122,7 @@
           @restore-draft="restoreDraft"
           @discard-draft="discardDraft"
           @update:note-title="noteTitle = $event"
+          @view-cards="viewCardsOf"
         >
           <template #documents>
             <TopicDocumentsInline
@@ -132,7 +133,7 @@
               @note-ready="noteStore.fetchForTopic(selectedTopicId!)"
               @generate-cards="() => cardWorkshop.generate('notes')"
               @structure-ready="topicStore.fetchTree()"
-              @view-cards="activeTab = 'cards'"
+              @view-cards="viewCardsOf"
             />
           </template>
           <template #generating-banner>
@@ -248,6 +249,8 @@
           <!-- AI Tools collapsible (podcast, simulado, mapa) -->
           <TopicAiToolsCollapsible
             v-if="selectedTopicId"
+            :quiz-gate="quizGate"
+            :podcast-gate="podcastGate"
             @podcast="showPodcastSheet = true"
             @quiz="navigateTo(`/simulados?topic_id=${selectedTopicId}`)"
           />
@@ -354,7 +357,7 @@
                 @note-ready="noteStore.fetchForTopic(selectedTopicId!)"
                 @generate-cards="() => cardWorkshop.generate('notes')"
                 @structure-ready="topicStore.fetchTree()"
-              @view-cards="activeTab = 'cards'"
+              @view-cards="viewCardsOf"
               />
             </template>
           </TopicHubNotesTab>
@@ -384,6 +387,15 @@
               </LazyTopicCardWorkshop>
             </div>
 
+            <!-- "Ver e editar cards" of a note or PDF: only its cards (RF-F4, ?source_note_id=) -->
+            <div v-if="sourceNoteId" class="mx-4 mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-row bg-subtle px-3 py-2" role="status">
+              <p class="min-w-0 flex-1 text-meta text-fg">
+                <template v-if="filteredTotal !== null">{{ filteredTotal }} card{{ filteredTotal !== 1 ? 's' : '' }} de </template>
+                <template v-else>Cards de </template>
+                <span class="font-semibold text-fg-strong">{{ noteNameById(sourceNoteId) || 'esta nota' }}</span>
+              </p>
+              <UiButton size="sm" variant="ghost" @click="filterByNote(null)">Ver todos os cards</UiButton>
+            </div>
             <LazyTopicHubCardsTab
               :topic-id="selectedTopicId!"
               :cards="listCards"
@@ -469,10 +481,11 @@
     </div>
 
     <!-- Modals -->
-    <UiModal v-model="showCreateTopic" size="sm" aria-label="Criar caderno">
-      <h2 class="text-headline mb-4">{{ createParentId ? 'Novo tópico' : 'Novo caderno' }}</h2>
+    <UiModal v-model="showCreateTopic" size="sm" :aria-label="createParentId ? 'Criar assunto' : 'Criar caderno'">
+      <h2 class="text-headline mb-4">{{ createParentId ? 'Novo assunto' : 'Novo caderno' }}</h2>
+      <p v-if="createParentName" class="text-meta text-fg-muted -mt-2 mb-4">Em {{ createParentName }}</p>
       <form @submit.prevent="handleCreateTopic" class="flex flex-col gap-4">
-        <input v-model="newTopicName" type="text" class="input-base w-full" :placeholder="createParentId ? 'Nome do tópico' : 'Nome do caderno'" autofocus />
+        <input v-model="newTopicName" type="text" class="input-base w-full" :placeholder="createParentId ? 'Nome do assunto' : 'Nome do caderno'" :aria-label="createParentId ? 'Nome do assunto' : 'Nome do caderno'" autofocus />
 
         <!-- Color picker (only for root cadernos) -->
         <div v-if="!createParentId" class="space-y-2">
@@ -542,7 +555,7 @@
 
         <div class="flex gap-3 justify-end">
           <button type="button" class="btn-secondary" @click="showCreateTopic = false">Cancelar</button>
-          <button type="submit" class="btn-primary" :disabled="!newTopicName.trim()">Criar</button>
+          <button type="submit" class="btn-primary" :disabled="!newTopicName.trim() || creatingTopic">Criar</button>
         </div>
       </form>
     </UiModal>
@@ -642,8 +655,9 @@
 
 <script setup lang="ts">
 import { Plus, Search, PanelLeftClose, PanelLeftOpen, X, Link2, Brain, Zap, Sparkles } from 'lucide-vue-next'
-import type { Topic, Note } from '~/types'
+import type { Topic, Note, TopicProgress, TreeProgressMap } from '~/types'
 import { NOTEBOOK_COLORS } from '~/utils/colors'
+import { consumeScopeCleared } from '~/utils/scope'
 
 const topicStore = useTopicStore()
 const noteStore = useNoteStore()
@@ -662,19 +676,19 @@ const mapSubView = ref<'graph' | 'mindmap'>(
   (import.meta.client && localStorage.getItem('baigi-map-subview') as 'graph' | 'mindmap') || 'mindmap'
 )
 const searchQuery = ref('')
-const { showDeleteCard, deleteCardId, memorizeProgress, dueCardsCount, newCardsCount, weakCardsCount, pendingCount, setSummary, ensureList, listCards, hasMorePages, loadingPage, totalCards, loadNextPage, searchCards, cardsFromNote, confirmDeleteCard, handleDeleteCard } = useTopicCards()
+const { showDeleteCard, deleteCardId, memorizeProgress, weakCardsCount, pendingCount, quizGate, podcastGate, setSummary, ensureList, sourceNoteId, filteredTotal, filterByNote, listCards, hasMorePages, loadingPage, totalCards, loadNextPage, searchCards, cardsFromNote, confirmDeleteCard, handleDeleteCard } = useTopicCards()
 // "Revisar N" everywhere is the size of the session it opens (RF-F6)
 const showStickyReview = computed(() => !!selectedTopicId.value && pendingCount.value > 0)
 useStickyActionHeight(showStickyReview)
 
-// Confetti when pending goes from >0 to 0
+// Confetti when the person's own review session emptied this caderno (/revisar marks the scope):
+// switching from a caderno with pending cards to one without is not an achievement (05/#11)
 const showConfetti = ref(false)
 const confettiLoaded = useLoadedOnce(() => showConfetti.value)
-watch(pendingCount, (curr, prev) => {
-  if (prev > 0 && curr === 0) {
-    showConfetti.value = true
-  }
-})
+function celebrate() {
+  showConfetti.value = false
+  void nextTick(() => { showConfetti.value = true })
+}
 const { noteTitle, noteContent, editingNote, noteLoading, selectedText, showDeleteNote, saveState, retrySaveNow, pendingDraft, restoreDraft, discardDraft, flushPendingSave, debouncedSave, saveTitle, openNoteEditor, closeEditor, createNote, handleDeleteNote } = useNoteEditor(selectedTopicId)
 const noteImprove = useNoteImprove(selectedTopicId)
 const errorPatterns = ref<any>(null)
@@ -929,10 +943,10 @@ async function loadTopicData(id: string) {
     ])
     setSummary(detailRes.data)
     errorPatterns.value = patternsRes.data
+    // Celebrate only the person's own session that emptied this caderno (05/#11), never a switch
+    if (pendingCount.value === 0 && consumeScopeCleared(id)) celebrate()
 
-    // Set default tab based on content
-    const hasDue = dueCardsCount.value > 0
-    const hasNew = newCardsCount.value > 0
+    // Default tab: Cards when the session of the subtree has something (the same "Revisar N")
     const stored = localStorage.getItem(`baigi-hub-tab-${id}`)
 
     // Query param override (from podcast player link)
@@ -941,7 +955,7 @@ async function loadTopicData(id: string) {
     } else if (stored) {
       activeTab.value = stored
     } else {
-      activeTab.value = (hasDue || hasNew) ? 'cards' : 'notes'
+      activeTab.value = pendingCount.value > 0 ? 'cards' : 'notes'
     }
 
     // Highlight card from query param
@@ -964,6 +978,16 @@ async function loadTopicData(id: string) {
     // Selection restore is best-effort (RF-F3b: S)
     reportApiError(e, { silent: true })
   }
+}
+
+/** From a note or a PDF: the Cards tab with only the cards that came from it (RF-F4). */
+function viewCardsOf(noteId: string | null) {
+  if (editingNote.value) {
+    flushPendingSave()
+    closeEditor()
+  }
+  activeTab.value = 'cards'
+  void filterByNote(noteId)
 }
 
 function openCreate(parentId: string | null) {
@@ -1122,8 +1146,12 @@ function openDelete(topic: Topic) {
   showDeleteTopic.value = true
 }
 
+const { run: runCreateTopic, pending: creatingTopic } = useApiAction()
+const createParentName = computed(() => (createParentId.value ? topicStore.findById(createParentId.value)?.name : null) ?? null)
+
 async function handleCreateTopic() {
-  const body: Record<string, any> = { name: newTopicName.value, parent_id: createParentId.value }
+  const parentId = createParentId.value
+  const body: Record<string, any> = { name: newTopicName.value.trim(), parent_id: parentId }
   if (!createParentId.value) {
     if (newTopicColor.value) body.color = newTopicColor.value
     if (newTopicMode.value) {
@@ -1134,13 +1162,19 @@ async function handleCreateTopic() {
       }
     }
   }
-  await topicStore.create(body)
+  // On failure the dialog stays open with the name typed, and the error is said (useApiAction)
+  const created = await runCreateTopic(() => topicStore.create(body), {
+    success: parentId ? 'Assunto criado!' : 'Caderno criado!',
+    error: parentId ? 'Não foi possível criar o assunto. Tente de novo.' : 'Não foi possível criar o caderno. Tente de novo.',
+  })
+  if (!created) return
   showCreateTopic.value = false
   newTopicMode.value = auth.user?.default_learning_mode || 'general'
   newTopicColor.value = ''
   newTopicTargetLang.value = ''
   newTopicLangLevel.value = ''
-  toast.show('Caderno criado!', 'success')
+  // A new subject opens, so its branch of the tree expands and it can get material right away
+  if (parentId && created.id) selectTopic(created.id)
 }
 
 async function handleEditTopic() {
@@ -1253,30 +1287,36 @@ function formatDate(date: string) {
   return new Date(date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
 }
 
-const progressMap = ref<Record<string, { progress: number; pending_count: number; last_reviewed_at: string | null; color: string | null }>>({})
+// Numbers of the tree rows: the subtree of each topic, the same rule as its session (F1 D1)
+const progressMap = ref<TreeProgressMap>({})
+let progressRequest = 0
+async function loadProgress() {
+  const id = ++progressRequest
+  try {
+    const res = await $api<{ data: TopicProgress[] }>('/topics/progress')
+    if (id !== progressRequest) return
+    const next: TreeProgressMap = {}
+    for (const tp of res.data) {
+      next[tp.id] = { progress: tp.progress, session_count: tp.session_count ?? tp.pending_count ?? 0, flashcards_count: tp.flashcards_count }
+    }
+    progressMap.value = next
+  } catch (e) {
+    // Progress is decorative (RF-F3.9)
+    reportApiError(e, { silent: true })
+  }
+}
+// Cards created, imported or a topic added: the tree comes again and its numbers with it
+watch(() => topicStore.tree, () => { void loadProgress() })
 
 watch(mapSubView, (val) => {
   if (import.meta.client) localStorage.setItem('baigi-map-subview', val)
 })
 
 onMounted(async () => {
+  // The tree watcher above loads the progress of its rows
   await topicStore.fetchTree()
   featureUsage.fetchUsage()
   useStructureStore().resumeIfNeeded()
-  try {
-    const res = await $api<any>('/topics/progress')
-    for (const tp of res.data) {
-      progressMap.value[tp.id] = {
-        progress: tp.progress,
-        pending_count: tp.pending_count,
-        last_reviewed_at: tp.last_reviewed_at,
-        color: tp.color,
-      }
-    }
-  } catch (e) {
-    // Progress is decorative (RF-F3.9)
-    reportApiError(e, { silent: true })
-  }
   if (route.query.view === 'graph') {
     showGraph.value = true
   }

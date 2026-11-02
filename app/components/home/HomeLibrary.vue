@@ -36,13 +36,13 @@ const sortedTopics = computed(() =>
   [...props.topics]
     .sort((a, b) => {
       // Priority 1: cards pending (overdue/due)
-      const aPending = (a as any).pending_count ?? 0
-      const bPending = (b as any).pending_count ?? 0
+      const aPending = a.session_count ?? a.pending_count ?? 0
+      const bPending = b.session_count ?? b.pending_count ?? 0
       if (aPending !== bPending) return bPending - aPending
 
       // Priority 2: recent activity (updated_at)
-      const aTime = (a as any).updated_at ? new Date((a as any).updated_at).getTime() : 0
-      const bTime = (b as any).updated_at ? new Date((b as any).updated_at).getTime() : 0
+      const aTime = a.updated_at ? new Date(a.updated_at).getTime() : 0
+      const bTime = b.updated_at ? new Date(b.updated_at).getTime() : 0
       if (aTime !== bTime) return bTime - aTime
 
       // Priority 3: more cards = more relevant

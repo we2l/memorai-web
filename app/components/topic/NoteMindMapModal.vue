@@ -159,13 +159,10 @@ function handleNodeClick(node: MindMapNode) {
 async function createCard() {
   if (!mapId.value) return
   try {
-    const decksRes = await $api<any>('/decks')
-    const deckId = decksRes.data?.[0]?.id
-    if (!deckId) { toast.show('Nenhum deck encontrado.', 'error'); return }
-
+    // The API puts the card in the deck of the note's caderno (F1 RF-B3): no deck_id to send
     await $api<any>(`/mindmaps/${mapId.value}/create-card`, {
       method: 'POST',
-      body: { front: cardFront.value, back: cardBack.value, deck_id: deckId },
+      body: { front: cardFront.value, back: cardBack.value },
     })
     toast.show('Card criado ✓', 'success')
     showCardCreate.value = false

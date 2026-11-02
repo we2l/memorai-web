@@ -218,10 +218,10 @@ async function createCardFromNode() {
   try {
     await $api<any>(`/mindmaps/${aiMapId.value}/create-card`, {
       method: 'POST',
+      // The API puts the card in the deck of the caderno (F1 RF-B3): no deck_id to send
       body: {
         front: selectedNode.value.content,
         back,
-        deck_id: await resolveDeckId(),
       },
     })
     toast.show('Card criado ✓', 'success')
@@ -229,12 +229,6 @@ async function createCardFromNode() {
   } catch (e: any) {
     toast.show(e?.data?.message || 'Erro ao criar card.', 'error')
   }
-}
-
-async function resolveDeckId(): Promise<string> {
-  // Use the first deck of the user (simple heuristic)
-  const res = await $api<any>('/decks')
-  return res.data?.[0]?.id ?? ''
 }
 
 watch(() => props.topicId, () => {

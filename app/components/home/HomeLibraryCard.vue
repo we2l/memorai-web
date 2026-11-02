@@ -22,7 +22,8 @@ const props = defineProps<{
   topic: TopicProgress
 }>()
 
-const pending = computed(() => (props.topic as any).pending_count ?? 0)
+// Same number as the caderno's "Revisar N" and its session (subtree, daily limits; F1 D1)
+const pending = computed(() => props.topic.session_count ?? props.topic.pending_count ?? 0)
 const progress = computed(() => props.topic.progress ?? 0)
 
 const state = computed(() => {

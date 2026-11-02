@@ -38,7 +38,7 @@
             <ChevronRight :size="12" class="transition-transform duration-150" :class="{ 'rotate-90': isExpanded }" aria-hidden="true" />
           </button>
 
-          <TopicTreeItemMenu :name="topic.name" @action="onMenuAction" />
+          <TopicTreeItemMenu :name="topic.name" :can-add-child="canAddChild" @action="onMenuAction" />
         </div>
 
         <!-- Progress block (identity of Baigi) -->
@@ -117,7 +117,7 @@
         </span>
         <span v-else-if="topicCards > 0 && topicProgress > 0 && pendingCount === 0" class="text-[10px] text-[var(--badge-success-text)] shrink-0">✓</span>
 
-        <TopicTreeItemMenu :name="topic.name" @action="onMenuAction" />
+        <TopicTreeItemMenu :name="topic.name" :can-add-child="canAddChild" @action="onMenuAction" />
       </div>
 
       <!-- Nested children -->
@@ -142,14 +142,15 @@
 
 <script setup lang="ts">
 import { ChevronRight, FileText } from 'lucide-vue-next'
-import type { Topic } from '~/types'
+import type { Topic, TreeProgressMap } from '~/types'
 import { getColorHex } from '~/utils/colors'
+import { canAddSubtopic } from '~/utils/scope'
 
 const props = defineProps<{
   topic: Topic
   depth: number
   selectedId?: string | null
-  progressMap?: Record<string, { progress: number; pending_count: number; last_reviewed_at: string | null; color: string | null }>
+  progressMap?: TreeProgressMap
   forceExpand?: boolean
 }>()
 
@@ -170,9 +171,14 @@ const isRoot = computed(() => !props.topic.parent_id)
 const isSelected = computed(() => props.topic.id === props.selectedId)
 const colorHex = computed(() => getColorHex(props.topic.color))
 
-const topicProgress = computed(() => props.progressMap?.[props.topic.id]?.progress ?? 0)
-const pendingCount = computed(() => props.progressMap?.[props.topic.id]?.pending_count ?? 0)
-const topicCards = computed(() => props.topic.flashcards_count ?? 0)
+const canAddChild = computed(() => canAddSubtopic(props.depth))
+
+// Every number of the row is of the subtree, the same scope as the caderno header and its session
+// (F1 D1): "N cards" is not the direct count of GET /topics, which would mix two scopes in one line.
+const rowProgress = computed(() => props.progressMap?.[props.topic.id])
+const topicProgress = computed(() => rowProgress.value?.progress ?? 0)
+const pendingCount = computed(() => rowProgress.value?.session_count ?? 0)
+const topicCards = computed(() => rowProgress.value?.flashcards_count ?? 0)
 const progressPercent = computed(() => Math.round(topicProgress.value * 100))
 
 const progressBarColor = computed(() => {

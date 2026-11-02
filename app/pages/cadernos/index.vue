@@ -1,11 +1,12 @@
 <template>
-  <div class="flex h-screen">
-    <!-- Sidebar: Topic tree (desktop: inline, mobile: overlay) -->
+  <!-- Desktop: the tree and the hub fill the screen below the TopNav (the layout pads the mini-player) -->
+  <div class="flex md:h-[calc(100dvh-var(--topnav-h)-var(--miniplayer-h)-16px)]">
+    <!-- Topic tree (desktop: inline; below lg: overlay between the TopNav and the BottomNav, so the 4 places stay reachable) -->
     <aside
       class="border-r border-base flex flex-col shrink-0 transition-all duration-200 bg-[var(--bg-card)]"
       :class="[
         sidebarCollapsed ? 'w-0 overflow-hidden' : 'w-60',
-        'max-lg:fixed max-lg:inset-0 max-lg:z-40 max-lg:w-full max-lg:border-r-0',
+        'max-lg:fixed max-lg:inset-x-0 max-lg:top-0 max-lg:bottom-nav md:max-lg:top-topnav max-lg:z-40 max-lg:w-full max-lg:border-r-0',
         !sidebarOpen && 'max-lg:hidden',
       ]"
     >
@@ -88,7 +89,7 @@
     </aside>
 
     <!-- Main: Topic Hub -->
-    <main class="flex-1 flex flex-col overflow-y-auto pb-20 lg:pb-0">
+    <main class="flex-1 flex flex-col overflow-y-auto">
       <!-- Import PDF progress banner (inline, when caderno is selected) -->
       <div v-if="importingInSelectedTopic && selectedTopicId" class="mx-4 mt-3 px-4 py-3 rounded-xl bg-accent-primary-subtle/30 border border-[var(--color-accent-primary)]/10 flex items-center gap-3">
         <div class="w-4 h-4 border-2 border-[var(--color-accent-primary)] border-t-transparent rounded-full animate-spin shrink-0" />
@@ -290,35 +291,9 @@
 
           <!-- Tab: Mapa -->
           <div v-if="activeTab === 'map'" class="flex flex-col h-full tab-fade-in">
-            <!-- Toggle: Cadernos | Mapa Mental -->
-            <div class="flex items-center gap-2 px-4 pt-3 pb-2">
-              <div class="inline-flex rounded-lg border border-base p-0.5 bg-surface-secondary">
-                <button
-                  class="px-3 py-1.5 text-small rounded-md transition-colors flex items-center gap-1.5"
-                  :class="mapSubView === 'graph' ? 'bg-[var(--bg-card)] shadow text-[var(--badge-primary-text)] font-medium' : 'text-base-muted hover:text-base-primary'"
-                  @click="mapSubView = 'graph'"
-                >
-                  <Link2 :size="14" /> Cadernos
-                </button>
-                <button
-                  class="px-3 py-1.5 text-small rounded-md transition-colors flex items-center gap-1.5"
-                  :class="mapSubView === 'mindmap' ? 'bg-[var(--bg-card)] shadow text-[var(--badge-primary-text)] font-medium' : 'text-base-muted hover:text-base-primary'"
-                  @click="mapSubView = 'mindmap'"
-                >
-                  <Brain :size="14" /> Mapa Mental
-                </button>
-              </div>
-            </div>
-
-            <!-- Sub-view: Grafo de Cadernos -->
-            <LazyTopicGraphInline
-              v-if="mapSubView === 'graph'"
-              @expand="showGraph = true"
-            />
-
-            <!-- Sub-view: Mapa Mental -->
+            <!-- Mapa do caderno: o mapa mental (o grafo de todos os cadernos saiu na navegação v3) -->
             <LazyTopicMindMapView
-              v-if="mapSubView === 'mindmap' && selectedTopicId"
+              v-if="selectedTopicId"
               :topic-id="selectedTopicId"
               @create-note="createNote"
             />
@@ -397,6 +372,7 @@
               <UiButton size="sm" variant="ghost" @click="filterByNote(null)">Ver todos os cards</UiButton>
             </div>
             <LazyTopicHubCardsTab
+              ref="hubCardsRef"
               :topic-id="selectedTopicId!"
               :cards="listCards"
               server-mode
@@ -639,8 +615,6 @@
 
     <!-- Note editor modal removed — now using split-view in HubNotesTab -->
 
-    <LazyTopicGraphOverlay v-if="graphLoaded" v-model="showGraph" />
-
     <!-- Confetti celebration (triggers when pendentes goes to 0) -->
     <LazyUiConfetti v-if="confettiLoaded" :trigger="showConfetti" />
 
@@ -654,10 +628,11 @@
 </template>
 
 <script setup lang="ts">
-import { Plus, Search, PanelLeftClose, PanelLeftOpen, X, Link2, Brain, Zap, Sparkles } from 'lucide-vue-next'
+import { Plus, Search, PanelLeftClose, PanelLeftOpen, X, Zap, Sparkles } from 'lucide-vue-next'
 import type { Topic, Note, TopicProgress, TreeProgressMap } from '~/types'
 import { NOTEBOOK_COLORS } from '~/utils/colors'
 import { consumeScopeCleared } from '~/utils/scope'
+
 
 const topicStore = useTopicStore()
 const noteStore = useNoteStore()
@@ -668,13 +643,17 @@ const { $api } = useNuxtApp()
 const featureUsage = useFeatureUsage()
 const auth = useAuthStore()
 
+// The graph of all cadernos left in the navegação v3 (RF-11): old links /cadernos?view=graph land on
+// /cadernos (an inline definePageMeta middleware would pull this page into the entry chunk)
+if (route.query.view === 'graph') {
+  const { view: _view, ...query } = route.query
+  void router.replace({ query })
+}
+
 const selectedTopicId = ref<string | null>(null)
 const sidebarCollapsed = ref(false)
 const sidebarOpen = ref(true)
 const activeTab = ref('notes')
-const mapSubView = ref<'graph' | 'mindmap'>(
-  (import.meta.client && localStorage.getItem('baigi-map-subview') as 'graph' | 'mindmap') || 'mindmap'
-)
 const searchQuery = ref('')
 const { showDeleteCard, deleteCardId, memorizeProgress, weakCardsCount, pendingCount, quizGate, podcastGate, setSummary, ensureList, sourceNoteId, filteredTotal, filterByNote, listCards, hasMorePages, loadingPage, totalCards, loadNextPage, searchCards, cardsFromNote, confirmDeleteCard, handleDeleteCard } = useTopicCards()
 // "Revisar N" everywhere is the size of the session it opens (RF-F6)
@@ -720,12 +699,10 @@ const showCreateTopic = ref(false)
 const showEditTopic = ref(false)
 const showDeleteTopic = ref(false)
 const showNoteToCard = ref(false)
-const showGraph = ref(false)
 const showAddMenu = ref(false)
 const showPodcastSheet = ref(false)
 // Modals/overlays: chunk loads on first open (prd-performance-frontend RF-02)
 const noteToCardLoaded = useLoadedOnce(() => showNoteToCard.value)
-const graphLoaded = useLoadedOnce(() => showGraph.value)
 const podcastSheetLoaded = useLoadedOnce(() => showPodcastSheet.value)
 const highlightCardId = ref('')
 
@@ -1032,15 +1009,17 @@ watch(() => noteImprove.state.value, (newState) => {
   }
 })
 
+/** "Perguntar sobre este trecho" (RF-9): the tira-dúvidas with the caderno, the note's PDF and the excerpt. */
 function askAiAboutSelection() {
   const sel = window.getSelection()?.toString().trim()
   if (!sel) return
-  const chat = useChatStore()
-  chat.newConversation()
-  chat.open({ topicId: selectedTopicId.value ?? undefined, source: 'note_help' })
-  nextTick(() => {
-    chat.sendMessage(`Me explica isso: "${sel}"`)
-  })
+  const excerpt = sel.slice(0, 600)
+  useChatStore().ask({
+    topicId: selectedTopicId.value ?? undefined,
+    documentId: editingNote.value?.source_document_id ?? undefined,
+    excerpt,
+    source: 'note_help',
+  }, `Me explica este trecho da minha nota: "${excerpt}"`)
 }
 
 const structurePdf = useStructurePdf()
@@ -1145,6 +1124,29 @@ function openDelete(topic: Topic) {
   deleteTarget.value = topic
   showDeleteTopic.value = true
 }
+
+// "+ Adicionar" of the shell (RF-5): PDF, photo and blank note run here, in the caderno they were meant for
+const addIntent = useAddIntent()
+const hubCardsRef = ref<{ processImage: (file: File) => Promise<void> } | null>(null)
+function consumeAddIntent() {
+  const next = addIntent.value
+  if (!next || !selectedTopicId.value || next.topicId !== selectedTopicId.value) return
+  addIntent.value = null
+  if (next.kind === 'note') void createNote()
+  else if (next.kind === 'pdf' && next.file) void handleStartCardFile(next.file)
+  else if (next.kind === 'photo' && next.file) {
+    const file = next.file
+    activeTab.value = 'cards'
+    if (hubCardsRef.value) return void hubCardsRef.value.processImage(file)
+    // The Cards tab is lazy: wait until it is mounted
+    const stop = watch(hubCardsRef, (tab) => {
+      if (!tab) return
+      stop()
+      void tab.processImage(file)
+    })
+  }
+}
+watch([addIntent, selectedTopicId], consumeAddIntent)
 
 const { run: runCreateTopic, pending: creatingTopic } = useApiAction()
 const createParentName = computed(() => (createParentId.value ? topicStore.findById(createParentId.value)?.name : null) ?? null)
@@ -1308,17 +1310,15 @@ async function loadProgress() {
 // Cards created, imported or a topic added: the tree comes again and its numbers with it
 watch(() => topicStore.tree, () => { void loadProgress() })
 
-watch(mapSubView, (val) => {
-  if (import.meta.client) localStorage.setItem('baigi-map-subview', val)
-})
-
 onMounted(async () => {
   // The tree watcher above loads the progress of its rows
   await topicStore.fetchTree()
   featureUsage.fetchUsage()
   useStructureStore().resumeIfNeeded()
-  if (route.query.view === 'graph') {
-    showGraph.value = true
+  // Search "Novo caderno" (/cadernos?action=new-notebook): the create dialog, once
+  if (route.query.action === 'new-notebook') {
+    openCreate(null)
+    router.replace({ query: { ...route.query, action: undefined } })
   }
   if (route.query.topic) {
     selectTopic(route.query.topic as string, 'none')

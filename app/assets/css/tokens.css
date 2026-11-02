@@ -191,11 +191,34 @@
   --z-toast: 70;
   --z-celebrate: 80;
 
-  /* Medidas de casca (a navegação no topo usa na Fase 3) */
+  /* Medidas de casca (navegação v3: TopNav >= 768 px, BottomNav abaixo) */
   --gutter: 16px;
   --section-gap: 32px;
   --topnav-h: 56px;
   --bottomnav-h: calc(56px + env(safe-area-inset-bottom));
+  /* O que a casca ocupa embaixo, para o conteúdo, a barra fixa da página e o toast não ficarem atrás.
+     O layout escreve os *-set (mini-player com podcast; barra fixa da página); toasts e o mini-player são
+     teleportados, por isso ficam no :root. */
+  --nav-h: var(--bottomnav-h);
+  --miniplayer-h: var(--miniplayer-h-set, 0px);
+  --sticky-action-h: var(--sticky-action-h-set, 0px);
+  --toast-bottom: calc(var(--nav-h) + var(--miniplayer-h) + var(--sticky-action-h) + 12px);
+}
+
+@media (min-width: 768px) {
+  :root {
+    /* TopNav: nada embaixo além do mini-player (flutua no canto, fora do fluxo) */
+    --nav-h: 0px;
+    --sticky-action-h: 0px;
+    --toast-bottom: calc(var(--miniplayer-h) + 16px);
+  }
+}
+
+/* Rotas chrome: focus (revisão, simulado em andamento) escondem a casca */
+:root[data-chrome="focus"] {
+  --nav-h: 0px;
+  --miniplayer-h: 0px;
+  --sticky-action-h: 0px;
 }
 
 @media (min-width: 1024px) {

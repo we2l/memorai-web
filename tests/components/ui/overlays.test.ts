@@ -213,9 +213,46 @@ describe('UiMenu', () => {
     expect(trigger.attributes('aria-haspopup')).toBe('menu')
     await trigger.trigger('click')
     await tick()
-    expect(w.get('[role="menu"]').classes()).toContain('left-0')
+    expect(w.get('[data-menu-panel]').classes()).toContain('left-0')
     document.body.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }))
     await tick()
     expect(w.find('[role="menu"]').exists()).toBe(false)
+  })
+
+  it('cabeçalho fora do role=menu, separador e grupo de rádio (Aparência)', async () => {
+    const pick = vi.fn()
+    const w = await mountSuspended(Menu, {
+      props: {
+        label: 'Conta',
+        items: [
+          { label: 'Conta e segurança', to: '/configuracoes#seguranca' },
+          { label: 'Sistema', group: 'Aparência', checked: true, onSelect: pick },
+          { label: 'Claro', group: 'Aparência', checked: false, onSelect: pick },
+          { label: 'Sair', separator: true, tone: 'danger' as const },
+        ],
+      },
+      slots: { header: () => h('p', { id: 'quem' }, 'Rafael') },
+      attachTo: document.body,
+    })
+    await w.get('button[aria-haspopup="menu"]').trigger('click')
+    await tick()
+    const menu = w.get('[role="menu"]')
+    expect(menu.find('#quem').exists()).toBe(false)
+    expect(w.get('[data-menu-panel]').find('#quem').exists()).toBe(true)
+    const group = menu.get('[role="group"]')
+    expect(document.getElementById(group.attributes('aria-labelledby')!)?.textContent).toBe('Aparência')
+    const radios = group.findAll('[role="menuitemradio"]')
+    expect(radios.map(r => r.attributes('aria-checked'))).toEqual(['true', 'false'])
+    expect(menu.findAll('[role="separator"]')).toHaveLength(1)
+    // Arrows walk across the group like any item
+    const label = () => document.activeElement?.textContent?.trim()
+    expect(label()).toBe('Conta e segurança')
+    press('ArrowDown', document.activeElement!)
+    expect(label()).toBe('Sistema')
+    press('End', document.activeElement!)
+    expect(label()).toBe('Sair')
+    expect(await axeViolations(w.element)).toEqual([])
+    await radios[1]!.trigger('click')
+    expect(pick).toHaveBeenCalledOnce()
   })
 })

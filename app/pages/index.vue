@@ -196,39 +196,16 @@
           <p class="mt-2 text-sm text-gray-500">Veja exatamente quais assuntos você domina e quais precisam de revisão.</p>
         </div>
 
-        <!-- Tabs -->
-        <div class="flex items-center justify-center gap-2 mb-6">
-          <button
-            class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all"
-            :class="activeTab === 'graph' ? 'bg-white text-[#6F3FF5] shadow-md border border-[#E0D4FF]' : 'text-gray-500 hover:text-[#6F3FF5]'"
-            @click="activeTab = 'graph'"
-          >
-            <Network :size="16" :stroke-width="2" />
-            Grafo de Conhecimento
-          </button>
-          <button
-            class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all"
-            :class="activeTab === 'mindmap' ? 'bg-white text-[#6F3FF5] shadow-md border border-[#E0D4FF]' : 'text-gray-500 hover:text-[#6F3FF5]'"
-            @click="activeTab = 'mindmap'"
-          >
-            <GitBranch :size="16" :stroke-width="2" />
-            Mapa Mental
-          </button>
-        </div>
-
-        <!-- Tab content -->
-        <!-- d3 and the mocks only download when the section nears the viewport (RF-04).
-             Not rendered in the prerender, so the HTML has no modulepreload for them. -->
+        <!-- The mind map demo (markmap) only downloads when the section nears the viewport (RF-04).
+             Not rendered in the prerender, so the HTML has no modulepreload for it. The graph of all
+             cadernos left the app in the navegação v3, and with it this demo. -->
         <div ref="demoRef" class="relative min-h-[380px] sm:min-h-[440px]">
-          <template v-if="demoVisible">
-            <LazyLandingMockGraph v-if="activeTab === 'graph'" />
-            <LazyLandingMockMindMap v-else />
-          </template>
+          <LazyLandingMockMindMap v-if="demoVisible" />
         </div>
 
         <!-- Caption -->
         <p class="mt-4 text-center text-xs text-gray-400">
-          {{ activeTab === 'graph' ? 'Arraste nós, dê zoom e clique para ver detalhes — igual no app real.' : 'Expanda e recolha ramos, dê zoom — gerado automaticamente pela IA a partir das suas notas.' }}
+          Expanda e recolha ramos, dê zoom — gerado automaticamente pela IA a partir das suas notas.
         </p>
 
         <!-- Extra features grid -->
@@ -289,7 +266,7 @@
             </template>
             <ul class="space-y-2.5 text-sm text-gray-600 mb-8" :class="{ 'mt-4': !free }">
               <li class="flex items-start gap-2"><span class="text-emerald-500 font-bold">✓</span><span>Flashcards + repetição espaçada ilimitados</span></li>
-              <li class="flex items-start gap-2"><span class="text-emerald-500 font-bold">✓</span><span>Notas, cadernos, grafo, agenda de provas</span></li>
+              <li class="flex items-start gap-2"><span class="text-emerald-500 font-bold">✓</span><span>Notas, cadernos, mapa mental, agenda de provas</span></li>
               <li class="flex items-start gap-2"><span class="text-emerald-500 font-bold">✓</span><span>Importar do Anki (.apkg)</span></li>
               <li v-for="line in freeLines" :key="line" class="flex items-start gap-2"><span class="text-emerald-500 font-bold">✓</span><span>{{ line }}</span></li>
             </ul>
@@ -397,7 +374,7 @@
 </template>
 
 <script setup lang="ts">
-import { FileUp, Sparkles, RefreshCw, Headphones, Brain, CalendarCheck, BookOpen, GraduationCap, Globe, PenLine, Layers, MonitorX, StickyNote, Network, ClipboardList, AlarmClockOff, Settings2, Languages, Zap, Podcast, BookMarked, GitBranch, ListChecks, Shield, Timer } from 'lucide-vue-next'
+import { FileUp, Sparkles, RefreshCw, Headphones, Brain, CalendarCheck, BookOpen, GraduationCap, Globe, PenLine, Layers, MonitorX, StickyNote, ClipboardList, AlarmClockOff, Settings2, Languages, Zap, Podcast, BookMarked, GitBranch, ListChecks, Shield, Timer } from 'lucide-vue-next'
 
 definePageMeta({ layout: 'landing' })
 
@@ -425,7 +402,6 @@ const annualDiscountPercent = computed(() => {
   return monthly && savings ? Math.round((savings / (monthly * 12)) * 100) : null
 })
 onMounted(() => { fetchPlans() })
-const activeTab = ref<'graph' | 'mindmap'>('graph')
 
 // hydrate-on-visible still server-renders the component (and preloads its chunk):
 // mount it client-side only when the demo section is close to the viewport.
@@ -463,7 +439,7 @@ const comparisons = [
   { pain: 'Criar cards na mão, um por um', painIcon: PenLine, solution: 'PDF vira cards prontos, sem montar na mão', solIcon: Zap, featured: false },
   { pain: 'Backlog infinito desmotiva', painIcon: Layers, solution: 'Modo Sobrevivência prioriza', solIcon: Shield, featured: false },
   { pain: 'Plugins pra tudo funcionar', painIcon: MonitorX, solution: 'Tudo integrado, zero config', solIcon: Sparkles, featured: false },
-  { pain: 'Cards soltos, sem contexto', painIcon: StickyNote, solution: 'Notas + grafo + mapa mental', solIcon: Network, featured: false },
+  { pain: 'Cards soltos, sem contexto', painIcon: StickyNote, solution: 'Notas + mapa mental', solIcon: GitBranch, featured: false },
   { pain: 'Sem simulados nem provas', painIcon: ClipboardList, solution: 'Simulados com IA integrados', solIcon: ListChecks, featured: false },
   { pain: 'Sem áudio, só leitura', painIcon: AlarmClockOff, solution: 'Podcast dos pontos fracos', solIcon: Headphones, featured: false },
 ]
@@ -483,7 +459,7 @@ const hiddenFeatures = [
 
 const faqs = [
   { q: 'Posso importar do Anki?', a: 'Sim! Importa .apkg com baralhos, cards, tags e mídia automaticamente. Sem perder nada.' },
-  { q: 'O plano grátis é realmente grátis?', a: 'Sim. Core ilimitado — flashcards, notas, grafo, revisão, importar Anki. A IA tem limites mensais que você pode expandir com o Pro.' },
+  { q: 'O plano grátis é realmente grátis?', a: 'Sim. Core ilimitado — flashcards, notas, mapa mental, revisão, importar Anki. A IA tem limites mensais que você pode expandir com o Pro.' },
   { q: 'Funciona no celular?', a: 'Sim, é PWA. Funciona em qualquer navegador como app nativo. Adicione à tela inicial e use offline.' },
   { q: 'Meus dados ficam seguros?', a: 'Sim. Servidores no Brasil, criptografia em trânsito e repouso, compatível com LGPD.' },
   { q: 'Posso cancelar a qualquer momento?', a: 'Sim, sem fidelidade. Cancela em 1 clique no painel. Seus dados e cards continuam no plano grátis.' },

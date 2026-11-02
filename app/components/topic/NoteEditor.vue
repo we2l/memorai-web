@@ -27,10 +27,12 @@
       </button>
       <button
         class="bubble-action"
-        title="Perguntar à IA"
+        title="Perguntar sobre este trecho"
+        aria-label="Perguntar sobre este trecho"
         @mousedown.prevent="emit('ask-ai')"
+        @keydown.enter.prevent="emit('ask-ai')"
       >
-        <Sparkles :size="12" class="inline" /> IA
+        <Sparkles :size="12" class="inline" aria-hidden="true" /> Perguntar
       </button>
       <button
         v-if="topicId"

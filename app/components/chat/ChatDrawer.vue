@@ -1,178 +1,137 @@
 <template>
-  <Teleport to="body">
-    <!-- Backdrop -->
-    <Transition name="fade">
-      <div
-        v-if="chat.isOpen"
-        class="fixed inset-0 bg-overlay z-40"
-        @click="chat.close()"
-      />
-    </Transition>
-
-    <!-- Drawer -->
-    <Transition name="slide-right">
-      <div
-        v-if="chat.isOpen"
-        ref="drawerRef"
-        class="fixed top-0 right-0 h-full w-full sm:w-[400px] bg-[var(--bg-card)] z-50 flex flex-col border-l border-base"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Chat com IA"
-        @keydown.escape="chat.close()"
-      >
-        <!-- Header -->
-        <div class="flex items-center justify-between px-4 py-3 border-b border-base shrink-0">
-          <div class="flex-1 min-w-0">
-            <p class="text-small font-medium text-base-primary truncate flex items-center gap-1.5">
-              <svg width="16" height="16" viewBox="0 0 65 65" fill="none" class="shrink-0"><path fill="#9C72FF" d="M22.036 0.507295C20.1625 0.21649 18.6061 0.0930375 16.7274 0.174287C14.8486 0.255577 13.0635 0.174443 11.5635 0.174284C10.0635 0.174126 8.60528 -0.387846 8.56348 0.507295C8.52175 1.40253 11.4319 1.58146 12.4501 1.94968C13.4708 2.28993 14.4861 2.70951 15.4003 3.28073C16.4056 3.90894 16.9357 4.31416 17.6122 5.05612C18.2885 5.79794 18.5598 6.12752 18.9393 6.94187C19.3189 7.75642 19.7219 7.74341 19.5292 9.16159C19.3361 10.5794 16.6262 10.3947 14.9579 11.269C13.2896 12.1437 12.6896 12.3853 10.9755 13.5991C9.26133 14.8129 7.77297 16.1581 6.40417 17.7046C5.04549 19.2396 4.63941 19.8714 3.76916 21.2253L3.76745 21.228C3.04973 22.3445 2.35679 23.4721 1.83288 24.6948C1.32249 25.8861 1.23292 26.2696 0.948119 27.2465C0.663351 28.2234 0.530108 28.7322 0.358275 29.687C0.186399 30.642 0.120629 31.1734 0.0633534 32.1284C0.00608872 33.0832 -0.0446022 33.5871 0.0633534 34.5688C0.171387 35.5509 0.393044 36.1464 0.653197 37.1216C0.913252 38.0964 0.88694 38.1854 1.3905 39.562C1.8942 40.9389 2.38508 42.164 3.60242 44.0005C4.81966 45.8368 6.98714 50.7037 7.87878 48.6606C6.56348 45.6741 6.25288 45.3757 5.81433 44.0005C5.37591 42.6251 5.39619 42.6494 5.22449 41.7807C5.05286 40.9125 5.0125 40.6239 4.92956 39.562C4.84662 38.4999 4.78717 37.4749 4.92956 36.3442C5.07194 35.2137 5.16136 34.8449 5.51941 33.7924C5.87745 32.74 6.26244 32.0149 6.84656 31.019C7.43069 30.0231 7.52032 29.8168 8.46863 28.6889C9.41704 27.561 10.5275 26.623 12.0077 25.5825C13.488 24.5419 14.6105 23.9465 15.9901 23.3628C17.3692 22.7792 17.6736 22.7224 18.9393 22.3647C20.205 22.007 20.6581 21.7412 22.4784 21.5883C24.2987 21.4355 25.851 21.2969 27.3446 21.2553C28.8382 21.2138 29.7977 21.3385 31.4735 21.5883C33.1493 21.8382 34.2538 22.0794 35.8973 22.5864C37.2684 23.0093 38.5691 23.558 39.8788 24.1401C41.6199 24.9188 42.7865 25.758 44.745 26.6919C46.7036 27.6258 48.1416 28.2373 49.9071 28.9106C51.6723 29.5838 52.2708 29.7896 53.7411 30.2417C55.2114 30.6938 56.2668 31.0152 57.4276 31.2407C58.5883 31.4662 58.7447 31.505 59.6395 31.5737C60.5343 31.6425 61.2789 31.7856 61.9989 31.5737C62.7189 31.3618 62.9341 31.1914 63.326 30.9077C63.7179 30.6241 63.894 30.6068 64.0634 30.2417C64.2277 29.8869 64.1629 29.6058 64.0712 29.2085L64.0634 29.1743C63.9675 28.7584 63.8753 28.5352 63.5634 28.1743C63.2514 27.8133 63.0735 27.9317 62.4413 27.4682C61.8091 27.0048 60.7404 26.3597 60.5243 25.5825C60.3084 24.8053 60.4181 24.6437 60.5243 24.1401C60.6305 23.6365 60.7855 23.631 60.9667 23.0307C61.1479 22.4301 61.2904 21.735 61.2616 21.0327C61.2328 20.3309 61.1845 20.2766 60.9667 19.4799C60.7487 18.683 60.4709 18.0059 59.9344 17.0385C58.9553 15.273 57.5264 13.7407 55.953 12.4897C54.951 11.6931 54.4294 11.4149 53.0038 10.604C51.578 9.79289 50.6434 9.26837 48.58 8.49558C46.5163 7.72271 44.3339 7.23063 42.3856 6.94187C40.4378 6.65319 40.2825 6.72382 38.6991 6.60984C37.1157 6.4959 36.0515 6.9837 34.2753 6.38718C32.4991 5.79053 31.7298 4.20575 30.1464 3.28073C28.5628 2.35572 27.9021 2.05607 26.3124 1.50534C24.7227 0.954627 23.9095 0.798091 22.036 0.507295Z"/><path fill="#9C72FF" d="M38.4045 29.2436L38.9944 28.4669L39.4368 28.245L40.1741 28.356L41.5635 28.5779L42.5635 28.6741L44.3031 28.7998L46.5635 28.9107L45.8429 28.356L45.0635 27.9122L43.5635 27.1741L42.0635 26.6741L40.5635 26.1741L38.69 25.3603L37.2248 24.9343L36.0635 24.6741L33.6856 24.2507L30.8838 23.9179H28.0819H26.4598L24.2478 24.2507L21.7409 24.8055L19.8239 25.3603L17.7593 26.1369L15.9898 27.0245L14.3676 28.1341L13.4828 28.7998L12.7455 29.3545L11.8607 30.1312L10.9759 31.0188L10.681 31.5736L9.94368 32.4612L9.79621 32.7941L9.35381 33.4598L8.76395 34.2364L8.46902 35.346L8.17409 36.2336L7.87916 37.2321L7.73169 37.8979L7.58423 38.7855V39.4512V41.2264V41.7812L7.73169 42.4469L7.87916 43.4455L8.02662 44.1112L8.32156 44.8878L8.76395 45.7754L9.20635 46.774L9.64874 47.4397L10.0911 48.2164L10.681 48.9931L11.4183 49.8807L12.0082 50.6573L12.5981 51.2121L13.3354 51.9888L14.2202 52.7654L14.3676 52.9873V53.1741L14.2202 53.764L14.0727 53.9859L13.9252 54.3188L13.5635 55.1741L13.4828 55.6502V56.4269V57.6473L13.6303 58.424L13.9252 59.0897L14.3676 59.7554L14.9575 60.643L15.9898 61.9745L16.8746 62.8621L17.6119 63.3059C17.8085 63.4538 18.4082 63.8163 19.234 64.0826C20.0598 64.3488 19.4306 63.8606 19.0865 63.6387L18.9391 63.3059V62.7511V61.8635L19.0865 61.0868L19.3815 60.4211L19.6764 59.8664L19.9713 59.3116L20.5612 58.313L20.8561 57.7583V57.2035V56.2049V55.5392H21.0036H21.2985H21.8884H23.5105H24.3953L25.1326 55.3173L26.0174 55.0954L26.9022 54.7626L27.787 54.5407L28.6718 54.2078L29.704 53.9859L31.0312 53.764H32.8008L33.6856 53.875H34.2755V53.764L34.128 53.4311L33.5381 52.9873L32.8008 52.4326L32.211 51.9888L31.4736 51.545L30.7363 51.2121L29.5566 50.7683L28.3769 50.4354L27.4921 50.2135L26.4598 49.9916H25.575H24.1004H22.9206H22.1833C22.0653 49.9916 21.7409 50.0656 21.5934 50.1026L21.151 50.2135L20.5612 50.3245L20.1188 50.4354H19.234H18.4967L17.4644 50.3245L16.7271 50.1026L15.8423 49.6588L15.105 49.3259L14.5151 48.8821L13.9252 48.4383L13.3354 47.8835L12.893 47.3288L12.4506 46.6631L12.1557 46.2193L11.8607 45.6645L11.5658 45.2207L11.4183 44.6659L11.1234 44.1112L10.8285 43.5564L10.681 43.1126L10.5335 42.6688V42.114V41.3374V40.5607V40.0059L10.681 39.3402L10.8285 38.5636L10.9759 37.7869L11.2709 37.1212L11.5658 36.4555L11.8607 35.7898L12.1557 35.235L12.4506 34.7912L12.7455 34.2364L13.1879 33.7926L13.7778 33.1269L14.0727 32.6831L14.6626 32.2393L15.105 31.7955L15.5474 31.4626L15.9898 31.2407L16.5796 30.7969L17.1695 30.3531L17.7593 30.0203L18.4967 29.6874L19.0865 29.4655L19.8239 29.1326L20.4137 28.9107L21.2985 28.5779L22.0358 28.356L22.9206 28.245L23.5105 28.0231L23.9529 27.9122H24.5428L25.1326 27.8012H25.7225L26.3123 27.6903H27.1971H27.9345H28.8193V27.9122V28.245L28.6718 28.9107L28.5243 29.2436L28.3769 29.6874L28.2294 30.0203L27.9345 30.4641L27.787 30.7969L27.6395 31.1298L27.4921 31.3517L27.3446 31.5736L27.1971 31.7955L27.0497 32.1283L26.7547 32.4612L26.3123 32.905L25.8699 33.3488L25.4275 33.7926L24.9851 34.2364L24.8377 34.3474V34.4583L25.1326 34.5693H25.7225H26.4598H27.4921L28.0819 34.4583L28.5243 34.3474H28.9667L29.4091 34.2364L29.8515 34.1255L30.2939 33.9036L30.8838 33.7926L31.4736 33.5707L32.0635 33.3488L32.6534 33.1269L33.2432 32.905L33.6856 32.6831L34.128 32.4612L34.5704 32.2393L35.1603 31.9064L35.6027 31.5736L36.4875 30.9079L36.9299 30.4641L37.2248 30.2422L37.6672 29.9093L37.9621 29.5764L38.4045 29.2436Z"/></svg>
-              {{ contextLabel }}
-            </p>
-          </div>
-          <div class="flex items-center gap-2">
-            <button
-              class="p-2.5 rounded-lg text-base-muted hover:text-base-secondary hover:bg-[var(--border-divider)] transition-colors"
-              title="Histórico"
-              @click="showHistory = !showHistory"
-             aria-label="Histórico">
-              <Clock :size="16" aria-hidden="true" />
-            </button>
-            <button
-              class="p-2.5 rounded-lg text-base-muted hover:text-base-secondary hover:bg-[var(--border-divider)] transition-colors"
-              title="Nova conversa"
-              @click="chat.newConversation()"
-             aria-label="Nova conversa">
-              <Plus :size="16" aria-hidden="true" />
-            </button>
-            <button
-              class="p-2.5 rounded-lg text-base-muted hover:text-base-secondary hover:bg-[var(--border-divider)] transition-colors"
-              aria-label="Fechar chat"
-              @click="chat.close()"
-            >
-              <X :size="16" />
-            </button>
-          </div>
-        </div>
-
-        <!-- Conversation history -->
-        <div v-if="showHistory" class="border-b border-base max-h-48 overflow-y-auto">
-          <button
-            v-for="conv in chat.conversations"
-            :key="conv.id"
-            class="w-full text-left px-4 py-2 text-small hover:bg-[var(--border-divider)] transition-colors truncate"
-            :class="chat.currentId === conv.id && 'text-accent-primary bg-accent-primary-subtle'"
-            @click="chat.loadConversation(conv.id); showHistory = false"
-          >
-            {{ conv.title }}
-          </button>
-          <p v-if="!chat.conversations.length" class="px-4 py-3 text-micro text-base-muted">Nenhuma conversa ainda</p>
-        </div>
-
-        <!-- Card anexado (quando vem de erro na revisão) -->
-        <div
-          v-if="chat.currentContext.source === 'review_error' && chat.currentContext.cardFront"
-          class="mx-4 mt-3 p-3 rounded-lg bg-[var(--border-divider)] border border-base text-small"
-        >
-          <p class="text-micro text-base-muted mb-1">Card errado:</p>
-          <p class="text-base-primary" v-html="sanitize(chat.currentContext.cardFront)" />
-        </div>
-
-        <!-- Messages -->
-        <div ref="messagesRef" class="flex-1 overflow-y-auto p-4 space-y-3">
-          <div v-if="!chat.messages.length && !chat.loading" class="flex flex-col items-center justify-center h-full text-center px-4">
-            <MessageCircle :size="36" class="text-base-muted mb-2" />
-            <p class="text-small text-base-muted">Pergunte sobre seus materiais de estudo.</p>
-          </div>
-
-          <div
-            v-for="msg in chat.messages"
-            :key="msg.id"
-            class="flex"
-            :class="msg.role === 'user' ? 'justify-end' : 'justify-start'"
-          >
-            <div
-              class="max-w-[85%] rounded-2xl px-3.5 py-2.5 text-small"
-              :class="msg.role === 'user'
-                ? 'bg-action text-accent-primary-text rounded-br-md'
-                : 'bg-[var(--border-divider)] text-base-primary rounded-bl-md prose-chat'"
-              v-html="msg.role === 'assistant' ? sanitize(marked.parse(msg.content) as string) : sanitize(msg.content)"
-            />
-          </div>
-
-          <!-- Follow-up chips after last assistant message -->
-          <div v-if="chat.messages.length && chat.messages[chat.messages.length - 1]?.role === 'assistant' && !chat.sending" class="flex flex-wrap gap-1.5">
-            <button
-              v-for="chip in followUpChips"
-              :key="chip"
-              class="px-3 py-2 rounded-full text-small bg-accent-primary-subtle text-accent-primary hover:bg-action hover:text-accent-primary-text transition-colors"
-              @click="sendChip(chip)"
-            >
-              {{ chip }}
-            </button>
-          </div>
-
-          <div v-if="chat.sending" class="flex justify-start">
-            <div class="bg-[var(--border-divider)] rounded-2xl rounded-bl-md px-3.5 py-2.5">
-              <span class="text-base-muted text-small animate-pulse">Pensando...</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Input -->
-        <div class="p-3 border-t border-base shrink-0">
-          <form class="flex gap-2" @submit.prevent="handleSend">
-            <input
-              ref="inputRef"
-              v-model="message"
-              class="input-base flex-1 !min-h-[2.5rem]"
-              placeholder="Digite sua dúvida..."
-              :disabled="chat.sending"
-            />
-            <button
-              type="submit"
-              class="btn-primary !p-2.5 !min-h-[2.5rem]"
-              :disabled="!message.trim() || chat.sending"
-              aria-label="Enviar mensagem"
-            >
-              <Send :size="16" />
-            </button>
-          </form>
-        </div>
+  <UiSheet
+    :model-value="chat.isOpen"
+    :title="contextLabel"
+    :description="contextDescription"
+    :side="wide ? 'right' : 'bottom'"
+    size="lg"
+    @update:model-value="(v: boolean) => { if (!v) chat.close() }"
+  >
+    <div class="flex min-h-full flex-col gap-3">
+      <div class="-ml-2 flex flex-wrap items-center gap-1">
+        <UiButton size="sm" variant="ghost" :icon-left="Clock" :aria-expanded="showHistory ? 'true' : 'false'" @click="showHistory = !showHistory">Histórico</UiButton>
+        <UiButton size="sm" variant="ghost" :icon-left="Plus" @click="startNew">Nova conversa</UiButton>
       </div>
-    </Transition>
-  </Teleport>
+
+      <ul v-if="showHistory" class="-mx-3 max-h-48 overflow-y-auto border-y border-line" aria-label="Conversas anteriores">
+        <li v-for="conv in chat.conversations" :key="conv.id">
+          <UiListRow as="button" :title="conv.title" :active="chat.currentId === conv.id" @click="openConversation(conv.id)" />
+        </li>
+        <li v-if="!chat.conversations.length" class="px-3 py-3 text-meta text-fg-muted">Nenhuma conversa ainda</li>
+      </ul>
+
+      <!-- What the question is about: the card, the wrong question or the excerpt -->
+      <div v-if="attached" class="rounded-row bg-subtle p-3 text-meta">
+        <p class="text-label font-semibold text-fg-muted">{{ attached.label }}</p>
+        <p class="mt-1 line-clamp-4 text-fg-strong" v-html="sanitize(attached.html)" />
+      </div>
+
+      <div class="flex flex-1 flex-col gap-3" aria-live="polite">
+        <div v-if="!chat.messages.length && !chat.loading" class="flex flex-1 flex-col items-center justify-center gap-2 py-8 text-center">
+          <MessageCircle class="size-9 text-fg-muted" aria-hidden="true" />
+          <p class="text-meta text-fg-muted">Pergunte sobre seus materiais de estudo.</p>
+        </div>
+
+        <div
+          v-for="msg in chat.messages"
+          :key="msg.id"
+          class="flex"
+          :class="msg.role === 'user' ? 'justify-end' : 'justify-start'"
+        >
+          <div
+            class="max-w-5/6 rounded-card px-3.5 py-2.5 text-meta"
+            :class="msg.role === 'user' ? 'rounded-br-row bg-action text-on-action' : 'prose-chat rounded-bl-row bg-subtle text-fg-strong'"
+            v-html="msg.role === 'assistant' ? sanitize(marked.parse(msg.content) as string) : sanitize(msg.content)"
+          />
+        </div>
+
+        <div v-if="showChips" class="flex flex-wrap gap-1.5">
+          <UiButton v-for="chip in followUpChips" :key="chip" size="sm" @click="sendChip(chip)">{{ chip }}</UiButton>
+        </div>
+
+        <p v-if="chat.sending" class="text-meta text-fg-muted" role="status">Pensando...</p>
+        <span ref="endRef" aria-hidden="true" />
+      </div>
+    </div>
+
+    <template #footer>
+      <form class="flex w-full items-end gap-2" @submit.prevent="handleSend">
+        <UiInput
+          ref="inputRef"
+          v-model="message"
+          label="Sua dúvida"
+          hide-label
+          class="flex-1"
+          placeholder="Digite sua dúvida..."
+          :disabled="chat.sending"
+        />
+        <UiButton type="submit" variant="primary" :icon-left="Send" :disabled="!message.trim() || chat.sending" aria-label="Enviar mensagem" />
+      </form>
+    </template>
+  </UiSheet>
 </template>
 
 <script setup lang="ts">
-import { X, Plus, Send, MessageCircle, Clock } from 'lucide-vue-next'
+// Tira-dúvidas (prd-navegacao-v3 RF-9, tasks 7.4): a UiSheet on the right from 768 px and at the bottom on
+// the phone, with the layer of UiDialog (Esc, focus trap and return, scroll lock). Opened in context, never
+// by a floating button: "Explicar este card" (revisão), "Por que errei?" (simulado), "Perguntar sobre este
+// trecho" (editor) and "Perguntar…" (busca). The context brings topic_id (and document_id) to the API and a
+// ready question to the input; nothing is sent to the AI before the person presses Enviar.
+import { Clock, MessageCircle, Plus, Send } from 'lucide-vue-next'
 import { marked } from 'marked'
 
 marked.setOptions({ breaks: true })
 
 const { sanitize } = useSanitize()
-
 const chat = useChatStore()
+const route = useRoute()
 const message = ref('')
 const showHistory = ref(false)
-const messagesRef = ref<HTMLElement>()
-const inputRef = ref<HTMLInputElement>()
-const drawerRef = ref<HTMLElement>()
+const inputRef = ref<{ focus: () => void } | null>(null)
+const endRef = ref<HTMLElement | null>(null)
 
-const contextLabel = computed(() => {
-  if (chat.currentContext.topicName) return `Sobre: ${chat.currentContext.topicName}`
-  if (chat.currentContext.cardFront) return 'Sobre este card'
-  return 'Tira-dúvidas'
+// right side from 768 px (same breakpoint as the TopNav)
+const wide = ref(false)
+let mq: MediaQueryList | null = null
+const onMq = (e: MediaQueryListEvent) => { wide.value = e.matches }
+onMounted(() => {
+  mq = window.matchMedia('(min-width: 768px)')
+  wide.value = mq.matches
+  mq.addEventListener('change', onMq)
+})
+onBeforeUnmount(() => mq?.removeEventListener('change', onMq))
+
+const topicStore = useTopicStore()
+const contextLabel = computed(() => 'Tira-dúvidas')
+const contextDescription = computed(() => {
+  const ctx = chat.currentContext
+  const name = ctx.topicName ?? (ctx.topicId ? topicStore.findById(ctx.topicId)?.name : undefined)
+  return name ? `Sobre ${name}` : 'Sobre os seus cadernos'
+})
+
+const attached = computed(() => {
+  const ctx = chat.currentContext
+  if (ctx.excerpt) return { label: 'Trecho da nota', html: escapeHtml(ctx.excerpt) }
+  if (ctx.cardFront) {
+    const label = ctx.source === 'quiz_error' ? 'Questão que você errou' : ctx.source === 'review_error' ? 'Card que você errou' : 'Card'
+    return { label, html: ctx.cardFront }
+  }
+  return null
 })
 
 const followUpChips = computed(() => {
-  if (chat.currentContext.source === 'review_error') {
-    return ['Sugerir cards de reforço', 'Explicar de outro jeito', 'Dar um exemplo']
-  }
-  return ['Sugerir cards sobre isso', 'Explicar de outro jeito', 'Aprofundar']
+  const s = chat.currentContext.source
+  if (s === 'review_error' || s === 'review_card' || s === 'quiz_error') return ['Explicar de outro jeito', 'Dar um exemplo', 'Sugerir cards de reforço']
+  return ['Explicar de outro jeito', 'Aprofundar', 'Sugerir cards sobre isso']
+})
+const showChips = computed(() => {
+  const last = chat.messages[chat.messages.length - 1]
+  return last?.role === 'assistant' && !chat.sending
 })
 
 function sendChip(text: string) {
   message.value = text
-  handleSend()
+  void handleSend()
 }
 
 async function handleSend() {
@@ -181,72 +140,55 @@ async function handleSend() {
   message.value = ''
   try {
     await chat.sendMessage(msg)
-    await nextTick()
-    scrollToBottom()
-  } catch {
-    useToast().show('Erro ao enviar mensagem.', 'error')
+  } catch (e) {
+    message.value = msg
+    reportApiError(e, { error: 'Erro ao enviar mensagem.' })
   }
 }
 
-function scrollToBottom() {
-  if (messagesRef.value) {
-    messagesRef.value.scrollTop = messagesRef.value.scrollHeight
+function startNew() {
+  chat.newConversation()
+  message.value = ''
+  inputRef.value?.focus()
+}
+
+async function openConversation(id: string) {
+  showHistory.value = false
+  try {
+    await chat.loadConversation(id)
+  } catch (e) {
+    reportApiError(e, { error: 'Não foi possível abrir a conversa.' })
   }
 }
 
-// Auto-detect context from route when opening manually (no explicit context)
-const route = useRoute()
 watch(() => chat.isOpen, async (open) => {
-  if (open) {
-    // If opened without explicit context (manual/FAB), infer from route
-    if (!chat.currentContext.source) {
-      const topicMatch = route.path.match(/\/cadernos/)
-      const topicId = route.query.topic as string | undefined
-      if (topicId) {
-        chat.currentContext = { topicId, source: 'manual' }
-      }
-    }
-    if (!chat.conversations.length) await chat.fetchConversations()
-    await nextTick()
-    inputRef.value?.focus()
+  if (!open) return
+  // Opened without context (search "Perguntar ao tira-dúvidas"): the caderno of the route (05/#6)
+  if (!chat.currentContext.topicId) {
+    const topicId = scopeTopicFromQuery(route.query)
+    if (topicId) chat.currentContext = { ...chat.currentContext, topicId, source: chat.currentContext.source ?? 'manual' }
   }
+  if (chat.draft) {
+    message.value = chat.draft
+    chat.draft = ''
+  }
+  if (!chat.conversations.length) void chat.fetchConversations()
+  await nextTick()
+  // rAF: the sheet focuses its first control; the input wins
+  requestAnimationFrame(() => inputRef.value?.focus())
 }, { immediate: true }) // lazy-mounted by the layout already open
 
-// Scroll to bottom on new messages
 watch(() => chat.messages.length, async () => {
   await nextTick()
-  scrollToBottom()
+  endRef.value?.scrollIntoView({ block: 'end' })
 })
-
-
-
-// Focus trap + scroll lock (RF-F9.2)
-useOverlayA11y(() => chat.isOpen, drawerRef)
 </script>
 
 <style scoped>
-.slide-right-enter-active,
-.slide-right-leave-active {
-  transition: transform 200ms ease;
-}
-.slide-right-enter-from,
-.slide-right-leave-to {
-  transform: translateX(100%);
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 200ms ease;
-}
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-
 .prose-chat :deep(p) { margin: 0.25em 0; }
 .prose-chat :deep(strong) { font-weight: 600; }
 .prose-chat :deep(ul), .prose-chat :deep(ol) { padding-left: 1.2em; margin: 0.25em 0; }
 .prose-chat :deep(li) { margin: 0.1em 0; }
-.prose-chat :deep(code) { background: rgba(255,255,255,0.1); padding: 0.1em 0.3em; border-radius: 3px; font-size: 0.85em; }
-.prose-chat :deep(pre) { background: rgba(0,0,0,0.2); padding: 0.5em; border-radius: 6px; overflow-x: auto; margin: 0.5em 0; }
+.prose-chat :deep(code) { background: var(--line); padding: 0.1em 0.3em; border-radius: 3px; font-size: 0.85em; }
+.prose-chat :deep(pre) { background: var(--line); padding: 0.5em; border-radius: 6px; overflow-x: auto; margin: 0.5em 0; }
 </style>

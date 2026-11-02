@@ -157,6 +157,10 @@
   /* Área segura do iPhone (pb-safe-bottom em folhas) e altura do toast acima da navegação inferior */
   --spacing-safe-bottom: env(safe-area-inset-bottom);
   --spacing-toast: var(--toast-bottom);
+  /* Casca v3: h-topnav, top-topnav, pb-bottomnav, bottom-bottomnav, bottom-nav (= 0 no md+) */
+  --spacing-topnav: var(--topnav-h);
+  --spacing-bottomnav: var(--bottomnav-h);
+  --spacing-nav: var(--nav-h);
 }
 
 /* Sem namespace no Tailwind: utilities nomeadas */

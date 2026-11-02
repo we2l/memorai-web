@@ -43,7 +43,8 @@ const visible = computed(() => analytics.value === null && route.path !== '/priv
 
 // Mobile: sits above the BottomNav on app pages (default layout, logged in)
 const hasNav = computed(() => !!auth.user && !['auth', 'landing'].includes(String(route.meta.layout ?? 'default')))
-const mobileBottom = computed(() => (hasNav.value ? 'calc(var(--nav-h) + env(safe-area-inset-bottom))' : '0px'))
+// --nav-h is the BottomNav height with the safe area (0 from 768 px: the TopNav is on top)
+const mobileBottom = computed(() => (hasNav.value ? 'var(--nav-h)' : '0px'))
 
 function openModal() {
   showModal.value = true

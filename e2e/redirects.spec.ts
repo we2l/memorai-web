@@ -6,7 +6,7 @@ const REDIRECTS: Record<string, string> = {
   '/dashboard': '/hoje',
   '/chat': '/hoje',
   '/stats': '/progresso',
-  '/graph': '/cadernos?view=graph',
+  '/graph': '/cadernos',
   '/documents': '/cadernos',
   '/decks': '/cadernos',
   '/decks/abc-123': '/cadernos',

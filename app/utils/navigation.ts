@@ -1,41 +1,54 @@
 import type { Component } from 'vue'
-import {
-  Home,
-  BookOpen,
-  RotateCcw,
-  BarChart3,
-  Headphones,
-  ClipboardCheck,
-  CalendarClock,
-  Settings,
-  HelpCircle,
-} from 'lucide-vue-next'
+import { BarChart3, BookOpen, Dumbbell, Home } from 'lucide-vue-next'
 
-export interface NavItem {
+/**
+ * Single source of the app navigation (prd-navegacao-v3 RF-1/RF-2, Module Design §4.1): the 4 places of
+ * the TopNav and the BottomNav, in a fixed order, and the account menu items. A place is active when the
+ * route lives in one of its sections (/revisar, /simulados and /podcasts count as Praticar; /provas as
+ * Progresso): the highlight follows the section, not the exact path.
+ */
+export type PlaceKey = 'hoje' | 'cadernos' | 'praticar' | 'progresso'
+
+export interface Place {
+  key: PlaceKey
   label: string
   to: string
   icon: Component
+  /** Path prefixes that belong to the place */
+  sections: readonly string[]
 }
 
-/** Single source of the app navigation (Sidebar, BottomNav and MoreSheet). */
-export const primaryNav: NavItem[] = [
-  { label: 'Hoje', to: '/hoje', icon: Home },
-  { label: 'Cadernos', to: '/cadernos', icon: BookOpen },
-  { label: 'Revisão', to: '/revisar', icon: RotateCcw },
-  { label: 'Progresso', to: '/progresso', icon: BarChart3 },
+export const places: readonly Place[] = [
+  { key: 'hoje', label: 'Hoje', to: '/hoje', icon: Home, sections: ['/hoje'] },
+  { key: 'cadernos', label: 'Cadernos', to: '/cadernos', icon: BookOpen, sections: ['/cadernos', '/importar'] },
+  { key: 'praticar', label: 'Praticar', to: '/praticar', icon: Dumbbell, sections: ['/praticar', '/revisar', '/simulados', '/podcasts'] },
+  { key: 'progresso', label: 'Progresso', to: '/progresso', icon: BarChart3, sections: ['/progresso', '/provas'] },
 ]
 
-export const secondaryNav: NavItem[] = [
-  { label: 'Simulados', to: '/simulados', icon: ClipboardCheck },
-  { label: 'Provas', to: '/provas', icon: CalendarClock },
-  { label: 'Podcasts', to: '/podcasts', icon: Headphones },
-]
-
-export const accountNav: NavItem[] = [
-  { label: 'Configurações', to: '/configuracoes', icon: Settings },
-  { label: 'Ajuda', to: '/ajuda', icon: HelpCircle },
-]
-
+/** `to` itself or a sub-path of it (/cadernos and /cadernos/x, never /cadernosx). */
 export function isNavActive(currentPath: string, to: string): boolean {
   return currentPath === to || currentPath.startsWith(to + '/')
 }
+
+/** The place the route belongs to, or null (account, help, plans: no place is highlighted). */
+export function activePlace(currentPath: string): PlaceKey | null {
+  return places.find(p => p.sections.some(s => isNavActive(currentPath, s)))?.key ?? null
+}
+
+/**
+ * Account menu (RF-3): each item goes to its section of /configuracoes (anchors) or runs an action in the
+ * menu (appearance, sign out). The anchors are the `id` of the sections of pages/configuracoes.vue.
+ */
+export type AccountItemKey = 'seguranca' | 'lembretes' | 'uso' | 'aparencia' | 'dados' | 'ajuda' | 'sair'
+
+export const SETTINGS_ANCHORS = ['seguranca', 'lembretes', 'uso', 'aparencia', 'dados'] as const
+
+export const accountItems: readonly { key: AccountItemKey, label: string, to?: string }[] = [
+  { key: 'seguranca', label: 'Conta e segurança', to: '/configuracoes#seguranca' },
+  { key: 'lembretes', label: 'Lembretes e meta diária', to: '/configuracoes#lembretes' },
+  { key: 'uso', label: 'Uso de IA no mês', to: '/configuracoes#uso' },
+  { key: 'aparencia', label: 'Aparência' },
+  { key: 'dados', label: 'Exportar meus dados', to: '/configuracoes#dados' },
+  { key: 'ajuda', label: 'Ajuda e atalhos', to: '/ajuda?tab=atalhos' },
+  { key: 'sair', label: 'Sair' },
+]

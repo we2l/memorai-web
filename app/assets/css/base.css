@@ -10,6 +10,13 @@
     font-family: var(--font-sans);
   }
 
+  /* Anchors (/configuracoes#aparencia) land below the sticky TopNav */
+  @media (min-width: 768px) {
+    html {
+      scroll-padding-top: calc(var(--topnav-h) + 16px);
+    }
+  }
+
   h1, h2, h3, h4, h5, h6 {
     color: var(--fg-strong);
   }

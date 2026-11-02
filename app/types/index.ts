@@ -130,36 +130,6 @@ export interface Note extends NoteSummary {
   content: Record<string, any> | null
 }
 
-export interface GraphNode {
-  id: string
-  name: string
-  parent_id: string | null
-  notes_count: number
-  flashcards_count: number
-  review_count: number
-  progress: number
-}
-
-export interface GraphEdge {
-  id?: string
-  source: string
-  target: string
-  type: 'hierarchy' | 'connection'
-  label?: string | null
-}
-
-export interface GraphData {
-  nodes: GraphNode[]
-  edges: GraphEdge[]
-}
-
-export interface TopicConnection {
-  id: string
-  source_topic_id: string
-  target_topic_id: string
-  label: string | null
-}
-
 export interface TopicDetails {
   id: string
   name: string

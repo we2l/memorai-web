@@ -1,8 +1,8 @@
 /**
  * Tema do app: a única fonte de "claro / escuro / sistema" (prd-ds-v3-fundacao RF-1.4).
  * O script inline do <head> (THEME_SCRIPT em nuxt.config.ts) aplica o tema antes de pintar; aqui ficam
- * a preferência, a troca e o acompanhamento do sistema em tempo de execução. Os alternadores (barra
- * lateral, "Mais", configurações, paleta de comandos, grafo) só chamam set/toggle.
+ * a preferência, a troca e o acompanhamento do sistema em tempo de execução. Os alternadores (menu
+ * da conta, configurações) só chamam set/toggle.
  * localStorage['color-mode'] = light | dark | system (ausente = system); os E2E escrevem essa chave.
  */
 export type ColorModePreference = 'light' | 'dark' | 'system'

@@ -1,5 +1,5 @@
 /**
- * Single logout flow (Sidebar, MoreSheet, Configurações).
+ * Single logout flow (menu da conta, Configurações).
  * `auth.logout()` swallows the API error on purpose: logging out always
  * clears the local state, even if the session is already gone server-side.
  */

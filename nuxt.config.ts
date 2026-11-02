@@ -186,7 +186,8 @@ export default defineNuxtConfig({
     '/dashboard': { redirect: { to: '/hoje', statusCode: 301 } },
     '/chat': { redirect: { to: '/hoje', statusCode: 301 } },
     '/stats': { redirect: { to: '/progresso', statusCode: 301 } },
-    '/graph': { redirect: { to: '/cadernos?view=graph', statusCode: 301 } },
+    // The graph of all cadernos left in the navegação v3 (RF-11): /cadernos?view=graph is cleaned by the page
+    '/graph': { redirect: { to: '/cadernos', statusCode: 301 } },
     '/documents': { redirect: { to: '/cadernos', statusCode: 301 } },
     '/decks': { redirect: { to: '/cadernos', statusCode: 301 } },
     '/decks/**': { redirect: { to: '/cadernos', statusCode: 301 } },

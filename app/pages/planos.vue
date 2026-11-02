@@ -53,7 +53,7 @@
 
           <ul class="space-y-3 text-small">
             <li class="flex gap-2.5"><Check :size="16" class="text-[var(--badge-success-text)] shrink-0 mt-0.5" /> Flashcards e revisão espaçada ilimitados</li>
-            <li class="flex gap-2.5"><Check :size="16" class="text-[var(--badge-success-text)] shrink-0 mt-0.5" /> Notas, cadernos e grafo</li>
+            <li class="flex gap-2.5"><Check :size="16" class="text-[var(--badge-success-text)] shrink-0 mt-0.5" /> Notas, cadernos e mapa mental</li>
             <li class="flex gap-2.5"><Check :size="16" class="text-[var(--badge-success-text)] shrink-0 mt-0.5" /> Importar Anki</li>
             <li class="flex gap-2.5"><Check :size="16" class="text-[var(--badge-success-text)] shrink-0 mt-0.5" /> Upload de PDFs</li>
             <li v-for="line in freeLines" :key="line" class="flex gap-2.5"><Check :size="16" class="text-[var(--badge-success-text)] shrink-0 mt-0.5" /> {{ line }}</li>

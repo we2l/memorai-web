@@ -1,6 +1,6 @@
 <template>
   <Teleport to="body">
-    <div class="pointer-events-none fixed inset-x-4 bottom-toast z-toast flex flex-col gap-2 lg:inset-x-auto lg:bottom-auto lg:right-4 lg:top-4 lg:w-96">
+    <div class="pointer-events-none fixed inset-x-4 bottom-toast z-toast flex flex-col gap-2 lg:inset-x-auto lg:bottom-auto lg:right-4 lg:top-[calc(var(--topnav-h)+12px)] lg:w-96">
       <!-- Two live regions always mounted: polite for success/info, assertive for error/warning -->
       <div v-for="region in REGIONS" :key="region.role" :role="region.role" :aria-live="region.live" class="flex flex-col gap-2">
         <TransitionGroup
@@ -28,7 +28,8 @@
 
 <script setup lang="ts">
 // Toast host of the shell (ADR-027 §5, tasks 12.3): one per layout. z-toast and bottom-toast (above the
-// bottom nav and the mini-player) come from the tokens; on desktop the stack goes to the top right.
+// bottom nav and the mini-player) come from the tokens; on desktop the stack goes to the top right, below
+// the TopNav (it would cover the avatar).
 import type { ToastType } from '~/composables/useToast'
 
 const toast = useToast()

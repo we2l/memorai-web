@@ -71,6 +71,7 @@ const dive = useDiveMode()
 const showDiveAnimation = ref(false)
 const showRiseAnimation = ref(false)
 
+// immediate: the layout mounts this lazily, on the first dive (already active)
 watch(() => dive.active.value, (active) => {
   if (active) {
     showDiveAnimation.value = true
@@ -78,7 +79,7 @@ watch(() => dive.active.value, (active) => {
       showDiveAnimation.value = false
     }, 1800)
   }
-})
+}, { immediate: true })
 
 function exitDive() {
   showRiseAnimation.value = true

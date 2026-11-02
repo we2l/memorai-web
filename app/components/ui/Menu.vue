@@ -5,33 +5,21 @@
     </slot>
     <div
       v-if="open"
-      :id="menuId"
-      ref="menu"
-      role="menu"
-      :aria-labelledby="triggerId"
       class="absolute top-full z-popover mt-1 min-w-56 rounded-control border border-line bg-float py-1 shadow-float"
       :class="align === 'end' ? 'right-0' : 'left-0'"
-      @keydown="onMenuKeydown"
+      data-menu-panel
     >
-      <component
-        :is="item.to !== undefined && !item.disabled ? NuxtLink : 'button'"
-        v-for="(item, i) in items"
-        :key="i"
-        v-bind="item.to !== undefined && !item.disabled ? { to: item.to } : { type: 'button' }"
-        role="menuitem"
-        tabindex="-1"
-        :aria-disabled="item.disabled ? 'true' : undefined"
-        class="flex min-h-touch w-full items-center gap-3 px-3 text-left text-body -outline-offset-2"
-        :class="[
-          item.tone === 'danger' ? 'text-danger' : 'text-fg-strong',
-          item.disabled ? 'cursor-not-allowed opacity-50' : 'hover:bg-subtle',
-        ]"
-        @click="choose(item, $event)"
-      >
-        <component :is="item.icon" v-if="item.icon" class="size-4.5 shrink-0" :class="item.tone === 'danger' ? '' : 'text-fg-muted'" aria-hidden="true" />
-        <span class="min-w-0 flex-1">{{ item.label }}</span>
-        <span v-if="item.meta" class="shrink-0 text-meta text-fg-muted">{{ item.meta }}</span>
-      </component>
+      <slot name="header" />
+      <div :id="menuId" ref="menu" role="menu" :aria-labelledby="triggerId" @keydown="onMenuKeydown">
+        <template v-for="(entry, e) in entries" :key="e">
+          <div v-if="entry.separator" role="separator" class="mx-1 my-1 h-px bg-line" />
+          <div v-if="entry.group" role="group" :aria-labelledby="`${menuId}-g${e}`">
+            <span :id="`${menuId}-g${e}`" class="block px-3 pt-2 pb-1 text-label text-fg-muted">{{ entry.group }}</span>
+            <UiMenuItem v-for="item in entry.items" :key="item.label" :item="item" @choose="choose" />
+          </div>
+          <UiMenuItem v-else :item="entry.items[0]!" @choose="choose" />
+        </template>
+      </div>
     </div>
   </div>
 </template>
@@ -42,6 +30,10 @@
 // focus to the trigger; Tab and a click outside close. `align` picks the edge; `tone: 'danger'` for
 // destructive items. Default trigger: an icon button ("Mais ações"); the `trigger` slot gets the props
 // to v-bind on its own button. Replaces the 4 hand-made menus.
+// Shell additions (navegação v3, AccountMenu): a `header` slot above the items (informative only: it is
+// outside role="menu" and Tab closes the menu), `separator` (a divider above the item) and radio groups:
+// consecutive items with the same `group` become role="group" labelled by it, and `checked` makes the
+// item a menuitemradio (Aparência: Sistema/Claro/Escuro).
 import type { Component } from 'vue'
 import type { RouteLocationRaw } from 'vue-router'
 import { Ellipsis } from 'lucide-vue-next'
@@ -54,22 +46,38 @@ export interface MenuItem {
   meta?: string
   icon?: Component
   disabled?: boolean
+  /** Divider above the item */
+  separator?: boolean
+  /** Label of a radio group; consecutive items with the same group are one group */
+  group?: string
+  /** Radio item (role="menuitemradio"): whether it is the chosen one */
+  checked?: boolean
 }
 
-withDefaults(defineProps<{
+const props = withDefaults(defineProps<{
   items: MenuItem[]
   /** Name of the default trigger (aria-label) */
   label?: string
   align?: 'start' | 'end'
 }>(), { label: 'Mais ações', align: 'end' })
 
-const NuxtLink = resolveComponent('NuxtLink')
 const open = ref(false)
 const root = ref<HTMLElement | null>(null)
 const menu = ref<HTMLElement | null>(null)
 const uid = useId()
 const triggerId = `${uid}-trigger`
 const menuId = `${uid}-menu`
+
+/** Items folded into render entries: a radio group is one entry with its items. */
+const entries = computed(() => {
+  const out: { items: MenuItem[], group?: string, separator?: boolean }[] = []
+  for (const item of props.items) {
+    const last = out[out.length - 1]
+    if (item.group && last?.group === item.group) last.items.push(item)
+    else out.push({ items: [item], group: item.group, separator: item.separator })
+  }
+  return out
+})
 
 const triggerProps = computed(() => ({
   'id': triggerId,
@@ -81,7 +89,7 @@ const triggerProps = computed(() => ({
 }))
 
 function menuItems(): HTMLElement[] {
-  return Array.from(menu.value?.querySelectorAll<HTMLElement>('[role="menuitem"]:not([aria-disabled="true"])') ?? [])
+  return Array.from(menu.value?.querySelectorAll<HTMLElement>('[role^="menuitem"]:not([aria-disabled="true"])') ?? [])
 }
 
 function focusItem(index: number | 'last') {

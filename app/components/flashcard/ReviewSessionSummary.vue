@@ -29,15 +29,17 @@
     <div v-if="topErrorTopic" class="mt-6 card border border-[var(--badge-warning-text)]/30">
       <p class="text-small text-base-primary">Você errou {{ topErrorTopic.count }}x em "{{ topErrorTopic.name }}".</p>
       <div class="flex gap-2 mt-3 justify-center">
-        <NuxtLink :to="`/revisar?topic_id=${topErrorTopic.id}&errors_only=1&t=${Date.now()}`" class="btn-primary !py-1.5 !px-3 !min-h-[2.75rem] text-small">
+        <UiButton size="sm" :to="`/revisar?topic_id=${topErrorTopic.id}&errors_only=1&t=${Date.now()}`">
           Reforçar
-        </NuxtLink>
+        </UiButton>
       </div>
     </div>
 
+    <!-- A session of a caderno returns to it (F1: the areas give the person back) -->
     <div class="flex flex-col min-[420px]:flex-row gap-3 justify-center mt-8">
-      <NuxtLink to="/hoje" class="btn-primary justify-center">Voltar para Hoje</NuxtLink>
-      <NuxtLink v-if="hasBacklog" :to="`/revisar?backlog=1&t=${Date.now()}`" class="btn-secondary justify-center">Revisar mais</NuxtLink>
+      <UiButton v-if="cadernoTo" variant="primary" :to="cadernoTo">Voltar ao caderno</UiButton>
+      <UiButton :variant="cadernoTo ? 'secondary' : 'primary'" to="/hoje">Voltar para Hoje</UiButton>
+      <UiButton v-if="hasBacklog" :to="`/revisar?backlog=1&t=${Date.now()}`">Revisar mais</UiButton>
     </div>
   </section>
 </template>
@@ -50,6 +52,8 @@ const props = defineProps<{
   pendingLearning: number
   topErrorTopic: { id: string; name: string; count: number } | null
   hasBacklog?: boolean
+  /** The caderno of a scoped session (/revisar?topic_id=): "Voltar ao caderno" leads */
+  cadernoTo?: string | null
 }>()
 
 const rememberedPct = computed(() => {

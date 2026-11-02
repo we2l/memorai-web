@@ -142,7 +142,8 @@ export const useReviewStore = defineStore('review', {
   },
 
   actions: {
-    async fetchSession(deckId?: string, topicId?: string, errorsOnly?: boolean, backlog?: boolean, mode?: string) {
+    /** topic_id = the topic and its subtree; includeRelated adds its graph neighbours (F1 RF-B1, no UI yet). */
+    async fetchSession(deckId?: string, topicId?: string, errorsOnly?: boolean, backlog?: boolean, mode?: string, includeRelated?: boolean) {
       const seq = ++sessionSeq
       this.loading = true
       this.finished = false
@@ -173,6 +174,7 @@ export const useReviewStore = defineStore('review', {
         if (errorsOnly) params.set('errors_only', '1')
         if (backlog) params.set('backlog', '1')
         if (mode) params.set('mode', mode)
+        if (includeRelated) params.set('include_related', '1')
         const query = params.toString() ? `?${params}` : ''
         const res = await $api<any>(`/review/session${query}`)
         if (seq !== sessionSeq) return

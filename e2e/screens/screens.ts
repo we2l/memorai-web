@@ -106,6 +106,13 @@ export const SCREENS: Screen[] = [
     run: async (page) => { await page.goto('/podcasts'); await settle(page) },
   },
   {
+    // Progresso e Provas v3 (4f): summary, exams with the projection, performance and the 26 weeks
+    name: 'progresso',
+    fullPage: true,
+    dark: true,
+    run: async (page) => { await page.goto('/progresso'); await settle(page, 1500) },
+  },
+  {
     name: 'planos',
     fullPage: true,
     run: async (page) => { await page.goto('/planos'); await settle(page) },

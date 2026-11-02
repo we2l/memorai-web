@@ -21,7 +21,7 @@ export const API = `${API_ORIGIN}/api`
 export const AUDIT_PASSWORD = 'Senha-Audit-2026'
 const CONTAINER = process.env.E2E_API_CONTAINER || 'baigi-app'
 
-export type UserKey = 'pro' | 'free' | 'quota' | 'unverified' | 'onboarding' | 'onboardingUnverified' | 'empty' | 'session' | 'logout' | 'account' | 'mobile' | 'legacy'
+export type UserKey = 'pro' | 'free' | 'quota' | 'unverified' | 'onboarding' | 'onboardingUnverified' | 'empty' | 'session' | 'logout' | 'account' | 'mobile' | 'legacy' | 'scope'
 
 type UserSpec = { email: string; plan: 'free' | 'pro'; verified: boolean; onboarded: boolean; reset: true; quota_exhausted?: Record<string, number> }
 
@@ -41,6 +41,8 @@ export const USERS: Record<UserKey, UserSpec> = {
   mobile: { email: 'e2e-mobile@audit.test', plan: 'pro', verified: true, onboarded: true, reset: true },
   // Default user of the legacy specs (e2e/*.spec.ts) when E2E_EMAIL points to it (see e2e/README.md)
   legacy: { email: 'e2e-legacy@audit.test', plan: 'pro', verified: true, onboarded: true, reset: true },
+  // Caderno F1 (f1-pontes.spec.ts): its own daily limit of new cards, untouched by the other specs
+  scope: { email: 'e2e-scope@audit.test', plan: 'pro', verified: true, onboarded: true, reset: true },
 }
 
 const AUTH_DIR = path.join(__dirname, '..', '..', '.auth')

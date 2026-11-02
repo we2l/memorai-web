@@ -4,7 +4,7 @@
  * API answers, so the rules are tested without the screen. The first visible step carries the only
  * primary button of the screen.
  */
-import type { BacklogStats, PendingAction, Podcast, RecentNote, Stats, TopicProgress } from '~/types'
+import type { BacklogStats, PendingAction, Podcast, RecentNote, Stats, TopicPerformance, TopicProgress } from '~/types'
 import { cadernoPath } from '~/utils/scope'
 import { openedLabel, plural } from '~/utils/greeting'
 
@@ -32,6 +32,8 @@ export interface DayPlanInput {
   survivalMode?: boolean
   /** /topics/progress: flat list, cadernos and subjects */
   progress: TopicProgress[]
+  /** /topics/performance: accuracy in questions by topic (prd-4b-caderno-v3 RF-F14) */
+  performance?: TopicPerformance[]
   pendingActions: PendingAction[]
   /** /podcasts page 1 */
   podcasts: Podcast[]
@@ -80,9 +82,24 @@ function reviewStep(input: DayPlanInput): DayPlanStep | null {
   }
 }
 
-/** Target 1: the subject with ≥ 3 errors this week; target 2: the weakest topic with ≥ 10 cards and material. */
+/** Target 0: the worst accuracy in questions; 1: the subject with ≥ 3 errors this week; 2: the weakest topic with ≥ 10 cards and material. */
 function quizStep(input: DayPlanInput): DayPlanStep | null {
   if (input.learningMode === 'language') return null
+  // Target 0 (RF-F14): the lowest accuracy with ≥ 10 answered; on a tie the deepest (the assunto)
+  const worst = (input.performance ?? [])
+    .filter(t => t.questions?.accuracy != null)
+    .sort((a, b) => a.questions.accuracy! - b.questions.accuracy! || b.depth - a.depth)[0]
+  if (worst) {
+    return {
+      key: 'quiz',
+      mode: 'quiz',
+      title: `Questões de ${worst.name}`,
+      detail: `Acerto de ${worst.questions.accuracy}% em ${plural(worst.questions.answered, 'questão', 'questões')}`,
+      action: { label: 'Fazer', to: `/simulados?topic_id=${encodeURIComponent(worst.topic_id)}` },
+      primary: false,
+      minutes: QUIZ_MINUTES,
+    }
+  }
   const byId = new Map(input.progress.map(t => [t.id, t]))
   const errors = input.pendingActions.find(a => a.type === 'errors' && a.topic_id)
   if (errors) {

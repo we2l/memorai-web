@@ -133,7 +133,7 @@ describe('buildDayPlan (prd-4a-hoje-v3 §5.2)', () => {
     expect(material.mode).toBeNull()
     expect(material.title).toBe('Continuar Apostila de Direito Constitucional')
     expect(material.detail).toBe('TRF 4ª Região · aberto ontem')
-    expect(material.action.to).toBe('/cadernos?topic=t-const&note=n1')
+    expect(material.action.to).toBe('/cadernos/t-const/material/n1')
     expect(buildDayPlan(input({ recentNote: { ...note, opened_at: '2026-10-10T10:00:00Z' } })).map(s => s.key)).not.toContain('material')
   })
 
@@ -144,5 +144,20 @@ describe('buildDayPlan (prd-4a-hoje-v3 §5.2)', () => {
 
   it('sem stats não há plano', () => {
     expect(buildDayPlan(input({ stats: null, podcasts: [], recentNote: null, progress: [] }))).toEqual([])
+  })
+
+  it('Questões pelo acerto (4b-1 RF-F14): o menor acerto com ≥ 10 respondidas; no empate, o assunto', () => {
+    const steps = buildDayPlan({
+      stats: { due_today: 0 } as any, backlog: null, progress: [], pendingActions: [], podcasts: [], recentNote: null,
+      performance: [
+        { topic_id: 'root', parent_id: null, depth: 0, name: 'TRF', cards: 900, mastery: 50, questions: { answered: 40, correct: 20, accuracy: 50 }, session_count: 9 },
+        { topic_id: 'sub', parent_id: 'root', depth: 2, name: 'Controle', cards: 90, mastery: 30, questions: { answered: 12, correct: 6, accuracy: 50 }, session_count: 2 },
+        { topic_id: 'few', parent_id: 'root', depth: 1, name: 'Poucas', cards: 90, mastery: 30, questions: { answered: 5, correct: 0, accuracy: null }, session_count: 2 },
+      ],
+    })
+    const quiz = steps.find(s => s.key === 'quiz')!
+    expect(quiz.title).toBe('Questões de Controle')
+    expect(quiz.detail).toBe('Acerto de 50% em 12 questões')
+    expect(quiz.action.to).toBe('/simulados?topic_id=sub')
   })
 })

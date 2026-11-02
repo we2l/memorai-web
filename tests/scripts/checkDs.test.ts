@@ -4,7 +4,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { cssClassNames, cssDeclaredVars, ghostFindings, runtimeVars, templateClassRefs, varRefs } from '../../scripts/check-ds.mjs'
+import { cssClassNames, cssDeclaredVars, ghostFindings, namespacedRawTokens, runtimeVars, templateClassRefs, tokenNameFindings, varRefs } from '../../scripts/check-ds.mjs'
 
 const SCRIPT = resolve(__dirname, '../../scripts/check-ds.mjs')
 const dirs: string[] = []
@@ -102,6 +102,41 @@ describe('check-ds: fantasmas', () => {
   })
 })
 
+describe('check-ds: regra de nomes dos tokens (token-name)', () => {
+  it('aponta prefixo de namespace do Tailwind fora do @theme, em CSS e em <style> de .vue', () => {
+    const sources = {
+      'app/assets/css/tokens.css': `:root {
+  --surface-page: #fff;
+  --text-body: #333; /* --color-x: comentário não conta */
+  --color-accent: var(--action);
+}
+@theme inline { --color-page: var(--surface-page); --text-section: 1.25rem; }
+.dark { --shadow-card: none; }`,
+      'app/a.vue': '<template><div class="p-2" style="--radius-x: 2px" /></template>\n<style scoped>\n.a { --font-x: Inter; --nb-color: red; }\n</style>',
+      'app/b.ts': "export const x = '--color-y: red'",
+    }
+    const found = tokenNameFindings(sources, noAllowlist).map(f => `${f.match} ${f.file}:${f.line}`)
+    expect(found).toEqual([
+      '--text-body app/assets/css/tokens.css:3',
+      '--color-accent app/assets/css/tokens.css:4',
+      '--shadow-card app/assets/css/tokens.css:7',
+      '--font-x app/a.vue:3',
+    ])
+  })
+
+  it('aponta nome que é cor e tamanho de texto no @theme (text-X vira a cor)', () => {
+    const sources = {
+      'app/assets/css/theme.css': '@theme static {\n  --text-page: 2rem;\n  --text-page--line-height: 2.5rem;\n  --text-body: 1rem;\n}\n@theme inline {\n  --color-page: var(--surface-page);\n}',
+    }
+    const found = tokenNameFindings(sources, noAllowlist).map(f => `${f.match} ${f.file}:${f.line}`)
+    expect(found).toEqual(['--text-page app/assets/css/theme.css:2'])
+  })
+
+  it('ignora o que está dentro do @theme e nomes sem namespace', () => {
+    expect(namespacedRawTokens('@theme { --color-a: red; --text-b: 1rem; }\n:root { --fg: #000; --line-input: #888; --z-toast: 70; }')).toEqual([])
+  })
+})
+
 function fixture(files: Record<string, string>, baseline: object) {
   const root = mkdtempSync(join(tmpdir(), 'ds-'))
   dirs.push(root)
@@ -131,6 +166,6 @@ describe('check-ds: CLI', () => {
     expect(fail.stderr).toContain('ghost-class app/a.vue: 0 → 1')
     const ok = fixture(files, { 'ghost-class': { 'app/a.vue': 1 } })
     expect(ok.status, ok.stderr).toBe(0)
-    expect(ok.stdout).toContain('check-ds: ok (ghost-var 0 · ghost-class 1')
+    expect(ok.stdout).toContain('check-ds: ok (ghost-var 0 · ghost-class 1 · token-name 0')
   })
 })

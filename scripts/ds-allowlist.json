@@ -1,12 +1,18 @@
 {
-  "$comment": "Exceções explícitas das guardas do design system (ADR-027 §8): check-tokens (hex, color-fn, palette) e check-ds (ghost-var, ghost-class). Cada entrada: path (glob a partir da raiz do repo), rules, motivo, prazo (\"permanente\", uma fase ou YYYY-MM-DD; data vencida reprova) e match opcional (RegExp testada na linha). O resto do código fora do sistema fica na catraca (ds-baseline.json), não aqui.",
+  "$comment": "Exceções explícitas das guardas do design system (ADR-027 §8): check-tokens (hex, color-fn, palette) e check-ds (ghost-var, ghost-class, token-name). Cada entrada: path (glob a partir da raiz do repo), rules, motivo, prazo (\"permanente\", uma fase ou YYYY-MM-DD; data vencida reprova) e match opcional (RegExp testada na linha). O resto do código fora do sistema fica na catraca (ds-baseline.json), não aqui.",
   "entries": [
     {
-      "path": "app/assets/css/main.css",
+      "path": "app/assets/css/tokens.css",
       "rules": ["hex", "color-fn"],
-      "match": "^\\s*--[\\w-]+\\s*:",
-      "motivo": "Declaração de token (é a fonte dos valores). Só a linha `--nome: valor`; o resto do main.css conta na catraca.",
-      "prazo": "Fase 1 (a exceção passa a ser só tokens.css)"
+      "motivo": "Fonte dos valores do design system v3 (ADR-027 §1): o único arquivo com cor literal (primitivos --palette-* e as misturas das sombras/scrim).",
+      "prazo": "permanente"
+    },
+    {
+      "path": "app/assets/css/legacy-v2.css",
+      "rules": ["token-name"],
+      "match": "^\\s*--text-(heading|primary|muted|disabled)\\s*:",
+      "motivo": "Ponteiros v2 de cor de texto com prefixo --text- (raio-X §C): continuam como variável crua até as telas migrarem. Não colidem com a escala v3 (page-title, section, body, meta, label, stat).",
+      "prazo": "Fase 5"
     },
     {
       "path": "app/components/ui/BaigiMascot.vue",

@@ -1,144 +1,137 @@
 <template>
-  <div class="p-4 sm:p-6 pb-20 lg:pb-6 max-w-3xl mx-auto">
-    <div class="flex items-center justify-between mb-6">
-      <div>
-        <h1 class="font-heading font-bold text-3xl text-base-primary">Simulados</h1>
-        <p class="text-sm text-base-muted mt-1">Teste seu conhecimento com provas geradas por IA</p>
-      </div>
-      <button class="btn-primary" @click="showConfig = true">
-        <Plus :size="18" class="mr-1.5" />
-        Novo simulado
-      </button>
+  <div class="mx-auto flex max-w-3xl flex-col gap-6 p-4 pb-20 sm:p-6 lg:pb-6">
+    <UiPageHeader title="Simulados" meta="Teste seu conhecimento com provas geradas por IA" :back="back">
+      <template #actions>
+        <UiButton variant="primary" :icon-left="Plus" @click="showConfig = true">Novo simulado</UiButton>
+      </template>
+    </UiPageHeader>
+
+    <div v-if="loading" class="flex flex-col gap-3" aria-busy="true">
+      <span class="sr-only">Carregando simulados...</span>
+      <UiSkeleton v-for="i in 3" :key="i" variant="row" />
     </div>
 
-    <!-- Evolution chart -->
-    <div v-if="stats && stats.evolution.length >= 3" class="rounded-2xl bg-[var(--bg-card)] border border-base p-5 mb-6 shadow-sm">
-      <div class="flex items-center justify-between mb-3">
-        <p class="text-small font-medium text-base-secondary">Evolução</p>
-        <span class="text-xs text-base-muted">Média: {{ Math.round(stats.average_score ?? 0) }}%</span>
-      </div>
-      <div class="flex items-end gap-1.5 h-20">
-        <div
-          v-for="(point, i) in stats.evolution"
-          :key="i"
-          class="flex-1 rounded-t-md transition-all"
-          :class="getScoreBarColor(point.score_percent)"
-          :style="{ height: `${Math.max(point.score_percent, 8)}%` }"
-          :title="`${Math.round(point.score_percent)}%`"
-        />
-      </div>
-    </div>
+    <!-- An error is never an empty state (RN-UX-03) -->
+    <UiErrorState v-else-if="loadError" title="Não foi possível carregar seus simulados" @retry="load" />
 
-    <!-- In progress -->
-    <div v-if="inProgress.length" class="mb-6">
-      <p class="text-small font-medium text-base-secondary mb-3">Em andamento</p>
-      <div class="space-y-3">
-        <div
-          v-for="quiz in inProgress"
-          :key="quiz.id"
-          class="rounded-2xl bg-[var(--bg-card)] border border-base p-5 flex items-center gap-4 shadow-sm hover:shadow-md transition-shadow"
-        >
-          <div class="w-12 h-12 rounded-xl bg-warning/10 flex items-center justify-center shrink-0">
-            <Clock :size="22" class="text-[var(--badge-warning-text)]" />
-          </div>
-          <div class="flex-1 min-w-0">
-            <p class="font-medium text-base-primary text-sm truncate">{{ quiz.title }}</p>
-            <p class="text-xs text-base-muted mt-0.5">{{ quiz.topic?.name }} · {{ quiz.total_questions }} questões</p>
-          </div>
-          <NuxtLink :to="`/simulados/${quiz.id}`" class="btn-primary !py-2 !px-4 !text-sm">Retomar</NuxtLink>
-        </div>
-      </div>
-    </div>
+    <UiSection v-else-if="!completed.length && !inProgress.length">
+      <UiEmptyState
+        mascot="thinking"
+        title="Nenhum simulado ainda"
+        description="Gere simulados a partir dos seus cadernos e descubra seus pontos fracos."
+      >
+        <template #action>
+          <UiButton @click="showConfig = true">Criar primeiro simulado</UiButton>
+        </template>
+      </UiEmptyState>
+    </UiSection>
 
-    <!-- Loading -->
-    <div v-if="loading" class="space-y-3">
-      <div v-for="i in 3" :key="i" class="rounded-2xl bg-[var(--bg-card)] border border-base p-5 animate-pulse h-20" />
-    </div>
-
-    <!-- Empty state -->
-    <div v-else-if="completed.length === 0 && inProgress.length === 0" class="text-center py-16">
-      <picture class="contents"><source srcset="~/assets/mascots/mascot-baigi-thinking.avif" type="image/avif"><img src="~/assets/mascots/mascot-baigi-thinking.webp" alt="Baigi pensando" class="w-24 h-24 object-contain mx-auto mb-4" width="96" height="96" loading="lazy" decoding="async" /></picture>
-      <p class="text-title text-base-secondary">Nenhum simulado ainda</p>
-      <p class="text-small text-base-muted mt-1 max-w-xs mx-auto">Gere simulados a partir dos seus cadernos e descubra seus pontos fracos.</p>
-      <button class="btn-primary mt-5" @click="showConfig = true">Criar primeiro simulado</button>
-    </div>
-
-    <!-- Completed list -->
     <template v-else>
-      <p v-if="inProgress.length" class="text-small font-medium text-base-secondary mb-3">Concluídos</p>
-      <div class="space-y-3">
-        <NuxtLink
-          v-for="quiz in completed"
-          :key="quiz.id"
-          :to="`/simulados/${quiz.id}/resultado`"
-          class="rounded-2xl bg-[var(--bg-card)] border border-base p-5 flex items-center gap-4 shadow-sm hover:shadow-md hover:border-[var(--border-hover)] transition-all block"
-        >
+      <UiSection v-if="stats && stats.evolution.length >= 3" title="Evolução" :level="2">
+        <p class="-mt-2 mb-3 text-meta text-fg-muted">Média: {{ Math.round(stats.average_score ?? 0) }}%</p>
+        <div class="flex h-20 items-end gap-1.5" role="img" :aria-label="`Notas dos últimos ${stats.evolution.length} simulados`">
           <div
-            class="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-sm shrink-0"
-            :class="getScoreBadgeClass(quiz.score_percent)"
+            v-for="(point, i) in stats.evolution"
+            :key="i"
+            class="flex-1 rounded-t-md bg-progress-neutral"
+            :style="{ height: `${Math.max(point.score_percent, 8)}%` }"
+            :title="`${Math.round(point.score_percent)}%`"
+          />
+        </div>
+      </UiSection>
+
+      <UiSection v-if="inProgress.length" title="Em andamento">
+        <ul class="-mx-3 -mb-2 divide-y divide-line">
+          <UiListRow
+            v-for="quiz in inProgress"
+            :key="quiz.id"
+            as="li"
+            :title="quiz.title"
+            :meta="`${quiz.topic?.name ?? 'Sem caderno'} · ${quiz.total_questions} questões`"
           >
-            {{ Math.round(quiz.score_percent ?? 0) }}%
-          </div>
-          <div class="flex-1 min-w-0">
-            <p class="font-medium text-base-primary text-sm truncate">{{ quiz.title }}</p>
-            <div class="flex items-center gap-2 text-xs text-base-muted mt-0.5">
-              <span>{{ quiz.topic?.name }}</span>
-              <span>·</span>
-              <span>{{ quiz.correct_count }}/{{ quiz.total_questions }}</span>
-              <span v-if="quiz.time_spent_seconds">· {{ formatTime(quiz.time_spent_seconds) }}</span>
-            </div>
-          </div>
-          <ChevronRight :size="16" class="text-base-muted shrink-0" />
-        </NuxtLink>
-      </div>
+            <template #trailing>
+              <UiButton size="sm" :to="`/simulados/${quiz.id}`">Retomar</UiButton>
+            </template>
+          </UiListRow>
+        </ul>
+      </UiSection>
+
+      <UiSection v-if="completed.length" :title="inProgress.length ? 'Concluídos' : undefined">
+        <ul class="-mx-3 -my-2 divide-y divide-line">
+          <li v-for="quiz in completed" :key="quiz.id">
+            <UiListRow :to="`/simulados/${quiz.id}/resultado`" :title="quiz.title" :meta="completedMeta(quiz)">
+              <template #trailing>
+                <UiTag :tone="scoreTone(quiz.score_percent)">{{ Math.round(quiz.score_percent ?? 0) }}%</UiTag>
+                <ChevronRight class="size-4" aria-hidden="true" />
+              </template>
+            </UiListRow>
+          </li>
+        </ul>
+      </UiSection>
     </template>
 
-    <!-- Config Sheet -->
-    <QuizConfigSheet v-model="showConfig" @created="onQuizCreated" />
+    <QuizConfigSheet v-model="showConfig" :topic-id="scopeTopicId" @created="onQuizCreated" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { Plus, ClipboardCheck, ChevronRight, Clock } from 'lucide-vue-next'
+import { Plus, ChevronRight } from 'lucide-vue-next'
+import type { Quiz } from '~/types'
+import { cadernoPath } from '~/utils/scope'
 
 definePageMeta({ layout: 'default' })
 
+const route = useRoute()
 const quizStore = useQuizStore()
-const showConfig = ref(false)
+const topicStore = useTopicStore()
 
-const loading = computed(() => quizStore.loading)
+// /simulados?topic_id= (from the caderno): the sheet opens already with that scope (RF-F1)
+const scopeTopicId = computed(() => (typeof route.query.topic_id === 'string' && route.query.topic_id) || null)
+const showConfig = ref(!!scopeTopicId.value)
+watch(scopeTopicId, (id) => { if (id) showConfig.value = true })
+
+const scopeName = computed(() => (scopeTopicId.value ? topicStore.findById(scopeTopicId.value)?.name : null) ?? null)
+const back = computed(() => (scopeTopicId.value ? { to: cadernoPath(scopeTopicId.value), label: scopeName.value ?? 'Caderno' } : undefined))
+
+const loading = ref(true)
+const loadError = ref(false)
 const stats = computed(() => quizStore.stats)
+const inProgress = computed(() => quizStore.quizzes.filter(q => q.status === 'in_progress'))
+const completed = computed(() => quizStore.quizzes.filter(q => q.status === 'completed'))
 
-const inProgress = computed(() =>
-  quizStore.quizzes.filter((q) => q.status === 'in_progress')
-)
-const completed = computed(() =>
-  quizStore.quizzes.filter((q) => q.status === 'completed')
-)
+async function load() {
+  loading.value = true
+  loadError.value = false
+  const [list, statsRes] = await Promise.allSettled([quizStore.fetchQuizzes(), quizStore.fetchStats()])
+  if (list.status === 'rejected') {
+    loadError.value = true
+    reportApiError(list.reason, { silent: true })
+  }
+  // The chart is decorative: without stats the list still shows
+  if (statsRes.status === 'rejected') reportApiError(statsRes.reason, { silent: true })
+  loading.value = false
+}
 
-onMounted(async () => {
-  await Promise.all([
-    quizStore.fetchQuizzes(),
-    quizStore.fetchStats(),
-  ])
+onMounted(() => {
+  void load()
+  if (!topicStore.tree.length) void topicStore.fetchTree()
 })
 
-function onQuizCreated(quiz: any) {
+function onQuizCreated(quiz: Quiz) {
   showConfig.value = false
   navigateTo(`/simulados/${quiz.id}`)
 }
 
-function getScoreBarColor(score: number) {
-  if (score >= 70) return 'bg-success'
-  if (score >= 50) return 'bg-warning'
-  return 'bg-danger'
+function completedMeta(quiz: Quiz) {
+  const parts = [quiz.topic?.name, `${quiz.correct_count}/${quiz.total_questions} certas`]
+  if (quiz.time_spent_seconds) parts.push(formatTime(quiz.time_spent_seconds))
+  return parts.filter(Boolean).join(' · ')
 }
 
-function getScoreBadgeClass(score: number | null) {
+function scoreTone(score: number | null) {
   const s = score ?? 0
-  if (s >= 70) return 'bg-success/10 text-[var(--badge-success-text)] border border-success/20'
-  if (s >= 50) return 'bg-warning/10 text-[var(--badge-warning-text)] border border-warning/20'
-  return 'bg-danger/10 text-[var(--badge-danger-text)] border border-danger/20'
+  if (s >= 70) return 'success'
+  if (s >= 50) return 'warning'
+  return 'danger'
 }
-
 </script>

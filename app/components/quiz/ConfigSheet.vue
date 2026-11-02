@@ -1,125 +1,63 @@
 <template>
-  <UiModal :model-value="modelValue" @update:model-value="emit('update:modelValue', $event)" size="md">
-    <h2 class="font-heading font-semibold text-xl text-base-primary mb-5">Novo simulado</h2>
-      <div class="space-y-5">
-        <!-- Caderno -->
-        <div>
-          <label>Caderno</label>
-          <select v-model="form.topic_id" class="input-base w-full">
-            <option value="" disabled>Selecione um caderno</option>
-            <option v-for="t in topics" :key="t.id" :value="t.id">{{ t.name }}</option>
-          </select>
-        </div>
-
-        <!-- Quantidade -->
-        <div>
-          <label>Questões</label>
-          <div class="flex gap-2 flex-wrap">
-            <button
-              v-for="qty in quantityOptions"
-              :key="qty"
-              class="px-3 py-1.5 rounded-lg text-sm border transition-colors"
-              :class="form.quantity === qty ? 'border-[var(--color-primary-500)] bg-[var(--color-primary-50)] text-[var(--color-primary-700)]' : 'border-[var(--border-base)] text-base-secondary hover:border-[var(--color-primary-300)]'"
-              :disabled="qty > maxQuestions"
-              @click="form.quantity = qty"
-            >
-              {{ qty }}
-              <span v-if="qty > maxQuestions" class="ml-1 text-[10px] opacity-60">Pro</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Tipos -->
-        <div>
-          <label>Tipos de questão</label>
-          <div class="space-y-2">
-            <label class="flex items-center gap-2 text-sm text-base-primary cursor-pointer">
-              <input type="checkbox" value="multiple_choice" v-model="form.types" class="accent-[var(--color-primary-500)]" />
-              Múltipla escolha
-            </label>
-            <label class="flex items-center gap-2 text-sm text-base-primary cursor-pointer">
-              <input type="checkbox" value="true_false" v-model="form.types" class="accent-[var(--color-primary-500)]" />
-              Verdadeiro / Falso
-            </label>
-            <label class="flex items-center gap-2 text-sm cursor-pointer" :class="!allowShortAnswer ? 'text-base-muted' : 'text-base-primary'">
-              <input type="checkbox" value="short_answer" v-model="form.types" class="accent-[var(--color-primary-500)]" :disabled="!allowShortAnswer" />
-              Dissertativa curta
-              <span v-if="!allowShortAnswer" class="text-[10px] bg-[var(--color-primary-50)] text-[var(--color-primary-500)] px-1.5 py-0.5 rounded-full font-medium">Pro</span>
-            </label>
-          </div>
-        </div>
-
-        <!-- Timer -->
-        <div>
-          <label>Timer</label>
-          <select v-model="form.time_limit" class="input-base w-full">
-            <option :value="null">Sem limite</option>
-            <option :value="900">15 minutos</option>
-            <option :value="1800">30 minutos</option>
-            <option :value="3600">60 minutos</option>
-            <option :value="5400">90 minutos</option>
-          </select>
-        </div>
-
-        <!-- Modo -->
-        <div>
-          <label>Modo</label>
-          <div class="grid grid-cols-2 gap-3">
-            <button
-              class="p-3 rounded-xl border text-left transition-colors"
-              :class="form.mode === 'learning' ? 'border-[var(--color-primary-500)] bg-[var(--color-primary-50)]' : 'border-[var(--border-base)] hover:border-[var(--color-primary-300)]'"
-              @click="form.mode = 'learning'"
-            >
-              <p class="font-medium text-sm text-base-primary">Aprendizado</p>
-              <p class="text-xs text-base-muted mt-0.5">Feedback imediato após cada questão</p>
-            </button>
-            <button
-              class="p-3 rounded-xl border text-left transition-colors"
-              :class="form.mode === 'exam' ? 'border-[var(--color-primary-500)] bg-[var(--color-primary-50)]' : 'border-[var(--border-base)] hover:border-[var(--color-primary-300)]'"
-              @click="form.mode = 'exam'"
-            >
-              <p class="font-medium text-sm text-base-primary">Prova</p>
-              <p class="text-xs text-base-muted mt-0.5">Gabarito só no final</p>
-            </button>
-          </div>
-        </div>
-
-        <!-- Dificuldade -->
-        <div>
-          <label>Dificuldade</label>
-          <select v-model="form.difficulty" class="input-base w-full">
-            <option value="easy">Fácil</option>
-            <option value="mixed">Mista</option>
-            <option value="hard">Difícil</option>
-          </select>
-        </div>
-
-        <!-- Preview -->
-        <div class="p-3 rounded-xl bg-[var(--bg-soft)] text-sm text-base-secondary">
-          {{ form.quantity }} questões · {{ typesLabel }} · {{ timerLabel }} · Modo {{ form.mode === 'learning' ? 'aprendizado' : 'prova' }}
-        </div>
+  <UiSheet
+    :model-value="modelValue"
+    title="Novo simulado"
+    description="Questões geradas do material do caderno e dos seus assuntos."
+    @update:model-value="emit('update:modelValue', $event)"
+  >
+    <form id="quiz-config" class="flex flex-col gap-5" @submit.prevent="submit">
+      <div class="flex flex-col gap-2">
+        <UiSelect v-model="form.topic_id" label="Caderno" :options="topicOptions" placeholder="Selecione um caderno" />
+        <!-- The requirement before the action, and the 422 of POST /quizzes as the same text (RF-F5) -->
+        <TopicRequirementNotice :gate="gate" />
       </div>
 
-      <div class="flex justify-end gap-3 mt-6">
-        <button class="btn-secondary" @click="emit('update:modelValue', false)">Cancelar</button>
-        <button class="btn-primary" :disabled="!canSubmit || generating" @click="submit">
-          <span v-if="generating">Gerando...</span>
-          <span v-else>Gerar simulado</span>
-        </button>
+      <UiSelect v-model="quantity" label="Questões" :options="quantityOptions" />
+
+      <fieldset class="min-w-0">
+        <legend class="mb-1 text-meta font-semibold text-fg-strong">Tipos de questão</legend>
+        <UiCheckbox v-model="types.multiple_choice" label="Múltipla escolha" />
+        <UiCheckbox v-model="types.true_false" label="Verdadeiro / Falso" />
+        <UiCheckbox
+          v-model="types.short_answer"
+          label="Dissertativa curta"
+          :description="allowShortAnswer ? undefined : 'No plano Pro'"
+          :disabled="!allowShortAnswer"
+        />
+      </fieldset>
+
+      <UiRadioGroup v-model="form.mode" label="Modo" :options="MODES" variant="cards" :columns="2" />
+
+      <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+        <UiSelect v-model="timeLimit" label="Timer" :options="TIMERS" />
+        <UiSelect v-model="form.difficulty" label="Dificuldade" :options="DIFFICULTIES" />
       </div>
-  </UiModal>
+
+      <p class="text-meta text-fg-muted">{{ summary }}</p>
+    </form>
+
+    <template #footer="{ close }">
+      <UiButton variant="ghost" @click="close">Cancelar</UiButton>
+      <UiButton variant="primary" type="submit" form="quiz-config" :loading="generating" :disabled="!canSubmit">
+        {{ generating ? 'Gerando...' : 'Gerar simulado' }}
+      </UiButton>
+    </template>
+  </UiSheet>
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{ modelValue: boolean }>()
+import { flattenTopics } from '~/utils/topics'
+
+const props = defineProps<{
+  modelValue: boolean
+  /** Scope it opens with: the caderno the person came from (/simulados?topic_id=, RF-F1) */
+  topicId?: string | null
+}>()
 const emit = defineEmits<{ 'update:modelValue': [v: boolean]; created: [quiz: any] }>()
 
 const quizStore = useQuizStore()
 const topicStore = useTopicStore()
 const auth = useAuthStore()
-const toast = useToast()
-
-const generating = ref(false)
 
 const isFree = computed(() => auth.user?.plan === 'free')
 
@@ -128,52 +66,81 @@ const plans = usePlans()
 const planExtras = computed(() => plans.limitOf(isFree.value ? 'free' : 'pro')?.extras ?? null)
 const maxQuestions = computed(() => planExtras.value?.quiz_max_questions ?? Infinity)
 const allowShortAnswer = computed(() => planExtras.value?.quiz_short_answer ?? !isFree.value)
-onMounted(() => { plans.fetchPlans() })
-const topics = computed(() => flattenTopics(topicStore.tree))
 
-const quantityOptions = [5, 10, 20, 30, 50]
+const topicOptions = computed(() => flattenTopics(topicStore.tree).map(t => ({ value: t.id, label: t.name })))
+
+const QUANTITIES = [5, 10, 20, 30, 50]
+const quantityOptions = computed(() => QUANTITIES.map(q => ({
+  value: String(q),
+  label: q > maxQuestions.value ? `${q} questões · Pro` : `${q} questões`,
+  disabled: q > maxQuestions.value,
+})))
+const MODES = [
+  { value: 'learning', label: 'Aprendizado', description: 'Feedback depois de cada questão' },
+  { value: 'exam', label: 'Prova', description: 'Gabarito só no final' },
+]
+const TIMERS = [
+  { value: '', label: 'Sem limite' },
+  { value: '900', label: '15 minutos' },
+  { value: '1800', label: '30 minutos' },
+  { value: '3600', label: '60 minutos' },
+  { value: '5400', label: '90 minutos' },
+]
+const DIFFICULTIES = [
+  { value: 'easy', label: 'Fácil' },
+  { value: 'mixed', label: 'Mista' },
+  { value: 'hard', label: 'Difícil' },
+]
+const TYPE_LABELS: Record<string, string> = { multiple_choice: 'Múltipla escolha', true_false: 'V/F', short_answer: 'Dissertativa' }
 
 const form = reactive({
-  topic_id: '' as string,
-  quantity: 10,
-  types: ['multiple_choice', 'true_false'] as string[],
-  time_limit: null as number | null,
-  mode: 'learning' as 'learning' | 'exam',
-  difficulty: 'mixed' as string,
+  topic_id: props.topicId ?? '',
+  mode: 'learning',
+  difficulty: 'mixed',
+})
+const quantity = ref('10')
+const timeLimit = ref('')
+const types = reactive({ multiple_choice: true, true_false: true, short_answer: false })
+
+// Opening again from another caderno takes its scope
+watch(() => props.topicId, (id) => { if (id) form.topic_id = id })
+watch(allowShortAnswer, (ok) => { if (!ok) types.short_answer = false })
+
+const { gate, blocked, fromError } = useTopicGate(() => form.topic_id || null, 'can_quiz')
+
+const selectedTypes = computed(() => (Object.keys(types) as (keyof typeof types)[]).filter(t => types[t]))
+const canSubmit = computed(() => !!form.topic_id && selectedTypes.value.length > 0 && !blocked.value)
+
+const summary = computed(() => {
+  const timer = timeLimit.value ? `${Number(timeLimit.value) / 60} min` : 'sem timer'
+  const kinds = selectedTypes.value.map(t => TYPE_LABELS[t]).join(' + ') || 'escolha um tipo'
+  return `${quantity.value} questões · ${kinds} · ${timer} · modo ${form.mode === 'learning' ? 'aprendizado' : 'prova'}`
 })
 
-const canSubmit = computed(() => form.topic_id && form.types.length > 0)
-
-const typesLabel = computed(() => {
-  const labels: Record<string, string> = { multiple_choice: 'Múltipla escolha', true_false: 'V/F', short_answer: 'Dissertativa' }
-  return form.types.map((t) => labels[t]).join(' + ')
-})
-
-const timerLabel = computed(() => {
-  if (!form.time_limit) return 'Sem timer'
-  return `${form.time_limit / 60} min`
-})
-
+const generating = ref(false)
 async function submit() {
+  if (!canSubmit.value) return
   generating.value = true
   try {
     const quiz = await quizStore.createQuiz({
       topic_id: form.topic_id,
-      quantity: form.quantity,
-      types: form.types,
-      time_limit: form.time_limit,
+      quantity: Number(quantity.value),
+      types: selectedTypes.value,
+      time_limit: timeLimit.value ? Number(timeLimit.value) : null,
       mode: form.mode,
       difficulty: form.difficulty,
     })
     emit('created', quiz)
-  } catch (e: any) {
-    toast.show(e?.data?.message || 'Erro ao criar simulado', 'error')
+  } catch (e) {
+    // A requirement (422 with code) becomes the notice under the caderno; anything else, a toast
+    if (!fromError(e)) reportApiError(e)
   } finally {
     generating.value = false
   }
 }
 
 onMounted(() => {
+  plans.fetchPlans()
   if (!topicStore.tree.length) topicStore.fetchTree()
 })
 </script>

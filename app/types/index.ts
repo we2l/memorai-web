@@ -745,3 +745,48 @@ export interface TopicPerformance {
   questions: ScopeQuestions
   session_count: number
 }
+
+/**
+ * Where a card came from (prd-4c-material-v3 RF-B2, prd-4d-revisao-v3 RF-B1), the same object in the
+ * library and in the review session. Precedence on the API: quiz question → part of a PDF → note.
+ */
+export type CardOrigin =
+  | { kind: 'quiz'; quiz_id: string; title: string; question_number: number | null }
+  | { kind: 'document'; note_id: string; title: string; document_id: string; document_name: string; part: { index: number; total: number } | null; page: number | null }
+  | { kind: 'note'; note_id: string; title: string; topic_id: string | null }
+
+/** A card of the library (GET /topics/{id}/flashcards, cursor mode). */
+export interface LibraryCard extends Flashcard {
+  topic_name?: string | null
+  origin?: CardOrigin | null
+}
+
+export interface LibraryPage {
+  data: LibraryCard[]
+  /** `total` only on the 1st page (no cursor); null on the next ones */
+  meta: { next_cursor: string | null; total: number | null }
+}
+
+/** A part of a PDF material (4c-1: a PDF is one part; 4c-2 brings pages). */
+export interface MaterialPart {
+  note_id: string
+  index: number
+  title: string
+  page_start: number | null
+  page_end: number | null
+  cards: number
+  mastery: number | null
+  session_count: number
+  status: MaterialStatus
+}
+
+/** GET /notes/{id}/material (prd-4c-material-v3 RF-B1): everything the material route shows but the content. */
+export interface NoteMaterial {
+  note: { id: string; title: string; topic_id: string; word_count: number; kind: 'note' | 'part'; updated_at: string }
+  path: { id: string; name: string }[]
+  document: { id: string; name: string; pages: number | null; status: MaterialStatus } | null
+  parts: MaterialPart[]
+  cards: { total: number; session_count: number; ahead_count: number; errors_count: number }
+  /** cards_ai left this month (null remaining: Pro, no limit); not reserved */
+  can_generate: { ok: boolean; code?: string; remaining: number | null }
+}

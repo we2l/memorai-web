@@ -59,6 +59,7 @@ const MAX_PER_CATEGORY = 4
 /** Notes are fetched per topic (GET /topics/{id}/notes has no subtree): at most this many topics */
 const MAX_NOTE_TOPICS = 24
 /** Cards are searched per caderno (subtree on the API side): at most this many cadernos */
+const CARD_LIMIT = 5
 const MAX_CARD_ROOTS = 5
 const CARD_DEBOUNCE_MS = 250
 
@@ -194,7 +195,8 @@ export function useCommandPalette() {
     noteItems.value = out
   }
 
-  // Cards: the search of the Cards tab, per caderno (scope first), debounced
+  // Cards: the search of the library (cursor mode, the indexed search of prd-4c-material-v3 RF-B3), per
+  // caderno (scope first), debounced
   const cardItems = ref<CommandItem[]>([])
   let cardTimer: ReturnType<typeof setTimeout> | null = null
   let cardRequest = 0
@@ -211,7 +213,7 @@ export function useCommandPalette() {
         return t?.id ?? topicId
       }
       const roots = [...new Set([...(scope ? [rootOf(scope)] : []), ...topicStore.tree.map(t => t.id)])].slice(0, MAX_CARD_ROOTS)
-      const lists = await Promise.allSettled(roots.map(r => $api<{ data: Flashcard[] }>(`/topics/${r}/flashcards`, { params: { q: q.trim(), per_page: 3 } })))
+      const lists = await Promise.allSettled(roots.map(r => $api<{ data: Flashcard[] }>(`/topics/${r}/flashcards`, { params: { q: q.trim(), limit: CARD_LIMIT } })))
       if (id !== cardRequest) return
       const out: CommandItem[] = []
       lists.forEach((res, i) => {

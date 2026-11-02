@@ -1,19 +1,8 @@
 <template>
-  <div class="border-b border-line bg-subtle px-4 py-3 sm:px-6" data-testid="material-pdf-panel">
-    <div class="mx-auto flex max-w-prose flex-col gap-2">
-      <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
-        <FileText class="size-4 shrink-0 text-fg-muted" aria-hidden="true" />
-        <p class="min-w-0 flex-1 text-meta text-fg">
-          <span class="font-medium text-fg-strong">{{ doc.original_name }}</span>
-          <template v-if="doc.pages_count"> · {{ doc.pages_count }} páginas</template>
-          <template v-if="partial"> · lidas {{ doc.processed_pages }} de {{ doc.pages_count }}</template>
-        </p>
-        <UiButton size="sm" variant="ghost" :loading="opening" @click="openViewer">Ver o PDF</UiButton>
-      </div>
-
+  <div v-if="hasNotice" class="mt-4 flex flex-col gap-2" data-testid="material-pdf-panel">
       <!-- Partial: the plan read only part of the PDF -->
       <p v-if="partial" class="text-meta text-fg-muted">
-        Parcial: o plano grátis lê parte do PDF. <UiLink to="/planos">Desbloquear o resto</UiLink>
+        Parcial: o plano grátis leu {{ doc.processed_pages }} de {{ doc.pages_count }} páginas. <UiLink to="/planos">Desbloquear o resto</UiLink>
       </p>
 
       <!-- PDF → cards (RF-F5.2), now by the note it opened -->
@@ -37,22 +26,18 @@
       </div>
 
       <!-- Material in another language: study the language or only the concepts -->
-      <div v-if="doc.language_detected && !languageDismissed" class="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-row bg-raised px-3 py-2">
+      <div v-if="doc.language_detected && !languageDismissed" class="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-row bg-subtle px-3 py-2">
         <p class="min-w-0 flex-1 text-meta text-fg-strong">Este material está em {{ languageName }}. Como você quer estudá-lo?</p>
         <UiButton size="sm" @click="setLanguageMode">Aprender {{ languageName }}</UiButton>
         <UiButton size="sm" variant="ghost" @click="languageDismissed = true">Só os conceitos</UiButton>
       </div>
-    </div>
-
-    <LazyTopicPdfViewer v-if="viewerLoaded" v-model="viewerOpen" :url="viewerUrl" :filename="doc.original_name" :topic-id="topicId" />
   </div>
 </template>
 
 <script setup lang="ts">
-// The PDF a note came from, on the material route (prd-4b-caderno-v3 §3.3: what DocumentsInline did for one
-// document, moved): the viewer, the partial read, the automatic cards (and their retry), the "other mode"
-// regeneration and the language offer. Generating, failed and blocked live on the material line of the hub.
-import { FileText } from 'lucide-vue-next'
+// Notices of the PDF a note came from, under the source line of the material (prd-4c-material-v3: the
+// viewer moved to "Ver no PDF"): the partial read, the automatic cards (and their retry), the "other mode"
+// regeneration and the language offer. Nothing to say: nothing rendered.
 import type { Document } from '~/types'
 import { TARGET_LANGUAGES } from '~/utils/learningModes'
 
@@ -60,7 +45,6 @@ const props = defineProps<{ doc: Document; topicId: string; topicLearningMode?: 
 const emit = defineEmits<{ (e: 'changed'): void }>()
 
 const { $api } = useNuxtApp()
-const toast = useToast()
 const { run } = useApiAction()
 
 const partial = computed(() => !!props.doc.processed_pages && !!props.doc.pages_count && props.doc.processed_pages < props.doc.pages_count)
@@ -68,24 +52,9 @@ const modeChanged = computed(() => !!props.doc.learning_mode_used && !!props.top
 const languageName = computed(() => TARGET_LANGUAGES.find(l => l.value === props.doc.source_language)?.label ?? 'outro idioma')
 const languageDismissed = ref(false)
 
-const viewerOpen = ref(false)
-const viewerLoaded = useLoadedOnce(() => viewerOpen.value)
-const viewerUrl = ref('')
-const opening = ref(false)
-
-async function openViewer() {
-  opening.value = true
-  try {
-    // Short-lived signed URL (15 min, RN-05): asked on every open
-    const res = await $api<{ data: { url: string } }>(`/documents/${props.doc.id}/file-url`)
-    viewerUrl.value = res.data.url
-    viewerOpen.value = true
-  } catch {
-    toast.show('Não foi possível abrir o PDF.', 'error')
-  } finally {
-    opening.value = false
-  }
-}
+const cardsBusy = computed(() => props.doc.auto_cards_status === 'pending' || props.doc.auto_cards_status === 'generating')
+const cardsProblem = computed(() => ['skipped_quota', 'skipped_empty', 'failed'].includes(props.doc.auto_cards_status ?? ''))
+const hasNotice = computed(() => partial.value || cardsBusy.value || cardsProblem.value || modeChanged.value || (!!props.doc.language_detected && !languageDismissed.value))
 
 const retrying = ref(false)
 async function retryCards() {

@@ -49,6 +49,15 @@ export interface FrontEventProps {
   subject_open: { depth: number }
   material_search: Record<string, never>
   material_load_more: { rows: number }
+  /** Material e biblioteca v3 (prd-4c-material-v3 RF-F13) */
+  material_open: { kind: 'note' | 'part', parts: number }
+  material_mode: { mode: 'read' | 'edit' }
+  outline_click: { level: number }
+  selection_action: { action: 'card' | 'ai3' | 'ask' }
+  pdf_page_open: { page: number | null }
+  panel_review: { count: number }
+  library_filter: { filter: 'q' | 'state' | 'origin' | 'errors' | 'tag' | 'sort' | 'clear' }
+  library_bulk: { action: 'review' | 'delete', count: number }
 }
 
 export type FrontEvent = keyof FrontEventProps

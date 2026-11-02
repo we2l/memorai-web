@@ -1,121 +1,92 @@
 <template>
-  <UiModal v-model="open" size="xl" :aria-label="isEdit ? 'Editar flashcard' : 'Adicionar flashcard'">
-    <div class="flex gap-6 min-h-[480px]">
+  <UiDialog v-model="open" :title="isEdit ? 'Editar card' : 'Novo card'" size="xl">
+    <div class="flex gap-6 pb-1">
       <!-- Form -->
-      <div class="flex-1 flex flex-col min-w-0">
-        <h2 class="text-headline mb-5">{{ isEdit ? 'Editar card' : 'Novo card' }}</h2>
-
+      <form :id="formId" class="flex min-w-0 flex-1 flex-col gap-4" @submit.prevent="submit">
         <!-- Paywall hint -->
         <button
           v-if="showAiHint"
-          class="w-full mb-4 px-3 py-2.5 rounded-lg bg-accent-primary-subtle/50 flex items-center gap-2 text-left hover:bg-accent-primary-subtle transition-colors"
+          type="button"
+          class="flex w-full items-center gap-2 rounded-row bg-action-subtle px-3 py-2.5 text-left transition-colors duration-nav hover:bg-subtle"
           @click="openUpgrade"
         >
-          <Lightbulb :size="14" class="text-[var(--badge-primary-text)]" />
-          <p class="text-small text-accent-primary flex-1">A IA pode criar cards automaticamente</p>
-          <span class="text-micro text-accent-primary font-medium">Pro →</span>
+          <Lightbulb class="size-4 text-action-fg" aria-hidden="true" />
+          <span class="flex-1 text-meta text-action-fg">A IA pode criar cards automaticamente</span>
+          <span class="text-label font-medium text-action-fg">Pro →</span>
         </button>
-        <form @submit.prevent="submit" class="flex flex-col gap-4 flex-1">
-          <div v-if="!props.topicId">
-            <label class="text-label mb-1 block">Caderno</label>
-            <UiSelect
-              v-model="form.topic_id"
-              :options="topicOptions"
-              placeholder="Selecione um caderno"
-            />
-          </div>
 
-          <div class="flex-1 flex flex-col">
-            <label class="text-label mb-1 block">Frente</label>
-            <UiRichInput
-              v-model="form.front"
-              v-model:audio-blob="form.frontAudioBlob"
-              :existing-audio-url="form.existingFrontAudioUrl"
-              placeholder="Digite a pergunta..."
-              :min-height="80"
-              :max-height="160"
-              enable-cloze
-              @focus="previewSide = 'front'"
-            />
-          </div>
+        <UiSelect
+          v-if="!props.topicId"
+          v-model="form.topic_id"
+          label="Caderno"
+          :options="topicOptions"
+          placeholder="Selecione um caderno"
+        />
 
-          <div v-if="!hasCloze" class="flex-1 flex flex-col">
-            <label class="text-label mb-1 block">Verso</label>
-            <UiRichInput
-              v-model="form.back"
-              v-model:audio-blob="form.backAudioBlob"
-              :existing-audio-url="form.existingBackAudioUrl"
-              placeholder="Digite a resposta..."
-              :min-height="80"
-              :max-height="160"
-              @focus="previewSide = 'back'"
-            />
-          </div>
-          <div v-else class="flex-1 flex items-center justify-center rounded-xl border border-base bg-[var(--bg-card)] px-4 py-6">
-            <p class="text-small text-base-muted text-center">O verso é gerado automaticamente pelas lacunas.</p>
-          </div>
+        <div class="flex flex-col gap-1.5">
+          <span class="text-label font-medium text-fg">Frente</span>
+          <UiRichInput
+            v-model="form.front"
+            v-model:audio-blob="form.frontAudioBlob"
+            :existing-audio-url="form.existingFrontAudioUrl"
+            placeholder="Digite a pergunta..."
+            :min-height="80"
+            :max-height="160"
+            enable-cloze
+            @focus="previewSide = 'front'"
+          />
+        </div>
 
-          <div>
-            <label class="text-label mb-1 block">Tags</label>
-            <UiTagInput v-model="form.tags" placeholder="#difícil, #pegadinha, #prova2024..." />
-          </div>
+        <div v-if="!hasCloze" class="flex flex-col gap-1.5">
+          <span class="text-label font-medium text-fg">Verso</span>
+          <UiRichInput
+            v-model="form.back"
+            v-model:audio-blob="form.backAudioBlob"
+            :existing-audio-url="form.existingBackAudioUrl"
+            placeholder="Digite a resposta..."
+            :min-height="80"
+            :max-height="160"
+            @focus="previewSide = 'back'"
+          />
+        </div>
+        <p v-else class="rounded-row bg-subtle px-4 py-6 text-center text-meta text-fg-muted">O verso é gerado automaticamente pelas lacunas.</p>
 
-          <div class="flex gap-2 justify-end pt-2">
-            <button type="button" class="btn-secondary !py-1.5 !px-3 !min-h-[2.75rem] !text-small" @click="open = false">Cancelar</button>
-            <button
-              v-if="!isEdit"
-              type="button"
-              class="btn-secondary !py-1.5 !px-3 !min-h-[2.75rem] !text-small"
-              :disabled="!canSubmit"
-              @click="submitAndContinue"
-            >
-              {{ saving ? 'Salvando...' : 'Salvar e criar outro' }}
-            </button>
-            <button type="submit" class="btn-primary !py-1.5 !px-3 !min-h-[2.75rem] !text-small" :disabled="!canSubmit">
-              {{ saving ? 'Salvando...' : 'Salvar' }}
-            </button>
-          </div>
-        </form>
-      </div>
+        <div class="flex flex-col gap-1.5">
+          <span class="text-label font-medium text-fg">Etiquetas</span>
+          <UiTagInput v-model="form.tags" placeholder="#difícil, #pegadinha, #prova2024..." />
+        </div>
+      </form>
 
       <!-- Preview -->
-      <div class="hidden md:flex flex-col items-center w-80 shrink-0 pt-10">
-        <p class="text-label mb-3">Preview</p>
-        <!-- Cloze index selector -->
-        <div v-if="hasCloze && clozeIndices.length > 1" class="flex gap-1 mb-3">
+      <div class="hidden w-72 shrink-0 flex-col gap-3 md:flex" aria-label="Prévia do card">
+        <p class="text-label font-medium text-fg-muted">Prévia</p>
+        <div v-if="hasCloze && clozeIndices.length > 1" class="flex gap-1" role="group" aria-label="Lacuna da prévia">
           <button
             v-for="idx in clozeIndices"
             :key="idx"
             type="button"
-            class="px-2 py-0.5 rounded text-micro font-medium transition-colors"
-            :class="previewClozeIndex === idx ? 'bg-action text-accent-primary-text' : 'bg-[var(--border-divider)] text-base-muted hover:text-base-primary'"
+            class="min-h-touch rounded-tag px-2 text-label font-medium transition-colors duration-nav"
+            :class="previewClozeIndex === idx ? 'bg-action text-on-action' : 'bg-subtle text-fg-muted hover:text-fg-strong'"
+            :aria-pressed="previewClozeIndex === idx ? 'true' : 'false'"
             @click="previewClozeIndex = idx"
           >
             c{{ idx }}
           </button>
         </div>
-        <div class="w-full card-scene">
-          <div class="card-inner" :class="previewSide === 'back' && 'flipped'">
-            <div class="card-face" @click="flipPreview">
-              <div class="card-body">
-                <p class="text-micro text-base-muted mb-2 uppercase tracking-wider">{{ selectedTopicName || 'Caderno' }}</p>
-                <div class="text-base-primary leading-relaxed break-words preview-content max-h-[250px] overflow-y-auto" v-html="sanitize(frontPreview)" />
-              </div>
-            </div>
-            <div class="card-face card-back" @click="flipPreview">
-              <div class="card-body">
-                <p class="text-micro text-base-muted mb-2 uppercase tracking-wider">Resposta</p>
-                <div class="text-base-primary leading-relaxed break-words preview-content max-h-[250px] overflow-y-auto" v-html="sanitize(backPreview)" />
-              </div>
-            </div>
-          </div>
+        <div class="flex min-h-48 flex-col justify-center rounded-card border border-line-strong bg-raised p-5 text-center shadow-card">
+          <p class="mb-2 text-label text-fg-muted">{{ previewSide === 'front' ? (selectedTopicName || 'Pergunta') : 'Resposta' }}</p>
+          <div class="max-h-60 overflow-y-auto break-words text-body text-fg-strong" v-html="sanitize(previewSide === 'front' ? frontPreview : backPreview)" />
         </div>
-        <button type="button" class="text-micro text-base-muted mt-3 cursor-pointer hover:text-accent-primary transition-colors" @click="flipPreview">
-          Clique pra virar
-        </button>
+        <UiButton size="sm" variant="ghost" @click="flipPreview">{{ previewSide === 'front' ? 'Ver a resposta' : 'Ver a pergunta' }}</UiButton>
       </div>
     </div>
-  </UiModal>
+
+    <template #footer="{ close }">
+      <UiButton variant="ghost" @click="close">Cancelar</UiButton>
+      <UiButton v-if="!isEdit" :disabled="!canSubmit" @click="submitAndContinue">Salvar e criar outro</UiButton>
+      <UiButton type="submit" :form="formId" variant="primary" :loading="saving" :disabled="!canSubmit">Salvar</UiButton>
+    </template>
+  </UiDialog>
 </template>
 
 <script setup lang="ts">
@@ -129,6 +100,8 @@ const props = defineProps<{
   initialFront?: string
   initialBack?: string
   localOnly?: boolean
+  /** The note the card is made from (material panel): its origin (prd-4c-material-v3 RF-B4) */
+  sourceNoteId?: string | null
 }>()
 const emit = defineEmits<{
   (e: 'created'): void
@@ -157,6 +130,7 @@ const toast = useToast()
 const { $api } = useNuxtApp()
 
 const saving = ref(false)
+const formId = useId()
 const previewSide = ref<'front' | 'back'>('front')
 const topics = ref<Topic[]>([])
 
@@ -237,13 +211,13 @@ const { renderQuestion, renderAnswer } = useCloze()
 const { sanitize } = useSanitize()
 
 const frontPreview = computed(() => {
-  if (isEmpty(form.front)) return '<span style="opacity:0.4">Sua pergunta aqui...</span>'
+  if (isEmpty(form.front)) return 'Sua pergunta aqui...'
   return hasCloze.value ? renderQuestion(form.front, previewClozeIndex.value) : form.front
 })
 
 const backPreview = computed(() => {
   if (hasCloze.value) return renderAnswer(form.front, previewClozeIndex.value)
-  return isEmpty(form.back) ? '<span style="opacity:0.4">Sua resposta aqui...</span>' : form.back
+  return isEmpty(form.back) ? 'Sua resposta aqui...' : form.back
 })
 
 async function loadTopics() {
@@ -312,6 +286,7 @@ async function doSubmit(closeAfter: boolean) {
           tags: form.tags.length ? form.tags : undefined,
           front_audio_url,
           back_audio_url,
+          ...(props.sourceNoteId ? { source_note_id: props.sourceNoteId } : {}),
         },
       })
       toast.show('Card criado!', 'success')
@@ -340,39 +315,3 @@ watch(open, (val) => {
   if (val) populateForm()
 })
 </script>
-
-<style scoped>
-.card-scene { perspective: 800px; }
-.card-inner {
-  position: relative;
-  width: 100%;
-  height: 280px;
-  transition: transform 0.5s ease;
-  transform-style: preserve-3d;
-}
-.card-inner.flipped { transform: rotateY(180deg); }
-.card-face {
-  position: absolute;
-  inset: 0;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  border-radius: 1rem;
-  overflow: hidden;
-  cursor: pointer;
-}
-.card-back { transform: rotateY(180deg); }
-.card-body {
-  height: 100%;
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  background: var(--bg-secondary);
-  border: 2px solid var(--border-strong);
-  border-radius: 1rem;
-  box-shadow: var(--elev-raised);
-}
-.preview-content p { margin: 0.25em 0; }
-</style>

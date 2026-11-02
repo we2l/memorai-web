@@ -96,7 +96,7 @@
         </div>
         <div class="w-full card-scene">
           <div class="card-inner" :class="previewSide === 'back' && 'flipped'">
-            <div class="card-face card-front" @click="flipPreview">
+            <div class="card-face" @click="flipPreview">
               <div class="card-body">
                 <p class="text-micro text-base-muted mb-2 uppercase tracking-wider">{{ selectedTopicName || 'Caderno' }}</p>
                 <div class="text-base-primary leading-relaxed break-words preview-content max-h-[250px] overflow-y-auto" v-html="sanitize(frontPreview)" />

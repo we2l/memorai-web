@@ -4,7 +4,7 @@
       <div class="space-y-5">
         <!-- Caderno -->
         <div>
-          <label class="label-base">Caderno</label>
+          <label>Caderno</label>
           <select v-model="form.topic_id" class="input-base w-full">
             <option value="" disabled>Selecione um caderno</option>
             <option v-for="t in topics" :key="t.id" :value="t.id">{{ t.name }}</option>
@@ -13,7 +13,7 @@
 
         <!-- Quantidade -->
         <div>
-          <label class="label-base">Questões</label>
+          <label>Questões</label>
           <div class="flex gap-2 flex-wrap">
             <button
               v-for="qty in quantityOptions"
@@ -31,7 +31,7 @@
 
         <!-- Tipos -->
         <div>
-          <label class="label-base">Tipos de questão</label>
+          <label>Tipos de questão</label>
           <div class="space-y-2">
             <label class="flex items-center gap-2 text-sm text-base-primary cursor-pointer">
               <input type="checkbox" value="multiple_choice" v-model="form.types" class="accent-[var(--color-primary-500)]" />
@@ -51,7 +51,7 @@
 
         <!-- Timer -->
         <div>
-          <label class="label-base">Timer</label>
+          <label>Timer</label>
           <select v-model="form.time_limit" class="input-base w-full">
             <option :value="null">Sem limite</option>
             <option :value="900">15 minutos</option>
@@ -63,7 +63,7 @@
 
         <!-- Modo -->
         <div>
-          <label class="label-base">Modo</label>
+          <label>Modo</label>
           <div class="grid grid-cols-2 gap-3">
             <button
               class="p-3 rounded-xl border text-left transition-colors"
@@ -86,7 +86,7 @@
 
         <!-- Dificuldade -->
         <div>
-          <label class="label-base">Dificuldade</label>
+          <label>Dificuldade</label>
           <select v-model="form.difficulty" class="input-base w-full">
             <option value="easy">Fácil</option>
             <option value="mixed">Mista</option>

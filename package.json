@@ -22,7 +22,8 @@
     "lint": "eslint app",
     "lint:tokens": "node scripts/check-tokens.mjs",
     "lint:components": "node scripts/check-components.mjs",
-    "lint:classes": "node scripts/check-theme-classes.mjs"
+    "lint:classes": "node scripts/check-theme-classes.mjs",
+    "lint:ds": "node scripts/check-ds.mjs"
   },
   "keywords": [],
   "author": "",

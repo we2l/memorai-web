@@ -241,18 +241,18 @@ watch(() => props.selectedId, (newId) => {
   padding: 6px 8px;
   border-radius: 8px;
   cursor: pointer;
-  color: var(--color-text-muted);
+  color: var(--text-muted);
   transition: all 150ms ease-out;
 }
 
 .child-item:hover {
-  background: var(--bg-surface-secondary, rgba(0,0,0,0.03));
-  color: var(--color-text-secondary);
+  background: var(--bg-soft);
+  color: var(--text-body);
 }
 
 .child-item--active {
   background: color-mix(in srgb, var(--color-accent-soft) 5%, transparent);
-  color: var(--color-text-primary);
+  color: var(--text-heading);
   font-weight: 500;
 }
 

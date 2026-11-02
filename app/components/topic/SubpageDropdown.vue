@@ -155,7 +155,7 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', onClickOutside))
   background: var(--bg-card);
   border: 1px solid var(--border-base);
   border-radius: 0.75rem;
-  box-shadow: var(--shadow-dropdown, 0 8px 24px rgba(0, 0, 0, 0.12));
+  box-shadow: var(--shadow-md);
   overflow: hidden;
 }
 

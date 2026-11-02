@@ -532,7 +532,7 @@ onBeforeUnmount(() => {
   font-size: 7.5px;
   font-weight: 700;
   line-height: 1.3;
-  color: var(--color-text-primary);
+  color: var(--text-heading);
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -558,7 +558,7 @@ onBeforeUnmount(() => {
   display: block;
   font-size: 5.5px;
   line-height: 1.5;
-  color: var(--color-text-muted);
+  color: var(--text-muted);
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -572,7 +572,7 @@ onBeforeUnmount(() => {
   overflow: hidden;
   font-size: 6px;
   line-height: 1.5;
-  color: var(--color-text-muted);
+  color: var(--text-muted);
 }
 
 /* Thumbnail — fallback placeholder */
@@ -593,7 +593,7 @@ onBeforeUnmount(() => {
 /* Meta line */
 .note-card__meta {
   font-size: 12px;
-  color: var(--color-text-muted);
+  color: var(--text-muted);
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -613,7 +613,7 @@ onBeforeUnmount(() => {
 .note-card__meta-highlight::before {
   content: ' · ';
   opacity: 0.5;
-  color: var(--color-text-muted);
+  color: var(--text-muted);
   font-weight: 400;
 }
 
@@ -621,7 +621,7 @@ onBeforeUnmount(() => {
 .note-card__preview {
   font-size: 13.5px;
   line-height: 1.7;
-  color: var(--color-text-secondary);
+  color: var(--text-body);
   max-height: 4.8em; /* ~3 full lines */
   overflow: hidden;
   position: relative;
@@ -633,7 +633,7 @@ onBeforeUnmount(() => {
   display: block;
   font-size: 13.5px;
   line-height: 1.7;
-  color: var(--color-text-secondary);
+  color: var(--text-body);
 }
 
 /* Badges */

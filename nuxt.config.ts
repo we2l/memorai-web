@@ -52,11 +52,14 @@ export default defineNuxtConfig({
 
   modules: ['@pinia/nuxt', '@vite-pwa/nuxt', '@nuxt/fonts'],
 
-  // Self-hosted at build time (/_fonts), font-display swap + metric fallback (RF-07)
+  // Self-hosted at build time (/_fonts), font-display swap + metric fallback (RF-07).
+  // Precache (prd-ds-v3-fundacao RF-0.4): the SW precaches every woff2, unicode-range or not, so only
+  // what PT-BR needs ships. Latin covers U+0000-00FF (ç, ã, ê, à...) plus dashes, quotes and €; rare
+  // latin-ext letters fall back to the system font. No italic file: <em>/cloze get a synthetic oblique.
+  // Inter is variable: one file covers 400-700.
   fonts: {
     families: [
-      { name: 'Inter', weights: [400, 500, 600, 700], subsets: ['latin', 'latin-ext'], provider: 'google' },
-      { name: 'Fredoka', weights: [600, 700], subsets: ['latin', 'latin-ext'], provider: 'google' },
+      { name: 'Inter', weights: [400, 500, 600, 700], styles: ['normal'], subsets: ['latin'], provider: 'google' },
     ],
   },
 

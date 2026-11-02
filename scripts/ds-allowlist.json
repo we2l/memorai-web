@@ -1,0 +1,51 @@
+{
+  "$comment": "Exceções explícitas das guardas do design system (ADR-027 §8): check-tokens (hex, color-fn, palette) e check-ds (ghost-var, ghost-class). Cada entrada: path (glob a partir da raiz do repo), rules, motivo, prazo (\"permanente\", uma fase ou YYYY-MM-DD; data vencida reprova) e match opcional (RegExp testada na linha). O resto do código fora do sistema fica na catraca (ds-baseline.json), não aqui.",
+  "entries": [
+    {
+      "path": "app/assets/css/main.css",
+      "rules": ["hex", "color-fn"],
+      "match": "^\\s*--[\\w-]+\\s*:",
+      "motivo": "Declaração de token (é a fonte dos valores). Só a linha `--nome: valor`; o resto do main.css conta na catraca.",
+      "prazo": "Fase 1 (a exceção passa a ser só tokens.css)"
+    },
+    {
+      "path": "app/components/ui/BaigiMascot.vue",
+      "rules": ["hex", "color-fn"],
+      "motivo": "Mascote: ilustração com a paleta própria da marca.",
+      "prazo": "permanente"
+    },
+    {
+      "path": "app/pages/entrar.vue",
+      "rules": ["hex"],
+      "match": "fill=\"#4285F4\"",
+      "motivo": "Logo do Google no botão de login: cores oficiais da marca.",
+      "prazo": "permanente"
+    },
+    {
+      "path": "app/pages/criar-conta.vue",
+      "rules": ["hex"],
+      "match": "fill=\"#4285F4\"",
+      "motivo": "Logo do Google no botão de cadastro: cores oficiais da marca.",
+      "prazo": "permanente"
+    },
+    {
+      "path": "app/pages/index.vue",
+      "rules": ["hex", "color-fn", "palette"],
+      "motivo": "Landing: tem paleta própria e migra na fase dela.",
+      "prazo": "Fase 4h"
+    },
+    {
+      "path": "app/components/landing/**",
+      "rules": ["hex", "color-fn", "palette"],
+      "motivo": "Landing: tem paleta própria e migra na fase dela.",
+      "prazo": "Fase 4h"
+    },
+    {
+      "path": "app/**",
+      "rules": ["hex", "color-fn"],
+      "match": "mask-image\\s*:",
+      "motivo": "Máscara: a cor só define o alfa, não aparece.",
+      "prazo": "permanente"
+    }
+  ]
+}

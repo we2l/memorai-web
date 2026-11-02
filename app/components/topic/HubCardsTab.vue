@@ -95,7 +95,7 @@
             {{ stateIcon(card.state) }}
           </div>
           <div class="flex-1 min-w-0">
-            <div class="text-body text-base-primary line-clamp-2 card-front-preview" v-html="card.frontHtml" />
+            <div class="text-body text-base-primary line-clamp-2" v-html="card.frontHtml" />
             <div class="flex items-center gap-2 mt-2">
               <span
                 class="text-micro font-medium px-2 py-0.5 rounded-full"
@@ -115,7 +115,7 @@
               <div class="overflow-hidden">
                 <div class="mt-3 pt-3 border-t border-base">
                   <p class="text-micro text-base-muted mb-1">Verso</p>
-                  <div class="text-[1rem] leading-relaxed text-base-secondary card-front-preview" v-html="card.backHtml" />
+                  <div class="text-[1rem] leading-relaxed text-base-secondary" v-html="card.backHtml" />
                 </div>
               </div>
             </div>

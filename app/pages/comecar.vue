@@ -209,7 +209,7 @@
         <h1 class="text-display mb-2">{{ generatedCount }} cards prontos!</h1>
         <p class="text-small text-base-muted mb-8">Vamos revisar os primeiros para você ver como funciona.</p>
 
-        <button class="btn-primary w-full !py-3 text-base font-semibold glow-primary" @click="goToReview">
+        <button class="btn-primary w-full !py-3 text-base font-semibold" @click="goToReview">
           Começar revisão →
         </button>
         <button class="btn-secondary w-full mt-3 justify-center" @click="goToDashboard">

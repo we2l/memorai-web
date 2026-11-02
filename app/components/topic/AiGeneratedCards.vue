@@ -17,7 +17,7 @@
       <div v-for="(card, i) in cards" :key="i" class="px-4 py-3 rounded-xl bg-[var(--border-divider)]/50">
         <div>
           <p class="text-micro text-base-muted mb-0.5">Frente</p>
-          <div class="text-body text-base-primary line-clamp-2 card-front-preview" v-html="sanitize(stripMedia(card.front))" />
+          <div class="text-body text-base-primary line-clamp-2" v-html="sanitize(stripMedia(card.front))" />
           <div class="flex items-center gap-1.5 mt-1" v-if="hasImage(card.front) || hasCloze(card.front)">
             <span v-if="hasImage(card.front)" class="text-micro px-1.5 py-0.5 rounded bg-[var(--border-divider)] text-base-muted">🖼 imagem</span>
             <span v-if="hasCloze(card.front)" class="text-micro px-1.5 py-0.5 rounded bg-[var(--border-divider)] text-base-muted">[...] lacuna</span>
@@ -25,7 +25,7 @@
         </div>
         <div class="mt-1.5 pt-1.5 border-t border-base">
           <p class="text-micro text-base-muted mb-0.5">Verso</p>
-          <div class="text-[1rem] leading-relaxed text-base-secondary line-clamp-2 card-front-preview" v-html="sanitize(stripMedia(card.back))" />
+          <div class="text-[1rem] leading-relaxed text-base-secondary line-clamp-2" v-html="sanitize(stripMedia(card.back))" />
           <div class="flex items-center gap-1.5 mt-1" v-if="hasImage(card.back)">
             <span class="text-micro px-1.5 py-0.5 rounded bg-[var(--border-divider)] text-base-muted">🖼 imagem</span>
           </div>

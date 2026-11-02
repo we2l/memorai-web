@@ -21,7 +21,7 @@ export const API = `${API_ORIGIN}/api`
 export const AUDIT_PASSWORD = 'Senha-Audit-2026'
 const CONTAINER = process.env.E2E_API_CONTAINER || 'baigi-app'
 
-export type UserKey = 'pro' | 'free' | 'quota' | 'unverified' | 'onboarding' | 'onboardingUnverified' | 'empty' | 'session' | 'logout' | 'account' | 'mobile' | 'legacy' | 'scope' | 'nav'
+export type UserKey = 'pro' | 'free' | 'quota' | 'unverified' | 'onboarding' | 'onboardingUnverified' | 'empty' | 'session' | 'logout' | 'account' | 'mobile' | 'legacy' | 'scope' | 'nav' | 'hoje' | 'hojeNew' | 'hojeGoal'
 
 type UserSpec = { email: string; plan: 'free' | 'pro'; verified: boolean; onboarded: boolean; reset: true; quota_exhausted?: Record<string, number> }
 
@@ -45,6 +45,10 @@ export const USERS: Record<UserKey, UserSpec> = {
   scope: { email: 'e2e-scope@audit.test', plan: 'pro', verified: true, onboarded: true, reset: true },
   // Navegação v3 (navegacao.spec.ts): writes notes through "+ Adicionar" and opens the account menu
   nav: { email: 'e2e-nav@audit.test', plan: 'pro', verified: true, onboarded: true, reset: true },
+  // Hoje v3 (hoje.spec.ts): a plan with the 4 steps, a brand-new account and a goal already met today
+  hoje: { email: 'e2e-hoje@audit.test', plan: 'pro', verified: true, onboarded: true, reset: true },
+  hojeNew: { email: 'e2e-hoje-new@audit.test', plan: 'free', verified: true, onboarded: true, reset: true },
+  hojeGoal: { email: 'e2e-hoje-goal@audit.test', plan: 'free', verified: true, onboarded: true, reset: true },
 }
 
 const AUTH_DIR = path.join(__dirname, '..', '..', '.auth')

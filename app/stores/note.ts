@@ -43,6 +43,18 @@ export const useNoteStore = defineStore('note', {
       return res.data
     },
 
+    /**
+     * "Continuar material" of Hoje (prd-4a-hoje-v3 RF-B4): the API records when the note was opened
+     * (at most every 10 min, without touching updated_at). Fire and forget: a failure changes nothing here.
+     */
+    markOpened(id: string) {
+      const { $api } = useNuxtApp()
+      // After the caller's own requests (opening the note comes first)
+      void Promise.resolve()
+        .then(() => $api(`/notes/${id}/opened`, { method: 'POST' }))
+        .catch((e: unknown) => reportApiError(e, { silent: true }))
+    },
+
     async create(topicId: string, data: { title: string }): Promise<Note> {
       const { $api } = useNuxtApp()
       const res = await $api<{ data: Note }>(`/topics/${topicId}/notes`, { method: 'POST', body: data })

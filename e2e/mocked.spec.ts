@@ -86,30 +86,23 @@ test.describe('Mock: Sessão de revisão com cards', () => {
   })
 })
 
-test.describe('Mock: Backlog grande (modo sobrevivência)', () => {
-  test('dashboard mostra sugestão de modo sobrevivência', async ({ page }) => {
+test.describe('Mock: Backlog grande (atraso no plano do dia)', () => {
+  test('o passo Revisar mostra o atraso e leva a "Recuperar atraso" em /praticar', async ({ page }) => {
     await login(page)
 
-    await page.route('**/stats/today*', route => {
-      route.fulfill({
-        status: 200, contentType: 'application/json',
-        body: JSON.stringify({ data: { due_today: 150, reviewed_today: 0, total_cards: 500, streak: 3, correct_today: 0, incorrect_today: 0 } }),
-      })
-    })
-
-    await page.route('**/review/backlog*', route => {
-      route.fulfill({
-        status: 200, contentType: 'application/json',
-        body: JSON.stringify({ data: { overdue_count: 150, suggest_survival_mode: true, estimated_minutes: 38, main_topic: { id: 't1', name: 'Direito' } } }),
-      })
-    })
+    await page.route(/\/api\/stats$/, route => route.fulfill(json({ data: {
+      due_today: 40, reviewed_today: 0, cards_reviewed_today: 0, total_cards: 500, total_decks: 1, streak: 3,
+      ratings_today: { again: 0, hard: 0, good: 0, easy: 0 },
+      goal: { batch_size: 20, target_batches: 2, done_batches: 0, met: false, minutes_left: 10 },
+    } })))
+    await page.route('**/review/backlog-stats*', route => route.fulfill(json({ data: { overdue_count: 150, suggest_survival_mode: true, estimated_minutes: 38 } })))
+    await page.route(/\/api\/settings$/, route => route.fulfill(json({ data: { survival_mode: false } })))
 
     await page.goto('/hoje')
-    await page.waitForTimeout(3000)
-
-    // Copy atual do HomeBanner: "150 cards atrasados." + botão "Ativar Sobrevivência"
-    await expect(page.getByText('150 cards atrasados.')).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Ativar Sobrevivência' })).toBeVisible()
+    const review = page.getByTestId('plan-step-review')
+    await expect(review).toContainText('Revisar 40 cards')
+    await expect(review).toContainText('150 atrasados')
+    await expect(review.getByRole('link', { name: 'Recuperar atraso' })).toHaveAttribute('href', '/praticar')
   })
 })
 
@@ -439,12 +432,12 @@ test.describe('Estados honestos (RF-F3.6–F3.9)', () => {
       ? r.fulfill(json({ message: 'x' }, 500))
       : r.fulfill(json({ data: { total_cards: 0, total_decks: 0, due_today: 0, reviewed_today: 0, cards_reviewed_today: 0, streak: 0 } })))
     await page.goto('/hoje')
-    await expect(page.getByText('Não foi possível carregar seu resumo de hoje')).toBeVisible()
-    await expect(page.getByText('Crie seus primeiros cards')).toHaveCount(0)
-    await expect(page.getByText('Tudo em dia!')).toHaveCount(0)
+    await expect(page.getByText('Não foi possível carregar seu plano de hoje')).toBeVisible()
+    await expect(page.getByText(/Que bom ter você aqui|Primeiros passos/)).toHaveCount(0)
+    await expect(page.getByText(/Tudo em dia/)).toHaveCount(0)
     fail = false
     await page.getByRole('button', { name: 'Tentar de novo' }).first().click()
-    await expect(page.getByText('Não foi possível carregar seu resumo de hoje')).toBeHidden()
+    await expect(page.getByText('Não foi possível carregar seu plano de hoje')).toBeHidden()
   })
 
   test('/progresso com 500 mostra "Tentar de novo"', async () => {

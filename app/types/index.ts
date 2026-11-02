@@ -80,6 +80,38 @@ export interface Stats {
     good: number
     easy: number
   }
+  /** Goal of the day in batches of 20 (prd-4a-hoje-v3 RF-B1); older API builds omit it. */
+  goal?: DayGoal
+}
+
+/** GET /stats → goal. With nothing due today the API reports the goal as met (done = target). */
+export interface DayGoal {
+  batch_size: number
+  target_batches: number
+  done_batches: number
+  met: boolean
+  minutes_left: number
+}
+
+/** GET /stats/pending-actions (prd-4a-hoje-v3 RF-B3): `url` kept for older clients. */
+export interface PendingAction {
+  type: 'errors' | 'pdf_ready' | 'weak_topic'
+  label: string
+  action_label: string
+  url: string
+  topic_id?: string | null
+  document_id?: string | null
+}
+
+/** GET /notes/recent (prd-4a-hoje-v3 RF-B4): last notes opened or edited, without content. */
+export interface RecentNote {
+  id: string
+  title: string
+  topic: { id: string; name: string }
+  root: { id: string; name: string; color: string | null }
+  source_document_id: string | null
+  /** coalesce(last_opened_at, updated_at) */
+  opened_at: string
 }
 
 export interface NavItem {
@@ -154,8 +186,12 @@ export interface TopicDetails {
 /** GET /topics/progress: every number is of the topic's subtree, the same rule as its session (F1 D1) */
 export interface TopicProgress {
   id: string
+  /** null = caderno (root); the list is flat, subjects included (prd-4a-hoje-v3 RF-B2) */
+  parent_id?: string | null
   name: string
   color?: string | null
+  /** Notes of the whole subtree */
+  notes_count?: number
   flashcards_count: number
   review_count: number
   progress: number

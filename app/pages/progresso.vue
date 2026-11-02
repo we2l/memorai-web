@@ -3,7 +3,7 @@
     <UiPageHeader title="Progresso" class="mb-6" />
 
     <!-- Provas on top (prd-navegacao-v3 RF-8): the next ones and the full agenda in /provas -->
-    <UiSection title="Provas" class="mb-6" data-testid="progress-exams">
+    <UiSection id="provas" title="Provas" class="mb-6" data-testid="progress-exams">
       <template #action>
         <UiLink to="/provas" standalone>Ver agenda</UiLink>
       </template>

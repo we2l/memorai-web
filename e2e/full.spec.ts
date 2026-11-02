@@ -8,14 +8,14 @@ test.describe('Dashboard (/hoje)', () => {
 
   test('exibe saudação e streak', async ({ page }) => {
     await expect(page.locator('h1')).toBeVisible()
-    // Streak só aparece com ≥ 1 dia ("🔥 N dias seguidos"); usuário novo não tem
+    // Streak só aparece com ≥ 1 dia ("N dias" com a chama); usuário novo não tem
     const streak = page.getByTestId('hero-streak')
-    if (await streak.count()) await expect(streak.first()).toHaveText(/🔥 .*\d+ dias?/)
+    if (await streak.count()) await expect(streak.first()).toHaveText(/\d+ dias?/)
   })
 
   test('exibe CTA de revisão ou estado vazio', async ({ page }) => {
-    const cta = page.getByRole('link', { name: /Começar revisão/i })
-    const empty = page.getByText(/Tudo em dia|Pare de esquecer|Crie seus primeiros cards/i).first()
+    const cta = page.getByTestId('plan-step-review').getByRole('link', { name: 'Começar' })
+    const empty = page.getByText(/Tudo em dia|Que bom ter você aqui/i).first()
     await expect(cta.or(empty)).toBeVisible()
   })
 })

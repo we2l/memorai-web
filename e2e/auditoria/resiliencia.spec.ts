@@ -25,7 +25,7 @@ async function breakApi(page: Page, mode: 'http500' | 'offline') {
 }
 
 const SCREENS: { path: string; fakeEmpty: RegExp; loaded: RegExp }[] = [
-  { path: '/hoje', fakeEmpty: /Crie seus primeiros cards|Tudo em dia/, loaded: /Crie seus primeiros cards|Tudo em dia|Começar revisão/ },
+  { path: '/hoje', fakeEmpty: /Que bom ter você aqui|Primeiros passos|Tudo em dia/, loaded: /Que bom ter você aqui|Tudo em dia|Plano do dia/ },
   { path: '/cadernos', fakeEmpty: /Comece sua jornada|Crie seu primeiro caderno/, loaded: /Comece sua jornada|Crie seu primeiro caderno/ },
   { path: '/progresso', fakeEmpty: /Nenhum|Comece a revisar|ainda não/i, loaded: /Domínio geral|Progresso/ },
   { path: '/podcasts', fakeEmpty: /Nenhum podcast ainda/, loaded: /Nenhum podcast ainda/ },

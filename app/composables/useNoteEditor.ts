@@ -254,6 +254,7 @@ export function useNoteEditor(topicId: Ref<string | null>) {
     const seq = ++openSeq
     const { content: _content, ...summary } = note as Note
     noteStore.current = summary
+    noteStore.markOpened(note.id)
     // Edits the server has not confirmed yet (in flight or failed) win over the server copy
     const local = unsaved.get(note.id)
     noteTitle.value = local?.title ?? note.title

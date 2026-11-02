@@ -173,6 +173,9 @@
   --elev-card: 0 1px 2px color-mix(in srgb, var(--palette-ink-900) 5%, transparent), 0 4px 16px color-mix(in srgb, var(--palette-ink-900) 4%, transparent);
   --elev-raised: 0 8px 24px color-mix(in srgb, var(--palette-ink-900) 10%, transparent);
   --elev-float: 0 16px 40px color-mix(in srgb, var(--palette-ink-900) 12%, transparent);
+  /* "Volume" da ação principal (UiButton primary): borda inferior em --action-press; pressionado, afunda */
+  --elev-press: 0 3px 0 var(--action-press);
+  --elev-press-active: 0 1px 0 var(--action-press);
 
   /* Movimento */
   --motion-nav: 150ms;

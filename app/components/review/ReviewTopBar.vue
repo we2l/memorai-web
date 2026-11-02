@@ -1,10 +1,10 @@
 <template>
   <header class="border-b border-line bg-raised" data-testid="review-top">
-    <div class="mx-auto flex max-w-page items-center gap-x-3 px-gutter py-2">
+    <div class="mx-auto flex max-w-page flex-wrap items-center gap-x-3 px-gutter py-2 max-sm:pb-1">
       <UiLink :to="backTo" variant="muted" class="inline-flex min-h-touch shrink-0 items-center gap-1 font-medium" data-testid="review-exit">
         <ChevronLeft class="size-4" aria-hidden="true" />Sair
       </UiLink>
-      <p v-if="scopeText" class="hidden min-w-0 flex-1 truncate text-meta text-fg-muted sm:block" data-testid="review-scope">
+      <p v-if="scopeText" class="order-last w-full truncate text-label text-fg-muted sm:order-none sm:w-auto sm:min-w-0 sm:flex-1 sm:text-meta" data-testid="review-scope">
         Revisando <span class="font-semibold text-fg-strong">{{ scopeText }}</span>{{ scopeNote ? ` ${scopeNote}` : '' }}
       </p>
       <span v-else class="hidden flex-1 sm:block" />
@@ -24,12 +24,9 @@
         <UiMenu :items="menu" label="Mais opções da revisão" />
       </span>
     </div>
-    <!-- Phone: the path of the slice and the bar on a 2nd line -->
-    <div v-if="scopeText || (batch && batch.total <= MAX_SEGMENTS)" class="flex flex-col gap-2 px-gutter pb-2.5 sm:hidden">
-      <p v-if="scopeText" class="truncate text-label text-fg-muted">
-        Revisando <span class="font-semibold text-fg-strong">{{ scopeText }}</span>{{ scopeNote ? ` ${scopeNote}` : '' }}
-      </p>
-      <UiProgressBar v-if="batch && batch.total <= MAX_SEGMENTS" v-bind="barProps" />
+    <!-- Phone: the path of the slice goes to a 2nd line (above) and the bar to a 3rd -->
+    <div v-if="batch && batch.total <= MAX_SEGMENTS" class="px-gutter pb-2.5 sm:hidden">
+      <UiProgressBar v-bind="barProps" />
     </div>
   </header>
 </template>

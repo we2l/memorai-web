@@ -69,8 +69,8 @@ test('PDF sem nada vencido: "Praticar adiantado (N)" com o aviso na sessão', as
   const session = sessionOf(page)
   await ahead.click()
   expect((await (await session).json()).session_count).toBe(2)
-  await expect(page.getByText('Praticando adiantado: o agendamento continua sendo atualizado')).toBeVisible()
-  await expect(page.getByTestId('review-scope')).toHaveText(`Revisando: ${F2.subject} › ${F2.aheadPdf}`)
+  await expect(page.getByTestId('review-context')).toHaveText('Praticando adiantado: o agendamento continua sendo atualizado')
+  await expect(page.getByTestId('review-scope')).toHaveText(`Revisando ${F2.subject} › ${F2.aheadPdf}`)
 })
 
 test('"Só erros (N)" no menu do PDF conta e abre só os erros dele', async ({ page }) => {
@@ -98,7 +98,7 @@ test('nota: "Revisar estes N" no rodapé da nota abre scope=note:', async ({ pag
   await link.click()
   const body = await (await session).json()
   expect(body.data.map((c: any) => c.id).sort()).toEqual([...seed.noteCardIds].sort())
-  await expect(page.getByTestId('review-scope')).toHaveText(`Revisando: ${F2.subject} › Nota F2`)
+  await expect(page.getByTestId('review-scope')).toHaveText(`Revisando ${F2.subject} › Nota F2`)
 })
 
 test('simulado: "Revisar os N agora" traz só os cards dos erros (mesmo sem novos restantes no dia) e volta ao resultado', async ({ page }) => {

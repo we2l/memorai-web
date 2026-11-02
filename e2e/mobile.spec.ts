@@ -175,13 +175,13 @@ test.describe('Mobile — todas as rotas por toque (RF-F1, navegação v3)', () 
       await expectNoHorizontalOverflow(page)
     }
 
-    // /revisar is focus mode (no BottomNav): back via "← Voltar"
+    // /revisar is focus mode (no BottomNav): back via "‹ Sair"
     await nav.getByRole('link', { name: 'Praticar' }).click()
     await page.getByRole('link', { name: /5 minutos/ }).click()
     await page.waitForURL('**/revisar**')
     await expect(nav).toBeHidden()
     await expectNoHorizontalOverflow(page)
-    await page.getByRole('link', { name: /Voltar/ }).first().click()
+    await page.getByTestId('review-exit').click()
     await page.waitForURL('**/hoje')
 
     // Progresso → agenda de provas e volta

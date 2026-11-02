@@ -60,9 +60,10 @@ test.describe('Revisão — caminho feliz', () => {
       await page.keyboard.press('Space')
       await expect(answer(page)).toBeVisible()
       await page.keyboard.press(key)
-      // "De novo" abre o diário de erro: pula para seguir
-      const skip = page.getByRole('button', { name: /Pular|Agora não|Continuar/ })
-      if (await skip.first().isVisible({ timeout: 1500 }).catch(() => false)) await skip.first().click()
+      // "De novo" abre o diário de erro (carregado sob demanda): pula para seguir
+      const diary = page.getByTestId('error-diary')
+      await expect(diary.or(page.getByTestId('review-show'))).toBeVisible()
+      if (await diary.isVisible()) await diary.getByRole('button', { name: 'Pular' }).click()
     }
     await expect.poll(() => ratings).toEqual([1, 2])
   })

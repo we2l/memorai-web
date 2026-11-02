@@ -108,7 +108,7 @@ test('simulado: "Revisar os N agora" traz só os cards dos erros (mesmo sem novo
   await apiCall(page, 'PUT', '/settings', { daily_new_cards_limit: 1 })
   await gotoApp(page, `/simulados/${seed.quizId}/resultado`)
   const created = page.waitForResponse(r => r.url().endsWith(`/api/quizzes/${seed.quizId}/create-cards`))
-  await main(page).getByRole('button', { name: 'Criar cards dos erros (2)' }).click()
+  await main(page).getByRole('button', { name: 'Criar 2 cards' }).click()
   const answer = (await (await created).json()).data
   expect(answer.card_ids).toHaveLength(2)
   expect(answer.session_count).toBe(2)
@@ -147,7 +147,9 @@ test('episódio: "Revisar os N do episódio" (5 card_ids, 1 apagado → 4) traz 
   expect(podcast.cards_available).toBe(4)
 
   await gotoApp(page, '/podcasts')
-  const row = main(page).getByRole('link', { name: `Revisar 4 cards do episódio ${F2.episode}` })
+  // The cards of the episode are in its ⋯ (Ouvir v3, prd-4e-praticar-v3 RF-F6)
+  await main(page).getByRole('button', { name: `Mais ações de ${F2.episode}` }).click()
+  const row = page.getByRole('menuitem', { name: /Revisar os 4 cards/ })
   await expect(row).toHaveAttribute('href', `/revisar?scope=podcast:${seed.podcastId}`)
   const session = sessionOf(page)
   await row.click()

@@ -22,6 +22,7 @@
           class="mt-0.5 size-5 shrink-0 cursor-pointer appearance-none rounded-full border border-line-input bg-raised transition-all duration-nav checked:border-6 checked:border-action disabled:cursor-not-allowed"
           @change="emit('update:modelValue', opt.value)"
         >
+        <span v-if="opt.marker" class="flex size-6 shrink-0 items-center justify-center rounded-tag bg-subtle text-meta font-semibold text-fg-strong" aria-hidden="true">{{ opt.marker }}</span>
         <span class="min-w-0">
           <span :id="`${groupName}-${i}`" class="block text-body text-fg-strong">{{ opt.label }}</span>
           <span v-if="opt.description" :id="`${groupName}-${i}-desc`" class="block text-meta text-fg-muted">{{ opt.description }}</span>
@@ -39,6 +40,8 @@ export interface RadioOption {
   label: string
   description?: string
   disabled?: boolean
+  /** Letter before the label (the alternatives of a question: A–E) */
+  marker?: string
 }
 
 const props = withDefaults(defineProps<{

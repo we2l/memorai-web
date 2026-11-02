@@ -189,10 +189,10 @@ test.describe('Podcasts', () => {
     await page.goto('/podcasts')
     await page.waitForLoadState('networkidle')
 
-    await page.getByText('Gerar podcast').click()
+    await page.getByRole('button', { name: 'Gerar episódio' }).click()
     await page.waitForTimeout(500)
 
-    await expect(page.getByRole('dialog', { name: /Podcast/i })).toBeVisible({ timeout: 3000 })
+    await expect(page.getByRole('dialog', { name: 'Gerar episódio' })).toBeVisible({ timeout: 3000 })
   })
 })
 

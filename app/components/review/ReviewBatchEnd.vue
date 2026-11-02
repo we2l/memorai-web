@@ -75,7 +75,7 @@ const weakTo = computed(() => {
   const w = props.summary.weak
   if (!w) return null
   if (props.language) return props.summary.errorIds.length ? `/revisar?scope=cards&card_ids=${props.summary.errorIds.slice(0, 100).join(',')}` : null
-  return `/simulados?topic_id=${w.id}`
+  return `/simulados?topic_id=${w.id}&count=10`
 })
 
 onMounted(() => {

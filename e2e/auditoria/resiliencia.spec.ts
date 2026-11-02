@@ -28,8 +28,8 @@ const SCREENS: { path: string; fakeEmpty: RegExp; loaded: RegExp }[] = [
   { path: '/hoje', fakeEmpty: /Que bom ter você aqui|Primeiros passos|Tudo em dia/, loaded: /Que bom ter você aqui|Tudo em dia|Plano do dia/ },
   { path: '/cadernos', fakeEmpty: /Comece sua jornada|Crie seu primeiro caderno/, loaded: /Comece sua jornada|Crie seu primeiro caderno/ },
   { path: '/progresso', fakeEmpty: /Nenhum|Comece a revisar|ainda não/i, loaded: /Domínio geral|Progresso/ },
-  { path: '/podcasts', fakeEmpty: /Nenhum podcast ainda/, loaded: /Nenhum podcast ainda/ },
-  { path: '/simulados', fakeEmpty: /Nenhum simulado ainda/, loaded: /Nenhum simulado ainda/ },
+  { path: '/podcasts', fakeEmpty: /Seu primeiro episódio|Nenhum podcast ainda/, loaded: /Seu primeiro episódio/ },
+  { path: '/simulados', fakeEmpty: /Treine com questões do seu material|Nenhum simulado ainda/, loaded: /Treine com questões do seu material/ },
   { path: '/provas', fakeEmpty: /Nenhuma prova agendada/, loaded: /Nenhuma prova agendada/ },
 ]
 

@@ -1,6 +1,6 @@
 <template>
   <div
-    v-if="player.currentPodcast"
+    v-if="player.currentPodcast && !inPagePlayer"
     role="region"
     aria-label="Tocando agora"
     class="fixed inset-x-2.5 bottom-[calc(var(--nav-h)+8px)] z-player overflow-hidden rounded-float border border-line bg-raised shadow-raised md:inset-x-auto md:right-4 md:bottom-4 md:w-96"
@@ -14,7 +14,6 @@
         <span class="block truncate text-meta font-semibold text-fg-strong">{{ player.currentPodcast.title }}</span>
         <span class="block truncate text-label text-fg-muted">
           <span class="tabular-nums">{{ formatTime(player.currentTime) }} de {{ formatTime(player.duration) }}</span>
-          <template v-if="player.episodeLabel"> · ep. {{ player.episodeLabel }}</template>
         </span>
       </button>
       <button
@@ -47,10 +46,15 @@
 // floats over the BottomNav (--nav-h); from 768 px it sits in the bottom right corner. It belongs to the
 // layout, so the audio keeps playing while the person moves between the 4 places; focus routes
 // (revisão, simulado) hide it with the rest of the shell. The layout reserves --miniplayer-h below the
-// content, the sticky bars and the toasts.
+// content, the sticky bars and the toasts. The time starts where the person stopped (listened_seconds of the
+// server, prd-4e-praticar-v3 RF-F10).
 import { ChevronUp, Headphones, Pause, Play, X } from 'lucide-vue-next'
 
 const player = usePlayerStore()
+// /podcasts on the desktop shows the full player beside the list: the mini one would only cover it
+const route = useRoute()
+const desktop = useMediaQuery('(min-width: 1024px)')
+const inPagePlayer = computed(() => desktop.value && route.path === '/podcasts')
 const episodeCards = computed(() => episodeCardsCount(player.currentPodcast))
 
 const progressPercent = computed(() => {

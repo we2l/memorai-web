@@ -98,8 +98,8 @@ test.describe('Mobile — Podcasts', () => {
     await page.goto('/podcasts')
     await page.waitForLoadState('networkidle')
 
-    await expect(page.getByText('Gerar podcast')).toBeVisible()
-    const btn = page.getByText('Gerar podcast')
+    const btn = page.getByRole('button', { name: 'Gerar episódio' })
+    await expect(btn).toBeVisible()
     const box = await btn.boundingBox()
     expect(box!.width).toBeLessThanOrEqual(375)
   })
@@ -166,7 +166,7 @@ test.describe('Mobile — todas as rotas por toque (RF-F1, navegação v3)', () 
     }
 
     // Praticar: Questões (/simulados) e Ouvir (/podcasts)
-    for (const [label, path] of [['Histórico e evolução', '/simulados'], ['Todos os episódios', '/podcasts']] as const) {
+    for (const [label, path] of [['Questões e simulados', '/simulados'], ['Todos os episódios', '/podcasts']] as const) {
       await nav.getByRole('link', { name: 'Praticar' }).click()
       await page.waitForURL('**/praticar**')
       await page.getByRole('link', { name: label }).click()

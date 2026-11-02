@@ -39,6 +39,26 @@
       "file": "pages/revisar.vue",
       "gzKb": 16.6,
       "closureGzKb": 47.6
+    },
+    "/praticar": {
+      "file": "pages/praticar.vue",
+      "gzKb": 6,
+      "closureGzKb": 26
+    },
+    "/simulados/:id": {
+      "file": "pages/simulados/[id]/index.vue",
+      "gzKb": 6.5,
+      "closureGzKb": 22
+    },
+    "/simulados/:id/resultado": {
+      "file": "pages/simulados/[id]/resultado.vue",
+      "gzKb": 6.5,
+      "closureGzKb": 19.5
+    },
+    "/podcasts": {
+      "file": "pages/podcasts.vue",
+      "gzKb": 6.5,
+      "closureGzKb": 25.5
     }
   },
   "entryLayoutForbidden": {

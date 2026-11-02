@@ -40,8 +40,6 @@ export interface DayPlanInput {
   recentNote: RecentNote | null
   /** /me.default_learning_mode: `language` hides Questões (D11) */
   learningMode?: string | null
-  /** Episodes the player played to the end on this device */
-  finishedPodcastIds?: Iterable<string>
   now?: Date
 }
 
@@ -133,11 +131,13 @@ function quizStep(input: DayPlanInput): DayPlanStep | null {
   }
 }
 
-/** A ready episode of the last 7 days not played to the end. Never offers to generate one (quota). */
+/**
+ * A ready episode of the last 7 days not heard to the end (`completed_at` of the server, prd-4e-praticar-v3
+ * RF-B7: on any device). Never offers to generate one (quota).
+ */
 function listenStep(input: DayPlanInput, now: Date): DayPlanStep | null {
-  const finished = new Set(input.finishedPodcastIds ?? [])
   const episode = input.podcasts
-    .filter(p => p.status === 'ready' && p.audio_url && !finished.has(p.id) && ageDays(p.created_at, now) <= EPISODE_MAX_AGE_DAYS)
+    .filter(p => p.status === 'ready' && p.audio_url && !p.completed_at && ageDays(p.created_at, now) <= EPISODE_MAX_AGE_DAYS)
     .sort((a, b) => b.created_at.localeCompare(a.created_at))[0]
   if (!episode) return null
   const minutes = Math.max(1, Math.round((episode.duration_seconds ?? 0) / 60))

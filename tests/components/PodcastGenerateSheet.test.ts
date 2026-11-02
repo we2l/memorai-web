@@ -22,10 +22,10 @@ function api(canPodcast: unknown, create?: () => Promise<unknown>) {
   })
 }
 
-const generate = () => [...document.querySelectorAll('button')].find(b => b.textContent?.includes('Gerar podcast')) as HTMLButtonElement
+const generate = () => [...document.querySelectorAll('button')].find(b => b.textContent?.includes('Gerar episódio')) as HTMLButtonElement
 const notice = () => document.querySelector('[role="dialog"] p[role="status"]')?.textContent?.trim()
 
-describe('PodcastGenerateSheet (prd-caderno-f1-pontes RF-F5)', () => {
+describe('PodcastGenerateSheet (prd-caderno-f1-pontes RF-F5, prd-4e-praticar-v3 RF-F9)', () => {
   beforeEach(() => {
     apiMock.mockReset()
     toastShow.mockReset()
@@ -51,15 +51,30 @@ describe('PodcastGenerateSheet (prd-caderno-f1-pontes RF-F5)', () => {
     expect(toastShow).not.toHaveBeenCalled()
   })
 
-  it('na biblioteca: todos os cadernos raiz, inclusive o do Anki sem cards diretos', async () => {
+  it('na biblioteca: a árvore inteira (caderno, matéria, assunto), inclusive o do Anki sem cards diretos', async () => {
     api({ ok: true })
     useTopicStore().tree = [
-      { id: 'anki', name: 'Inglês (Anki)', parent_id: null, flashcards_count: 0, children: [] },
+      { id: 'anki', name: 'Inglês (Anki)', parent_id: null, flashcards_count: 0, children: [{ id: 'voc', name: 'Vocabulary', parent_id: 'anki', flashcards_count: 9, children: [] }] },
       { id: 'pt', name: 'Português', parent_id: null, flashcards_count: 80, children: [] },
     ] as any
     await mountSuspended(GenerateSheet, { props: { modelValue: true }, attachTo: document.body })
     await flushPromises()
     const options = [...document.querySelectorAll('select option')].map(o => o.textContent?.trim())
-    expect(options).toEqual(['Selecione um caderno', 'Inglês (Anki)', 'Português'])
+    expect(options).toEqual(['Escolha o caderno ou o assunto', 'Inglês (Anki)', '— Vocabulary', 'Português'])
+  })
+
+  it('a duração com o tempo real do catálogo e a cota antes', async () => {
+    apiMock.mockImplementation((url: string) => {
+      if (url.endsWith('/details')) return Promise.resolve({ data: { weak_count: 8, can_podcast: { ok: true } } })
+      if (url === '/usage') return Promise.resolve({ data: { features: { podcast: { used: 3, limit: 5, remaining: 2 } } } })
+      if (url === '/plans') return Promise.resolve({ data: { plans: [{ key: 'pro', extras: { podcast_max_minutes: 15 } }], features: {} } })
+      return Promise.resolve({ data: [] })
+    })
+    useAuthStore().user = { id: 'u', plan: 'pro', name: 'Ana' } as any
+    await mountSuspended(GenerateSheet, { props: { modelValue: true, topicId: 't1' }, attachTo: document.body })
+    await flushPromises()
+    expect(document.body.textContent).toContain('Curto · ≈ 8 min')
+    expect(document.body.textContent).toContain('Completo · ≈ 15 min')
+    expect(document.querySelector('[data-testid="podcast-quota"]')?.textContent).toContain('3 de 5 este mês')
   })
 })

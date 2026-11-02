@@ -66,6 +66,16 @@ export interface FrontEventProps {
   review_explain_open: Record<string, never>
   retention_suggestion: { action: 'apply' | 'dismiss' }
   review_goal_met: { target_batches: number }
+  /** Praticar v3 (prd-4e-praticar-v3 §3.7) */
+  quiz_config: { kind: 'battery' | 'exam', count: number, scope_type: 'topic' | 'document' | 'note' }
+  quiz_shortfall: { requested: number, delivered: number }
+  quiz_error_cards: { selected: number, total: number }
+  quiz_retry_errors: { errors: number }
+  quiz_review_errors_now: { cards: number }
+  podcast_transcript_open: Record<string, never>
+  podcast_transcript_seek: Record<string, never>
+  podcast_completed: { origin: 'manual' | 'daily' }
+  daily_episode_toggle: { on: boolean }
 }
 
 export type FrontEvent = keyof FrontEventProps

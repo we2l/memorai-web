@@ -14,12 +14,15 @@ export type ReminderSource = 'settings' | 'session_end' | 'onboarding'
 /** Navegação v3 (prd-navegacao-v3 RF-12) */
 export type NavItem = 'hoje' | 'cadernos' | 'praticar' | 'progresso'
 export type NavSurface = 'top' | 'bottom'
-export type AddOpenOrigin = 'topnav' | 'header' | 'shortcut' | 'search'
+export type AddOpenOrigin = 'topnav' | 'header' | 'shortcut' | 'search' | 'checklist'
 export type SearchOpenOrigin = 'shortcut' | 'topnav' | 'header'
 export type PracticeMode = 'review' | 'quiz' | 'listen'
 /** Which entry of the mode card on /praticar */
 export type PracticeEntry = 'main' | 'blitz' | 'errors_only' | 'backlog' | 'one_subject' | 'new_quiz' | 'history' | 'continue' | 'generate' | 'library'
 export type MiniplayerAction = 'play' | 'pause' | 'expand' | 'close'
+/** Hoje v3 (prd-4a-hoje-v3 RF-F8) */
+export type HomePlanStepKey = 'review' | 'quiz' | 'listen' | 'material'
+export type HomeChecklistItem = 'topic' | 'material' | 'cards' | 'review' | 'streak'
 
 export interface FrontEventProps {
   onboarding_step_viewed: { step: 0 | 1 | 2 | 3 | 4, step_name: OnboardingStepName }
@@ -35,6 +38,10 @@ export interface FrontEventProps {
   search_opened: { origin: SearchOpenOrigin }
   practice_mode_started: { mode: PracticeMode, entry: PracticeEntry, scope: 'topic' | 'all' }
   miniplayer_toggled: { action: MiniplayerAction }
+  home_plan_step_click: { step: HomePlanStepKey, position: number }
+  home_goal_met: { target_batches: number }
+  home_checklist_click: { item: HomeChecklistItem }
+  home_exam_click: Record<string, never>
 }
 
 export type FrontEvent = keyof FrontEventProps

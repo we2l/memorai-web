@@ -72,7 +72,7 @@ test.describe.serial('Fluxo completo: Caderno → Card → Revisão', () => {
     await page.goto('/hoje')
     await page.waitForLoadState('networkidle')
 
-    const reviewLink = page.getByRole('link', { name: /Começar revisão/i })
+    const reviewLink = page.getByTestId('plan-step-review').getByRole('link', { name: 'Começar' })
     const hasDue = await reviewLink.count() > 0
 
     if (hasDue) {

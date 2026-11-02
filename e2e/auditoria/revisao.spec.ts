@@ -188,14 +188,14 @@ test.describe('Revisar do caderno com volume (seed perf@audit.test, prd-performa
     await ctx.close()
   })
 
-  test('o número do hero da Home é o tamanho da sessão global (atrasados contados uma vez)', async ({ browser }) => {
+  test('o "Revisar N" do plano do Hoje é o tamanho da sessão global (atrasados contados uma vez)', async ({ browser }) => {
     const ctx = await browser.newContext({ storageState: await cachedLoginState(browser, 'perf@audit.test', 'password') })
     const page = await ctx.newPage()
     await gotoApp(page, '/hoje')
     const heavy = ((await apiCall(page, 'GET', '/topics')).data as any[]).find(t => t.name === 'Direito — TRF (pesado)')
     test.skip(!heavy, 'seed pesado ausente')
 
-    const n = Number(await page.locator('.hero__value').first().innerText())
+    const n = Number((await page.getByTestId('plan-step-review').locator('p').first().innerText()).match(/Revisar (\d+)/)?.[1])
     expect(n).toBe((await apiCall(page, 'GET', '/stats')).data.due_today)
     const session = page.waitForResponse(r => r.url().includes('/api/review/session'))
     await gotoApp(page, '/revisar')

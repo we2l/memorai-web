@@ -183,7 +183,15 @@ describe('useNoteEditor local draft', () => {
   })
 
   it('keeps the unsaved text locally (debounced) and drops it once the server has it', async () => {
-    apiMock.mockRejectedValueOnce(httpError(500)).mockResolvedValue({ data: {} })
+    // Only the first PUT fails (opening the note also posts /opened)
+    let failed = false
+    apiMock.mockImplementation((_url: string, opts?: { method?: string }) => {
+      if (opts?.method === 'PUT' && !failed) {
+        failed = true
+        return Promise.reject(httpError(500))
+      }
+      return Promise.resolve({ data: {} })
+    })
     open()
     editor.noteContent.value = doc('não perder')
     editor.debouncedSave()
@@ -198,6 +206,14 @@ describe('useNoteEditor local draft', () => {
     await vi.advanceTimersByTimeAsync(2000) // retry succeeds
     expect(editor.saveState.value).toBe('saved')
     expect(localStorage.getItem(KEY)).toBeNull()
+  })
+
+  it('opening a note tells the API it was opened (Continuar material on Hoje), once per open', async () => {
+    apiMock.mockResolvedValue({ data: {} })
+    open()
+    await vi.advanceTimersByTimeAsync(0)
+    const opened = apiMock.mock.calls.filter(([url, o]) => url === '/notes/n1/opened' && o?.method === 'POST')
+    expect(opened).toHaveLength(1)
   })
 
   it('opening a note with a newer draft offers it; Restaurar fills the editor and saves', async () => {

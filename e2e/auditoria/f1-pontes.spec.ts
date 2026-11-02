@@ -47,10 +47,10 @@ test.describe('Um número só (seed perf@audit.test)', () => {
     test.skip(!heavy, 'seed pesado ausente (memorai-api/scripts/perf/seed-caderno-pesado.php)')
     const details = (await apiCall(page, 'GET', `/topics/${heavy.id}/details`)).data
 
-    // Home: "Continuar estudando"
-    const homeCard = page.getByRole('main').locator(`a[href="/cadernos?topic=${heavy.id}"]`).first()
+    // Hoje: the caderno row ("N hoje", Hoje v3)
+    const homeCard = page.getByTestId('home-notebooks').locator(`a[href="/cadernos?topic=${heavy.id}"]`).first()
     await expect(homeCard).toBeVisible()
-    const home = num(await homeCard.innerText(), /(\d+) pendentes/)
+    const home = num(await homeCard.innerText(), /(\d+)\s+hoje/)
 
     // Caderno: header and CTA; tree: the root row
     await gotoApp(page, `/cadernos?topic=${heavy.id}`)

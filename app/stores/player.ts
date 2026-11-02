@@ -2,6 +2,27 @@ import { defineStore } from 'pinia'
 import type { Podcast } from '~/types'
 
 const STORAGE_KEY = 'baigi_player_position'
+const FINISHED_KEY = 'baigi-podcasts-finished'
+const FINISHED_MAX = 50
+
+/** Episodes played to the end on this device (Hoje: the "Ouvir" step skips them; prd-4a-hoje-v3 §5.2). */
+export function finishedPodcastIds(): string[] {
+  try {
+    const list = JSON.parse(localStorage.getItem(FINISHED_KEY) ?? '[]')
+    return Array.isArray(list) ? list.filter((id): id is string => typeof id === 'string') : []
+  } catch {
+    return []
+  }
+}
+
+function markPodcastFinished(id: string) {
+  try {
+    const list = [id, ...finishedPodcastIds().filter(x => x !== id)].slice(0, FINISHED_MAX)
+    localStorage.setItem(FINISHED_KEY, JSON.stringify(list))
+  } catch {
+    // intencional: sem storage o episódio só continua sugerido no Hoje
+  }
+}
 
 interface SavedPosition {
   podcastId: string
@@ -131,6 +152,7 @@ export const usePlayerStore = defineStore('player', {
     },
 
     _onEnded() {
+      if (this.currentPodcast) markPodcastFinished(this.currentPodcast.id)
       this._clearPosition()
       if (this.hasNext) {
         this.next()

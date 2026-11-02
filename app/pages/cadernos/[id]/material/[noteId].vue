@@ -166,18 +166,19 @@
         class="fixed inset-x-0 bottom-[calc(var(--nav-h)+var(--miniplayer-h))] z-sticky flex items-center gap-2 border-t border-line bg-raised px-gutter py-3"
         data-testid="material-bar"
       >
-        <UiButton v-if="outlineItems.length" variant="ghost" :icon-left="ListTree" @click="outlineSheet = true">Sumário</UiButton>
-        <UiButton :icon-left="Layers" data-testid="material-bar-cards" @click="cardsSheet = true">Cards ({{ material.context.value?.cards.total ?? 0 }})</UiButton>
+        <UiButton v-if="outlineItems.length" size="sm" variant="ghost" class="whitespace-nowrap" :icon-left="ListTree" @click="outlineSheet = true">Sumário</UiButton>
+        <UiButton size="sm" class="whitespace-nowrap" :icon-left="Layers" data-testid="material-bar-cards" @click="cardsSheet = true">Cards ({{ material.context.value?.cards.total ?? 0 }})</UiButton>
         <UiButton
           v-if="primary === 'review'"
+          size="sm"
           variant="primary"
-          class="ml-auto"
+          class="ml-auto whitespace-nowrap"
           :to="reviewPath({ type: 'note', id: noteId })"
           @click="track('panel_review', { count: sessionCount })"
         >
           Revisar {{ sessionCount }}
         </UiButton>
-        <UiButton v-else-if="primary === 'generate'" variant="primary" class="ml-auto" :icon-left="Sparkles" @click="generateCards">Gerar cards</UiButton>
+        <UiButton v-else-if="primary === 'generate'" size="sm" variant="primary" class="ml-auto whitespace-nowrap" :icon-left="Sparkles" @click="generateCards">Gerar cards</UiButton>
       </div>
       <UiSheet v-if="!desktop" v-model="outlineSheet" title="Sumário">
         <MaterialOutline
@@ -327,7 +328,8 @@ const generatingText = computed(() => {
   const doc = m.document.value
   if (!m.generating.value || !doc) return ''
   const total = doc.note_total_batches ?? 0
-  const done = Math.min(total, Math.round((doc.note_generation_progress ?? 0) * (total || 1) / 100))
+  // note_generation_progress = batches already written (GenerateNoteFromPdfJob)
+  const done = Math.min(total, doc.note_generation_progress ?? 0)
   return total ? `Escrevendo a nota · lote ${Math.min(total, done + 1)} de ${total}` : 'Escrevendo a nota…'
 })
 const generationFailed = computed(() => m.document.value?.note_generation_status === 'failed')
@@ -504,7 +506,8 @@ useHead(() => ({ title: `${m.noteTitle.value || 'Material'} · Baigi` }))
 
 // === Opening a note (route change included) ===
 watch(noteId, async (note) => {
-  m.workshop.reset()
+  // A workshop left open for this note (kept 30 min in the tab) comes back; another note's is dropped
+  if (m.workshop.state.value !== 'idle' && m.workshop.sourceNoteId.value !== note) m.workshop.reset()
   material.reset()
   editing.value = false
   void material.load()

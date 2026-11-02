@@ -1,9 +1,7 @@
 <template>
-  <p class="flex flex-wrap items-center gap-x-1.5 text-meta text-fg-muted" data-testid="material-source">
-    <FileText class="size-4 shrink-0" aria-hidden="true" />
-    <span>Da apostila <span class="font-medium text-fg">{{ name }}</span><template v-if="range">, {{ range }}</template></span>
-    <span aria-hidden="true">·</span>
-    <button type="button" class="min-h-touch font-medium text-action-fg underline-offset-2 hover:underline" data-testid="material-open-pdf" @click="$emit('open-pdf', pageStart ?? null)">
+  <p class="text-meta text-fg-muted" data-testid="material-source">
+    <FileText class="mr-1 inline size-4 align-text-bottom" aria-hidden="true" />Da apostila <span class="font-medium text-fg">{{ name }}</span><template v-if="range">, {{ range }}</template> ·
+    <button type="button" class="font-medium text-action-fg underline-offset-2 hover:underline" data-testid="material-open-pdf" @click="$emit('open-pdf', pageStart ?? null)">
       Ver no PDF<template v-if="pageStart"> (p. {{ pageStart }})</template>
     </button>
   </p>

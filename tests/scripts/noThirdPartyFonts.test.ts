@@ -23,4 +23,26 @@ describe.skipIf(skipWithoutBuild)('fontes self-hosted (build)', () => {
     expect(existsSync(dir)).toBe(true)
     expect(readdirSync(dir).some(f => f.endsWith('.woff2'))).toBe(true)
   })
+
+  // prd-ds-v3-fundacao RF-0.4: the SW precaches every woff2, so latin-ext and italic were dead weight
+  const interFaces = () => readdirSync(join(PUBLIC_DIR, '_nuxt'))
+    .filter(f => f.endsWith('.css'))
+    .flatMap(f => readFileSync(join(PUBLIC_DIR, '_nuxt', f), 'utf8').match(/@font-face\{[^}]*font-family:\s*"?Inter"?;[^}]*\}/g) ?? [])
+
+  it('Inter só latin e sem itálico: um woff2', () => {
+    const faces = interFaces()
+    expect(faces.length).toBeGreaterThan(0)
+    expect(faces.filter(f => /font-style:\s*italic/.test(f))).toEqual([])
+    expect(new Set(faces.map(f => f.match(/_fonts\/([^)]+\.woff2)/)?.[1])).size).toBe(1)
+    expect(readdirSync(join(PUBLIC_DIR, '_fonts')).filter(f => f.endsWith('.woff2'))).toHaveLength(1)
+  })
+
+  it('o unicode-range da Inter cobre os acentos e a pontuação do PT-BR', () => {
+    const ranges = interFaces().flatMap(f => f.match(/unicode-range:([^;}]+)/)?.[1].split(',') ?? [])
+      .map(r => r.trim().replace(/^U\+/i, '').split('-').map(h => Number.parseInt(h, 16)))
+      .map(([lo, hi]) => [lo, hi ?? lo] as const)
+    const covered = (cp: number) => ranges.some(([lo, hi]) => cp >= lo && cp <= hi)
+    const missing = [...'ação não você à é í ó ú â ô ü ÇÃÕÂÊÔÁÉÍÓÚÀ – — “ ” ‘ ’ … • € ª º'].filter(c => c !== ' ' && !covered(c.codePointAt(0)!))
+    expect(missing).toEqual([])
+  })
 })

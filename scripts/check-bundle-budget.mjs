@@ -67,11 +67,11 @@ function routeChunkKey(manifest, entryCode, route) {
   return Object.keys(manifest).find(k => manifest[k].file === match[1])
 }
 
-function precacheBytes() {
+function precacheBytes(only = () => true) {
   const swPath = join(publicDir, 'sw.js')
   if (!existsSync(swPath)) return 0
   const sw = readFileSync(swPath, 'utf8')
-  const urls = [...sw.matchAll(/url:"([^"]+)"/g)].map(m => m[1])
+  const urls = [...sw.matchAll(/url:"([^"]+)"/g)].map(m => m[1]).filter(only)
   let total = 0
   for (const url of urls) {
     const clean = url.replace(/^\//, '')
@@ -120,6 +120,12 @@ async function main() {
     }
   }
 
+  // CSS every page loads first: main.css + every utility (prd-ds-v3-fundacao RF-0.4)
+  if (budget.entryCssGzKb != null) {
+    const css = new Set(manifest[entryKey].css ?? [])
+    push('entry.css (gz)', sumGz(css), budget.entryCssGzKb * KB)
+  }
+
   // Largest single chunk
   const allJs = existsSync(nuxtDir) ? readdirSync(nuxtDir).filter(f => f.endsWith('.js')) : []
   const largest = allJs.reduce((best, f) => (gz(f) > best.size ? { file: f, size: gz(f) } : best), { file: '-', size: 0 })
@@ -127,6 +133,8 @@ async function main() {
 
   // Service worker precache (raw bytes of precached URLs)
   if (budget.precacheKb != null) push('precache sw.js (raw)', precacheBytes(), budget.precacheKb * KB)
+  // Fonts inside it: the SW precaches every woff2, whatever the unicode-range (nuxt.config.ts fonts)
+  if (budget.precacheFontsKb != null) push('precache woff2 (raw)', precacheBytes(url => url.endsWith('.woff2')), budget.precacheFontsKb * KB)
 
   if (args.includes('--json')) {
     console.log(JSON.stringify(rows))

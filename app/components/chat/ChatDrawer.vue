@@ -165,7 +165,7 @@ watch(() => chat.isOpen, async (open) => {
   if (!open) return
   // Opened without context (search "Perguntar ao tira-dúvidas"): the caderno of the route (05/#6)
   if (!chat.currentContext.topicId) {
-    const topicId = scopeTopicFromQuery(route.query)
+    const topicId = scopeTopicOfRoute(route)
     if (topicId) chat.currentContext = { ...chat.currentContext, topicId, source: chat.currentContext.source ?? 'manual' }
   }
   if (chat.draft) {

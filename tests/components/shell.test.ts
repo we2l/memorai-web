@@ -197,7 +197,7 @@ describe('ShellAddSheet', () => {
     ;(dialog.querySelectorAll('ul[aria-label="O que adicionar"] button')[3] as HTMLButtonElement).click()
     await tick()
     expect(useAddIntent().value).toEqual({ kind: 'note', topicId: 't2' })
-    expect(navigateToMock).toHaveBeenCalledWith('/cadernos?topic=t2')
+    expect(navigateToMock).toHaveBeenCalledWith('/cadernos/t2')
     useAddIntent().value = null
   })
 
@@ -247,7 +247,7 @@ describe('ShellCommandPalette', () => {
     expect(await axeViolations(dialog)).toEqual([])
     input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }))
     await tick()
-    expect(navigateToMock).toHaveBeenCalledWith('/cadernos?topic=t2')
+    expect(navigateToMock).toHaveBeenCalledWith('/cadernos/t2')
     expect(useCommandPaletteOpen().value).toBe(false)
     w.unmount()
   })

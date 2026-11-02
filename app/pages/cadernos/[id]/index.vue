@@ -33,6 +33,7 @@
           @listen="listen"
           @edit="openEdit"
           @delete="openDelete"
+          @exam="examOpen = true"
         />
 
         <CadernoNextStep v-if="showNextStep" :step="summary.next_step!" @go="kind => track('next_step_click', { kind })" />
@@ -76,6 +77,7 @@
 
     <CadernoReviewBar v-if="showBar" :topic-id="id" :count="summary!.session.count" />
 
+    <LazyExamDialog v-if="examLoaded" v-model="examOpen" :topic-ids="[id]" origin="scope" @saved="onExamSaved" />
     <LazyCadernoTopicDialog v-if="dialogLoaded" v-model="dialogOpen" :mode="dialogMode" :target="dialogTarget" @saved="onTopicSaved" />
 
     <LazyUiConfirmModal
@@ -158,6 +160,13 @@ const showNextStep = computed(() => {
 
 const showBar = computed(() => (summary.value?.session.count ?? 0) > 0)
 useStickyActionHeight(showBar)
+
+// --- Exam of this scope (prd-4f-progresso-v3 RF-F10: "Definir prova" in the ⋯ of the header) -----------
+const examOpen = ref(false)
+const examLoaded = useLoadedOnce(() => examOpen.value)
+function onExamSaved() {
+  void load(id.value)
+}
 
 // --- Opening ------------------------------------------------------------------------------------------
 const celebrating = ref(false)

@@ -6,8 +6,8 @@
           {{ exam.title }} {{ when }}
           <UiTag v-if="exam.reta_final_active" tone="action">Reta final</UiTag>
         </p>
-        <!-- 2nd line: the pace today; the projection of mastery on the day comes with F6 (PRD §8, Q1) -->
-        <p class="text-meta text-fg-muted">{{ pace }}</p>
+        <!-- 2nd line: the pace and the projection on the day if it is kept (prd-4f-progresso-v3 RF-F11) -->
+        <p class="text-meta text-fg-muted" data-testid="home-exam-pace">{{ pace }}<template v-if="exam.projection"> · Projeção: <span class="font-semibold tabular-nums text-fg-strong">{{ exam.projection.keep_pace }}%</span> se mantiver o ritmo</template></p>
       </div>
       <UiLink to="/progresso#provas" standalone @click="track">Ver provas →</UiLink>
     </div>

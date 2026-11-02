@@ -441,12 +441,14 @@ test.describe('Estados honestos (RF-F3.6–F3.9)', () => {
 
   test('/progresso com 500 mostra "Tentar de novo"', async () => {
     let fail = true
-    await page.route('**/api/stats/progress', r => fail ? r.fulfill(json({ message: 'x' }, 500)) : r.continue())
+    // Each section fails on its own (prd-4f-progresso-v3 RF-F8): the agenda shows in every state of the account
+    await page.route(url => url.pathname === '/api/exams', r => fail ? r.fulfill(json({ message: 'x' }, 500)) : r.continue())
     await page.goto('/progresso')
-    await expect(page.getByText('Não foi possível carregar seu progresso')).toBeVisible()
+    await expect(page.getByText('Não foi possível carregar suas provas')).toBeVisible()
+    await expect(page.getByText('Defina sua prova para ver')).toHaveCount(0)
     fail = false
-    await page.getByRole('button', { name: 'Tentar de novo' }).click()
-    await expect(page.getByText('Não foi possível carregar seu progresso')).toBeHidden()
+    await page.getByRole('alert').filter({ hasText: 'Não foi possível carregar suas provas' }).getByRole('button', { name: 'Tentar de novo' }).click()
+    await expect(page.getByText('Não foi possível carregar suas provas')).toBeHidden()
   })
 
   test('/cadernos com /topics/progress 500 mostra erro inline na lista', async () => {

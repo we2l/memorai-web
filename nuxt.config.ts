@@ -47,7 +47,7 @@ const ANALYTICS_CHUNK = /\/node_modules\/posthog-js\//
 const CONSENT_CHUNK = /\/components\/ui\/Consent(Banner|Modal)\.vue/
 // One-shot pages that only work online (onboarding, OAuth and checkout returns, reset link):
 // fetched when opened instead of in every install download (precache budget, prd-correcoes-experiencia Q2).
-const ONE_SHOT_PAGE_CHUNK = /\/pages\/(comecar|checkout\/sucesso|auth\/google\/callback|redefinir-senha)\.vue/
+const ONE_SHOT_PAGE_CHUNK = /\/pages\/(comecar|checkout\/sucesso|auth\/google\/callback|redefinir-senha|provas\/index)\.vue/
 // Reference page of the design system (prd-ds-v3-fundacao RF-2.5): only in `nuxt dev`. NUXT_DS_PAGE=1 keeps it
 // in a production build for screenshots; even then its chunk is `dev-*`, out of the precache.
 const DS_PAGE_FLAG = process.env.NUXT_DS_PAGE === '1'
@@ -186,6 +186,8 @@ export default defineNuxtConfig({
     '/dashboard': { redirect: { to: '/hoje', statusCode: 301 } },
     '/chat': { redirect: { to: '/hoje', statusCode: 301 } },
     '/stats': { redirect: { to: '/progresso', statusCode: 301 } },
+    // The agenda moved into Progresso (prd-4f-progresso-v3 RF-F12); /provas/resultado (e-mail link) stays
+    '/provas': { redirect: { to: '/progresso#provas', statusCode: 301 } },
     // The graph of all cadernos left in the navegação v3 (RF-11): /cadernos?view=graph is cleaned by the page
     '/graph': { redirect: { to: '/cadernos', statusCode: 301 } },
     '/documents': { redirect: { to: '/cadernos', statusCode: 301 } },

@@ -44,7 +44,7 @@ describe('/provas/resultado', () => {
 
     expect(wrapper.text()).toContain('Não foi dessa vez, e tudo bem.')
     expect(wrapper.text()).not.toContain('Parabéns')
-    expect(wrapper.get('[data-testid="result-already"]').text()).toBe('Você já tinha respondido. Para mudar, use a página Provas.')
+    expect(wrapper.get('[data-testid="result-already"]').text()).toBe('Você já tinha respondido. Para mudar, use Progresso › Provas.')
     expect(wrapper.text()).toContain('Seus 2 cadernos continuam prontos')
     expect(wrapper.find('a[href*="from%3Dex-1"], a[href*="from=ex-1"]').exists()).toBe(true)
   })

@@ -16,7 +16,6 @@
   "ghost-class": {},
   "token-name": {},
   "component-class": {
-    "app/components/exam/CreateModal.vue": 4,
     "app/components/help/HowItWorks.vue": 3,
     "app/components/legal/LegalLayout.vue": 1,
     "app/components/onboarding/ReminderRow.vue": 1,
@@ -28,9 +27,7 @@
     "app/pages/configuracoes.vue": 21,
     "app/pages/importar.vue": 10,
     "app/pages/lembretes/desativado.vue": 4,
-    "app/pages/planos.vue": 13,
-    "app/pages/progresso.vue": 7,
-    "app/pages/provas/resultado.vue": 14
+    "app/pages/planos.vue": 13
   },
   "overlay": {
     "app/components/ui/Confetti.vue": 1,
@@ -46,7 +43,6 @@
     "app/pages/configuracoes.vue": 1
   },
   "arbitrary": {
-    "app/components/exam/CreateModal.vue": 3,
     "app/components/help/HowItWorks.vue": 29,
     "app/components/landing/HeroPipeline.vue": 63,
     "app/components/landing/MockMindMap.vue": 8,
@@ -71,22 +67,16 @@
     "app/pages/importar.vue": 13,
     "app/pages/index.vue": 111,
     "app/pages/lembretes/desativado.vue": 3,
-    "app/pages/planos.vue": 10,
-    "app/pages/progresso.vue": 1,
-    "app/pages/provas/index.vue": 17,
-    "app/pages/provas/resultado.vue": 7
+    "app/pages/planos.vue": 10
   },
   "important": {
     "app/components/help/HowItWorks.vue": 1,
     "app/components/onboarding/ReminderRow.vue": 3,
     "app/components/topic/MindMapView.vue": 9,
     "app/pages/ajuda.vue": 3,
-    "app/pages/comecar.vue": 14,
-    "app/pages/provas/index.vue": 5
+    "app/pages/comecar.vue": 14
   },
-  "inline-style": {
-    "app/pages/provas/index.vue": 32
-  },
+  "inline-style": {},
   "dark-style": {
     "app/components/topic/MindMapRenderer.vue": 2
   },
@@ -95,7 +85,6 @@
     "app/pages/index.vue": 1
   },
   "deprecated": {
-    "app/components/exam/CreateModal.vue": 26,
     "app/components/help/HowItWorks.vue": 65,
     "app/components/landing/HeroPipeline.vue": 15,
     "app/components/landing/MockMindMap.vue": 5,
@@ -123,9 +112,6 @@
     "app/pages/importar.vue": 62,
     "app/pages/index.vue": 87,
     "app/pages/lembretes/desativado.vue": 20,
-    "app/pages/planos.vue": 45,
-    "app/pages/progresso.vue": 6,
-    "app/pages/provas/index.vue": 19,
-    "app/pages/provas/resultado.vue": 36
+    "app/pages/planos.vue": 45
   }
 }

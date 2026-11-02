@@ -21,7 +21,7 @@ export const API = `${API_ORIGIN}/api`
 export const AUDIT_PASSWORD = 'Senha-Audit-2026'
 const CONTAINER = process.env.E2E_API_CONTAINER || 'baigi-app'
 
-export type UserKey = 'pro' | 'free' | 'quota' | 'unverified' | 'onboarding' | 'onboardingUnverified' | 'empty' | 'session' | 'logout' | 'account' | 'mobile' | 'legacy' | 'scope' | 'nav' | 'hoje' | 'hojeNew' | 'hojeGoal' | 'recorte' | 'hub' | 'material' | 'library' | 'revisao' | 'revisaoEmpty' | 'praticar' | 'praticarFree'
+export type UserKey = 'pro' | 'free' | 'quota' | 'unverified' | 'onboarding' | 'onboardingUnverified' | 'empty' | 'session' | 'logout' | 'account' | 'mobile' | 'legacy' | 'scope' | 'nav' | 'hoje' | 'hojeNew' | 'hojeGoal' | 'recorte' | 'hub' | 'material' | 'library' | 'revisao' | 'revisaoEmpty' | 'praticar' | 'praticarFree' | 'progresso' | 'progressoNew'
 
 type UserSpec = { email: string; plan: 'free' | 'pro'; verified: boolean; onboarded: boolean; reset: true; quota_exhausted?: Record<string, number> }
 
@@ -62,6 +62,9 @@ export const USERS: Record<UserKey, UserSpec> = {
   // Praticar v3 (prd-4e-praticar-v3, questoes-v3.spec.ts e ouvir-v3.spec.ts): Pro com caderno, simulados e episódios; e um Free
   praticar: { email: 'e2e-praticar@audit.test', plan: 'pro', verified: true, onboarded: true, reset: true },
   praticarFree: { email: 'e2e-praticar-free@audit.test', plan: 'free', verified: true, onboarded: true, reset: true },
+  // Progresso e Provas v3 (prd-4f-progresso-v3, progresso-v3.spec.ts): Pro com provas e revisões; e uma conta nova sem cards
+  progresso: { email: 'e2e-progresso@audit.test', plan: 'pro', verified: true, onboarded: true, reset: true },
+  progressoNew: { email: 'e2e-progresso-new@audit.test', plan: 'free', verified: true, onboarded: true, reset: true },
 }
 
 const AUTH_DIR = path.join(__dirname, '..', '..', '.auth')

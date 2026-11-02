@@ -185,13 +185,13 @@ test.describe('Mobile — todas as rotas por toque (RF-F1, navegação v3)', () 
     await page.waitForURL('**/hoje')
 
     // Progresso → agenda de provas e volta
+    // Progresso: the agenda of exams is a section of it (prd-4f-progresso-v3), and /provas lands there
     await nav.getByRole('link', { name: 'Progresso' }).click()
-    await page.getByRole('link', { name: 'Ver agenda' }).click()
-    await page.waitForURL('**/provas')
+    await page.getByTestId('progress-exams').waitFor()
+    await page.goto('/provas')
+    await page.waitForURL('**/progresso#provas')
     await expect(nav.getByRole('link', { name: 'Progresso' })).toHaveAttribute('aria-current', 'page')
     await expectNoHorizontalOverflow(page)
-    await page.getByRole('link', { name: 'Progresso' }).first().click()
-    await page.waitForURL('**/progresso')
 
     // Conta: configurações e ajuda pelo avatar
     for (const [label, path] of [['Conta e segurança', '/configuracoes'], ['Ajuda e atalhos', '/ajuda']] as const) {

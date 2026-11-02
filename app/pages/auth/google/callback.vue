@@ -1,13 +1,13 @@
 <template>
-  <div class="min-h-screen bg-surface flex items-center justify-center">
+  <div class="min-h-screen bg-page flex items-center justify-center">
     <div class="text-center">
       <template v-if="!error">
-        <div class="animate-spin w-8 h-8 border-2 border-accent-primary border-t-transparent rounded-full mx-auto mb-4" />
-        <p class="text-base-muted">Conectando com Google...</p>
+        <UiSpinner class="mx-auto mb-4 text-action-fg" />
+        <p role="status" class="text-fg-muted">Conectando com Google...</p>
       </template>
       <template v-else>
-        <p role="alert" class="text-[var(--badge-danger-text)] text-small mb-4">{{ error }}</p>
-        <NuxtLink to="/entrar" class="btn-secondary inline-block">Voltar para entrar</NuxtLink>
+        <p role="alert" class="text-danger text-meta mb-4">{{ error }}</p>
+        <UiButton variant="secondary" to="/entrar">Voltar para entrar</UiButton>
       </template>
     </div>
   </div>

@@ -54,11 +54,11 @@
   <!-- Active dive overlay -->
   <div v-if="dive.active.value && !showDiveAnimation && !showRiseAnimation" class="dive-overlay">
     <div class="dive-timer">
-      <span class="text-micro text-base-muted uppercase tracking-widest">Mergulho</span>
-      <span v-if="dive.externalCountdown.value != null" class="font-mono text-sm text-accent-primary">
+      <span class="text-label text-fg-muted uppercase tracking-widest">Mergulho</span>
+      <span v-if="dive.externalCountdown.value != null" class="font-mono text-meta text-action-fg">
         {{ dive.formatElapsed(dive.externalCountdown.value) }}
       </span>
-      <span v-else class="font-mono text-sm text-[var(--badge-primary-text)]">{{ dive.formatElapsed(dive.elapsed.value) }}</span>
+      <span v-else class="font-mono text-meta text-action-fg">{{ dive.formatElapsed(dive.elapsed.value) }}</span>
     </div>
     <button class="dive-exit" @click="exitDive">
       Emergir
@@ -105,7 +105,7 @@ function exitDive() {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: var(--bg-overlay);
+  background: var(--surface-scrim);
   pointer-events: all;
 }
 
@@ -250,14 +250,14 @@ function exitDive() {
 .dive-text {
   margin-top: 24px;
   font-size: 0.9rem;
-  color: var(--color-accent-primary);
+  color: var(--action-fg);
   animation: fade-in 0.4s ease 0.6s both;
 }
 
 .dive-text-rise {
   margin-top: 24px;
   font-size: 0.9rem;
-  color: var(--color-accent-primary);
+  color: var(--action-fg);
   animation: fade-in 0.3s ease 1.2s both;
 }
 
@@ -287,7 +287,7 @@ function exitDive() {
   border-radius: 9999px;
   background: color-mix(in srgb, var(--action) 8%, transparent);
   border: 1px solid color-mix(in srgb, var(--action) 20%, transparent);
-  color: var(--color-accent-primary);
+  color: var(--action-fg);
   font-size: 0.8rem;
   font-weight: 500;
   cursor: pointer;

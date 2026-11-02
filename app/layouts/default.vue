@@ -12,7 +12,7 @@
       </div>
     </main>
 
-    <UiToast />
+    <ShellToastHost />
 
     <!-- Heavy overlays load on first open and stay mounted (keeps leave transitions) -->
     <LazyChatDrawer v-if="chatLoaded" />

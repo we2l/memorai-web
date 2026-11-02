@@ -120,6 +120,8 @@
   --sticky-action-h: var(--sticky-action-h-set, 0px);
   --sidebar-w: 0px;
   --fab-bottom: calc(var(--nav-h) + var(--miniplayer-h) + var(--sticky-action-h) + 16px + env(safe-area-inset-bottom));
+  /* Toast (ShellToastHost, bottom-toast) acima da navegação inferior e do mini-player */
+  --toast-bottom: calc(var(--nav-h) + var(--miniplayer-h) + 12px + env(safe-area-inset-bottom));
 }
 @media (min-width: 1024px) {
   :root {

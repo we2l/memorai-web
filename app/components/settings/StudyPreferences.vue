@@ -3,8 +3,8 @@
     <UiErrorState v-if="loadError" title="Não foi possível carregar suas preferências de estudo" @retry="$emit('retry')" />
     <template v-else>
       <fieldset>
-        <legend class="text-title mb-1">Quanto você quer lembrar</legend>
-        <p class="text-small text-base-muted mb-3">Mais revisões por dia ↔ menos revisões. Vale para todos os seus cadernos.</p>
+        <legend class="text-section mb-1">Quanto você quer lembrar</legend>
+        <p class="text-meta text-fg-muted mb-3">Mais revisões por dia ↔ menos revisões. Vale para todos os seus cadernos.</p>
         <UiRadioCards
           :model-value="retentionKey"
           name="retention"
@@ -15,8 +15,8 @@
       </fieldset>
 
       <fieldset>
-        <legend class="text-title mb-1">Diário de erros</legend>
-        <p class="text-small text-base-muted mb-3">Quando você marca "Não lembrei", podemos perguntar o motivo.</p>
+        <legend class="text-section mb-1">Diário de erros</legend>
+        <p class="text-meta text-fg-muted mb-3">Quando você marca "Não lembrei", podemos perguntar o motivo.</p>
         <UiRadioCards
           :model-value="settings.error_diary_mode ?? 'sometimes'"
           name="diary"

@@ -3,10 +3,10 @@
     <h1 class="text-display mb-8">Progresso</h1>
 
     <!-- Loading -->
-    <div v-if="loading" class="space-y-6">
-      <div class="skeleton h-24 rounded-xl" />
-      <div class="skeleton h-40 rounded-xl" />
-      <div class="skeleton h-32 rounded-xl" />
+    <div v-if="loading" class="space-y-6" aria-busy="true">
+      <UiSkeleton variant="block" />
+      <UiSkeleton variant="block" size="lg" />
+      <UiSkeleton variant="block" />
     </div>
 
     <UiErrorState

@@ -71,7 +71,7 @@ test.describe('Progresso (/progresso)', () => {
     await expect(page.getByRole('heading', { name: 'Progresso' })).toBeVisible()
     await page.waitForTimeout(2000)
     const mastery = page.getByText('Domínio geral')
-    const loading = page.locator('.skeleton').first()
+    const loading = page.getByTestId('skeleton').first()
     await expect(mastery.or(loading)).toBeVisible()
   })
 })

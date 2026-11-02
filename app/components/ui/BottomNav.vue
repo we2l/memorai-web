@@ -1,7 +1,7 @@
 <template>
   <div>
   <nav
-    class="lg:hidden fixed bottom-0 left-0 right-0 bg-[var(--bg-card)] border-t border-base z-50"
+    class="lg:hidden fixed bottom-0 left-0 right-0 bg-[var(--bg-card)] border-t border-line-strong z-50"
     style="padding-bottom: env(safe-area-inset-bottom);"
     aria-label="Navegação mobile"
   >
@@ -10,8 +10,8 @@
         v-for="item in primaryNav"
         :key="item.to"
         :to="item.to"
-        class="flex-1 min-w-[44px] flex flex-col items-center justify-center gap-0.5 px-1 text-[11px] min-[360px]:text-small transition-all duration-150"
-        :class="isNavActive(route.path, item.to) ? activeClass : 'text-base-muted'"
+        class="flex-1 min-w-[44px] flex flex-col items-center justify-center gap-0.5 px-1 text-[11px] min-[360px]:text-meta transition-all duration-150"
+        :class="isNavActive(route.path, item.to) ? activeClass : 'text-fg-muted'"
         :aria-current="isNavActive(route.path, item.to) ? 'page' : undefined"
       >
         <component :is="item.icon" :size="20" :stroke-width="1.5" aria-hidden="true" />
@@ -20,8 +20,8 @@
       <button
         ref="moreButton"
         type="button"
-        class="flex-1 min-w-[44px] flex flex-col items-center justify-center gap-0.5 px-1 text-[11px] min-[360px]:text-small transition-all duration-150"
-        :class="moreActive ? activeClass : 'text-base-muted'"
+        class="flex-1 min-w-[44px] flex flex-col items-center justify-center gap-0.5 px-1 text-[11px] min-[360px]:text-meta transition-all duration-150"
+        :class="moreActive ? activeClass : 'text-fg-muted'"
         aria-haspopup="dialog"
         :aria-expanded="moreOpen"
         :aria-current="moreActive ? 'page' : undefined"
@@ -43,7 +43,7 @@ import { primaryNav, secondaryNav, accountNav, isNavActive } from '~/utils/navig
 const route = useRoute()
 const moreOpen = ref(false)
 const moreLoaded = useLoadedOnce(() => moreOpen.value)
-const activeClass = 'text-[var(--badge-primary-text)] font-medium'
+const activeClass = 'text-[var(--action-fg)] font-medium'
 
 // "Mais" is active when the current route lives inside the sheet
 const moreActive = computed(() => [...secondaryNav, ...accountNav].some(i => isNavActive(route.path, i.to)))

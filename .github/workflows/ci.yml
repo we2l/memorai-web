@@ -58,8 +58,10 @@ jobs:
       - name: Bundle budget
         run: npm run budget
 
-      # var(--x) and classes with no rule in the built CSS, in a ratchet (needs .output)
-      - name: Design system ghosts
+      # Ratchet (scripts/ds-baseline.json): var(--x) and classes with no rule in the built CSS (needs .output)
+      # and the component guards (btn-*/card/input-base outside ui/, fixed inset-0, animate-spin, arbitrary
+      # values, !important, z-*, v2 names of scripts/ds-v3-map.json...); warns on pages with 2+ primaries
+      - name: Design system ghosts and component guards
         run: npm run lint:ds
 
       - name: Bundle analyze

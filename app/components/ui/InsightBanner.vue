@@ -1,7 +1,7 @@
 <template>
   <div
     v-if="!dismissed"
-    class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-small"
+    class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-meta"
     :class="variantClasses"
   >
     <slot name="icon">
@@ -10,7 +10,7 @@
     <p class="flex-1 min-w-0 truncate sm:whitespace-normal">{{ text }}</p>
     <button
       v-if="actionLabel"
-      class="shrink-0 px-3 py-1 rounded-lg font-medium text-small transition-colors"
+      class="shrink-0 px-3 py-1 rounded-control font-medium text-meta transition-colors"
       :class="actionClasses"
       @click="$emit('action')"
     >
@@ -18,7 +18,7 @@
     </button>
     <button
       v-if="dismissible"
-      class="shrink-0 p-1 rounded-md opacity-60 hover:opacity-100 transition-opacity"
+      class="shrink-0 p-1 rounded-control opacity-60 hover:opacity-100 transition-opacity"
       title="Fechar"
       @click="dismiss"
      aria-label="Fechar">
@@ -73,19 +73,19 @@ function dismiss() {
 
 const variantClasses = computed(() => {
   switch (props.variant) {
-    case 'warning': return 'bg-[var(--badge-warning-bg)] text-[var(--badge-warning-text)] border border-[var(--badge-warning-text)]/20'
-    case 'success': return 'bg-[var(--badge-success-bg)] text-[var(--badge-success-text)] border border-[var(--badge-success-text)]/20'
-    case 'accent': return 'bg-[var(--badge-primary-bg)] text-[var(--color-accent-primary)] dark:bg-[var(--color-accent-primary)]/10 border border-base dark:border-[var(--color-accent-primary)]/30'
-    default: return 'bg-[var(--badge-info-bg)] text-[var(--badge-info-text)] border border-[var(--badge-info-text)]/20'
+    case 'warning': return 'bg-[var(--state-warning-bg)] text-[var(--state-warning)] border border-[var(--state-warning)]/20'
+    case 'success': return 'bg-[var(--state-success-bg)] text-[var(--state-success)] border border-[var(--state-success)]/20'
+    case 'accent': return 'bg-[var(--action-subtle)] text-[var(--action-fg)] dark:bg-[var(--action-fg)]/10 border border-base dark:border-[var(--action-fg)]/30'
+    default: return 'bg-[var(--state-info-bg)] text-[var(--state-info)] border border-[var(--state-info)]/20'
   }
 })
 
 const actionClasses = computed(() => {
   switch (props.variant) {
-    case 'warning': return 'bg-[var(--badge-warning-bg)] hover:bg-[var(--badge-warning-bg)] text-[var(--badge-warning-text)]'
-    case 'success': return 'bg-[var(--badge-success-bg)] hover:bg-[var(--badge-success-bg)] text-[var(--badge-success-text)]'
-    case 'accent': return 'bg-[var(--color-accent-primary)]/10 hover:bg-[var(--color-accent-primary)]/20 text-[var(--color-accent-primary)] dark:bg-[var(--color-accent-primary)]/20'
-    default: return 'bg-[var(--badge-info-bg)] hover:bg-[var(--badge-info-bg)] text-[var(--badge-info-text)]'
+    case 'warning': return 'bg-[var(--state-warning-bg)] hover:bg-[var(--state-warning-bg)] text-[var(--state-warning)]'
+    case 'success': return 'bg-[var(--state-success-bg)] hover:bg-[var(--state-success-bg)] text-[var(--state-success)]'
+    case 'accent': return 'bg-[var(--action-fg)]/10 hover:bg-[var(--action-fg)]/20 text-[var(--action-fg)] dark:bg-[var(--action-fg)]/20'
+    default: return 'bg-[var(--state-info-bg)] hover:bg-[var(--state-info-bg)] text-[var(--state-info)]'
   }
 })
 </script>

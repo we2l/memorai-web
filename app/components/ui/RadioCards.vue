@@ -10,12 +10,12 @@
       :aria-checked="modelValue === opt.value"
       :tabindex="modelValue === opt.value || (!hasSelection && i === 0) ? 0 : -1"
       :disabled="disabled"
-      class="text-left p-3 rounded-xl border-2 transition-colors min-h-[44px] focus-visible:outline focus-visible:outline-2"
-      :class="modelValue === opt.value ? 'border-[var(--color-accent-primary)] bg-accent-primary-subtle' : 'border-base bg-[var(--bg-card)] hover:border-[var(--border-hover)]'"
+      class="text-left p-3 rounded-xl border-2 transition-colors min-h-touch focus-visible:outline focus-visible:outline-2"
+      :class="modelValue === opt.value ? 'border-action-fg bg-action-subtle' : 'border-line-strong bg-[var(--bg-card)] hover:border-line-strong'"
       @click="$emit('update:modelValue', opt.value)"
     >
-      <span class="block text-small font-semibold text-base-primary">{{ opt.label }}</span>
-      <span v-if="opt.description" class="block text-micro text-base-muted mt-0.5">{{ opt.description }}</span>
+      <span class="block text-meta font-semibold text-fg-strong">{{ opt.label }}</span>
+      <span v-if="opt.description" class="block text-label text-fg-muted mt-0.5">{{ opt.description }}</span>
     </button>
   </div>
 </template>

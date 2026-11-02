@@ -16,12 +16,12 @@
           :aria-label="ariaLabel"
         >
           <div v-if="variant === 'sheet'" class="flex justify-center pt-1 pb-3" aria-hidden="true">
-            <span class="w-10 h-1.5 rounded-full bg-[var(--border-hover)]" />
+            <span class="w-10 h-1.5 rounded-full bg-line-strong" />
           </div>
           <button
             v-if="!hideClose"
             data-modal-close="1"
-            class="absolute top-3 right-3 w-11 h-11 inline-flex items-center justify-center text-base-muted hover:text-base-primary rounded-lg hover:bg-[var(--border-divider)] transition-colors"
+            class="absolute top-3 right-3 w-11 h-11 inline-flex items-center justify-center text-fg-muted hover:text-fg-strong rounded-control hover:bg-line transition-colors"
             aria-label="Fechar"
             @click="close"
           >
@@ -34,12 +34,9 @@
   </Teleport>
 </template>
 
-<script lang="ts">
-// Stack of open modals: Esc only closes the topmost one
-const openStack: symbol[] = []
-</script>
-
 <script setup lang="ts">
+// Legacy modal (24 uses): migrates to UiDialog/UiSheet screen by screen in Phase 4. The layer behaviour
+// (Esc stack, scroll lock, focus trap) lives in useModalLayer, shared with UiDialog/UiSheet.
 const props = withDefaults(defineProps<{
   modelValue: boolean
   size?: 'sm' | 'md' | 'lg' | 'xl'
@@ -61,9 +58,6 @@ const emit = defineEmits<{ (e: 'update:modelValue', value: boolean): void }>()
 
 const panel = ref<HTMLElement | null>(null)
 const labelledBy = ref<string | undefined>(undefined)
-const token = Symbol('modal')
-const trap = useFocusTrap(panel)
-const scroll = useScrollLock()
 
 const sizeClass = computed(() => ({
   sm: 'max-w-sm',
@@ -75,58 +69,27 @@ const sizeClass = computed(() => ({
 const panelClass = computed(() => {
   const overflow = props.noOverflow ? 'overflow-visible' : 'overflow-y-auto'
   if (props.variant === 'sheet') {
-    return ['sheet-panel card w-full rounded-b-none rounded-t-2xl px-4 pt-2 max-h-[80dvh] relative', sizeClass.value, overflow]
+    return ['sheet-panel w-full bg-float shadow-float rounded-t-float px-4 pt-2 max-h-[80dvh] relative', sizeClass.value, overflow]
   }
-  return ['card w-full mx-4 p-6 max-h-[90vh] relative', sizeClass.value, overflow]
+  return ['w-full mx-4 p-6 bg-float shadow-float rounded-float max-h-[90vh] relative', sizeClass.value, overflow]
 })
 
 function close() {
   emit('update:modelValue', false)
 }
 
-function onKeydown(e: KeyboardEvent) {
-  if (e.key !== 'Escape' || !props.modelValue) return
-  if (openStack[openStack.length - 1] !== token) return
-  e.stopPropagation()
-  close()
-}
-
-async function onOpen() {
-  openStack.push(token)
-  document.addEventListener('keydown', onKeydown)
-  scroll.lock()
-  await nextTick()
+useModalLayer({
+  open: () => props.modelValue,
+  panel,
+  onEscape: close,
   // Label by the first heading in the slot when no explicit aria-label is given
-  const heading = panel.value?.querySelector<HTMLElement>('h1, h2, h3')
-  if (heading) {
-    if (!heading.id) heading.id = `modal-title-${Math.random().toString(36).slice(2, 9)}`
-    labelledBy.value = heading.id
-  }
-  await trap.activate()
-}
-
-function onClose() {
-  const idx = openStack.indexOf(token)
-  if (idx !== -1) openStack.splice(idx, 1)
-  document.removeEventListener('keydown', onKeydown)
-  scroll.unlock()
-}
-
-watch(() => props.modelValue, (val) => {
-  if (val) onOpen()
-  else {
-    onClose()
-    trap.deactivate()
-  }
-})
-
-onMounted(() => {
-  if (props.modelValue) onOpen()
-})
-
-onUnmounted(() => {
-  onClose()
-  trap.deactivate()
+  onOpened() {
+    const heading = panel.value?.querySelector<HTMLElement>('h1, h2, h3')
+    if (heading) {
+      if (!heading.id) heading.id = `modal-title-${Math.random().toString(36).slice(2, 9)}`
+      labelledBy.value = heading.id
+    }
+  },
 })
 </script>
 

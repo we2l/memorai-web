@@ -4,15 +4,16 @@
       <span
         v-for="(tag, i) in modelValue"
         :key="i"
-        class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-micro font-medium bg-accent-primary-subtle text-accent-primary"
+        class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-label font-medium bg-action-subtle text-action-fg"
       >
         #{{ tag }}
-        <button type="button" class="hover:text-[var(--badge-danger-text)] transition-colors" @click="remove(i)">×</button>
+        <button type="button" class="hover:text-danger transition-colors" :aria-label="`Remover a tag ${tag}`" @click="remove(i)">×</button>
       </span>
     </div>
-    <input
+    <UiInput
       v-model="input"
-      class="input-base text-small"
+      :label="label"
+      hide-label
       :placeholder="placeholder"
       @keydown.enter.prevent="add"
       @keydown.,="add"
@@ -25,8 +26,11 @@
 const props = withDefaults(defineProps<{
   modelValue: string[]
   placeholder?: string
+  /** Accessible name of the field (hidden label) */
+  label?: string
 }>(), {
   placeholder: 'Adicionar tag e pressionar Enter...',
+  label: 'Tags',
 })
 
 const emit = defineEmits<{

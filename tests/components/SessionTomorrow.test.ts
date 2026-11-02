@@ -19,7 +19,9 @@ function forecast(overrides: Partial<TomorrowForecast> = {}, streak: Partial<Tom
 describe('SessionTomorrow', () => {
   it('mostra skeleton de altura fixa enquanto carrega', async () => {
     const w = await mountSuspended(SessionTomorrow, { props: { forecast: null, loading: true } })
-    expect(w.findAll('.skeleton')).toHaveLength(2)
+    const skeleton = w.get('[data-testid="skeleton"]')
+    expect(skeleton.attributes('aria-hidden')).toBe('true')
+    expect(skeleton.findAll('.animate-pulse')).toHaveLength(2)
     expect(w.text()).toBe('')
   })
 

@@ -3,55 +3,45 @@
     <div
       v-if="inline || !dismissed"
       role="status"
-      class="relative px-4 py-2.5 flex flex-col gap-2 bg-[var(--badge-warning-bg)] border-[var(--border-divider)]"
-      :class="inline ? 'rounded-xl border' : 'border-b sm:flex-row sm:items-center sm:gap-3'"
+      class="relative px-4 py-2.5 flex flex-col gap-2 bg-warning-subtle border-line"
+      :class="inline ? 'rounded-control border' : 'border-b sm:flex-row sm:items-center sm:gap-3'"
     >
-      <p id="verify-email-notice" class="text-micro text-base-primary font-medium flex-1" :class="{ 'pr-8 sm:pr-0': !inline }">
+      <p id="verify-email-notice" class="text-label text-fg-strong font-medium flex-1" :class="{ 'pr-8 sm:pr-0': !inline }">
         Confirme seu e-mail para gerar com IA. Enviamos um link para <span class="break-all">{{ auth.user?.email }}</span>.
       </p>
       <div class="flex gap-2 shrink-0">
-        <button
-          type="button"
-          class="btn-secondary text-micro px-3 py-1.5 flex-1 sm:flex-none"
-          :disabled="sending || cooldown > 0"
-          @click="resend"
-        >
+        <UiButton size="sm" class="flex-1 sm:flex-none" :loading="sending" :disabled="cooldown > 0" @click="resend">
           {{ buttonLabel }}
-        </button>
-        <button
-          type="button"
-          class="btn-secondary text-micro px-3 py-1.5 flex-1 sm:flex-none"
-          :disabled="checking"
-          @click="checkVerified"
-        >
+        </UiButton>
+        <UiButton size="sm" class="flex-1 sm:flex-none" :loading="checking" @click="checkVerified">
           {{ checking ? 'Verificando...' : 'Já confirmei' }}
-        </button>
+        </UiButton>
       </div>
-      <button
+      <UiIconButton
         v-if="!inline"
-        type="button"
-        class="absolute right-2 top-2 sm:static p-1.5 text-base-muted hover:text-base-primary rounded-lg shrink-0"
-        aria-label="Fechar aviso"
+        :icon="X"
+        label="Fechar aviso"
+        size="sm"
+        class="absolute right-1 top-1 sm:static"
         @click="dismiss"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-      </button>
+      />
     </div>
 
     <UiModal v-model="showModal" size="sm" aria-label="Confirme seu e-mail">
-      <h2 class="text-lg font-semibold text-base-primary mb-2 pr-8">Confirme seu e-mail</h2>
-      <p class="text-small text-base-muted mb-6">
+      <h2 class="text-body font-semibold text-fg-strong mb-2 pr-8">Confirme seu e-mail</h2>
+      <p class="text-meta text-fg-muted mb-6">
         Os recursos de IA ficam disponíveis depois que você confirmar <span class="break-all">{{ auth.user?.email }}</span>.
         Confira sua caixa de entrada e o spam.
       </p>
-      <button type="button" class="btn-primary w-full" :disabled="sending || cooldown > 0" @click="resend">
+      <UiButton variant="primary" type="button" block :loading="sending" :disabled="cooldown > 0" @click="resend">
         {{ buttonLabel }}
-      </button>
+      </UiButton>
     </UiModal>
   </div>
 </template>
 
 <script setup lang="ts">
+import { X } from 'lucide-vue-next'
 // inline: persistent box for pages without the default layout (onboarding), no dismiss
 defineProps<{ inline?: boolean }>()
 

@@ -1,17 +1,17 @@
 <template>
   <div
     v-if="visible"
-    class="fixed z-50 flex items-center gap-1 px-2 py-1.5 rounded-lg bg-surface-secondary border border-base shadow-lg"
+    class="fixed z-50 flex items-center gap-1 px-2 py-1.5 rounded-control bg-subtle border border-line-strong shadow-lg"
     :style="{ top: `${position.y}px`, left: `${position.x}px` }"
   >
     <button
-      class="flex items-center gap-1 px-2 py-1 rounded text-micro font-medium text-accent-primary hover:bg-accent-primary-subtle transition-colors"
+      class="flex items-center gap-1 px-2 py-1 rounded text-label font-medium text-action-fg hover:bg-action-subtle transition-colors"
       @mousedown.prevent="$emit('createCard')"
     >
       <Zap :size="12" /> Criar card
     </button>
     <button
-      class="flex items-center gap-1 px-2 py-1 rounded text-micro font-medium text-base-muted hover:bg-[var(--border-divider)] transition-colors"
+      class="flex items-center gap-1 px-2 py-1 rounded text-label font-medium text-fg-muted hover:bg-line transition-colors"
       @mousedown.prevent="$emit('askAi')"
     >
       <Sparkles :size="12" class="inline" /> Perguntar

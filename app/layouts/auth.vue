@@ -4,6 +4,6 @@
       <slot />
     </div>
 
-    <UiToast />
+    <ShellToastHost />
   </div>
 </template>

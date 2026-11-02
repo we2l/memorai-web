@@ -149,10 +149,15 @@ test.describe('Configurações de estudo', () => {
     await page.goto('/configuracoes')
     await page.waitForLoadState('networkidle')
 
-    await expect(page.getByText('Tema')).toBeVisible()
-    // Botões Escuro e Claro existem
-    await expect(page.getByRole('button', { name: 'Escuro', exact: true })).toBeVisible()
-    await expect(page.getByRole('button', { name: /Claro/i })).toBeVisible()
+    await expect(page.getByText('Tema', { exact: true })).toBeVisible()
+    // Sistema, Claro e Escuro (prd-ds-v3-fundacao RF-1.4); a escolha vira o tema da página
+    await expect(page.getByRole('button', { name: 'Sistema', exact: true })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Claro', exact: true })).toBeVisible()
+    await page.getByRole('button', { name: 'Escuro', exact: true }).click()
+    await expect(page.locator('html')).toHaveClass(/\bdark\b/)
+    await expect(page.getByRole('button', { name: 'Escuro', exact: true })).toHaveAttribute('aria-pressed', 'true')
+    await page.getByRole('button', { name: 'Claro', exact: true }).click()
+    await expect(page.locator('html')).not.toHaveClass(/\bdark\b/)
   })
 
   test('configuração de sessão de estudo visível', async ({ page }) => {

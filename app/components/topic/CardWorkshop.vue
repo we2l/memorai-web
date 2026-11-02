@@ -200,6 +200,6 @@ function confirmEdit(index: number) {
 }
 
 :root.dark .card-item:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--elev-raised);
 }
 </style>

@@ -12,7 +12,7 @@
           <span :class="!isYearly ? 'text-base-primary font-medium' : 'text-base-muted'" class="text-small">Mensal</span>
           <button
             class="relative w-12 h-6 rounded-full transition-colors"
-            :class="isYearly ? 'bg-accent-primary' : 'bg-[var(--border-divider)]'"
+            :class="isYearly ? 'bg-action' : 'bg-[var(--border-divider)]'"
             aria-label="Alternar entre plano mensal e anual"
             @click="isYearly = !isYearly"
           >
@@ -63,7 +63,7 @@
         <!-- Pro -->
         <div class="card-warm p-6 flex flex-col">
           <div class="mb-4">
-            <span class="inline-block bg-accent-primary text-accent-primary-text text-micro font-semibold px-3 py-0.5 rounded-full">
+            <span class="inline-block bg-action text-accent-primary-text text-micro font-semibold px-3 py-0.5 rounded-full">
               Recomendado
             </span>
           </div>

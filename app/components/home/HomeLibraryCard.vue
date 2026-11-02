@@ -48,23 +48,14 @@ const badgeClass = computed(() => `card__badge--${state.value.variant}`)
   border-radius: 12px;
   overflow: hidden;
   transition: all 180ms ease-out;
-  box-shadow: 0 1px 3px rgba(111, 63, 245, 0.03);
-}
-.dark .card {
-  background: var(--bg-card);
-  border-color: var(--border-base);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--elev-card);
 }
 .card:hover {
   border-color: color-mix(in srgb, var(--nb-color) 35%, var(--border-hover));
   box-shadow:
     0 4px 12px color-mix(in srgb, var(--nb-color) 8%, transparent),
-    0 1px 3px rgba(0, 0, 0, 0.03);
+    var(--elev-card);
   transform: translateY(-2px);
-}
-.dark .card:hover {
-  border-color: color-mix(in srgb, var(--nb-color) 30%, var(--border-base));
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .card__bar {

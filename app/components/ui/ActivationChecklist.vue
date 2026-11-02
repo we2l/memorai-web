@@ -13,7 +13,7 @@
       >
         <span
           class="w-5 h-5 rounded-full flex items-center justify-center text-micro shrink-0"
-          :class="item.done ? 'bg-[var(--color-accent-primary)] text-[var(--color-accent-primary-text)]' : 'border-2 border-base'"
+          :class="item.done ? 'bg-action text-[var(--color-accent-primary-text)]' : 'border-2 border-base'"
         >
           <span v-if="item.done">✓</span>
         </span>

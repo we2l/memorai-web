@@ -61,7 +61,7 @@
               <RotateCcw :size="22" />
             </button>
             <button
-              class="w-14 h-14 rounded-full bg-accent-primary flex items-center justify-center"
+              class="w-14 h-14 rounded-full bg-action flex items-center justify-center"
               :aria-label="player.isPlaying ? 'Pausar' : 'Reproduzir'"
               @click="player.togglePlay()"
             >
@@ -137,7 +137,7 @@
                 v-for="(card, idx) in linkedCards"
                 :key="card.id"
                 class="w-2 h-2 rounded-full transition-all"
-                :class="idx === activeCardIndex ? 'bg-accent-primary scale-125' : idx < activeCardIndex ? 'bg-accent-primary/40' : 'bg-[var(--border-divider)]'"
+                :class="idx === activeCardIndex ? 'bg-action scale-125' : idx < activeCardIndex ? 'bg-action/40' : 'bg-[var(--border-divider)]'"
               />
             </div>
           </div>

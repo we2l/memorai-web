@@ -1,33 +1,15 @@
 {
   "$comment": "Catraca do design system (ADR-027 §8, prd-ds-v3-fundacao RF-0.2): contagem por regra e por arquivo. O CI reprova se algum arquivo subir. Para travar uma queda: node scripts/check-tokens.mjs --update e node scripts/check-ds.mjs --update (este depois do build). Subir um número exige justificativa no PR.",
   "hex": {
-    "app/assets/css/main.css": 3,
     "app/components/chat/ChatDrawer.vue": 2,
-    "app/components/home/HomeHero.vue": 51,
     "app/components/ui/Confetti.vue": 6,
     "app/composables/useGraph.ts": 4,
     "app/composables/useMindMap.ts": 10,
     "app/utils/colors.ts": 9
   },
   "color-fn": {
-    "app/assets/css/main.css": 6,
     "app/components/chat/ChatDrawer.vue": 2,
-    "app/components/flashcard/Card.vue": 4,
-    "app/components/flashcard/CardFormModal.vue": 1,
-    "app/components/home/HomeHero.vue": 25,
-    "app/components/home/HomeLibraryCard.vue": 4,
-    "app/components/podcast/Miniplayer.vue": 1,
-    "app/components/topic/CardWorkshop.vue": 1,
-    "app/components/topic/HubNotesTab.vue": 6,
-    "app/components/topic/NoteEditor.vue": 7,
-    "app/components/topic/PdfViewer.vue": 1,
-    "app/components/topic/StartCard.vue": 5,
-    "app/components/topic/SubpageBlockView.vue": 1,
-    "app/components/ui/CommandPalette.vue": 3,
-    "app/components/ui/DiveMode.vue": 11,
-    "app/components/ui/QuickCaptureModal.vue": 1,
-    "app/pages/provas/index.vue": 7,
-    "app/pages/revisar.vue": 4
+    "app/components/podcast/Miniplayer.vue": 1
   },
   "palette": {
     "app/components/chat/ChatFab.vue": 1,
@@ -41,5 +23,6 @@
     "app/pages/planos.vue": 1
   },
   "ghost-var": {},
-  "ghost-class": {}
+  "ghost-class": {},
+  "token-name": {}
 }

@@ -92,7 +92,7 @@
             <div
               class="max-w-[85%] rounded-2xl px-3.5 py-2.5 text-small"
               :class="msg.role === 'user'
-                ? 'bg-accent-primary text-accent-primary-text rounded-br-md'
+                ? 'bg-action text-accent-primary-text rounded-br-md'
                 : 'bg-[var(--border-divider)] text-base-primary rounded-bl-md prose-chat'"
               v-html="msg.role === 'assistant' ? sanitize(marked.parse(msg.content) as string) : sanitize(msg.content)"
             />
@@ -103,7 +103,7 @@
             <button
               v-for="chip in followUpChips"
               :key="chip"
-              class="px-3 py-2 rounded-full text-small bg-accent-primary-subtle text-accent-primary hover:bg-accent-primary hover:text-accent-primary-text transition-colors"
+              class="px-3 py-2 rounded-full text-small bg-accent-primary-subtle text-accent-primary hover:bg-action hover:text-accent-primary-text transition-colors"
               @click="sendChip(chip)"
             >
               {{ chip }}

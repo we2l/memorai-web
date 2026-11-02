@@ -153,7 +153,7 @@ const calendarDays = computed(() => {
 <template>
   <div class="max-w-[1100px] mx-auto px-4 py-6 pb-20 lg:pb-6 space-y-8">
     <!-- Calendar Card -->
-    <section class="rounded-[24px] border border-[var(--border-base)] overflow-hidden" style="background: var(--bg-card); box-shadow: 0 8px 24px rgba(45, 35, 66, 0.08)">
+    <section class="rounded-[24px] border border-[var(--border-base)] overflow-hidden" style="background: var(--bg-card); box-shadow: var(--elev-card)">
       <!-- Header -->
       <div class="p-6 flex justify-between items-center" style="border-bottom: 1px solid var(--border-base)">
         <div class="flex items-center gap-5">
@@ -168,7 +168,7 @@ const calendarDays = computed(() => {
           </div>
           <button class="px-4 py-1.5 rounded-lg font-semibold text-sm transition-colors" style="border: 1px solid var(--border-base); color: var(--badge-primary-text)" @click="goToday">Hoje</button>
         </div>
-        <button class="flex items-center gap-2 px-5 py-2.5 rounded-[14px] font-semibold text-sm transition-all" style="background: var(--color-accent-primary); color: var(--color-accent-primary-text); box-shadow: 0 4px 12px rgba(111,63,245,0.25)" @click="showCreateModal = true">
+        <button class="flex items-center gap-2 px-5 py-2.5 rounded-[14px] font-semibold text-sm transition-all" style="background: var(--action); color: var(--on-action); box-shadow: 0 3px 0 var(--action-press)" @click="showCreateModal = true">
           <Plus class="w-4 h-4" /> Nova prova
         </button>
       </div>
@@ -195,7 +195,7 @@ const calendarDays = computed(() => {
           <span
             v-if="cell.isToday"
             class="inline-flex items-center justify-center w-8 h-8 rounded-full font-semibold text-sm"
-            style="background: var(--color-accent-primary); color: var(--color-accent-primary-text)"
+            style="background: var(--action); color: var(--on-action)"
           >{{ cell.day }}</span>
           <span v-else :style="{ color: cell.isCurrentMonth ? 'var(--text-heading)' : 'var(--text-muted)' }">{{ cell.day }}</span>
 
@@ -247,12 +247,12 @@ const calendarDays = computed(() => {
         <div class="p-1 rounded-xl flex gap-1" style="background: var(--bg-soft)">
           <button
             class="px-5 py-2 rounded-lg font-semibold text-sm transition-colors"
-            :style="activeTab === 'upcoming' ? 'background: var(--bg-card); color: var(--badge-primary-text); box-shadow: 0 1px 3px rgba(0,0,0,0.08)' : 'color: var(--text-muted)'"
+            :style="activeTab === 'upcoming' ? 'background: var(--bg-card); color: var(--badge-primary-text); box-shadow: var(--elev-card)' : 'color: var(--text-muted)'"
             @click="activeTab = 'upcoming'"
           >Próximas</button>
           <button
             class="px-5 py-2 rounded-lg font-semibold text-sm transition-colors"
-            :style="activeTab === 'past' ? 'background: var(--bg-card); color: var(--badge-primary-text); box-shadow: 0 1px 3px rgba(0,0,0,0.08)' : 'color: var(--text-muted)'"
+            :style="activeTab === 'past' ? 'background: var(--bg-card); color: var(--badge-primary-text); box-shadow: var(--elev-card)' : 'color: var(--text-muted)'"
             @click="activeTab = 'past'"
           >Passadas</button>
         </div>
@@ -264,13 +264,13 @@ const calendarDays = computed(() => {
       </div>
 
       <!-- Empty -->
-      <div v-else-if="filteredExams.length === 0" class="rounded-[24px] p-10 text-center" style="background: var(--bg-card); border: 1px solid var(--border-base); box-shadow: 0 8px 24px rgba(45, 35, 66, 0.08)">
+      <div v-else-if="filteredExams.length === 0" class="rounded-[24px] p-10 text-center" style="background: var(--bg-card); border: 1px solid var(--border-base); box-shadow: var(--elev-card)">
         <div class="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center" style="background: var(--badge-primary-bg)">
           <svg class="w-7 h-7" style="color: var(--badge-primary-text)" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
         </div>
         <h3 class="font-bold text-lg mb-1" style="color: var(--text-heading)">Nenhuma prova agendada</h3>
         <p class="text-sm mb-5" style="color: var(--text-muted)">Agende suas provas e o algoritmo prioriza o que estudar primeiro.</p>
-        <button class="inline-flex items-center gap-2 px-5 py-2.5 rounded-[14px] font-semibold text-sm" style="background: var(--color-accent-primary); color: var(--color-accent-primary-text); box-shadow: 0 4px 12px rgba(111,63,245,0.25)" @click="showCreateModal = true">
+        <button class="inline-flex items-center gap-2 px-5 py-2.5 rounded-[14px] font-semibold text-sm" style="background: var(--action); color: var(--on-action); box-shadow: 0 3px 0 var(--action-press)" @click="showCreateModal = true">
           <Plus class="w-4 h-4" /> Agendar primeira prova
         </button>
       </div>
@@ -281,7 +281,7 @@ const calendarDays = computed(() => {
           v-for="exam in filteredExams"
           :key="exam.id"
           class="rounded-[24px] p-6 relative group transition-all"
-          style="background: var(--bg-card); border: 1px solid var(--border-base); box-shadow: 0 8px 24px rgba(45, 35, 66, 0.08)"
+          style="background: var(--bg-card); border: 1px solid var(--border-base); box-shadow: var(--elev-card)"
         >
           <div class="flex justify-between items-start mb-3">
             <h3 class="font-bold text-lg pr-2" style="color: var(--text-heading)">{{ exam.title }}</h3>
@@ -304,7 +304,7 @@ const calendarDays = computed(() => {
             </div>
           </div>
 
-          <p class="text-sm mb-3" style="color: var(--text-body)">Cadernos: {{ exam.topics?.map(t => t.name).join(', ') || '—' }}</p>
+          <p class="text-sm mb-3" style="color: var(--fg)">Cadernos: {{ exam.topics?.map(t => t.name).join(', ') || '—' }}</p>
 
           <!-- Status badges -->
           <div class="flex flex-wrap gap-1.5 mb-4">

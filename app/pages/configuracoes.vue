@@ -90,7 +90,7 @@
             <div v-if="data.limit !== null" class="h-2 rounded-full bg-[var(--border-divider)] overflow-hidden">
               <div
                 class="h-2 rounded-full transition-all"
-                :class="data.remaining === 0 ? 'bg-danger' : 'bg-accent-primary'"
+                :class="data.remaining === 0 ? 'bg-danger' : 'bg-action'"
                 :style="{ width: Math.min(100, (data.used / Math.max(1, data.limit)) * 100) + '%' }"
               />
             </div>
@@ -106,27 +106,21 @@
     <!-- Aparência -->
     <section id="aparencia" class="card p-5 mb-6 scroll-mt-4">
       <h2 class="text-headline mb-4">Aparência</h2>
-      <div class="flex items-center justify-between">
+      <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
           <p class="text-base-primary">Tema</p>
-          <p class="text-micro text-base-muted">Escolha entre claro e escuro</p>
+          <p class="text-micro text-base-muted">Claro, escuro ou o mesmo do sistema</p>
         </div>
         <div class="flex gap-2">
           <button
+            v-for="option in themeOptions"
+            :key="option.value"
             class="px-4 py-2 rounded-lg text-small transition-colors"
-            :aria-pressed="colorMode === 'dark'"
-            :class="colorMode === 'dark' ? 'bg-accent-primary-subtle text-accent-primary' : 'bg-[var(--border-divider)] text-base-muted'"
-            @click="setMode('dark')"
+            :aria-pressed="preference === option.value"
+            :class="preference === option.value ? 'bg-accent-primary-subtle text-accent-primary' : 'bg-[var(--border-divider)] text-base-muted'"
+            @click="setMode(option.value)"
           >
-            <Moon :size="16" class="inline mr-1" /> Escuro
-          </button>
-          <button
-            class="px-4 py-2 rounded-lg text-small transition-colors"
-            :aria-pressed="colorMode === 'light'"
-            :class="colorMode === 'light' ? 'bg-accent-primary-subtle text-accent-primary' : 'bg-[var(--border-divider)] text-base-muted'"
-            @click="setMode('light')"
-          >
-            <Sun :size="16" class="inline mr-1" /> Claro
+            <component :is="option.icon" :size="16" class="inline mr-1" /> {{ option.label }}
           </button>
         </div>
       </div>
@@ -159,7 +153,7 @@
         </span>
         <span
           class="relative w-10 h-6 rounded-full transition-colors shrink-0"
-          :class="consent.analytics.value === true ? 'bg-[var(--color-accent-primary)]' : 'bg-[var(--border-hover)]'"
+          :class="consent.analytics.value === true ? 'bg-action' : 'bg-[var(--border-hover)]'"
           aria-hidden="true"
         >
           <span class="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all" :class="consent.analytics.value === true ? 'left-[18px]' : 'left-0.5'" />
@@ -268,8 +262,9 @@
 </template>
 
 <script setup lang="ts">
-import { Moon, Sun, LogOut, AlertTriangle, Lightbulb, Info } from 'lucide-vue-next'
+import { Moon, Sun, Monitor, LogOut, AlertTriangle, Lightbulb, Info } from 'lucide-vue-next'
 import type { UserSettings } from '~/types'
+import type { ColorModePreference } from '~/composables/useColorMode'
 
 const auth = useAuthStore()
 const subscription = useSubscriptionStore()
@@ -290,7 +285,12 @@ const planSummary = computed(() => {
 })
 const showRenew = computed(() => subscription.isAnnual && !!subscription.info?.can_renew_annual && !subscription.info?.monthly_scheduled)
 const showPortal = computed(() => !!subscription.info?.has_subscription)
-const { colorMode, set } = useColorMode()
+const { preference, set } = useColorMode()
+const themeOptions = [
+  { value: 'system', label: 'Sistema', icon: Monitor },
+  { value: 'light', label: 'Claro', icon: Sun },
+  { value: 'dark', label: 'Escuro', icon: Moon },
+] as const
 
 const settingsFeatureLabels: Record<string, string> = {
   cards_ai: 'Gerar cards',
@@ -399,7 +399,7 @@ async function saveSettings() {
   }
 }
 
-function setMode(mode: 'light' | 'dark') {
+function setMode(mode: ColorModePreference) {
   set(mode)
 }
 

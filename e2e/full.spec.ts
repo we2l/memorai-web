@@ -95,7 +95,7 @@ test.describe('Configurações (/configuracoes)', () => {
 
   test('exibe seção de aparência', async ({ page }) => {
     await expect(page.getByRole('heading', { name: 'Aparência' })).toBeVisible()
-    await expect(page.getByText('Tema')).toBeVisible()
+    await expect(page.getByText('Tema', { exact: true })).toBeVisible()
   })
 })
 

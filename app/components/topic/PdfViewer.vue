@@ -205,6 +205,6 @@ watch(open, (val) => {
   transform-origin: 0% 0%;
 }
 .textLayer span::selection {
-  background: rgba(217, 119, 6, 0.3);
+  background: color-mix(in srgb, var(--state-warning) 30%, transparent);
 }
 </style>

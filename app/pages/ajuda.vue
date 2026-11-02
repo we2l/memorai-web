@@ -53,7 +53,7 @@
                       >{{ key.trim() }}</kbd>
                     </span>
                   </td>
-                  <td class="px-5 py-3 text-[var(--text-body)]">{{ shortcut.description }}</td>
+                  <td class="px-5 py-3 text-[var(--fg)]">{{ shortcut.description }}</td>
                 </tr>
               </tbody>
             </table>
@@ -96,7 +96,7 @@
                   <td class="px-5 py-3">
                     <code class="px-2 py-0.5 text-xs bg-[var(--bg-soft)] text-[var(--badge-primary-text)] rounded">{{ cmd.command }}</code>
                   </td>
-                  <td class="px-5 py-3 text-[var(--text-body)]">{{ cmd.description }}</td>
+                  <td class="px-5 py-3 text-[var(--fg)]">{{ cmd.description }}</td>
                 </tr>
               </tbody>
             </table>
@@ -110,7 +110,7 @@
             Suporte
           </h2>
           <div class="card-base p-5">
-            <p class="text-[var(--text-body)] text-sm">
+            <p class="text-[var(--fg)] text-sm">
               Tem dúvidas ou sugestões? Fale com a gente:
             </p>
             <div class="mt-3 flex flex-wrap gap-3">

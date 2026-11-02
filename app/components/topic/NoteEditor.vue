@@ -479,7 +479,7 @@ onBeforeUnmount(() => {
 .prose-notion .tiptap {
   outline: none;
   line-height: 1.7;
-  color: var(--text-body);
+  color: var(--fg);
 }
 
 .prose-notion .tiptap > *:first-child {
@@ -569,22 +569,22 @@ onBeforeUnmount(() => {
 }
 
 .prose-notion .tiptap .callout[data-callout-type="error"] {
-  background: rgba(239, 68, 68, 0.08);
+  background: var(--state-danger-bg);
   border-left: 3px solid var(--color-danger);
 }
 
 .prose-notion .tiptap .callout[data-callout-type="insight"] {
-  background: rgba(34, 197, 94, 0.08);
+  background: var(--state-success-bg);
   border-left: 3px solid var(--color-success);
 }
 
 .prose-notion .tiptap .callout[data-callout-type="gotcha"] {
-  background: rgba(245, 158, 11, 0.08);
+  background: var(--state-warning-bg);
   border-left: 3px solid var(--color-warning);
 }
 
 .prose-notion .tiptap .callout[data-callout-type="info"] {
-  background: rgba(56, 189, 248, 0.06);
+  background: var(--state-info-bg);
   border-left: 3px solid var(--color-info);
 }
 
@@ -630,7 +630,7 @@ onBeforeUnmount(() => {
   background: var(--bg-card);
   border: 1px solid var(--border-base);
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(45, 35, 66, 0.12);
+  box-shadow: var(--elev-raised);
   animation: fadeIn 150ms ease;
 }
 
@@ -646,7 +646,7 @@ onBeforeUnmount(() => {
   width: 28px;
   height: 28px;
   border-radius: 6px;
-  color: var(--text-body);
+  color: var(--fg);
   transition: all 150ms;
 }
 
@@ -675,7 +675,7 @@ onBeforeUnmount(() => {
   border-radius: 6px;
   font-size: 0.75rem;
   font-weight: 500;
-  color: var(--text-body);
+  color: var(--fg);
   transition: all 150ms;
   white-space: nowrap;
 }
@@ -696,7 +696,7 @@ onBeforeUnmount(() => {
   background: var(--bg-card);
   border: 1px solid var(--border-base);
   border-radius: 14px;
-  box-shadow: 0 8px 24px rgba(45, 35, 66, 0.12);
+  box-shadow: var(--elev-float);
   padding: 6px;
   animation: fadeIn 150ms ease;
 }
@@ -731,7 +731,7 @@ onBeforeUnmount(() => {
   height: 36px;
   border-radius: 8px;
   background: var(--bg-soft);
-  color: var(--text-body);
+  color: var(--fg);
   flex-shrink: 0;
 }
 
@@ -770,7 +770,7 @@ onBeforeUnmount(() => {
 :root.dark .slash-menu {
   background: var(--bg-card);
   border-color: var(--border-base);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--elev-float);
 }
 
 :root.dark .slash-icon {
@@ -798,7 +798,7 @@ onBeforeUnmount(() => {
   border-radius: 4px;
   border: 1px solid var(--border-base);
   background: var(--bg-soft);
-  color: var(--text-body);
+  color: var(--fg);
   margin-right: 0.25rem;
 }
 </style>

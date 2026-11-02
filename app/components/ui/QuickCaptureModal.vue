@@ -2,7 +2,7 @@
   <Teleport to="body">
     <Transition name="fade">
       <div v-if="isOpen" ref="overlayRoot" role="dialog" aria-modal="true" aria-label="Anotação rápida" class="fixed inset-0 z-50 flex items-start justify-center pt-[20vh]" @click.self="close">
-        <div class="w-full max-w-lg mx-4 rounded-2xl bg-surface-secondary border border-base shadow-2xl" style="box-shadow: 0 16px 64px rgba(0,0,0,0.5);">
+        <div class="w-full max-w-lg mx-4 rounded-2xl bg-surface-secondary border border-base shadow-2xl" style="box-shadow: var(--elev-float);">
           <div class="p-5">
             <div class="flex items-center justify-between mb-3">
               <p class="text-body font-medium text-base-primary">Anotação rápida</p>

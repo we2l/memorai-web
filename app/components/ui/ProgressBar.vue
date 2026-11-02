@@ -14,9 +14,15 @@
         <span
           v-for="i in segments"
           :key="i"
-          class="flex-1 rounded-full transition-colors duration-respond"
-          :class="i <= filledSegments ? FILL[tone] : 'bg-progress-track'"
-        />
+          class="flex-1 overflow-hidden rounded-full bg-progress-track"
+        >
+          <span
+            v-if="segmentFill(i)"
+            class="block h-full rounded-full transition-all duration-respond ease-calm"
+            :class="FILL[tone]"
+            :style="segmentFill(i) < 100 ? { width: `${segmentFill(i)}%` } : undefined"
+          />
+        </span>
       </template>
       <span
         v-else
@@ -42,7 +48,7 @@ const props = withDefaults(defineProps<{
   tone?: 'action' | 'neutral' | 'celebrate'
   /** sm: 5 px; md: 8 px */
   size?: 'sm' | 'md'
-  /** Number of segments (lots of the day); value counts filled segments */
+  /** Number of segments (lots of the day); value counts filled segments, a fraction fills one partly */
   segments?: number
   /** Text read and shown with the bar; default "41%" or "1 de 3" with segments */
   valueText?: string
@@ -54,7 +60,12 @@ const FILL = { action: 'bg-action', neutral: 'bg-progress-neutral', celebrate: '
 
 const clamped = computed(() => Math.min(Math.max(props.value, 0), props.max))
 const percent = computed(() => (props.max > 0 ? Math.round((clamped.value / props.max) * 100) : 0))
-const filledSegments = computed(() => (props.segments ? Math.round((clamped.value / props.max) * props.segments) : 0))
+/** Filled share of segment i (0–100): whole segments, and the current one partly (the batch under way). */
+function segmentFill(i: number): number {
+  if (!props.segments) return 0
+  const filled = (clamped.value / props.max) * props.segments
+  return Math.round(Math.min(1, Math.max(0, filled - (i - 1))) * 100)
+}
 const valueText = computed(() => props.valueText
   ?? (props.segments ? `${clamped.value} de ${props.max}` : `${percent.value}%`))
 </script>

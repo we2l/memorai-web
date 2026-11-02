@@ -15,7 +15,7 @@
         />
       </template>
     </div>
-    <p class="text-section text-fg-strong">{{ title }}</p>
+    <component :is="level ? `h${level}` : 'p'" class="text-fg-strong outline-none" :class="level ? 'text-page-title-sm sm:text-page-title' : 'text-section'" :tabindex="level ? -1 : undefined" data-celebration-title>{{ title }}</component>
     <p class="mt-1 flex items-center gap-1.5 text-meta font-semibold" :class="KINDS[kind].text">
       <component :is="KINDS[kind].icon" class="size-4 fill-current" :class="KINDS[kind].shape" aria-hidden="true" />
       {{ subtitle ?? KINDS[kind].label }}
@@ -46,7 +46,9 @@ const props = withDefaults(defineProps<{
   subtitle?: string
   stats?: { value: string | number; label: string }[]
   mascot?: boolean
-}>(), { subtitle: undefined, stats: undefined, mascot: true })
+  /** The title as a heading of this level (a screen of its own: the end of a batch), focusable */
+  level?: 1 | 2
+}>(), { subtitle: undefined, stats: undefined, mascot: true, level: undefined })
 
 const KINDS: Record<CelebrationKind, { label: string; icon: typeof Star; shape: string; text: string; burst: string[] }> = {
   batch: { label: 'Lote concluído', icon: Sparkles, shape: 'text-celebrate', text: 'text-celebrate-fg', burst: ['bg-action', 'bg-celebrate'] },

@@ -1,52 +1,33 @@
 <template>
-  <Transition name="slide-up">
-    <div v-if="visible" class="w-full max-w-lg mx-auto">
-      <div class="bg-[var(--bg-card)] border border-base rounded-2xl p-5 sm:p-6">
-        <p class="text-sm text-base-primary font-medium mb-1">Por que você errou?</p>
-        <p class="text-xs text-base-muted mb-3">Selecione um motivo para salvar.</p>
+  <section v-if="visible" class="w-full rounded-card bg-raised p-5 shadow-card sm:p-6" aria-labelledby="diary-title" data-testid="error-diary">
+    <h2 id="diary-title" class="text-meta font-semibold text-fg-strong">Por que você errou?</h2>
+    <p class="mb-3 text-label text-fg-muted">Escolha um motivo para salvar.</p>
 
-        <div class="flex flex-wrap gap-2 mb-3">
-          <button
-            v-for="opt in reasons"
-            :key="opt.value"
-            type="button"
-            class="px-3 min-h-[36px] rounded-full text-xs font-medium transition-all"
-            :aria-pressed="selected === opt.value"
-            :class="selected === opt.value ? 'bg-accent-primary-subtle text-accent-primary border border-[var(--color-accent-primary)]/20' : 'bg-surface-secondary text-base-secondary border border-base hover:bg-surface-secondary'"
-            @click="selected = opt.value"
-          >
-            <component :is="opt.icon" :size="12" class="inline" aria-hidden="true" /> {{ opt.label }}
-          </button>
-        </div>
-
-        <label :for="`diary-note-${flashcardId}`" class="sr-only">O que te confundiu aqui?</label>
-        <textarea
-          :id="`diary-note-${flashcardId}`"
-          v-model="note"
-          class="textarea-base text-small"
-          rows="2"
-          placeholder="O que te confundiu aqui?"
-        />
-
-        <div class="flex flex-wrap items-center gap-2 justify-end mt-4">
-          <button type="button" class="mr-auto text-micro text-base-muted underline underline-offset-2 min-h-[44px]" @click="neverAsk">
-            Não perguntar mais
-          </button>
-          <!-- Skip is always available: the diary never blocks the review (RN-UX-04) -->
-          <button type="button" class="text-sm text-base-secondary hover:text-base-primary px-3 min-h-[44px] transition-colors" @click="skip">Pular</button>
-          <button
-            type="button"
-            class="btn-primary !py-1.5 !px-4 !min-h-[44px] text-sm"
-            :disabled="!selected || saving || !reviewId"
-            :aria-busy="!reviewId"
-            @click="save"
-          >
-            {{ !reviewId ? 'Salvando avaliação…' : saving ? 'Salvando...' : 'Salvar' }}
-          </button>
-        </div>
-      </div>
+    <div class="mb-3 flex flex-wrap gap-2" role="group" aria-label="Motivo do erro">
+      <button
+        v-for="opt in reasons"
+        :key="opt.value"
+        type="button"
+        class="inline-flex min-h-touch items-center gap-1.5 rounded-control border px-3 text-meta font-medium transition-colors duration-nav"
+        :aria-pressed="selected === opt.value"
+        :class="selected === opt.value ? 'border-action bg-action-subtle text-action-fg' : 'border-line-strong bg-raised text-fg hover:bg-subtle'"
+        @click="selected = opt.value"
+      >
+        <component :is="opt.icon" class="size-3.5" aria-hidden="true" /> {{ opt.label }}
+      </button>
     </div>
-  </Transition>
+
+    <UiTextarea v-model="note" label="O que te confundiu aqui?" hide-label :rows="2" placeholder="O que te confundiu aqui?" />
+
+    <div class="mt-4 flex flex-wrap items-center justify-end gap-2">
+      <UiButton size="sm" variant="ghost" class="mr-auto" @click="neverAsk">Não perguntar mais</UiButton>
+      <!-- Skip is always available: the diary never blocks the review (RN-UX-04) -->
+      <UiButton size="sm" variant="ghost" @click="skip">Pular</UiButton>
+      <UiButton size="sm" :disabled="!selected || !reviewId" :loading="saving" :aria-busy="!reviewId" @click="save">
+        {{ !reviewId ? 'Salvando avaliação…' : 'Salvar' }}
+      </UiButton>
+    </div>
+  </section>
 </template>
 
 <script setup lang="ts">
@@ -131,15 +112,3 @@ watch(() => props.visible, (val) => {
   if (val) reset()
 })
 </script>
-
-<style scoped>
-.slide-up-enter-active,
-.slide-up-leave-active {
-  transition: all 200ms ease-out;
-}
-.slide-up-enter-from,
-.slide-up-leave-to {
-  opacity: 0;
-  transform: translateY(12px);
-}
-</style>

@@ -62,7 +62,8 @@ function findKey(manifest, src) {
 // into it), the manifest loses the page key: resolve it from the router in the entry.
 function routeChunkKey(manifest, entryCode, route) {
   const escaped = route.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')
-  const match = entryCode.match(new RegExp(`path:"${escaped}",[^}]*?import\\("\\./([^"]+\\.js)"\\)`))
+  // Up to the import of this route's component, never past the next route (`meta:x||{}` has braces)
+  const match = entryCode.match(new RegExp(`path:"${escaped}",(?:(?!path:")[\\s\\S])*?import\\("\\./([^"]+\\.js)"\\)`))
   if (!match) return undefined
   return Object.keys(manifest).find(k => manifest[k].file === match[1])
 }

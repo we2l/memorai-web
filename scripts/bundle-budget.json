@@ -34,6 +34,11 @@
       "file": "pages/hoje.vue",
       "gzKb": 9.6,
       "closureGzKb": 23.4
+    },
+    "/revisar": {
+      "file": "pages/revisar.vue",
+      "gzKb": 16.6,
+      "closureGzKb": 47.6
     }
   },
   "entryLayoutForbidden": {

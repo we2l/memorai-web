@@ -90,6 +90,8 @@ export const useChatStore = defineStore('chat', {
         }
         if (this.currentContext.topicId) body.topic_id = this.currentContext.topicId
         if (this.currentContext.documentId) body.document_id = this.currentContext.documentId
+        // "Explicar este card" (prd-4d-revisao-v3 RF-B4): the server puts the card and its note in the context
+        if (this.currentContext.cardId) body.flashcard_id = this.currentContext.cardId
 
         const res = await $api<{ data: ChatResponse }>('/chat', {
           method: 'POST',

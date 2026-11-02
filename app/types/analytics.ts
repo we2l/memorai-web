@@ -16,7 +16,7 @@ export type ReminderSource = 'settings' | 'session_end' | 'onboarding'
 /** Navegação v3 (prd-navegacao-v3 RF-12) */
 export type NavItem = 'hoje' | 'cadernos' | 'praticar' | 'progresso'
 export type NavSurface = 'top' | 'bottom'
-export type AddOpenOrigin = 'topnav' | 'header' | 'shortcut' | 'search' | 'checklist' | 'scope'
+export type AddOpenOrigin = 'topnav' | 'header' | 'shortcut' | 'search' | 'checklist' | 'scope' | 'review'
 export type SearchOpenOrigin = 'shortcut' | 'topnav' | 'header'
 export type PracticeMode = 'review' | 'quiz' | 'listen'
 /** Which entry of the mode card on /praticar */
@@ -58,6 +58,14 @@ export interface FrontEventProps {
   panel_review: { count: number }
   library_filter: { filter: 'q' | 'state' | 'origin' | 'errors' | 'tag' | 'sort' | 'clear' }
   library_bulk: { action: 'review' | 'delete', count: number }
+  /** Revisão v3 (prd-4d-revisao-v3 RF-F12) */
+  review_batch_end: { batch_index: number, batches_total: number, remembered: number, size: number, scope_type: ReviewScopeType | null }
+  review_batch_continue: { batch_index: number }
+  review_batch_stop: { batch_index: number }
+  review_origin_open: { kind: 'quiz' | 'document' | 'note' }
+  review_explain_open: Record<string, never>
+  retention_suggestion: { action: 'apply' | 'dismiss' }
+  review_goal_met: { target_batches: number }
 }
 
 export type FrontEvent = keyof FrontEventProps

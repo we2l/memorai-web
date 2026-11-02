@@ -50,7 +50,7 @@ test.describe('Mobile — Revisão', () => {
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(2000)
 
-    const card = page.locator('.review-card')
+    const card = page.getByTestId('review-card')
     if (await card.count() > 0) {
       const box = await card.boundingBox()
       expect(box).not.toBeNull()
@@ -64,12 +64,12 @@ test.describe('Mobile — Revisão', () => {
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(2000)
 
-    const card = page.locator('.review-card')
+    const card = page.getByTestId('review-card')
     if (await card.count() > 0) {
       await card.click()
       await page.waitForTimeout(500)
 
-      const buttons = page.getByRole('button', { name: /^(Não lembrei|Quase|Lembrei|Fácil demais)/ })
+      const buttons = page.getByRole('button', { name: /^(De novo|Difícil|Bom|Fácil)/ })
       if (await buttons.count() > 0) {
         const firstBtn = buttons.first()
         await expect(firstBtn).toBeVisible()

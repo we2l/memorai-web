@@ -83,11 +83,11 @@ test.describe('Card — caminho feliz', () => {
 
     // Na revisão a resposta fica escondida até virar
     await gotoApp(page, `/revisar?topic_id=${topicId}`)
-    const card = page.locator('.review-card').first()
+    const card = page.getByTestId('review-card')
     await expect(card).toContainText('A capital do Brasil é')
     await expect(card).not.toContainText('Brasília')
     await page.keyboard.press('Space')
-    await expect(page.getByRole('button', { name: 'Verso do card' })).toContainText('Brasília')
+    await expect(page.getByTestId('review-answer')).toContainText('Brasília')
   })
 })
 
@@ -107,7 +107,7 @@ test.describe('Card — caminho triste', () => {
       // Evidência: o card salvo mostra a resposta na frente durante a revisão
       if (cards.length) {
         await gotoApp(page, `/revisar?topic_id=${topicId}`)
-        const shown = await page.locator('.review-card').first().innerText().catch(() => '')
+        const shown = await page.getByTestId('review-card').innerText().catch(() => '')
         test.info().annotations.push({ type: 'evidência', description: `card salvo: ${JSON.stringify(cards[0].front)} (type=${cards[0].type}); frente na revisão: ${JSON.stringify(shown)}` })
         console.log('[evidência cloze inválido] frente na revisão =', JSON.stringify(shown))
       }

@@ -71,13 +71,13 @@ test.describe('Mock: Sessão de revisão com cards', () => {
       await expect(cardText).toBeVisible()
 
       // Flip
-      await page.locator('.review-card').click()
+      await page.getByTestId('review-card').click()
       await page.waitForTimeout(500)
       await expect(page.getByText('Free Spaced Repetition Scheduler')).toBeVisible()
 
       // Rating
-      await expect(page.getByRole('button', { name: /^Lembrei/ })).toBeVisible()
-      await page.getByRole('button', { name: /^Lembrei/ }).click()
+      await expect(page.getByRole('button', { name: /^Bom/ })).toBeVisible()
+      await page.getByRole('button', { name: /^Bom/ }).click()
       await page.waitForTimeout(1000)
     } else {
       // Mock não interceptou (API real respondeu primeiro) — skip gracefully
@@ -372,7 +372,7 @@ test.describe('Revisão rápida (RF-F2.1–F2.4)', () => {
     await expect(page.getByText('Pergunta 2')).toBeVisible()
   })
 
-  test('sessão em páginas (has_more): cruza a página sem tela de fim e "restantes" conta a sessão inteira', async () => {
+  test('sessão em páginas (has_more): cruza a página sem tela de fim e o lote conta a sessão inteira', async () => {
     const sessionUrls: string[] = []
     await page.unroute('**/api/review/session*')
     // Page 1: 2 cards of a 4-card session; page 2 repeats card 2 (still unrated when it was asked)
@@ -388,18 +388,18 @@ test.describe('Revisão rápida (RF-F2.1–F2.4)', () => {
     })
     await page.goto('/revisar')
     await expect(page.getByText('Pergunta 1')).toBeVisible()
-    await expect(page.getByText('3 restantes')).toBeVisible()
+    await expect(page.getByTestId('review-batch')).toContainText('Lote 1 de 1 · card 1 de 4')
     for (const next of [2, 3, 4]) {
       await page.keyboard.press('Space')
       await page.keyboard.press('3')
       await expect(page.getByText(`Pergunta ${next}`)).toBeVisible()
     }
-    await expect(page.getByText('Último!')).toBeVisible()
+    await expect(page.getByTestId('review-batch')).toContainText('card 4 de 4')
     expect(sessionUrls).toHaveLength(2)
     expect(sessionUrls[1]).toBe(sessionUrls[0])
     await page.keyboard.press('Space')
     await page.keyboard.press('3')
-    await expect(page.getByRole('heading', { name: 'Missão de hoje concluída!' })).toBeVisible()
+    await expect(page.getByTestId('review-session-end')).toBeVisible()
   })
 
   test('erro 500 na sessão mostra "Tentar de novo" e nunca "Tudo em dia!"', async () => {
@@ -408,7 +408,7 @@ test.describe('Revisão rápida (RF-F2.1–F2.4)', () => {
     await page.route('**/api/review/session*', r => fail ? r.fulfill(json({ message: 'x' }, 500)) : r.fulfill(json({ data: [mkCard(1)], total: 1 })))
     await page.goto('/revisar')
     await expect(page.getByText('Não foi possível carregar sua revisão')).toBeVisible()
-    await expect(page.getByText('Tudo em dia!')).toHaveCount(0)
+    await expect(page.getByText('Tudo em dia')).toHaveCount(0)
     fail = false
     await page.getByRole('button', { name: 'Tentar de novo' }).click()
     await expect(page.getByText('Pergunta 1')).toBeVisible()

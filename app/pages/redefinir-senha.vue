@@ -1,78 +1,66 @@
 <template>
   <div>
     <div class="flex justify-center mb-4">
-      <UiLogo :icon-size="36" text-class="text-display text-base-primary" />
+      <UiLogo :icon-size="36" text-class="text-page-title-sm lg:text-page-title text-fg-strong" />
     </div>
-    <h1 class="text-base-primary text-lg font-semibold text-center mb-8">Criar nova senha</h1>
+    <h1 class="text-fg-strong text-body font-semibold text-center mb-8">Criar nova senha</h1>
 
-    <div v-if="!token || !email || tokenInvalid" role="alert" class="card p-5 text-center">
-      <p class="text-base-primary text-small mb-3">
+    <UiSection v-if="!token || !email || tokenInvalid" as="div" role="alert" class="text-center">
+      <p class="text-fg-strong text-meta mb-3">
         {{ tokenInvalid ? 'Link expirado ou já usado.' : 'Link inválido.' }}
       </p>
-      <NuxtLink to="/esqueci-senha" class="text-accent-primary text-small hover:underline">Pedir um novo link</NuxtLink>
-    </div>
+      <NuxtLink to="/esqueci-senha" class="text-action-fg text-meta hover:underline">Pedir um novo link</NuxtLink>
+    </UiSection>
 
     <form v-else class="flex flex-col gap-4" novalidate @submit.prevent="submit">
-      <div>
-        <label for="email" class="text-label mb-1 block">E-mail</label>
-        <input id="email" :value="email" type="email" autocomplete="username" class="input-base" readonly />
-      </div>
+      <UiInput id="email" :model-value="email" label="E-mail" type="email" autocomplete="username" readonly />
 
-      <div>
-        <label for="password" class="text-label mb-1 block">Nova senha</label>
-        <div class="relative">
-          <input
-            id="password"
-            v-model="password"
-            :type="showPassword ? 'text' : 'password'"
-            autocomplete="new-password"
-            minlength="8"
-            class="input-base pr-12"
-            :aria-invalid="!!errors.password"
-            :aria-describedby="errors.password ? 'password-error' : undefined"
-          />
-          <button
-            type="button"
-            class="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-base-muted hover:text-base-primary rounded-lg"
-            :aria-label="showPassword ? 'Ocultar senha' : 'Mostrar senha'"
-            :aria-pressed="showPassword"
+      <UiInput
+        id="password"
+        v-model="password"
+        label="Nova senha"
+        :type="showPassword ? 'text' : 'password'"
+        autocomplete="new-password"
+        minlength="8"
+        :error="errors.password"
+      >
+        <template #suffix>
+          <UiIconButton
+            :icon="showPassword ? EyeOff : Eye"
+            :label="showPassword ? 'Ocultar senha' : 'Mostrar senha'"
+            :pressed="showPassword"
+            size="sm"
+            class="-mr-2"
             @click="showPassword = !showPassword"
-          >
-            <svg v-if="!showPassword" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-            <svg v-else xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>
-          </button>
-        </div>
-        <p v-if="errors.password" id="password-error" role="alert" class="text-[var(--badge-danger-text)] text-micro mt-1">{{ errors.password }}</p>
-      </div>
+          />
+        </template>
+      </UiInput>
 
-      <div>
-        <label for="password_confirmation" class="text-label mb-1 block">Confirmar senha</label>
-        <input
-          id="password_confirmation"
-          v-model="passwordConfirmation"
-          :type="showPassword ? 'text' : 'password'"
-          autocomplete="new-password"
-          class="input-base"
-          :aria-invalid="!!errors.password_confirmation"
-          :aria-describedby="errors.password_confirmation ? 'confirmation-error' : undefined"
-        />
-        <p v-if="errors.password_confirmation" id="confirmation-error" role="alert" class="text-[var(--badge-danger-text)] text-micro mt-1">{{ errors.password_confirmation }}</p>
-      </div>
+      <UiInput
+        id="password_confirmation"
+        v-model="passwordConfirmation"
+        label="Confirmar senha"
+        :type="showPassword ? 'text' : 'password'"
+        autocomplete="new-password"
+        :error="errors.password_confirmation"
+      />
 
-      <button type="submit" class="btn-primary w-full mt-2" :disabled="loading">
+      <UiButton variant="primary" type="submit" block class="mt-2" :loading="loading">
         {{ loading ? 'Salvando...' : 'Redefinir senha' }}
-      </button>
+      </UiButton>
 
-      <p v-if="errors.general" role="alert" class="text-[var(--badge-danger-text)] text-small text-center">{{ errors.general }}</p>
+      <p v-if="errors.general" role="alert" class="text-danger text-meta text-center">{{ errors.general }}</p>
     </form>
 
-    <p class="text-small text-center mt-6">
-      <NuxtLink to="/entrar" class="text-accent-primary hover:underline">Voltar para entrar</NuxtLink>
+    <p class="text-meta text-center mt-6">
+      <NuxtLink to="/entrar" class="text-action-fg hover:underline">Voltar para entrar</NuxtLink>
     </p>
   </div>
 </template>
 
 <script setup lang="ts">
+import { Eye, EyeOff } from 'lucide-vue-next'
+
 definePageMeta({ layout: 'auth' })
 useHead({ title: 'Redefinir senha — BAIGI' })
 

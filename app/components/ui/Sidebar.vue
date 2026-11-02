@@ -1,11 +1,11 @@
 <template>
   <aside
-    class="hidden lg:flex flex-col bg-[var(--bg-card)] border-r border-base h-screen fixed left-0 top-0 transition-all duration-200 overflow-hidden"
+    class="hidden lg:flex flex-col bg-[var(--bg-card)] border-r border-line-strong h-screen fixed left-0 top-0 transition-all duration-200 overflow-hidden"
     :class="collapsed ? 'w-16' : 'w-[240px]'"
     :style="{ padding: collapsed ? '1.25rem 0.5rem' : '1.25rem' }"
   >
     <NuxtLink to="/hoje" class="mb-8" :class="collapsed ? 'flex justify-center' : ''">
-      <UiLogo v-if="!collapsed" :icon-size="28" text-class="text-xl font-semibold text-accent-primary" />
+      <UiLogo v-if="!collapsed" :icon-size="28" text-class="text-section font-semibold text-action-fg" />
       <UiLogo v-else :icon-size="24" :show-text="false" />
     </NuxtLink>
 
@@ -14,10 +14,10 @@
         v-for="item in items"
         :key="item.to"
         :to="item.to"
-        class="flex items-center rounded-xl text-small transition-all duration-150"
+        class="flex items-center rounded-xl text-meta transition-all duration-150"
         :class="[
           collapsed ? 'justify-center px-0 py-2.5' : 'gap-3 px-3 py-2.5',
-          isNavActive(route.path, item.to) ? 'bg-accent-primary-subtle text-[var(--badge-primary-text)] font-medium' + (collapsed ? '' : ' border-l-3 border-l-[var(--color-accent-soft)]') : 'text-base-secondary hover:text-[var(--badge-primary-text)] hover:bg-accent-primary-subtle',
+          isNavActive(route.path, item.to) ? 'bg-action-subtle text-action-fg font-medium' + (collapsed ? '' : 'border-l-3 border-l-[var(--color-accent-soft)]') : 'text-fg hover:text-action-fg hover:bg-action-subtle',
         ]"
         :aria-current="isNavActive(route.path, item.to) ? 'page' : undefined"
         :title="collapsed ? item.label : undefined"
@@ -29,12 +29,12 @@
       </NuxtLink>
     </nav>
 
-    <div class="border-t border-base pt-4 mt-4" :class="collapsed ? 'flex flex-col items-center gap-1' : ''">
+    <div class="border-t border-line-strong pt-4 mt-4" :class="collapsed ? 'flex flex-col items-center gap-1' : ''">
       <UiPlanBadge v-if="!collapsed" :plan="auth.user?.plan" />
       <button
         @click="toggleMode"
-        class="flex items-center rounded-xl text-small transition-all duration-150 w-full"
-        :class="collapsed ? 'justify-center px-0 py-2.5 text-base-muted hover:text-[var(--badge-primary-text)] hover:bg-accent-primary-subtle' : 'gap-3 px-3 py-2.5 text-base-muted hover:text-[var(--badge-primary-text)] hover:bg-accent-primary-subtle'"
+        class="flex items-center rounded-xl text-meta transition-all duration-150 w-full"
+        :class="collapsed ? 'justify-center px-0 py-2.5 text-fg-muted hover:text-action-fg hover:bg-action-subtle' : 'gap-3 px-3 py-2.5 text-fg-muted hover:text-action-fg hover:bg-action-subtle'"
         :title="collapsed ? (colorMode === 'light' ? 'Modo escuro' : 'Modo claro') : undefined"
         :aria-label="collapsed ? (colorMode === 'light' ? 'Modo escuro' : 'Modo claro') : undefined"
       >
@@ -46,7 +46,7 @@
         v-for="item in accountNavOrdered"
         :key="item.to"
         :to="item.to"
-        class="flex items-center rounded-xl text-small text-base-muted hover:text-[var(--badge-primary-text)] hover:bg-accent-primary-subtle transition-all duration-150"
+        class="flex items-center rounded-xl text-meta text-fg-muted hover:text-action-fg hover:bg-action-subtle transition-all duration-150"
         :class="collapsed ? 'justify-center px-0 py-2.5' : 'gap-3 px-3 py-2.5'"
         :title="collapsed ? item.label : undefined"
         :aria-label="collapsed ? item.label : undefined"
@@ -57,7 +57,7 @@
       </NuxtLink>
       <button
         @click="handleLogout"
-        class="flex items-center rounded-xl text-small text-[var(--badge-danger-text)] hover:bg-danger/5 transition-all duration-150 w-full mt-1"
+        class="flex items-center rounded-xl text-meta text-danger hover:bg-danger/5 transition-all duration-150 w-full mt-1"
         :class="collapsed ? 'justify-center px-0 py-2.5' : 'gap-3 px-3 py-2.5'"
         :title="collapsed ? 'Sair' : undefined"
         :aria-label="collapsed ? 'Sair' : undefined"

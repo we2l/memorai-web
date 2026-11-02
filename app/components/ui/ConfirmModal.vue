@@ -1,23 +1,16 @@
 <template>
   <UiModal v-model="open" size="sm" role="alertdialog">
-    <h2 class="text-headline mb-2 pr-10">{{ title }}</h2>
-    <p class="text-base-secondary text-small mb-4">{{ message }}</p>
+    <h2 class="text-section mb-2 pr-10">{{ title }}</h2>
+    <p class="text-fg text-meta mb-4">{{ message }}</p>
     <slot />
     <div v-if="requireText" class="mb-4">
-      <label :for="inputId" class="text-small text-base-secondary mb-1 block">
-        Digite <strong class="text-base-primary">{{ requireText }}</strong> para confirmar
-      </label>
-      <input :id="inputId" v-model="typed" type="text" class="input-base w-full" autocomplete="off" />
+      <UiInput :id="inputId" v-model="typed" :label="`Digite ${requireText} para confirmar`" autocomplete="off" />
     </div>
     <div class="flex gap-3 justify-end mt-2">
-      <button class="btn-secondary" @click="open = false">{{ cancelLabel }}</button>
-      <button
-        :class="variant === 'primary' ? 'btn-primary' : 'btn-danger'"
-        :disabled="loading || !textMatches"
-        @click="$emit('confirm')"
-      >
+      <UiButton variant="secondary" @click="open = false">{{ cancelLabel }}</UiButton>
+      <UiButton :variant="variant === 'primary' ? 'primary' : 'danger'" :loading="loading" :disabled="!textMatches" @click="$emit('confirm')">
         {{ loading ? loadingLabel : confirmLabel }}
-      </button>
+      </UiButton>
     </div>
   </UiModal>
 </template>

@@ -2,18 +2,20 @@
   <Teleport to="body">
     <Transition name="fade">
       <div v-if="isOpen" ref="overlayRoot" role="dialog" aria-modal="true" aria-label="Anotação rápida" class="fixed inset-0 z-50 flex items-start justify-center pt-[20vh]" @click.self="close">
-        <div class="w-full max-w-lg mx-4 rounded-2xl bg-surface-secondary border border-base shadow-2xl" style="box-shadow: var(--elev-float);">
+        <div class="w-full max-w-lg mx-4 rounded-2xl bg-subtle border border-line-strong shadow-2xl" style="box-shadow: var(--elev-float);">
           <div class="p-5">
             <div class="flex items-center justify-between mb-3">
-              <p class="text-body font-medium text-base-primary">Anotação rápida</p>
-              <button class="text-base-muted hover:text-base-primary p-1" aria-label="Fechar" @click="close">
+              <p class="text-body font-medium text-fg-strong">Anotação rápida</p>
+              <button class="text-fg-muted hover:text-fg-strong p-1" aria-label="Fechar" @click="close">
                 <X :size="18" aria-hidden="true" />
               </button>
             </div>
-            <textarea
+            <UiTextarea
               ref="inputRef"
               v-model="content"
-              class="textarea-base w-full min-h-[100px] resize-none"
+              label="Anotação"
+              hide-label
+              :rows="4"
               placeholder="Escreva uma ideia, conceito ou anotação..."
               @keydown.meta.enter="save"
               @keydown.ctrl.enter="save"
@@ -26,10 +28,10 @@
                 class="flex-1 sm:w-48 sm:flex-none"
               />
               <div class="flex items-center gap-2">
-                <span class="text-micro text-base-muted">Ctrl+Enter</span>
-                <button class="btn-primary !py-2 !px-4 !min-h-[2.75rem] text-small" :disabled="!content.trim() || !selectedTopicId || saving" @click="save">
+                <span class="text-label text-fg-muted">Ctrl+Enter</span>
+                <UiButton variant="primary" :loading="saving" :disabled="!content.trim() || !selectedTopicId" @click="save">
                   {{ saving ? 'Salvando...' : 'Salvar' }}
-                </button>
+                </UiButton>
               </div>
             </div>
           </div>
@@ -52,7 +54,7 @@ const toast = useToast()
 const content = ref('')
 const selectedTopicId = ref('')
 const saving = ref(false)
-const inputRef = ref<HTMLTextAreaElement>()
+const inputRef = ref<{ focus: () => void }>()
 const rootTopics = ref<Topic[]>([])
 const topicOptions = computed(() => rootTopics.value.map(t => ({ value: t.id, label: t.name })))
 async function fetchTopics() {

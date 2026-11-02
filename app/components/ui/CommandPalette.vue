@@ -37,14 +37,14 @@
           >
             <div class="bg-[var(--bg-card)] rounded-3xl shadow-float overflow-hidden border border-[var(--border-base)]">
               <!-- Input -->
-              <div class="flex items-center gap-3 px-5 py-4 border-b border-[var(--border-divider)]">
-                <Search :size="20" class="text-[var(--text-muted)] shrink-0" />
+              <div class="flex items-center gap-3 px-5 py-4 border-b border-line">
+                <Search :size="20" class="text-fg-muted shrink-0" />
                 <input
                   ref="inputRef"
                   v-model="query"
                   type="text"
                   placeholder="Buscar cadernos, notas, ações..."
-                  class="flex-1 bg-transparent text-[var(--text-heading)] text-base placeholder:text-[var(--text-muted)] outline-none"
+                  class="flex-1 bg-transparent text-fg-strong text-body placeholder:text-fg-muted outline-none"
                   @keydown.up.prevent="moveUp"
                   @keydown.down.prevent="moveDown"
                   @keydown.enter.prevent="executeSelected"
@@ -52,7 +52,7 @@
                 />
                 <kbd
                   v-if="!query"
-                  class="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium text-[var(--text-muted)] bg-[var(--bg-soft)] rounded-md border border-[var(--border-base)]"
+                  class="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium text-fg-muted bg-subtle rounded-control border border-[var(--border-base)]"
                 >
                   <span>{{ isMac ? '⌘' : 'Ctrl' }}</span><span>K</span>
                 </kbd>
@@ -66,7 +66,7 @@
               >
                 <template v-if="flatResults.length > 0">
                   <div v-for="group in results" :key="group.category" class="py-2">
-                    <p class="px-5 py-1.5 text-[11px] font-medium uppercase tracking-wider text-[var(--text-muted)]">
+                    <p class="px-5 py-1.5 text-[11px] font-medium uppercase tracking-wider text-fg-muted">
                       {{ group.label }}
                     </p>
                     <button
@@ -75,8 +75,8 @@
                       :ref="(el) => setItemRef(el, getGlobalIndex(group, item))"
                       class="w-full flex items-center gap-3 px-5 py-2.5 text-left transition-colors duration-75"
                       :class="getGlobalIndex(group, item) === selectedIndex
-                        ? 'bg-[var(--color-primary-50)] dark:bg-[var(--color-primary-50)]/10 border-l-3 border-l-[var(--color-primary-500)]'
-                        : 'hover:bg-[var(--bg-soft)] border-l-3 border-l-transparent'"
+                        ? 'bg-action-subtle dark:bg-action-subtle/10 border-l-3 border-l-action-fg'
+                        : 'hover:bg-subtle border-l-3 border-l-transparent'"
                       role="option"
                       :aria-selected="getGlobalIndex(group, item) === selectedIndex"
                       @click="executeItem(item)"
@@ -87,17 +87,17 @@
                         :size="18"
                         :stroke-width="1.5"
                         class="shrink-0"
-                        :class="getGlobalIndex(group, item) === selectedIndex ? 'text-[var(--color-primary-500)]' : 'text-[var(--text-muted)]'"
+                        :class="getGlobalIndex(group, item) === selectedIndex ? 'text-action-fg' : 'text-fg-muted'"
                       />
                       <span
                         class="flex-1 text-[15px] truncate"
-                        :class="getGlobalIndex(group, item) === selectedIndex ? 'text-[var(--color-primary-700)] dark:text-[var(--color-primary-300)] font-medium' : 'text-[var(--text-heading)]'"
+                        :class="getGlobalIndex(group, item) === selectedIndex ? 'text-action-fg dark:text-action-fg font-medium' : 'text-fg-strong'"
                       >
                         {{ item.label }}
                       </span>
                       <span
                         v-if="item.meta"
-                        class="text-[12px] text-[var(--text-muted)] bg-[var(--bg-soft)] px-1.5 py-0.5 rounded"
+                        class="text-[12px] text-fg-muted bg-subtle px-1.5 py-0.5 rounded"
                       >
                         {{ item.meta }}
                       </span>
@@ -107,19 +107,19 @@
 
                 <!-- Empty state -->
                 <div v-else-if="query" class="py-12 text-center">
-                  <p class="text-[var(--text-muted)] text-sm">Nenhum resultado para "<span class="text-[var(--fg)]">{{ query }}</span>"</p>
+                  <p class="text-fg-muted text-meta">Nenhum resultado para "<span class="text-fg">{{ query }}</span>"</p>
                 </div>
               </div>
 
               <!-- Footer hints -->
-              <div class="flex items-center gap-4 px-5 py-2.5 border-t border-[var(--border-divider)] bg-[var(--bg-soft)]">
-                <span class="text-[12px] text-[var(--text-muted)] flex items-center gap-1">
+              <div class="flex items-center gap-4 px-5 py-2.5 border-t border-line bg-subtle">
+                <span class="text-[12px] text-fg-muted flex items-center gap-1">
                   <kbd class="font-mono">↑↓</kbd> navegar
                 </span>
-                <span class="text-[12px] text-[var(--text-muted)] flex items-center gap-1">
+                <span class="text-[12px] text-fg-muted flex items-center gap-1">
                   <kbd class="font-mono">↵</kbd> abrir
                 </span>
-                <span class="text-[12px] text-[var(--text-muted)] flex items-center gap-1">
+                <span class="text-[12px] text-fg-muted flex items-center gap-1">
                   <kbd class="font-mono">esc</kbd> fechar
                 </span>
               </div>

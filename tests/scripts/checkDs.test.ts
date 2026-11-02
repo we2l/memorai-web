@@ -4,7 +4,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { cssClassNames, cssDeclaredVars, ghostFindings, namespacedRawTokens, runtimeVars, templateClassRefs, tokenNameFindings, varRefs } from '../../scripts/check-ds.mjs'
+import { componentFindings, cssClassNames, cssDeclaredVars, ghostFindings, isForbiddenArbitrary, multiPrimaryPages, namespacedRawTokens, runtimeVars, splitToken, templateClassRefs, tokenNameFindings, varRefs } from '../../scripts/check-ds.mjs'
 
 const SCRIPT = resolve(__dirname, '../../scripts/check-ds.mjs')
 const dirs: string[] = []
@@ -149,6 +149,69 @@ function fixture(files: Record<string, string>, baseline: object) {
   writeFileSync(join(root, 'scripts/ds-allowlist.json'), JSON.stringify({ entries: [] }))
   return spawnSync(process.execPath, [SCRIPT, '--root', root], { encoding: 'utf8' })
 }
+
+describe('check-ds: guardas de componente (RF-2.4)', () => {
+  const map = { vars: { '--bg-card': {}, '--text-muted': {} }, classes: { 'text-base-muted': {}, 'rounded-xl': {} }, components: {} }
+  const rules = (sources: Record<string, string>) => componentFindings(sources, map, noAllowlist).map(f => `${f.rule}:${f.file.split('/').pop()}:${f.match}`)
+
+  it('classes de componente só dentro de ui/; overlay, spin e switch só nos componentes donos', () => {
+    const page = `<template>
+      <button class="btn-primary">a</button><div class="card p-4" /><input class="input-base"><div class="skeleton h-4" />
+      <div class="fixed inset-0 z-50" /><span class="animate-spin" /><button role="switch" aria-checked="true" />
+    </template>`
+    expect(rules({ 'app/pages/x.vue': page }).sort()).toEqual([
+      'component-class:x.vue:btn-primary', 'component-class:x.vue:card', 'component-class:x.vue:input-base', 'component-class:x.vue:skeleton',
+      'overlay:x.vue:fixed inset-0', 'spin:x.vue:animate-spin', 'switch-role:x.vue:role="switch"', 'z-index:x.vue:z-50',
+    ])
+    expect(rules({
+      'app/components/ui/Dialog.vue': '<template><div class="fixed inset-0 z-overlay" /></template>',
+      'app/components/ui/Spinner.vue': '<template><i class="animate-spin" /></template>',
+      'app/components/ui/Switch.vue': '<template><button role="switch" /></template>',
+      'app/components/ui/Legacy.vue': '<template><div class="card z-50" /></template>',
+      'app/components/shell/Nav.vue': '<template><nav class="z-40" /></template>',
+    })).toEqual([])
+  })
+
+  it('arbitrários (inclusive var), importante, style com tamanho/cor e .dark em <style>', () => {
+    const src = `<template>
+      <div class="bg-[var(--surface-raised)] text-[13px] bg-(--x) !p-2 hover:mt-1! grid-cols-[1fr_auto] max-h-[80dvh] pb-[calc(1rem+var(--nav-h))] data-[on=true]:flex" />
+      <p style="color: red" /><p style="--x: 1" /><p :style="{ width: w }" />
+    </template>
+    <style scoped>.a { color: var(--fg) !important } .dark .a { color: x }</style>`
+    expect(rules({ 'app/pages/y.vue': src }).sort()).toEqual([
+      'arbitrary:y.vue:bg-(--x)', 'arbitrary:y.vue:bg-[var(--surface-raised)]', 'arbitrary:y.vue:text-[13px]',
+      'dark-style:y.vue:.dark', 'important:y.vue:!important', 'important:y.vue:!p-2', 'important:y.vue:hover:mt-1!',
+      'inline-style:y.vue:style="color: red"',
+    ])
+  })
+
+  it('nomes v2 do ds-v3-map.json: classes e var(--v2), fora de comentários', () => {
+    const src = `<template><p class="text-base-muted md:rounded-xl text-fg" /><!-- text-base-muted --></template>
+      <script>const a = 'var(--bg-card)' // var(--text-muted)
+</script>`
+    expect(rules({ 'app/components/z/Z.vue': src }).sort()).toEqual([
+      'deprecated:Z.vue:--bg-card', 'deprecated:Z.vue:md:rounded-xl', 'deprecated:Z.vue:text-base-muted',
+    ])
+  })
+
+  it('splitToken e isForbiddenArbitrary', () => {
+    expect(splitToken('md:hover:!bg-x')).toEqual({ variants: 'md:hover:', base: 'bg-x', important: true })
+    expect(isForbiddenArbitrary('min-h-[44px]')).toBe(true)
+    expect(isForbiddenArbitrary('h-[100dvh]')).toBe(false)
+    expect(isForbiddenArbitrary('bottom-[calc(var(--bottomnav-h)+8px)]')).toBe(false)
+    expect(isForbiddenArbitrary('bg-raised')).toBe(false)
+  })
+
+  it('avisa (sem catraca) página com mais de um primário', () => {
+    const pages = multiPrimaryPages({
+      'app/pages/a.vue': '<UiButton variant="primary" /><UiButton variant="primary" />',
+      'app/pages/b.vue': '<UiButton variant="primary" /><!-- variant="primary" -->',
+      'app/components/c.vue': '<UiButton variant="primary" /><UiButton variant="primary" />',
+      'app/pages/_ds.vue': '<UiButton variant="primary" /><UiButton variant="primary" />',
+    })
+    expect(pages).toEqual([{ file: 'app/pages/a.vue', count: 2 }])
+  })
+})
 
 describe('check-ds: CLI', () => {
   const app = { 'app/a.vue': '<template><b class="flex ghost" /></template>\n' }

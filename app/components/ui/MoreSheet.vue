@@ -1,7 +1,7 @@
 <template>
   <UiModal v-model="open" variant="sheet" aria-label="Mais opções">
-    <div class="flex items-center justify-between gap-3 pr-12 pb-3 border-b border-base">
-      <p class="font-semibold text-base-primary truncate">{{ auth.user?.name || 'Sua conta' }}</p>
+    <div class="flex items-center justify-between gap-3 pr-12 pb-3 border-b border-line-strong">
+      <p class="font-semibold text-fg-strong truncate">{{ auth.user?.name || 'Sua conta' }}</p>
       <UiPlanBadge :plan="auth.user?.plan" />
     </div>
 
@@ -11,7 +11,7 @@
           <NuxtLink
             :to="item.to"
             class="flex items-center gap-3 px-3 min-h-[48px] rounded-xl text-body transition-colors"
-            :class="isNavActive(route.path, item.to) ? 'bg-accent-primary-subtle text-[var(--badge-primary-text)] font-medium' : 'text-base-secondary hover:bg-[var(--border-divider)]'"
+            :class="isNavActive(route.path, item.to) ? 'bg-action-subtle text-action-fg font-medium' : 'text-fg hover:bg-line'"
             :aria-current="isNavActive(route.path, item.to) ? 'page' : undefined"
             @click="open = false"
           >
@@ -20,40 +20,24 @@
           </NuxtLink>
         </li>
         <li>
-          <button
-            type="button"
-            role="switch"
-            :aria-checked="colorMode === 'dark'"
-            class="w-full flex items-center gap-3 px-3 min-h-[48px] rounded-xl text-body text-base-secondary hover:bg-[var(--border-divider)]"
-            @click="toggleMode"
-          >
-            <Moon :size="20" :stroke-width="1.5" aria-hidden="true" />
-            <span class="flex-1 text-left">Modo escuro</span>
-            <span
-              class="relative w-10 h-6 rounded-full transition-colors"
-              :class="colorMode === 'dark' ? 'bg-action' : 'bg-[var(--border-hover)]'"
-              aria-hidden="true"
-            >
-              <span
-                class="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all"
-                :class="colorMode === 'dark' ? 'left-[18px]' : 'left-0.5'"
-              />
-            </span>
-          </button>
+          <div class="flex items-center gap-3 px-3">
+            <Moon :size="20" :stroke-width="1.5" class="shrink-0 text-fg" aria-hidden="true" />
+            <UiSwitch :model-value="colorMode === 'dark'" label="Modo escuro" class="flex-1" @update:model-value="toggleMode" />
+          </div>
         </li>
       </ul>
     </nav>
 
-    <div class="border-t border-base pt-2">
+    <div class="border-t border-line-strong pt-2">
       <button
         type="button"
-        class="w-full flex items-center gap-3 px-3 min-h-[48px] rounded-xl text-body text-[var(--badge-danger-text)] hover:bg-[var(--badge-danger-bg)]"
+        class="w-full flex items-center gap-3 px-3 min-h-[48px] rounded-xl text-body text-danger hover:bg-danger-subtle"
         @click="handleLogout"
       >
         <LogOut :size="20" :stroke-width="1.5" aria-hidden="true" />
         Sair
       </button>
-      <p class="flex gap-4 px-3 pt-3 text-micro text-base-muted">
+      <p class="flex gap-4 px-3 pt-3 text-label text-fg-muted">
         <NuxtLink to="/termos" class="underline min-h-[24px]" @click="open = false">Termos</NuxtLink>
         <NuxtLink to="/privacidade" class="underline min-h-[24px]" @click="open = false">Privacidade</NuxtLink>
       </p>

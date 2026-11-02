@@ -7,7 +7,7 @@
         :value="modelValue ?? ''"
         :disabled="disabled"
         :aria-invalid="field.invalid ? 'true' : undefined"
-        :aria-describedby="field.describedby"
+        :aria-describedby="[field.describedby, split.rest['aria-describedby']].filter(Boolean).join(' ') || undefined"
         class="min-h-touch w-full cursor-pointer appearance-none truncate rounded-control border py-2.5 pl-3 pr-10 text-body transition-colors duration-nav disabled:cursor-not-allowed"
         :class="[
           field.invalid ? 'border-danger' : 'border-line-input focus:border-focus',

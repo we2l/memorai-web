@@ -4,40 +4,21 @@
     <div v-else class="space-y-4">
       <p
         v-if="suppressed"
-        class="text-small text-[var(--badge-warning-text)] bg-[var(--badge-warning-bg)] rounded-lg px-3 py-2"
+        class="text-meta text-warning bg-warning-subtle rounded-control px-3 py-2"
         role="status"
         data-testid="reminder-suppressed"
       >
         Seu e-mail recusou nossas mensagens. Atualize o e-mail para reativar os lembretes.
       </p>
 
-      <button
-        type="button"
-        role="switch"
-        :aria-checked="enabled"
-        aria-describedby="reminder-help"
+      <UiSwitch
+        :model-value="enabled"
+        label="E-mails de estudo"
+        description="Um e-mail por dia, só quando houver cards para revisar e você ainda não tiver estudado. Horário de Brasília."
         :disabled="suppressed || pending"
-        class="w-full flex items-center gap-3 min-h-[2.75rem] text-left disabled:opacity-60 disabled:cursor-not-allowed"
         data-testid="reminder-switch"
-        @click="toggle"
-      >
-        <span class="flex-1">
-          <span class="block text-base-primary">E-mails de estudo</span>
-          <span id="reminder-help" class="block text-micro text-base-muted">
-            Um e-mail por dia, só quando houver cards para revisar e você ainda não tiver estudado. Horário de Brasília.
-          </span>
-        </span>
-        <span
-          class="relative w-10 h-6 rounded-full transition-colors shrink-0"
-          :class="enabled ? 'bg-action' : 'bg-[var(--border-hover)]'"
-          aria-hidden="true"
-        >
-          <span
-            class="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all"
-            :class="enabled ? 'left-[18px]' : 'left-0.5'"
-          />
-        </span>
-      </button>
+        @update:model-value="toggle"
+      />
 
       <div class="max-w-[12rem]">
         <label for="reminder-hour" class="text-label mb-1 block">Horário</label>

@@ -1,17 +1,17 @@
 <template>
   <UiModal v-model="open" size="sm" aria-label="Limite do plano">
     <div class="text-center py-4">
-      <div class="w-12 h-12 rounded-full bg-accent-primary-subtle flex items-center justify-center mx-auto mb-4">
-        <Zap :size="24" class="text-accent-primary" />
+      <div class="w-12 h-12 rounded-full bg-action-subtle flex items-center justify-center mx-auto mb-4">
+        <Zap :size="24" class="text-action-fg" />
       </div>
-      <h2 class="text-headline mb-2">{{ title }}</h2>
-      <p class="text-base-secondary text-small mb-6">{{ body }}</p>
+      <h2 class="text-section mb-2">{{ title }}</h2>
+      <p class="text-fg text-meta mb-6">{{ body }}</p>
       <div class="flex gap-3 justify-center">
         <template v-if="canUpgrade">
-          <button class="btn-secondary" @click="open = false">Depois</button>
-          <button class="btn-primary" @click="goToPlans">Ver planos</button>
+          <UiButton variant="secondary" @click="open = false">Depois</UiButton>
+          <UiButton variant="primary" @click="goToPlans">Ver planos</UiButton>
         </template>
-        <button v-else class="btn-primary" @click="open = false">Entendi</button>
+        <UiButton variant="primary" v-else @click="open = false">Entendi</UiButton>
       </div>
     </div>
   </UiModal>

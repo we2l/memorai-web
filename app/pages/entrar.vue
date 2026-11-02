@@ -1,15 +1,15 @@
 <template>
   <div>
     <div class="flex justify-center mb-4">
-      <UiLogo :icon-size="36" text-class="text-display text-base-primary" />
+      <UiLogo :icon-size="36" text-class="text-page-title-sm lg:text-page-title text-fg-strong" />
     </div>
-    <p class="text-base-muted text-center mb-1">Volte para o seu estudo</p>
-    <p class="text-micro text-base-muted text-center mb-10">Revise no tempo certo e pare de esquecer</p>
+    <p class="text-fg-muted text-center mb-1">Volte para o seu estudo</p>
+    <p class="text-label text-fg-muted text-center mb-10">Revise no tempo certo e pare de esquecer</p>
 
     <p
       v-if="notice"
       role="status"
-      class="text-small text-base-primary text-center rounded-xl px-4 py-3 mb-6 bg-[var(--badge-warning-bg)]"
+      class="text-meta text-fg-strong text-center rounded-control px-4 py-3 mb-6 bg-warning-subtle"
     >
       {{ notice }}
     </p>
@@ -17,65 +17,59 @@
     <!-- Google OAuth -->
     <button
       type="button"
-      class="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-base bg-surface-secondary hover:bg-[var(--border-divider)] transition-colors mb-8"
+      class="w-full flex items-center justify-center gap-3 px-4 py-3 min-h-touch rounded-control border border-line-strong bg-subtle hover:bg-line transition-colors mb-8"
       :disabled="googleLoading"
       @click="loginWithGoogle"
     >
       <svg class="w-5 h-5" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-      <span class="text-base-primary text-small font-medium">{{ googleLoading ? 'Redirecionando...' : 'Entrar com Google (1 clique)' }}</span>
+      <span class="text-fg-strong text-meta font-medium">{{ googleLoading ? 'Redirecionando...' : 'Entrar com Google (1 clique)' }}</span>
     </button>
-    <p class="text-micro text-base-muted text-center -mt-6 mb-8">
+    <p class="text-label text-fg-muted text-center -mt-6 mb-8">
       Ao continuar você aceita os <NuxtLink to="/termos" class="underline">Termos</NuxtLink> e a <NuxtLink to="/privacidade" class="underline">Privacidade</NuxtLink>.
     </p>
 
     <div class="flex items-center gap-3 mb-6">
-      <div class="flex-1 h-px bg-[var(--border-base)]" />
-      <span class="text-micro text-base-muted">ou entre com e-mail</span>
-      <div class="flex-1 h-px bg-[var(--border-base)]" />
+      <div class="flex-1 h-px bg-line" />
+      <span class="text-label text-fg-muted">ou entre com e-mail</span>
+      <div class="flex-1 h-px bg-line" />
     </div>
 
     <form @submit.prevent="handleLogin" class="flex flex-col gap-4">
-      <div>
-        <label for="email" class="text-label mb-1 block">E-mail</label>
-        <input
-          id="email"
-          v-model="form.email"
-          type="email"
-          placeholder="seu@email.com"
-          class="input-base"
-          :aria-invalid="!!errors.email"
-          :aria-describedby="errors.email ? 'email-error' : undefined"
-        />
-        <p v-if="errors.email" id="email-error" role="alert" class="text-[var(--badge-danger-text)] text-micro mt-1">{{ errors.email }}</p>
-      </div>
+      <UiInput
+        id="email"
+        v-model="form.email"
+        label="E-mail"
+        type="email"
+        autocomplete="email"
+        placeholder="seu@email.com"
+        :error="errors.email"
+      />
 
       <div>
-        <label for="password" class="text-label mb-1 block">Senha</label>
-        <input
+        <UiInput
           id="password"
           v-model="form.password"
+          label="Senha"
           type="password"
+          autocomplete="current-password"
           placeholder="••••••••"
-          class="input-base"
-          :aria-invalid="!!errors.password"
-          :aria-describedby="errors.password ? 'password-error' : undefined"
+          :error="errors.password"
         />
-        <p v-if="errors.password" id="password-error" role="alert" class="text-[var(--badge-danger-text)] text-micro mt-1">{{ errors.password }}</p>
         <div class="flex justify-end mt-2">
-          <NuxtLink to="/esqueci-senha" class="text-accent-primary text-micro hover:underline">Esqueci minha senha</NuxtLink>
+          <NuxtLink to="/esqueci-senha" class="text-action-fg text-label hover:underline">Esqueci minha senha</NuxtLink>
         </div>
       </div>
 
-      <button type="submit" class="btn-primary w-full mt-2" :disabled="loading">
+      <UiButton variant="primary" type="submit" block class="mt-2" :loading="loading">
         {{ loading ? 'Entrando...' : 'Entrar' }}
-      </button>
+      </UiButton>
 
-      <p v-if="errors.general" role="alert" class="text-[var(--badge-danger-text)] text-small text-center">{{ errors.general }}</p>
+      <p v-if="errors.general" role="alert" class="text-danger text-meta text-center">{{ errors.general }}</p>
     </form>
 
-    <p class="text-base-muted text-small text-center mt-6">
+    <p class="text-fg-muted text-meta text-center mt-6">
       Não tem conta?
-      <NuxtLink to="/criar-conta" class="text-accent-primary hover:underline">Criar conta</NuxtLink>
+      <NuxtLink to="/criar-conta" class="text-action-fg hover:underline">Criar conta</NuxtLink>
     </p>
   </div>
 </template>

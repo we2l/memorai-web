@@ -1,5 +1,5 @@
 <template>
-  <div v-if="!allDone" class="card">
+  <UiSection v-if="!allDone" as="div">
     <p class="text-label mb-3">Primeiros passos</p>
     <div class="space-y-0.5">
       <!-- Pending steps lead to the action (RF-F4); done ones are plain text -->
@@ -8,23 +8,23 @@
         v-for="item in items"
         :key="item.key"
         :to="item.done ? undefined : item.to"
-        class="flex items-center gap-2.5 min-h-[44px] -mx-2 px-2 rounded-lg"
-        :class="{ 'hover:bg-surface-secondary transition-colors': !item.done }"
+        class="flex items-center gap-2.5 min-h-touch -mx-2 px-2 rounded-control"
+        :class="{ 'hover:bg-subtle transition-colors': !item.done }"
       >
         <span
-          class="w-5 h-5 rounded-full flex items-center justify-center text-micro shrink-0"
-          :class="item.done ? 'bg-action text-[var(--color-accent-primary-text)]' : 'border-2 border-base'"
+          class="w-5 h-5 rounded-full flex items-center justify-center text-label shrink-0"
+          :class="item.done ? 'bg-action text-on-action' : 'border-2 border-line-strong'"
         >
           <span v-if="item.done">✓</span>
         </span>
-        <span class="text-small flex-1" :class="item.done ? 'text-base-muted line-through' : 'text-base-primary'">
+        <span class="text-meta flex-1" :class="item.done ? 'text-fg-muted line-through' : 'text-fg-strong'">
           {{ item.label }}
         </span>
-        <ChevronRight v-if="!item.done" :size="16" class="text-base-muted shrink-0" aria-hidden="true" />
+        <ChevronRight v-if="!item.done" :size="16" class="text-fg-muted shrink-0" aria-hidden="true" />
       </component>
     </div>
-    <p class="text-micro text-base-muted mt-3">{{ doneCount }}/{{ items.length }} concluídos</p>
-  </div>
+    <p class="text-label text-fg-muted mt-3">{{ doneCount }}/{{ items.length }} concluídos</p>
+  </UiSection>
 </template>
 
 <script setup lang="ts">

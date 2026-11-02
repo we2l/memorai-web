@@ -7,7 +7,7 @@
         type="checkbox"
         :checked="modelValue"
         :disabled="disabled"
-        :aria-describedby="description ? descriptionId : undefined"
+        :aria-describedby="describedBy"
         class="peer size-5 cursor-pointer appearance-none rounded-tag border border-line-input bg-raised transition-colors duration-nav checked:border-action checked:bg-action disabled:cursor-not-allowed"
         @change="emit('update:modelValue', ($event.target as HTMLInputElement).checked)"
       >
@@ -43,4 +43,6 @@ const inputId = computed(() => props.id ?? auto)
 const descriptionId = computed(() => `${inputId.value}-desc`)
 const attrs = useAttrs()
 const split = computed(() => splitFieldAttrs(attrs))
+// Own description plus one from outside (an error message under the box)
+const describedBy = computed(() => [props.description && descriptionId.value, attrs['aria-describedby']].filter(Boolean).join(' ') || undefined)
 </script>

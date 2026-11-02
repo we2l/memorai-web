@@ -1,5 +1,5 @@
 <template>
-  <div class="flex gap-6 border-b border-base" role="tablist">
+  <div class="flex gap-6 border-b border-line-strong" role="tablist">
     <button
       v-for="tab in tabs"
       :key="tab.key"
@@ -7,12 +7,12 @@
       :aria-selected="modelValue === tab.key"
       class="pb-2.5 text-body font-medium transition-colors border-b-2 -mb-px"
       :class="modelValue === tab.key
-        ? 'text-accent-primary border-accent-primary'
-        : 'text-base-muted border-transparent hover:text-base-secondary'"
+        ? 'text-action-fg border-action-fg'
+        : 'text-fg-muted border-transparent hover:text-fg'"
       @click="select(tab.key)"
     >
       {{ tab.label }}
-      <span v-if="tab.count !== undefined" class="text-small ml-1 opacity-70">({{ tab.count }})</span>
+      <span v-if="tab.count !== undefined" class="text-meta ml-1 opacity-70">({{ tab.count }})</span>
     </button>
   </div>
 </template>

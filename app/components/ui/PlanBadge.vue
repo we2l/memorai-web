@@ -1,12 +1,12 @@
 <template>
-  <NuxtLink to="/planos" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-[var(--border-divider)] transition-colors">
+  <NuxtLink to="/planos" class="flex items-center gap-2 px-3 py-2 rounded-control hover:bg-line transition-colors">
     <span
-      class="inline-block px-2.5 py-0.5 rounded-full text-micro font-semibold"
+      class="inline-block px-2.5 py-0.5 rounded-full text-label font-semibold"
       :class="badgeClass"
     >
       {{ label }}
     </span>
-    <span class="text-micro text-base-muted">{{ plan === 'free' ? 'Ver planos' : 'Meu plano' }}</span>
+    <span class="text-label text-fg-muted">{{ plan === 'free' ? 'Ver planos' : 'Meu plano' }}</span>
   </NuxtLink>
 </template>
 
@@ -24,7 +24,7 @@ const label = computed(() => {
 
 const badgeClass = computed(() => {
   const classes: Record<string, string> = {
-    free: 'bg-[var(--border-divider)] text-base-muted',
+    free: 'bg-[var(--line)] text-base-muted',
     pro: 'bg-accent-primary-subtle text-accent-primary',
   }
   return classes[props.plan] || classes.free

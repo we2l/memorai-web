@@ -16,7 +16,7 @@
         :type="type"
         :disabled="disabled"
         :aria-invalid="field.invalid ? 'true' : undefined"
-        :aria-describedby="field.describedby"
+        :aria-describedby="[field.describedby, split.rest['aria-describedby']].filter(Boolean).join(' ') || undefined"
         class="min-w-0 flex-1 bg-transparent py-2.5 text-body text-fg-strong outline-none placeholder:text-fg-muted disabled:cursor-not-allowed"
         @input="onInput"
       >

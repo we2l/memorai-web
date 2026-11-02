@@ -1,113 +1,60 @@
 <template>
   <div>
     <div class="flex justify-center mb-4">
-      <UiLogo :icon-size="36" text-class="text-display text-base-primary" />
+      <UiLogo :icon-size="36" text-class="text-page-title-sm lg:text-page-title text-fg-strong" />
     </div>
-    <p class="text-base-muted text-center mb-1">Comece a memorizar de verdade</p>
-    <p class="text-micro text-base-muted text-center mb-10">Leva menos de 1 minuto</p>
+    <p class="text-fg-muted text-center mb-1">Comece a memorizar de verdade</p>
+    <p class="text-label text-fg-muted text-center mb-10">Leva menos de 1 minuto</p>
 
     <!-- Google OAuth -->
     <button
       type="button"
-      class="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-base bg-surface-secondary hover:bg-[var(--border-divider)] transition-colors mb-8"
+      class="w-full flex items-center justify-center gap-3 px-4 py-3 min-h-touch rounded-control border border-line-strong bg-subtle hover:bg-line transition-colors mb-8"
       :disabled="googleLoading"
       @click="registerWithGoogle"
     >
       <svg class="w-5 h-5" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-      <span class="text-base-primary text-small font-medium">{{ googleLoading ? 'Redirecionando...' : 'Começar com Google (1 clique)' }}</span>
+      <span class="text-fg-strong text-meta font-medium">{{ googleLoading ? 'Redirecionando...' : 'Começar com Google (1 clique)' }}</span>
     </button>
-    <p class="text-micro text-base-muted text-center -mt-6 mb-8">
+    <p class="text-label text-fg-muted text-center -mt-6 mb-8">
       Ao continuar você aceita os <NuxtLink to="/termos" class="underline">Termos</NuxtLink> e a <NuxtLink to="/privacidade" class="underline">Privacidade</NuxtLink>.
     </p>
 
     <div class="flex items-center gap-3 mb-6">
-      <div class="flex-1 h-px bg-[var(--border-base)]" />
-      <span class="text-micro text-base-muted">ou entre com e-mail</span>
-      <div class="flex-1 h-px bg-[var(--border-base)]" />
+      <div class="flex-1 h-px bg-line" />
+      <span class="text-label text-fg-muted">ou entre com e-mail</span>
+      <div class="flex-1 h-px bg-line" />
     </div>
 
     <form @submit.prevent="handleRegister" class="flex flex-col gap-4">
-      <div>
-        <label for="name" class="text-label mb-1 block">Nome</label>
-        <input
-          id="name"
-          v-model="form.name"
-          type="text"
-          placeholder="Seu nome"
-          class="input-base"
-          :aria-invalid="!!errors.name"
-          :aria-describedby="errors.name ? 'name-error' : undefined"
-        />
-        <p v-if="errors.name" id="name-error" role="alert" class="text-[var(--badge-danger-text)] text-micro mt-1">{{ errors.name }}</p>
-      </div>
+      <UiInput id="name" v-model="form.name" label="Nome" autocomplete="name" placeholder="Seu nome" :error="errors.name" />
+      <UiInput id="email" v-model="form.email" label="E-mail" type="email" autocomplete="email" placeholder="seu@email.com" :error="errors.email" />
+      <UiInput id="password" v-model="form.password" label="Senha" type="password" autocomplete="new-password" placeholder="Mínimo 8 caracteres" :error="errors.password" />
+      <UiInput id="password_confirmation" v-model="form.password_confirmation" label="Confirmar senha" type="password" autocomplete="new-password" placeholder="Repita a senha" />
 
       <div>
-        <label for="email" class="text-label mb-1 block">E-mail</label>
-        <input
-          id="email"
-          v-model="form.email"
-          type="email"
-          placeholder="seu@email.com"
-          class="input-base"
-          :aria-invalid="!!errors.email"
-          :aria-describedby="errors.email ? 'email-error' : undefined"
-        />
-        <p v-if="errors.email" id="email-error" role="alert" class="text-[var(--badge-danger-text)] text-micro mt-1">{{ errors.email }}</p>
+        <UiCheckbox
+          id="accept_terms"
+          v-model="form.accept_terms"
+          :aria-invalid="errors.accept_terms ? 'true' : undefined"
+          :aria-describedby="errors.accept_terms ? 'accept-terms-error' : undefined"
+        >
+          Li e aceito os <NuxtLink to="/termos" target="_blank" class="text-action-fg underline">Termos de Uso</NuxtLink>
+          e a <NuxtLink to="/privacidade" target="_blank" class="text-action-fg underline">Política de Privacidade</NuxtLink>.
+        </UiCheckbox>
+        <p v-if="errors.accept_terms" id="accept-terms-error" role="alert" class="text-danger text-label">{{ errors.accept_terms }}</p>
       </div>
 
-      <div>
-        <label for="password" class="text-label mb-1 block">Senha</label>
-        <input
-          id="password"
-          v-model="form.password"
-          type="password"
-          placeholder="Mínimo 8 caracteres"
-          class="input-base"
-          :aria-invalid="!!errors.password"
-          :aria-describedby="errors.password ? 'password-error' : undefined"
-        />
-        <p v-if="errors.password" id="password-error" role="alert" class="text-[var(--badge-danger-text)] text-micro mt-1">{{ errors.password }}</p>
-      </div>
-
-      <div>
-        <label for="password_confirmation" class="text-label mb-1 block">Confirmar senha</label>
-        <input
-          id="password_confirmation"
-          v-model="form.password_confirmation"
-          type="password"
-          placeholder="Repita a senha"
-          class="input-base"
-        />
-      </div>
-
-      <div>
-        <label class="flex items-start gap-2 text-small text-base-secondary cursor-pointer">
-          <input
-            id="accept_terms"
-            v-model="form.accept_terms"
-            type="checkbox"
-            class="mt-1 w-4 h-4 shrink-0 accent-[var(--color-accent-primary)]"
-            :aria-invalid="!!errors.accept_terms"
-            :aria-describedby="errors.accept_terms ? 'accept-terms-error' : undefined"
-          />
-          <span>
-            Li e aceito os <NuxtLink to="/termos" target="_blank" class="text-accent-primary underline">Termos de Uso</NuxtLink>
-            e a <NuxtLink to="/privacidade" target="_blank" class="text-accent-primary underline">Política de Privacidade</NuxtLink>.
-          </span>
-        </label>
-        <p v-if="errors.accept_terms" id="accept-terms-error" role="alert" class="text-[var(--badge-danger-text)] text-micro mt-1">{{ errors.accept_terms }}</p>
-      </div>
-
-      <button type="submit" class="btn-primary w-full mt-2" :disabled="loading">
+      <UiButton variant="primary" type="submit" block class="mt-2" :loading="loading">
         {{ loading ? 'Criando...' : 'Criar conta' }}
-      </button>
+      </UiButton>
 
-      <p v-if="errors.general" role="alert" class="text-[var(--badge-danger-text)] text-small text-center">{{ errors.general }}</p>
+      <p v-if="errors.general" role="alert" class="text-danger text-meta text-center">{{ errors.general }}</p>
     </form>
 
-    <p class="text-base-muted text-small text-center mt-6">
+    <p class="text-fg-muted text-meta text-center mt-6">
       Já tem conta?
-      <NuxtLink to="/entrar" class="text-accent-primary hover:underline">Entrar</NuxtLink>
+      <NuxtLink to="/entrar" class="text-action-fg hover:underline">Entrar</NuxtLink>
     </p>
   </div>
 </template>

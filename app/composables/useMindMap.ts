@@ -78,7 +78,10 @@ export function useMindMap(
     })
 
     // markmap renders `content` as HTML: escape user/AI text, keep the original in payload.raw
-    await mm.setData(escapeTree(data))
+    const instance = mm
+    await instance.setData(escapeTree(data))
+    // Unmounted (or rendered again) while the data was being laid out: that instance is gone
+    if (mm !== instance) return
     mm.fit()
 
     // Add click listeners for nodes (Nível 2 actions)

@@ -113,16 +113,14 @@ test.describe.serial('Fluxo completo: Caderno → Card → Revisão', () => {
     await page.goto('/cadernos')
     await page.waitForLoadState('networkidle')
 
-    // ⋯ do cabeçalho do hub → Excluir → confirmar; a tela volta à lista e o DELETE sai na janela de 10 s
+    // ⋯ do cabeçalho do hub → Excluir → confirmar: vai para a lixeira na hora e a tela volta à lista
     await page.getByTestId('notebook-list').getByRole('link', { name: new RegExp(TEST_NOTEBOOK) }).click()
     await page.getByRole('button', { name: `Mais ações de ${TEST_NOTEBOOK}`, exact: true }).click()
     await page.getByRole('menuitem', { name: 'Excluir' }).click()
     const deleted = page.waitForRequest(r => r.method() === 'DELETE' && r.url().includes('/api/topics/'), { timeout: 20_000 })
-    await page.getByRole('alertdialog').getByRole('button', { name: 'Excluir' }).click()
-    await expect(page).toHaveURL(/\/cadernos$/)
-    // Navegação SPA (onBeforeRouteLeave → flushRemoves); page.goto recarregaria a página
-    await page.getByRole('navigation', { name: 'Navegação principal' }).getByRole('link', { name: 'Hoje' }).click()
+    await page.getByRole('alertdialog').getByRole('button', { name: 'Mandar para a lixeira' }).click()
     await deleted
+    await expect(page).toHaveURL(/\/cadernos$/)
   })
 })
 

@@ -234,11 +234,8 @@ test.describe('Caderno de exemplo', () => {
 
     await page.getByRole('button', { name: /Mais ações de Exemplo/ }).click()
     await page.getByRole('menuitem', { name: 'Apagar o exemplo' }).click()
-    const dialog = page.getByRole('alertdialog').or(page.getByRole('dialog'))
-    await expect(dialog.first()).toBeVisible()
-    const input = dialog.first().getByRole('textbox')
-    if (await input.count()) await input.fill('Exemplo · Inglês')
-    await dialog.first().getByRole('button', { name: /Excluir|Apagar/ }).last().click()
+    const dialog = page.getByRole('alertdialog')
+    await dialog.getByRole('button', { name: 'Mandar para a lixeira' }).click()
     await expect.poll(() => sql(`select count(*) from topics t join users u on u.id=t.user_id where u.email='${USERS.onbSample.email}' and t.deleted_at is null`), { timeout: 20_000 }).toBe('0')
   })
 })

@@ -19,6 +19,7 @@ const preview = {
   tags: ['biologia'],
   media_count: 0,
   note_types: { Basic: 2, Cloze: 1, Other: 0 },
+  mapping: { destination: { type: 'new' }, caderno: 'Test Deck', materias: [], cadernos: [{ name: 'Test Deck', cards: 3, materias: [] }], deep_paths: 0, tags: 1, cards: 3 },
 }
 
 async function mockImportFlow(page: Page, final: 'completed' | 'failed') {
@@ -29,7 +30,7 @@ async function mockImportFlow(page: Page, final: 'completed' | 'failed') {
     polls++
     if (polls < 2) return route.fulfill({ json: { data: { status: 'processing', current_step: 'importing_cards', total_cards: 3, imported_cards: 1, progress_percent: 33 } } })
     return route.fulfill({ json: { data: final === 'completed'
-      ? { status: 'completed', progress_percent: 100, stats: { decks_created: 1, cards_created: 3, topics_created: 1, media_extracted: 0 } }
+      ? { status: 'completed', progress_percent: 100, stats: { decks_created: 1, cards_created: 3, topics_created: 1, media_extracted: 0 }, root_topic_id: null, root_topic_ids: [] }
       : { status: 'failed', error: 'O arquivo tem um tipo de nota não suportado.' } } })
   })
 }
@@ -43,11 +44,11 @@ test.describe('Importar Anki — caminho feliz', () => {
     expect((await upload).status()).toBe(201)
     expect(Number(sql(`select count(*) from anki_imports a join users u on u.id=a.user_id where u.email='${USERS.free.email}'`))).toBeGreaterThan(0)
 
-    await expect(page.getByText('Preview da importação')).toBeVisible()
-    await expect(page.getByText('Test Deck')).toBeVisible()
+    await expect(page.getByText('Prévia da importação')).toBeVisible()
+    await expect(page.getByText('Caderno: Test Deck')).toBeVisible()
     await expect(page.getByText('Lacuna: 1')).toBeVisible()
-    await page.getByRole('button', { name: 'Confirmar importação' }).click()
-    await expect(page.getByText('Importando...')).toBeVisible()
+    await page.getByRole('button', { name: 'Importar 3 cards' }).click()
+    await expect(page.getByRole('heading', { name: 'Importando…' })).toBeVisible()
     await expect(page.getByRole('heading', { name: 'Importação concluída!' })).toBeVisible({ timeout: 10_000 })
     await page.getByRole('link', { name: 'Ver cadernos' }).click()
     await expect(page).toHaveURL(/\/cadernos/)
@@ -57,7 +58,7 @@ test.describe('Importar Anki — caminho feliz', () => {
     await mockImportFlow(page, 'completed')
     await gotoApp(page, '/importar')
     await fileInput(page).setInputFiles(APKG)
-    await expect(page.getByText('Preview da importação')).toBeVisible()
+    await expect(page.getByText('Prévia da importação')).toBeVisible()
     await page.getByRole('button', { name: 'Cancelar' }).click()
     await expect(page.getByText('Selecione seu arquivo .apkg')).toBeVisible()
   })
@@ -116,7 +117,7 @@ test.describe('Importar Anki — caminho triste', () => {
     await mockImportFlow(page, 'failed')
     await gotoApp(page, '/importar')
     await fileInput(page).setInputFiles(APKG)
-    await page.getByRole('button', { name: 'Confirmar importação' }).click()
+    await page.getByRole('button', { name: 'Importar 3 cards' }).click()
     await expect(page.getByRole('heading', { name: 'Erro na importação' })).toBeVisible({ timeout: 10_000 })
     await expect(page.getByText('O arquivo tem um tipo de nota não suportado.')).toBeVisible()
     await expect(page.getByRole('button', { name: 'Tentar novamente' })).toBeVisible()

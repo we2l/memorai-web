@@ -149,7 +149,7 @@ test.describe('Importar Anki (/importar)', () => {
   })
 
   test('exibe upload de arquivo .apkg', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: /Importar Anki/i })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /Importar do Anki/i })).toBeVisible()
     await expect(page.getByText('Selecionar arquivo')).toBeVisible()
     await expect(page.getByText(/arraste e solte/i)).toBeVisible()
   })

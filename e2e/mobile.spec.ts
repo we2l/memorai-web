@@ -111,7 +111,7 @@ test.describe('Mobile — Planos', () => {
     await page.goto('/planos')
     await page.waitForLoadState('networkidle')
 
-    await expect(page.getByRole('main').getByText('Grátis', { exact: true }).first()).toBeVisible()
+    await expect(page.getByRole('main').getByRole('heading', { name: 'Grátis' })).toBeVisible()
     await expect(page.getByRole('main').getByText('Seu plano').first()).toBeVisible()
   })
 })

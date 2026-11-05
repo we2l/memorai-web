@@ -7,7 +7,7 @@
 
       <!-- PDF → cards (RF-F5.2), now by the note it opened -->
       <p v-if="doc.auto_cards_status === 'pending' || doc.auto_cards_status === 'generating'" class="flex items-center gap-2 text-meta text-fg" aria-live="polite">
-        <UiSpinner size="sm" /> Resumo pronto · criando os cards…
+        <UiSpinner size="sm" /> Nota pronta · criando os cards das primeiras partes…
       </p>
       <p v-else-if="doc.auto_cards_status === 'skipped_quota'" class="flex flex-wrap items-center gap-x-2 text-meta text-fg">
         Sem gerações de cards este mês.
@@ -22,7 +22,7 @@
       <!-- The caderno changed its mode after the note was made -->
       <div v-if="modeChanged" class="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-row bg-warning-subtle px-3 py-2">
         <p class="min-w-0 flex-1 text-meta text-fg-strong">Esta nota foi criada com outro modo de estudo.</p>
-        <UiButton size="sm" :loading="regenerating" @click="regenerate">Gerar de novo</UiButton>
+        <UiButton size="sm" @click="$emit('regenerate')">Gerar de novo</UiButton>
       </div>
 
       <!-- Material in another language: study the language or only the concepts -->
@@ -42,7 +42,7 @@ import type { Document } from '~/types'
 import { TARGET_LANGUAGES } from '~/utils/learningModes'
 
 const props = defineProps<{ doc: Document; topicId: string; topicLearningMode?: string | null }>()
-const emit = defineEmits<{ (e: 'changed'): void }>()
+const emit = defineEmits<{ (e: 'changed'): void; (e: 'regenerate'): void }>()
 
 const { $api } = useNuxtApp()
 const { run } = useApiAction()
@@ -61,14 +61,6 @@ async function retryCards() {
   retrying.value = true
   const ok = await run(() => $api(`/documents/${props.doc.id}/generate-cards`, { method: 'POST' }), { error: 'Não foi possível criar os cards agora.' })
   retrying.value = false
-  if (ok !== undefined) emit('changed')
-}
-
-const regenerating = ref(false)
-async function regenerate() {
-  regenerating.value = true
-  const ok = await run(() => $api(`/documents/${props.doc.id}/regenerate-note`, { method: 'POST' }), { success: 'A nota está sendo gerada de novo com o modo atual.', error: 'Não foi possível gerar de novo.' })
-  regenerating.value = false
   if (ok !== undefined) emit('changed')
 }
 

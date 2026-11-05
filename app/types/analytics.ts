@@ -62,6 +62,8 @@ export interface FrontEventProps {
   selection_action: { action: 'card' | 'ai3' | 'ask' }
   pdf_page_open: { page: number | null }
   panel_review: { count: number }
+  /** Material em partes (prd-4c-material-v3 4c-2) */
+  part_nav: { direction: 'previous' | 'next', via: 'link' | 'key' }
   library_filter: { filter: 'q' | 'state' | 'origin' | 'errors' | 'tag' | 'sort' | 'clear' }
   library_bulk: { action: 'review' | 'delete', count: number }
   /** Revisão v3 (prd-4d-revisao-v3 RF-F12) */

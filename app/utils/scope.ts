@@ -110,3 +110,17 @@ export function consumeScopeCleared(topicId: string): boolean {
     return false
   }
 }
+
+/** 3 batches of the job make a part (PARTS_BATCHES on the API), unless it closes early at 60 thousand characters. */
+const PART_BATCHES = 3
+
+/**
+ * Progress of the PDF job while it writes (prd-4c-material-v3 4c-2), on the hub's line and on the material:
+ * "Escrevendo a parte 2 de 6 · lote 5 de 18", an estimate; the sumário shows the real parts as each one opens.
+ * A PDF of one part (up to 3 batches) has only the batches. `done` = batches already written.
+ */
+export function partProgressText(done: number, total: number): string {
+  const current = Math.min(total, Math.max(0, done) + 1)
+  if (total <= PART_BATCHES) return `Escrevendo a nota · lote ${current} de ${total}`
+  return `Escrevendo a parte ${Math.ceil(current / PART_BATCHES)} de ${Math.ceil(total / PART_BATCHES)} · lote ${current} de ${total}`
+}

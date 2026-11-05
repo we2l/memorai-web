@@ -10,7 +10,8 @@
             :to="cadernoPath(topicId, { note: part.note_id })"
             :active="part.note_id === currentNoteId"
             :title="`${part.index} · ${part.title}`"
-            :meta="partMeta(part)"
+            :meta="partMetaText(part)"
+            data-testid="outline-part"
           />
         </li>
       </ul>
@@ -37,12 +38,13 @@
 </template>
 
 <script setup lang="ts">
-// Sumário of the material (prd-4c-material-v3 RF-F3): the parts of the PDF (4c-1: a PDF is one part) with
-// their cards and mastery, the open one marked, and "Nesta parte", the H1–H3 of the open note (from the
+// Sumário of the material (prd-4c-material-v3 RF-F3, RF-F14): the parts of the PDF with their pages, cards and
+// mastery ("p. 1–30 · 31 cards · 62%"), the state of the ones being written, the open one marked, and "Nesta parte", the H1–H3 of the open note (from the
 // JSON already loaded; the heading on screen is marked while the reader scrolls). A manual note without
 // headings shows nothing here.
 import type { MaterialPart } from '~/types'
 import type { OutlineHeading } from '~/composables/useNoteOutline'
+import { partMetaText } from '~/utils/materialParts'
 
 defineProps<{
   parts: MaterialPart[]
@@ -56,11 +58,4 @@ defineEmits<{ (e: 'go', heading: OutlineHeading): void }>()
 
 const INDENT = { 1: 'pl-3', 2: 'pl-6', 3: 'pl-9' } as const
 
-function partMeta(part: MaterialPart): string {
-  if (part.status === 'generating' || part.status === 'processing') return 'gerando nota…'
-  if (part.status === 'failed') return 'não deu para ler esta parte'
-  const pages = part.page_start ? `p. ${part.page_start}${part.page_end && part.page_end !== part.page_start ? `–${part.page_end}` : ''} · ` : ''
-  if (!part.cards) return `${pages}sem cards ainda`
-  return `${pages}${part.cards} ${part.cards === 1 ? 'card' : 'cards'}${part.mastery != null ? ` · ${part.mastery}%` : ''}`
-}
 </script>

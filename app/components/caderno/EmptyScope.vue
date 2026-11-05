@@ -15,7 +15,7 @@
         </UiButton>
       </li>
     </ul>
-    <UiCheckbox v-model="autoCards" class="mt-4" label="Criar cards dos PDFs automaticamente" description="A IA lê o PDF, resume em partes e já cria os cards." />
+    <UiCheckbox v-model="autoCards" class="mt-4" label="Gerar cards automaticamente" description="A IA lê o PDF, resume em partes e já cria os cards." />
     <p v-if="canAddSubject" class="mt-3 text-meta text-fg-muted">
       Quer organizar antes, como no edital?
       <button type="button" class="min-h-touch font-medium text-action-fg underline-offset-2 hover:underline" data-testid="scope-add-subject" @click="$emit('add-subject')">

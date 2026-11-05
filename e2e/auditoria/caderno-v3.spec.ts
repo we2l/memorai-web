@@ -155,14 +155,14 @@ test.describe('Escopo do usuário (e2e-hub)', () => {
     await page.getByRole('button', { name: 'Adicionar' }).first().click()
     const sheet = page.getByRole('dialog', { name: 'Adicionar' })
     await expect(sheet.getByRole('combobox', { name: 'Gravar em' })).toHaveValue(subject.id)
-    await sheet.getByRole('checkbox', { name: /Criar cards dos PDFs/ }).uncheck()
+    await sheet.getByRole('checkbox', { name: /Gerar cards automaticamente/ }).uncheck()
     const chooser = page.waitForEvent('filechooser')
     await sheet.getByRole('button', { name: /^PDF/ }).click()
     await (await chooser).setFiles({ name: 'aula.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.4\n%%EOF\n') })
     await expect.poll(() => posts.length).toBe(1)
     expect(posts[0]).toMatchObject({ topic_id: subject.id, auto_cards: '0' })
     await expect(materials(page).first()).toContainText('aula.pdf')
-    await expect(materials(page).first()).toContainText(/Lendo o PDF · 1 de 4/, { timeout: 10_000 })
+    await expect(materials(page).first()).toContainText(/Escrevendo a parte 1 de 2 · lote 2 de 4/, { timeout: 10_000 })
   })
 
   test('"+ Matéria" cria na tela; no 2º nível não há "+ Assunto"; o 3º nível dá 422 depth_exceeded dito no campo', async ({ page }) => {

@@ -854,6 +854,10 @@ export interface MaterialRow {
   ahead_count: number
   status: MaterialStatus
   progress: { done: number; total: number } | null
+  /** The automatic cards of a PDF (prd-4c-material-v3 RF-B9), per part, one generation for the document */
+  auto_cards_status?: Document['auto_cards_status']
+  /** Why the note of a PDF was not started */
+  blocked_reason?: DocumentAutoGeneration['blocked_reason']
   updated_at: string
 }
 

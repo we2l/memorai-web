@@ -599,7 +599,7 @@ test.describe('PDF → cards automático (RF-F5.2)', () => {
     await page.route(`**/api/topics/${topic.id}/materials**`, r => { listCalls++; return r.fulfill(json({ data: [row(docCalls >= 2)], meta: { next_cursor: null, total: 1 } })) })
     await page.route(`**/api/documents/${DOC}`, r => { docCalls++; return r.fulfill(json({ data: { id: DOC, status: 'completed', note_generation_status: docCalls < 2 ? 'generating' : 'completed', has_generated_note: true, note_generation_progress: docCalls, note_total_batches: 3, note_id: 'n1' } })) })
     await page.goto(`/cadernos/${topic.id}`)
-    await expect(page.getByTestId('material-row')).toContainText('Lendo o PDF · 1 de 3')
+    await expect(page.getByTestId('material-row')).toContainText('Escrevendo a nota · lote 2 de 3')
     const review = page.getByTestId('material-review')
     await expect(review).toHaveText('Revisar 12', { timeout: 15_000 })
     // Only this PDF (prd-caderno-f2-recorte RF-F3), no longer the whole caderno; the list was not polled

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mockNuxtImport, mountSuspended } from '@nuxt/test-utils/runtime'
-import { enableAutoUnmount } from '@vue/test-utils'
+import { enableAutoUnmount, flushPromises } from '@vue/test-utils'
 import ScopeHeader from '~/components/caderno/ScopeHeader.vue'
 import NextStep from '~/components/caderno/NextStep.vue'
 import SubjectTable from '~/components/caderno/SubjectTable.vue'
@@ -159,10 +159,10 @@ describe('CadernoMaterialRow (RF-F6)', () => {
     expect(w.get('[data-testid="material-review"]').attributes('href')).toBe('/revisar?scope=note:n2')
   })
 
-  it('estados: lendo (3 de 12), falhou com "Tentar de novo", limite do mês com "Ver planos"', async () => {
+  it('estados: escrevendo (por parte), falhou com "Tentar de novo", limite do mês com "Ver planos"', async () => {
     apiMock.mockResolvedValue({ data: { id: 'd1', status: 'completed', note_generation_status: 'generating', note_generation_progress: 3, note_total_batches: 12 } })
     const reading = await mountSuspended(MaterialRow, { props: { row: row({ status: 'generating', progress: { done: 3, total: 12 }, cards: 0, session_count: 0 }), scopeId: 'root' } })
-    expect(reading.text()).toContain('Lendo o PDF · 3 de 12')
+    expect(reading.text()).toContain('Escrevendo a parte 2 de 4 · lote 4 de 12')
     expect(reading.find('[data-testid="material-review"]').exists()).toBe(false)
     const failed = await mountSuspended(MaterialRow, { props: { row: row({ status: 'failed' }), scopeId: 'root' } })
     await failed.get('button.underline').trigger('click')
@@ -204,5 +204,49 @@ describe('CadernoEmptyScope (RF-F12)', () => {
     expect(w.get('[data-testid="empty-pdf"]').classes()).toContain('bg-action')
     expect(w.get('[data-testid="empty-anki"]').attributes('href')).toBe('/importar?topic_id=t1')
     expect(await axeViolations(w.element)).toEqual([])
+  })
+})
+
+describe('CadernoMaterialRow: cards automáticos e bloqueio (prd-4c-material-v3 4c-2)', () => {
+  const pdf = (over: Record<string, unknown> = {}) => ({
+    kind: 'pdf', id: 'd1', note_id: 'n1', title: 'Apostila', topic: { id: 't1', name: 'Caderno' }, pages: 212, parts: 6, words: null, cards: 0, mastery: null,
+    session_count: 0, ahead_count: 0, status: 'ready', progress: null, auto_cards_status: null, blocked_reason: null, updated_at: '', ...over,
+  }) as never
+  const mountRow = async (row: never, blockedReason?: string) => {
+    const w = await mountSuspended(MaterialRow, { props: { row, scopeId: 't1', blockedReason } })
+    await flushPromises() // the state of the cards is lazy
+    await vi.dynamicImportSettled()
+    await flushPromises()
+    return w
+  }
+
+  it('escrevendo: progresso por parte', async () => {
+    const w = await mountRow(pdf({ status: 'generating', progress: { done: 3, total: 18 } }))
+    expect(w.text()).toContain('Escrevendo a parte 2 de 6 · lote 4 de 18')
+  })
+
+  it('cards em andamento, sem cota, texto curto e falha dizem o estado na linha', async () => {
+    const busy = await mountRow(pdf({ auto_cards_status: 'generating', cards: 15 }))
+    expect(busy.get('[data-testid="material-cards-state"]').text()).toContain('Criando os cards das primeiras partes')
+    const quota = await mountRow(pdf({ auto_cards_status: 'skipped_quota' }))
+    expect(quota.get('[data-testid="material-cards-state"]').text()).toContain('Sem gerações de cards este mês')
+    expect(quota.get('[data-testid="material-cards-state"] button').text()).toBe('Ver planos')
+    const short = await mountRow(pdf({ auto_cards_status: 'skipped_empty' }))
+    expect(short.get('[data-testid="material-cards-state"]').text()).toBe('Texto curto demais para gerar cards')
+    expect(short.find('[data-testid="material-cards-state"] button').exists()).toBe(false)
+    const failed = await mountRow(pdf({ auto_cards_status: 'failed' }))
+    expect(failed.get('[data-testid="material-cards-state"] button').text()).toBe('Tentar de novo')
+  })
+
+  it('com cards já na linha, não reclama da geração', async () => {
+    const w = await mountRow(pdf({ auto_cards_status: 'failed', cards: 15 }))
+    expect(w.find('[data-testid="material-cards-state"]').exists()).toBe(false)
+  })
+
+  it('bloqueio: o motivo vem da linha (API) ou do upload', async () => {
+    const fromApi = await mountRow(pdf({ status: 'blocked', blocked_reason: 'pages_cap' }))
+    expect(fromApi.text()).toContain('Limite de leitura da IA atingido este mês')
+    const fromUpload = await mountRow(pdf({ status: 'blocked' }), 'feature_limit')
+    expect(fromUpload.text()).toContain('Limite do mês atingido')
   })
 })

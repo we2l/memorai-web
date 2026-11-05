@@ -89,3 +89,43 @@ export async function ensureLibrarySeed(page: Page): Promise<LibrarySeed> {
   keep('library', 'library-seed', seed)
   return seed
 }
+
+export interface PartsSeed { rootId: string; docId: string; noteIds: string[]; cardNote: string; rowDocId: string; title: string }
+
+/**
+ * A PDF in 3 parts (prd-4c-material-v3 4c-2): one note per part with part_index, pages and part_batches, cards in
+ * the first two, and a second "PDF" whose line tells the automatic cards and the blocked reason (set per test).
+ */
+export async function ensurePartsSeed(page: Page): Promise<PartsSeed> {
+  const hit = cached<PartsSeed>('parts', 'parts-seed')
+  if (hit) return hit
+  const root = (await apiCall(page, 'POST', '/topics', { name: 'Concurso Partes', learning_mode: 'exam' })).data
+  const titles = ['Princípios fundamentais', 'Direitos e garantias', 'Remédios constitucionais']
+  const noteIds: string[] = []
+  for (const [i, title] of titles.entries()) {
+    const note = (await apiCall(page, 'POST', `/topics/${root.id}/notes`, { title })).data
+    await apiCall(page, 'PUT', `/notes/${note.id}`, { content: { type: 'doc', content: [heading(2, `${title}: conceito`), para(`Texto da parte ${i + 1} sobre ${title}.`, `(pág. ${i * 8 + 2}-${i * 8 + 3})`), ...filler(4)] } })
+    noteIds.push(note.id)
+  }
+  const out = php('parts', `
+    $d = App\\Domain\\Agent\\Models\\Document::create(['user_id' => $u->id, 'topic_id' => '${root.id}', 'filename' => 'p.pdf', 'original_name' => 'Apostila P.pdf', 'file_path' => 'e2e/sem-arquivo.pdf', 'file_size' => 1024, 'pages_count' => 24, 'processed_pages' => 24, 'status' => 'completed', 'note_generation_status' => 'completed', 'note_generation_progress' => 9, 'note_total_batches' => 9, 'auto_cards' => false]);
+    foreach (${JSON.stringify(noteIds).replace(/"/g, "'")} as $i => $id) {
+      Illuminate\\Support\\Facades\\DB::table('notes')->where('id', $id)->update(['source_document_id' => $d->id, 'part_index' => $i + 1, 'page_start' => $i * 8 + 1, 'page_end' => ($i + 1) * 8, 'part_batches' => 3]);
+    }
+    $o = App\\Domain\\Agent\\Models\\Document::create(['user_id' => $u->id, 'topic_id' => '${root.id}', 'filename' => 'q.pdf', 'original_name' => 'Outro PDF.pdf', 'file_path' => 'e2e/sem-arquivo.pdf', 'file_size' => 1024, 'pages_count' => 10, 'processed_pages' => 10, 'status' => 'completed', 'note_generation_status' => 'completed', 'auto_cards' => true]);
+    echo 'DOC_ID=' . $d->id . ' ROW_ID=' . $o->id;
+  `)
+  const docId = out.match(/DOC_ID=([0-9a-f-]{36})/)?.[1]
+  const rowDocId = out.match(/ROW_ID=([0-9a-f-]{36})/)?.[1]
+  if (!docId || !rowDocId) throw new Error(`documentos não criados:\n${out}`)
+  await apiCall(page, 'POST', '/ai/accept-cards', { topic_id: root.id, note_id: noteIds[0], cards: Array.from({ length: 3 }, (_, i) => ({ front: `Parte 1 pergunta ${i + 1}?`, back: `Parte 1 resposta ${i + 1}` })) })
+  await apiCall(page, 'POST', '/ai/accept-cards', { topic_id: root.id, note_id: noteIds[1], cards: Array.from({ length: 2 }, (_, i) => ({ front: `Parte 2 pergunta ${i + 1}?`, back: `Parte 2 resposta ${i + 1}` })) })
+  const seed: PartsSeed = { rootId: root.id, docId, noteIds, cardNote: noteIds[1]!, rowDocId, title: 'Outro PDF' }
+  keep('parts', 'parts-seed', seed)
+  return seed
+}
+
+/** Sets columns of the second "PDF" of the parts seed: the state its line tells. */
+export function setRowDocument(id: string, columns: Record<string, string | number | null>) {
+  php('parts', `Illuminate\\Support\\Facades\\DB::table('documents')->where('id', '${id}')->update(json_decode('${JSON.stringify(columns)}', true)); echo 'ok';`)
+}

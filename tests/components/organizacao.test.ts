@@ -28,6 +28,7 @@ function route(handlers: Record<string, unknown>) {
     const key = `${opts?.method ?? 'GET'} ${url}`
     if (!(key in handlers)) return Promise.reject(new Error(`sem mock: ${key}`))
     const v = handlers[key]
+    if (typeof v === 'function') return Promise.resolve(v(opts))
     return v instanceof Error ? Promise.reject(v) : Promise.resolve(v)
   })
 }
@@ -406,6 +407,43 @@ describe('/importar (RF-F17)', () => {
     q('[data-testid="import-confirm"]')!.click()
     await flushPromises()
     expect(apiMock).toHaveBeenCalledWith('/import/imp1/confirm', expect.objectContaining({ body: expect.objectContaining({ destination: { type: 'new' } }) }))
+  })
+
+  it('os conflitos acompanham o destino: some o que deixou de ser, entra o novo, e a escolha do que continua fica', async () => {
+    const decks = (conflict: Record<string, boolean>) => Object.entries(conflict).map(([name, c]) => ({ name, cards_count: 3, conflict: c }))
+    route({ 'GET /import/imp1/preview': (opts: any) => ({ data: { ...preview, decks: opts?.params?.topic_id ? decks({ Inglês: false, Grego: true, Latim: true }) : decks({ Inglês: true, Grego: false, Latim: true }) } }), 'POST /import/imp1/confirm': { data: {} } })
+    useTopicStore().tree = [topic('t1')]
+    const { store } = await atPreview('/importar?topic_id=t1')
+    store.preview = { ...store.preview!, total_cards: 9 }
+    const radios = [...document.body.querySelectorAll<HTMLInputElement>('fieldset input[type="radio"]')]
+    radios[0]!.click() // "Caderno novo"
+    await flushPromises()
+    expect(store.deckConflicts).toEqual({ Inglês: 'import', Latim: 'import' })
+    expect(q('[data-testid="import-conflicts"]')?.textContent).toContain('Inglês')
+    expect(q('[data-testid="import-conflicts"]')?.textContent).not.toContain('Grego')
+
+    store.deckConflicts.Latim = 'skip'
+    radios[1]!.click() // "Dentro de T1"
+    await flushPromises()
+    expect(store.deckConflicts).toEqual({ Grego: 'import', Latim: 'skip' })
+    expect(q('[data-testid="import-conflicts"]')?.textContent).toContain('Grego')
+    expect(q('[data-testid="import-conflicts"]')?.textContent).not.toContain('Inglês')
+    q('[data-testid="import-confirm"]')!.click()
+    await flushPromises()
+    expect(apiMock).toHaveBeenCalledWith('/import/imp1/confirm', expect.objectContaining({ body: expect.objectContaining({ deck_conflicts: { Grego: 'import', Latim: 'skip' } }) }))
+  })
+
+  it('upload recusado (422 invalid_anki_package): a mensagem da API, nunca o texto genérico', async () => {
+    const message = 'Este arquivo não é um pacote do Anki. Exporte de novo pelo Anki e envie o .apkg.'
+    route({ 'POST /import/anki': refused(422, { code: 'invalid_anki_package', message, errors: { file: [message] } }) })
+    const w = await mountSuspended(Importar, { attachTo: document.body, route: '/importar' })
+    const input = w.find('input[type="file"]')
+    Object.defineProperty(input.element, 'files', { value: [new File(['nada'], 'x.apkg')] })
+    await input.trigger('change')
+    await flushPromises()
+    const toasts = useToast().state.items.map(t => t.message)
+    expect(toasts).toContain(message)
+    expect(toasts.join(' ')).not.toContain('Erro ao processar o arquivo')
   })
 
   it('topic_id que a árvore não conhece: caderno novo, sem seletor', async () => {

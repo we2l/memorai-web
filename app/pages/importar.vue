@@ -71,7 +71,7 @@
 
       <div class="flex flex-wrap justify-end gap-3">
         <UiButton @click="cancel">Cancelar</UiButton>
-        <UiButton variant="primary" :loading="confirming" :disabled="!cardsToImport" data-testid="import-confirm" @click="confirmImport">Importar {{ countOf(cardsToImport, 'card', 'cards') }}</UiButton>
+        <UiButton variant="primary" :loading="confirming" :disabled="!cardsToImport || store.mappingLoading" data-testid="import-confirm" @click="confirmImport">Importar {{ countOf(cardsToImport, 'card', 'cards') }}</UiButton>
       </div>
     </template>
 

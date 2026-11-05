@@ -125,19 +125,19 @@ test.describe('Planos (/planos)', () => {
   })
 
   test('exibe planos Grátis e Pro', async ({ page, request }) => {
-    await expect(page.getByRole('heading', { name: /Escolha seu plano/i })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Planos', level: 1 })).toBeVisible()
     const main = page.getByRole('main')
     await expect(main.getByText('Grátis', { exact: true })).toBeVisible()
     // Price comes from GET /api/plans; /planos abre no anual: alterna para o mensal
     const catalog = (await (await request.get('http://localhost:8037/api/plans')).json()).data
     const monthly = catalog.plans.find((p: any) => p.key === 'pro').prices.monthly.amount_cents
     const brl = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(monthly / 100)
-    await page.getByRole('button', { name: 'Alternar entre plano mensal e anual' }).click()
+    await page.getByRole('radio', { name: 'Mensal' }).check()
     await expect(main.getByText(brl).first()).toBeVisible()
   })
 
   test('mostra plano atual como desabilitado', async ({ page }) => {
-    await expect(page.getByText('Plano atual')).toBeVisible()
+    await expect(page.getByText('Seu plano')).toBeVisible()
   })
 })
 

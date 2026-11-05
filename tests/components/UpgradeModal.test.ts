@@ -50,4 +50,13 @@ describe('UpgradeModal', () => {
     expect(document.body.textContent).toContain('Renova em 01/10.')
     expect(document.body.textContent).toContain('Entendi')
   })
+
+  it('"Ver planos" limpa os toasts: o erro do paywall não segue para /planos', async () => {
+    useToast().show('Limite atingido', 'error')
+    await mountModal({ feature: 'quiz_ai', used: 1, limit: 1, planRequired: 'pro' })
+    const button = [...document.body.querySelectorAll('button')].find(b => b.textContent?.includes('Ver planos'))!
+    button.click()
+    await flushPromises()
+    expect(useToast().state.items).toHaveLength(0)
+  })
 })

@@ -1,10 +1,10 @@
 <template>
-  <footer class="border-t border-line-strong mt-12">
-    <div class="max-w-5xl mx-auto px-4 py-6 flex flex-wrap gap-4 text-label text-fg-muted">
-      <NuxtLink to="/termos" class="underline underline-offset-2 hover:text-fg-strong">Termos de Uso</NuxtLink>
-      <NuxtLink to="/privacidade" class="underline underline-offset-2 hover:text-fg-strong">Política de Privacidade</NuxtLink>
-      <NuxtLink to="/ajuda" class="underline underline-offset-2 hover:text-fg-strong">Ajuda</NuxtLink>
-      <a href="mailto:contato@baigi.com.br" class="underline underline-offset-2 hover:text-fg-strong">Contato</a>
+  <footer class="mt-12 border-t border-line">
+    <div class="mx-auto flex max-w-page flex-wrap gap-x-4 px-gutter py-4 text-meta">
+      <UiLink to="/termos" variant="muted" standalone class="underline">Termos de Uso</UiLink>
+      <UiLink to="/privacidade" variant="muted" standalone class="underline">Política de Privacidade</UiLink>
+      <UiLink to="/ajuda" variant="muted" standalone class="underline">Ajuda</UiLink>
+      <UiLink href="mailto:contato@baigi.com.br" variant="muted" standalone class="underline">Contato</UiLink>
     </div>
   </footer>
 </template>

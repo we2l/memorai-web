@@ -123,5 +123,10 @@ export function useToast() {
     item?.action?.onClick()
   }
 
-  return { state, show, dismiss, pause, resume, runAction }
+  /** Drops every toast: one that told about the previous screen does not follow to the next (03 Q9). */
+  function clear() {
+    for (const item of [...state.items]) dismiss(item.id)
+  }
+
+  return { state, show, dismiss, clear, pause, resume, runAction }
 }

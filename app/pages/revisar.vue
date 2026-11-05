@@ -7,7 +7,7 @@
       :scope-note="scopeNote"
       :batch="showBatchBar ? batches.position.value : null"
       :can-undo="review.canUndo"
-      :can-edit="!!review.currentCard && !review.showErrorDiary && !batchEndIndex"
+      :can-edit="!!review.currentCard && !review.showErrorDiary && !batchEndIndex && !onboardingEnd"
       :blitz-to="isBlitz ? null : blitzTo"
       :onboarding="isOnboarding"
       @undo="handleUndo"
@@ -57,7 +57,7 @@
       </UiErrorState>
 
       <!-- First batch of the onboarding: 1st rating of every card, no waiting for the learning ones (prd-4g RF-F8) -->
-      <LazyReviewOnboardingEnd v-else-if="onboardingEnd" :summary="sessionSummary" :forecast="tomorrow" :loading="tomorrowLoading" />
+      <LazyReviewOnboardingEnd v-else-if="onboardingEnd" :summary="sessionSummary" :forecast="tomorrow" :loading="tomorrowLoading" :failed="tomorrowFailed" />
 
       <!-- Queue still draining / next page on its way -->
       <div v-else-if="(review.saving || review.awaitingPage) && !review.showErrorDiary" class="flex flex-col items-center gap-4 px-gutter py-16 text-center" role="status">
@@ -274,7 +274,7 @@ const sessionSummary = computed(() => batchSummary(review.log, null, studyDayEnd
 // === First batch of the onboarding (prd-4g-conta-onboarding-v3 RF-F5, F8): step 3 of the assistant ===
 const auth = useAuthStore()
 const isOnboarding = computed(() => route.query.onboarding === '1')
-const onboardingEnd = computed(() => isOnboarding.value && review.sessionCount > 0 && review.firstPass.length >= review.sessionCount && review.pendingCount === 0 && !review.showErrorDiary)
+const onboardingEnd = computed(() => isOnboarding.value && review.sessionCount > 0 && review.firstPass.length >= review.sessionCount && !review.showErrorDiary)
 
 // === Where the session goes back to and what it is about ===
 const scopeBack = computed(() => scopeBackPath(review.scope) ?? (scopeTopicId.value ? cadernoPath(scopeTopicId.value) : null))
@@ -396,7 +396,7 @@ function until(cond: () => boolean): Promise<void> {
 const tomorrow = ref<TomorrowForecast | null>(null)
 const tomorrowLoading = ref(false)
 const tomorrowFailed = ref(false)
-watch(() => (review.finished || onboardingEnd.value) && !review.saving, async (ready) => {
+watch(() => (review.finished || onboardingEnd.value) && !review.saving && (!onboardingEnd.value || review.pendingCount === 0), async (ready) => {
   if (!ready || tomorrow.value || tomorrowLoading.value) return
   tomorrowLoading.value = true
   try {

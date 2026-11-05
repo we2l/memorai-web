@@ -31,7 +31,10 @@
     <div v-else class="flex max-w-2xl flex-col gap-4" data-testid="processing-step">
       <h1 class="text-page-title-sm text-fg-strong outline-none sm:text-page-title" tabindex="-1">{{ processingTitle }}</h1>
       <p role="status" class="text-body text-fg-muted" data-testid="processing-state">{{ processingState }}</p>
-      <UiProgressBar v-if="path === 'pdf'" :value="docUpload.uploadProgress.value" label="Enviando o PDF" show-value size="md" />
+      <div v-if="retryFinish">
+        <UiButton variant="primary" data-testid="processing-retry" @click="retryFinish">Tentar de novo</UiButton>
+      </div>
+      <UiProgressBar v-else-if="path === 'pdf'" :value="docUpload.uploadProgress.value" label="Enviando o PDF" show-value size="md" />
       <template v-else>
         <UiSkeleton v-for="i in 3" :key="i" variant="block" />
       </template>
@@ -49,6 +52,7 @@ import type { Flashcard } from '~/types'
 import { reviewPath } from '~/utils/reviewScope'
 import { sampleMode } from '~/utils/onboardingSamples'
 import { getErrorStatus } from '~/utils/apiErrors'
+import { AiJobError } from '~/composables/useAiJob'
 
 definePageMeta({ layout: 'auth', wide: true })
 useHead({ title: 'Começar · Baigi' })
@@ -73,6 +77,8 @@ const error = ref('')
 const busy = ref(false)
 const processingTitle = ref('')
 const processingState = ref('')
+/** The material is saved but the onboarding did not close: only that is retried, nothing is created twice. */
+const retryFinish = ref<(() => void) | null>(null)
 
 // The name follows the text's first line until the person edits it
 watch(text, (t) => { if (!nameTouched.value) notebookName.value = smartTitle(t, 40) })
@@ -131,7 +137,7 @@ async function startSample() {
     track('onboarding_sample_created', { mode: sampleMode(mode.value) })
     void createExam(res.data.topic_id)
     markDone('sample') // the API already concluded the onboarding with the cards (RF-B4)
-    await navigateTo(firstReview(res.data.note_id))
+    await navigateTo(firstReview(res.data.note_id), { replace: true })
   } catch (e) {
     error.value = getErrorStatus(e) === 429
       ? 'Muitas tentativas. Tente de novo em alguns minutos.'
@@ -144,6 +150,9 @@ async function startSample() {
 
 const ZERO_CARDS = 'Não conseguimos criar cards com esse texto. Tente colar um trecho maior (cerca de 200 palavras).'
 
+type Cards = Pick<Flashcard, 'front' | 'back'>[]
+interface TextAttempt { topicId: string; noteId: string; jobId?: string; cards?: Cards }
+
 async function startText() {
   const name = notebookName.value.trim()
   if (name.length < 2) {
@@ -152,8 +161,9 @@ async function startText() {
   }
   processingTitle.value = 'Criando seus cards'
   processingState.value = 'Lendo o texto · ~20 s'
+  retryFinish.value = null
   goTo('processing')
-  const generating = setTimeout(() => { processingState.value = 'Escrevendo os cards · ~15 s' }, 5000)
+  const writing = setTimeout(() => { processingState.value = 'Escrevendo os cards · ~15 s' }, 5000)
   let topicId = ''
   try {
     // A failed attempt deletes its caderno, so each attempt creates one
@@ -162,23 +172,60 @@ async function startText() {
       method: 'POST',
       body: { title: 'Material inicial', content: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: text.value }] }] } },
     })).data.id
-
-    const result = await aiJob.run<{ cards: Pick<Flashcard, 'front' | 'back'>[] }>('/ai/generate-cards', { source: 'notes', topic_id: topicId, note_id: noteId })
-    const cards = result?.cards ?? []
-    if (!cards.length) throw new Error(ZERO_CARDS)
-
-    await $api('/ai/accept-cards', { method: 'POST', body: { topic_id: topicId, note_id: noteId, cards } })
-    void createExam(topicId)
-    await $api('/onboarding/complete', { method: 'POST' })
-    markDone('text')
-    await navigateTo(firstReview(noteId))
+    await continueText({ topicId, noteId })
   } catch (e: any) {
-    error.value = e?.message === ZERO_CARDS ? ZERO_CARDS : extractApiMessage(e, e?.data?.message || 'Não conseguimos gerar os cards. Tente de novo.')
-    if (topicId) void discard(topicId)
-    goTo('content')
+    failText(topicId, extractApiMessage(e, e?.data?.message || 'Não conseguimos gerar os cards. Tente de novo.'))
   } finally {
-    clearTimeout(generating)
+    clearTimeout(writing)
   }
+}
+
+/**
+ * From the generation on, what was paid for is kept: a slow job is followed again and cards that failed to save
+ * are sent again, neither generates (or charges) a second time. Only a job that failed, or no cards, starts over.
+ */
+async function continueText(a: TextAttempt) {
+  retryFinish.value = null
+  const again = (message: string) => {
+    processingState.value = message
+    retryFinish.value = () => { void continueText(a) }
+  }
+  if (!a.cards) {
+    try {
+      const result = a.jobId
+        ? await aiJob.wait<{ cards: Cards }>(a.jobId)
+        : await aiJob.run<{ cards: Cards }>('/ai/generate-cards', { source: 'notes', topic_id: a.topicId, note_id: a.noteId })
+      a.cards = result?.cards ?? []
+    } catch (e: any) {
+      if (e instanceof AiJobError && e.jobId) {
+        a.jobId = e.jobId
+        again('Está demorando mais que o normal. Os cards ainda podem chegar.')
+        return
+      }
+      failText(a.topicId, extractApiMessage(e, e?.data?.message || 'Não conseguimos gerar os cards. Tente de novo.'))
+      return
+    }
+    if (!a.cards.length) {
+      failText(a.topicId, ZERO_CARDS)
+      return
+    }
+  }
+  try {
+    await $api('/ai/accept-cards', { method: 'POST', body: { topic_id: a.topicId, note_id: a.noteId, cards: a.cards } })
+  } catch (e) {
+    reportApiError(e, { silent: true })
+    again('Os cards estão prontos, mas não conseguimos salvá-los.')
+    return
+  }
+  void createExam(a.topicId)
+  // The cards exist from here on: a failure closing the onboarding must not take them away
+  await finish('text', firstReview(a.noteId))
+}
+
+function failText(topicId: string, message: string) {
+  error.value = message
+  if (topicId) void discard(topicId)
+  goTo('content')
 }
 
 /** A failed attempt leaves nothing behind, in the trash neither: nothing of the person's is lost (the text stays in the form). */
@@ -226,14 +273,19 @@ function skip() {
 /** Paths whose cards come later: the onboarding ends here, and the checklist of Hoje keeps the first review. */
 async function finish(name: ContentPath | 'skip', to: string) {
   busy.value = true
+  retryFinish.value = null
   try {
     await $api('/onboarding/complete', { method: 'POST' })
     markDone(name)
-    await navigateTo(to)
+    await navigateTo(to, { replace: true })
   } catch (e) {
-    error.value = 'Não conseguimos concluir seu cadastro. Tente de novo.'
     reportApiError(e, { silent: true })
-    if (step.value === 'processing') goTo('content')
+    if (step.value === 'processing') {
+      processingState.value = 'Seu material está salvo, mas não conseguimos concluir seu cadastro.'
+      retryFinish.value = () => { void finish(name, to) }
+    } else {
+      error.value = 'Não conseguimos concluir seu cadastro. Tente de novo.'
+    }
   } finally {
     busy.value = false
   }

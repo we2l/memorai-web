@@ -106,6 +106,9 @@ test.describe('Sem confirmar o e-mail', () => {
 
   test('texto mostra Reenviar e Já confirmei; o exemplo continua liberado; sair no meio vai ao Hoje com o checklist', async ({ page }) => {
     await page.route('**/api/email/verification-notification', r => r.fulfill({ status: 202, json: { message: 'ok' } }))
+    // Os textos legais abrem mesmo antes de concluir (não voltam para /comecar)
+    await gotoApp(page, '/termos')
+    expect(new URL(page.url()).pathname).toBe('/termos')
     await gotoApp(page, '/comecar')
     await chooseMode(page, 'Outro')
 
@@ -129,6 +132,9 @@ test.describe('Sem confirmar o e-mail', () => {
     await page.getByTestId('review-exit').click()
     await page.waitForURL('**/hoje')
     await expect(page.getByTestId('home-checklist')).toBeVisible()
+    // O assistente não reabre: "Voltar" não criaria outro caderno nem gastaria cota
+    await page.goto('/comecar')
+    await page.waitForURL('**/hoje')
     expect(sql(`select first_batch_at is null from users where email='${USERS.onbExit.email}'`)).toBe('t')
   })
 })
@@ -149,7 +155,18 @@ test.describe('Texto com o e-mail confirmado', () => {
     await page.getByRole('radio', { name: 'Colar um texto' }).check()
     await page.locator('#material').fill('Fotossíntese ocorre nos cloroplastos.')
     await expect(page.locator('#notebook-name')).toHaveValue(/Fotossíntese/)
+    // Fechar o onboarding falha uma vez: os cards já existem, então só isso é refeito
+    let failures = 1
+    await page.route('**/api/onboarding/complete', (r) => {
+      if (failures-- > 0) return r.fulfill({ status: 500, json: { message: 'erro' } })
+      return r.continue()
+    })
     await page.getByRole('button', { name: 'Gerar cards do texto' }).click()
+    const retry = page.getByTestId('processing-retry')
+    await expect(retry).toBeVisible()
+    await expect(page.getByTestId('processing-state')).toContainText('Seu material está salvo')
+    expect(sql(`select count(*) from flashcards f join users u on u.id=f.user_id where u.email='${USERS.onbText.email}'`)).toBe('2')
+    await retry.click()
     await page.waitForURL('**/revisar?scope=note:**&onboarding=1')
     await rateAll(page, 2)
     await expect(page.getByTestId('onboarding-end')).toBeVisible({ timeout: 15_000 })
@@ -166,6 +183,10 @@ test.describe('Prova opcional', () => {
     await page.getByRole('radio', { name: 'Concurso ou OAB' }).check()
     const date = page.getByLabel(/Quando é a sua prova/)
     await expect(date).toBeVisible()
+    // Data que a API recusaria: avisa aqui, em vez de sumir em silêncio depois dos cards
+    await date.fill('2020-01-01')
+    await page.getByRole('button', { name: 'Continuar' }).click()
+    await expect(page.getByText('Escolha uma data a partir de amanhã.')).toBeVisible()
     await date.fill('2031-03-10')
     expect(sql(`select count(*) from exams e join users u on u.id=e.user_id where u.email='${USERS.onbExam.email}'`)).toBe('0')
     await page.getByRole('button', { name: 'Continuar' }).click()

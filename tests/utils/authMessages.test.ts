@@ -18,6 +18,11 @@ describe('authMessages (prd-4g-conta-onboarding-v3 RF-F12..F14)', () => {
     expect(loginErrorMessage(httpError(429))).toBe('Muitas tentativas. Tente de novo em 1 minuto.')
   })
 
+  it('login: conta em exclusão mostra o que a API diz, não "tente de novo" para sempre', () => {
+    expect(loginErrorMessage(httpError(403, {}, { message: 'Sua conta está em exclusão.' }))).toBe('Sua conta está em exclusão.')
+    expect(loginErrorMessage(httpError(403))).toBe('Esta conta não pode entrar agora.')
+  })
+
   it('login: erro de rede ou 500 não vira texto técnico', () => {
     expect(loginErrorMessage(httpError(500))).toBe('Não foi possível entrar agora. Tente de novo.')
     expect(loginErrorMessage(new Error('Failed to fetch'))).toBe('Não foi possível entrar agora. Tente de novo.')

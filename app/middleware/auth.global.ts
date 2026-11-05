@@ -15,7 +15,10 @@ export default defineNuxtRouteMiddleware((to) => {
     return navigateTo('/hoje')
   }
 
-  if (auth.user && to.path !== '/comecar' && !auth.user.onboarding_completed) {
+  // Finished: "Voltar" never reopens the assistant (it would charge again). The legal pages stay open during it.
+  if (to.path === '/comecar' && auth.user?.onboarding_completed) return navigateTo('/hoje', { replace: true })
+
+  if (auth.user && to.path !== '/comecar' && !isPublicRoute(to.path) && !auth.user.onboarding_completed) {
     return navigateTo('/comecar')
   }
 })

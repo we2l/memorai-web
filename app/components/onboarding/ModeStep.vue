@@ -17,6 +17,7 @@
       type="date"
       :min="tomorrow"
       hint="Usamos para priorizar a revisão perto da prova."
+      :error="dateError || undefined"
     />
 
     <div>
@@ -28,20 +29,24 @@
 <script setup lang="ts">
 // Step 1 of the onboarding (prd-4g-conta-onboarding-v3 RF-F5): the modes with one line of what changes, and
 // the optional exam date for concurso and faculdade (the exam is created once the cards exist).
+import { LEARNING_MODES } from '~/utils/learningModes'
+
 const mode = defineModel<string>('mode', { required: true })
 const examDate = defineModel<string>('examDate', { required: true })
 
 defineProps<{ saving?: boolean }>()
 const emit = defineEmits<{ (e: 'next'): void }>()
 
-const OPTIONS = [
-  { value: 'exam', label: 'Concurso ou OAB', description: 'Questões no centro e a prova no topo.' },
-  { value: 'academic', label: 'Faculdade', description: 'Suas matérias, os materiais e as provas do semestre.' },
-  { value: 'language', label: 'Idiomas', description: 'Palavras e frases em lotes curtos, todos os dias.' },
-  { value: 'technical', label: 'Técnico', description: 'Conceitos e comandos para lembrar na hora de usar.' },
-  { value: 'professional', label: 'Profissional', description: 'Certificações e o que você usa no trabalho.' },
-  { value: 'general', label: 'Outro', description: 'Serve para qualquer assunto.' },
-]
+// The names are the app's (Configurações and "Novo caderno"); here each one says what changes
+const WHAT_CHANGES: Record<string, string> = {
+  exam: 'Questões no centro e a prova no topo.',
+  academic: 'Suas matérias, os materiais e as provas do semestre.',
+  language: 'Palavras e frases em lotes curtos, todos os dias.',
+  technical: 'Conceitos e comandos para lembrar na hora de usar.',
+  professional: 'Certificações e o que você usa no trabalho.',
+  general: 'Serve para qualquer assunto.',
+}
+const OPTIONS = LEARNING_MODES.map(m => ({ value: m.value, label: m.label, description: WHAT_CHANGES[m.value] }))
 
 const tomorrow = (() => {
   const d = new Date()
@@ -49,7 +54,17 @@ const tomorrow = (() => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 })()
 
+const needsDate = computed(() => mode.value === 'exam' || mode.value === 'academic')
+const dateError = ref('')
+
 function submit() {
-  if (mode.value) emit('next')
+  dateError.value = ''
+  if (!mode.value) return
+  // novalidate turns the native `min` off, and the API refuses a date that is not in the future
+  if (needsDate.value && examDate.value && examDate.value < tomorrow) {
+    dateError.value = 'Escolha uma data a partir de amanhã.'
+    return
+  }
+  emit('next')
 }
 </script>

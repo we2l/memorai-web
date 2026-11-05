@@ -56,6 +56,7 @@ const props = defineProps<{ settings: UserSettings; loading?: boolean; loadError
 defineEmits<{ (e: 'retry'): void }>()
 
 const { $api } = useNuxtApp()
+const auth = useAuthStore()
 const { run } = useApiAction()
 const { saved: fieldsSaved, mark } = useSavedHint()
 
@@ -79,5 +80,7 @@ async function saveField<K extends keyof UserSettings>(key: K, value: UserSettin
     return
   }
   mark()
+  // Hoje and "Novo caderno" read the default mode from the session
+  if (key === 'default_learning_mode' && auth.user) auth.user.default_learning_mode = value as string
 }
 </script>

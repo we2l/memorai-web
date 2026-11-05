@@ -3,7 +3,7 @@
     <UiCelebration kind="milestone" title="Primeiro lote concluído!" subtitle="Seu primeiro marco no Baigi" :level="1" />
     <p class="-mt-2 max-w-md text-body text-fg" data-testid="onboarding-remembered">Você lembrou {{ summary.remembered }} de {{ summary.size }}.</p>
 
-    <ul class="w-full divide-y divide-line rounded-card bg-subtle px-1 text-left">
+    <ul v-if="!failed" class="w-full divide-y divide-line rounded-card bg-subtle px-1 text-left">
       <li class="px-3 py-3 text-body text-fg-strong" data-testid="onboarding-tomorrow">
         <UiSkeleton v-if="loading || !forecast" variant="text" :lines="1" />
         <template v-else-if="forecast.due_count > 0">
@@ -39,7 +39,7 @@
 import type { TomorrowForecast } from '~/types'
 import type { BatchSummary } from '~/composables/useReviewBatches'
 
-defineProps<{ summary: BatchSummary; forecast: TomorrowForecast | null; loading?: boolean }>()
+defineProps<{ summary: BatchSummary; forecast: TomorrowForecast | null; loading?: boolean; failed?: boolean }>()
 
 const { $api } = useNuxtApp()
 const { run, pending } = useApiAction()

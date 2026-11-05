@@ -134,6 +134,17 @@ test.describe('Cadastro', () => {
 test.describe('Onboarding com IA (mockada)', () => {
   test.use({ auditUser: 'onboarding' })
 
+  test('nome do caderno curto bloqueia antes de chamar a API', async ({ page }) => {
+    let topicPosts = 0
+    await page.route('**/api/topics', (r) => { if (r.request().method() === 'POST') topicPosts++; return r.fallback() })
+    await toTextPath(page)
+    await page.locator('#material').fill('Texto qualquer')
+    await page.locator('#notebook-name').fill('A')
+    await page.getByRole('button', { name: 'Gerar cards do texto' }).click()
+    await expect(page.getByText('Dê um nome ao caderno (pelo menos 2 caracteres).')).toBeVisible()
+    expect(topicPosts).toBe(0)
+  })
+
   test('falha da IA: mensagem e continua no passo do material (nenhum caderno vazio sobra)', async ({ page }) => {
     await mockGenerate(page, [], 'failed')
     await toTextPath(page)
@@ -174,16 +185,6 @@ test.describe('Onboarding com IA (mockada)', () => {
     await expect.poll(() => Number(sql(`select count(*) from reviews r join users u on u.id=r.user_id where u.email='${USERS.onboarding.email}'`))).toBe(1)
   })
 
-  test('nome do caderno curto bloqueia antes de chamar a API', async ({ page }) => {
-    let topicPosts = 0
-    await page.route('**/api/topics', (r) => { if (r.request().method() === 'POST') topicPosts++; return r.fallback() })
-    await toTextPath(page)
-    await page.locator('#material').fill('Texto qualquer')
-    await page.locator('#notebook-name').fill('A')
-    await page.getByRole('button', { name: 'Gerar cards do texto' }).click()
-    await expect(page.getByText('Dê um nome ao caderno (pelo menos 2 caracteres).')).toBeVisible()
-    expect(topicPosts).toBe(0)
-  })
 })
 
 test.describe('Onboarding de quem não confirmou o e-mail', () => {

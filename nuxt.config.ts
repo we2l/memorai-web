@@ -47,8 +47,8 @@ const ANALYTICS_CHUNK = /\/node_modules\/posthog-js\//
 const CONSENT_CHUNK = /\/components\/ui\/Consent(Banner|Modal)\.vue/
 // One-shot pages that only work online (onboarding, the auth screens, OAuth and checkout returns, reset link,
 // the first batch's end): fetched when opened instead of in every install download (precache budget,
-// prd-correcoes-experiencia Q2, prd-4g-conta-onboarding-v3).
-const ONE_SHOT_PAGE_CHUNK = /\/(pages\/(comecar|entrar|criar-conta|esqueci-senha|checkout\/sucesso|auth\/google\/callback|redefinir-senha|termos|privacidade|ajuda|planos)|layouts\/auth|components\/review\/ReviewOnboardingEnd)\.vue/
+// prd-correcoes-experiencia Q2, prd-4g-conta-onboarding-v3). /ajuda stays: "?" opens the shortcuts offline too.
+const ONE_SHOT_PAGE_CHUNK = /\/(pages\/(comecar|entrar|criar-conta|esqueci-senha|checkout\/sucesso|auth\/google\/callback|redefinir-senha|termos|privacidade|planos)|layouts\/auth|components\/review\/ReviewOnboardingEnd)\.vue/
 // Pieces shared only by those pages: a shared chunk has no facade module, so it goes by what is inside it.
 const ONE_SHOT_SHARED = /\/(components\/auth\/|components\/onboarding\/|utils\/authMessages)/
 // Reference page of the design system (prd-ds-v3-fundacao RF-2.5): only in `nuxt dev`. NUXT_DS_PAGE=1 keeps it

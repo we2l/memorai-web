@@ -14,7 +14,7 @@
     <p id="consent-text" class="text-meta text-fg" :class="inline && 'min-w-0 flex-1 basis-64'">
       <template v-if="inline">Usamos cookies essenciais e, com sua permissão, de análise.</template>
       <template v-else>Usamos cookies essenciais para o Baigi funcionar e, com sua permissão, cookies de análise (PostHog) para entender como o produto é usado. Nunca vendemos seus dados.</template>
-      <NuxtLink to="/privacidade" class="underline text-fg-strong">Política de privacidade</NuxtLink>
+      <NuxtLink to="/privacidade" class="underline text-fg-strong" :target="inline ? '_blank' : undefined">Política de privacidade</NuxtLink>
     </p>
     <div :class="inline ? 'flex flex-wrap items-center gap-2' : 'grid grid-cols-2 gap-2 mt-3'">
       <UiButton variant="secondary" :size="inline ? 'sm' : 'md'" type="button" :block="!inline" data-testid="consent-reject" @click="reject">Recusar</UiButton>

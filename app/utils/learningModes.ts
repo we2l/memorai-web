@@ -1,11 +1,11 @@
 /** Study modes of a caderno (`topics.learning_mode`, the root's mode rules the whole subtree). */
 export const LEARNING_MODES = [
-  { value: 'exam', label: 'Concurso', description: 'Leis, pegadinhas, questões' },
+  { value: 'exam', label: 'Concurso ou OAB', description: 'Leis, pegadinhas, questões' },
   { value: 'academic', label: 'Faculdade', description: 'Conceitos e exemplos' },
   { value: 'language', label: 'Idiomas', description: 'Frases e vocabulário' },
-  { value: 'technical', label: 'Programação / TI', description: 'Código e fórmulas' },
-  { value: 'professional', label: 'Certificação', description: 'Cenários práticos' },
-  { value: 'general', label: 'Uso geral', description: 'Formato padrão' },
+  { value: 'technical', label: 'Técnico', description: 'Código e fórmulas' },
+  { value: 'professional', label: 'Profissional', description: 'Cenários práticos' },
+  { value: 'general', label: 'Outro', description: 'Formato padrão' },
 ] as const
 
 export type LearningMode = (typeof LEARNING_MODES)[number]['value']

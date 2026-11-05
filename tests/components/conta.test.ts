@@ -211,6 +211,12 @@ describe('ReviewOnboardingEnd (RF-F8)', () => {
     expect(w.get('[data-testid="onboarding-reminder"]').text()).toContain('8h')
   })
 
+  it('/review/tomorrow falhou: não fica em esqueleto para sempre', async () => {
+    const w = await mountSuspended(ReviewOnboardingEnd, { props: { summary: SUMMARY, forecast: null, failed: true } })
+    expect(w.find('[data-testid="onboarding-tomorrow"]').exists()).toBe(false)
+    expect(w.get('[data-testid="onboarding-home"]').exists()).toBe(true)
+  })
+
   it('sem lembrete ligado, não finge que tem', async () => {
     const w = await mountSuspended(ReviewOnboardingEnd, { props: { summary: SUMMARY, forecast: { ...forecast, reminder: { enabled: false, hour: 19, suppressed: false } } } })
     expect(w.find('[data-testid="onboarding-reminder"]').exists()).toBe(false)

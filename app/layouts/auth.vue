@@ -14,9 +14,9 @@
     </main>
 
     <footer class="px-gutter py-4 text-center text-meta text-fg-muted">
-      <UiLink to="/termos" variant="muted" class="underline">Termos</UiLink>
+      <UiLink to="/termos" variant="muted" class="underline" :target="wide ? '_blank' : undefined">Termos</UiLink>
       <span aria-hidden="true"> · </span>
-      <UiLink to="/privacidade" variant="muted" class="underline">Privacidade</UiLink>
+      <UiLink to="/privacidade" variant="muted" class="underline" :target="wide ? '_blank' : undefined">Privacidade</UiLink>
     </footer>
 
     <!-- Part of the page, not over it: the form is never covered (prd-4g RF-F11, 03 [03]) -->

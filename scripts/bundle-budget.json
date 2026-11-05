@@ -68,7 +68,7 @@
     "/comecar": {
       "file": "pages/comecar.vue",
       "gzKb": 6.5,
-      "closureGzKb": 30
+      "closureGzKb": 31
     },
     "/configuracoes": {
       "file": "pages/configuracoes.vue",

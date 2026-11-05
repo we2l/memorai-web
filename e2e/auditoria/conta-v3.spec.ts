@@ -194,6 +194,16 @@ test.describe('Auth', () => {
     await page.locator('#password').fill('NovaSenha-123')
     await page.getByRole('button', { name: 'Salvar nova senha' }).click()
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Este link expirou')
+
+    // Link bom: volta para /entrar com o aviso (navegação no cliente, a query já vem no setup)
+    await page.unroute('**/api/reset-password')
+    await page.route('**/api/reset-password', r => r.fulfill({ status: 200, headers: { 'Access-Control-Allow-Origin': WEB, 'Access-Control-Allow-Credentials': 'true' }, json: { message: 'ok' } }))
+    await page.goto('/redefinir-senha?token=abc&email=alguem%40audit.test')
+    await page.waitForLoadState('networkidle')
+    await page.locator('#password').fill('NovaSenha-123')
+    await page.getByRole('button', { name: 'Salvar nova senha' }).click()
+    await page.waitForURL('**/entrar?senha_redefinida=1')
+    await expect(page.getByText('Senha redefinida. Entre com a nova senha.')).toBeVisible()
   })
 
   test('a barra de consentimento não cobre o formulário', async ({ browser }) => {

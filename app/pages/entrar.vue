@@ -70,9 +70,10 @@ async function submit() {
   }
 }
 
+// Immediate: coming from /redefinir-senha the query is already there on setup
 watch(() => query.value.senha_redefinida, (done) => {
-  if (done) toast.show('Senha redefinida. Entre com a nova senha.', 'success', 5000)
-})
+  if (done && import.meta.client) toast.show('Senha redefinida. Entre com a nova senha.', 'success', 5000)
+}, { immediate: true })
 
 onMounted(() => {
   try {

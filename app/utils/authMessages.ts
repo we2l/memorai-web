@@ -26,6 +26,8 @@ export function loginErrorMessage(e: unknown): string {
   const status = getErrorStatus(e)
   if (status === 429) return `Muitas tentativas. Tente de novo em ${waitLabel(retryAfterSeconds(e))}.`
   if (status === 422) return 'E-mail ou senha incorretos.'
+  // Account being deleted: the API says what to do, a generic "try again" would never end
+  if (status === 403) return (e as { data?: { message?: string } })?.data?.message || 'Esta conta não pode entrar agora.'
   return 'Não foi possível entrar agora. Tente de novo.'
 }
 

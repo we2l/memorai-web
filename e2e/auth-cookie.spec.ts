@@ -79,9 +79,10 @@ test.describe('sessão por cookie', () => {
 test('esqueci minha senha mostra a mensagem genérica', async ({ page }) => {
   await page.goto('/esqueci-senha')
   await page.waitForLoadState('networkidle')
-  await page.locator('#email').fill(`ninguem-${Date.now()}@e2e.test`) // unique: 3 requests / 15 min per e-mail
+  const email = `ninguem-${Date.now()}@e2e.test` // unique: 3 requests / 15 min per e-mail
+  await page.locator('#email').fill(email)
   await page.getByRole('button', { name: 'Enviar link' }).click()
-  await expect(page.getByText('Se existir uma conta com esse e-mail, enviamos um link')).toBeVisible()
+  await expect(page.getByTestId('forgot-sent')).toContainText(`Se houver uma conta com ${email}, enviamos um link`)
 })
 
 test.describe('usuário não verificado', () => {

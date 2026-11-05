@@ -606,6 +606,9 @@ async function loadSession() {
   goalCelebrated.value = false
   streakAnimated.value = false
   statsNow.value = null
+  // The first batch of the onboarding is not interrupted: the diary of errors starts with the second session.
+  // Set before the first card shows up, and /settings does not bring it back.
+  if (isOnboarding.value) review.errorDiaryMode = 'never'
   if (deckId) await deckStore.fetchDeck(deckId)
   const [, before] = await Promise.all([
     review.fetchSession({ ...slice, deckId, backlog: route.query.backlog === '1', mode, includeRelated: route.query.include_related === '1' }),
@@ -618,11 +621,7 @@ async function loadSession() {
   timerInterval = null
   if (isBlitz.value) startTimer(300)
   else await loadSessionTimer()
-  if (isOnboarding.value) {
-    // The first batch is not interrupted: the diary of errors starts with the second session
-    review.errorDiaryMode = 'never'
-    track('onboarding_step', { step: 3, mode: auth.user?.default_learning_mode ?? null })
-  }
+  if (isOnboarding.value) track('onboarding_step', { step: 3, mode: auth.user?.default_learning_mode ?? null })
   sessionAnalytics.started(route.query, isSurvivalMode.value, review.total)
 }
 
@@ -639,7 +638,7 @@ async function loadSessionTimer() {
   try {
     const res = await $api<any>('/settings')
     isSurvivalMode.value = res.data.survival_mode ?? false
-    if (res.data.error_diary_mode) review.errorDiaryMode = res.data.error_diary_mode
+    if (res.data.error_diary_mode && !isOnboarding.value) review.errorDiaryMode = res.data.error_diary_mode
     if (res.data.session_time_limit) startTimer(res.data.session_time_limit * 60)
   } catch (e) {
     reportApiError(e, { silent: true })

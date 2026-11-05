@@ -50,7 +50,8 @@ test('prova com projeção ("mantendo o ritmo" e "se parar hoje") e "Como calcul
   const api = (await apiCall(page, 'GET', `/exams/${seed.examId}`)).data
   expect(api.projection).not.toBeNull()
   const row = exam(page, seed.examId)
-  await expect(row).toContainText('em 42 dias')
+  // 41 from 21h in São Paulo: days_remaining is counted in UTC on the API
+  await expect(row).toContainText(/em 4[12] dias/)
   await expect(row).toContainText(`caderno ${seed.rootName}`)
   await expect(row.getByTestId('exam-projection')).toContainText(`${api.projection.keep_pace}% se mantiver o ritmo · ${api.projection.stop_today}% se parar hoje`)
   await row.getByRole('button', { name: 'Como calculamos' }).click()

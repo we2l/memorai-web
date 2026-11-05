@@ -149,14 +149,11 @@ test.describe('Configurações de estudo', () => {
     await page.goto('/configuracoes')
     await page.waitForLoadState('networkidle')
 
-    await expect(page.getByText('Tema', { exact: true })).toBeVisible()
-    // Sistema, Claro e Escuro (prd-ds-v3-fundacao RF-1.4); a escolha vira o tema da página
-    await expect(page.getByRole('button', { name: 'Sistema', exact: true })).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Claro', exact: true })).toBeVisible()
-    await page.getByRole('button', { name: 'Escuro', exact: true }).click()
+    // Sistema, Claro e Escuro (prd-ds-v3-fundacao RF-1.4, prd-4g RF-F1); a escolha vira o tema da página
+    await expect(page.getByRole('radio', { name: 'Sistema' })).toBeVisible()
+    await page.getByRole('radio', { name: 'Escuro' }).check()
     await expect(page.locator('html')).toHaveClass(/\bdark\b/)
-    await expect(page.getByRole('button', { name: 'Escuro', exact: true })).toHaveAttribute('aria-pressed', 'true')
-    await page.getByRole('button', { name: 'Claro', exact: true }).click()
+    await page.getByRole('radio', { name: 'Claro' }).check()
     await expect(page.locator('html')).not.toHaveClass(/\bdark\b/)
   })
 
@@ -165,9 +162,10 @@ test.describe('Configurações de estudo', () => {
     await page.goto('/configuracoes')
     await page.waitForLoadState('networkidle')
 
-    // Daily limits stay hidden (PRD F11.3); the study section exposes retention + error diary
-    await expect(page.getByRole('heading', { name: 'Estudo', exact: true })).toBeVisible()
-    await expect(page.getByRole('radiogroup').first()).toBeVisible()
+    // prd-4g RF-F1: the goal, the reminder, the limits of the day, retention and the error diary in one section
+    await expect(page.getByRole('heading', { name: 'Estudo e lembretes', exact: true })).toBeVisible()
+    await expect(page.getByTestId('daily-goal')).toBeVisible()
+    await expect(page.getByLabel('Cards novos por dia')).toBeVisible()
     await expect(page.getByText('Quanto você quer lembrar')).toBeVisible()
   })
 })

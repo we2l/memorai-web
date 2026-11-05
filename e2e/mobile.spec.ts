@@ -88,7 +88,7 @@ test.describe('Mobile — Configurações', () => {
     await page.waitForTimeout(2000)
 
     await expect(page.getByRole('heading', { name: 'Configurações' })).toBeVisible()
-    await expect(page.getByRole('heading', { name: 'Perfil' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Conta e segurança' })).toBeVisible()
   })
 })
 

@@ -79,6 +79,7 @@ test.describe('Cadastro por e-mail até o 1º lote', () => {
     // Passo 3 sem a casca: sem o aviso de e-mail ocupando a altura da revisão e sem IA à vista
     await expect(page.locator('#verify-email-notice')).toHaveCount(0)
     await expect(page.getByTestId('review-show')).toBeInViewport()
+    // O 1º com "De novo" na hora: o diário de erros não interrompe o 1º lote, mesmo com a tecla antes do /settings
     await rateAll(page, 8, '1')
 
     const end = page.getByTestId('onboarding-end')

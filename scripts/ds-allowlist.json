@@ -27,26 +27,6 @@
       "match": "fill=\"#4285F4\"",
       "motivo": "Logo do Google no botão de login e cadastro: cores oficiais da marca.",
       "prazo": "permanente"
-    },
-    {
-      "path": "app/pages/index.vue",
-      "rules": [
-        "hex",
-        "color-fn",
-        "palette"
-      ],
-      "motivo": "Landing adiada pelo dono (2026-11-04): paleta própria até a fase 4h voltar à pauta. Fora disso, o app não tem cor solta.",
-      "prazo": "Fase 4h"
-    },
-    {
-      "path": "app/components/landing/**",
-      "rules": [
-        "hex",
-        "color-fn",
-        "palette"
-      ],
-      "motivo": "Landing adiada pelo dono (2026-11-04): paleta própria até a fase 4h voltar à pauta. Fora disso, o app não tem cor solta.",
-      "prazo": "Fase 4h"
     }
   ],
   "fasesConcluidas": [
@@ -61,6 +41,7 @@
     "Fase 4e",
     "Fase 4f",
     "Fase 4g",
-    "Fase 5"
+    "Fase 5",
+    "Fase 4h"
   ]
 }

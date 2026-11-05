@@ -780,6 +780,8 @@ export interface CatalogPlan {
   prices: { monthly: PlanPrice | null; annual: PlanPrice | null }
   /** Phrases without a quota (prd-4h-landing-v3 RF-B1) */
   highlights?: string[]
+  /** The trial may come on the plan instead of the catalog root (read by catalogTrial) */
+  trial?: CatalogTrial | null
   /** null = unlimited, 0 = not included in the plan */
   limits: Record<string, number | null>
   extras: {
@@ -800,12 +802,22 @@ export interface CatalogFeature {
   pro_benefit: string
 }
 
+/** Pro trial without a card (planos de lançamento, 2026-11): absent while the API does not offer it */
+export interface CatalogTrial {
+  days: number
+  card_required: boolean
+  starts_on?: string
+  excludes?: string[]
+  pdf_pages_cap?: number
+}
+
 export interface PlanCatalog {
   currency: string
   period: string
   period_timezone: string
   plans: CatalogPlan[]
   features: Record<string, CatalogFeature>
+  trial?: CatalogTrial | null
 }
 
 /** Detail of the `feature-limit-reached` event (402 payload, PRD §4.1). */

@@ -1,48 +1,43 @@
-/* CSS da landing (adiada, dona: fase 4h): tudo o que só ela usa, fora do entry.css e de volta com ela à pauta.
-   Compilação própria do Tailwind, com o tema padrão (paleta, text-sm, rounded-xl...), que o app já não tem desde a
-   Fase 5. O escopo .landing-page (layouts/landing.vue) dá especificidade para vencer as utilities do entry.css no
-   mesmo elemento, em qualquer ordem de carga, e impede o caminho inverso: quem navega da landing para /entrar segue
-   com este arquivo carregado, e nada daqui alcança as telas do app. */
+/* CSS da landing v4 (prd-landing-v4 RF-L14): só o que a landing usa e o app não, fora do entry.css e do precache.
+   Compila com o tema do design system (theme.css), então os tokens e as escalas são os mesmos do app; acrescenta só
+   a escala de título da página de marketing (modo Persuade) e as regras do ?m=. O escopo .landing-page
+   (pages/index.vue) impede que algo daqui alcance as telas do app quando se navega da landing para /entrar. */
 @layer theme, base, components, utilities;
 
 @import 'tailwindcss/theme.css' layer(theme);
+/* Só a referência: as variáveis do tema já estão no entry.css; aqui vão só as utilities que a landing usa */
+@reference '../../assets/css/theme.css';
 
 @source '../../pages/index.vue';
 @source './*.vue';
+@source '../../utils/landing.ts';
 
-/* Os mesmos valores que a landing tinha pelos ponteiros v2 (a aparência não muda até ela voltar à pauta) */
-@theme inline {
-  --text-xs: var(--text-label);
-  --text-xs--line-height: var(--text-label--line-height);
-  --text-sm: var(--text-meta);
-  --text-sm--line-height: var(--text-meta--line-height);
-  --text-base: var(--text-body);
-  --text-base--line-height: var(--text-body--line-height);
-  --text-lg: var(--text-body);
-  --text-lg--line-height: var(--text-body--line-height);
-  --text-xl: var(--text-section);
-  --text-xl--line-height: var(--text-section--line-height);
-  --text-xl--letter-spacing: var(--text-section--letter-spacing);
-  --text-2xl: var(--text-section);
-  --text-2xl--line-height: var(--text-section--line-height);
-  --text-2xl--letter-spacing: var(--text-section--letter-spacing);
-  --text-3xl: var(--text-page-title);
-  --text-3xl--line-height: var(--text-page-title--line-height);
-  --text-3xl--letter-spacing: var(--text-page-title--letter-spacing);
+@custom-variant dark (&:where(.dark, .dark *));
 
-  --radius-sm: var(--radius-row);
-  --radius-md: var(--radius-control);
-  --radius-lg: var(--radius-control);
-  --radius-xl: var(--radius-card);
-  --radius-2xl: var(--radius-card);
-  --radius-3xl: var(--radius-card);
+/* Títulos da landing: maiores que o text-page-title do app (32 px), com o mesmo peso e o mesmo tracking negativo */
+@theme static {
+  --text-hero: 2.5rem;
+  --text-hero--line-height: 1.1;
+  --text-hero--letter-spacing: -0.03em;
+  --text-hero--font-weight: 650;
+  --text-hero-lg: 3.5rem;
+  --text-hero-lg--line-height: 1.05;
+  --text-hero-lg--letter-spacing: -0.035em;
+  --text-hero-lg--font-weight: 650;
+  --text-heading: 1.75rem;
+  --text-heading--line-height: 2.25rem;
+  --text-heading--letter-spacing: -0.025em;
+  --text-heading--font-weight: 650;
+  --text-heading-lg: 2.25rem;
+  --text-heading-lg--line-height: 2.75rem;
+  --text-heading-lg--letter-spacing: -0.03em;
+  --text-heading-lg--font-weight: 650;
+  --text-lead: 1.125rem;
+  --text-lead--line-height: 1.75rem;
 
-  --shadow: var(--elev-card);
-  --shadow-sm: var(--elev-card);
-  --shadow-md: var(--elev-raised);
-  --shadow-lg: var(--elev-float);
-  --shadow-xl: var(--elev-float);
-  --shadow-2xl: var(--elev-float);
+  /* The frame of the app in the hero: a phone, rounder than any card of the app */
+  --radius-device: 2.25rem;
+  --radius-screen: 1.75rem;
 }
 
 @layer utilities {
@@ -50,3 +45,16 @@
     @tailwind utilities source(none);
   }
 }
+
+/* ?m= (RF-L11): o script do <head> grava data-m no <html> antes da pintura; cada variante está no HTML e o CSS
+   mostra uma. Sem data-m (ou valor desconhecido), a padrão. */
+.landing-page [data-m-variant] { display: none; }
+.landing-page [data-m-variant='padrao'] { display: revert; }
+:root[data-m] .landing-page [data-m-variant='padrao'] { display: none; }
+:root[data-m='prova'] .landing-page [data-m-variant='prova'],
+:root[data-m='esqueci'] .landing-page [data-m-variant='esqueci'],
+:root[data-m='faculdade'] .landing-page [data-m-variant='faculdade'],
+:root[data-m='ingles'] .landing-page [data-m-variant='ingles'] { display: revert; }
+
+/* Âncoras abaixo do cabeçalho fixo do desktop */
+.landing-page section[id] { scroll-margin-top: calc(var(--topnav-h) + 1rem); }

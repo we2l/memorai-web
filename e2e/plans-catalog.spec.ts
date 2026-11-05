@@ -19,19 +19,23 @@ test.describe('Catálogo de planos na landing', () => {
     await page.goto('/#planos')
     const pricing = page.locator('#planos')
 
-    await expect(pricing.getByText('R$ 29,90')).toBeVisible()
+    // Annual first, like /planos (prd-landing-v4 RF-L7): the monthly equivalent of the catalog
+    const brl = (cents: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(cents / 100)
+    await expect(pricing.getByTestId('plan-pro-price')).toContainText(brl(catalog.plans[1].prices.annual.monthly_equivalent_cents))
     await expect(pricing.getByText('Podcasts: 7 por mês (até 15 min)')).toBeVisible()
     await expect(pricing.getByText('Gerações de cards com IA: 10 por mês')).toBeVisible()
     await expect(pricing.getByText(/30 PDFs|10 podcasts/)).toHaveCount(0)
   })
 
-  test('sem catálogo não mostra números, só o link para os detalhes', async ({ page }) => {
+  // Landing v4 (prd-landing-v4 RF-L7): the same PlanCards of /planos, with its error and "Tentar de novo"
+  test('sem catálogo não mostra números, só o erro com "Tentar de novo"', async ({ page }) => {
     await page.route('**/api/plans', route => route.fulfill({ status: 500, body: '' }))
 
     await page.goto('/#planos')
     const pricing = page.locator('#planos')
 
-    await expect(pricing.getByRole('link', { name: 'Ver detalhes dos planos' })).toBeVisible()
+    await expect(pricing.getByText('Não conseguimos carregar os planos agora')).toBeVisible()
+    await expect(pricing.getByRole('button', { name: 'Tentar de novo' })).toBeVisible()
     await expect(pricing.getByText(/R\$/)).toHaveCount(0)
   })
 })

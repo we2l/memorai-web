@@ -3,7 +3,7 @@
  * while posthog-js is still loading are replayed after init. Never throws into the caller (RN-A06).
  */
 import type { PostHog } from 'posthog-js'
-import type { FrontEvent, FrontEventProps } from '~/types/analytics'
+import type { FrontEvent, FrontEventProps, FrontSuperProps } from '~/types/analytics'
 import type { User } from '~/types'
 
 export function useAnalytics() {
@@ -17,6 +17,11 @@ export function useAnalytics() {
 
   function track<E extends FrontEvent>(event: E, props: FrontEventProps[E]) {
     run(ph => ph.capture(event, props))
+  }
+
+  /** Super-properties of the person (landing v4: the `?m=` that brought them), with consent only like track. */
+  function register(props: Partial<FrontSuperProps>) {
+    run(ph => ph.register(props))
   }
 
   /** UUID + plan only: never e-mail or name (RF-F07). */
@@ -36,5 +41,5 @@ export function useAnalytics() {
     }
   }
 
-  return { track, identify, reset }
+  return { track, register, identify, reset }
 }

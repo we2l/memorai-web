@@ -8,8 +8,7 @@ import { test, expect } from './auditoria/support/fixtures'
  * Regravar: npx playwright test e2e/visual.spec.ts --update-snapshots (em commit separado)
  *
  * As telas do app usam uma conta só deste spec (auditUser 'visual'), recriada a cada execução: não dependem da ordem
- * da suíte. A landing tem aparência congelada até a fase 4h voltar à pauta (tasks 15.x): tolerância zero, com catálogo
- * fixo e animações paradas.
+ * da suíte. A landing (v4) usa catálogo fixo e a mesma tolerância das outras telas.
  */
 const APP_TOLERANCE = { maxDiffPixelRatio: 0.005, fullPage: true, animations: 'disabled' } as const
 
@@ -110,21 +109,24 @@ for (const size of SIZES) {
       }
     })
 
-    test.describe('landing congelada', () => {
+    // Landing v4 (prd-landing-v4): inside the DS, same tolerance as the rest. The lazy screens of the app load near
+    // the viewport: scroll the page once before the full-page capture.
+    test.describe('landing', () => {
       for (const theme of THEMES) {
         test(`landing (${theme})`, async ({ page }) => {
+          // The screens of the app follow the system theme (<picture> media query), like a first-time visitor's
+          await page.emulateMedia({ colorScheme: theme })
           await prepare(page, theme, '/')
-          // The mind map section only mounts near the viewport
           await page.evaluate(async () => {
             for (let y = 0; y < document.body.scrollHeight; y += window.innerHeight / 2) {
               window.scrollTo(0, y)
               await new Promise(resolve => setTimeout(resolve, 60))
             }
           })
-          await expect(page.locator('.mindmap-landing svg')).toBeAttached()
           await page.evaluate(() => window.scrollTo(0, 0))
+          await page.waitForLoadState('networkidle')
           await page.waitForTimeout(500)
-          await expect(page).toHaveScreenshot(`landing-${size.tag}-${theme}.png`, { fullPage: true, animations: 'disabled', maxDiffPixels: 0 })
+          await expect(page).toHaveScreenshot(`landing-${size.tag}-${theme}.png`, APP_TOLERANCE)
         })
       }
     })

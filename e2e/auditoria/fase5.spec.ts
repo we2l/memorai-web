@@ -4,8 +4,7 @@ import { test, expect, gotoApp, apiCall, doc, uid } from './support/fixtures'
 
 /**
  * Fechamento do DS v3 (tasks 15.11): axe nas rotas principais, claro e escuro, 390 e 1440 px, sem legacy-v2.css e com o
- * tema padrão do Tailwind zerado. A landing, adiada, tem paleta própria e contraste conhecido abaixo do mínimo
- * (PRD 4h §9): as violações dela só aparecem no log, até a fase 4h voltar à pauta.
+ * tema padrão do Tailwind zerado. A landing entrou no DS na v4 (prd-landing-v4) e passa pela mesma régua.
  */
 async function serious(page: Page, label: string) {
   const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze()
@@ -52,11 +51,10 @@ for (const theme of THEMES) {
         })
       })
 
-      test('landing: só registra (adiada)', async ({ page }) => {
+      // Landing v4 (prd-landing-v4 §9): inside the DS since the v4, it passes like every other screen
+      test('landing', async ({ page }) => {
         await gotoApp(page, '/')
-        const found = await serious(page, '/')
-        test.info().annotations.push({ type: 'landing adiada', description: found.join(' · ') || 'sem violação' })
-        console.log(`[axe landing ${theme} ${width}] ${found.length ? found.join(' · ') : 'sem violação'}`)
+        expect(await serious(page, '/')).toEqual([])
       })
     })
   }

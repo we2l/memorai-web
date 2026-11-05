@@ -21,9 +21,9 @@ export const API = `${API_ORIGIN}/api`
 export const AUDIT_PASSWORD = 'Senha-Audit-2026'
 const CONTAINER = process.env.E2E_API_CONTAINER || 'baigi-app'
 
-export type UserKey = 'visual' | 'pro' | 'free' | 'quota' | 'unverified' | 'onboarding' | 'onboardingUnverified' | 'empty' | 'session' | 'logout' | 'account' | 'mobile' | 'legacy' | 'scope' | 'nav' | 'hoje' | 'hojeNew' | 'hojeGoal' | 'recorte' | 'hub' | 'material' | 'library' | 'revisao' | 'revisaoEmpty' | 'praticar' | 'praticarFree' | 'progresso' | 'progressoNew' | 'onbText' | 'onbExit' | 'onbExam' | 'onbAnki' | 'onbSample' | 'onbKeyboard' | 'conta' | 'contaPro' | 'parts' | 'organizacao'
+export type UserKey = 'visual' | 'pro' | 'free' | 'quota' | 'unverified' | 'onboarding' | 'onboardingUnverified' | 'empty' | 'session' | 'logout' | 'account' | 'mobile' | 'legacy' | 'scope' | 'nav' | 'hoje' | 'hojeNew' | 'hojeGoal' | 'recorte' | 'hub' | 'material' | 'library' | 'revisao' | 'revisaoEmpty' | 'praticar' | 'praticarFree' | 'progresso' | 'progressoNew' | 'onbText' | 'onbExit' | 'onbExam' | 'onbAnki' | 'onbSample' | 'onbKeyboard' | 'conta' | 'contaPro' | 'parts' | 'organizacao' | 'landingShots'
 
-type UserSpec = { email: string; plan: 'free' | 'pro'; verified: boolean; onboarded: boolean; reset: true; quota_exhausted?: Record<string, number> }
+type UserSpec = { email: string; plan: 'free' | 'pro'; verified: boolean; onboarded: boolean; reset: true; quota_exhausted?: Record<string, number>; name?: string }
 
 export const USERS: Record<UserKey, UserSpec> = {
   pro: { email: 'e2e-pro@audit.test', plan: 'pro', verified: true, onboarded: true, reset: true },
@@ -81,6 +81,8 @@ export const USERS: Record<UserKey, UserSpec> = {
   parts: { email: 'e2e-parts@audit.test', plan: 'pro', verified: true, onboarded: true, reset: true },
   // Organização do caderno (prd-4b-caderno-v3 4b-2, organizacao.spec.ts): mover, lixeira e Anki
   organizacao: { email: 'e2e-organizacao@audit.test', plan: 'pro', verified: true, onboarded: true, reset: true },
+  // Real screens of the landing (e2e/landing/shots.ts, prd-landing-v4 RF-L12): a demo account, never a spec of the suite
+  landingShots: { email: 'e2e-landing-shots@audit.test', plan: 'pro', verified: true, onboarded: true, reset: true, name: 'Ana' },
 }
 
 const AUTH_DIR = path.join(__dirname, '..', '..', '.auth')

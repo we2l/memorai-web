@@ -8,8 +8,9 @@ describe('subjectTone', () => {
     expect(byValue).toEqual({ purple: 1, blue: 2, green: 3, orange: 4, red: 4, pink: 5, yellow: 7, gray: 8 })
   })
 
-  it('o hex do seletor dá o mesmo tom que o nome', () => {
-    for (const c of NOTEBOOK_COLORS) expect(subjectTone(c.hex), c.value).toBe(subjectTone(c.value))
+  it('o hex que dados antigos guardam dá o mesmo tom que o nome', () => {
+    const OLD = { purple: '#6F3FF5', blue: '#2563EB', green: '#16A34A', orange: '#EA580C', red: '#DC2626', pink: '#DB2777', yellow: '#CA8A04', gray: '#6B7280' }
+    for (const [name, hex] of Object.entries(OLD)) expect(subjectTone(hex), name).toBe(subjectTone(name))
   })
 
   it('hex curto, maiúsculas, cinza e petróleo', () => {

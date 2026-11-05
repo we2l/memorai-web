@@ -7,20 +7,23 @@ export interface MindMapNode {
   payload?: { type?: string; [key: string]: unknown }
 }
 
-const NODE_COLORS: Record<string, string> = {
-  conceito: '#6F3FF5',
-  definição: '#3B82F6',
-  exemplo: '#22C55E',
-  exceção: '#EF4444',
-  referência: '#8A90A8',
+// markmap paints with attributes, which do not resolve var(): the tokens are read when drawing
+const NODE_TOKENS: Record<string, string> = {
+  conceito: '--action-fg',
+  definição: '--state-info',
+  exemplo: '--state-success',
+  exceção: '--state-danger',
+  referência: '--fg-muted',
 }
 
-const DEPTH_COLORS = ['#6F3FF5', '#3B82F6', '#22C55E', '#F59E0B', '#EF4444']
+const DEPTH_TOKENS = ['--subject-1', '--subject-2', '--subject-3', '--subject-7', '--subject-4']
 
 export function useMindMap(
   containerRef: Ref<HTMLElement | null>,
   options: {
     colorByType?: boolean
+    /** Colors by depth instead of the tokens (the landing, with a palette of its own until phase 4h) */
+    depthColors?: string[]
     onNodeClick?: (node: MindMapNode) => void
   } = {},
 ) {
@@ -45,6 +48,8 @@ export function useMindMap(
     svg.setAttribute('style', 'width: 100%; height: 100%;')
     container.appendChild(svg)
 
+    const styles = getComputedStyle(container)
+
     // Responsive spacing
     const width = container.clientWidth
     const isMobile = width < 768
@@ -65,11 +70,9 @@ export function useMindMap(
       spacingVertical: 16,
       paddingX: 8,
       color: (node: any) => {
-        if (options.colorByType) {
-          const type = node.payload?.type
-          if (type && NODE_COLORS[type]) return NODE_COLORS[type]
-        }
-        return DEPTH_COLORS[Math.min(node.state.depth, DEPTH_COLORS.length - 1)]
+        if (options.depthColors) return options.depthColors[Math.min(node.state.depth, options.depthColors.length - 1)]!
+        const token = (options.colorByType && NODE_TOKENS[node.payload?.type]) || DEPTH_TOKENS[Math.min(node.state.depth, DEPTH_TOKENS.length - 1)]!
+        return styles.getPropertyValue(token).trim()
       },
       lineWidth: (node: any) => Math.max(1, 2.5 - node.state.depth * 0.4),
     })

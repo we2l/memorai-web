@@ -1,7 +1,7 @@
 <template>
   <div class="flex items-center gap-2">
     <picture class="contents"><source srcset="~/assets/mascots/mascot-baigi-bust-64.avif" type="image/avif"><img src="~/assets/mascots/mascot-baigi-bust-64.webp" alt="Baigi" :width="iconSize" :height="iconSize" class="object-contain" decoding="async" /></picture>
-    <span v-if="showText" class="font-bold tracking-[0.08em]" :class="textClass">BAIGI.</span>
+    <span v-if="showText" class="font-bold tracking-logo" :class="textClass">BAIGI.</span>
   </div>
 </template>
 
@@ -13,6 +13,6 @@ withDefaults(defineProps<{
 }>(), {
   iconSize: 28,
   showText: true,
-  textClass: 'text-lg text-accent-primary',
+  textClass: 'text-body text-action-fg',
 })
 </script>

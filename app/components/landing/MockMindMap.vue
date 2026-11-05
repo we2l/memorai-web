@@ -85,7 +85,7 @@ const mockData: MindMapNode = {
   ],
 }
 
-const { render, fit, destroy } = useMindMap(containerRef)
+const { render, fit, destroy } = useMindMap(containerRef, { depthColors: ['#6F3FF5', '#3B82F6', '#22C55E', '#F59E0B', '#EF4444'] })
 
 onMounted(async () => {
   await nextTick()

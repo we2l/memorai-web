@@ -5,7 +5,7 @@
         v-for="btn in toolbar"
         :key="btn.label"
         type="button"
-        class="p-1 rounded text-meta transition-colors"
+        class="rounded-tag p-1 text-meta transition-colors"
         :class="btn.active() ? 'bg-action-subtle text-action-fg' : 'text-fg-muted hover:bg-line'"
         :title="btn.label"
         @click="btn.action"
@@ -18,7 +18,7 @@
       <!-- Mic -->
       <button
         type="button"
-        class="p-1 rounded text-meta transition-colors"
+        class="rounded-tag p-1 text-meta transition-colors"
         :class="recording ? 'bg-danger/15 text-danger' : 'text-fg-muted hover:bg-line'"
         :title="recording ? 'Parar gravação' : 'Gravar áudio'"
         @click="toggleRecording"
@@ -30,7 +30,7 @@
 
     <EditorContent
       :editor="editor"
-      class="rich-input px-3 py-2 text-[1rem] leading-relaxed text-fg-strong overflow-y-auto"
+      class="rich-input overflow-y-auto px-3 py-2 text-body text-fg-strong"
       :style="{ minHeight: minHeight + 'px', maxHeight: maxHeight + 'px' }"
     />
 
@@ -282,7 +282,7 @@ onBeforeUnmount(() => {
   background: var(--action-subtle);
   border-radius: 4px;
   padding: 1px 4px;
-  border: 1px solid var(--color-accent-soft);
+  border: 1px solid var(--action-fg);
   position: relative;
 }
 .rich-input .tiptap .cloze-chip::after {

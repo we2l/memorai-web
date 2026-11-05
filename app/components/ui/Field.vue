@@ -12,8 +12,7 @@
 
 <script setup lang="ts">
 // Internal piece of UiInput/UiTextarea/UiSelect (raio-X §D "Label fica interno"): label tied by for/id,
-// hint and error tied by aria-describedby, error announced (role="alert"). Replaces the 12 copies of
-// `mt-1 text-[var(--badge-danger-text)] text-micro` and the ghost `label-base`.
+// hint and error tied by aria-describedby, error announced (role="alert").
 const props = defineProps<{
   id?: string
   label?: string

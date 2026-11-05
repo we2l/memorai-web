@@ -174,7 +174,7 @@
           </UiSection>
 
           <!-- Sobreposições -->
-          <UiSection title="Sobreposições" description="Diálogo e folha com a lógica do UiModal (Esc no do topo, foco preso e devolvido, rolagem travada); menu com teclado completo." data-ds-scope>
+          <UiSection title="Sobreposições" description="Diálogo e folha (Esc no do topo, foco preso e devolvido, rolagem travada); menu com teclado completo." data-ds-scope>
             <div class="flex flex-wrap items-center gap-3">
               <UiButton @click="overlay.dialog = true">Abrir diálogo</UiButton>
               <UiButton @click="overlay.bottom = true">Folha de baixo</UiButton>
@@ -212,6 +212,24 @@
           </UiSection>
 
           <!-- Feedback -->
+          <UiSection title="Marca, plano e edição" description="Peças fixas do produto. O resto é composto de telas: UiConsentBanner, UiConsentModal, UiUpgradeModal, UiVerifyEmailBanner, UiPaymentBanner, UiActivationChecklist, UiErrorScreen e UiAudioPlayer (precisa de um áudio)." data-ds-scope>
+            <div class="flex flex-wrap items-center gap-4">
+              <UiLogo />
+              <UiBaigiMascot :size="48" />
+              <UiPlanBadge plan="free" />
+              <UiPlanBadge plan="pro" />
+              <span class="inline-flex items-center gap-2 text-meta text-fg-muted"><UiSpinner size="sm" /> Carregando…</span>
+              <UiButton @click="overlay.confirm = true">Confirmar exclusão</UiButton>
+            </div>
+            <div class="mt-5 flex flex-col gap-4">
+              <UiPublicHeader quiet-cta />
+              <UiTagInput v-model="tags" placeholder="Etiquetas" />
+              <UiRichInput v-model="rich" placeholder="Frente do card" :min-height="80" :max-height="160" enable-cloze />
+              <UiPublicFooter />
+            </div>
+            <UiConfirmModal v-model="overlay.confirm" title="Excluir card?" message="Essa ação não pode ser desfeita." confirm-label="Excluir" @confirm="overlay.confirm = false" />
+          </UiSection>
+
           <UiSection title="Feedback" description="Vazio com 1 CTA, erro com tentar de novo, esqueleto no formato do conteúdo e conquista (≤ 700 ms, respeita movimento reduzido)." data-ds-scope>
             <div class="grid gap-6 md:grid-cols-2">
               <UiEmptyState title="Nenhum podcast ainda" description="Gere um a partir dos seus pontos fracos." mascot :level="3">
@@ -298,7 +316,9 @@ const RADIO = [
   { value: 'erros', label: 'Só erros', description: 'O que você errou ontem' },
 ]
 const toast = useToast()
-const overlay = reactive({ dialog: false, bottom: false, right: false })
+const overlay = reactive({ dialog: false, bottom: false, right: false, confirm: false })
+const tags = ref(['prova'])
+const rich = ref('')
 const celebrateKey = ref(0)
 const MENU = [
   { label: 'Renomear', icon: Pencil, onSelect: () => toast.show('Renomear', 'info') },

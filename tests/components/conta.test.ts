@@ -106,13 +106,14 @@ describe('SettingsPlanUsageSection (RF-F1, RN 5)', () => {
       return w.get('[data-testid="plan-summary"]').text()
     }
 
-    it('com a data: renova em, mesmo com um subscription_ends_at antigo que a nova assinatura não limpou', async () => {
+    it('com a data: renova em, e nunca junto de termina em', async () => {
       expect(await summary({ subscription_renews_at: '2026-11-28T12:00:00-03:00' }, monthly({}))).toBe('Pro · renova em 28/11')
       expect(await summary({ subscription_renews_at: '2026-11-28T12:00:00-03:00' }, monthly({ subscription_ends_at: '2026-01-01T12:00:00-03:00' }))).toBe('Pro · renova em 28/11')
     })
 
-    it('null com assinatura cancelada: termina em', async () => {
+    it('null com assinatura cancelada no fim do período: termina em, sem "renova em" na seção', async () => {
       expect(await summary({ subscription_renews_at: null }, monthly({ subscription_ends_at: '2026-12-10T12:00:00-03:00' }))).toBe('Pro · termina em 10/12')
+      expect(document.body.textContent).not.toContain('renova em')
     })
 
     it('campo ausente (API sem o campo) ou null no mensal: não inventa data', async () => {
@@ -148,7 +149,7 @@ describe('SettingsPlanUsageSection (RF-F1, RN 5)', () => {
     expect(rows[0]!.text()).toContain('3 de 10')
     expect(rows[1]!.text()).toContain('ilimitado')
     expect(rows[2]!.text()).toContain('no Pro')
-    expect(w.get('[data-testid="usage-renews"]').text()).toBe('renova em 01/12')
+    expect(w.get('[data-testid="usage-renews"]').text()).toBe('a contagem recomeça em 01/12')
     expect(w.findAll('[data-testid="plan-upgrade"]')).toHaveLength(1)
   })
 

@@ -25,7 +25,7 @@
     <div class="border-t border-line pt-5" data-testid="usage">
       <div class="mb-3 flex flex-wrap items-baseline justify-between gap-x-4">
         <h3 class="text-body font-semibold text-fg-strong">Uso de IA este mês</h3>
-        <p v-if="renews" class="text-meta text-fg-muted" data-testid="usage-renews">renova em {{ renews }}</p>
+        <p v-if="renews" class="text-meta text-fg-muted" data-testid="usage-renews">a contagem recomeça em {{ renews }}</p>
       </div>
 
       <UiSkeleton v-if="loading" variant="text" :lines="4" />
@@ -60,7 +60,7 @@ const isFree = computed(() => (auth.user?.plan ?? 'free') === 'free')
 
 // Annual validity, scheduled monthly; the portal is only for the monthly (monetização RN-12)
 const planSummary = computed(() => {
-  // First: subscription_ends_at is not cleared by a new subscription (a past date would show)
+  // One or the other, never both (a canceled subscription has only subscription_ends_at, api #134)
   const renewsAt = auth.user?.subscription_renews_at
   if (renewsAt) return `Pro · renova em ${formatBillingDayMonth(renewsAt)}`
   const info = subscription.info

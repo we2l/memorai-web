@@ -126,6 +126,26 @@ describe('check-tokens: catraca e allowlist', () => {
     expect(saved['ghost-var']).toEqual({ 'app/z.vue': 1 })
   })
 
+  it('exceção cujo prazo é uma fase já concluída reprova, e a fase em aberto continua valendo (15.8)', () => {
+    const entry = (prazo: string) => ({ path: 'app/a.vue', rules: ['hex'], motivo: 'landing', prazo })
+    const done = fixture({ 'app/a.vue': TWO_HEX }, {}, { fasesConcluidas: ['Fase 5'], entries: [entry('Fase 5')] }).run()
+    expect(done.status).toBe(1)
+    expect(done.stderr).toContain('a Fase 5 já acabou')
+    const open = fixture({ 'app/a.vue': TWO_HEX }, {}, { fasesConcluidas: ['Fase 5'], entries: [entry('Fase 4h')] }).run()
+    expect(open.status, open.stderr).toBe(0)
+  })
+
+  it('com $donos, só fica na catraca quem tem dono e motivo (15.2)', () => {
+    const owners = { $donos: { 'app/landing/**': { dono: '4h', motivo: 'adiada' } } }
+    const owned = fixture({ 'app/landing/a.vue': TWO_HEX }, { ...owners, hex: { 'app/landing/a.vue': 2 } }).run()
+    expect(owned.status, owned.stderr).toBe(0)
+    const orphan = fixture({ 'app/b.vue': TWO_HEX }, { ...owners, hex: { 'app/b.vue': 2 } }).run()
+    expect(orphan.status).toBe(1)
+    expect(orphan.stderr).toContain('sem dono em $donos')
+    const noReason = fixture({ 'app/landing/a.vue': TWO_HEX }, { $donos: { 'app/landing/**': { dono: '4h', motivo: ' ' } }, hex: { 'app/landing/a.vue': 2 } }).run()
+    expect(noReason.status).toBe(1)
+  })
+
   it('a allowlist libera por caminho e por linha', () => {
     const files = { 'app/landing/x.vue': TWO_HEX, 'app/tokens.css': ':root {\n  --a: #fff;\n}\n.b { color: #000; }\n' }
     const allowlist = {

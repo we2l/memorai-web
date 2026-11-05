@@ -61,6 +61,11 @@ export const SCREENS: Screen[] = [
     run: async (page) => { await openTopic(page, '/cadernos') },
   },
   {
+    // The trash (4b-2): the state this fixture has (empty, or the lines it left)
+    name: 'lixeira',
+    run: async (page) => { await openTopic(page, '/cadernos/lixeira') },
+  },
+  {
     // Hub of the caderno (4b-1): header with one number, next step, subjects, materials, practice
     name: 'caderno-hub',
     fullPage: true,

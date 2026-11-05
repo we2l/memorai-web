@@ -1,7 +1,8 @@
 <template>
   <NodeViewWrapper v-if="topicExists" class="subpage-node-wrapper" :class="{ selected }">
-    <div
-      class="subpage-card cursor-pointer hover:border-action-fg/40 hover:bg-action-subtle"
+    <button
+      type="button"
+      class="subpage-card w-full cursor-pointer text-left hover:border-action-fg/40 hover:bg-action-subtle"
       @click="handleClick"
     >
       <FolderOpen :size="16" class="shrink-0 text-action-fg" aria-hidden="true" />
@@ -9,7 +10,7 @@
         {{ displayName }}
       </span>
       <ChevronRight :size="14" class="shrink-0 text-fg-muted" aria-hidden="true" />
-    </div>
+    </button>
   </NodeViewWrapper>
   <NodeViewWrapper v-else class="subpage-node-wrapper-empty" />
 </template>

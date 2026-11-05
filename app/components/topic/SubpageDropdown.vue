@@ -11,6 +11,7 @@
         v-model="query"
         class="w-full rounded-row border border-line-input bg-subtle px-3 py-2 text-meta text-fg-strong placeholder:text-fg-muted"
         placeholder="Nome do tópico…"
+        aria-label="Nome do tópico"
         @keydown.enter.prevent="confirmSelection"
         @keydown.escape.prevent="$emit('close')"
         @keydown.down.prevent="moveSelection(1)"

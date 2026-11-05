@@ -65,12 +65,6 @@ useHead({
     { property: 'og:locale', content: 'pt_BR' },
   ],
   script: [{ innerHTML: LANDING_MESSAGE_SCRIPT, tagPosition: 'head' }],
-  // The screen of the hero is the LCP and sits deep in a long prerendered HTML: fetch it from the <head>, in the
-  // system theme (the same choice as the <picture> of LandingShot)
-  link: [
-    { rel: 'preload', as: 'image', type: 'image/avif', href: '/landing/hoje-light.avif', media: '(prefers-color-scheme: light)', fetchpriority: 'high' },
-    { rel: 'preload', as: 'image', type: 'image/avif', href: '/landing/hoje-dark.avif', media: '(prefers-color-scheme: dark)', fetchpriority: 'high' },
-  ],
 })
 
 const { plans: catalog, fetchPlans } = usePlans()

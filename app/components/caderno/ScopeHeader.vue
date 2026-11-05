@@ -22,6 +22,7 @@
       <div class="mt-3 flex items-start gap-3">
         <UiSubjectMark :color="markColor" :index="markIndex" size="lg" class="mt-2.5 sm:mt-3.5" />
         <h1 class="min-w-0 flex-1 text-page-title-sm break-words text-fg-strong sm:text-page-title">{{ summary.topic.name }}</h1>
+        <UiTag v-if="summary.topic.is_sample" class="mt-2.5 sm:mt-3.5" data-testid="sample-tag">Exemplo</UiTag>
         <UiMenu :items="moreItems" :label="`Mais ações de ${summary.topic.name}`" />
       </div>
 
@@ -158,7 +159,8 @@ const moreItems = computed<MenuItem[]>(() => {
     ...(canSetExam.value ? [{ label: 'Definir prova', meta: 'data e o que cai', separator: true, onSelect: () => emit('exam') }] : []),
     ...(canSetExam.value && props.summary.exam ? [{ label: 'Ver as provas', meta: 'em Progresso', to: '/progresso#provas' }] : []),
     { label: 'Editar', meta: isRoot.value ? 'nome, cor e modo' : 'nome e cor', separator: true, onSelect: () => emitEdit() },
-    { label: 'Excluir', tone: 'danger', onSelect: () => emitDelete() },
+    // The sample of the onboarding goes away the same way: nothing of the person's is in it (prd-4g RF-F9)
+    { label: props.summary.topic.is_sample ? 'Apagar o exemplo' : 'Excluir', tone: 'danger', onSelect: () => emitDelete() },
   ]
 })
 

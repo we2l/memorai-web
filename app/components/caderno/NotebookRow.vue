@@ -1,5 +1,6 @@
 <template>
-  <UiListRow :to="cadernoPath(topic.id)" :title="topic.name">
+  <UiListRow :to="cadernoPath(topic.id)">
+    <template #title>{{ topic.name }} <UiTag v-if="topic.is_sample" class="ml-1 align-middle" data-testid="sample-tag">Exemplo</UiTag></template>
     <template #leading>
       <UiSubjectMark :color="topic.color" />
     </template>
@@ -18,7 +19,7 @@
 // (the session of the whole subtree, the same number as its "Revisar hoje") and the mastery bar in purple.
 import type { TopicProgress } from '~/types'
 
-const props = defineProps<{ topic: Pick<TopicProgress, 'id' | 'name' | 'color' | 'session_count' | 'flashcards_count' | 'progress'> }>()
+const props = defineProps<{ topic: Pick<TopicProgress, 'id' | 'name' | 'color' | 'session_count' | 'flashcards_count' | 'progress' | 'is_sample'> }>()
 
 const percent = computed(() => Math.round((props.topic.progress ?? 0) * 100))
 </script>

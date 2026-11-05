@@ -21,7 +21,7 @@ export const API = `${API_ORIGIN}/api`
 export const AUDIT_PASSWORD = 'Senha-Audit-2026'
 const CONTAINER = process.env.E2E_API_CONTAINER || 'baigi-app'
 
-export type UserKey = 'pro' | 'free' | 'quota' | 'unverified' | 'onboarding' | 'onboardingUnverified' | 'empty' | 'session' | 'logout' | 'account' | 'mobile' | 'legacy' | 'scope' | 'nav' | 'hoje' | 'hojeNew' | 'hojeGoal' | 'recorte' | 'hub' | 'material' | 'library' | 'revisao' | 'revisaoEmpty' | 'praticar' | 'praticarFree' | 'progresso' | 'progressoNew'
+export type UserKey = 'pro' | 'free' | 'quota' | 'unverified' | 'onboarding' | 'onboardingUnverified' | 'empty' | 'session' | 'logout' | 'account' | 'mobile' | 'legacy' | 'scope' | 'nav' | 'hoje' | 'hojeNew' | 'hojeGoal' | 'recorte' | 'hub' | 'material' | 'library' | 'revisao' | 'revisaoEmpty' | 'praticar' | 'praticarFree' | 'progresso' | 'progressoNew' | 'onbText' | 'onbExit' | 'onbExam' | 'onbAnki' | 'onbSample' | 'onbKeyboard' | 'conta' | 'contaPro'
 
 type UserSpec = { email: string; plan: 'free' | 'pro'; verified: boolean; onboarded: boolean; reset: true; quota_exhausted?: Record<string, number> }
 
@@ -65,6 +65,16 @@ export const USERS: Record<UserKey, UserSpec> = {
   // Progresso e Provas v3 (prd-4f-progresso-v3, progresso-v3.spec.ts): Pro com provas e revisões; e uma conta nova sem cards
   progresso: { email: 'e2e-progresso@audit.test', plan: 'pro', verified: true, onboarded: true, reset: true },
   progressoNew: { email: 'e2e-progresso-new@audit.test', plan: 'free', verified: true, onboarded: true, reset: true },
+  // Onboarding v3 (prd-4g-conta-onboarding-v3, onboarding-v3.spec.ts): contas sem onboarding e, em quase todas, sem e-mail confirmado
+  onbText: { email: 'e2e-onb-text@audit.test', plan: 'free', verified: true, onboarded: false, reset: true },
+  onbExit: { email: 'e2e-onb-exit@audit.test', plan: 'free', verified: false, onboarded: false, reset: true },
+  onbExam: { email: 'e2e-onb-exam@audit.test', plan: 'free', verified: false, onboarded: false, reset: true },
+  onbAnki: { email: 'e2e-onb-anki@audit.test', plan: 'free', verified: false, onboarded: false, reset: true },
+  onbSample: { email: 'e2e-onb-sample@audit.test', plan: 'free', verified: false, onboarded: false, reset: true },
+  onbKeyboard: { email: 'e2e-onb-keyboard@audit.test', plan: 'free', verified: false, onboarded: false, reset: true },
+  // Conta v3 (conta-v3.spec.ts): configurações Free e Pro
+  conta: { email: 'e2e-conta@audit.test', plan: 'free', verified: true, onboarded: true, reset: true },
+  contaPro: { email: 'e2e-conta-pro@audit.test', plan: 'pro', verified: true, onboarded: true, reset: true },
 }
 
 const AUTH_DIR = path.join(__dirname, '..', '..', '.auth')

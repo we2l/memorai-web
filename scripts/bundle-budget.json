@@ -64,6 +64,26 @@
       "file": "pages/progresso.vue",
       "gzKb": 11.5,
       "closureGzKb": 30
+    },
+    "/comecar": {
+      "file": "pages/comecar.vue",
+      "gzKb": 6.5,
+      "closureGzKb": 30
+    },
+    "/configuracoes": {
+      "file": "pages/configuracoes.vue",
+      "gzKb": 9.5,
+      "closureGzKb": 34.5
+    },
+    "/entrar": {
+      "file": "pages/entrar.vue",
+      "gzKb": 2,
+      "closureGzKb": 12
+    },
+    "/criar-conta": {
+      "file": "pages/criar-conta.vue",
+      "gzKb": 2,
+      "closureGzKb": 13
     }
   },
   "entryLayoutForbidden": {

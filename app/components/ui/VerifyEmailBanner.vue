@@ -1,13 +1,18 @@
 <template>
   <div>
+    <!-- The discreet line of the onboarding (prd-4g RF-F6): it never competes with the sample -->
+    <p v-if="compact" class="text-meta text-fg-muted" data-testid="verify-email-line">
+      Confirme seu e-mail quando puder: enviamos um link para <span class="break-all">{{ auth.user?.email }}</span> ·
+      <button type="button" class="font-semibold text-action-fg underline disabled:text-fg-muted" :disabled="sending || cooldown > 0" @click="resend">{{ cooldown > 0 ? `reenviar em ${cooldown}s` : 'reenviar' }}</button>
+    </p>
     <div
-      v-if="inline || !dismissed"
+      v-else-if="!modalOnly && (inline || !dismissed)"
       role="status"
       class="relative px-4 py-2.5 flex flex-col gap-2 bg-warning-subtle border-line"
       :class="inline ? 'rounded-control border' : 'border-b sm:flex-row sm:items-center sm:gap-3'"
     >
       <p id="verify-email-notice" class="text-label text-fg-strong font-medium flex-1" :class="{ 'pr-8 sm:pr-0': !inline }">
-        Confirme seu e-mail para gerar com IA. Enviamos um link para <span class="break-all">{{ auth.user?.email }}</span>.
+        Confirme seu e-mail para usar a IA: enviamos um link para <span class="break-all">{{ auth.user?.email }}</span>.
       </p>
       <div class="flex gap-2 shrink-0">
         <UiButton size="sm" class="flex-1 sm:flex-none" :loading="sending" :disabled="cooldown > 0" @click="resend">
@@ -42,8 +47,9 @@
 
 <script setup lang="ts">
 import { X } from 'lucide-vue-next'
-// inline: persistent box for pages without the default layout (onboarding), no dismiss
-defineProps<{ inline?: boolean }>()
+// inline: persistent box for pages without the default layout (onboarding), no dismiss; compact: one line;
+// modalOnly: focus screens (the review) keep their whole height, only the modal of the blocked action stays
+defineProps<{ inline?: boolean; compact?: boolean; modalOnly?: boolean }>()
 
 const COOLDOWN_SECONDS = 60
 const DISMISS_KEY = 'verify_email_banner_dismissed'

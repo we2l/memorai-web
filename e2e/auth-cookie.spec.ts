@@ -65,7 +65,8 @@ test.describe('sessão por cookie', () => {
   test('logout encerra a sessão no servidor', async ({ page }) => {
     await login(page)
     await page.goto('/configuracoes')
-    await page.getByRole('button', { name: 'Sair da conta' }).click()
+    await page.getByRole('button', { name: 'Menu da conta' }).first().click()
+    await page.getByRole('menuitem', { name: 'Sair' }).click()
     await page.waitForURL('**/entrar**')
 
     const me = await page.request.get(`${API}/api/me`, {

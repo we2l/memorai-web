@@ -1,31 +1,24 @@
 <template>
-  <div>
-    <template v-if="hasPassword">
-      <form class="space-y-3 max-w-sm" novalidate @submit.prevent="submit">
-        <div v-for="f in fields" :key="f.key">
-          <UiInput
-            :id="`pw-${f.key}`"
-            v-model="form[f.key]"
-            :label="f.label"
-            :type="show ? 'text' : 'password'"
-            :autocomplete="f.key === 'current_password' ? 'current-password' : 'new-password'"
-            :error="errors[f.key]"
-            :aria-describedby="f.key === 'password' ? 'pw-rules' : undefined"
-          />
-          <p v-if="f.key === 'password'" id="pw-rules" class="text-label mt-1" :class="form.password.length >= 8 ? 'text-success' : 'text-fg-muted'">
-            Pelo menos 8 caracteres
-          </p>
-        </div>
-        <UiCheckbox v-model="show" label="Mostrar senhas" />
-        <UiButton variant="primary" type="submit" :loading="pending" :disabled="!canSubmit">
-          {{ pending ? 'Salvando...' : 'Trocar senha' }}
-        </UiButton>
-      </form>
-    </template>
-    <template v-else>
-      <p class="text-meta text-fg mb-3">Você entra com Google. Para também entrar com e-mail e senha, defina uma senha pelo link que enviamos por e-mail.</p>
-      <UiButton variant="secondary" to="/esqueci-senha">Definir senha por e-mail</UiButton>
-    </template>
+  <form v-if="hasPassword" class="flex max-w-sm flex-col gap-3" novalidate @submit.prevent="submit">
+    <UiInput
+      v-for="f in fields"
+      :id="`pw-${f.key}`"
+      :key="f.key"
+      v-model="form[f.key]"
+      :label="f.label"
+      :type="show ? 'text' : 'password'"
+      :autocomplete="f.key === 'current_password' ? 'current-password' : 'new-password'"
+      :hint="f.key === 'password' ? 'Pelo menos 8 caracteres' : undefined"
+      :error="errors[f.key]"
+    />
+    <UiCheckbox v-model="show" label="Mostrar senhas" />
+    <div>
+      <UiButton type="submit" :loading="pending" :disabled="!canSubmit">Trocar senha</UiButton>
+    </div>
+  </form>
+  <div v-else class="flex flex-col items-start gap-3">
+    <p class="text-meta text-fg">Você entra com o Google. Para também entrar com e-mail e senha, defina uma senha pelo link que enviamos por e-mail.</p>
+    <UiButton to="/esqueci-senha">Definir senha por e-mail</UiButton>
   </div>
 </template>
 
@@ -44,7 +37,7 @@ const fields = [
   { key: 'password_confirmation', label: 'Confirmar nova senha' },
 ] as const
 
-const canSubmit = computed(() => form.current_password && form.password.length >= 8 && form.password_confirmation)
+const canSubmit = computed(() => !!form.current_password && form.password.length >= 8 && !!form.password_confirmation)
 
 async function submit() {
   for (const k of Object.keys(errors)) delete errors[k]

@@ -4,6 +4,9 @@ export default defineNuxtRouteMiddleware((to) => {
 
   const auth = useAuthStore()
 
+  // A wrong address is a 404 for everyone (error.vue), not a login screen (prd-4g RF-F15)
+  if (to.matched.length === 0) return
+
   if (!isPublicRoute(to.path) && !auth.user) {
     return navigateTo({ path: '/entrar', query: { redirect: to.fullPath } })
   }

@@ -617,8 +617,8 @@ test.describe('Configurações de conta e LGPD (RF-F11.3–F11.5)', () => {
     await page.route('**/api/user/profile', r => r.fulfill(json({ data: { ...me, name: 'Nome Novo E2E' } })))
     await page.goto('/configuracoes')
     await page.fill('#profile-name', 'Nome Novo E2E')
-    await page.getByRole('button', { name: 'Salvar', exact: true }).first().click()
-    await expect(page.getByText('Nome atualizado.')).toBeVisible()
+    await page.locator('#profile-name').press('Enter')
+    await expect(page.getByTestId('name-saved')).toHaveText('Salvo')
   })
 
   test('422 da troca de senha aparece inline', async () => {

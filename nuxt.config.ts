@@ -45,9 +45,12 @@ const EMAIL_PAGE_CHUNK = /\/pages\/(lembretes\/desativado|provas\/resultado)\.vu
 const ANALYTICS_CHUNK = /\/node_modules\/posthog-js\//
 // Consent banner/modal only matter online on a first visit: kept out of the precache too.
 const CONSENT_CHUNK = /\/components\/ui\/Consent(Banner|Modal)\.vue/
-// One-shot pages that only work online (onboarding, OAuth and checkout returns, reset link):
-// fetched when opened instead of in every install download (precache budget, prd-correcoes-experiencia Q2).
-const ONE_SHOT_PAGE_CHUNK = /\/pages\/(comecar|checkout\/sucesso|auth\/google\/callback|redefinir-senha|provas\/index)\.vue/
+// One-shot pages that only work online (onboarding, the auth screens, OAuth and checkout returns, reset link,
+// the first batch's end): fetched when opened instead of in every install download (precache budget,
+// prd-correcoes-experiencia Q2, prd-4g-conta-onboarding-v3).
+const ONE_SHOT_PAGE_CHUNK = /\/(pages\/(comecar|entrar|criar-conta|esqueci-senha|checkout\/sucesso|auth\/google\/callback|redefinir-senha|termos|privacidade|ajuda|planos)|layouts\/auth|components\/review\/ReviewOnboardingEnd)\.vue/
+// Pieces shared only by those pages: a shared chunk has no facade module, so it goes by what is inside it.
+const ONE_SHOT_SHARED = /\/(components\/auth\/|components\/onboarding\/|utils\/authMessages)/
 // Reference page of the design system (prd-ds-v3-fundacao RF-2.5): only in `nuxt dev`. NUXT_DS_PAGE=1 keeps it
 // in a production build for screenshots; even then its chunk is `dev-*`, out of the precache.
 const DS_PAGE_FLAG = process.env.NUXT_DS_PAGE === '1'
@@ -98,8 +101,9 @@ export default defineNuxtConfig({
       build: {
         rollupOptions: {
           output: {
-            chunkFileNames: (chunk: { facadeModuleId: string | null }) => {
+            chunkFileNames: (chunk: { facadeModuleId: string | null, moduleIds?: string[] }) => {
               const id = chunk.facadeModuleId ?? ''
+              if (chunk.moduleIds?.length && chunk.moduleIds.every(m => ONE_SHOT_SHARED.test(m))) return '_nuxt/once-[hash].js'
               if (EMAIL_PAGE_CHUNK.test(id)) return '_nuxt/email-[hash].js'
               if (ANALYTICS_CHUNK.test(id)) return '_nuxt/analytics-[hash].js'
               if (CONSENT_CHUNK.test(id)) return '_nuxt/consent-[hash].js'

@@ -51,7 +51,7 @@ const planItem = computed<MenuItem>(() => {
   if (info?.subscription_ends_at) label = `Pro · termina em ${formatBillingDayMonth(info.subscription_ends_at)}`
   else if (info?.billing === 'annual' && info.plan_expires_at) label = `Pro · renova em ${formatBillingDayMonth(info.plan_expires_at)}`
   else if (info?.billing === 'monthly') label = 'Pro mensal'
-  return { label, meta: 'Gerenciar', to: '/configuracoes#seguranca' }
+  return { label, meta: 'Gerenciar', to: '/configuracoes#plano' }
 })
 
 const THEMES = [

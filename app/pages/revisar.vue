@@ -9,6 +9,7 @@
       :can-undo="review.canUndo"
       :can-edit="!!review.currentCard && !review.showErrorDiary && !batchEndIndex"
       :blitz-to="isBlitz ? null : blitzTo"
+      :onboarding="isOnboarding"
       @undo="handleUndo"
       @edit="openEdit"
       @focus-mode="enterFocus"
@@ -54,6 +55,9 @@
           <UiButton variant="ghost" :to="backTo">Voltar</UiButton>
         </template>
       </UiErrorState>
+
+      <!-- First batch of the onboarding: 1st rating of every card, no waiting for the learning ones (prd-4g RF-F8) -->
+      <LazyReviewOnboardingEnd v-else-if="onboardingEnd" :summary="sessionSummary" :forecast="tomorrow" :loading="tomorrowLoading" />
 
       <!-- Queue still draining / next page on its way -->
       <div v-else-if="(review.saving || review.awaitingPage) && !review.showErrorDiary" class="flex flex-col items-center gap-4 px-gutter py-16 text-center" role="status">
@@ -149,7 +153,8 @@
           </template>
         </ReviewCard>
 
-        <div v-if="review.flipped && !review.showErrorDiary" class="flex flex-wrap items-center justify-center gap-x-3">
+        <!-- The first batch of the onboarding has no AI on the way: nothing to confirm, nothing to spend -->
+        <div v-if="review.flipped && !review.showErrorDiary && !isOnboarding" class="flex flex-wrap items-center justify-center gap-x-3">
           <UiButton size="sm" variant="ghost" :icon-left="MessageCircle" data-testid="review-explain" @click="explainCard">Explicar este card</UiButton>
           <span v-if="chatQuota" class="text-label text-fg-muted">{{ chatQuota }}</span>
         </div>
@@ -181,7 +186,7 @@
 
     <!-- Bottom bar: "Mostrar resposta" (the primary before the turn) or the 4 ratings, fixed on the phone -->
     <footer
-      v-if="review.currentCard && !review.showErrorDiary && !batchEndIndex && !review.finished && !review.saving && !review.awaitingPage"
+      v-if="review.currentCard && !review.showErrorDiary && !batchEndIndex && !onboardingEnd && !review.finished && !review.saving && !review.awaitingPage"
       class="shrink-0 border-t border-line bg-raised px-gutter pt-3 pb-safe-bottom"
       data-testid="review-footer"
     >
@@ -266,10 +271,16 @@ const batchEndIndex = computed(() => batches.ended.value)
 const batchEndSummary = computed(() => (batchEndIndex.value ? batchSummary(review.log, batchEndIndex.value, studyDayEnd()) : null))
 const sessionSummary = computed(() => batchSummary(review.log, null, studyDayEnd()))
 
+// === First batch of the onboarding (prd-4g-conta-onboarding-v3 RF-F5, F8): step 3 of the assistant ===
+const auth = useAuthStore()
+const isOnboarding = computed(() => route.query.onboarding === '1')
+const onboardingEnd = computed(() => isOnboarding.value && review.sessionCount > 0 && review.firstPass.length >= review.sessionCount && review.pendingCount === 0 && !review.showErrorDiary)
+
 // === Where the session goes back to and what it is about ===
 const scopeBack = computed(() => scopeBackPath(review.scope) ?? (scopeTopicId.value ? cadernoPath(scopeTopicId.value) : null))
-const backTo = computed(() => scopeBack.value ?? '/hoje')
+const backTo = computed(() => (isOnboarding.value ? '/hoje' : scopeBack.value ?? '/hoje'))
 const backLabel = computed(() => {
+  if (isOnboarding.value) return 'Ir para o Hoje'
   if (review.scope?.label && scopeBack.value) return `Voltar a ${review.scope.label}`
   return scopeTopicId.value ? 'Voltar ao caderno' : 'Ir para o Hoje'
 })
@@ -385,7 +396,7 @@ function until(cond: () => boolean): Promise<void> {
 const tomorrow = ref<TomorrowForecast | null>(null)
 const tomorrowLoading = ref(false)
 const tomorrowFailed = ref(false)
-watch(() => review.finished && !review.saving, async (ready) => {
+watch(() => (review.finished || onboardingEnd.value) && !review.saving, async (ready) => {
   if (!ready || tomorrow.value || tomorrowLoading.value) return
   tomorrowLoading.value = true
   try {
@@ -401,6 +412,14 @@ watch(() => review.finished, (done) => {
   if (done) return
   tomorrow.value = null
   tomorrowFailed.value = false
+})
+
+// Activation = the first batch concluded, whatever the way in (prd-4g RF-B3): the server records it once
+watch(() => !isBlitz.value && review.pendingCount === 0 && !!auth.user && !auth.user.first_batch_at
+  && (!!batchEndIndex.value || onboardingEnd.value || (review.finished && review.totalRated > 0)), (reached) => {
+  if (!reached || !auth.user) return
+  auth.user.first_batch_at = new Date().toISOString()
+  $api('/onboarding/first-batch', { method: 'POST' }).catch((e: unknown) => reportApiError(e, { silent: true }))
 })
 
 const { run: runReminder, pending: enablingReminder } = useApiAction()
@@ -517,7 +536,7 @@ useReviewShortcuts({
     else void navigateTo(backTo.value)
   },
   isFlipped: () => review.flipped,
-  isSuspended: () => showTimerModal.value || showEditCard.value,
+  isSuspended: () => showTimerModal.value || showEditCard.value || onboardingEnd.value,
   batchEnd: () => (batchEndIndex.value && !review.showErrorDiary
     ? { next: nextBatch, stop: () => { stopAtBatch(); void navigateTo(backTo.value) } }
     : null),
@@ -599,10 +618,15 @@ async function loadSession() {
   timerInterval = null
   if (isBlitz.value) startTimer(300)
   else await loadSessionTimer()
+  if (isOnboarding.value) {
+    // The first batch is not interrupted: the diary of errors starts with the second session
+    review.errorDiaryMode = 'never'
+    track('onboarding_step', { step: 3, mode: auth.user?.default_learning_mode ?? null })
+  }
   sessionAnalytics.started(route.query, isSurvivalMode.value, review.total)
 }
 
-watch(() => review.finished, (done) => {
+watch(() => review.finished || onboardingEnd.value, (done) => {
   if (done) sessionAnalytics.completed(review.ratingsCount)
 })
 

@@ -7,9 +7,7 @@
   },
   "color-fn": {},
   "palette": {
-    "app/components/onboarding/ReminderRow.vue": 1,
     "app/pages/checkout/sucesso.vue": 1,
-    "app/pages/configuracoes.vue": 1,
     "app/pages/planos.vue": 1
   },
   "ghost-var": {},
@@ -18,15 +16,11 @@
   "component-class": {
     "app/components/help/HowItWorks.vue": 3,
     "app/components/legal/LegalLayout.vue": 1,
-    "app/components/onboarding/ReminderRow.vue": 1,
     "app/components/topic/GenerateNoteSheet.vue": 2,
     "app/components/topic/MindMapView.vue": 6,
     "app/pages/ajuda.vue": 4,
     "app/pages/checkout/sucesso.vue": 5,
-    "app/pages/comecar.vue": 15,
-    "app/pages/configuracoes.vue": 21,
     "app/pages/importar.vue": 10,
-    "app/pages/lembretes/desativado.vue": 4,
     "app/pages/planos.vue": 13
   },
   "overlay": {
@@ -35,46 +29,34 @@
   },
   "spin": {
     "app/components/topic/MindMapView.vue": 1,
-    "app/pages/checkout/sucesso.vue": 2,
-    "app/pages/comecar.vue": 1
+    "app/pages/checkout/sucesso.vue": 2
   },
-  "switch-role": {
-    "app/components/onboarding/ReminderRow.vue": 1,
-    "app/pages/configuracoes.vue": 1
-  },
+  "switch-role": {},
   "arbitrary": {
     "app/components/help/HowItWorks.vue": 29,
     "app/components/landing/HeroPipeline.vue": 63,
     "app/components/landing/MockMindMap.vue": 8,
     "app/components/legal/LegalLayout.vue": 4,
-    "app/components/onboarding/ReminderRow.vue": 4,
-    "app/components/settings/ReminderPreferences.vue": 1,
     "app/components/topic/GenerateNoteSheet.vue": 1,
     "app/components/topic/MindMapRenderer.vue": 2,
     "app/components/topic/MindMapView.vue": 8,
     "app/components/topic/SubpageBlockView.vue": 3,
     "app/components/topic/SubpageDropdown.vue": 4,
     "app/components/ui/Confetti.vue": 1,
-    "app/components/ui/ConsentBanner.vue": 4,
+    "app/components/ui/ConsentBanner.vue": 3,
     "app/components/ui/Logo.vue": 1,
     "app/components/ui/PublicHeader.vue": 1,
-    "app/components/ui/RadioCards.vue": 1,
     "app/components/ui/RichInput.vue": 1,
     "app/pages/ajuda.vue": 3,
     "app/pages/checkout/sucesso.vue": 3,
-    "app/pages/comecar.vue": 16,
-    "app/pages/configuracoes.vue": 2,
     "app/pages/importar.vue": 13,
     "app/pages/index.vue": 111,
-    "app/pages/lembretes/desativado.vue": 3,
     "app/pages/planos.vue": 10
   },
   "important": {
     "app/components/help/HowItWorks.vue": 1,
-    "app/components/onboarding/ReminderRow.vue": 3,
     "app/components/topic/MindMapView.vue": 9,
-    "app/pages/ajuda.vue": 3,
-    "app/pages/comecar.vue": 14
+    "app/pages/ajuda.vue": 3
   },
   "inline-style": {},
   "dark-style": {
@@ -89,29 +71,22 @@
     "app/components/landing/HeroPipeline.vue": 15,
     "app/components/landing/MockMindMap.vue": 5,
     "app/components/legal/LegalLayout.vue": 31,
-    "app/components/onboarding/ReminderRow.vue": 11,
     "app/components/topic/GenerateNoteSheet.vue": 17,
     "app/components/topic/MindMapRenderer.vue": 10,
     "app/components/topic/MindMapView.vue": 57,
     "app/components/topic/SubpageBlockView.vue": 8,
     "app/components/topic/SubpageDropdown.vue": 21,
-    "app/components/ui/ConsentBanner.vue": 3,
     "app/components/ui/DisabledFeature.vue": 1,
     "app/components/ui/InsightBanner.vue": 1,
     "app/components/ui/Modal.vue": 1,
     "app/components/ui/PublicHeader.vue": 1,
-    "app/components/ui/RadioCards.vue": 2,
     "app/components/ui/RichInput.vue": 3,
     "app/components/ui/Tooltip.vue": 1,
-    "app/layouts/auth.vue": 1,
     "app/layouts/landing.vue": 1,
     "app/pages/ajuda.vue": 7,
     "app/pages/checkout/sucesso.vue": 28,
-    "app/pages/comecar.vue": 90,
-    "app/pages/configuracoes.vue": 3,
     "app/pages/importar.vue": 62,
     "app/pages/index.vue": 87,
-    "app/pages/lembretes/desativado.vue": 20,
     "app/pages/planos.vue": 45
   }
 }

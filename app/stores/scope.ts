@@ -168,6 +168,7 @@ export const useScopeStore = defineStore('scope', () => {
     patchRow('pdf', doc.id, {
       status,
       progress: status === 'generating' ? { done: doc.note_generation_progress ?? 0, total: doc.note_total_batches ?? 0 } : null,
+      auto_cards_status: doc.auto_cards_status ?? null,
       ...(doc.note_id ? { note_id: doc.note_id } : {}),
       ...(doc.pages_count ? { pages: doc.pages_count } : {}),
     })

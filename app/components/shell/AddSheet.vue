@@ -26,7 +26,7 @@
           </UiListRow>
         </li>
       </ul>
-      <UiCheckbox v-if="step === 'menu'" v-model="autoCards" class="mt-3" label="Criar cards dos PDFs automaticamente" />
+      <UiCheckbox v-if="step === 'menu'" v-model="autoCards" class="mt-3" label="Gerar cards automaticamente" description="Usa 1 geração para o material todo (as 4 primeiras partes)." />
 
       <form v-else class="flex flex-col gap-3" @submit.prevent="saveText">
         <UiTextarea

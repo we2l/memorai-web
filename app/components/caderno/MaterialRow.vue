@@ -21,11 +21,11 @@
         <button type="button" class="min-h-touch font-medium text-action-fg underline underline-offset-2" @click="$emit('retry', row)">Tentar de novo</button>
       </p>
       <p v-else-if="row.status === 'blocked'" class="flex flex-wrap items-center gap-x-2 text-meta text-fg-muted">
-        <template v-if="blockedReason === 'feature_limit'">
+        <template v-if="reason === 'feature_limit'">
           <span>Limite do mês atingido</span>
           <button type="button" class="min-h-touch font-medium text-action-fg underline underline-offset-2" @click="openPlans">Ver planos</button>
         </template>
-        <template v-else-if="blockedReason === 'pages_cap'">
+        <template v-else-if="reason === 'pages_cap'">
           <span>Limite de leitura da IA atingido este mês</span>
         </template>
         <template v-else>
@@ -33,7 +33,11 @@
           <button type="button" class="min-h-touch font-medium text-action-fg underline underline-offset-2" @click="$emit('retry', row)">Gerar resumo</button>
         </template>
       </p>
-      <p v-else class="text-meta text-fg-muted" data-testid="material-meta">{{ metaText }}</p>
+      <template v-else>
+        <p class="text-meta text-fg-muted" data-testid="material-meta">{{ metaText }}</p>
+        <!-- The automatic cards, per part: state and reason in the line (prd-4c-material-v3 RF-B9) -->
+        <LazyCadernoMaterialCardsState v-if="row.kind === 'pdf' && row.auto_cards_status && row.auto_cards_status !== 'completed'" :row="row" />
+      </template>
       <!-- Phone: the button goes under the text, so the title keeps the width -->
       <UiButton v-if="canReview" size="sm" class="mt-2 sm:hidden" :to="reviewPath(scope)">Revisar {{ row.session_count }}</UiButton>
     </div>
@@ -59,7 +63,8 @@
 // One material of the scope (prd-4b-caderno-v3 RF-F6): a PDF with its parts, or a note, in one line with
 // what it has ("PDF · 212 páginas · 6 partes · 148 cards · domínio 44%"), "Revisar N" of its own slice
 // (scope=document:/note:, F2) and the ⋯ with Abrir, Só erros (N), Praticar adiantado, cards and Excluir.
-// A PDF still reading polls GET /documents/{id} every 4 s and updates only this line.
+// A PDF still reading (progress per part) or making its automatic cards polls GET /documents/{id} every 4 s and
+// updates only this line; why the cards or the note did not come is said here.
 import { Ellipsis, FileText, NotebookText } from 'lucide-vue-next'
 import type { MenuItem } from '~/components/ui/Menu.vue'
 import type { Document, MaterialRow } from '~/types'
@@ -109,9 +114,13 @@ const metaText = computed(() => {
 
 const progressText = computed(() => {
   const p = props.row.progress
-  if (props.row.status === 'generating' && p?.total) return `Lendo o PDF · ${p.done} de ${p.total}`
-  return 'Lendo o PDF…'
+  return props.row.status === 'generating' && p?.total ? partProgressText(p.done, p.total) : 'Lendo o PDF…'
 })
+
+// The reason comes with the line since the 4b-2 API; right after an upload here, from the upload's answer
+const reason = computed(() => props.row.blocked_reason ?? props.blockedReason ?? null)
+
+const cardsBusy = computed(() => props.row.kind === 'pdf' && (props.row.auto_cards_status === 'pending' || props.row.auto_cards_status === 'generating'))
 
 // "Só erros (N)" of this material: counted when its menu opens (F2)
 const errors = ref<number | null | undefined>(undefined)
@@ -148,12 +157,12 @@ function openPlans() {
   window.dispatchEvent(new CustomEvent('feature-limit-reached', { detail: { feature: 'pdf_to_note', planRequired: 'pro' } }))
 }
 
-// A PDF reading: only this line asks GET /documents/{id} (usePoll stops on unmount and in a hidden tab)
-const reading = computed(() => props.row.kind === 'pdf' && (props.row.status === 'generating' || props.row.status === 'processing'))
+// A PDF reading, or making its cards: only this line asks GET /documents/{id} (usePoll stops on unmount and in a hidden tab)
+const reading = computed(() => props.row.kind === 'pdf' && (props.row.status === 'generating' || props.row.status === 'processing' || cardsBusy.value))
 const poll = usePoll(async (signal) => {
   const res = await useNuxtApp().$api<{ data: Document }>(`/documents/${props.row.id}`, { signal })
   const status = store.applyDocument(res.data)
-  if (status !== 'generating' && status !== 'processing') {
+  if (status !== 'generating' && status !== 'processing' && !cardsBusy.value) {
     await store.refreshRow('pdf', props.row.id)
     emit('ready', props.row)
   }

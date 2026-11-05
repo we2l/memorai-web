@@ -119,7 +119,20 @@
               :topic-id="id"
               :topic-learning-mode="learningMode"
               @changed="m.loadDocument(m.document.value?.id)"
+              @regenerate="regenerateOpen = true"
             />
+          </template>
+          <template v-if="neighbors.previous || neighbors.next" #footer>
+            <nav aria-label="Outras partes" class="mt-10 grid max-w-prose gap-3 border-t border-line pt-6 sm:grid-cols-2" data-testid="part-nav">
+              <NuxtLink v-if="neighbors.previous" :to="cadernoPath(id, { note: neighbors.previous.note_id })" class="flex min-h-touch flex-col rounded-row px-3 py-2 transition-colors duration-nav hover:bg-subtle" aria-keyshortcuts="[" data-testid="part-previous" @click="onPartNav('previous')">
+                <span class="text-label text-fg-muted">‹ Parte {{ neighbors.previous.index }}</span>
+                <span class="font-medium break-words text-fg-strong">{{ neighbors.previous.title }}</span>
+              </NuxtLink>
+              <NuxtLink v-if="neighbors.next" :to="cadernoPath(id, { note: neighbors.next.note_id })" class="flex min-h-touch flex-col rounded-row px-3 py-2 text-right transition-colors duration-nav hover:bg-subtle sm:col-start-2" aria-keyshortcuts="]" data-testid="part-next" @click="onPartNav('next')">
+                <span class="text-label text-fg-muted">Parte {{ neighbors.next.index }} ›</span>
+                <span class="font-medium break-words text-fg-strong">{{ neighbors.next.title }}</span>
+              </NuxtLink>
+            </nav>
           </template>
           <template #improve-bar>
             <TopicNoteImproveBar
@@ -246,6 +259,15 @@
       :page="pdfPage"
     />
     <UiConfirmModal
+      v-model="regenerateOpen"
+      title="Gerar as partes de novo?"
+      message="Reescrevemos cada parte no lugar. Nada se apaga: seus cards continuam ligados às mesmas partes e, se sobrar alguma, ela fica com “(antiga)” no título. Usa 1 PDF transformado em nota do mês."
+      confirm-label="Gerar de novo"
+      variant="primary"
+      :loading="regenerating"
+      @confirm="confirmRegenerate"
+    />
+    <UiConfirmModal
       v-model="showDeleteNote"
       title="Excluir nota?"
       message="A nota será removida permanentemente. Os cards que vieram dela continuam na biblioteca."
@@ -263,12 +285,14 @@
 // ("Editar"/"Concluir edição", E; the choice is kept per note on the device). The panel's workshop keeps
 // the text on screen; a selected excerpt can become a card, 3 cards with AI or a question. "(pág. X)" in
 // the text and "Ver no PDF" open the PDF on that page. ?from=review shows "‹ Voltar à revisão";
-// ?workshop=1 (the hub's "Gerar cards") starts the workshop once.
+// ?workshop=1 (the hub's "Gerar cards") starts the workshop once. Each part of a PDF is a note (4c-2): the end of
+// the text and [ ] go to its neighbors, and regenerating rewrites in place, nothing is deleted.
 import { Check, ChevronDown, ChevronLeft, ChevronRight, Layers, ListTree, Pencil, Sparkles } from 'lucide-vue-next'
 import type { MenuItem } from '~/components/ui/Menu.vue'
 import type { SelectionAction } from '~/components/material/SelectionActions.vue'
 import { outlineOf, type OutlineHeading } from '~/composables/useNoteOutline'
 import { reviewPath } from '~/utils/reviewScope'
+import { partNeighbors } from '~/utils/materialParts'
 
 const route = useRoute()
 const router = useRouter()
@@ -329,18 +353,32 @@ const generatingText = computed(() => {
   if (!m.generating.value || !doc) return ''
   const total = doc.note_total_batches ?? 0
   // note_generation_progress = batches already written (GenerateNoteFromPdfJob)
-  const done = Math.min(total, doc.note_generation_progress ?? 0)
-  return total ? `Escrevendo a nota · lote ${Math.min(total, done + 1)} de ${total}` : 'Escrevendo a nota…'
+  return total ? partProgressText(doc.note_generation_progress ?? 0, total) : 'Escrevendo a nota…'
+})
+// Each written batch can open a part or give it a title: the sumário follows
+watch(() => [m.document.value?.note_generation_progress, m.generating.value], (now, before) => {
+  if (before && m.document.value && (now[0] !== before[0] || now[1] !== before[1])) void material.reload()
 })
 const generationFailed = computed(() => m.document.value?.note_generation_status === 'failed')
 const regenerating = ref(false)
+const regenerateOpen = ref(false)
 async function regenerate() {
   const doc = m.document.value
   if (!doc) return
   regenerating.value = true
-  const ok = await run(() => $api(`/documents/${doc.id}/regenerate-note`, { method: 'POST' }), { success: 'Lendo o PDF de novo.', error: 'Não foi possível tentar de novo agora.' })
+  const ok = await run(() => $api(`/documents/${doc.id}/regenerate-note`, { method: 'POST' }), { success: 'Lendo o PDF de novo. Nada foi apagado.', error: 'Não foi possível gerar de novo agora.' })
   regenerating.value = false
   if (ok !== undefined) await m.loadDocument(doc.id)
+}
+async function confirmRegenerate() {
+  await regenerate()
+  regenerateOpen.value = false
+}
+
+// === Moving between the parts (RF-F15): a route change, so "opened" is recorded and Hoje's "Continuar" gets it ===
+const neighbors = computed(() => partNeighbors(parts.value, noteId.value))
+function onPartNav(direction: 'previous' | 'next') {
+  track('part_nav', { direction, via: 'link' })
 }
 
 // === Reading or editing (RF-F2): PDF → reading, manual → editing; the choice kept per note ===
@@ -364,13 +402,22 @@ function toggleMode() {
   track('material_mode', { mode: editing.value ? 'edit' : 'read' })
 }
 
-// E toggles the mode (outside a field or the editor)
+// E toggles the mode, [ and ] change the part (outside a field or the editor)
 function onKeydown(e: KeyboardEvent) {
-  if (e.key !== 'e' && e.key !== 'E') return
+  if (!['e', 'E', '[', ']'].includes(e.key)) return
   if (e.ctrlKey || e.metaKey || e.altKey || e.defaultPrevented) return
   const t = e.target as HTMLElement | null
   if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return
   if (document.querySelector('[aria-modal="true"]')) return
+  if (e.key === '[' || e.key === ']') {
+    const direction = e.key === '[' ? 'previous' : 'next'
+    const part = neighbors.value[direction]
+    if (!part) return
+    e.preventDefault()
+    track('part_nav', { direction, via: 'key' })
+    void navigateTo(cadernoPath(id.value, { note: part.note_id }))
+    return
+  }
   e.preventDefault()
   toggleMode()
 }
@@ -482,6 +529,7 @@ const menuItems = computed<MenuItem[]>(() => [
   { label: 'Mapa da nota', onSelect: () => { showMindMap.value = true } },
   { label: 'Perguntar sobre este material', onSelect: askAboutMaterial },
   ...(isPdf.value ? [{ label: 'Ver o PDF', onSelect: () => { void openPdf(null) } }] : []),
+  ...(isPdf.value && m.document.value && !m.generating.value ? [{ label: 'Gerar as partes de novo', meta: 'nada se apaga', onSelect: () => { regenerateOpen.value = true } }] : []),
   { label: 'Excluir nota', tone: 'danger' as const, separator: true, onSelect: () => { showDeleteNote.value = true } },
 ])
 function askAboutMaterial() {

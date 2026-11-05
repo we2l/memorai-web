@@ -59,6 +59,8 @@
       />
       <MaterialSelectionActions :root="textRoot" :mobile="mobile" @action="(a: SelectionAction, text: string) => $emit('selection', a, text)" />
     </div>
+
+    <slot name="footer" />
   </article>
 </template>
 

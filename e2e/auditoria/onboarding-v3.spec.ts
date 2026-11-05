@@ -281,6 +281,8 @@ test.describe('Só no teclado, com 1 primário e 1 h1 em cada passo, e axe', () 
     await expect(page.getByTestId('onboarding-end')).toBeVisible({ timeout: 15_000 })
     await expect(page.locator('h1')).toHaveCount(1)
     expect(await primaries(page)).toBe(1)
+    // A previsão de amanhã só chega com a fila vazia; antes disso, sair pergunta das avaliações não enviadas
+    await expect(page.getByTestId('onboarding-tomorrow')).toContainText('Amanhã')
     await page.getByRole('link', { name: 'Ir para o Hoje' }).focus()
     await page.keyboard.press('Enter')
     await page.waitForURL('**/hoje')

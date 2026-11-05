@@ -381,19 +381,41 @@ describe('/importar (RF-F17)', () => {
     expect(apiMock).toHaveBeenCalledWith('/import/imp1/confirm', expect.objectContaining({ body: { deck_conflicts: { Inglês: 'import' }, destination: { type: 'new' } } }))
   })
 
-  it('de um caderno: "Caderno novo" é o padrão e "Dentro de" relê o mapeamento e vai no confirm', async () => {
-    route({ 'GET /import/imp1/preview': { data: { ...preview, mapping: { ...preview.mapping, destination: { type: 'existing', topic_id: 't1' } } } }, 'POST /import/imp1/confirm': { data: {} }, 'GET /import/imp1/status': { data: { status: 'processing' } } })
+  it('de um caderno: "Dentro de" é o padrão (decisão do dono), "Caderno novo" relê o mapeamento e cada um vai no confirm', async () => {
+    route({ 'GET /import/imp1/preview': { data: { ...preview, mapping: { ...preview.mapping, destination: { type: 'existing', topic_id: 't1' } } } }, 'POST /import/imp1/confirm': { data: {} } })
     useTopicStore().tree = [topic('t1')]
     await atPreview('/importar?topic_id=t1')
     const radios = [...document.body.querySelectorAll<HTMLInputElement>('[data-testid="import-destination"] input, fieldset input[type="radio"]')]
-    expect(radios[0]!.checked).toBe(true)
+    expect(radios[1]!.checked).toBe(true)
     expect(document.body.textContent).toContain('Dentro de T1')
-    radios[1]!.click()
-    await flushPromises()
-    expect(apiMock).toHaveBeenCalledWith('/import/imp1/preview', expect.objectContaining({ params: { topic_id: 't1' } }))
     q('[data-testid="import-confirm"]')!.click()
     await flushPromises()
     expect(apiMock).toHaveBeenCalledWith('/import/imp1/confirm', expect.objectContaining({ body: expect.objectContaining({ destination: { type: 'existing', topic_id: 't1' } }) }))
+  })
+
+  it('de um caderno: escolher "Caderno novo" relê o mapeamento sem topic_id e vai no confirm', async () => {
+    route({ 'GET /import/imp1/preview': { data: preview }, 'POST /import/imp1/confirm': { data: {} } })
+    useTopicStore().tree = [topic('t1')]
+    await atPreview('/importar?topic_id=t1')
+    const radios = [...document.body.querySelectorAll<HTMLInputElement>('[data-testid="import-destination"] input, fieldset input[type="radio"]')]
+    apiMock.mockClear()
+    radios[0]!.click()
+    await flushPromises()
+    expect(radios[0]!.checked).toBe(true)
+    expect(apiMock.mock.calls.some(([url, opts]) => url === '/import/imp1/preview' && !opts?.params?.topic_id)).toBe(true)
+    q('[data-testid="import-confirm"]')!.click()
+    await flushPromises()
+    expect(apiMock).toHaveBeenCalledWith('/import/imp1/confirm', expect.objectContaining({ body: expect.objectContaining({ destination: { type: 'new' } }) }))
+  })
+
+  it('topic_id que a árvore não conhece: caderno novo, sem seletor', async () => {
+    route({ 'GET /topics': { data: [topic('t1')] }, 'POST /import/imp1/confirm': { data: {} } })
+    useTopicStore().tree = [topic('t1')]
+    await atPreview('/importar?topic_id=outro')
+    expect(document.body.querySelectorAll('[data-testid="import-destination"] input').length).toBe(0)
+    q('[data-testid="import-confirm"]')!.click()
+    await flushPromises()
+    expect(apiMock).toHaveBeenCalledWith('/import/imp1/confirm', expect.objectContaining({ body: expect.objectContaining({ destination: { type: 'new' } }) }))
   })
 
   it('baralho em "Pular" sai do número do botão; todos pulados, nada a importar', async () => {

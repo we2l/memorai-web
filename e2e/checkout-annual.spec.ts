@@ -85,8 +85,9 @@ test.describe('Checkout anual', () => {
     await expect(page.getByRole('button', { name: /Copiar código Pix/ })).toBeVisible()
     await expect(page.getByText(/O código expira em/)).toBeVisible()
 
-    await expect(page.getByRole('heading', { name: 'Pro ativado até 28/09/2027' })).toBeVisible({ timeout: 10_000 })
-    await expect(page.getByRole('link', { name: 'Ir para Hoje' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Bem-vindo ao Pro!' })).toBeVisible({ timeout: 10_000 })
+    await expect(page.getByText('Pro ativo até 28/09/2027')).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Ir para o Hoje' })).toBeVisible()
   })
 
   test('Pix expirado oferece gerar novo código', async ({ page }) => {

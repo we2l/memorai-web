@@ -111,6 +111,8 @@
   --surface-subtle: var(--palette-mist-50);
   --surface-tinted: var(--palette-violet-50);
   --surface-float: var(--palette-white);
+  /* Fundo do QR Code do Pix: branco nos dois temas, senão o leitor do banco não enxerga */
+  --surface-qr: var(--palette-white);
   --surface-scrim: color-mix(in srgb, var(--palette-ink-900) 40%, transparent);
 
   /* Linhas: divisor, borda e campo (>= 3:1, WCAG 1.4.11) */
@@ -212,6 +214,11 @@
     --sticky-action-h: 0px;
     --toast-bottom: calc(var(--miniplayer-h) + 16px);
   }
+}
+
+/* Páginas públicas (layouts/public.vue): sem BottomNav embaixo do toast e do mini-player */
+:root[data-chrome="public"] {
+  --nav-h: 0px;
 }
 
 /* Rotas chrome: focus (revisão, simulado em andamento) escondem a casca */

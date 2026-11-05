@@ -22,7 +22,7 @@ async function recordThemeAtBody(page: Page, mode: string | null) {
 const themeAtBody = (page: Page) => page.evaluate(() => (window as unknown as { __themeAtBody: { dark: boolean, scheme: string } }).__themeAtBody)
 const isDark = (page: Page) => page.evaluate(() => document.documentElement.classList.contains('dark'))
 
-for (const path of ['/entrar', '/hoje']) {
+for (const path of ['/entrar', '/hoje', '/planos', '/termos', '/ajuda']) {
   test(`${path}: color-mode=dark já está escuro antes do <body> (sem flash branco)`, async ({ browser }) => {
     const ctx = await browser.newContext({ colorScheme: 'light' })
     const page = await ctx.newPage()

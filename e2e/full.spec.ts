@@ -84,7 +84,7 @@ test.describe('Configurações (/configuracoes)', () => {
 
   test('exibe perfil do usuário', async ({ page }) => {
     await expect(page.getByRole('heading', { name: 'Configurações' })).toBeVisible()
-    await expect(page.getByRole('heading', { name: 'Perfil' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Conta e segurança' })).toBeVisible()
     await expect(page.getByText(TEST_USER.email)).toBeVisible()
   })
 

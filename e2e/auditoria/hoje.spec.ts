@@ -98,7 +98,8 @@ test.describe('Plano do dia (e2e-hoje)', () => {
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(/^(Bom dia|Boa tarde|Boa noite), Auditoria\. Hoje são uns \d+ minutos\.$/)
 
     // The exam at 45 days shows (the old Hoje hid anything beyond 14)
-    await expect(main(page).getByTestId('home-exam')).toContainText('Prova TRF em 45 dias')
+    // 44 from 21h in São Paulo: days_remaining is counted in UTC on the API
+    await expect(main(page).getByTestId('home-exam')).toContainText(/Prova TRF em 4[45] dias/)
     await expect(main(page).getByTestId('home-exam').getByRole('link', { name: 'Ver provas →' })).toHaveAttribute('href', '/progresso#provas')
 
     // Goal: 12 cards due, nothing done → 0 of 1 batch, the shape with its text

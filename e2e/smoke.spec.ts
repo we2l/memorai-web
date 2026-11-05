@@ -39,7 +39,6 @@ test.describe('Páginas públicas (RF-F11)', () => {
     await page.fill('#name', 'Sem Aceite')
     await page.fill('#email', `sem-aceite-${Date.now()}@e2e.test`)
     await page.fill('#password', 'password123')
-    await page.fill('#password_confirmation', 'password123')
     await page.click('button[type="submit"]')
     await expect(page.getByText(/aceite os Termos/)).toBeVisible()
     expect(registerCalls).toBe(0)

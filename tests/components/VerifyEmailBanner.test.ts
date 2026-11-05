@@ -47,7 +47,7 @@ describe('VerifyEmailBanner', () => {
 
     auth.setUser({ ...baseUser, email_verified: false })
     const unverified = await mountSuspended(Host)
-    expect(unverified.find('[role="status"]').text()).toContain('Confirme seu e-mail para gerar com IA. Enviamos um link para ana@baigi.com.br.')
+    expect(unverified.find('[role="status"]').text()).toContain('Confirme seu e-mail para usar a IA: enviamos um link para ana@baigi.com.br.')
   })
 
   it('inline (onboarding) has no dismiss button', async () => {

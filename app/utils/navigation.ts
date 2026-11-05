@@ -39,14 +39,14 @@ export function activePlace(currentPath: string): PlaceKey | null {
  * Account menu (RF-3): each item goes to its section of /configuracoes (anchors) or runs an action in the
  * menu (appearance, sign out). The anchors are the `id` of the sections of pages/configuracoes.vue.
  */
-export type AccountItemKey = 'seguranca' | 'lembretes' | 'uso' | 'aparencia' | 'dados' | 'ajuda' | 'sair'
+export type AccountItemKey = 'conta' | 'estudo' | 'uso' | 'aparencia' | 'dados' | 'ajuda' | 'sair'
 
-export const SETTINGS_ANCHORS = ['seguranca', 'lembretes', 'uso', 'aparencia', 'dados'] as const
+export const SETTINGS_ANCHORS = ['conta', 'plano', 'estudo', 'aparencia', 'dados'] as const
 
 export const accountItems: readonly { key: AccountItemKey, label: string, to?: string }[] = [
-  { key: 'seguranca', label: 'Conta e segurança', to: '/configuracoes#seguranca' },
-  { key: 'lembretes', label: 'Lembretes e meta diária', to: '/configuracoes#lembretes' },
-  { key: 'uso', label: 'Uso de IA no mês', to: '/configuracoes#uso' },
+  { key: 'conta', label: 'Conta e segurança', to: '/configuracoes#conta' },
+  { key: 'estudo', label: 'Estudo e lembretes', to: '/configuracoes#estudo' },
+  { key: 'uso', label: 'Uso de IA no mês', to: '/configuracoes#plano' },
   { key: 'aparencia', label: 'Aparência' },
   { key: 'dados', label: 'Exportar meus dados', to: '/configuracoes#dados' },
   { key: 'ajuda', label: 'Ajuda e atalhos', to: '/ajuda?tab=atalhos' },

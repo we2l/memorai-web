@@ -130,10 +130,10 @@ describe('ShellAccountMenu', () => {
     expect(panel.text()).toContain('rafael@exemplo.com')
     const items = w.findAll('[role^="menuitem"]')
     expect(items.map(i => i.text())).toEqual([
-      'Plano ProGerenciar', 'Conta e segurança', 'Lembretes e meta diária', 'Uso de IA no mês',
+      'Plano ProGerenciar', 'Conta e segurança', 'Estudo e lembretes', 'Uso de IA no mês',
       'Sistema', 'Claro', 'Escuro', 'Exportar meus dados', 'Ajuda e atalhos?', 'Sair',
     ])
-    expect(items[1]!.attributes('href')).toBe('/configuracoes#seguranca')
+    expect(items[1]!.attributes('href')).toBe('/configuracoes#conta')
     expect(items[7]!.attributes('href')).toBe('/configuracoes#dados')
     expect(w.get('[role="group"]').findAll('[role="menuitemradio"]').map(r => r.attributes('aria-checked'))).toEqual(['true', 'false', 'false'])
     expect(await axeViolations(w.element)).toEqual([])

@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-page flex items-center justify-center">
+  <div class="flex justify-center py-6">
     <div class="text-center">
       <template v-if="!error">
         <UiSpinner class="mx-auto mb-4 text-action-fg" />

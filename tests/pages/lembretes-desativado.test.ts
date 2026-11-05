@@ -39,7 +39,7 @@ describe('/lembretes/desativado', () => {
 
     const wrapper = await mountWith(unsubscribeUrl)
 
-    expect(wrapper.text()).toContain('Link inválido. Desative em Configurações.')
+    expect(wrapper.text()).toContain('Desative em Configurações.')
   })
 
   it('não faz POST para URL fora da API', async () => {

@@ -88,15 +88,15 @@ describe('navigation: 4 lugares e o item ativo', () => {
 describe('navigation: menu da conta', () => {
   it('itens do RF-3 na ordem do protótipo, levando às âncoras de /configuracoes', () => {
     expect(accountItems.map(i => i.label)).toEqual([
-      'Conta e segurança', 'Lembretes e meta diária', 'Uso de IA no mês', 'Aparência', 'Exportar meus dados', 'Ajuda e atalhos', 'Sair',
+      'Conta e segurança', 'Estudo e lembretes', 'Uso de IA no mês', 'Aparência', 'Exportar meus dados', 'Ajuda e atalhos', 'Sair',
     ])
     const anchors = accountItems.filter(i => i.to?.startsWith('/configuracoes#')).map(i => i.to!.split('#')[1])
-    expect(anchors).toEqual(['seguranca', 'lembretes', 'uso', 'dados'])
+    expect(anchors).toEqual(['conta', 'estudo', 'plano', 'dados'])
     for (const a of anchors) expect(SETTINGS_ANCHORS).toContain(a)
   })
 
   it('/configuracoes tem uma seção com cada âncora', () => {
     const page = readFileSync(join(process.cwd(), 'app/pages/configuracoes.vue'), 'utf8')
-    for (const id of SETTINGS_ANCHORS) expect(page, id).toMatch(new RegExp(`<section[^>]*\\sid="${id}"`))
+    for (const id of SETTINGS_ANCHORS) expect(page, id).toMatch(new RegExp(`<UiSection[^>]*\\sid="${id}"`))
   })
 })

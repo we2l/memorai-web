@@ -1,10 +1,10 @@
 <template>
   <div>
     <UiErrorState v-if="loadError" title="Não foi possível carregar seus lembretes" @retry="$emit('retry')" />
-    <div v-else class="space-y-4">
+    <div v-else class="flex flex-col gap-3">
       <p
         v-if="suppressed"
-        class="text-meta text-warning bg-warning-subtle rounded-control px-3 py-2"
+        class="rounded-control bg-warning-subtle px-3 py-2 text-meta text-warning"
         role="status"
         data-testid="reminder-suppressed"
       >
@@ -20,16 +20,15 @@
         @update:model-value="toggle"
       />
 
-      <div class="max-w-[12rem]">
-        <label for="reminder-hour" class="text-label mb-1 block">Horário</label>
-        <UiSelect
-          id="reminder-hour"
-          :model-value="String(hour)"
-          :options="REMINDER_HOUR_OPTIONS"
-          :disabled="!enabled || suppressed || pending"
-          @update:model-value="setHour"
-        />
-      </div>
+      <UiSelect
+        id="reminder-hour"
+        class="max-w-48"
+        label="Horário"
+        :model-value="String(hour)"
+        :options="REMINDER_HOUR_OPTIONS"
+        :disabled="!enabled || suppressed || pending"
+        @update:model-value="setHour"
+      />
     </div>
   </div>
 </template>

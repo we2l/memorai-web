@@ -21,17 +21,10 @@
       "prazo": "permanente"
     },
     {
-      "path": "app/pages/entrar.vue",
+      "path": "app/components/auth/GoogleButton.vue",
       "rules": ["hex"],
       "match": "fill=\"#4285F4\"",
-      "motivo": "Logo do Google no botão de login: cores oficiais da marca.",
-      "prazo": "permanente"
-    },
-    {
-      "path": "app/pages/criar-conta.vue",
-      "rules": ["hex"],
-      "match": "fill=\"#4285F4\"",
-      "motivo": "Logo do Google no botão de cadastro: cores oficiais da marca.",
+      "motivo": "Logo do Google no botão de login e cadastro: cores oficiais da marca.",
       "prazo": "permanente"
     },
     {

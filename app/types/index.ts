@@ -11,6 +11,8 @@ export interface User {
   onboarding_completed: boolean
   /** ISO 8601. Older API builds omit it (the activation checklist then stays hidden). */
   created_at?: string
+  /** First batch of the account concluded: the activation (prd-4g-conta-onboarding-v3 RF-B3) */
+  first_batch_at?: string | null
   /** False for Google sign-ups that never defined a password (RF-B3). */
   has_password?: boolean
   /** LGPD analytics consent: null = not decided (prd-analytics-posthog RF-B03). */
@@ -198,6 +200,8 @@ export interface TopicProgress {
   color?: string | null
   /** Notes of the whole subtree */
   notes_count?: number
+  /** The sample caderno of the onboarding (prd-4g-conta-onboarding-v3 RF-F9) */
+  is_sample?: boolean
   flashcards_count: number
   review_count: number
   progress: number
@@ -813,7 +817,7 @@ export interface ScopeNextStep {
 
 /** GET /topics/{id}/summary (prd-4b-caderno-v3 RF-B1): everything the hub shows above the materials, aggregated. */
 export interface ScopeSummary {
-  topic: { id: string; name: string; color: string | null; depth: number; learning_mode: string | null; parent_id: string | null }
+  topic: { id: string; name: string; color: string | null; depth: number; learning_mode: string | null; parent_id: string | null; is_sample?: boolean }
   /** Ancestors, from the root to the parent */
   path: { id: string; name: string }[]
   counts: { cards: number; materials: number; subjects: number }

@@ -4,7 +4,12 @@
       <UiLink :to="backTo" variant="muted" class="inline-flex min-h-touch shrink-0 items-center gap-1 font-medium" data-testid="review-exit">
         <ChevronLeft class="size-4" aria-hidden="true" />Sair
       </UiLink>
-      <p v-if="scopeText" class="order-last w-full truncate text-label text-fg-muted sm:order-none sm:w-auto sm:min-w-0 sm:flex-1 sm:text-meta" data-testid="review-scope">
+      <!-- First review of the onboarding: the logo and the step, no scope (prd-4g RF-F5) -->
+      <div v-if="onboarding" class="flex min-w-0 flex-1 items-center gap-3" data-testid="review-onboarding">
+        <UiLogo :icon-size="24" text-class="text-body text-fg-strong max-sm:hidden" />
+        <span class="text-meta whitespace-nowrap text-fg-muted">Passo 3 de 3</span>
+      </div>
+      <p v-else-if="scopeText" class="order-last w-full truncate text-label text-fg-muted sm:order-none sm:w-auto sm:min-w-0 sm:flex-1 sm:text-meta" data-testid="review-scope">
         Revisando <span class="font-semibold text-fg-strong">{{ scopeText }}</span>{{ scopeNote ? ` ${scopeNote}` : '' }}
       </p>
       <span v-else class="hidden flex-1 sm:block" />
@@ -21,7 +26,7 @@
       <span class="flex shrink-0 items-center">
         <UiIconButton v-if="canUndo" :icon="Undo2" label="Desfazer (U)" size="sm" aria-keyshortcuts="U Control+Z" @click="$emit('undo')" />
         <UiIconButton v-if="canEdit" :icon="Pencil" label="Editar card (E)" size="sm" aria-keyshortcuts="E" @click="$emit('edit')" />
-        <UiMenu :items="menu" label="Mais opções da revisão" />
+        <UiMenu v-if="!onboarding" :items="menu" label="Mais opções da revisão" />
       </span>
     </div>
     <!-- Phone: the path of the slice goes to a 2nd line (above) and the bar to a 3rd -->
@@ -49,6 +54,7 @@ const props = defineProps<{
   canUndo: boolean
   canEdit: boolean
   blitzTo?: string | null
+  onboarding?: boolean
 }>()
 const emit = defineEmits<{ (e: 'undo'): void; (e: 'edit'): void; (e: 'focus-mode'): void; (e: 'shortcuts'): void }>()
 

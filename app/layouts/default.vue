@@ -5,7 +5,7 @@
 
     <main class="relative" :class="focusChrome ? '' : 'pb-[calc(var(--nav-h)+var(--miniplayer-h)+var(--sticky-action-h)+16px)]'">
       <ShellPageTools v-if="showChrome" />
-      <LazyUiVerifyEmailBanner v-if="auth.user && !auth.isVerified" />
+      <LazyUiVerifyEmailBanner v-if="auth.user && !auth.isVerified" :modal-only="focusChrome || route.path === '/configuracoes'" />
       <slot />
     </main>
 

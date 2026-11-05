@@ -9,8 +9,7 @@ export type ReviewScope = 'topic' | 'deck' | 'none'
 export type ReviewScopeType = 'topic' | 'document' | 'note' | 'quiz' | 'podcast' | 'cards'
 /** `annual` = annual chosen before Stripe decides between Pix and card. */
 export type AnalyticsBilling = 'monthly' | 'annual' | 'annual_pix' | 'annual_card'
-export type OnboardingStepName = 'learning_mode' | 'choose_path' | 'processing' | 'cards_ready' | 'pdf_sent'
-export type OnboardingPath = 'review' | 'home' | 'notebook' | 'import_anki' | 'skip'
+export type OnboardingPath = 'sample' | 'pdf' | 'text' | 'anki' | 'skip'
 export type UploadSource = 'onboarding' | 'caderno' | 'other'
 export type ReminderSource = 'settings' | 'session_end' | 'onboarding'
 /** Navegação v3 (prd-navegacao-v3 RF-12) */
@@ -27,7 +26,14 @@ export type HomePlanStepKey = 'review' | 'quiz' | 'listen' | 'material'
 export type HomeChecklistItem = 'topic' | 'material' | 'cards' | 'review' | 'streak'
 
 export interface FrontEventProps {
-  onboarding_step_viewed: { step: 0 | 1 | 2 | 3 | 4, step_name: OnboardingStepName }
+  /** Conta e onboarding v3 (prd-4g-conta-onboarding-v3 RF-F16) */
+  onboarding_step: { step: 1 | 2 | 3, mode: string | null }
+  onboarding_path: { path: OnboardingPath }
+  onboarding_sample_created: { mode: string }
+  settings_goal: { batches: number }
+  settings_section_open: { section: string }
+  error_page: { status: number }
+  auth_password_toggle: { visible: boolean }
   onboarding_completed: { path: OnboardingPath, learning_mode: string | null }
   pdf_upload_started: { size_mb: number, source: UploadSource }
   review_session_started: { mode: ReviewMode, scoped: ReviewScope, cards_available: number, scope_type: ReviewScopeType | null, origin: 'quiz' | 'loose' | null, ahead: boolean, errors_only: boolean }

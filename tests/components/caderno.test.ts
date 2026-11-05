@@ -56,7 +56,7 @@ describe('CadernoScopeHeader (prd-4b-caderno-v3 RF-F3)', () => {
     expect(w.text()).toContain('41%')
     expect(w.text()).toContain('de domínio · 902 de 2.200 em dia')
     expect(w.text()).toContain('63%de acerto em 120 questões')
-    expect(w.get('[data-testid="scope-context"]').text()).toBe('Prova em 45 dias · 60 cards por dia · Concurso')
+    expect(w.get('[data-testid="scope-context"]').text()).toBe('Prova em 45 dias · 60 cards por dia · Concurso ou OAB')
     expect(w.get('[data-testid="scope-overdue"]').text()).toContain('893 atrasados')
   })
 

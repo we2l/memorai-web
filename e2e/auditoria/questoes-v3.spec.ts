@@ -46,7 +46,7 @@ test('Praticar: "20 questões do pior assunto" abre a folha já preenchida com o
   await sheet(page).getByRole('tab', { name: 'Simulado' }).click()
   await expect(sheet(page).getByTestId('quiz-distribution')).toContainText('Controle 60')
   await sheet(page).getByTestId('quiz-scope').selectOption(seed.rootId)
-  await expect(sheet(page).getByTestId('quiz-distribution')).toContainText(/Constitucional \d+ · Português \d+/)
+  await expect(sheet(page).getByTestId('quiz-distribution')).toContainText(/(Constitucional \d+ · Português \d+|Português \d+ · Constitucional \d+)/)
   await expect(sheet(page).getByTestId('quiz-submit')).toHaveText('Gerar simulado de 60')
   await axe(page, 'ConfigSheet simulado')
 })

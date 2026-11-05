@@ -32,7 +32,7 @@ test.describe('Planos → checkout (Free)', () => {
     await stubStripe(page)
     const calls = await mockCheckout(page)
     await gotoApp(page, '/planos')
-    await expect(page.getByRole('heading', { name: /Escolha seu plano/i })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Planos', level: 1 })).toBeVisible()
     const first = (await subscribeButton(page).innerText()).trim()
     await subscribeButton(page).click()
     await page.waitForURL(STRIPE_URL)
@@ -68,8 +68,7 @@ test.describe('Planos — link direto', () => {
   test('/planos?ciclo=mensal aberto direto (link/e-mail) mostra o mensal', async ({ page }) => {
     await page.goto('/planos?ciclo=mensal')
     await page.waitForLoadState('networkidle')
-    // BUG: planos.vue faz `ref(route.query.ciclo !== 'mensal')` no setup; na hidratação da página
-    // pré-renderizada a query ainda não chegou e fica no anual (via navegação SPA funciona).
+    // Prerendered: the query only comes back after hydration, and the page follows router.currentRoute
     await expect(subscribeButton(page)).toHaveText('Assinar Pro')
   })
 })

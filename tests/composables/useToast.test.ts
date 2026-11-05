@@ -18,6 +18,15 @@ describe('useToast', () => {
     vi.useRealTimers()
   })
 
+  it('clear tira todos os toasts', () => {
+    const t = useToast()
+    t.show('um', 'error')
+    t.show('dois', 'info')
+    t.clear()
+    expect(t.state.items).toHaveLength(0)
+    expect(t.state.visible).toBe(false)
+  })
+
   it('starts hidden', () => {
     const { state } = useToast()
     expect(state.visible).toBe(false)

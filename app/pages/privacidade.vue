@@ -93,7 +93,7 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({ layout: 'landing' })
+definePageMeta({ layout: 'public' })
 
 // TODO(jurídico): datas definitivas na publicação do texto revisado
 const EFFECTIVE_DATE = '1º de outubro de 2026'

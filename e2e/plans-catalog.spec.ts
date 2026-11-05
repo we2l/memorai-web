@@ -59,3 +59,20 @@ test.describe('Parcelamento do anual em /planos', () => {
     })
   }
 })
+
+/** Oferta de /planos só do catálogo (prd-4h-landing-v3 RF-F11, RF-F12): destaques, linhas e tabela seguem o mock. */
+test.describe('Catálogo em /planos', () => {
+  test('destaques, linhas e tabela mudam com o catálogo', async ({ page, request }) => {
+    const catalog = (await (await request.get('http://localhost:8037/api/plans')).json()).data
+    catalog.plans[0].highlights = ['Frase do catálogo para o Grátis']
+    catalog.plans[1].highlights = ['Frase do catálogo para o Pro']
+    catalog.plans[1].limits.podcast = 7
+    await page.route('**/api/plans', route => route.fulfill({ json: { data: catalog } }))
+
+    await page.goto('/planos')
+    await expect(page.getByTestId('plan-free').getByText('Frase do catálogo para o Grátis')).toBeVisible()
+    await expect(page.getByTestId('plan-pro').getByText('Frase do catálogo para o Pro')).toBeVisible()
+    await expect(page.getByTestId('plan-pro').getByText('Podcasts: 7 por mês (até 15 min)')).toBeVisible()
+    await expect(page.getByTestId('compare-podcast').getByRole('cell').nth(1)).toContainText('7 por mês')
+  })
+})

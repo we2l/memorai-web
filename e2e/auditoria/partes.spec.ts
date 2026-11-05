@@ -52,6 +52,7 @@ test('navegação: links no fim do leitor e [ ], com "opened" gravado; o "Contin
   await expect(nav.getByTestId('part-previous')).toContainText('Princípios fundamentais')
   await expect(nav.getByTestId('part-next')).toContainText('Parte 3')
 
+  await page.waitForTimeout(1100) // last_opened_at guarda segundos: esta abertura tem de vir depois da anterior
   await page.keyboard.press(']')
   await expect(page).toHaveURL(new RegExp(`${seed.noteIds[2]}$`))
   await expect(title(page)).toHaveText('Remédios constitucionais')

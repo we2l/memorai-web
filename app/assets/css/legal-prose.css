@@ -1,0 +1,49 @@
+/* Tipografia de leitura dos textos jurídicos (prd-4h-landing-v3 RF-F14), importada só por LegalLayout: o conteúdo
+   vem do slot como HTML simples (h2, h3, p, ul, a) e o texto jurídico não muda. Sem @layer: este arquivo pode chegar
+   antes do entry.css numa página pré-renderizada, e uma camada declarada aqui mudaria a ordem das do app. */
+.legal-prose {
+  font-size: var(--text-body);
+  line-height: 1.7;
+  color: var(--fg);
+}
+.legal-prose h2 {
+  margin: 2.5rem 0 0.75rem;
+  font-size: var(--text-section);
+  line-height: var(--text-section--line-height);
+  letter-spacing: var(--text-section--letter-spacing);
+  font-weight: var(--text-section--font-weight);
+  color: var(--fg-strong);
+}
+.legal-prose h3 {
+  margin: 1.5rem 0 0.5rem;
+  font-size: var(--text-body);
+  font-weight: 600;
+  color: var(--fg-strong);
+}
+.legal-prose p,
+.legal-prose ul {
+  margin-bottom: 1rem;
+}
+.legal-prose ul {
+  list-style: disc;
+  padding-left: 1.25rem;
+}
+.legal-prose li {
+  margin-bottom: 0.35rem;
+}
+.legal-prose strong {
+  color: var(--fg-strong);
+}
+.legal-prose a {
+  color: var(--action-fg);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.legal-prose .placeholder {
+  padding: 0 0.25rem;
+  border-radius: var(--radius-tag);
+  background: var(--state-warning-bg);
+  color: var(--state-warning);
+  font-family: ui-monospace, monospace;
+  font-size: 0.9em;
+}

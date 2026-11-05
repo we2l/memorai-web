@@ -6,6 +6,7 @@ import { reactive } from 'vue'
 import PasswordInput from '~/components/auth/PasswordInput.vue'
 import DailyGoalPicker from '~/components/settings/DailyGoalPicker.vue'
 import PlanUsageSection from '~/components/settings/PlanUsageSection.vue'
+import SettingsAccountSection from '~/components/settings/AccountSection.vue'
 import NotebookRow from '~/components/caderno/NotebookRow.vue'
 import ConsentBanner from '~/components/ui/ConsentBanner.vue'
 import ContentStep from '~/components/onboarding/ContentStep.vue'
@@ -81,8 +82,49 @@ describe('SettingsDailyGoalPicker (RF-F2)', () => {
   })
 })
 
+describe('SettingsAccountSection: Google vinculado (api #133)', () => {
+  it('diz só quando o /me traz google_linked', async () => {
+    useAuthStore().user = { name: 'Ana', email: 'a@b.c', google_linked: true, has_password: true } as never
+    const linked = await mountSuspended(SettingsAccountSection)
+    expect(linked.find('[data-testid="google-linked"]').text()).toContain('Conta Google vinculada')
+    useAuthStore().user = { name: 'Ana', email: 'a@b.c', google_linked: false, has_password: true } as never
+    const other = await mountSuspended(SettingsAccountSection)
+    expect(other.find('[data-testid="google-linked"]').exists()).toBe(false)
+  })
+})
+
 describe('SettingsPlanUsageSection (RF-F1, RN 5)', () => {
   beforeEach(() => clearNuxtState('plans'))
+
+  describe('"Pro · renova em" (subscription_renews_at do /me)', () => {
+    const monthly = (over: object) => ({ data: { plan: 'pro', billing: 'monthly', has_subscription: true, subscription_ends_at: null, ...over } })
+    async function summary(user: object, subscription: object) {
+      useAuthStore().user = { plan: 'pro', ...user } as never
+      stubApi({ '/plans': { data: { plans: [], features: {} } }, '/usage': { data: { features: {} } }, '/subscription': subscription })
+      const w = await mountSuspended(PlanUsageSection)
+      await flushPromises()
+      return w.get('[data-testid="plan-summary"]').text()
+    }
+
+    it('com a data: renova em, e nunca junto de termina em', async () => {
+      expect(await summary({ subscription_renews_at: '2026-11-28T12:00:00-03:00' }, monthly({}))).toBe('Pro · renova em 28/11')
+      expect(await summary({ subscription_renews_at: '2026-11-28T12:00:00-03:00' }, monthly({ subscription_ends_at: '2026-01-01T12:00:00-03:00' }))).toBe('Pro · renova em 28/11')
+    })
+
+    it('null com assinatura cancelada no fim do período: termina em, sem "renova em" na seção', async () => {
+      expect(await summary({ subscription_renews_at: null }, monthly({ subscription_ends_at: '2026-12-10T12:00:00-03:00' }))).toBe('Pro · termina em 10/12')
+      expect(document.body.textContent).not.toContain('renova em')
+    })
+
+    it('campo ausente (API sem o campo) ou null no mensal: não inventa data', async () => {
+      expect(await summary({}, monthly({}))).toBe('Pro mensal')
+      expect(await summary({ subscription_renews_at: null }, monthly({}))).toBe('Pro mensal')
+    })
+
+    it('anual: null e a validade de sempre', async () => {
+      expect(await summary({ subscription_renews_at: null }, { data: { plan: 'pro', billing: 'annual', has_subscription: false, subscription_ends_at: null, plan_expires_at: '2027-09-28T15:05:00-03:00', monthly_scheduled: false } })).toBe('Pro anual · válido até 28/09/2027')
+    })
+  })
 
   it('rótulos exatamente os do catálogo, na ordem dele; só o Free tem primário; renova no dia seguinte ao fim do período', async () => {
     useAuthStore().user = { plan: 'free' } as never
@@ -107,7 +149,7 @@ describe('SettingsPlanUsageSection (RF-F1, RN 5)', () => {
     expect(rows[0]!.text()).toContain('3 de 10')
     expect(rows[1]!.text()).toContain('ilimitado')
     expect(rows[2]!.text()).toContain('no Pro')
-    expect(w.get('[data-testid="usage-renews"]').text()).toBe('renova em 01/12')
+    expect(w.get('[data-testid="usage-renews"]').text()).toBe('a contagem recomeça em 01/12')
     expect(w.findAll('[data-testid="plan-upgrade"]')).toHaveLength(1)
   })
 

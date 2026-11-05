@@ -6,36 +6,25 @@
     "app/utils/colors.ts": 9
   },
   "color-fn": {},
-  "palette": {
-    "app/pages/checkout/sucesso.vue": 1,
-    "app/pages/planos.vue": 1
-  },
+  "palette": {},
   "ghost-var": {},
   "ghost-class": {},
   "token-name": {},
   "component-class": {
-    "app/components/help/HowItWorks.vue": 3,
-    "app/components/legal/LegalLayout.vue": 1,
     "app/components/topic/GenerateNoteSheet.vue": 2,
-    "app/components/topic/MindMapView.vue": 6,
-    "app/pages/ajuda.vue": 4,
-    "app/pages/checkout/sucesso.vue": 5,
-    "app/pages/planos.vue": 13
+    "app/components/topic/MindMapView.vue": 6
   },
   "overlay": {
     "app/components/ui/Confetti.vue": 1,
     "app/components/ui/Modal.vue": 1
   },
   "spin": {
-    "app/components/topic/MindMapView.vue": 1,
-    "app/pages/checkout/sucesso.vue": 2
+    "app/components/topic/MindMapView.vue": 1
   },
   "switch-role": {},
   "arbitrary": {
-    "app/components/help/HowItWorks.vue": 29,
     "app/components/landing/HeroPipeline.vue": 63,
     "app/components/landing/MockMindMap.vue": 8,
-    "app/components/legal/LegalLayout.vue": 4,
     "app/components/topic/GenerateNoteSheet.vue": 1,
     "app/components/topic/MindMapRenderer.vue": 2,
     "app/components/topic/MindMapView.vue": 8,
@@ -44,17 +33,11 @@
     "app/components/ui/Confetti.vue": 1,
     "app/components/ui/ConsentBanner.vue": 3,
     "app/components/ui/Logo.vue": 1,
-    "app/components/ui/PublicHeader.vue": 1,
     "app/components/ui/RichInput.vue": 1,
-    "app/pages/ajuda.vue": 3,
-    "app/pages/checkout/sucesso.vue": 3,
-    "app/pages/index.vue": 111,
-    "app/pages/planos.vue": 10
+    "app/pages/index.vue": 111
   },
   "important": {
-    "app/components/help/HowItWorks.vue": 1,
-    "app/components/topic/MindMapView.vue": 9,
-    "app/pages/ajuda.vue": 3
+    "app/components/topic/MindMapView.vue": 9
   },
   "inline-style": {},
   "dark-style": {
@@ -65,10 +48,8 @@
     "app/pages/index.vue": 1
   },
   "deprecated": {
-    "app/components/help/HowItWorks.vue": 65,
     "app/components/landing/HeroPipeline.vue": 15,
     "app/components/landing/MockMindMap.vue": 5,
-    "app/components/legal/LegalLayout.vue": 31,
     "app/components/topic/GenerateNoteSheet.vue": 17,
     "app/components/topic/MindMapRenderer.vue": 10,
     "app/components/topic/MindMapView.vue": 57,
@@ -77,13 +58,9 @@
     "app/components/ui/DisabledFeature.vue": 1,
     "app/components/ui/InsightBanner.vue": 1,
     "app/components/ui/Modal.vue": 1,
-    "app/components/ui/PublicHeader.vue": 1,
     "app/components/ui/RichInput.vue": 3,
     "app/components/ui/Tooltip.vue": 1,
     "app/layouts/landing.vue": 1,
-    "app/pages/ajuda.vue": 7,
-    "app/pages/checkout/sucesso.vue": 28,
-    "app/pages/index.vue": 87,
-    "app/pages/planos.vue": 45
+    "app/pages/index.vue": 87
   }
 }

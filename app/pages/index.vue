@@ -391,11 +391,11 @@ useHead({
 const isAnnual = ref(false)
 
 // Pricing block comes only from GET /api/plans (RN-01)
-const { plans: catalog, fetchPlans, limitOf, formatPrice, benefitLines } = usePlans()
+const { plans: catalog, fetchPlans, limitOf, formatPrice } = usePlans()
 const free = computed(() => limitOf('free'))
 const pro = computed(() => limitOf('pro'))
-const freeLines = computed(() => benefitLines('free'))
-const proLines = computed(() => benefitLines('pro'))
+const freeLines = computed(() => planBenefitLines(catalog.value, 'free'))
+const proLines = computed(() => planBenefitLines(catalog.value, 'pro'))
 const annualDiscountPercent = computed(() => {
   const monthly = pro.value?.prices.monthly?.amount_cents
   const savings = pro.value?.prices.annual?.savings_cents

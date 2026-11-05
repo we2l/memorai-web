@@ -15,6 +15,10 @@ export interface User {
   first_batch_at?: string | null
   /** False for Google sign-ups that never defined a password (RF-B3). */
   has_password?: boolean
+  /** The account has a Google identity (api #133; the id itself never comes) */
+  google_linked?: boolean
+  /** Next charge of the monthly. Null on the annual, the Free and a canceled subscription; absent on older API builds */
+  subscription_renews_at?: string | null
   /** LGPD analytics consent: null = not decided (prd-analytics-posthog RF-B03). */
   analytics_consent?: boolean | null
   analytics_consent_at?: string | null
@@ -646,7 +650,12 @@ export interface Exam {
   id: string
   title: string
   exam_date: string
+  /** Stops at 0: on the exam day and after it (is_past tells them apart) */
   days_remaining: number
+  /** Before today's study day in São Paulo (api #133) */
+  is_past: boolean
+  /** How long ago; null while the exam has not passed */
+  days_since: number | null
   urgency_color: 'red' | 'yellow' | 'green'
   reta_final_enabled: boolean
   reta_final_active: boolean
@@ -769,6 +778,8 @@ export interface CatalogPlan {
   key: PlanKey
   name: string
   prices: { monthly: PlanPrice | null; annual: PlanPrice | null }
+  /** Phrases without a quota (prd-4h-landing-v3 RF-B1) */
+  highlights?: string[]
   /** null = unlimited, 0 = not included in the plan */
   limits: Record<string, number | null>
   extras: {

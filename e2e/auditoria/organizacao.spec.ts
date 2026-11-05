@@ -226,7 +226,7 @@ test.describe('Excluir e lixeira', () => {
 })
 
 test.describe('Anki', () => {
-  test('mapeamento e destino: caderno novo por padrão, 0 tópico por etiqueta, fim abre o caderno pelo root_topic_id; dentro do caderno aberto', async ({ page }) => {
+  test('mapeamento e destino: com ?topic_id= começa dentro do caderno, "Caderno novo" na escolha, 0 tópico por etiqueta, fim abre o caderno pelo root_topic_id', async ({ page }) => {
     test.setTimeout(120_000)
     const { root } = await caderno(page, 0)
     const fileInput = page.locator('input[type="file"][accept=".apkg"]')
@@ -239,13 +239,16 @@ test.describe('Anki', () => {
     runImportQueue()
     await expect(page.getByText('Prévia da importação')).toBeVisible({ timeout: 15_000 })
 
+    // Decisão do dono: veio de um caderno, o padrão é dentro dele (os baralhos descem um nível)
     const mapping = page.getByTestId('import-mapping')
+    const destination = page.getByRole('group', { name: 'Para onde vão os cards' })
+    await expect(destination.getByRole('radio', { name: `Dentro de ${root.name}` })).toBeChecked()
+    await expect(mapping).toContainText(`Caderno: ${root.name}`)
+
+    // "Caderno novo" relê o mapeamento; voltar relê com o topic_id
+    await destination.getByRole('radio', { name: 'Caderno novo' }).check()
     await expect(mapping).toContainText('Caderno: Inglês · Matérias: Vocabulary, Grammar, Listening · 1 assunto')
     await expect(page.getByTestId('import-tags')).toHaveText('1 caminho mais fundo e 230 etiquetas viram etiquetas')
-    const destination = page.getByRole('group', { name: 'Para onde vão os cards' })
-    await expect(destination.getByRole('radio', { name: 'Caderno novo' })).toBeChecked()
-
-    // "Dentro de" relê o mapeamento: o caderno é o aberto, e os baralhos descem um nível
     const reread = page.waitForResponse(r => r.url().includes(`topic_id=${root.id}`) && r.url().includes('/preview'))
     await destination.getByRole('radio', { name: `Dentro de ${root.name}` }).check()
     await reread
@@ -277,7 +280,7 @@ test.describe('Anki', () => {
     await asked
     runImportQueue()
     await expect(page.getByText('Prévia da importação')).toBeVisible({ timeout: 15_000 })
-    await page.getByRole('group', { name: 'Para onde vão os cards' }).getByRole('radio', { name: `Dentro de ${root.name}` }).check()
+    await expect(page.getByRole('group', { name: 'Para onde vão os cards' }).getByRole('radio', { name: `Dentro de ${root.name}` })).toBeChecked()
     await expect(mapping).toContainText(`Caderno: ${root.name}`)
     await page.getByTestId('import-confirm').click()
     await expect(page.getByTestId('import-progress')).toBeVisible()
@@ -287,6 +290,18 @@ test.describe('Anki', () => {
     await expect(page).toHaveURL(new RegExp(`/cadernos/${root.id}$`))
     expect(sql(`select count(*) from topics where user_id=${USER} and parent_id is null and deleted_at is null`)).toBe(roots)
     expect((await summary(page, root.id)).counts.cards).toBe(8)
+  })
+
+  test('?topic_id= de um caderno que a árvore não conhece: sem seletor, caderno novo', async ({ page }) => {
+    test.setTimeout(60_000)
+    await gotoApp(page, '/importar?topic_id=00000000-0000-4000-8000-000000000000')
+    const asked = page.waitForResponse(r => /\/import\/[^/]+\/preview/.test(r.url()))
+    await page.locator('input[type="file"][accept=".apkg"]').setInputFiles(APKG)
+    expect((await asked).url()).not.toContain('topic_id')
+    runImportQueue()
+    await expect(page.getByText('Prévia da importação')).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByRole('group', { name: 'Para onde vão os cards' })).toHaveCount(0)
+    await expect(page.getByTestId('import-mapping')).toContainText('Caderno: Inglês')
   })
 })
 

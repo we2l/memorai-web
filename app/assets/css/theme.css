@@ -89,6 +89,7 @@
   --color-tinted: var(--surface-tinted);
   --color-float: var(--surface-float);
   --color-scrim: var(--surface-scrim);
+  --color-qr: var(--surface-qr);
 
   /* Linhas */
   --color-line: var(--line);

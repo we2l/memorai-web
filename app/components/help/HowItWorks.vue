@@ -1,96 +1,61 @@
 <template>
-  <div class="space-y-10">
-    <!-- Diagrama do fluxo -->
-    <section>
-      <h2 class="font-heading font-semibold text-xl text-base-primary mb-4">Como as peças se conectam</h2>
-      <div class="card-base p-6 sm:p-8">
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 text-center">
-          <!-- Coluna 1: Inputs -->
-          <div class="space-y-3">
-            <p class="text-micro font-bold uppercase tracking-wide text-base-muted">Você cria</p>
-            <div class="space-y-2">
-              <div class="flow-node bg-[var(--badge-info-bg)] border-[var(--badge-info-text)]/20"><BookOpen :size="14" class="inline text-[var(--badge-info-text)]" /> Notas</div>
-              <div class="flow-node bg-[var(--badge-warning-bg)] border-[var(--badge-warning-text)]/20"><CalendarCheck :size="14" class="inline text-[var(--badge-warning-text)]" /> Provas</div>
-              <div class="flow-node bg-[var(--badge-success-bg)] border-[var(--badge-success-text)]/20"><Layers :size="14" class="inline text-[var(--badge-success-text)]" /> Cards</div>
-            </div>
-          </div>
-
-          <!-- Coluna 2: Sistema -->
-          <div class="space-y-3 flex flex-col items-center justify-center">
-            <p class="text-micro font-bold uppercase tracking-wide text-base-muted">O sistema processa</p>
-            <div class="flow-node bg-[var(--badge-primary-bg)] dark:bg-[var(--color-accent-primary)]/10 border-base dark:border-[var(--color-accent-primary)]/30 !py-4">
-              <Brain :size="24" class="text-[var(--color-accent-primary)]" />
-              <span class="block text-small font-semibold text-[var(--color-accent-primary)]">IA + revisão espaçada</span>
-              <span class="block text-micro text-base-muted">prioriza, gera, conecta</span>
-            </div>
-            <!-- Arrows (mobile: vertical, desktop: implied by grid) -->
-            <div class="hidden sm:flex items-center gap-1 text-base-muted">
-              <span>←</span> processa <span>→</span>
-            </div>
-          </div>
-
-          <!-- Coluna 3: Outputs -->
-          <div class="space-y-3">
-            <p class="text-micro font-bold uppercase tracking-wide text-base-muted">Você recebe</p>
-            <div class="space-y-2">
-              <div class="flow-node bg-[var(--badge-success-bg)] border-[var(--badge-success-text)]/20"><RefreshCw :size="14" class="inline text-[var(--badge-success-text)]" /> Revisão inteligente</div>
-              <div class="flow-node bg-[var(--badge-primary-bg)] dark:bg-[var(--color-accent-primary)]/10 border-base dark:border-[var(--color-accent-primary)]/30"><Headphones :size="14" class="inline text-[var(--color-accent-primary)]" /> Podcast personalizado</div>
-              <div class="flow-node bg-[var(--badge-info-bg)] border-[var(--badge-info-text)]/20"><BarChart3 :size="14" class="inline text-[var(--badge-info-text)]" /> Simulados focados</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Fluxo de erros -->
-        <div class="mt-6 pt-6 border-t border-base text-center">
-          <p class="text-small text-base-muted">
-            <span class="text-[var(--badge-danger-text)] font-medium">Erros na revisão</span> → alimentam o podcast + detectam padrões → <span class="text-[var(--badge-success-text)] font-medium">melhoria contínua</span>
-          </p>
+  <div class="flex flex-col gap-section">
+    <UiSection title="Como as peças se conectam">
+      <div class="grid gap-6 sm:grid-cols-3">
+        <div v-for="column in flow" :key="column.label">
+          <p class="mb-2 text-label font-semibold text-fg-muted">{{ column.label }}</p>
+          <ul class="flex flex-col gap-2">
+            <li v-for="node in column.nodes" :key="node.label" class="flex items-center gap-2 rounded-control bg-subtle px-3 py-2 text-meta font-semibold text-fg-strong">
+              <component :is="node.icon" class="size-4 shrink-0 text-fg-muted" aria-hidden="true" />
+              {{ node.label }}
+            </li>
+          </ul>
         </div>
       </div>
-    </section>
+      <p class="mt-5 border-t border-line pt-4 text-meta text-fg-muted">Os erros da revisão alimentam o podcast e mostram padrões: você melhora a cada ciclo.</p>
+    </UiSection>
 
-    <!-- Cards explicativos -->
-    <section>
-      <h2 class="font-heading font-semibold text-xl text-base-primary mb-4">O que cada feature faz por você</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div v-for="item in features" :key="item.title" class="card-base p-5">
-          <div class="flex items-start gap-3">
-            <div class="w-10 h-10 rounded-xl bg-accent-primary-subtle flex items-center justify-center shrink-0">
-              <component :is="item.icon" :size="20" class="text-[var(--badge-primary-text)]" />
-            </div>
-            <div>
-              <h3 class="font-medium text-base-primary text-sm">{{ item.title }}</h3>
-              <p class="text-micro text-base-muted mt-1">{{ item.description }}</p>
-              <p class="text-micro text-[var(--color-accent-primary)] font-medium mt-2">↳ {{ item.impact }}</p>
-            </div>
+    <UiSection title="O que cada recurso faz por você">
+      <ul class="grid gap-5 md:grid-cols-2">
+        <li v-for="item in features" :key="item.title" class="flex items-start gap-3">
+          <span class="flex size-9 shrink-0 items-center justify-center rounded-control bg-subtle" aria-hidden="true">
+            <component :is="item.icon" class="size-5 text-fg-muted" />
+          </span>
+          <div>
+            <h3 class="text-body font-semibold text-fg-strong">{{ item.title }}</h3>
+            <p class="mt-0.5 text-meta text-fg">{{ item.description }}</p>
+            <p class="mt-1 text-meta text-fg-muted">{{ item.impact }}</p>
           </div>
-        </div>
-      </div>
-    </section>
+        </li>
+      </ul>
+    </UiSection>
 
-    <!-- Resumo: o loop -->
-    <section>
-      <h2 class="font-heading font-semibold text-xl text-base-primary mb-4">O loop de aprendizado</h2>
-      <div class="card-base p-6">
-        <ol class="space-y-3">
-          <li v-for="(step, i) in loop" :key="i" class="flex items-start gap-3">
-            <span class="w-6 h-6 rounded-full bg-accent-primary-subtle flex items-center justify-center shrink-0 text-micro font-bold text-[var(--color-accent-primary)]">{{ i + 1 }}</span>
-            <p class="text-small text-base-primary">{{ step }}</p>
-          </li>
-        </ol>
-      </div>
-    </section>
+    <UiSection title="O ciclo de aprendizado">
+      <ol class="flex flex-col gap-3">
+        <li v-for="(step, i) in loop" :key="i" class="flex items-start gap-3">
+          <span class="flex size-6 shrink-0 items-center justify-center rounded-full bg-subtle text-label font-semibold text-fg-strong tabular-nums" aria-hidden="true">{{ i + 1 }}</span>
+          <p class="text-body text-fg">{{ step }}</p>
+        </li>
+      </ol>
+    </UiSection>
   </div>
 </template>
 
 <script setup lang="ts">
 import { BookOpen, Brain, CalendarCheck, Layers, RefreshCw, Headphones, BarChart3, XCircle, Zap } from 'lucide-vue-next'
+
+const flow = [
+  { label: 'Você cria', nodes: [{ icon: BookOpen, label: 'Notas' }, { icon: CalendarCheck, label: 'Provas' }, { icon: Layers, label: 'Cards' }] },
+  { label: 'O sistema processa', nodes: [{ icon: Brain, label: 'IA e revisão espaçada' }, { icon: Zap, label: 'Prioriza, gera e conecta' }] },
+  { label: 'Você recebe', nodes: [{ icon: RefreshCw, label: 'Revisão inteligente' }, { icon: Headphones, label: 'Podcast personalizado' }, { icon: BarChart3, label: 'Simulados focados' }] },
+]
+
 const features = [
   {
     icon: CalendarCheck,
     title: 'Agenda de Provas',
     description: 'Cadastre suas provas com os cadernos vinculados.',
-    impact: 'O algoritmo prioriza esses cards automaticamente. 3 dias antes → Reta Final (+20 cards extras).',
+    impact: 'O algoritmo prioriza esses cards automaticamente. Nos últimos 3 dias, a Reta final traz até 20 cards extras.',
   },
   {
     icon: RefreshCw,
@@ -130,9 +95,9 @@ const features = [
   },
   {
     icon: Zap,
-    title: 'Anti-Backlog',
-    description: 'Limites diários, modo sobrevivência e sugestão de retenção.',
-    impact: 'Nunca acumula 500 cards. Se sobrecarregar, o sistema sugere reduzir retenção ou focar no essencial.',
+    title: 'Anti-acúmulo',
+    description: 'Limites diários, modo recuperação e sugestão de retenção.',
+    impact: 'Se os cards começarem a acumular, o sistema sugere reduzir a retenção ou focar no essencial.',
   },
 ]
 
@@ -146,13 +111,3 @@ const loop = [
 ]
 </script>
 
-<style scoped>
-.flow-node {
-  padding: 0.5rem 1rem;
-  border-radius: 0.75rem;
-  border-width: 1px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--text-primary);
-}
-</style>

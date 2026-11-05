@@ -40,6 +40,8 @@ export interface FrontEventProps {
   review_session_completed: { cards: number, duration_s: number, mode: ReviewMode, again_rate: number }
   paywall_viewed: { feature: string | null, source: 'limit_402' | 'planos_page', plan_required: 'pro' | null }
   upgrade_clicked: { feature: string | null, billing: AnalyticsBilling | null, source: 'upgrade_modal' | 'planos_page' }
+  plans_toggle: { period: 'monthly' | 'annual' }
+  plans_checkout_click: { period: 'monthly' | 'annual' }
   reminder_toggled: { on: boolean, hour: number, source: ReminderSource }
   nav_clicked: { item: NavItem, surface: NavSurface }
   add_opened: { origin: AddOpenOrigin }

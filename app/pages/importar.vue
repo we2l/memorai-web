@@ -71,7 +71,7 @@
 
       <div class="flex flex-wrap justify-end gap-3">
         <UiButton @click="cancel">Cancelar</UiButton>
-        <UiButton variant="primary" :loading="confirming" :disabled="!cardsToImport" data-testid="import-confirm" @click="confirmImport">Importar {{ countOf(cardsToImport, 'card', 'cards') }}</UiButton>
+        <UiButton variant="primary" :loading="confirming" :disabled="!cardsToImport || store.mappingLoading" data-testid="import-confirm" @click="confirmImport">Importar {{ countOf(cardsToImport, 'card', 'cards') }}</UiButton>
       </div>
     </template>
 
@@ -122,7 +122,8 @@
 <script setup lang="ts">
 // Importar do Anki (prd-4b-caderno-v3 RF-F17): the preview says how the decks become cadernos ("Caderno: Inglês ·
 // Matérias: Vocabulary, Grammar · 14 caminhos mais fundos e 230 etiquetas viram etiquetas") and, when the import
-// began from a caderno (?topic_id=), lets the person choose: caderno novo (default) or inside the open one. The end
+// began from a caderno (?topic_id=), starts inside it (decision of the owner, RF-F17) and lets the person choose
+// "Caderno novo"; without topic_id there is nothing to choose: caderno novo. The end
 // opens the caderno by root_topic_id. Works only online: chunk once-*.
 import { Upload } from 'lucide-vue-next'
 import type { RadioOption } from '~/components/ui/RadioGroup.vue'
@@ -170,6 +171,8 @@ const destinationOptions = computed<RadioOption[]>(() => {
     },
   ]
 })
+// Only once the tree knows the caderno, so a topic_id of someone else or in the trash falls back to "Caderno novo"
+const defaultDestination = (): AnkiDestinationType => (openTopic.value ? 'existing' : 'new')
 // The mapping says what each destination would make
 watch(destination, (d) => { void store.fetchMapping(d === 'existing' ? topicId.value : null) })
 
@@ -270,7 +273,7 @@ async function retryImport() {
 function cancel() {
   statusPoll.stop()
   store.reset()
-  destination.value = 'new'
+  destination.value = defaultDestination()
   confirmError.value = null
 }
 
@@ -303,8 +306,10 @@ const doneDetail = computed(() => {
   ].filter(Boolean).join(' · ')
 })
 
-onMounted(() => {
+onMounted(async () => {
   store.reset()
-  if (topicId.value && !topicStore.tree.length) void topicStore.fetchTree()
+  if (!topicId.value) return
+  if (!topicStore.tree.length) await topicStore.fetchTree()
+  destination.value = defaultDestination()
 })
 </script>

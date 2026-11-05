@@ -1,146 +1,95 @@
 <template>
-  <NuxtLayout :name="auth.user ? 'default' : 'landing'">
-    <UiPublicHeader v-if="!auth.user" />
-    <div class="p-4 sm:p-6 pb-20 lg:pb-6 max-w-3xl mx-auto">
-      <h1 class="font-bold text-page-title text-fg-strong mb-2">Ajuda</h1>
-      <p class="text-fg-muted mb-6">Entenda como o Baigi funciona e aproveite ao máximo.</p>
+  <div class="mx-auto flex max-w-3xl flex-col gap-section px-gutter pt-8 lg:pt-12">
+    <UiPageHeader title="Ajuda" meta="Entenda como o Baigi funciona e aproveite ao máximo." />
 
-      <!-- Tabs -->
-      <div class="flex gap-1 p-1 rounded-xl bg-subtle mb-8">
-        <button
-          class="flex-1 px-4 py-2 rounded-control text-meta font-medium transition-colors"
-          :class="activeTab === 'how' ? 'bg-[var(--bg-card)] text-fg-strong shadow-sm' : 'text-fg-muted hover:text-fg-strong'"
-          @click="activeTab = 'how'"
-        >
-          Como funciona
-        </button>
-        <button
-          class="flex-1 px-4 py-2 rounded-control text-meta font-medium transition-colors"
-          :class="activeTab === 'shortcuts' ? 'bg-[var(--bg-card)] text-fg-strong shadow-sm' : 'text-fg-muted hover:text-fg-strong'"
-          @click="activeTab = 'shortcuts'"
-        >
-          Atalhos & Comandos
-        </button>
-      </div>
-
+    <UiTabs v-model="activeTab" :tabs="TABS" label="Seções da ajuda">
       <!-- Tab: Como funciona -->
       <HelpHowItWorks v-if="activeTab === 'how'" />
 
-      <!-- Tab: Atalhos & Comandos -->
-      <div v-if="activeTab === 'shortcuts'" class="space-y-10">
-        <!-- Atalhos de teclado -->
-        <section>
-          <h2 class="font-semibold text-section text-fg-strong mb-4 flex items-center gap-2">
-            <Keyboard :size="20" class="text-action-fg" />
-            Atalhos de teclado
-          </h2>
-          <div class="card-base overflow-hidden">
-            <table class="w-full text-meta">
-              <thead>
-                <tr class="border-b border-line">
-                  <th class="text-left px-5 py-3 text-fg-muted font-medium text-label uppercase tracking-wide">Atalho</th>
-                  <th class="text-left px-5 py-3 text-fg-muted font-medium text-label uppercase tracking-wide">Ação</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="shortcut in shortcuts" :key="shortcut.keys" class="border-b border-line last:border-0">
-                  <td class="px-5 py-3">
-                    <span class="inline-flex items-center gap-1">
-                      <kbd
-                        v-for="key in shortcut.keys.split('+')"
-                        :key="key"
-                        class="px-2 py-0.5 text-label font-medium bg-subtle text-fg-strong rounded-control border border-[var(--border-base)]"
-                      >{{ key.trim() }}</kbd>
-                    </span>
-                  </td>
-                  <td class="px-5 py-3 text-fg">{{ shortcut.description }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
+      <!-- Tab: Atalhos e comandos -->
+      <div v-else class="flex flex-col gap-section">
+        <UiSection title="Atalhos de teclado" flush class="px-5 pt-5 pb-1 sm:px-6 sm:pt-6">
+          <table class="w-full text-left text-meta">
+            <thead>
+              <tr class="border-b border-line text-label text-fg-muted">
+                <th scope="col" class="py-3 pr-3 font-medium">Atalho</th>
+                <th scope="col" class="py-3 font-medium">Ação</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-line">
+              <tr v-for="shortcut in shortcuts" :key="shortcut.keys">
+                <td class="py-3 pr-3">
+                  <span class="inline-flex items-center gap-1">
+                    <kbd
+                      v-for="key in shortcut.keys.split('+')"
+                      :key="key"
+                      class="rounded-tag border border-line-strong bg-subtle px-2 py-0.5 text-label text-fg-strong"
+                    >{{ key.trim() }}</kbd>
+                  </span>
+                </td>
+                <td class="py-3 text-fg">{{ shortcut.description }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </UiSection>
 
-        <!-- Dicas rápidas -->
-        <section>
-          <h2 class="font-semibold text-section text-fg-strong mb-4 flex items-center gap-2">
-            <Lightbulb :size="20" class="text-action-fg" />
-            Dicas rápidas
-          </h2>
-          <div class="grid gap-3">
-            <div v-for="tip in tips" :key="tip.title" class="card-base p-4 flex gap-3">
-              <component :is="tip.icon" :size="20" class="text-action-fg shrink-0 mt-0.5" />
+        <UiSection title="Dicas rápidas">
+          <ul class="flex flex-col gap-4">
+            <li v-for="tip in tips" :key="tip.title" class="flex gap-3">
+              <component :is="tip.icon" class="mt-0.5 size-5 shrink-0 text-fg-muted" aria-hidden="true" />
               <div>
-                <p class="font-medium text-fg-strong text-meta">{{ tip.title }}</p>
-                <p class="text-fg-muted text-meta mt-0.5">{{ tip.description }}</p>
+                <p class="text-body font-semibold text-fg-strong">{{ tip.title }}</p>
+                <p class="mt-0.5 text-meta text-fg-muted">{{ tip.description }}</p>
               </div>
-            </div>
-          </div>
-        </section>
+            </li>
+          </ul>
+        </UiSection>
 
-        <!-- Editor -->
-        <section>
-          <h2 class="font-semibold text-section text-fg-strong mb-4 flex items-center gap-2">
-            <PenTool :size="20" class="text-action-fg" />
-            Editor de notas
-          </h2>
-          <div class="card-base overflow-hidden">
-            <table class="w-full text-meta">
-              <thead>
-                <tr class="border-b border-line">
-                  <th class="text-left px-5 py-3 text-fg-muted font-medium text-label uppercase tracking-wide">Comando</th>
-                  <th class="text-left px-5 py-3 text-fg-muted font-medium text-label uppercase tracking-wide">O que faz</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="cmd in editorCommands" :key="cmd.command" class="border-b border-line last:border-0">
-                  <td class="px-5 py-3">
-                    <code class="px-2 py-0.5 text-label bg-subtle text-action-fg rounded">{{ cmd.command }}</code>
-                  </td>
-                  <td class="px-5 py-3 text-fg">{{ cmd.description }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
+        <UiSection title="Editor de notas" flush class="px-5 pt-5 pb-1 sm:px-6 sm:pt-6">
+          <table class="w-full text-left text-meta">
+            <thead>
+              <tr class="border-b border-line text-label text-fg-muted">
+                <th scope="col" class="py-3 pr-3 font-medium">Comando</th>
+                <th scope="col" class="py-3 font-medium">O que faz</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-line">
+              <tr v-for="cmd in editorCommands" :key="cmd.command">
+                <td class="py-3 pr-3"><code class="rounded-tag bg-subtle px-2 py-0.5 text-label text-fg-strong">{{ cmd.command }}</code></td>
+                <td class="py-3 text-fg">{{ cmd.description }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </UiSection>
 
-        <!-- Suporte -->
-        <section>
-          <h2 class="font-semibold text-section text-fg-strong mb-4 flex items-center gap-2">
-            <MessageCircle :size="20" class="text-action-fg" />
-            Suporte
-          </h2>
-          <div class="card-base p-5">
-            <p class="text-fg text-meta">
-              Tem dúvidas ou sugestões? Fale com a gente:
-            </p>
-            <div class="mt-3 flex flex-wrap gap-3">
-              <UiButton variant="secondary" href="mailto:contato@baigi.com.br" class="!py-2 !px-4 !text-meta inline-flex items-center gap-2">
-                <Mail :size="16" />
-                contato@baigi.com.br
-              </UiButton>
-            </div>
-          </div>
-        </section>
+        <UiSection title="Suporte" description="Tem dúvidas ou sugestões? Fale com a gente:">
+          <UiButton href="mailto:contato@baigi.com.br" :icon-left="Mail">contato@baigi.com.br</UiButton>
+        </UiSection>
       </div>
-    </div>
-    <UiPublicFooter />
-  </NuxtLayout>
+    </UiTabs>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { Keyboard, Lightbulb, PenTool, MessageCircle, Mail, Search as SearchIcon, Scissors, Headphones, BarChart3 } from 'lucide-vue-next'
+import { PenTool, Mail, Search as SearchIcon, Scissors, Headphones, BarChart3 } from 'lucide-vue-next'
 
-// Public page: app layout when logged in, landing when anonymous (RF-F11.2)
-definePageMeta({ layout: false })
+// One public layout, signed in or not (prd-4h-landing-v3 RF-F14): swapping it by login was the hydration mismatch
+definePageMeta({ layout: 'public' })
 
-const auth = useAuthStore()
+useHead({ title: 'Ajuda · Baigi' })
 
 // /ajuda?tab=atalhos: "Ajuda e atalhos" of the account menu, the search and the "?" shortcut
 const route = useRoute()
-const activeTab = ref<'how' | 'shortcuts'>('how')
+const TABS = [{ key: 'how', label: 'Como funciona' }, { key: 'shortcuts', label: 'Atalhos e comandos' }]
+const activeTab = ref('how')
 // After mount: the page is prerendered without the query (no hydration mismatch)
 onMounted(() => { if (route.query.tab === 'atalhos') activeTab.value = 'shortcuts' })
-watch(() => route.query.tab, (tab) => { if (tab === 'atalhos') activeTab.value = 'shortcuts' })
+watch(() => route.query.tab, (tab) => { activeTab.value = tab === 'atalhos' ? 'shortcuts' : 'how' })
+// The tab goes in the address: a link or a reload keeps it
+watch(activeTab, (tab) => {
+  const query = tab === 'shortcuts' ? { tab: 'atalhos' } : {}
+  if (route.query.tab !== query.tab) void navigateTo({ query }, { replace: true })
+})
 
 const isMac = import.meta.client
   ? (navigator.platform?.includes('Mac') || navigator.userAgent?.includes('Mac'))
@@ -158,7 +107,7 @@ const shortcuts = [
 ]
 
 const tips = [
-  { icon: SearchIcon, title: 'Busca com Ctrl+K', description: 'Ache um caderno, um material ou um card de qualquer tela, ou pergunte ao tira-dúvidas.' },
+  { icon: SearchIcon, title: 'Busca com Ctrl\u00A0K', description: 'Ache um caderno, um material ou um card de qualquer tela, ou pergunte ao tira-dúvidas.' },
   { icon: Scissors, title: 'Selecione texto → crie card', description: 'No editor de notas, selecione um trecho e use o bubble menu para transformar em flashcard.' },
   { icon: PenTool, title: 'Comandos com barra', description: 'No editor, digite / para inserir blocos: títulos, listas, callouts, imagens, cloze e mais.' },
   { icon: Headphones, title: 'Podcast dos pontos fracos', description: 'O Baigi gera podcasts focados nos cards que você mais erra. Ouça no ônibus, na academia.' },

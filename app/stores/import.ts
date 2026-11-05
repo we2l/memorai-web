@@ -14,7 +14,7 @@ export const useImportStore = defineStore('import', {
     status: null as AnkiImportStatus | null,
     uploading: false,
     loading: false,
-    /** The mapping of the other destination is on its way */
+    /** The mapping and the conflicts of the other destination are on their way */
     mappingLoading: false,
     deckConflicts: {} as Record<string, 'import' | 'skip'>,
   }),
@@ -48,18 +48,21 @@ export const useImportStore = defineStore('import', {
           res = await $api<any>(`/import/${this.importId}/preview`, { params })
         }
         this.preview = res.data
-        // Pre-fill conflicts as 'import'
-        for (const deck of res.data.decks) {
-          if (deck.conflict) {
-            this.deckConflicts[deck.name] = 'import'
-          }
-        }
+        this.syncConflicts(res.data.decks)
       } finally {
         this.loading = false
       }
     },
 
-    /** The destination changed on the preview: only the mapping comes again (the last answer wins). */
+    /**
+     * The conflicts of the destination in view: a new one starts as 'import', one that remains keeps the person's
+     * choice, and one that is gone leaves (a stale 'skip' would still drop the deck on confirm).
+     */
+    syncConflicts(decks: AnkiImportPreview['decks']) {
+      this.deckConflicts = Object.fromEntries(decks.filter(d => d.conflict).map(d => [d.name, this.deckConflicts[d.name] ?? 'import']))
+    },
+
+    /** The destination changed on the preview: the mapping and the conflicts of the new one (the last answer wins). */
     async fetchMapping(topicId?: string | null) {
       if (!this.importId || !this.preview) return
       const n = ++mappingSeq
@@ -67,7 +70,11 @@ export const useImportStore = defineStore('import', {
       try {
         const { $api } = useNuxtApp()
         const res = await $api<any>(`/import/${this.importId}/preview`, { params: topicId ? { topic_id: topicId } : undefined })
-        if (n === mappingSeq && this.preview) this.preview = { ...this.preview, mapping: res.data?.mapping ?? null }
+        if (n === mappingSeq && this.preview) {
+          const decks = res.data?.decks ?? this.preview.decks
+          this.preview = { ...this.preview, mapping: res.data?.mapping ?? null, decks }
+          this.syncConflicts(decks)
+        }
       } catch (e) {
         // The mapping shown stays until the next try; the import itself does not depend on it
         reportApiError(e, { silent: true })

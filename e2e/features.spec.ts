@@ -228,7 +228,7 @@ test.describe('Planos e pagamento', () => {
     await page.goto('/planos')
     await page.waitForLoadState('networkidle')
 
-    await expect(page.getByText('Plano atual')).toBeVisible()
+    await expect(page.getByText('Seu plano')).toBeVisible()
   })
 
   test('features do Pro listadas', async ({ page }) => {

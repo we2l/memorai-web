@@ -7,17 +7,20 @@
       <p class="mx-auto mt-5 max-w-2xl text-lead text-pretty text-fg">
         <span v-for="v in HERO_VARIANTS" :key="v.key" :data-m-variant="v.key">{{ v.lead }}</span>
       </p>
-      <div class="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row" data-landing="hero-cta">
+      <div class="mt-8 flex flex-col items-center justify-center gap-1 sm:flex-row sm:gap-3" data-landing="hero-cta">
         <UiButton variant="primary" to="/criar-conta" class="w-full sm:w-auto sm:px-8" data-testid="landing-hero-cta" @click="emit('cta')">Criar conta grátis</UiButton>
-        <UiButton href="#como-funciona" class="w-full sm:w-auto sm:px-6">Ver como funciona</UiButton>
+        <!-- A text link on the phone (the first screen is short), a neutral button from sm up -->
+        <UiLink href="#como-funciona" standalone class="text-meta sm:hidden">Ver como funciona</UiLink>
+        <div class="hidden sm:block"><UiButton href="#como-funciona" class="px-6">Ver como funciona</UiButton></div>
       </div>
       <!-- Room for two lines on a phone: the trial of the catalog arrives after the first paint, without moving the page -->
-      <ul class="mt-5 flex min-h-12 flex-wrap content-start items-center justify-center gap-x-5 gap-y-2 text-meta text-fg sm:min-h-5" data-testid="landing-guarantees">
+      <ul class="mt-3 flex min-h-12 flex-wrap content-start items-center justify-center gap-x-5 gap-y-2 text-meta text-fg sm:min-h-5" data-testid="landing-guarantees">
         <li v-for="g in landingGuarantees(trial)" :key="g" class="flex items-center gap-1.5">
           <Check class="size-4 shrink-0 text-success" aria-hidden="true" />{{ g }}
         </li>
       </ul>
-      <p class="mt-1 text-meta text-fg-muted">{{ AUDIENCE_LINE }}</p>
+      <!-- On the phone the gallery of areas says it further down; the first screen keeps the numbers -->
+      <p class="mt-1 text-meta text-fg-muted max-sm:hidden">{{ AUDIENCE_LINE }}</p>
     </div>
 
     <LandingStage />

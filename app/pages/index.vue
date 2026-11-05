@@ -16,7 +16,7 @@
           <!-- The podcast as a bonus of Pro (RF-L6; research: audio is a niche, never the main promise), no number here -->
           <p class="mt-4 mb-8 flex max-w-prose items-start gap-3 text-body text-fg" data-testid="landing-bonus">
             <UiPracticeIcon mode="listen" size="sm" />
-            <span><strong class="font-semibold text-fg-strong">Bônus do Pro:</strong> um episódio em áudio feito dos cards que você mais errou, para revisar quando as mãos estão ocupadas. A duração e quantos episódios por mês estão nos planos.</span>
+            <span><strong class="font-semibold text-fg-strong">Bônus do Pro:</strong> ouça seus pontos fracos num episódio de áudio feito dos cards que você mais errou, para revisar com as mãos ocupadas.</span>
           </p>
           <!-- Far below the fold: the offer's chunk loads when the section nears the screen (route budget, RF-L14) -->
           <LazyPlansPlanCards v-model:period="period" hydrate-on-visible>

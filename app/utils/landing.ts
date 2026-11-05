@@ -56,19 +56,19 @@ export const HERO_VARIANTS: HeroVariant[] = [
   {
     key: 'prova',
     title: ['Prova marcada? Saiba ', 'o que revisar hoje', '.'],
-    lead: 'Marque a data. O Baigi monta o plano de cada dia, em lotes de 20, e estima quanto você vai lembrar na prova: mantendo o ritmo e se parar hoje.',
+    lead: 'Marque a data. O Baigi monta o plano de cada dia e estima quanto você vai lembrar na prova: mantendo o ritmo e se parar hoje.',
     shot: 'projecao',
   },
   {
     key: 'esqueci',
     title: ['Você não esquece por falta de esforço. Esquece por ', 'falta de revisão', '.'],
-    lead: 'Mande o que você estudou. O Baigi cria os cards e traz cada um de volta perto da hora de esquecer, em lotes de 20, com fim.',
+    lead: 'Mande o que você estudou. O Baigi cria os cards e traz cada um de volta perto da hora de esquecer.',
     shot: 'revisao',
   },
   {
     key: 'faculdade',
     title: ['Os slides da aula viram ', 'revisão até a prova', '.'],
-    lead: 'Mande o PDF da matéria, de Anatomia a Cálculo. O Baigi escreve a nota em partes, cria os cards e divide a revisão do dia em lotes de 20.',
+    lead: 'Mande o PDF da matéria, de Anatomia a Cálculo. O Baigi escreve a nota em partes, cria os cards e diz o que revisar a cada dia.',
     shot: 'anatomia',
   },
   {
@@ -88,7 +88,7 @@ export const AUDIENCE_LINE = 'Para concurso, OAB, ENEM, faculdade, medicina e id
  */
 export const ANNOTATIONS = [
   { key: 'review', title: 'O que revisar hoje', text: 'Quantos cards revisar hoje, em lotes de 20.', icon: 'review' },
-  { key: 'origin', title: 'De onde veio o card', text: 'Cada card abre a página do PDF de onde saiu.', icon: 'origin' },
+  { key: 'origin', title: 'De onde veio o card', text: 'Card feito de PDF abre a página de onde saiu.', icon: 'origin' },
   { key: 'errors', title: 'Seus erros viram revisão', text: 'As questões erradas do simulado voltam como cards.', icon: 'quiz' },
 ] as const
 
@@ -101,7 +101,7 @@ export function landingGuarantees(trial: CatalogTrial | null): string[] {
 export const PAINS = [
   {
     pain: 'Entendo a matéria e, uma semana depois, esqueci quase tudo.',
-    answer: 'O Baigi agenda cada card para voltar perto da hora em que você ia esquecer, com repetição espaçada (o algoritmo FSRS-6). Você só abre e revisa.',
+    answer: 'O Baigi agenda cada card para voltar perto da hora em que você ia esquecer: é a repetição espaçada. Você só abre e revisa.',
   },
   {
     pain: 'Criar card dá tanta preguiça que eu desisto antes de começar.',
@@ -144,19 +144,19 @@ export const SEGMENTS = [
     name: 'Concurso',
     text: 'Edital grande e prova com data. Cada matéria mostra o domínio e o acerto, e a projeção mostra quanto você deve lembrar no dia.',
     dot: 'bg-subject-1',
-    shot: 'revisao',
+    shot: 'dominio',
     featured: true,
   },
   {
     name: 'Medicina e faculdade',
-    text: 'Mande os slides ou a apostila e revise um lote de 20 por vez, com o trecho de origem a um toque.',
+    text: 'Mande os slides ou a apostila: o PDF vira nota em partes, e cada card leva de volta à página de onde saiu.',
     dot: 'bg-subject-5',
     shot: 'anatomia',
     featured: false,
   },
   {
     name: 'ENEM e vestibular',
-    text: 'Fórmulas, datas e conceitos das quatro áreas, revisados pelo celular, no ônibus.',
+    text: 'Fórmulas, datas e conceitos das quatro áreas, com a revisão do dia pelo celular.',
     dot: 'bg-subject-3',
     shot: 'enem',
     featured: false,
@@ -206,7 +206,7 @@ export function landingFaqs(trial: CatalogTrial | null) {
     },
     {
       q: 'A IA pode errar?',
-      a: 'Pode. Por isso cada card mostra de onde veio, com a página, e você edita ou apaga o que quiser. Em assunto em que um erro custa caro, confira os cards com o material.',
+      a: 'Pode. Por isso cada card mostra de onde veio (a página, quando sai de um PDF), e você edita ou apaga o que quiser. Em assunto em que um erro custa caro, confira os cards com o material.',
     },
     {
       q: 'Como cancelo o Pro?',

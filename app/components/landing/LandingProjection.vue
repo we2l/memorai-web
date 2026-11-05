@@ -4,7 +4,7 @@
       <div>
         <h2 id="landing-projection" class="text-heading text-balance text-fg-strong lg:text-heading-lg">Como o Baigi sabe quanto você vai lembrar</h2>
         <p class="mt-3 max-w-prose text-lead text-fg">
-          Para cada card dos assuntos da prova, o Baigi calcula a chance de você lembrar dele no dia, pelo histórico das suas revisões. A conta aparece depois das primeiras revisões.
+          Para cada card dos assuntos da prova, o Baigi calcula a chance de você lembrar dele no dia, pelo histórico das suas revisões. A conta aparece quando a prova está marcada e já há pelo menos 20 cards nos assuntos dela, 10 deles revisados mais de uma vez.
         </p>
         <dl class="mt-8 flex flex-col gap-5">
           <div v-for="row in PROJECTION" :key="row.term">
@@ -13,7 +13,9 @@
           </div>
         </dl>
       </div>
-      <div class="mx-auto w-full max-w-sm lg:max-w-md">
+      <!-- The exam with its two numbers, then the domínio by matéria: the same screen of the app (Progresso) -->
+      <div class="mx-auto flex w-full max-w-sm flex-col gap-4 lg:max-w-md">
+        <LandingShot name="projecao" />
         <LandingShot name="dominio" />
       </div>
     </div>

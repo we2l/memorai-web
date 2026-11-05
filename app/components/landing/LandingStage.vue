@@ -1,11 +1,9 @@
 <template>
-  <div class="relative mx-auto mt-12 max-w-page lg:mt-16">
-    <!-- The soft lilac glow behind the phone: the only lilac block of the first screen -->
-    <div class="pointer-events-none absolute top-1/2 left-1/2 size-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-action-subtle blur-3xl lg:size-160" aria-hidden="true" />
-
-    <div class="relative grid items-center gap-5 lg:grid-cols-3 lg:gap-10">
+  <!-- The flat lilac panel behind the app: the only lilac block of the first screen (no glow, no gradient) -->
+  <div class="mx-auto mt-8 max-w-page rounded-card bg-tinted px-4 py-6 sm:px-8 lg:mt-14 lg:px-10 lg:py-12">
+    <div class="grid items-center gap-5 lg:grid-cols-3 lg:gap-10">
       <!-- The app itself, in a phone -->
-      <div class="relative mx-auto w-72 lg:order-2 lg:w-80">
+      <div class="relative order-2 mx-auto w-72 lg:w-80">
         <div class="rounded-device bg-raised p-2 shadow-float ring-1 ring-line-strong">
           <div class="overflow-hidden rounded-screen">
             <div v-for="v in HERO_VARIANTS" :key="v.key" :data-m-variant="v.key">
@@ -20,7 +18,7 @@
       </div>
 
       <!-- What the screen proves, around it (as Knowt annotates its phone) -->
-      <div class="flex flex-col gap-4 lg:order-1">
+      <div class="order-1 flex flex-col gap-4">
         <div class="rounded-card bg-raised p-5 text-left shadow-raised ring-1 ring-line" data-testid="landing-numbers">
           <p class="text-meta font-semibold text-fg-strong">Quanto você vai lembrar na prova</p>
           <div class="mt-3 flex gap-8">
@@ -35,9 +33,10 @@
           </div>
           <p class="mt-3 text-label text-fg-muted">{{ demo.exam }} em {{ demo.days }} dias, na conta de demonstração da tela.</p>
         </div>
-        <LandingNote :note="ANNOTATIONS[0]" />
+        <LandingNote :note="ANNOTATIONS[0]" class="max-lg:hidden" />
       </div>
-      <div class="flex flex-col gap-4 lg:order-3">
+      <div class="order-3 flex flex-col gap-4">
+        <LandingNote :note="ANNOTATIONS[0]" class="lg:hidden" />
         <LandingNote :note="ANNOTATIONS[1]" />
         <LandingNote :note="ANNOTATIONS[2]" />
       </div>

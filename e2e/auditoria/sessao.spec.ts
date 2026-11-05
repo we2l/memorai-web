@@ -69,8 +69,7 @@ test.describe('Logout', () => {
       await page.waitForLoadState('networkidle')
       const meStatus = (await me(context)).status()
       test.info().annotations.push({ type: 'evidência', description: `após logout offline: URL=${page.url()} GET /me=${meStatus}` })
-      // BUG: auth.logout() engole a falha do POST /logout e só limpa o estado local; o cookie HttpOnly
-      // (e o remember_web) seguem válidos e o plugin auth.client.ts reautentica via /me.
+      // The cookie is HttpOnly: the boot finishes the logout that had no network (utils/pendingLogout.ts)
       expect(new URL(page.url()).pathname, 'logout offline deixou a conta acessível').toBe('/entrar')
     } finally {
       await context.close()

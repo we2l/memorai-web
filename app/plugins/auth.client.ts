@@ -10,7 +10,13 @@ export default defineNuxtPlugin(async () => {
   }
 
   const hasHint = /(?:^|;\s*)baigi_logged_in=1/.test(document.cookie)
-  if (!auth.user && (!isPublicRoute(route.path) || hasHint)) {
+  if (hasPendingLogout()) {
+    // The last logout had no network: end the session now. Still offline, the person stays signed out here
+    const { $api } = useNuxtApp()
+    await $api('/logout', { method: 'POST' })
+      .then(clearPendingLogout)
+      .catch((e: unknown) => { if (getErrorStatus(e) !== undefined) clearPendingLogout() })
+  } else if (!auth.user && (!isPublicRoute(route.path) || hasHint)) {
     await auth.fetchMe()
   }
 

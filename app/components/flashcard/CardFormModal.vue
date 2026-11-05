@@ -29,7 +29,7 @@
             v-model="form.front"
             v-model:audio-blob="form.frontAudioBlob"
             :existing-audio-url="form.existingFrontAudioUrl"
-            placeholder="Digite a pergunta..."
+            placeholder="Digite a pergunta…"
             :min-height="80"
             :max-height="160"
             enable-cloze
@@ -43,13 +43,14 @@
             v-model="form.back"
             v-model:audio-blob="form.backAudioBlob"
             :existing-audio-url="form.existingBackAudioUrl"
-            placeholder="Digite a resposta..."
+            placeholder="Digite a resposta…"
             :min-height="80"
             :max-height="160"
             @focus="previewSide = 'back'"
           />
         </div>
         <p v-else class="rounded-row bg-subtle px-4 py-6 text-center text-meta text-fg-muted">O verso é gerado automaticamente pelas lacunas.</p>
+        <p v-if="hasOpenCloze" class="text-meta text-danger" role="alert">Falta fechar a lacuna com }} para salvar.</p>
 
         <div class="flex flex-col gap-1.5">
           <span class="text-label font-medium text-fg">Etiquetas</span>
@@ -202,22 +203,25 @@ watch(clozeIndices, (indices) => {
   }
 })
 
+// Every {{cN::  needs its }}: an open gap hides the back and saves a card with no gap at all
+const hasOpenCloze = computed(() => form.front.split(/\{\{c\d+::/).slice(1).some(part => !part.includes('}}')))
+
 const canSubmit = computed(() => {
-  if (!form.front || !form.topic_id || saving.value) return false
-  return hasCloze.value || !!form.back
+  if (isEmpty(form.front) || !form.topic_id || saving.value || hasOpenCloze.value) return false
+  return hasCloze.value || !isEmpty(form.back)
 })
 
 const { renderQuestion, renderAnswer } = useCloze()
 const { sanitize } = useSanitize()
 
 const frontPreview = computed(() => {
-  if (isEmpty(form.front)) return 'Sua pergunta aqui...'
+  if (isEmpty(form.front)) return 'Sua pergunta aqui…'
   return hasCloze.value ? renderQuestion(form.front, previewClozeIndex.value) : form.front
 })
 
 const backPreview = computed(() => {
   if (hasCloze.value) return renderAnswer(form.front, previewClozeIndex.value)
-  return isEmpty(form.back) ? 'Sua resposta aqui...' : form.back
+  return isEmpty(form.back) ? 'Sua resposta aqui…' : form.back
 })
 
 async function loadTopics() {

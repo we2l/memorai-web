@@ -11,13 +11,14 @@ import { seedQuiz } from '../auditoria/support/seed-praticar'
  * Seeds `e2e-landing-shots@audit.test` (recreated on every run) through the API and tinker, with NO AI: cards go
  * through POST /ai/accept-cards (the persistence route), the notes get their content straight in the database (the
  * API would queue the embedding job), and the PDF, its parts, the quiz and the card states are rows written by
- * tinker. Then captures 390 px screens (DPR 2) in light and dark and writes AVIF + WebP to app/assets/landing/.
+ * tinker. Then captures 390 px screens (DPR 2) in light and dark and writes AVIF + WebP to public/landing/.
  *
  * Needs the local API (http://localhost:8037) and the web build on :3000:
  *   NUXT_PUBLIC_API_BASE=http://localhost:8037/api npm run build && PORT=3000 node .output/server/index.mjs
  *   npx playwright test -c e2e/landing/shots.config.ts
  */
-const OUT = path.join(__dirname, '..', '..', 'app', 'assets', 'landing')
+const OUT = path.join(__dirname, '..', '..', 'public', 'landing')
+const DEMO = path.join(__dirname, '..', '..', 'app', 'assets', 'landing', 'demo.json')
 const WIDTH = 390
 const HEIGHT = 640
 
@@ -230,7 +231,7 @@ function seedRealQuiz(topics: { ctrl: string, df: string }, rootId: string): str
   return id
 }
 
-interface Seed { rootId: string, docId: string, part5: string, inglesId: string, anatomiaId: string, quizId: string }
+interface Seed { rootId: string, docId: string, part5: string, inglesId: string, anatomiaId: string, quizId: string, oabId: string, enemId: string }
 
 async function seed(page: Page): Promise<Seed> {
   const root = await topic(page, 'Concurso TRF', { learning_mode: 'exam' })
@@ -293,23 +294,34 @@ async function seed(page: Page): Promise<Seed> {
   await addCards(page, anatomia.id, anatomia.id, ANATOMIA)
   const oab = await topic(page, 'OAB 1ª fase', { learning_mode: 'exam' })
   study(await addCards(page, oab.id, oab.id, OAB), -1, 5)
+  // New cards: the ENEM session opens on the Mendel card
   const enem = await topic(page, 'ENEM: Biologia', { learning_mode: 'exam' })
-  study(await addCards(page, enem.id, enem.id, ENEM), 2, 7)
+  await addCards(page, enem.id, enem.id, ENEM)
 
   // A study streak, as an account in use would have
   php(`$u->forceFill(['current_streak' => 12, 'longest_streak' => 12, 'last_review_date' => now('America/Sao_Paulo')->subDay()->toDateString()])->save(); echo 'ok';`)
 
-  return { rootId: root.id, docId, part5: noteIds[4]!, inglesId: ingles.id, anatomiaId: anatomia.id, quizId }
+  return { rootId: root.id, docId, part5: noteIds[4]!, inglesId: ingles.id, anatomiaId: anatomia.id, quizId, oabId: oab.id, enemId: enem.id }
 }
 
-async function save(page: Page, name: string, theme: string, scrollY = 0, height = HEIGHT) {
-  await page.evaluate(y => window.scrollTo(0, y), scrollY)
+/**
+ * Captures a 390 px wide region of the screen: the page scrolled to `scrollY`, `top` px down the viewport, `height`
+ * tall. Only the part the landing talks about, so it can be shown big enough to read on a phone.
+ */
+async function save(page: Page, name: string, theme: string, { scrollY = 0 as number | null, top = 0, height = HEIGHT } = {}) {
+  if (scrollY !== null) await page.evaluate(y => window.scrollTo(0, y), scrollY)
   await page.waitForTimeout(300)
-  const png = await page.screenshot({ clip: { x: 0, y: 0, width: WIDTH, height }, animations: 'disabled' })
+  const png = await page.screenshot({ clip: { x: 0, y: top, width: WIDTH, height }, animations: 'disabled' })
   const img = sharp(png).resize({ width: WIDTH * 2 })
   fs.mkdirSync(OUT, { recursive: true })
   await img.clone().avif({ quality: 52, effort: 6 }).toFile(path.join(OUT, `${name}-${theme}.avif`))
   await img.clone().webp({ quality: 74, effort: 6 }).toFile(path.join(OUT, `${name}-${theme}.webp`))
+}
+
+/** Viewport y of an element (the page as it is), minus an offset. */
+async function viewportTop(page: Page, selector: string, offset = 12) {
+  const y = await page.locator(selector).first().evaluate(el => el.getBoundingClientRect().top)
+  return Math.max(0, Math.round(y - offset))
 }
 
 async function settle(page: Page) {
@@ -324,6 +336,17 @@ async function topOf(page: Page, selector: string, offset = 16) {
   return Math.max(0, y - offset)
 }
 
+/**
+ * The numbers the hero repeats in large type come from the same demo account, read from the API at capture time,
+ * so the text and the screen never disagree (app/assets/landing/demo.json).
+ */
+async function saveDemoNumbers(page: Page) {
+  const exam = ((await apiCall(page, 'GET', '/exams?status=upcoming')).data as { title: string, days_remaining: number, projection: { keep_pace: number, stop_today: number } | null }[])[0]
+  if (!exam?.projection) throw new Error('prova de demonstração sem projeção')
+  const demo = { exam: exam.title, days: exam.days_remaining, keep_pace: exam.projection.keep_pace, stop_today: exam.projection.stop_today }
+  fs.writeFileSync(DEMO, `${JSON.stringify(demo, null, 2)}\n`)
+}
+
 test.use({ auditUser: 'landingShots', viewport: { width: WIDTH, height: 844 }, deviceScaleFactor: 2 })
 
 test('telas reais da landing', async ({ page }) => {
@@ -336,26 +359,35 @@ test('telas reais da landing', async ({ page }) => {
     await gotoApp(page, '/hoje')
     await settle(page)
     await save(page, 'hoje', theme)
+    if (theme === 'light') await saveDemoNumbers(page)
 
     await gotoApp(page, `/cadernos/${s.rootId}/material/${s.part5}`)
     await settle(page)
-    await save(page, 'material', theme)
+    // From the title of the part: the PDF, its pages and the "(pág. X-Y)" links of the text
+    await save(page, 'material', theme, { top: await viewportTop(page, 'h1', 24), height: 392 })
 
-    // The short cards end higher: their capture stops under "Explicar este card"
-    for (const [name, url, height] of [['revisao', `/revisar?scope=document:${s.docId}`, 480], ['ingles', `/revisar?scope=topic:${s.inglesId}`, 320], ['anatomia', `/revisar?scope=topic:${s.anatomiaId}`, 320]] as const) {
+    // The short cards end higher: their capture stops under the answer
+    for (const [name, url, height] of [['revisao', `/revisar?scope=document:${s.docId}`, 472], ['ingles', `/revisar?scope=topic:${s.inglesId}`, 320], ['anatomia', `/revisar?scope=topic:${s.anatomiaId}`, 320], ['oab', `/revisar?scope=topic:${s.oabId}`, 320], ['enem', `/revisar?scope=topic:${s.enemId}`, 340]] as const) {
       await gotoApp(page, url)
       await page.getByTestId('review-show').click()
       await expect(page.getByTestId('review-show')).toHaveCount(0)
       await settle(page)
-      await save(page, name, theme, 0, height)
+      await save(page, name, theme, { height })
     }
 
     await gotoApp(page, `/simulados/${s.quizId}/resultado`)
     await settle(page)
-    await save(page, 'simulado', theme)
+    // Score and accuracy by assunto, without the app header above them
+    await save(page, 'simulado', theme, { top: await viewportTop(page, 'h1', 56), height: 430 })
 
     await gotoApp(page, `/progresso?caderno=${s.rootId}`)
     await settle(page)
-    await save(page, 'provas', theme, await topOf(page, '#provas', 8))
+    // The exam with the two numbers of the promise (the hero), and the domínio rows without the order picker
+    await save(page, 'projecao', theme, { scrollY: await topOf(page, '#provas', 4), height: 268 })
+    // The end of the page cannot scroll to the top of the rows: measure where they are once scrolled
+    const rows = '[data-testid=progress-performance] [role=row][data-testid]'
+    await page.locator(rows).first().evaluate(el => el.scrollIntoView({ block: 'start' }))
+    await page.waitForTimeout(300)
+    await save(page, 'dominio', theme, { scrollY: null, top: await viewportTop(page, rows, 12), height: 176 })
   }
 })

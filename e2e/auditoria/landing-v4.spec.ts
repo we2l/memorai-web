@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import AxeBuilder from '@axe-core/playwright'
 import type { Page } from '@playwright/test'
 import { test, expect } from './support/fixtures'
@@ -68,15 +70,16 @@ test.describe('landing v4', () => {
     const plans = page.locator('#planos')
     await expect(plans.getByTestId('plan-pro-price')).toContainText('R$ 23,99')
     await expect(plans.getByText('Gerações de cards com IA: 10 por mês')).toBeVisible()
-    await expect(page.getByTestId('landing-free-line')).toContainText('Grátis, sem cartão.')
-    await expect(page.getByText(/dias do Pro/)).toHaveCount(0)
+    await expect(page.getByTestId('landing-guarantees')).toContainText('Sem cartão')
+    await expect(page.getByTestId('landing-guarantees')).toContainText('Revisão grátis para sempre')
+    await expect(page.getByText(/dias (do|de) Pro/)).toHaveCount(0)
     await expect(page.getByText(/\d+x de/)).toHaveCount(0)
 
     // A new document (a new query), so the catalog is fetched again
     await page.unrouteAll({ behavior: 'ignoreErrors' })
     await open(page, '/?catalogo=lancamento#planos', launchCatalog())
     await expect(plans.getByTestId('plan-pro-price')).toContainText('R$ 19,99')
-    await expect(page.getByTestId('landing-free-line')).toContainText('O primeiro material abre 7 dias do Pro.')
+    await expect(page.getByTestId('landing-guarantees')).toContainText('7 dias de Pro')
     await expect(page.getByTestId('landing-plans-lead')).toContainText('7 dias do Pro')
     await expect(page.getByText(/\d+x de/)).toHaveCount(0)
   })
@@ -100,11 +103,17 @@ test.describe('landing v4', () => {
     }
   })
 
-  test('?m=ingles escolhe Idiomas nos exemplos por área', async ({ page }) => {
-    await open(page, '/?m=ingles')
-    await expect(page.getByTestId('landing-segment-panel').filter({ visible: true })).toContainText('to take for granted')
-    await page.getByRole('radio', { name: 'ENEM e vestibular' }).check()
-    await expect(page.getByTestId('landing-segment-panel').filter({ visible: true })).toContainText('1ª Lei de Mendel')
+  test('cada área tem a sua tela real, e os números do herói vêm da conta de demonstração', async ({ page }) => {
+    await open(page)
+    const areas = page.getByTestId('landing-segment')
+    await expect(areas).toHaveCount(5)
+    for (const name of ['Concurso', 'Medicina e faculdade', 'ENEM e vestibular', 'OAB', 'Idiomas']) {
+      await expect(areas.filter({ hasText: name }).locator('img')).toHaveAttribute('alt', /conta de demonstração/)
+    }
+    // demo.json is written by e2e/landing/shots.ts from the same account the screens show
+    const demo = JSON.parse(readFileSync(join(__dirname, '../../app/assets/landing/demo.json'), 'utf8'))
+    await expect(page.getByTestId('landing-numbers')).toContainText(`${demo.keep_pace}%`)
+    await expect(page.getByTestId('landing-numbers')).toContainText(`${demo.stop_today}%`)
   })
 
   test('nenhuma frase que o produto não cumpre', async ({ page }) => {

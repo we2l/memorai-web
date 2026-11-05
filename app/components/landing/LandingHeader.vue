@@ -2,7 +2,7 @@
   <header class="border-b border-line bg-raised px-gutter md:sticky md:top-0 md:z-sticky" data-ds-scope>
     <div class="mx-auto flex h-14 max-w-page items-center justify-between gap-4">
       <NuxtLink to="/" class="inline-flex min-h-touch items-center rounded-control" aria-label="Baigi: início">
-        <UiLogo :icon-size="24" text-class="text-body text-fg-strong" />
+        <UiLogo :icon-size="30" text-class="text-section text-action-fg" />
       </NuxtLink>
       <nav aria-label="Principal" class="flex items-center gap-1">
         <!-- The display of a Ui* root is its own (inline-flex): hide the wrapper, never the component -->

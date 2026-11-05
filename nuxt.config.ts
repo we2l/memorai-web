@@ -256,17 +256,7 @@ export default defineNuxtConfig({
     // download posthog-js at all (prd-analytics-posthog RF-F05, "0 KB para quem recusa").
     'build:manifest'(manifest) {
       const lazyOnly = new Set(Object.keys(manifest).filter(k => /^(analytics|consent)-/.test(manifest[k]?.file ?? '')))
-      // The screens of the landing (prd-landing-v4 RF-L12): each <picture> downloads only its own theme and format,
-      // and the lazy ones only near the screen. A prefetch of every file cost ~700 KB to a visitor on mobile data.
-      const shots = new Set(Object.keys(manifest).filter(k => k.includes('assets/landing/')).map(k => manifest[k]!.file))
-      for (const key of Object.keys(manifest)) {
-        if (shots.has(manifest[key]!.file)) {
-          manifest[key]!.prefetch = false
-          manifest[key]!.preload = false
-        }
-      }
       for (const chunk of Object.values(manifest)) {
-        chunk.assets &&= chunk.assets.filter(a => !shots.has(a))
         if (lazyOnly.has(chunk.src ?? '')) {
           chunk.prefetch = false
           chunk.preload = false

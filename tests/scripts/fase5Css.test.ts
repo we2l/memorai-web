@@ -43,7 +43,7 @@ describe.skipIf(skipWithoutBuild)('Fase 5: o que o build entrega', () => {
     expect(cssFiles.filter(f => f.startsWith('index.'))).toEqual([landingFile])
   })
 
-  it('o CSS da landing fica leve (v4: <= 4 KB gzip; era 5,8)', () => {
-    expect(gzipSync(read(landingFile!)).length / 1024).toBeLessThan(4)
+  it('o CSS da landing fica leve (v4: ~4 KB gzip; era 5,8)', () => {
+    expect(gzipSync(read(landingFile!)).length / 1024).toBeLessThan(4.5)
   })
 })

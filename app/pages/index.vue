@@ -6,13 +6,18 @@
       <LandingHero :trial="trial" @cta="cta('hero')" />
       <LandingPains />
       <LandingSteps />
-      <LandingSegments :message="message" />
-      <LandingBonus />
+      <LandingProjection />
+      <LandingSegments />
 
-      <section id="planos" class="px-gutter py-12 lg:py-24" aria-labelledby="landing-plans" data-ds-scope>
+      <section id="planos" class="px-gutter py-14 lg:py-20" aria-labelledby="landing-plans" data-ds-scope>
         <div class="mx-auto max-w-4xl">
           <h2 id="landing-plans" class="text-heading text-balance text-fg-strong lg:text-heading-lg">Comece grátis, sem cartão</h2>
-          <p class="mt-3 mb-8 max-w-prose text-lead text-fg" data-testid="landing-plans-lead">{{ plansLead }}</p>
+          <p class="mt-3 max-w-prose text-lead text-fg" data-testid="landing-plans-lead">{{ plansLead }}</p>
+          <!-- The podcast as a bonus of Pro (RF-L6; research: audio is a niche, never the main promise), no number here -->
+          <p class="mt-4 mb-8 flex max-w-prose items-start gap-3 text-body text-fg" data-testid="landing-bonus">
+            <UiPracticeIcon mode="listen" size="sm" />
+            <span><strong class="font-semibold text-fg-strong">Bônus do Pro:</strong> um episódio em áudio feito dos cards que você mais errou, para revisar quando as mãos estão ocupadas. A duração e quantos episódios por mês estão nos planos.</span>
+          </p>
           <!-- Far below the fold: the offer's chunk loads when the section nears the screen (route budget, RF-L14) -->
           <LazyPlansPlanCards v-model:period="period" hydrate-on-visible>
             <template #free-action>
@@ -60,13 +65,19 @@ useHead({
     { property: 'og:locale', content: 'pt_BR' },
   ],
   script: [{ innerHTML: LANDING_MESSAGE_SCRIPT, tagPosition: 'head' }],
+  // The screen of the hero is the LCP and sits deep in a long prerendered HTML: fetch it from the <head>, in the
+  // system theme (the same choice as the <picture> of LandingShot)
+  link: [
+    { rel: 'preload', as: 'image', type: 'image/avif', href: '/landing/hoje-light.avif', media: '(prefers-color-scheme: light)', fetchpriority: 'high' },
+    { rel: 'preload', as: 'image', type: 'image/avif', href: '/landing/hoje-dark.avif', media: '(prefers-color-scheme: dark)', fetchpriority: 'high' },
+  ],
 })
 
 const { plans: catalog, fetchPlans } = usePlans()
 const trial = computed(() => catalogTrial(catalog.value))
 const plansLead = computed(() => trial.value
-  ? `Criar a conta não pede cartão, e o primeiro material abre ${trial.value.days} dias do Pro. Os preços e limites abaixo são os mesmos do app.`
-  : 'Criar a conta não pede cartão. Os preços e limites abaixo são os mesmos do app.')
+  ? `Criar a conta não pede cartão, e o primeiro material abre ${trial.value.days} dias do Pro. Revisar, organizar cadernos e criar seus cards não têm prazo.`
+  : 'Criar a conta não pede cartão. Revisar, organizar cadernos e criar seus cards não têm prazo; o que usa IA tem os limites de cada plano.')
 const period = ref<BillingPeriod>('annual')
 
 // ── Where the actions are (RF-L1, RF-L10) ──

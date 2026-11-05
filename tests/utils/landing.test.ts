@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { HERO_VARIANTS, LANDING_MESSAGES, LANDING_MESSAGE_SCRIPT, SEGMENTS, catalogTrial, landingFaqs, landingFreeLine, landingMessageOf } from '~/utils/landing'
+import { HERO_VARIANTS, SHOTS, LANDING_MESSAGES, LANDING_MESSAGE_SCRIPT, SEGMENTS, catalogTrial, landingFaqs, landingGuarantees, landingMessageOf } from '~/utils/landing'
 import type { PlanCatalog } from '~/types'
 
 const catalog = (over: Partial<PlanCatalog> = {}, proTrial?: object): PlanCatalog => ({
@@ -50,16 +50,22 @@ describe('landing v4 (prd-landing-v4)', () => {
   })
 
   it('o texto do grátis e das perguntas segue o catálogo, sem número próprio', () => {
-    expect(landingFreeLine(null)).toBe('Grátis, sem cartão.')
-    expect(landingFreeLine({ days: 7, card_required: false })).toContain('7 dias do Pro')
+    expect(landingGuarantees(null)).toEqual(['Sem cartão', 'Revisão grátis para sempre'])
+    expect(landingGuarantees({ days: 7, card_required: false })).toEqual(['Sem cartão', '7 dias de Pro', 'Revisão grátis para sempre'])
     expect(landingFaqs(null)[0]!.a).not.toMatch(/\d/)
     expect(landingFaqs({ days: 10, card_required: false })[0]!.a).toContain('10 dias do Pro')
-    const all = JSON.stringify([landingFaqs(null), HERO_VARIANTS])
+    const all = JSON.stringify([landingFaqs(null), HERO_VARIANTS, landingGuarantees(null)])
     expect(all).not.toMatch(/R\$|\d+x de|grátis todo mês|podcast grátis/i)
   })
 
-  it('cada área tem nome, texto e um card de exemplo', () => {
+  it('cada área tem nome, texto e uma tela real, e uma só fica em destaque', () => {
     expect(SEGMENTS.map(s => s.name)).toEqual(['Concurso', 'Medicina e faculdade', 'ENEM e vestibular', 'OAB', 'Idiomas'])
-    for (const s of SEGMENTS) expect(s.front && s.back && s.text && s.dot).toBeTruthy()
+    for (const s of SEGMENTS) expect(s.text && s.dot && SHOTS[s.shot]).toBeTruthy()
+    expect(SEGMENTS.filter(s => s.featured)).toHaveLength(1)
+  })
+
+  it('o título de cada variante tem o trecho do marca-texto', () => {
+    for (const v of HERO_VARIANTS) expect(v.title[1].length).toBeGreaterThan(5)
+    expect(HERO_VARIANTS[0]!.title.join('')).toBe('Saiba quanto você vai lembrar no dia da prova.')
   })
 })

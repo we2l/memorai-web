@@ -2,7 +2,7 @@ import { watch, onBeforeUnmount, type Ref } from 'vue'
 
 /**
  * Focus trap + focus return + body scroll lock for full-screen overlays that are not
- * UiModal (RF-F9.2). Pair with role="dialog" aria-modal="true" on the element.
+ * the modal layers (RF-F9.2). Pair with role="dialog" aria-modal="true" on the element.
  */
 export function useOverlayA11y(isOpen: () => boolean, container: Ref<HTMLElement | null | undefined>, opts: { lockScroll?: boolean } = {}) {
   const trap = useFocusTrap(container)

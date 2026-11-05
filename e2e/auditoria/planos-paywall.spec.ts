@@ -87,7 +87,7 @@ test.describe('Paywall: Free com cota de IA esgotada', () => {
     // The hub of a caderno with material and no cards: "Gerar cards de…" opens the material and its workshop
     await gotoApp(page, `/cadernos/${t.data.id}`)
     await page.getByTestId('scope-generate').click()
-    const modal = page.getByRole('dialog', { name: 'Limite do plano' })
+    const modal = page.getByRole('dialog', { name: /^Você usou 10 de 10/ })
     await expect(modal).toBeVisible()
     expect(gate.map(g => g.status)).toEqual([402])
     expect(gate[0].body.code).toBe('feature_limit_reached')

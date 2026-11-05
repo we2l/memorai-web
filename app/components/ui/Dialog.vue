@@ -43,9 +43,9 @@
 
 <script setup lang="ts">
 // Dialog (raio-X §D, tasks 12.1): title, description, body and footer with tokens. The layer behaviour
-// (Esc on the topmost, scroll lock, focus trap and return) is the one of UiModal, via useModalLayer.
+// (Esc on the topmost, scroll lock, focus trap and return) comes from useModalLayer.
 // `placement` is how UiSheet reuses it (bottom/right); a dialog is its own screen for the
-// "one primary" rule (useScopedLimit). The only place, with Modal, allowed to use `fixed inset-0`.
+// "one primary" rule (useScopedLimit). The only place allowed to use `fixed inset-0`.
 import { X } from 'lucide-vue-next'
 
 export type DialogPlacement = 'center' | 'bottom' | 'right'

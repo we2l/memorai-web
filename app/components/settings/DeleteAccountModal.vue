@@ -1,10 +1,8 @@
 <template>
-  <UiModal v-model="open" size="md" role="alertdialog">
-    <h2 class="text-section mb-3 text-danger">Excluir sua conta?</h2>
-
+  <UiDialog v-model="open" size="md" role="alertdialog" title="Excluir sua conta?">
     <!-- Step 1: consequences -->
     <div v-if="step === 1">
-      <div ref="consequences" tabindex="-1" class="focus:outline-none" autofocus>
+      <div ref="consequences" tabindex="-1" class="outline-none" autofocus>
         <p class="text-meta text-fg mb-2">Isso apaga para sempre:</p>
         <ul class="list-disc pl-5 text-meta text-fg space-y-1 mb-3">
           <li>seus cadernos, notas, cards e histórico de revisões;</li>
@@ -19,7 +17,7 @@
         <p class="text-label text-fg-muted mb-4">Quer levar seus dados? Use "Exportar meus dados" antes.</p>
       </div>
       <UiCheckbox v-model="understood" label="Entendo que isso é permanente" class="mb-3" />
-      <div class="flex gap-3 justify-end">
+      <div class="flex justify-end gap-3">
         <UiButton variant="secondary" type="button" @click="open = false">Cancelar</UiButton>
         <UiButton variant="danger" type="button" :disabled="!understood" @click="step = 2">Continuar</UiButton>
       </div>
@@ -39,11 +37,11 @@
       <div class="flex gap-3 justify-end mt-5">
         <UiButton variant="secondary" type="button" @click="step = 1">Voltar</UiButton>
         <UiButton variant="danger" type="submit" :loading="pending" :disabled="!confirmation">
-          {{ pending ? 'Excluindo...' : 'Excluir minha conta' }}
+          {{ pending ? 'Excluindo…' : 'Excluir minha conta' }}
         </UiButton>
       </div>
     </form>
-  </UiModal>
+  </UiDialog>
 </template>
 
 <script setup lang="ts">

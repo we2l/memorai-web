@@ -19,7 +19,7 @@
           {{ buttonLabel }}
         </UiButton>
         <UiButton size="sm" class="flex-1 sm:flex-none" :loading="checking" @click="checkVerified">
-          {{ checking ? 'Verificando...' : 'Já confirmei' }}
+          {{ checking ? 'Verificando…' : 'Já confirmei' }}
         </UiButton>
       </div>
       <UiIconButton
@@ -32,16 +32,17 @@
       />
     </div>
 
-    <UiModal v-model="showModal" size="sm" aria-label="Confirme seu e-mail">
-      <h2 class="text-body font-semibold text-fg-strong mb-2 pr-8">Confirme seu e-mail</h2>
-      <p class="text-meta text-fg-muted mb-6">
+    <UiDialog v-model="showModal" size="sm" title="Confirme seu e-mail">
+      <p class="text-meta text-fg-muted">
         Os recursos de IA ficam disponíveis depois que você confirmar <span class="break-all">{{ auth.user?.email }}</span>.
         Confira sua caixa de entrada e o spam.
       </p>
-      <UiButton variant="primary" type="button" block :loading="sending" :disabled="cooldown > 0" @click="resend">
-        {{ buttonLabel }}
-      </UiButton>
-    </UiModal>
+      <template #footer>
+        <UiButton variant="primary" type="button" block :loading="sending" :disabled="cooldown > 0" @click="resend">
+          {{ buttonLabel }}
+        </UiButton>
+      </template>
+    </UiDialog>
   </div>
 </template>
 
@@ -66,7 +67,7 @@ const cooldown = ref(0)
 let timer: ReturnType<typeof setInterval> | undefined
 
 const buttonLabel = computed(() => {
-  if (sending.value) return 'Enviando...'
+  if (sending.value) return 'Enviando…'
   if (cooldown.value > 0) return `Reenviar em ${cooldown.value}s`
   return 'Reenviar e-mail'
 })

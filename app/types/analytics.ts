@@ -25,7 +25,14 @@ export type MiniplayerAction = 'play' | 'pause' | 'expand' | 'close'
 export type HomePlanStepKey = 'review' | 'quiz' | 'listen' | 'material'
 export type HomeChecklistItem = 'topic' | 'material' | 'cards' | 'review' | 'streak'
 
+/** Landing v4 (prd-landing-v4 RF-L13): `?m=` of the video and where the click happened */
+export type LandingMessageProp = 'padrao' | 'prova' | 'esqueci' | 'faculdade' | 'ingles'
+export type LandingCtaPosition = 'header' | 'hero' | 'sticky' | 'plans_free' | 'plans_pro' | 'final'
+
 export interface FrontEventProps {
+  /** Landing v4 (prd-landing-v4 RF-L13) */
+  landing_viewed: { message: LandingMessageProp, utm_source: string | null, utm_medium: string | null, utm_campaign: string | null, utm_content: string | null }
+  landing_cta_clicked: { position: LandingCtaPosition, message: LandingMessageProp }
   /** Conta e onboarding v3 (prd-4g-conta-onboarding-v3 RF-F16) */
   onboarding_step: { step: 1 | 2 | 3, mode: string | null }
   onboarding_path: { path: OnboardingPath }
@@ -101,6 +108,11 @@ export interface FrontEventProps {
 }
 
 export type FrontEvent = keyof FrontEventProps
+
+/** Super-properties (posthog `register`): sent with every later event of the person, sign-up and onboarding included */
+export interface FrontSuperProps {
+  landing_message: LandingMessageProp
+}
 
 /** Feature flags read on the client. None in use this cycle. */
 // 'reverse_trial' — Fase 2 (evaluate on the backend: must not depend on consent)

@@ -48,8 +48,9 @@ const CONSENT_CHUNK = /\/components\/ui\/Consent(Banner|Modal)\.vue/
 // One-shot pages that only work online (onboarding, the auth screens, OAuth and checkout returns, reset link,
 // the first batch's end; the organization of the 4b-2: trash, Anki, move and delete dialogs): fetched when opened
 // instead of in every install download (precache budget, prd-correcoes-experiencia Q2, prd-4g-conta-onboarding-v3,
-// prd-4b-caderno-v3 §10.2). /ajuda stays: "?" opens the shortcuts offline too.
-const ONE_SHOT_PAGE_CHUNK = /\/(pages\/(comecar|entrar|criar-conta|esqueci-senha|checkout\/sucesso|auth\/google\/callback|redefinir-senha|termos|privacidade|planos|importar|cadernos\/lixeira)|layouts\/auth|components\/review\/ReviewOnboardingEnd|components\/caderno\/(MaterialCardsState|MoveDialog|TrashDialog))\.vue/
+// prd-4b-caderno-v3 §10.2), and the landing (prd-landing-v4 RF-L14: marketing, online only). /ajuda stays: "?" opens
+// the shortcuts offline too.
+const ONE_SHOT_PAGE_CHUNK = /\/(pages\/(index|comecar|entrar|criar-conta|esqueci-senha|checkout\/sucesso|auth\/google\/callback|redefinir-senha|termos|privacidade|planos|importar|cadernos\/lixeira)|layouts\/(auth|landing)|components\/review\/ReviewOnboardingEnd|components\/caderno\/(MaterialCardsState|MoveDialog|TrashDialog))\.vue/
 // Pieces shared only by those pages: a shared chunk has no facade module, so it goes by what is inside it.
 const ONE_SHOT_SHARED = /\/(components\/auth\/|components\/onboarding\/|utils\/(authMessages|organization|moveTargets|ankiMapping)|composables\/useTrashBatch)/
 // Reference page of the design system (prd-ds-v3-fundacao RF-2.5): only in `nuxt dev`. NUXT_DS_PAGE=1 keeps it
@@ -147,8 +148,9 @@ export default defineNuxtConfig({
       // Images are runtime-cached (below); never precache png/pdf (RF-05)
       globPatterns: ['**/*.{js,css,html,svg,ico,woff2}'],
       // Public/auth HTML only works online anyway (content or login): keep it out of the install download
-      // _nuxt/index.*.css: the CSS of the landing (components/landing/landing.css), online like the rest of the marketing
-      globIgnores: ['termos/**', 'privacidade/**', 'planos/**', 'ajuda/**', 'entrar/**', 'criar-conta/**', 'esqueci-senha/**', '_nuxt/email-*.js', '_nuxt/analytics-*.js', '_nuxt/consent-*.js', '_nuxt/once-*.js', '_nuxt/dev-*.js', '_nuxt/index.*.css'],
+      // index.html + _nuxt/index.*.css: the landing (prd-landing-v4 RF-L14), online like the rest of the marketing; the
+      // installed app starts at /hoje and navigateFallback is null, so nothing offline ever served it
+      globIgnores: ['index.html', 'termos/**', 'privacidade/**', 'planos/**', 'ajuda/**', 'entrar/**', 'criar-conta/**', 'esqueci-senha/**', '_nuxt/email-*.js', '_nuxt/analytics-*.js', '_nuxt/consent-*.js', '_nuxt/once-*.js', '_nuxt/dev-*.js', '_nuxt/index.*.css'],
       // Heavy on-demand chunks (pdf.js ~330 KB) stay out of the install download;
       // maximumFileSizeToCacheInBytes would fail the build instead of skipping.
       manifestTransforms: [
@@ -254,7 +256,17 @@ export default defineNuxtConfig({
     // download posthog-js at all (prd-analytics-posthog RF-F05, "0 KB para quem recusa").
     'build:manifest'(manifest) {
       const lazyOnly = new Set(Object.keys(manifest).filter(k => /^(analytics|consent)-/.test(manifest[k]?.file ?? '')))
+      // The screens of the landing (prd-landing-v4 RF-L12): each <picture> downloads only its own theme and format,
+      // and the lazy ones only near the screen. A prefetch of every file cost ~700 KB to a visitor on mobile data.
+      const shots = new Set(Object.keys(manifest).filter(k => k.includes('assets/landing/')).map(k => manifest[k]!.file))
+      for (const key of Object.keys(manifest)) {
+        if (shots.has(manifest[key]!.file)) {
+          manifest[key]!.prefetch = false
+          manifest[key]!.preload = false
+        }
+      }
       for (const chunk of Object.values(manifest)) {
+        chunk.assets &&= chunk.assets.filter(a => !shots.has(a))
         if (lazyOnly.has(chunk.src ?? '')) {
           chunk.prefetch = false
           chunk.preload = false

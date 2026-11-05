@@ -13,10 +13,9 @@
           </div>
         </dl>
       </div>
-      <!-- The exam with its two numbers, then the domínio by matéria: the same screen of the app (Progresso) -->
-      <div class="mx-auto flex w-full max-w-sm flex-col gap-4 lg:max-w-md">
+      <!-- The exam with its two numbers, on the screen of the app (the domínio by matéria is in the gallery) -->
+      <div class="mx-auto w-full max-w-sm lg:max-w-md">
         <LandingShot name="projecao" />
-        <LandingShot name="dominio" />
       </div>
     </div>
   </section>

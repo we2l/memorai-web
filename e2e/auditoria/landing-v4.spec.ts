@@ -112,8 +112,12 @@ test.describe('landing v4', () => {
     }
     // demo.json is written by e2e/landing/shots.ts from the same account the screens show
     const demo = JSON.parse(readFileSync(join(__dirname, '../../app/assets/landing/demo.json'), 'utf8'))
-    await expect(page.getByTestId('landing-numbers')).toContainText(`${demo.keep_pace}%`)
-    await expect(page.getByTestId('landing-numbers')).toContainText(`${demo.stop_today}%`)
+    const numbers = page.getByTestId('landing-numbers').filter({ visible: true })
+    await expect(numbers).toContainText(`${demo.keep_pace}%`)
+    await expect(numbers).toContainText(`${demo.stop_today}%`)
+    // A video about English gets no exam numbers
+    await open(page, '/?m=ingles')
+    await expect(page.getByTestId('landing-numbers').filter({ visible: true })).toHaveCount(0)
   })
 
   test('nenhuma frase que o produto não cumpre', async ({ page }) => {

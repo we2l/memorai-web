@@ -19,7 +19,7 @@
 
       <!-- What the screen proves, around it (as Knowt annotates its phone) -->
       <div class="order-1 flex flex-col gap-4">
-        <div class="rounded-card bg-raised p-5 text-left shadow-raised ring-1 ring-line" data-testid="landing-numbers">
+        <div v-for="m in NUMBERS_FOR" :key="m" :data-m-variant="m" class="rounded-card bg-raised p-5 text-left shadow-raised ring-1 ring-line" data-testid="landing-numbers">
           <p class="text-meta font-semibold text-fg-strong">Quanto você vai lembrar na prova</p>
           <div class="mt-3 flex gap-8">
             <p class="flex flex-col">
@@ -31,14 +31,15 @@
               <span class="mt-1 text-meta text-fg-muted">se parar hoje</span>
             </p>
           </div>
-          <p class="mt-3 text-label text-fg-muted">{{ demo.exam }} em {{ demo.days }} dias, na conta de demonstração da tela.</p>
+          <p class="mt-3 text-label text-fg-muted">{{ demo.exam }} em {{ demo.days }} dias, na conta de demonstração. Aparece com a prova marcada e cards já revisados.</p>
         </div>
         <LandingNote :note="ANNOTATIONS[0]" class="max-lg:hidden" />
       </div>
       <div class="order-3 flex flex-col gap-4">
         <LandingNote :note="ANNOTATIONS[0]" class="lg:hidden" />
-        <LandingNote :note="ANNOTATIONS[1]" />
-        <LandingNote :note="ANNOTATIONS[2]" />
+        <!-- One note on the phone (the hero is long there); all of them on the desktop -->
+        <LandingNote :note="ANNOTATIONS[1]" class="max-lg:hidden" />
+        <LandingNote :note="ANNOTATIONS[2]" class="max-lg:hidden" />
       </div>
     </div>
   </div>
@@ -50,4 +51,7 @@
 // e2e/landing/shots.ts), so the text never disagrees with the screen.
 import demo from '~/assets/landing/demo.json'
 import { ANNOTATIONS, HERO_VARIANTS } from '~/utils/landing'
+
+// The exam numbers belong to the exam messages; a video about English or college gets the notes only
+const NUMBERS_FOR = ['padrao', 'prova'] as const
 </script>

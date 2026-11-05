@@ -133,6 +133,19 @@ describe('CadernoSubjectTable (RF-F5)', () => {
     expect(await axeViolations(w.element)).toEqual([])
   })
 
+  it('⋯ de cada linha fora do link: Mover para… e Excluir emitem a matéria (prd-4b RF-F15)', async () => {
+    const s = summary()
+    const w = await mountSuspended(SubjectTable, { props: { subjects: s.subjects, scopeDepth: 0, canAdd: true }, attachTo: document.body })
+    const trigger = w.findAll('li').at(1)!.find('button')
+    expect(trigger.attributes('aria-label')).toBe('Mais ações de Constitucional')
+    expect(w.findAll('a').at(1)!.find('button').exists()).toBe(false)
+    await trigger.trigger('click')
+    const items = w.findAll('[role="menuitem"]')
+    expect(items.map(i => i.text())).toEqual(['Mover para…', 'Excluir'])
+    await items[0]!.trigger('click')
+    expect((w.emitted('move')![0]![0] as ScopeSubject).id).toBe('Constitucional')
+  })
+
   it('na matéria: "Assuntos"; no 2º nível, sem "+ Assunto"', async () => {
     const w = await mountSuspended(SubjectTable, { props: { subjects: [subject('a', { depth: 2 })], scopeDepth: 1, canAdd: false } })
     expect(w.get('h2').text()).toBe('Assuntos')

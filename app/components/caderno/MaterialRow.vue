@@ -62,7 +62,7 @@
 <script setup lang="ts">
 // One material of the scope (prd-4b-caderno-v3 RF-F6): a PDF with its parts, or a note, in one line with
 // what it has ("PDF · 212 páginas · 6 partes · 148 cards · domínio 44%"), "Revisar N" of its own slice
-// (scope=document:/note:, F2) and the ⋯ with Abrir, Só erros (N), Praticar adiantado, cards and Excluir.
+// (scope=document:/note:, F2) and the ⋯ with Abrir, Só erros (N), Praticar adiantado, cards, Mover para… and Excluir.
 // A PDF still reading (progress per part) or making its automatic cards polls GET /documents/{id} every 4 s and
 // updates only this line; why the cards or the note did not come is said here.
 import { Ellipsis, FileText, NotebookText } from 'lucide-vue-next'
@@ -80,6 +80,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'retry', row: MaterialRow): void
   (e: 'delete', row: MaterialRow): void
+  (e: 'move', row: MaterialRow): void
   (e: 'view-pdf', row: MaterialRow): void
   (e: 'ready', row: MaterialRow): void
 }>()
@@ -149,7 +150,12 @@ const menuItems = computed<MenuItem[]>(() => {
     if (r.ahead_count > 0 && r.session_count === 0) items.push({ label: `Praticar adiantado (${r.ahead_count})`, to: reviewPath(scope.value, { ahead: true }) })
     items.push({ label: `Ver e editar os ${fmt(r.cards)} cards`, to: cadernoPath(r.topic.id, { view: 'cards', sourceNoteId: r.note_id }) })
   }
-  items.push({ label: 'Excluir', tone: 'danger', separator: items.length > 0, onSelect: () => emit('delete', r) })
+  // The job of a PDF still writes to the caderno it started in: moving waits for it
+  const moving = r.status === 'generating' || r.status === 'processing' || cardsBusy.value
+  items.push(moving
+    ? { label: 'Mover para…', meta: cardsBusy.value ? 'quando os cards ficarem prontos' : 'quando terminar de ler', disabled: true, separator: items.length > 0 }
+    : { label: 'Mover para…', separator: items.length > 0, onSelect: () => emit('move', r) })
+  items.push({ label: 'Excluir', tone: 'danger', onSelect: () => emit('delete', r) })
   return items
 })
 

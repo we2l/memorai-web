@@ -21,7 +21,7 @@ export const API = `${API_ORIGIN}/api`
 export const AUDIT_PASSWORD = 'Senha-Audit-2026'
 const CONTAINER = process.env.E2E_API_CONTAINER || 'baigi-app'
 
-export type UserKey = 'pro' | 'free' | 'quota' | 'unverified' | 'onboarding' | 'onboardingUnverified' | 'empty' | 'session' | 'logout' | 'account' | 'mobile' | 'legacy' | 'scope' | 'nav' | 'hoje' | 'hojeNew' | 'hojeGoal' | 'recorte' | 'hub' | 'material' | 'library' | 'revisao' | 'revisaoEmpty' | 'praticar' | 'praticarFree' | 'progresso' | 'progressoNew' | 'onbText' | 'onbExit' | 'onbExam' | 'onbAnki' | 'onbSample' | 'onbKeyboard' | 'conta' | 'contaPro' | 'parts'
+export type UserKey = 'pro' | 'free' | 'quota' | 'unverified' | 'onboarding' | 'onboardingUnverified' | 'empty' | 'session' | 'logout' | 'account' | 'mobile' | 'legacy' | 'scope' | 'nav' | 'hoje' | 'hojeNew' | 'hojeGoal' | 'recorte' | 'hub' | 'material' | 'library' | 'revisao' | 'revisaoEmpty' | 'praticar' | 'praticarFree' | 'progresso' | 'progressoNew' | 'onbText' | 'onbExit' | 'onbExam' | 'onbAnki' | 'onbSample' | 'onbKeyboard' | 'conta' | 'contaPro' | 'parts' | 'organizacao'
 
 type UserSpec = { email: string; plan: 'free' | 'pro'; verified: boolean; onboarded: boolean; reset: true; quota_exhausted?: Record<string, number> }
 
@@ -77,6 +77,8 @@ export const USERS: Record<UserKey, UserSpec> = {
   contaPro: { email: 'e2e-conta-pro@audit.test', plan: 'pro', verified: true, onboarded: true, reset: true },
   // Material em partes (prd-4c-material-v3 4c-2, partes.spec.ts)
   parts: { email: 'e2e-parts@audit.test', plan: 'pro', verified: true, onboarded: true, reset: true },
+  // Organização do caderno (prd-4b-caderno-v3 4b-2, organizacao.spec.ts): mover, lixeira e Anki
+  organizacao: { email: 'e2e-organizacao@audit.test', plan: 'pro', verified: true, onboarded: true, reset: true },
 }
 
 const AUTH_DIR = path.join(__dirname, '..', '..', '.auth')

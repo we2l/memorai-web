@@ -142,6 +142,12 @@ describe('ExamDialog (RF-F9)', () => {
     ;(document.querySelector('[data-testid="exam-save"]') as HTMLButtonElement).click()
     await flushPromises()
     expect(document.querySelector('[data-testid="exam-limit-error"]')?.textContent).toContain('até 2 provas futuras')
+    // exam_limit_reached (API #131): the number comes from the requirement
+    apiMock.mockRejectedValueOnce(Object.assign(new Error('422'), { status: 422, data: { code: 'exam_limit_reached', requirement: { limit: 3, current: 3, plan: 'free', plan_required: 'pro' } } }))
+    ;(document.querySelector('[data-testid="exam-save"]') as HTMLButtonElement).click()
+    await flushPromises()
+    expect(document.querySelector('[data-testid="exam-limit-error"]')?.textContent).toContain('até 3 provas futuras')
+    expect(document.querySelector('[data-testid="exam-limit-error"] a')?.getAttribute('href')).toBe('/planos')
     expect(toastShow).not.toHaveBeenCalled()
   })
 })

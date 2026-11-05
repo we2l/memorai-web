@@ -156,9 +156,9 @@ async function submit() {
     emit('saved', saved)
     emit('update:modelValue', false)
   } catch (e) {
-    const data = (e as { data?: { code?: string; errors?: Record<string, string[]> } })?.data
+    const data = (e as { data?: { code?: string; errors?: Record<string, string[]>; requirement?: { limit?: number } } })?.data
     if (getErrorStatus(e) === 422 && data?.code === 'coverage_mixed_roots') errors.coverage = 'A prova cobre um caderno só: escolha matérias do mesmo caderno.'
-    else if (getErrorStatus(e) === 422 && data?.errors?.limit?.[0]) limitError.value = 'No plano Grátis, até 2 provas futuras ao mesmo tempo.'
+    else if (getErrorStatus(e) === 422 && (data?.code === 'exam_limit_reached' || data?.errors?.limit?.[0])) limitError.value = `No plano Grátis, até ${data?.requirement?.limit ?? 2} provas futuras ao mesmo tempo. Exclua uma prova ou assine o Pro.`
     else if (getErrorStatus(e) === 422 && data?.errors?.exam_date?.[0]) errors.date = 'A data precisa ser de amanhã em diante.'
     else reportApiError(e, { error: 'Não foi possível salvar a prova. Tente de novo.' })
   } finally {

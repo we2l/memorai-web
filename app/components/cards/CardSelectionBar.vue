@@ -18,21 +18,32 @@
       >
         Revisar
       </UiButton>
+      <UiButton
+        size="sm"
+        :disabled="count > MOVE_SELECTION_MAX"
+        :aria-describedby="count > MOVE_SELECTION_MAX ? moveLimitId : undefined"
+        data-testid="card-selection-move"
+        @click="$emit('move')"
+      >
+        Mover
+      </UiButton>
       <UiButton size="sm" variant="danger" data-testid="card-selection-delete" @click="$emit('delete')">Excluir</UiButton>
       <UiIconButton :icon="X" label="Limpar seleção" size="sm" @click="$emit('clear')" />
       <p v-if="!reviewTo" :id="limitId" class="w-full text-label text-fg-muted">Revise até {{ REVIEW_SELECTION_MAX }} de uma vez.</p>
+      <p v-if="count > MOVE_SELECTION_MAX" :id="moveLimitId" class="w-full text-label text-fg-muted">Mova até {{ MOVE_SELECTION_MAX }} de uma vez.</p>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 // Actions on the selected cards of the library (prd-4c-material-v3 RF-F12): review them (a session of those
-// ids, ≤ 100) or delete them (definitive, confirmed with the number). "Mover para…" comes with the 4b-2.
+// ids, ≤ 100), move them (≤ 500, prd-4b-caderno-v3 RF-F15) or delete them (definitive, confirmed with the number).
 import { X } from 'lucide-vue-next'
-import { REVIEW_SELECTION_MAX } from '~/composables/useCardLibrary'
+import { MOVE_SELECTION_MAX, REVIEW_SELECTION_MAX } from '~/composables/useCardLibrary'
 
 defineProps<{ count: number; allSelected: boolean; reviewTo: string | null }>()
-defineEmits<{ (e: 'toggle-all'): void; (e: 'review'): void; (e: 'delete'): void; (e: 'clear'): void }>()
+defineEmits<{ (e: 'toggle-all' | 'review' | 'move' | 'delete' | 'clear'): void }>()
 
 const limitId = useId()
+const moveLimitId = useId()
 </script>

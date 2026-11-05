@@ -66,6 +66,11 @@ export interface FrontEventProps {
   part_nav: { direction: 'previous' | 'next', via: 'link' | 'key' }
   library_filter: { filter: 'q' | 'state' | 'origin' | 'errors' | 'tag' | 'sort' | 'clear' }
   library_bulk: { action: 'review' | 'delete', count: number }
+  /** Organização do caderno (prd-4b-caderno-v3 RF-F18) */
+  item_move: { kind: 'topic' | 'note' | 'pdf' | 'cards' }
+  item_trash: { kind: 'topic' | 'note' | 'pdf' }
+  trash_restore: { via: 'undo' | 'page' }
+  anki_destination: { type: 'new' | 'existing' }
   /** Revisão v3 (prd-4d-revisao-v3 RF-F12) */
   review_batch_end: { batch_index: number, batches_total: number, remembered: number, size: number, scope_type: ReviewScopeType | null }
   review_batch_continue: { batch_index: number }

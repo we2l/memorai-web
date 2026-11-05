@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { Note, NoteSummary } from '~/types'
+import type { Note, NoteSummary, TrashReceipt } from '~/types'
 
 /** The list keeps only the summary: the content lives in the editor that opened the note (RF-F1). */
 function summaryOf(note: Partial<Note>): Partial<NoteSummary> {
@@ -86,11 +86,13 @@ export const useNoteStore = defineStore('note', {
       if (this.current?.id === id) this.current = { ...this.current, ...patch }
     },
 
-    async remove(id: string) {
+    /** To the trash with its cards (prd-4b-caderno-v3 RF-B8); the receipt has the batch that restores it. */
+    async remove(id: string): Promise<TrashReceipt> {
       const { $api } = useNuxtApp()
-      await $api(`/notes/${id}`, { method: 'DELETE' })
+      const res = await $api<{ data: TrashReceipt }>(`/notes/${id}`, { method: 'DELETE' })
       this.notes = this.notes.filter(n => n.id !== id)
       if (this.current?.id === id) this.current = null
+      return res.data
     },
 
     async createFlashcard(noteId: string, data: { front: string; back: string; deck_id?: string }) {

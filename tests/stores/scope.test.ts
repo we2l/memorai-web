@@ -113,3 +113,37 @@ describe('scope store (prd-4b-caderno-v3 tasks 6.3)', () => {
     expect(documentRowStatus({ status: 'completed', note_generation_status: 'completed' })).toBe('ready')
   })
 })
+
+describe('scope store: refresh com filtro de matéria (4b-2)', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    apiMock.mockReset()
+  })
+
+  it('a matéria do filtro saiu do escopo: o filtro cai antes de pedir os materiais', async () => {
+    const urls: string[] = []
+    apiMock.mockImplementation((url: string) => {
+      urls.push(url)
+      if (url.endsWith('/summary')) return Promise.resolve({ data: { subjects: [{ id: 'outra' }] } })
+      return Promise.resolve({ data: [], meta: { next_cursor: null, total: 0 } })
+    })
+    const store = useScopeStore()
+    await store.open('t1')
+    await store.setQuery({ subjectId: 'gone' })
+    urls.length = 0
+    await store.refresh()
+    expect(store.query.subjectId).toBe('')
+    expect(urls.some(u => u.includes('subject_id'))).toBe(false)
+  })
+
+  it('a matéria continua no escopo: o filtro fica', async () => {
+    apiMock.mockImplementation((url: string) => (url.endsWith('/summary')
+      ? Promise.resolve({ data: { subjects: [{ id: 'm1' }] } })
+      : Promise.resolve({ data: [], meta: { next_cursor: null, total: 0 } })))
+    const store = useScopeStore()
+    await store.open('t1')
+    await store.setQuery({ subjectId: 'm1' })
+    await store.refresh()
+    expect(store.query.subjectId).toBe('m1')
+  })
+})

@@ -297,7 +297,24 @@ export interface AnkiImportPreview {
   tags: string[]
   media_count: number
   note_types: { Basic: number; Cloze: number; Other: number }
+  /** How the decks become cadernos (prd-4b-caderno-v3 RF-B9); null on a preview from before the 4b-2 */
+  mapping?: AnkiImportMapping | null
 }
+
+export interface AnkiMappingMateria { name: string; cards: number; assuntos: { name: string; cards: number }[] }
+
+export interface AnkiImportMapping {
+  destination: { type: AnkiDestinationType; topic_id?: string }
+  caderno: string | null
+  materias: AnkiMappingMateria[]
+  cadernos: { name: string; cards: number; materias: AnkiMappingMateria[] }[]
+  /** Deep paths (4th level on) and Anki tags that become tags of the cards */
+  deep_paths: number
+  tags: number
+  cards: number
+}
+
+export type AnkiDestinationType = 'new' | 'existing'
 
 export interface AnkiImportStatus {
   status: 'pending' | 'previewing' | 'confirmed' | 'processing' | 'completed' | 'failed'
@@ -306,7 +323,43 @@ export interface AnkiImportStatus {
   imported_cards?: number
   progress_percent?: number
   stats?: { decks_created: number; cards_created: number; topics_created: number; media_extracted: number }
+  /** The caderno created or used (the first, with many root decks) */
+  root_topic_id?: string | null
+  root_topic_ids?: string[]
   error?: string
+}
+
+/** Trash of 30 days (prd-4b-caderno-v3 RF-B8). */
+export interface TrashCounts {
+  subjects: number
+  materials: number
+  cards: number
+  /** Parts of a PDF: only the dialog of a PDF has them, from its line */
+  parts?: number
+}
+
+export interface TrashBatch {
+  id: string
+  kind: 'topic' | 'note' | 'document'
+  item_id: string
+  title: string
+  deleted_at: string
+  purge_at: string
+  counts: Partial<TrashCounts>
+  /** Where it comes back to (null: a caderno); in_trash = that one has to come back first */
+  origin?: { id: string; name: string; in_trash: boolean } | null
+}
+
+export interface DeletePreview extends Required<Omit<TrashCounts, 'parts'>> {
+  reviews: number
+  quizzes: number
+  podcasts: number
+}
+
+export interface TrashReceipt {
+  trash_batch_id: string
+  purge_at: string
+  counts: Partial<TrashCounts>
 }
 
 export interface FeatureData {

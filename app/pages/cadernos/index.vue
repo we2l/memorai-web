@@ -34,6 +34,9 @@
     <p v-if="roots.length" class="text-meta text-fg-muted">
       Vindo do Anki? <UiLink to="/importar">Importe seus baralhos</UiLink>.
     </p>
+    <p v-if="trashCount" class="text-meta text-fg-muted">
+      <UiLink to="/cadernos/lixeira" variant="muted" standalone data-testid="trash-link">Lixeira ({{ trashCount }})</UiLink>
+    </p>
 
     <LazyCadernoTopicDialog v-if="createLoaded" v-model="createOpen" mode="create" :target="null" @saved="onCreated" />
   </div>
@@ -62,11 +65,13 @@ const createOpen = ref(false)
 const createLoaded = useLoadedOnce(() => createOpen.value)
 
 const roots = computed(() => progress.value.filter(t => !t.parent_id))
+// "Lixeira (N)" (prd-4b-caderno-v3 RF-F16): after the list, also when the last caderno is the one in the trash
+const trashCount = ref(0)
 // Never a sum of the cadernos' sessions: each one has its own limits (Hoje has the day's number)
 const meta = computed(() => (roots.value.length ? `${roots.value.length} ${roots.value.length === 1 ? 'caderno' : 'cadernos'}` : undefined))
 
-async function load() {
-  loading.value = true
+async function load(silent = false) {
+  if (!silent) loading.value = true
   error.value = false
   try {
     const res = await $api<{ data: TopicProgress[] }>('/topics/progress')
@@ -87,9 +92,21 @@ function onCreated(topic: Topic) {
   void navigateTo(cadernoPath(topic.id))
 }
 
+async function loadTrash() {
+  try {
+    const res = await $api<{ data: unknown[] }>('/trash')
+    trashCount.value = res.data.length
+  } catch (e) {
+    reportApiError(e, { silent: true })
+  }
+}
+
+// "Desfazer" of a toast restored something while this list is open (composables/useTrashBatch.ts)
+watch(useState<number>('trash-version', () => 0), () => { void load(true).then(loadTrash) })
+
 onMounted(() => {
   if (legacy) return
-  void load()
+  void load().then(loadTrash)
   // Old graph link and "Novo caderno" from the search / Hoje (/cadernos?action=new-notebook): once
   if (route.query.view || route.query.action === 'new-notebook') {
     if (route.query.action === 'new-notebook') openCreate()

@@ -70,6 +70,7 @@ const meta = computed(() => {
   if (p.status === 'failed') return 'Não deu certo. O episódio não contou na sua cota.'
   const parts: string[] = []
   if (props.withTopic && p.topic_name) parts.push(p.topic_name)
+  if (p.topic_in_trash) parts.push('caderno na lixeira')
   if (cards.value) parts.push(plural(cards.value, 'card', 'cards'))
   if (props.fresh) parts.push('gerado esta madrugada')
   if (p.completed_at) parts.push('ouvido até o fim')

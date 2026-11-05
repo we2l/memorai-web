@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { mockNuxtImport } from '@nuxt/test-utils/runtime'
 import { useTopicStore } from '~/stores/topic'
@@ -10,53 +10,30 @@ mockNuxtImport('useNuxtApp', original => () => new Proxy(original(), {
 
 const topic = (id: string, extra: Record<string, unknown> = {}) => ({ id, name: id.toUpperCase(), parent_id: null, children: [], notes_count: 0, flashcards_count: 0, ...extra }) as any
 
-describe('topic store — exclusão adiada (RN-UX-08)', () => {
+describe('topic store', () => {
   beforeEach(() => {
-    vi.useFakeTimers()
     setActivePinia(createPinia())
-    apiMock.mockReset().mockResolvedValue({})
+    apiMock.mockReset()
   })
-  afterEach(() => vi.useRealTimers())
 
-  it('remove da árvore na hora e só chama DELETE depois de 10 s', async () => {
+  it('remove manda para a lixeira na hora e devolve o recibo com o lote (RF-F16)', async () => {
+    const receipt = { trash_batch_id: 'tb1', purge_at: '2026-12-02T03:00:00Z', counts: { subjects: 0, materials: 0, cards: 2 } }
+    apiMock.mockImplementation((url: string, opts?: { method?: string }) => (opts?.method === 'DELETE' ? Promise.resolve({ data: receipt }) : Promise.resolve({ data: [topic('b')] })))
     const store = useTopicStore()
     store.tree = [topic('a'), topic('b')]
-    store.scheduleRemove(store.tree[0]!)
-    expect(store.tree.map(t => t.id)).toEqual(['b'])
-    expect(apiMock).not.toHaveBeenCalled()
-    await vi.advanceTimersByTimeAsync(10_000)
+    store.current = store.tree[0]!
+    await expect(store.remove('a')).resolves.toEqual(receipt)
     expect(apiMock).toHaveBeenCalledWith('/topics/a', expect.objectContaining({ method: 'DELETE' }))
+    expect(store.tree.map(t => t.id)).toEqual(['b'])
+    expect(store.current).toBeNull()
   })
 
-  it('Desfazer restaura na mesma posição sem request', async () => {
-    const store = useTopicStore()
-    store.tree = [topic('a'), topic('b'), topic('c')]
-    store.scheduleRemove(store.tree[1]!)
-    expect(store.cancelRemove('b')).toBe(true)
-    expect(store.tree.map(t => t.id)).toEqual(['a', 'b', 'c'])
-    await vi.advanceTimersByTimeAsync(20_000)
-    expect(apiMock).not.toHaveBeenCalled()
-  })
-
-  it('flush envia os pendentes na hora (saída da página)', async () => {
-    const store = useTopicStore()
-    store.tree = [topic('a'), topic('b')]
-    store.scheduleRemove(store.tree[0]!)
-    await store.flushRemoves()
-    expect(apiMock).toHaveBeenCalledTimes(1)
-    await vi.advanceTimersByTimeAsync(20_000)
-    expect(apiMock).toHaveBeenCalledTimes(1)
-  })
-
-  it('falha no DELETE restaura o item', async () => {
+  it('falha no DELETE: a árvore fica como estava e o erro sobe para quem chamou', async () => {
     apiMock.mockRejectedValue(Object.assign(new Error('x'), { response: { status: 500 } }))
     const store = useTopicStore()
-    const child = topic('c1', { parent_id: 'a' })
-    store.tree = [topic('a', { children: [child] })]
-    store.scheduleRemove(child)
-    expect(store.tree[0]!.children).toHaveLength(0)
-    await store.flushRemoves()
-    expect(store.tree[0]!.children.map((t: any) => t.id)).toEqual(['c1'])
+    store.tree = [topic('a')]
+    await expect(store.remove('a')).rejects.toThrow('x')
+    expect(store.tree.map(t => t.id)).toEqual(['a'])
   })
 
   it('rootOf encontra o caderno raiz', () => {

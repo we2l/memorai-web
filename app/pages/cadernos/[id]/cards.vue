@@ -71,9 +71,12 @@
       :review-to="lib.reviewSelectionPath.value"
       @toggle-all="lib.toggleAll"
       @review="track('library_bulk', { action: 'review', count: lib.selected.value.size })"
+      @move="openMove"
       @delete="showBulkDelete = true"
       @clear="lib.clearSelection"
     />
+
+    <LazyCadernoMoveDialog v-if="moveLoaded" v-model="moveOpen" :item="moveItem" @moved="onMoved" />
 
     <LazyCardsCardDialog v-if="dialogLoaded" v-model="dialogOpen" :card="openedCard" :topic-id="id" @edit="openEditCard" @delete="askDelete" />
 
@@ -118,6 +121,7 @@ import { Camera, Plus } from 'lucide-vue-next'
 import type { SelectOption } from '~/components/ui/Select.vue'
 import type { LibraryCard, MaterialsPage } from '~/types'
 import type { LibraryFilters } from '~/composables/useCardLibrary'
+import type { MoveItem } from '~/utils/moveTargets'
 import { hasFilters } from '~/composables/useCardLibrary'
 
 const route = useRoute()
@@ -263,6 +267,23 @@ async function deleteSelected() {
   } catch (e) {
     reportApiError(e, { error: 'Não foi possível excluir os cards.' })
   }
+}
+
+// === Mover para… (prd-4b-caderno-v3 RF-F15): the selected cards, with their history and origin ===
+const moveOpen = ref(false)
+const moveLoaded = useLoadedOnce(() => moveOpen.value)
+const moveItem = ref<MoveItem | null>(null)
+function openMove() {
+  const ids = [...lib.selected.value]
+  if (!ids.length) return
+  const chosen = new Set(ids)
+  const topicIds = [...new Set(lib.cards.value.filter(c => chosen.has(c.id)).map(c => c.topic_id).filter((t): t is string => !!t))]
+  moveItem.value = { kind: 'cards', ids, topicIds }
+  moveOpen.value = true
+}
+function onMoved() {
+  // They may have left this scope, or stayed in a subject of it: the list and its total come again
+  void lib.load()
 }
 
 // === Photo (OCR) ===

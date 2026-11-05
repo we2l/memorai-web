@@ -46,11 +46,12 @@ const ANALYTICS_CHUNK = /\/node_modules\/posthog-js\//
 // Consent banner/modal only matter online on a first visit: kept out of the precache too.
 const CONSENT_CHUNK = /\/components\/ui\/Consent(Banner|Modal)\.vue/
 // One-shot pages that only work online (onboarding, the auth screens, OAuth and checkout returns, reset link,
-// the first batch's end): fetched when opened instead of in every install download (precache budget,
-// prd-correcoes-experiencia Q2, prd-4g-conta-onboarding-v3). /ajuda stays: "?" opens the shortcuts offline too.
-const ONE_SHOT_PAGE_CHUNK = /\/(pages\/(comecar|entrar|criar-conta|esqueci-senha|checkout\/sucesso|auth\/google\/callback|redefinir-senha|termos|privacidade|planos)|layouts\/auth|components\/review\/ReviewOnboardingEnd|components\/caderno\/MaterialCardsState)\.vue/
+// the first batch's end; the organization of the 4b-2: trash, Anki, move and delete dialogs): fetched when opened
+// instead of in every install download (precache budget, prd-correcoes-experiencia Q2, prd-4g-conta-onboarding-v3,
+// prd-4b-caderno-v3 §10.2). /ajuda stays: "?" opens the shortcuts offline too.
+const ONE_SHOT_PAGE_CHUNK = /\/(pages\/(comecar|entrar|criar-conta|esqueci-senha|checkout\/sucesso|auth\/google\/callback|redefinir-senha|termos|privacidade|planos|importar|cadernos\/lixeira)|layouts\/auth|components\/review\/ReviewOnboardingEnd|components\/caderno\/(MaterialCardsState|MoveDialog|TrashDialog))\.vue/
 // Pieces shared only by those pages: a shared chunk has no facade module, so it goes by what is inside it.
-const ONE_SHOT_SHARED = /\/(components\/auth\/|components\/onboarding\/|utils\/authMessages)/
+const ONE_SHOT_SHARED = /\/(components\/auth\/|components\/onboarding\/|utils\/(authMessages|organization|moveTargets|ankiMapping)|composables\/useTrashBatch)/
 // Reference page of the design system (prd-ds-v3-fundacao RF-2.5): only in `nuxt dev`. NUXT_DS_PAGE=1 keeps it
 // in a production build for screenshots; even then its chunk is `dev-*`, out of the precache.
 const DS_PAGE_FLAG = process.env.NUXT_DS_PAGE === '1'

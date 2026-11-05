@@ -20,7 +20,6 @@
     "app/components/topic/MindMapView.vue": 6,
     "app/pages/ajuda.vue": 4,
     "app/pages/checkout/sucesso.vue": 5,
-    "app/pages/importar.vue": 10,
     "app/pages/planos.vue": 13
   },
   "overlay": {
@@ -49,7 +48,6 @@
     "app/components/ui/RichInput.vue": 1,
     "app/pages/ajuda.vue": 3,
     "app/pages/checkout/sucesso.vue": 3,
-    "app/pages/importar.vue": 13,
     "app/pages/index.vue": 111,
     "app/pages/planos.vue": 10
   },
@@ -85,7 +83,6 @@
     "app/layouts/landing.vue": 1,
     "app/pages/ajuda.vue": 7,
     "app/pages/checkout/sucesso.vue": 28,
-    "app/pages/importar.vue": 62,
     "app/pages/index.vue": 87,
     "app/pages/planos.vue": 45
   }

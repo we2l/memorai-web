@@ -11,15 +11,6 @@ const theme = themeColors()
 const cls = (t: string) => transformClass(t, map, theme)
 
 describe('codemod-ds-v3: mapa', () => {
-  it('as trocas sem revisão repetem o ponteiro do legacy-v2.css (sem mudança visual)', () => {
-    const legacy = readFileSync(join(ROOT, 'app/assets/css/legacy-v2.css'), 'utf8')
-    const pointers = new Map([...legacy.matchAll(/(--[\w-]+)\s*:\s*var\((--[\w-]+)\)\s*;/g)].map(m => [m[1], m[2]]))
-    for (const [name, entry] of Object.entries(map.vars) as [string, { default?: string; manual?: string }][]) {
-      if (entry.manual || !pointers.has(name)) continue
-      expect(entry.default, name).toBe(pointers.get(name))
-    }
-  })
-
   it('todo destino existe nos tokens v3 (variável ou utility)', () => {
     const tokens = readFileSync(join(ROOT, 'app/assets/css/tokens.css'), 'utf8')
     for (const [name, entry] of Object.entries(map.vars) as [string, { default?: string; bg?: string }][]) {

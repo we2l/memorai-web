@@ -3,7 +3,7 @@
    Camadas 1 e 2: o ÚNICO arquivo do app com cor literal (lint:tokens).
    - Primitivos (--palette-*): só servem aos semânticos; nenhum componente os usa.
    - Semânticos: claro em :root, escuro em .dark (sempre no <html>, nunca numa subárvore:
-     os ponteiros de legacy-v2.css e o @theme inline resolvem no <html>).
+     o @theme inline resolve no <html>).
    - Nenhum nome aqui começa por namespace do Tailwind (--color-, --text-, --radius-, --shadow-...):
      esses prefixos só existem no @theme (theme.css), como ponte. check-ds (token-name) garante.
    Todo par de texto/fundo passa por tests/scripts/tokensContrast.test.ts.

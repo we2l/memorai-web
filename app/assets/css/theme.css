@@ -1,7 +1,9 @@
 /* ============================================
    Design System v3 — camada 3: ponte para o Tailwind 4 (ADR-027 §1)
+   - Sem o tema padrão: cor, texto, raio, sombra e peso só existem se declarados aqui (Fase 5). text-sm,
+     rounded-lg, shadow-md ou bg-gray-100 não geram CSS, e o check-ds acusa a classe fantasma.
    - @theme static: as escalas (texto, raio, espaço, largura, curva). Static: as variáveis saem
-     sempre no CSS, para <style>, d3 e os ponteiros de legacy-v2.css lerem com var().
+     sempre no CSS, para <style> e o que lê com var().
    - @theme inline: cores, sombras e espaços que trocam com o tema. A utility lê o token cru
      (var(--surface-page)), então o .dark no <html> troca tudo sem regra própria.
    Utilities resultantes: bg-page, bg-raised, bg-subtle, bg-tinted, border-line, border-line-input,
@@ -12,14 +14,26 @@
    Opacidade funciona em todas as cores (bg-action/10 → color-mix).
    Uma cor e um tamanho de texto não podem ter o mesmo nome: text-{nome} vira cor quando existe
    --color-{nome}. Por isso o título de página é text-page-title (text-page seria a cor de bg-page).
-   A Fase 1 só ACRESCENTA. Os resets (--color-*: initial etc.) entram na Fase 5, junto com o fim
-   de legacy-v2.css.
    ============================================ */
+
+@theme {
+  --color-*: initial;
+  --text-*: initial;
+  --radius-*: initial;
+  --shadow-*: initial;
+  --font-weight-*: initial;
+}
 
 @theme static {
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
   /* Inter variável: 650 não custa bytes */
   --font-weight-strong: 650;
+  --font-weight-bold: 700;
+  /* Marca: BAIGI. no UiLogo */
+  --tracking-logo: 0.08em;
 
   /* Texto: título de página (desktop / celular; calibragem v4: 32/24), seção, corpo, apoio, rótulo
      e número de destaque */

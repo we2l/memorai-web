@@ -52,8 +52,10 @@ export const useAuthStore = defineStore('auth', {
       const { $api } = useNuxtApp()
       try {
         await $api('/logout', { method: 'POST' })
-      } catch {
-        // intencional: a sessão pode já ter acabado — o estado local é limpo de qualquer forma
+      } catch (e) {
+        // A session already over (401, 419) is the goal. Without network the HttpOnly cookie stays valid: whoever
+        // opens this browser next must not get the account back, so the logout is finished on the next boot.
+        if (getErrorStatus(e) === undefined) markPendingLogout()
       }
       this.clearAuth()
     },
@@ -67,6 +69,7 @@ export const useAuthStore = defineStore('auth', {
 
     setUser(user: User) {
       this.user = user
+      clearPendingLogout()
       if (import.meta.client) {
         document.cookie = `${LOGGED_IN_HINT}=1; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax`
         // Account consent vs. this device's cookie (RF-F01), then identify without PII (RF-F07)

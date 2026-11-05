@@ -1,10 +1,10 @@
 import { nextTick, onMounted, onUnmounted, watch, type Ref } from 'vue'
 
-// Stack of open modal layers (UiModal, UiDialog, UiSheet): Esc only closes the topmost one
+// Stack of open modal layers (UiDialog, UiSheet): Esc only closes the topmost one
 const openStack: symbol[] = []
 
 /**
- * Behaviour shared by every modal layer (extracted from UiModal, prd-ds-v3-fundacao RF-2.1 / tasks 12.1):
+ * Behaviour shared by every modal layer (prd-ds-v3-fundacao RF-2.1 / tasks 12.1):
  * Esc on the topmost layer only, body scroll lock (counted, nested layers keep it locked), focus trapped
  * in the panel, initial focus skipping the close button ([data-modal-close]) and focus returned to the
  * opener on close.
@@ -14,8 +14,6 @@ export function useModalLayer(opts: {
   panel: Ref<HTMLElement | null | undefined>
   /** Esc on the topmost layer */
   onEscape: () => void
-  /** Runs after the panel renders and before the focus moves into it (UiModal labels itself here) */
-  onOpened?: () => void
 }) {
   const token = Symbol('modal-layer')
   const trap = useFocusTrap(opts.panel)
@@ -35,7 +33,6 @@ export function useModalLayer(opts: {
     document.addEventListener('keydown', onKeydown)
     scroll.lock()
     await nextTick()
-    opts.onOpened?.()
     await trap.activate()
   }
 

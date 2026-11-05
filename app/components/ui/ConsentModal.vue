@@ -1,29 +1,26 @@
 <template>
-  <UiModal v-model="open" size="sm">
-    <div class="p-5 sm:p-6">
-      <h2 id="consent-modal-title" class="text-section text-fg-strong mb-4 pr-10">Preferências de cookies</h2>
-
-      <div class="divide-y divide-line">
-        <UiSwitch
-          :model-value="true"
-          label="Essenciais"
-          description="Sessão, segurança (CSRF), preferência de tema e esta escolha. Sempre ativos."
-          disabled
-        />
-        <UiSwitch
-          v-model="draft"
-          label="Análise de uso (PostHog)"
-          description="Eventos de uso sem seu nome ou e-mail, para melhorar o produto."
-          data-testid="consent-analytics-switch"
-        />
-      </div>
-
-      <UiButton variant="primary" type="button" block class="mt-6" data-testid="consent-save" @click="save">Salvar preferências</UiButton>
-      <p class="text-label text-fg-muted mt-3 text-center">
-        Detalhes na <NuxtLink to="/privacidade" class="underline" @click="open = false">Política de privacidade</NuxtLink>.
-      </p>
+  <UiDialog v-model="open" size="sm" title="Preferências de cookies">
+    <div class="divide-y divide-line">
+      <UiSwitch
+        :model-value="true"
+        label="Essenciais"
+        description="Sessão, segurança (CSRF), preferência de tema e esta escolha. Sempre ativos."
+        disabled
+      />
+      <UiSwitch
+        v-model="draft"
+        label="Análise de uso (PostHog)"
+        description="Eventos de uso sem seu nome ou e-mail, para melhorar o produto."
+        data-testid="consent-analytics-switch"
+      />
     </div>
-  </UiModal>
+    <p class="mt-3 text-center text-label text-fg-muted">
+      Detalhes na <NuxtLink to="/privacidade" class="underline" @click="open = false">Política de privacidade</NuxtLink>.
+    </p>
+    <template #footer>
+      <UiButton variant="primary" type="button" block data-testid="consent-save" @click="save">Salvar preferências</UiButton>
+    </template>
+  </UiDialog>
 </template>
 
 <script setup lang="ts">

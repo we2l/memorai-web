@@ -21,7 +21,7 @@ export const API = `${API_ORIGIN}/api`
 export const AUDIT_PASSWORD = 'Senha-Audit-2026'
 const CONTAINER = process.env.E2E_API_CONTAINER || 'baigi-app'
 
-export type UserKey = 'pro' | 'free' | 'quota' | 'unverified' | 'onboarding' | 'onboardingUnverified' | 'empty' | 'session' | 'logout' | 'account' | 'mobile' | 'legacy' | 'scope' | 'nav' | 'hoje' | 'hojeNew' | 'hojeGoal' | 'recorte' | 'hub' | 'material' | 'library' | 'revisao' | 'revisaoEmpty' | 'praticar' | 'praticarFree' | 'progresso' | 'progressoNew' | 'onbText' | 'onbExit' | 'onbExam' | 'onbAnki' | 'onbSample' | 'onbKeyboard' | 'conta' | 'contaPro' | 'parts' | 'organizacao'
+export type UserKey = 'visual' | 'pro' | 'free' | 'quota' | 'unverified' | 'onboarding' | 'onboardingUnverified' | 'empty' | 'session' | 'logout' | 'account' | 'mobile' | 'legacy' | 'scope' | 'nav' | 'hoje' | 'hojeNew' | 'hojeGoal' | 'recorte' | 'hub' | 'material' | 'library' | 'revisao' | 'revisaoEmpty' | 'praticar' | 'praticarFree' | 'progresso' | 'progressoNew' | 'onbText' | 'onbExit' | 'onbExam' | 'onbAnki' | 'onbSample' | 'onbKeyboard' | 'conta' | 'contaPro' | 'parts' | 'organizacao'
 
 type UserSpec = { email: string; plan: 'free' | 'pro'; verified: boolean; onboarded: boolean; reset: true; quota_exhausted?: Record<string, number> }
 
@@ -39,6 +39,8 @@ export const USERS: Record<UserKey, UserSpec> = {
   logout: { email: 'e2e-logout@audit.test', plan: 'free', verified: true, onboarded: true, reset: true },
   account: { email: 'e2e-account@audit.test', plan: 'free', verified: true, onboarded: true, reset: true },
   mobile: { email: 'e2e-mobile@audit.test', plan: 'pro', verified: true, onboarded: true, reset: true },
+  // e2e/visual.spec.ts: an account no other spec touches, so the snapshots do not depend on the order of the suite
+  visual: { email: 'e2e-visual@audit.test', plan: 'pro', verified: true, onboarded: true, reset: true },
   // Default user of the legacy specs (e2e/*.spec.ts) when E2E_EMAIL points to it (see e2e/README.md)
   legacy: { email: 'e2e-legacy@audit.test', plan: 'pro', verified: true, onboarded: true, reset: true },
   // Caderno F1 (f1-pontes.spec.ts): its own daily limit of new cards, untouched by the other specs

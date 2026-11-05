@@ -3,6 +3,7 @@
 // register renders nothing in production, silently (B1: <ReviewSessionSummary> vs the registered
 // FlashcardReviewSessionSummary). Every PascalCase tag in app/**/*.vue must be in .nuxt/components.d.ts
 // (run `nuxi prepare` or the build first), imported/declared in the file's <script>, or a Vue built-in.
+// Why it stays next to check-ds (tasks 15.9): check-ds looks at classes and variables, never at component tags.
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'

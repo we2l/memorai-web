@@ -1,24 +1,16 @@
 <template>
-  <UiModal v-model="open" size="sm" aria-label="Limite do plano">
-    <div class="text-center py-4">
-      <div class="w-12 h-12 rounded-full bg-action-subtle flex items-center justify-center mx-auto mb-4">
-        <Zap :size="24" class="text-action-fg" />
-      </div>
-      <h2 class="text-section mb-2">{{ title }}</h2>
-      <p class="text-fg text-meta mb-6">{{ body }}</p>
-      <div class="flex gap-3 justify-center">
-        <template v-if="canUpgrade">
-          <UiButton variant="secondary" @click="open = false">Depois</UiButton>
-          <UiButton variant="primary" @click="goToPlans">Ver planos</UiButton>
-        </template>
-        <UiButton variant="primary" v-else @click="open = false">Entendi</UiButton>
-      </div>
-    </div>
-  </UiModal>
+  <UiDialog v-model="open" size="sm" :title="title" :description="body">
+    <template #footer>
+      <template v-if="canUpgrade">
+        <UiButton variant="secondary" @click="open = false">Depois</UiButton>
+        <UiButton variant="primary" @click="goToPlans">Ver planos</UiButton>
+      </template>
+      <UiButton v-else variant="primary" @click="open = false">Entendi</UiButton>
+    </template>
+  </UiDialog>
 </template>
 
 <script setup lang="ts">
-import { Zap } from 'lucide-vue-next'
 import type { PlanKey } from '~/types'
 
 // Contextual to the 402 payload (PRD §4.1 / RF-56): `feature` is always a key, never a label.

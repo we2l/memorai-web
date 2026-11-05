@@ -58,7 +58,8 @@ export function globToRegExp(glob) {
 /**
  * Explicit exceptions: { entries: [{ path, rules, motivo, prazo, match? }] }.
  * - `path` is a glob relative to the repo root; `match` (optional) is a RegExp tested on the line.
- * - `prazo` is required: "permanente", a phase ("Fase 4h") or a date (YYYY-MM-DD). A past date fails the run.
+ * - `prazo` is required: "permanente", a phase ("Fase 4h") or a date (YYYY-MM-DD). A past date fails the run, and
+ *   so does a phase listed in the top-level `fasesConcluidas`: the exception outlived its deadline.
  * Only the entries of the rules a guard owns are returned.
  */
 export function loadAllowlist(file, ownRules, today = new Date().toISOString().slice(0, 10)) {
@@ -66,6 +67,7 @@ export function loadAllowlist(file, ownRules, today = new Date().toISOString().s
   if (!existsSync(file)) return { entries: [], errors: [`allowlist não encontrada: ${file}`] }
   const raw = JSON.parse(readFileSync(file, 'utf8'))
   const entries = []
+  const donePhases = raw.fasesConcluidas ?? []
   for (const [i, e] of (raw.entries ?? []).entries()) {
     const where = `ds-allowlist #${i} (${e.path ?? '?'})`
     if (typeof e.path !== 'string' || !e.path) errors.push(`${where}: "path" obrigatório`)
@@ -73,6 +75,7 @@ export function loadAllowlist(file, ownRules, today = new Date().toISOString().s
     if (!String(e.motivo ?? '').trim()) errors.push(`${where}: "motivo" obrigatório`)
     if (!String(e.prazo ?? '').trim()) errors.push(`${where}: "prazo" obrigatório`)
     else if (/^\d{4}-\d{2}-\d{2}$/.test(e.prazo) && e.prazo < today) errors.push(`${where}: prazo vencido em ${e.prazo} (${e.motivo})`)
+    else if (donePhases.includes(e.prazo)) errors.push(`${where}: prazo vencido, a ${e.prazo} já acabou (${e.motivo})`)
     const rules = (e.rules ?? []).filter(r => ownRules.includes(r))
     if (!rules.length || typeof e.path !== 'string') continue
     entries.push({ ...e, rules, pathRe: globToRegExp(e.path), matchRe: e.match ? new RegExp(e.match) : null, used: 0 })
@@ -126,8 +129,18 @@ export function writeBaseline(file, baseline, counts) {
 }
 
 /**
+ * Files of the baseline without an owner in its `$donos` ({ glob: { dono, motivo } }): the ratchet ended at zero
+ * (Fase 5), so whatever stays in it is an explicit exception, with who takes it and why.
+ */
+export function ownerlessFiles(baseline, counts) {
+  const owners = Object.entries(baseline.$donos ?? {}).filter(([, o]) => String(o?.dono ?? '').trim() && String(o?.motivo ?? '').trim()).map(([glob]) => globToRegExp(glob))
+  const files = new Set(Object.values(counts).flatMap(c => Object.keys(c)))
+  return [...files].filter(f => !owners.some(re => re.test(f))).sort()
+}
+
+/**
  * Runs the ratchet and prints the report. Returns the exit code:
- * 0 ok (or --update), 1 a count went up or the allowlist has an error.
+ * 0 ok (or --update), 1 a count went up, a file in the ratchet has no owner or the allowlist has an error.
  */
 export function runRatchet({ name, ownRules, findings, allowlist, baselineFile, update, hint, maxLines = 30 }) {
   const baseline = readBaseline(baselineFile)
@@ -136,6 +149,14 @@ export function runRatchet({ name, ownRules, findings, allowlist, baselineFile, 
 
   if (allowlist.errors.length) {
     console.error(`${name}: allowlist inválida\n${allowlist.errors.map(e => `  - ${e}`).join('\n')}`)
+    return 1
+  }
+
+  // A count above zero outside $donos only fails a baseline that adopted owners (fixtures of the tests have none)
+  const ownerless = baseline.$donos ? ownerlessFiles(baseline, counts) : []
+  if (ownerless.length) {
+    console.error(`${name}: fora do sistema e sem dono em $donos (scripts/ds-baseline.json):\n${ownerless.map(f => `  - ${f}`).join('\n')}`)
+    if (hint) console.error(hint)
     return 1
   }
 

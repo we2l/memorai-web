@@ -15,9 +15,7 @@
 
 <script setup lang="ts">
 // Sheet (raio-X §D, tasks 12.1): the dialog anchored at the bottom (phone, with the safe area) or on the
-// right (side panel). Same contract and the same layer logic as UiDialog. Replaces the headers and footers
-// repeated in the 4 sheets over UiModal (podcast/GenerateSheet, quiz/ConfigSheet, GenerateNoteSheet,
-// exam/CreateModal) and the hand-made drawers.
+// right (side panel). Same contract and the same layer logic as UiDialog.
 withDefaults(defineProps<{
   modelValue: boolean
   title: string

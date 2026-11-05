@@ -6,7 +6,6 @@ import { Pencil } from 'lucide-vue-next'
 import Dialog from '~/components/ui/Dialog.vue'
 import Sheet from '~/components/ui/Sheet.vue'
 import Menu from '~/components/ui/Menu.vue'
-import Modal from '~/components/ui/Modal.vue'
 import { scrollLockCount } from '~/composables/useScrollLock'
 import { axeViolations } from './axe'
 
@@ -93,24 +92,29 @@ describe('UiDialog', () => {
     expect(document.activeElement).toBe(close)
   })
 
-  it('divide a pilha de Esc com o UiModal antigo: só fecha o do topo', async () => {
+  it('Esc só fecha o do topo, a rolagem segue travada até fechar o último e o de baixo volta ao foco', async () => {
     const Nested = defineComponent({
       setup() {
         const outer = ref(true)
         const inner = ref(true)
-        return () => h(Modal, { 'modelValue': outer.value, 'onUpdate:modelValue': (v: boolean) => { outer.value = v } }, () => [
-          h('h2', 'Antigo'),
-          h(Dialog, { 'title': 'Novo', 'modelValue': inner.value, 'onUpdate:modelValue': (v: boolean) => { inner.value = v } }),
+        return () => h(Dialog, { 'title': 'Fora', 'modelValue': outer.value, 'onUpdate:modelValue': (v: boolean) => { outer.value = v } }, () => [
+          h(Dialog, { 'title': 'Dentro', 'modelValue': inner.value, 'onUpdate:modelValue': (v: boolean) => { inner.value = v } }),
         ])
       },
     })
     await mountSuspended(Nested, { attachTo: document.body })
     await tick()
     expect(document.querySelectorAll('[role="dialog"]')).toHaveLength(2)
+    expect(scrollLockCount()).toBe(2)
     press('Escape')
     await tick()
     expect(document.querySelectorAll('[role="dialog"]')).toHaveLength(1)
-    expect(document.querySelector('[role="dialog"]')!.textContent).toContain('Antigo')
+    expect(document.querySelector('[role="dialog"]')!.textContent).toContain('Fora')
+    expect(scrollLockCount()).toBe(1)
+    press('Escape')
+    await tick()
+    expect(document.querySelectorAll('[role="dialog"]')).toHaveLength(0)
+    expect(scrollLockCount()).toBe(0)
   })
 })
 

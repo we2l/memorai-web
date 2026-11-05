@@ -374,6 +374,7 @@
 </template>
 
 <script setup lang="ts">
+import '~/components/landing/landing.css'
 import { FileUp, Sparkles, RefreshCw, Headphones, Brain, CalendarCheck, BookOpen, GraduationCap, Globe, PenLine, Layers, MonitorX, StickyNote, ClipboardList, AlarmClockOff, Settings2, Languages, Zap, Podcast, BookMarked, GitBranch, ListChecks, Shield, Timer } from 'lucide-vue-next'
 
 definePageMeta({ layout: 'landing' })

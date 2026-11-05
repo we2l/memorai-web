@@ -1,47 +1,41 @@
 <template>
-  <UiModal v-model="open" size="sm" aria-label="Gerar resumo com IA">
-    <div class="py-2">
-      <h2 class="text-headline mb-3">Gerar resumo com IA</h2>
-
-      <div class="flex items-center gap-3 p-3 rounded-lg bg-[var(--border-divider)] mb-4">
-        <span class="text-2xl">📄</span>
+  <UiSheet v-model="open" size="sm" title="Gerar resumo com IA">
+    <div class="flex flex-col gap-4">
+      <div class="flex items-center gap-3 rounded-row bg-subtle p-3">
+        <FileText class="size-5 shrink-0 text-fg-muted" aria-hidden="true" />
         <div class="min-w-0">
-          <p class="text-small font-medium text-base-primary truncate">{{ document?.original_name }}</p>
-          <p v-if="document?.pages_count" class="text-micro text-base-muted">{{ document.pages_count }} páginas</p>
+          <p class="truncate text-meta font-medium text-fg-strong">{{ document?.original_name }}</p>
+          <p v-if="document?.pages_count" class="text-label text-fg-muted">{{ document.pages_count }} páginas</p>
         </div>
       </div>
 
-      <p class="text-small text-base-secondary mb-4">
+      <p class="text-meta text-fg">
         A IA vai ler o PDF e extrair conceitos, pegadinhas e pontos-chave em uma nota estruturada.
-        <span class="block mt-2 text-base-muted">Leva cerca de 2 minutos. Pode sair da tela.</span>
+        <span class="mt-2 block text-fg-muted">Leva cerca de 2 minutos. Pode sair da tela.</span>
       </p>
 
-      <!-- Informative message about page limits -->
-      <p v-if="isPartial" class="text-small text-base-muted bg-surface-secondary rounded-lg p-3 mb-4">
+      <!-- The page limit comes from the catalog (RN-01) -->
+      <p v-if="isPartial" class="rounded-row bg-subtle p-3 text-meta text-fg-muted">
         <template v-if="isFree">
-          Seu PDF tem {{ document?.pages_count }} páginas. No grátis, a nota cobre as primeiras 100 — suficiente para avaliar a qualidade. O restante fica disponível no Pro.
+          Seu PDF tem {{ document?.pages_count }} páginas. No Grátis, a nota cobre as primeiras {{ pageLimit }}, o suficiente para avaliar a qualidade. O restante fica disponível no Pro.
         </template>
         <template v-else>
-          Seu PDF tem {{ document?.pages_count }} páginas. Serão processadas as primeiras 500 — limite ideal para qualidade da IA.
+          Seu PDF tem {{ document?.pages_count }} páginas. Serão processadas as primeiras {{ pageLimit }}, o limite ideal para a qualidade da IA.
         </template>
       </p>
 
-      <p class="text-micro text-base-muted mb-5">
-        {{ used }}/{{ limit ?? '∞' }} créditos usados este mês
-      </p>
-
-      <div class="flex gap-3 justify-end">
-        <button class="btn-secondary" @click="open = false">Cancelar</button>
-        <button class="btn-primary" :disabled="generating" @click="generate">
-          {{ generating ? 'Processando...' : 'Gerar resumo' }}
-        </button>
-      </div>
+      <p class="text-label text-fg-muted">{{ used }} de {{ limit ?? 'ilimitados' }} créditos usados este mês</p>
     </div>
-  </UiModal>
+
+    <template #footer>
+      <UiButton @click="open = false">Cancelar</UiButton>
+      <UiButton variant="primary" :loading="generating" @click="generate">Gerar resumo</UiButton>
+    </template>
+  </UiSheet>
 </template>
 
 <script setup lang="ts">
-import { Sparkles } from 'lucide-vue-next'
+import { FileText } from 'lucide-vue-next'
 import type { Document } from '~/types'
 
 const props = defineProps<{ document: Document | null }>()
@@ -56,13 +50,15 @@ const limit = ref<number | null>(null)
 const used = ref(0)
 
 const isFree = computed(() => auth.user?.plan !== 'pro')
-const pageLimit = computed(() => isFree.value ? 100 : 500)
+const { limitOf, fetchPlans } = usePlans()
+const pageLimit = computed(() => limitOf(isFree.value ? 'free' : 'pro')?.extras.pdf_pages_per_note ?? null)
 const isPartial = computed(() =>
-  props.document?.pages_count && props.document.pages_count > pageLimit.value,
+  !!pageLimit.value && !!props.document?.pages_count && props.document.pages_count > pageLimit.value,
 )
 
 watch(open, async (val) => {
   if (!val) return
+  void fetchPlans()
   try {
     const res = await $api<{ data: { features: Record<string, { limit: number | null; used: number; remaining: number | null }> } }>('/usage')
     const feature = res.data?.features?.pdf_to_note

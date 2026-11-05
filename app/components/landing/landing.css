@@ -1,0 +1,52 @@
+/* CSS da landing (adiada, dona: fase 4h): tudo o que só ela usa, fora do entry.css e de volta com ela à pauta.
+   Compilação própria do Tailwind, com o tema padrão (paleta, text-sm, rounded-xl...), que o app já não tem desde a
+   Fase 5. O escopo .landing-page (layouts/landing.vue) dá especificidade para vencer as utilities do entry.css no
+   mesmo elemento, em qualquer ordem de carga, e impede o caminho inverso: quem navega da landing para /entrar segue
+   com este arquivo carregado, e nada daqui alcança as telas do app. */
+@layer theme, base, components, utilities;
+
+@import 'tailwindcss/theme.css' layer(theme);
+
+@source '../../pages/index.vue';
+@source './*.vue';
+
+/* Os mesmos valores que a landing tinha pelos ponteiros v2 (a aparência não muda até ela voltar à pauta) */
+@theme inline {
+  --text-xs: var(--text-label);
+  --text-xs--line-height: var(--text-label--line-height);
+  --text-sm: var(--text-meta);
+  --text-sm--line-height: var(--text-meta--line-height);
+  --text-base: var(--text-body);
+  --text-base--line-height: var(--text-body--line-height);
+  --text-lg: var(--text-body);
+  --text-lg--line-height: var(--text-body--line-height);
+  --text-xl: var(--text-section);
+  --text-xl--line-height: var(--text-section--line-height);
+  --text-xl--letter-spacing: var(--text-section--letter-spacing);
+  --text-2xl: var(--text-section);
+  --text-2xl--line-height: var(--text-section--line-height);
+  --text-2xl--letter-spacing: var(--text-section--letter-spacing);
+  --text-3xl: var(--text-page-title);
+  --text-3xl--line-height: var(--text-page-title--line-height);
+  --text-3xl--letter-spacing: var(--text-page-title--letter-spacing);
+
+  --radius-sm: var(--radius-row);
+  --radius-md: var(--radius-control);
+  --radius-lg: var(--radius-control);
+  --radius-xl: var(--radius-card);
+  --radius-2xl: var(--radius-card);
+  --radius-3xl: var(--radius-card);
+
+  --shadow: var(--elev-card);
+  --shadow-sm: var(--elev-card);
+  --shadow-md: var(--elev-raised);
+  --shadow-lg: var(--elev-float);
+  --shadow-xl: var(--elev-float);
+  --shadow-2xl: var(--elev-float);
+}
+
+@layer utilities {
+  .landing-page {
+    @tailwind utilities source(none);
+  }
+}

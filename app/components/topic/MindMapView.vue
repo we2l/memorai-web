@@ -1,128 +1,91 @@
 <template>
-  <div class="flex flex-col h-full min-h-[400px] px-4 pt-4 pb-4">
+  <div class="flex h-full min-h-100 flex-col px-gutter py-4">
     <!-- Loading -->
-    <div v-if="loading" class="flex-1 flex items-center justify-center">
-      <div class="skeleton h-32 w-32 rounded-full" />
+    <div v-if="loading" class="flex flex-1 items-center justify-center" aria-busy="true">
+      <UiSkeleton variant="block" size="lg" class="w-full" />
     </div>
 
     <!-- Empty state: < 3 notes -->
-    <div v-else-if="meta?.min_notes_required" class="flex-1 flex flex-col items-center justify-center gap-3 text-center">
-      <div class="w-14 h-14 rounded-2xl bg-accent-primary-subtle flex items-center justify-center">
-        <Brain :size="28" class="text-[var(--badge-primary-text)]" />
-      </div>
-      <p class="text-body text-base-secondary">Adicione pelo menos 3 notas com conteúdo para ver o mapa mental</p>
-      <button class="btn-primary !py-2 !px-4 text-small" @click="$emit('create-note')">
-        Criar nota
-      </button>
-    </div>
+    <UiEmptyState v-else-if="meta?.min_notes_required" title="Ainda não há um mapa" description="Adicione pelo menos 3 notas com conteúdo para ver o mapa mental.">
+      <template #action>
+        <UiButton variant="primary" @click="$emit('create-note')">Criar nota</UiButton>
+      </template>
+    </UiEmptyState>
 
     <!-- Mind map content -->
     <template v-else>
-      <!-- Toggle Nível 1 / Nível 2 -->
-      <div v-if="isPro || aiMap" class="flex items-center gap-2 mb-3">
-        <div class="inline-flex rounded-lg border border-base p-0.5 bg-surface-secondary">
-          <button
-            class="px-3 py-1.5 text-small rounded-md transition-colors"
-            :class="activeLevel === 'auto' ? 'bg-[var(--bg-card)] shadow text-base-primary font-medium' : 'text-base-muted hover:text-base-primary'"
-            @click="activeLevel = 'auto'"
-          >
-            Automático
-          </button>
-          <button
-            class="px-3 py-1.5 text-small rounded-md transition-colors"
-            :class="activeLevel === 'ai' ? 'bg-[var(--bg-card)] shadow text-base-primary font-medium' : 'text-base-muted hover:text-base-primary'"
-            @click="activeLevel = 'ai'"
-          >
-            Detalhado (IA)
-          </button>
-        </div>
-      </div>
+      <UiTabs v-if="isPro || aiMap" v-model="activeLevel" :tabs="LEVELS" label="Tipo de mapa" class="mb-3" />
 
-      <UiInsightBanner
-        v-if="meta && meta.total_notes >= 3 && meta.total_notes <= 4 && activeLevel === 'auto'" class="px-3 py-2 mb-3 rounded-lg bg-accent-primary-subtle text-accent-primary text-small text-center"
-        :icon="Sprout"
-        text="Quanto mais notas, mais rico o mapa mental"
-        variant="success"
-        dismissible
-        persist-key="mindmap-growth"
-      />
+      <p v-if="meta && meta.total_notes >= 3 && meta.total_notes <= 4 && activeLevel === 'auto'" class="mb-3 text-meta text-fg-muted">
+        Quanto mais notas, mais rico o mapa mental.
+      </p>
 
-      <!-- Banner: truncated -->
-      <div v-if="meta?.truncated && activeLevel === 'auto'" class="px-3 py-2 mb-3 rounded-lg bg-surface-secondary text-base-muted text-small text-center">
-        Mostrando as 50 notas mais recentes de {{ meta.total_notes }}
-      </div>
+      <p v-if="meta?.truncated && activeLevel === 'auto'" class="mb-3 text-meta text-fg-muted">
+        Mostrando as 50 notas mais recentes de {{ meta.total_notes }}.
+      </p>
 
-      <!-- Nível auto: markmap -->
-      <div v-if="activeLevel === 'auto'" class="flex-1 relative overflow-hidden rounded-xl border border-base bg-[var(--bg-soft)]">
+      <!-- Automatic -->
+      <div v-if="activeLevel === 'auto'" class="relative flex-1 overflow-hidden rounded-card border border-line-strong bg-subtle">
         <TopicMindMapRenderer :data="autoTree" />
       </div>
 
-      <!-- Nível AI -->
-      <div v-else class="flex-1 flex flex-col">
-        <!-- Free user: CTA -->
-        <div v-if="!isPro && !aiMap" class="flex-1 flex flex-col items-center justify-center gap-3 text-center">
-          <div class="w-14 h-14 rounded-2xl bg-surface-secondary flex items-center justify-center">
-            <Lock :size="28" class="text-base-muted" />
-          </div>
-          <p class="text-body text-base-secondary">Gere um mapa mental detalhado com conceitos extraídos por IA</p>
-          <NuxtLink to="/planos" class="btn-primary !py-2 !px-4 text-small">
-            Desbloquear com Plano Pro
-          </NuxtLink>
-        </div>
+      <!-- AI -->
+      <div v-else class="flex flex-1 flex-col">
+        <!-- Free: what the Pro gives -->
+        <UiEmptyState v-if="!isPro && !aiMap" title="Mapa detalhado no Pro" description="Gere um mapa mental detalhado com conceitos extraídos por IA.">
+          <template #action>
+            <UiButton variant="primary" to="/planos">Conhecer o Pro</UiButton>
+          </template>
+        </UiEmptyState>
 
         <!-- Pro: no map yet -->
-        <template v-else-if="!aiMap && !generating">
-          <div class="flex-1 flex flex-col items-center justify-center gap-3 text-center">
-            <div class="w-14 h-14 rounded-2xl bg-accent-primary-subtle flex items-center justify-center">
-              <Brain :size="28" class="text-[var(--badge-primary-text)]" />
-            </div>
-            <p class="text-body text-base-secondary">Gere um mapa mental detalhado com conceitos, definições e exemplos extraídos por IA</p>
-            <button class="btn-primary !py-2 !px-4 text-small" @click="generateAiMap">
-              Gerar mapa detalhado com IA
-            </button>
-          </div>
-        </template>
+        <UiEmptyState v-else-if="!aiMap && !generating" title="Mapa detalhado com IA" description="Gere um mapa mental com conceitos, definições e exemplos extraídos por IA.">
+          <template #action>
+            <UiButton variant="primary" @click="generateAiMap">Gerar mapa detalhado</UiButton>
+          </template>
+        </UiEmptyState>
 
         <!-- Generating -->
-        <div v-else-if="generating" class="flex-1 flex flex-col items-center justify-center gap-3">
-          <div class="w-8 h-8 border-3 border-[var(--color-accent-primary)] border-t-transparent rounded-full animate-spin" />
-          <p class="text-small text-base-muted">Extraindo conceitos com IA...</p>
-        </div>
+        <p v-else-if="generating" class="flex flex-1 items-center justify-center gap-2 text-meta text-fg-muted" role="status">
+          <UiSpinner size="sm" /> Extraindo conceitos com IA…
+        </p>
 
         <!-- AI map ready -->
         <template v-else>
-          <div class="flex items-center justify-between mb-3">
-            <!-- Legend -->
-            <div class="flex items-center gap-2 flex-wrap">
-              <span v-for="(color, type) in typeColors" :key="type" class="inline-flex items-center gap-1 text-micro text-base-muted">
-                <span class="w-2.5 h-2.5 rounded-full" :style="{ background: color }" />
-                {{ type }}
+          <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <div class="flex flex-wrap items-center gap-3">
+              <span v-for="item in TYPE_LEGEND" :key="item.type" class="inline-flex items-center gap-1 text-label text-fg-muted">
+                <span class="size-2.5 rounded-full" :class="item.mark" aria-hidden="true" />
+                {{ item.type }}
               </span>
             </div>
-            <button class="btn-secondary !py-1.5 !px-3 !min-h-0 text-small" @click="regenerate">
-              Regenerar
-            </button>
+            <UiButton size="sm" @click="confirmRegenerate = true">Gerar de novo</UiButton>
           </div>
-          <div class="flex-1 relative overflow-hidden rounded-xl border border-base bg-[var(--bg-soft)]">
+          <div class="relative flex-1 overflow-hidden rounded-card border border-line-strong bg-subtle">
             <TopicMindMapRenderer :data="aiMap" :color-by-type="true" @node-click="handleNodeClick" />
           </div>
         </template>
       </div>
     </template>
 
-    <!-- Node action popover -->
-    <UiModal v-model="showNodeAction" size="sm">
-      <h3 class="text-headline mb-2">{{ selectedNode?.content }}</h3>
-      <p v-if="selectedNode?.payload?.type" class="text-small text-base-muted mb-4 capitalize">{{ selectedNode.payload.type }}</p>
-      <button class="btn-primary w-full" @click="createCardFromNode">
-        Criar card
-      </button>
-    </UiModal>
+    <UiDialog v-model="showNodeAction" size="sm" :title="selectedNode?.content ?? ''" :description="nodeType">
+      <template #footer>
+        <UiButton variant="primary" block @click="createCardFromNode">Criar card</UiButton>
+      </template>
+    </UiDialog>
+
+    <UiConfirmModal
+      v-model="confirmRegenerate"
+      title="Gerar o mapa de novo?"
+      message="O mapa atual será substituído."
+      confirm-label="Gerar de novo"
+      variant="primary"
+      @confirm="regenerate"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { Brain, Lock, Sprout } from 'lucide-vue-next'
 import type { MindMapNode } from '~/composables/useMindMap'
 
 const props = defineProps<{
@@ -144,19 +107,26 @@ const autoTree = ref<MindMapNode | null>(null)
 const aiMap = ref<MindMapNode | null>(null)
 const aiMapId = ref<string | null>(null)
 const meta = ref<any>(null)
-const activeLevel = ref<'auto' | 'ai'>('auto')
+const activeLevel = ref('auto')
 const showNodeAction = ref(false)
 const selectedNode = ref<MindMapNode | null>(null)
 
 const isPro = computed(() => !!auth.user && auth.user.plan !== 'free')
 
-const typeColors: Record<string, string> = {
-  conceito: 'var(--color-accent-primary)',
-  definição: 'var(--color-info)',
-  exemplo: 'var(--color-success)',
-  exceção: 'var(--color-danger)',
-  referência: 'var(--text-muted)',
-}
+const LEVELS = [{ key: 'auto', label: 'Automático' }, { key: 'ai', label: 'Detalhado (IA)' }]
+// The same tokens of the branches (useMindMap)
+const TYPE_LEGEND = [
+  { type: 'conceito', mark: 'bg-action-fg' },
+  { type: 'definição', mark: 'bg-info' },
+  { type: 'exemplo', mark: 'bg-success' },
+  { type: 'exceção', mark: 'bg-danger' },
+  { type: 'referência', mark: 'bg-fg-muted' },
+]
+const nodeType = computed(() => {
+  const type = selectedNode.value?.payload?.type
+  return type ? type.charAt(0).toUpperCase() + type.slice(1) : undefined
+})
+const confirmRegenerate = ref(false)
 
 async function fetchData() {
   loading.value = true
@@ -197,7 +167,7 @@ async function generateAiMap() {
 }
 
 async function regenerate() {
-  if (!confirm('Gerar novo mapa? O anterior será substituído.')) return
+  confirmRegenerate.value = false
   await generateAiMap()
 }
 
@@ -224,7 +194,7 @@ async function createCardFromNode() {
         back,
       },
     })
-    toast.show('Card criado ✓', 'success')
+    toast.show('Card criado', 'success')
     showNodeAction.value = false
   } catch (e: any) {
     toast.show(e?.data?.message || 'Erro ao criar card.', 'error')

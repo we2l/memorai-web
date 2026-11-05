@@ -6,8 +6,7 @@
     aria-describedby="consent-text"
     :class="inline
       ? 'flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line bg-raised px-gutter py-3'
-      : 'fixed z-40 inset-x-0 bottom-[var(--consent-bottom)] sm:inset-x-auto sm:left-4 sm:bottom-4 sm:max-w-[420px] bg-raised border-t sm:border border-line-strong sm:rounded-card shadow-float px-4 pt-4 pb-[calc(1rem+var(--consent-safe))] sm:pb-4'"
-    :style="inline ? undefined : { '--consent-bottom': mobileBottom, '--consent-safe': hasNav ? '0px' : 'env(safe-area-inset-bottom)' }"
+      : ['fixed z-40 inset-x-0 sm:inset-x-auto sm:left-4 sm:bottom-4 sm:max-w-105 bg-raised border-t sm:border border-line-strong sm:rounded-card shadow-float px-4 pt-4 sm:pb-4', hasNav ? 'bottom-nav pb-4' : 'bottom-0 pb-[calc(1rem+env(safe-area-inset-bottom))]']"
     data-testid="consent-banner"
   >
     <h2 id="consent-title" :class="inline ? 'sr-only' : 'text-section text-fg-strong mb-1'">Sua privacidade</h2>
@@ -42,9 +41,8 @@ const modalLoaded = useLoadedOnce(() => showModal.value)
 const visible = computed(() => analytics.value === null && route.path !== '/privacidade')
 
 // Mobile: sits above the BottomNav on app pages (default layout, logged in)
-const hasNav = computed(() => !!auth.user && !['auth', 'landing'].includes(String(route.meta.layout ?? 'default')))
-// --nav-h is the BottomNav height with the safe area (0 from 768 px: the TopNav is on top)
-const mobileBottom = computed(() => (hasNav.value ? 'var(--nav-h)' : '0px'))
+const hasNav = computed(() => !!auth.user && !['auth', 'landing', 'public'].includes(String(route.meta.layout ?? 'default')))
+// bottom-nav: the BottomNav height with the safe area (0 from 768 px: the TopNav is on top)
 
 function openModal() {
   showModal.value = true

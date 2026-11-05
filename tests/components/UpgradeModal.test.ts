@@ -1,7 +1,9 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { afterEach, describe, it, expect, beforeEach, vi } from 'vitest'
 import { mountSuspended, mockNuxtImport } from '@nuxt/test-utils/runtime'
-import { flushPromises } from '@vue/test-utils'
+import { enableAutoUnmount, flushPromises } from '@vue/test-utils'
 import UpgradeModal from '~/components/ui/UpgradeModal.vue'
+
+enableAutoUnmount(afterEach)
 
 const { apiMock } = vi.hoisted(() => ({ apiMock: vi.fn() }))
 

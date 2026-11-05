@@ -1,15 +1,10 @@
 <template>
-  <div class="relative w-full h-full min-h-[300px]">
+  <div class="relative h-full min-h-75 w-full">
     <div ref="containerRef" class="absolute inset-0 mindmap-container" />
     <!-- Fit button -->
-    <button
-      v-if="hasData"
-      class="absolute bottom-3 right-3 p-2 rounded-lg bg-[var(--bg-card)] border border-base shadow text-base-muted hover:text-base-primary transition-colors"
-      title="Centralizar"
-      @click="handleFit"
-     aria-label="Centralizar">
-      <Maximize2 :size="16" aria-hidden="true" />
-    </button>
+    <div v-if="hasData" class="absolute bottom-3 right-3 rounded-control bg-raised shadow-card">
+      <UiIconButton :icon="Maximize2" label="Centralizar" @click="handleFit" />
+    </div>
   </div>
 </template>
 
@@ -34,6 +29,10 @@ const { render, fit, destroy } = useMindMap(containerRef, {
   onNodeClick: (node) => emit('node-click', node),
 })
 
+// The branches take their color from the tokens when drawn: another theme, another drawing
+const { colorMode } = useColorMode()
+watch(colorMode, () => { render(props.data) })
+
 watch(() => props.data, async (newData) => {
   await nextTick()
   render(newData)
@@ -52,20 +51,15 @@ function handleFit() {
 </script>
 
 <style>
+/* markmap writes its own DOM: no way to put a class on it */
 .mindmap-container svg {
   background: transparent;
 }
 
 .mindmap-container .markmap-node text,
 .mindmap-container .markmap-node foreignObject span {
-  color: var(--text-primary);
-  fill: var(--text-primary);
-  font-size: 14px;
-}
-
-.dark .mindmap-container .markmap-node text,
-.dark .mindmap-container .markmap-node foreignObject span {
-  color: var(--text-primary);
-  fill: var(--text-primary);
+  color: var(--fg-strong);
+  fill: var(--fg-strong);
+  font-size: var(--text-meta);
 }
 </style>

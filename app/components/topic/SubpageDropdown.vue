@@ -9,8 +9,9 @@
       <input
         ref="inputRef"
         v-model="query"
-        class="w-full px-3 py-2 text-small rounded-lg bg-surface-secondary border border-base text-base-primary placeholder:text-base-muted focus:outline-none focus:border-[var(--color-accent-primary)]"
-        placeholder="Nome do tópico..."
+        class="w-full rounded-row border border-line-input bg-subtle px-3 py-2 text-meta text-fg-strong placeholder:text-fg-muted"
+        placeholder="Nome do tópico…"
+        aria-label="Nome do tópico"
         @keydown.enter.prevent="confirmSelection"
         @keydown.escape.prevent="$emit('close')"
         @keydown.down.prevent="moveSelection(1)"
@@ -24,28 +25,28 @@
         v-for="(child, index) in filteredChildren"
         :key="child.id"
         class="subpage-dropdown-item"
-        :class="{ 'bg-surface-secondary': index === selectedIndex }"
+        :class="{ 'bg-subtle': index === selectedIndex }"
         @mouseenter="selectedIndex = index"
         @mousedown.prevent="selectExisting(child.id)"
       >
-        <FolderOpen :size="14" class="text-[var(--badge-primary-text)] shrink-0" />
-        <span class="truncate text-base-primary">{{ child.name }}</span>
+        <FolderOpen :size="14" class="shrink-0 text-action-fg" />
+        <span class="truncate text-fg-strong">{{ child.name }}</span>
       </button>
 
       <!-- Create new option -->
       <button
         v-if="showCreateOption"
-        class="subpage-dropdown-item border-t border-base"
-        :class="{ 'bg-surface-secondary': selectedIndex === filteredChildren.length }"
+        class="subpage-dropdown-item border-t border-line"
+        :class="{ 'bg-subtle': selectedIndex === filteredChildren.length }"
         @mouseenter="selectedIndex = filteredChildren.length"
         @mousedown.prevent="createNew"
       >
-        <Plus :size="14" class="text-[var(--badge-primary-text)] shrink-0" />
-        <span class="text-base-primary">Criar "<strong class="text-[var(--badge-primary-text)]">{{ query }}</strong>"</span>
+        <Plus :size="14" class="shrink-0 text-action-fg" />
+        <span class="text-fg-strong">Criar "<strong class="text-action-fg">{{ query }}</strong>"</span>
       </button>
 
       <!-- Empty state -->
-      <div v-if="!filteredChildren.length && !showCreateOption" class="px-3 py-4 text-center text-small text-base-muted">
+      <div v-if="!filteredChildren.length && !showCreateOption" class="px-3 py-4 text-center text-meta text-fg-muted">
         Digite o nome do tópico
       </div>
     </div>
@@ -152,10 +153,10 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', onClickOutside))
 .subpage-dropdown {
   z-index: 50;
   width: 280px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-base);
-  border-radius: 0.75rem;
-  box-shadow: var(--shadow-md);
+  background: var(--surface-float);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-control);
+  box-shadow: var(--elev-raised);
   overflow: hidden;
 }
 
@@ -166,12 +167,12 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', onClickOutside))
   width: 100%;
   padding: 0.5rem 0.75rem;
   text-align: left;
-  font-size: 0.875rem;
-  transition: background 0.1s;
+  font-size: var(--text-meta);
+  transition: background-color var(--motion-nav);
   cursor: pointer;
 }
 
 .subpage-dropdown-item:hover {
-  background: var(--bg-soft);
+  background: var(--surface-subtle);
 }
 </style>

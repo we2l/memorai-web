@@ -252,7 +252,7 @@ test.describe('Layout lazy (prd-performance-frontend RF-03)', () => {
       const app = (document.querySelector('#__nuxt') as any).__vue_app__
       await app.config.globalProperties.$api('/ai/generate', { method: 'POST', body: {} }).catch(() => {})
     })
-    await expect(page.getByRole('dialog', { name: 'Limite do plano' })).toBeVisible()
+    await expect(page.getByRole('dialog').getByRole('button', { name: 'Ver planos' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Ver planos' })).toBeVisible()
   })
 })

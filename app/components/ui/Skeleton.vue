@@ -18,8 +18,7 @@
 
 <script setup lang="ts">
 // Loading placeholder (raio-X §D, tasks 12.5): text lines, a list row or a block, in the shape of what is
-// coming (no layout shift). Decorative: the region that loads says it (aria-busy, a status text). The
-// `skeleton` utility stays an internal detail of legacy-v2.css; tests find it by data-testid.
+// coming (no layout shift). Decorative: the region that loads says it (aria-busy, a status text).
 withDefaults(defineProps<{
   variant?: 'text' | 'row' | 'block'
   lines?: number

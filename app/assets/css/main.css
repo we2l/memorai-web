@@ -1,16 +1,17 @@
 /* Entrada única do CSS do app (nuxt.config.ts css). Design System v3 (ADR-027):
    tokens.css    primitivos e semânticos claro/escuro (o único arquivo com cor literal)
-   theme.css     @theme (escalas) + @theme inline (ponte cor/sombra/espaço → utilities)
-   base.css      @layer base
-   legacy-v2.css ponteiros v2 → v3 (temporário; sai na Fase 5) */
+   theme.css     @theme (só as escalas do design system) + @theme inline (ponte cor/sombra/espaço → utilities)
+   base.css      @layer base e as classes que o HTML gerado usa */
 @import 'tailwindcss';
 /* Só o app gera classes: o mapa do codemod e as guardas (scripts/) e os testes citam nomes v2 e v3 */
 @source not "../../../scripts";
 @source not "../../../tests";
 @source not "../../../e2e";
+/* A landing compila o próprio CSS, com o tema padrão (components/landing/landing.css) */
+@source not "../../pages/index.vue";
+@source not "../../components/landing";
 @import './tokens.css';
 @import './theme.css';
 @import './base.css';
-@import './legacy-v2.css';
 
 @custom-variant dark (&:where(.dark, .dark *));

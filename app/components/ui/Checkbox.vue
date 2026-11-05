@@ -24,7 +24,7 @@
 
 <script setup lang="ts">
 // Checkbox (raio-X §D): native input (keyboard, form and screen reader for free) drawn with tokens;
-// the row is 44 px tall and the label is part of the target. Replaces the 10 `accent-[var(...)]`.
+// the row is 44 px tall and the label is part of the target.
 import { Check } from 'lucide-vue-next'
 
 defineOptions({ inheritAttrs: false })

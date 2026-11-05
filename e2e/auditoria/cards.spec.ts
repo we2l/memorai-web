@@ -97,22 +97,12 @@ test.describe('Card — caminho triste', () => {
     await page.getByRole('button', { name: /Criar (primeiro )?card/ }).first().click()
     await typeInto(page, front(page), 'A capital do Brasil é {{c1::Brasília')
     const save = cardDialog(page).getByRole('button', { name: 'Salvar', exact: true })
-    // Esperado: Salvar desabilitado ou erro de validação. BUG: o regex de detecção (/\{\{c\d+::/) aceita
-    // a lacuna aberta, esconde o verso e o servidor grava um card de lacuna sem lacuna.
-    const blocked = await save.isDisabled()
-    if (!blocked) {
-      await save.click()
-      await page.waitForTimeout(1000)
-      const cards = await cardsOf(page, topicId)
-      // Evidência: o card salvo mostra a resposta na frente durante a revisão
-      if (cards.length) {
-        await gotoApp(page, `/revisar?topic_id=${topicId}`)
-        const shown = await page.getByTestId('review-card').innerText().catch(() => '')
-        test.info().annotations.push({ type: 'evidência', description: `card salvo: ${JSON.stringify(cards[0].front)} (type=${cards[0].type}); frente na revisão: ${JSON.stringify(shown)}` })
-        console.log('[evidência cloze inválido] frente na revisão =', JSON.stringify(shown))
-      }
-      expect(cards, 'cloze inválido foi salvo').toHaveLength(0)
-    }
+    await expect(save).toBeDisabled()
+    await expect(cardDialog(page).getByRole('alert')).toContainText('Falta fechar a lacuna')
+    await typeInto(page, front(page), '}}')
+    await expect(save).toBeEnabled()
+    await expect(cardDialog(page).getByRole('alert')).toHaveCount(0)
+    expect(await cardsOf(page, topicId)).toHaveLength(0)
   })
 
   test('frente apagada depois de digitada não habilita Salvar', async ({ page }) => {
@@ -123,15 +113,8 @@ test.describe('Card — caminho triste', () => {
     await page.keyboard.press('Backspace')
     await typeInto(page, back(page), 'verso sem frente')
     const save = cardDialog(page).getByRole('button', { name: 'Salvar', exact: true })
-    // BUG: canSubmit testa `!form.front`, mas o editor devolve "<p></p>" (string não vazia)
-    if (await save.isEnabled()) {
-      await save.click()
-      await page.waitForTimeout(1000)
-      const cards = await cardsOf(page, topicId)
-      console.log('[evidência frente vazia] cards gravados =', JSON.stringify(cards.map(c => c.front)))
-      expect(cards, 'card com frente vazia foi gravado').toHaveLength(0)
-    }
     await expect(save).toBeDisabled()
+    expect(await cardsOf(page, topicId)).toHaveLength(0)
   })
 
   test('erro 500 ao criar: aviso de erro e o texto continua no formulário', async ({ page }) => {

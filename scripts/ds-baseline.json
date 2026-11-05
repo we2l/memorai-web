@@ -1,48 +1,33 @@
 {
-  "$comment": "Catraca do design system (ADR-027 §8, prd-ds-v3-fundacao RF-0.2): contagem por regra e por arquivo. O CI reprova se algum arquivo subir. Para travar uma queda: node scripts/check-tokens.mjs --update e node scripts/check-ds.mjs --update (este depois do build). Subir um número exige justificativa no PR.",
-  "hex": {
-    "app/components/ui/Confetti.vue": 6,
-    "app/composables/useMindMap.ts": 10,
-    "app/utils/colors.ts": 9
+  "$comment": "Catraca do design system (ADR-027 §8, prd-ds-v3-fundacao RF-0.2): contagem por regra e por arquivo. O CI reprova se algum arquivo subir. Para travar uma queda: node scripts/check-tokens.mjs --update e node scripts/check-ds.mjs --update (este depois do build). Subir um número exige justificativa no PR. Desde a Fase 5 a catraca está em zero: só fica aqui o que tem dono em $donos, e o CI reprova qualquer outro arquivo fora do sistema.",
+  "$donos": {
+    "app/pages/index.vue": {
+      "dono": "4h",
+      "motivo": "Landing adiada pelo dono em 2026-11-04: mantém a aparência até a fase 4h voltar à pauta."
+    },
+    "app/components/landing/**": {
+      "dono": "4h",
+      "motivo": "Landing adiada pelo dono em 2026-11-04: mantém a aparência até a fase 4h voltar à pauta."
+    }
   },
+  "hex": {},
   "color-fn": {},
   "palette": {},
   "ghost-var": {},
   "ghost-class": {},
   "token-name": {},
-  "component-class": {
-    "app/components/topic/GenerateNoteSheet.vue": 2,
-    "app/components/topic/MindMapView.vue": 6
-  },
-  "overlay": {
-    "app/components/ui/Confetti.vue": 1,
-    "app/components/ui/Modal.vue": 1
-  },
-  "spin": {
-    "app/components/topic/MindMapView.vue": 1
-  },
+  "component-class": {},
+  "overlay": {},
+  "spin": {},
   "switch-role": {},
   "arbitrary": {
     "app/components/landing/HeroPipeline.vue": 63,
     "app/components/landing/MockMindMap.vue": 8,
-    "app/components/topic/GenerateNoteSheet.vue": 1,
-    "app/components/topic/MindMapRenderer.vue": 2,
-    "app/components/topic/MindMapView.vue": 8,
-    "app/components/topic/SubpageBlockView.vue": 3,
-    "app/components/topic/SubpageDropdown.vue": 4,
-    "app/components/ui/Confetti.vue": 1,
-    "app/components/ui/ConsentBanner.vue": 3,
-    "app/components/ui/Logo.vue": 1,
-    "app/components/ui/RichInput.vue": 1,
     "app/pages/index.vue": 111
   },
-  "important": {
-    "app/components/topic/MindMapView.vue": 9
-  },
+  "important": {},
   "inline-style": {},
-  "dark-style": {
-    "app/components/topic/MindMapRenderer.vue": 2
-  },
+  "dark-style": {},
   "z-index": {
     "app/components/landing/HeroPipeline.vue": 1,
     "app/pages/index.vue": 1
@@ -50,17 +35,6 @@
   "deprecated": {
     "app/components/landing/HeroPipeline.vue": 15,
     "app/components/landing/MockMindMap.vue": 5,
-    "app/components/topic/GenerateNoteSheet.vue": 17,
-    "app/components/topic/MindMapRenderer.vue": 10,
-    "app/components/topic/MindMapView.vue": 57,
-    "app/components/topic/SubpageBlockView.vue": 8,
-    "app/components/topic/SubpageDropdown.vue": 21,
-    "app/components/ui/DisabledFeature.vue": 1,
-    "app/components/ui/InsightBanner.vue": 1,
-    "app/components/ui/Modal.vue": 1,
-    "app/components/ui/RichInput.vue": 3,
-    "app/components/ui/Tooltip.vue": 1,
-    "app/layouts/landing.vue": 1,
     "app/pages/index.vue": 87
   }
 }

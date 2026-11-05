@@ -2,7 +2,7 @@
   "entryLayoutGzKb": 120,
   "largestChunkGzKb": 150,
   "precacheKb": 1536,
-  "entryCssGzKb": 18,
+  "entryCssGzKb": 13,
   "precacheFontsKb": 50,
   "routes": {
     "/cadernos": {

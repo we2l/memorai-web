@@ -48,7 +48,9 @@ const planItem = computed<MenuItem>(() => {
   if ((auth.user?.plan ?? 'free') === 'free') return { label: 'Plano Free', meta: 'Ver o Pro', to: '/planos' }
   const info = subscription.info
   let label = 'Plano Pro'
-  if (info?.subscription_ends_at) label = `Pro · termina em ${formatBillingDayMonth(info.subscription_ends_at)}`
+  const renewsAt = auth.user?.subscription_renews_at
+  if (renewsAt) label = `Pro · renova em ${formatBillingDayMonth(renewsAt)}`
+  else if (info?.subscription_ends_at) label = `Pro · termina em ${formatBillingDayMonth(info.subscription_ends_at)}`
   else if (info?.billing === 'annual' && info.plan_expires_at) label = `Pro · renova em ${formatBillingDayMonth(info.plan_expires_at)}`
   else if (info?.billing === 'monthly') label = 'Pro mensal'
   return { label, meta: 'Gerenciar', to: '/configuracoes#plano' }

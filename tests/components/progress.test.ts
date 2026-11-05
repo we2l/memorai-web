@@ -6,6 +6,8 @@ import ExamProjection from '~/components/progress/ExamProjection.vue'
 import PerformanceTable from '~/components/progress/PerformanceTable.vue'
 import ProgressSummary from '~/components/progress/ProgressSummary.vue'
 import ExamDialog from '~/components/exam/ExamDialog.vue'
+import ExamRow from '~/components/progress/ExamRow.vue'
+import ExamList from '~/components/progress/ExamList.vue'
 
 const { apiMock, toastShow } = vi.hoisted(() => ({ apiMock: vi.fn(), toastShow: vi.fn() }))
 mockNuxtImport('useNuxtApp', original => () => new Proxy(original(), {
@@ -60,6 +62,32 @@ describe('ExamProjection (RF-F4)', () => {
     const w = await mountSuspended(ExamProjection, { props: { examTitle: 'TRF', projection: null } })
     expect(w.text()).toBe('Revise alguns cards dos assuntos da prova para ver a projeção.')
     expect(w.find('button').exists()).toBe(false)
+  })
+})
+
+describe('ExamRow: passada pelo is_past da API (api #133)', () => {
+  const exam = (over: object) => ({ id: 'e', title: 'TRF', exam_date: '2026-11-04', days_remaining: 0, is_past: false, days_since: null, urgency_color: 'green', reta_final_enabled: false, reta_final_active: false, google_calendar_event_id: null, topics: [{ id: 't', name: 'TRF' }], created_at: '', ...over })
+
+  it('o dia da prova não é passado, mesmo com days_remaining 0', async () => {
+    const w = await mountSuspended(ExamRow, { props: { exam: exam({}) as never } })
+    expect(w.text()).toContain('é hoje')
+    expect(w.text()).not.toContain('Como foi?')
+  })
+
+  it('passada: quantos dias faz e "Como foi?"', async () => {
+    const w = await mountSuspended(ExamRow, { props: { exam: exam({ is_past: true, days_since: 20 }) as never } })
+    expect(w.text()).toContain('há 20 dias')
+    expect(w.text()).toContain('Como foi?')
+    const yesterday = await mountSuspended(ExamRow, { props: { exam: exam({ is_past: true, days_since: 1 }) as never } })
+    expect(yesterday.text()).toContain('foi ontem')
+  })
+
+  it('a lista separa por is_past, não pela data do navegador', async () => {
+    const w = await mountSuspended(ExamList, { props: { exams: [exam({ id: 'a', title: 'Futura', exam_date: '2000-01-01' }), exam({ id: 'b', title: 'Passada', exam_date: '2999-01-01', is_past: true, days_since: 3 })] as never, state: 'ok' } as never })
+    const future = w.findAll('[data-testid^="exam-"]').map(r => r.attributes('data-testid'))
+    expect(future).toContain('exam-a')
+    expect(future).toContain('exam-b')
+    expect(w.text().indexOf('Futura')).toBeLessThan(w.text().indexOf('Passada'))
   })
 })
 

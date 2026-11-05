@@ -143,6 +143,14 @@ describe('ShellAccountMenu', () => {
     useColorMode().set('system')
   })
 
+  it('mensal com subscription_renews_at: "Pro · renova em" no item do plano', async () => {
+    useAuthStore().user = { id: 'u1', name: 'Ana', email: 'a@b.c', plan: 'pro', subscription_renews_at: '2026-11-28T12:00:00-03:00' } as any
+    const w = await mountSuspended(AccountMenu, { attachTo: document.body })
+    await w.get('button[aria-haspopup="menu"]').trigger('click')
+    await tick()
+    expect(w.findAll('[role="menuitem"]')[0]!.text()).toContain('Pro · renova em 28/11')
+  })
+
   it('Free: o plano leva a /planos', async () => {
     useAuthStore().user = { id: 'u1', name: 'Ana', email: 'a@b.c', plan: 'free' } as any
     const w = await mountSuspended(AccountMenu, { attachTo: document.body })

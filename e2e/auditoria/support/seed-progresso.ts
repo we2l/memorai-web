@@ -22,10 +22,7 @@ export interface ProgressoSeed {
 
 const php = (key: UserKey, code: string) => tinker(`$u = App\\Domain\\User\\Models\\User::where('email', '${USERS[key].email}')->firstOrFail(); ${code}`)
 
-export const isoDays = (n: number) => {
-  const d = new Date(Date.now() + n * 86_400_000)
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-}
+export const isoDays = (n: number) => new Date(Date.now() + n * 86_400_000).toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' })
 
 export async function ensureProgressoSeed(page: Page, key: UserKey = 'progresso'): Promise<ProgressoSeed> {
   const cached = php(key, `echo 'SEED=' . json_encode(Illuminate\\Support\\Facades\\Cache::get('e2e-progresso-seed-' . $u->id));`).match(/SEED=(.*)/)?.[1]

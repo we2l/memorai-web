@@ -20,6 +20,7 @@
         <UiTag v-if="auth.isVerified" tone="success">Confirmado</UiTag>
       </p>
       <UiVerifyEmailBanner v-if="auth.user && !auth.isVerified" inline />
+      <p v-if="auth.user?.google_linked" class="text-meta text-fg-muted" data-testid="google-linked">Conta Google vinculada: você também entra com o Google.</p>
     </div>
 
     <div class="flex flex-col gap-2 border-t border-line pt-5">
@@ -31,7 +32,7 @@
 
 <script setup lang="ts">
 // "Conta e segurança" (prd-4g-conta-onboarding-v3 RF-F1): name (saves on leaving the field), e-mail with its
-// verification state and "Reenviar", password or "Definir senha" for a Google account.
+// verification state and "Reenviar", the linked Google account, password or "Definir senha" for a Google account.
 const auth = useAuthStore()
 const { run } = useApiAction()
 const { saved: nameSaved, mark } = useSavedHint()

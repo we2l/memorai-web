@@ -67,6 +67,6 @@ const emit = defineEmits<{
   outcome: [e: Exam, o: ExamOutcome]
 }>()
 
-const future = computed(() => props.exams.filter(e => !isPastExam(e)).sort((a, b) => a.exam_date.localeCompare(b.exam_date)))
-const past = computed(() => props.exams.filter(isPastExam).sort((a, b) => b.exam_date.localeCompare(a.exam_date)))
+const future = computed(() => props.exams.filter(e => !e.is_past).sort((a, b) => a.exam_date.localeCompare(b.exam_date)))
+const past = computed(() => props.exams.filter(e => e.is_past).sort((a, b) => b.exam_date.localeCompare(a.exam_date)))
 </script>

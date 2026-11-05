@@ -50,8 +50,7 @@ test('prova com projeção ("mantendo o ritmo" e "se parar hoje") e "Como calcul
   const api = (await apiCall(page, 'GET', `/exams/${seed.examId}`)).data
   expect(api.projection).not.toBeNull()
   const row = exam(page, seed.examId)
-  // 41 from 21h in São Paulo: days_remaining is counted in UTC on the API
-  await expect(row).toContainText(/em 4[12] dias/)
+  await expect(row).toContainText('em 42 dias')
   await expect(row).toContainText(`caderno ${seed.rootName}`)
   await expect(row.getByTestId('exam-projection')).toContainText(`${api.projection.keep_pace}% se mantiver o ritmo · ${api.projection.stop_today}% se parar hoje`)
   await row.getByRole('button', { name: 'Como calculamos' }).click()
@@ -75,7 +74,7 @@ test('"Baixar para a agenda (.ics)" baixa o arquivo da prova', async ({ page }) 
 test('prova passada: "Passei" grava a resposta e a linha passa a dizer', async ({ page }) => {
   await gotoApp(page, '/progresso#provas')
   const row = exam(page, seed.pastExamId)
-  await expect(row).toContainText('já passou')
+  await expect(row).toContainText('há 20 dias')
   await row.getByRole('button', { name: 'Passei', exact: true }).click()
   await expect(row.getByTestId('exam-outcome')).toHaveText('Você respondeu: passei.')
   expect((await apiCall(page, 'GET', `/exams/${seed.pastExamId}`)).data.outcome).toBe('passed')

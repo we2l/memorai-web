@@ -150,7 +150,7 @@ async function loadExams() {
     reportApiError(e, { silent: true })
   }
 }
-const futureExams = computed(() => examStore.exams.filter(e => !isPastExam(e)))
+const futureExams = computed(() => examStore.exams.filter(e => !e.is_past))
 const isFree = computed(() => auth.user?.plan === 'free')
 const limitReached = computed(() => isFree.value && futureExams.value.length >= 2)
 const nextExam = computed(() => [...futureExams.value].sort((a, b) => a.days_remaining - b.days_remaining)[0] ?? null)

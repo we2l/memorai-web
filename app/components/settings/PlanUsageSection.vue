@@ -60,6 +60,9 @@ const isFree = computed(() => (auth.user?.plan ?? 'free') === 'free')
 
 // Annual validity, scheduled monthly; the portal is only for the monthly (monetização RN-12)
 const planSummary = computed(() => {
+  // First: subscription_ends_at is not cleared by a new subscription (a past date would show)
+  const renewsAt = auth.user?.subscription_renews_at
+  if (renewsAt) return `Pro · renova em ${formatBillingDayMonth(renewsAt)}`
   const info = subscription.info
   if (!info?.billing) return ''
   if (info.subscription_ends_at) return `Pro · termina em ${formatBillingDayMonth(info.subscription_ends_at)}`

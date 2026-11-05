@@ -47,7 +47,12 @@ const date = computed(() => new Date(`${props.exam.exam_date.slice(0, 10)}T12:00
 const day = computed(() => String(date.value.getDate()).padStart(2, '0'))
 const month = computed(() => date.value.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', ''))
 const fullDate = computed(() => date.value.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' }))
-const future = computed(() => !isPastExam(props.exam))
+const future = computed(() => !props.exam.is_past)
+
+function pastText(days: number | null) {
+  if (days === 1) return 'foi ontem'
+  return days ? `há ${days} dias` : 'já passou'
+}
 
 const coverageText = computed(() => {
   const list = props.exam.coverage ?? props.exam.topics.map(t => ({ topic_id: t.id, name: t.name, depth: 0 }))
@@ -58,7 +63,7 @@ const coverageText = computed(() => {
 
 const meta = computed(() => {
   const d = props.exam.days_remaining
-  const when = !future.value ? 'já passou' : d === 0 ? 'é hoje' : d === 1 ? 'amanhã' : `em ${d} dias`
+  const when = !future.value ? pastText(props.exam.days_since) : d === 0 ? 'é hoje' : d === 1 ? 'amanhã' : `em ${d} dias`
   const parts = [when, coverageText.value]
   if (future.value && props.exam.cards_per_day) parts.push(`ritmo sugerido ${plural(props.exam.cards_per_day, 'card', 'cards')} por dia`)
   return parts.filter(Boolean).join(' · ')

@@ -6,10 +6,14 @@
       <label
         v-for="(opt, i) in options"
         :key="opt.value"
-        class="flex cursor-pointer items-start gap-3 has-disabled:cursor-not-allowed has-disabled:opacity-60"
-        :class="variant === 'cards'
-          ? 'rounded-control border border-line-strong bg-raised p-3 transition-colors duration-nav hover:bg-subtle has-checked:border-action has-checked:bg-action-subtle'
-          : 'min-h-touch py-2.5'"
+        class="flex cursor-pointer items-start gap-3 has-disabled:cursor-not-allowed"
+        :class="[
+          variant === 'cards'
+            ? 'rounded-control border border-line-strong bg-raised p-3 transition-colors duration-nav hover:bg-subtle has-checked:border-action has-checked:bg-action-subtle'
+            : 'min-h-touch py-2.5',
+          !opt.disabled && 'has-disabled:opacity-60',
+          LEVELS[opt.level ?? 0],
+        ]"
       >
         <input
           type="radio"
@@ -19,12 +23,12 @@
           :disabled="opt.disabled"
           :aria-labelledby="`${groupName}-${i}`"
           :aria-describedby="opt.description ? `${groupName}-${i}-desc` : undefined"
-          class="mt-0.5 size-5 shrink-0 cursor-pointer appearance-none rounded-full border border-line-input bg-raised transition-all duration-nav checked:border-6 checked:border-action disabled:cursor-not-allowed"
+          class="mt-0.5 size-5 shrink-0 cursor-pointer appearance-none rounded-full border border-line-input bg-raised transition-colors duration-nav checked:border-6 checked:border-action disabled:cursor-not-allowed disabled:opacity-60"
           @change="emit('update:modelValue', opt.value)"
         >
         <span v-if="opt.marker" class="flex size-6 shrink-0 items-center justify-center rounded-tag bg-subtle text-meta font-semibold text-fg-strong" aria-hidden="true">{{ opt.marker }}</span>
         <span class="min-w-0">
-          <span :id="`${groupName}-${i}`" class="block text-body text-fg-strong">{{ opt.label }}</span>
+          <span :id="`${groupName}-${i}`" class="block text-body break-words" :class="opt.disabled ? 'text-fg-muted' : 'text-fg-strong'">{{ opt.label }}</span>
           <span v-if="opt.description" :id="`${groupName}-${i}-desc`" class="block text-meta text-fg-muted">{{ opt.description }}</span>
         </span>
       </label>
@@ -42,6 +46,8 @@ export interface RadioOption {
   disabled?: boolean
   /** Letter before the label (the alternatives of a question: A–E) */
   marker?: string
+  /** Indent of a tree (0–2 steps): the destinations of "Mover para…" */
+  level?: number
 }
 
 const props = withDefaults(defineProps<{
@@ -58,6 +64,9 @@ const props = withDefaults(defineProps<{
 }>(), { hint: undefined, name: undefined, variant: 'list', columns: 1 })
 
 const emit = defineEmits<{ (e: 'update:modelValue', value: string): void }>()
+
+// An option disabled on its own stays readable (its description says why); the whole group fades with `disabled`
+const LEVELS = ['', 'pl-6', 'pl-12', 'pl-12']
 
 const COLUMNS = { 1: 'grid-cols-1', 2: 'grid-cols-1 sm:grid-cols-2', 3: 'grid-cols-1 sm:grid-cols-3' }
 const auto = useId()

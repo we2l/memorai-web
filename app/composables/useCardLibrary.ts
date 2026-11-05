@@ -4,6 +4,8 @@ import type { LibraryCard, LibraryPage } from '~/types'
 export const LIBRARY_LIMIT = 50
 /** The most cards a session by ids takes (scope=cards, F2). */
 export const REVIEW_SELECTION_MAX = 100
+/** The most cards POST /flashcards/move takes at once (prd-4b-caderno-v3 RF-B7). */
+export const MOVE_SELECTION_MAX = 500
 
 export type LibrarySort = 'due' | 'created' | 'lapses'
 export type LibraryState = 'new' | 'learning' | 'due' | 'in_day'

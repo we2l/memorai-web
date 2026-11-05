@@ -208,6 +208,20 @@ describe('useNoteEditor local draft', () => {
     expect(localStorage.getItem(KEY)).toBeNull()
   })
 
+  it('nota na lixeira (forgetNote): nada mais é salvo e o rascunho fica para o "Desfazer"', async () => {
+    apiMock.mockResolvedValue({ data: {} })
+    open()
+    editor.noteContent.value = doc('não perder')
+    editor.debouncedSave()
+    await vi.advanceTimersByTimeAsync(300)
+    expect(localStorage.getItem(KEY)).not.toBeNull()
+    editor.forgetNote('n1')
+    apiMock.mockClear()
+    await vi.advanceTimersByTimeAsync(5000)
+    expect(apiMock.mock.calls.filter(([url, o]) => url === '/notes/n1' && o?.method === 'PUT')).toHaveLength(0)
+    expect(localStorage.getItem(KEY)).not.toBeNull()
+  })
+
   it('opening a note tells the API it was opened (Continuar material on Hoje), once per open', async () => {
     apiMock.mockResolvedValue({ data: {} })
     open()

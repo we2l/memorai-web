@@ -6,7 +6,7 @@
     <div v-if="requireText" class="mb-4">
       <UiInput :id="inputId" v-model="typed" :label="`Digite ${requireText} para confirmar`" autocomplete="off" />
     </div>
-    <div class="flex gap-3 justify-end mt-2">
+    <div class="flex flex-wrap gap-3 justify-end mt-2">
       <UiButton variant="secondary" @click="open = false">{{ cancelLabel }}</UiButton>
       <UiButton :variant="variant === 'primary' ? 'primary' : 'danger'" :loading="loading" :disabled="!textMatches" @click="$emit('confirm')">
         {{ loading ? loadingLabel : confirmLabel }}
@@ -29,7 +29,7 @@ const props = withDefaults(defineProps<{
 }>(), {
   confirmLabel: 'Confirmar',
   cancelLabel: 'Cancelar',
-  loadingLabel: 'Aguarde...',
+  loadingLabel: 'Aguarde…',
   loading: false,
   variant: 'danger',
   requireText: undefined,

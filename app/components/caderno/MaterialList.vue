@@ -50,6 +50,7 @@
             :blocked-reason="blockedReasons[row.id] ?? null"
             @retry="$emit('retry', $event)"
             @delete="$emit('delete', $event)"
+            @move="$emit('move', $event)"
             @view-pdf="$emit('view-pdf', $event)"
             @ready="$emit('ready', $event)"
           />
@@ -103,6 +104,7 @@ const emit = defineEmits<{
   (e: 'add'): void
   (e: 'retry', row: MaterialRow): void
   (e: 'delete', row: MaterialRow): void
+  (e: 'move', row: MaterialRow): void
   (e: 'view-pdf', row: MaterialRow): void
   (e: 'ready', row: MaterialRow): void
   (e: 'search'): void

@@ -33,7 +33,6 @@ export function useNoteEditor(topicId: Ref<string | null>) {
   /** Full note on its way: the editor waits (typing on an empty document would overwrite it). */
   const noteLoading = ref(false)
   const selectedText = ref('')
-  const showDeleteNote = ref(false)
 
   let saveTimeout: ReturnType<typeof setTimeout> | null = null
   let pendingSaveNoteId: string | null = null
@@ -183,7 +182,7 @@ export function useNoteEditor(topicId: Ref<string | null>) {
   }
 
   /** The note is gone: drop its pending writes, retries and draft. */
-  function forget(noteId: string) {
+  function forget(noteId: string, keepDraft = false) {
     unsaved.delete(noteId)
     failedIds.delete(noteId)
     latestSeq.delete(noteId)
@@ -193,7 +192,7 @@ export function useNoteEditor(topicId: Ref<string | null>) {
       pendingSaveNoteId = null
       pendingRead = null
     }
-    draft.clear(noteId)
+    if (!keepDraft) draft.clear(noteId)
     if (!failedIds.size) clearRetry()
     refreshState()
   }
@@ -303,18 +302,13 @@ export function useNoteEditor(topicId: Ref<string | null>) {
     await topicStore.fetchTree()
   }
 
-  async function deleteNote() {
-    if (!noteStore.current) return
-    const id = noteStore.current.id
-    await noteStore.remove(id)
-    forget(id)
-    toast.show('Nota excluída.', 'success')
-    await topicStore.fetchTree()
-  }
-
-  async function handleDeleteNote() {
-    await deleteNote()
-    showDeleteNote.value = false
+  /**
+   * The note went to the trash (CadernoTrashDialog): no more saves for it, and the tree counts again. The local draft
+   * of a save that failed stays: "Desfazer" brings the note back and the draft offers the text.
+   */
+  function forgetNote(id: string) {
+    forget(id, true)
+    void topicStore.fetchTree()
   }
 
   return {
@@ -323,7 +317,6 @@ export function useNoteEditor(topicId: Ref<string | null>) {
     editingNote,
     noteLoading,
     selectedText,
-    showDeleteNote,
     saveState,
     retrySaveNow,
     pendingDraft,
@@ -336,6 +329,6 @@ export function useNoteEditor(topicId: Ref<string | null>) {
     openNoteEditor,
     closeEditor,
     createNote,
-    handleDeleteNote,
+    forgetNote,
   }
 }

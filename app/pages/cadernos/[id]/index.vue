@@ -1,9 +1,12 @@
 <template>
   <div class="mx-auto flex max-w-4xl flex-col gap-4 px-gutter pt-2 pb-6 md:pt-8" :aria-busy="loading ? 'true' : undefined">
     <!-- 404: the caderno does not exist (or is not the person's) -->
-    <LazyUiEmptyState v-if="store.notFound" title="Caderno não encontrado" description="Ele pode ter sido excluído." mascot="subtle">
+    <LazyUiEmptyState v-if="store.notFound" title="Caderno não encontrado" description="Se você o excluiu, ele fica na lixeira por 30 dias." mascot="subtle">
       <template #action>
-        <UiButton variant="primary" to="/cadernos">Ver cadernos</UiButton>
+        <div class="flex flex-wrap justify-center gap-2">
+          <UiButton variant="primary" to="/cadernos">Ver cadernos</UiButton>
+          <UiButton to="/cadernos/lixeira">Abrir a lixeira</UiButton>
+        </div>
       </template>
     </LazyUiEmptyState>
 
@@ -32,7 +35,8 @@
           :first-material="store.materials[0] ?? null"
           @listen="listen"
           @edit="openEdit"
-          @delete="openDelete"
+          @move="moveScope"
+          @delete="trashScope"
           @exam="examOpen = true"
         />
 
@@ -56,6 +60,8 @@
             :can-add="canAddSubtopic(summary.topic.depth)"
             @add="openAddSubject"
             @open="s => track('subject_open', { depth: s.depth })"
+            @move="moveSubject"
+            @delete="trashSubject"
           />
           <CadernoMaterialList
             v-else-if="block === 'materials'"
@@ -64,7 +70,8 @@
             :blocked-reasons="blockedReasons"
             @add="addHere"
             @retry="retryNote"
-            @delete="askDeleteMaterial"
+            @delete="trashMaterial"
+            @move="moveMaterial"
             @view-pdf="viewPdf"
             @ready="() => store.fetchSummary()"
             @search="track('material_search', {})"
@@ -80,23 +87,8 @@
     <LazyExamDialog v-if="examLoaded" v-model="examOpen" :topic-ids="[id]" origin="scope" @saved="onExamSaved" />
     <LazyCadernoTopicDialog v-if="dialogLoaded" v-model="dialogOpen" :mode="dialogMode" :target="dialogTarget" @saved="onTopicSaved" />
 
-    <LazyUiConfirmModal
-      v-if="deleteTopicLoaded"
-      v-model="deleteTopicOpen"
-      :title="`Excluir '${summary?.topic.name ?? ''}'?`"
-      :message="deleteTopicMessage"
-      confirm-label="Excluir"
-      :require-text="deleteRequiresName ? summary?.topic.name : undefined"
-      @confirm="deleteTopic"
-    />
-    <LazyUiConfirmModal
-      v-if="deleteMaterialLoaded"
-      v-model="deleteMaterialOpen"
-      :title="materialToDelete?.kind === 'pdf' ? 'Remover PDF?' : 'Excluir nota?'"
-      :message="materialToDelete?.kind === 'pdf' ? 'O PDF será removido. Resumos e cards já gerados serão mantidos.' : `&quot;${materialToDelete?.title ?? ''}&quot; será excluída. Os cards criados dela continuam.`"
-      :confirm-label="materialToDelete?.kind === 'pdf' ? 'Remover' : 'Excluir'"
-      @confirm="deleteMaterial"
-    />
+    <LazyCadernoMoveDialog v-if="moveLoaded" v-model="moveOpen" :item="moveItem" @moved="onMoved" />
+    <LazyCadernoTrashDialog v-if="trashLoaded" v-model="trashOpen" :item="trashItem" @trashed="onTrashed" />
 
     <LazyTopicGenerateNoteSheet v-if="noteSheetLoaded" v-model="noteSheetOpen" :document="noteSheetDoc" @generated="onNoteGenerating" />
     <LazyTopicPdfViewer v-if="viewerLoaded" v-model="viewerOpen" :url="viewerUrl" :filename="viewerName" :topic-id="id" />
@@ -116,8 +108,10 @@
 // Materiais and Praticar, in the order of the mode (D11). Opening it asks only the summary and the first
 // page of materials, in parallel (§6 rule 6: no note content, no card list). The editor, the card library
 // and the map live on their own routes. "+ Adicionar" writes here (RF-F10).
-import type { Document, MaterialRow, Podcast, Topic } from '~/types'
+import type { Document, MaterialRow, Podcast, ScopeSubject } from '~/types'
 import type { TopicDialogMode, TopicDialogTarget } from '~/components/caderno/TopicDialog.vue'
+import type { TrashItem } from '~/components/caderno/TrashDialog.vue'
+import type { MoveItem } from '~/utils/moveTargets'
 import { canAddSubtopic, consumeScopeCleared } from '~/utils/scope'
 import { readAutoCardsPref } from '~/utils/autoCardsPref'
 import { documentRowStatus } from '~/stores/scope'
@@ -191,9 +185,6 @@ watch(id, (v) => {
 }, { immediate: true })
 
 useHead(() => ({ title: summary.value ? `${summary.value.topic.name} · Baigi` : 'Caderno · Baigi' }))
-
-// A deleted subject is gone from the server after its 10 s: the numbers come again
-watch(() => topicStore.pendingDeletes.size, (n, prev) => { if (n < prev) void store.fetchSummary() })
 
 // --- "+ Adicionar" in the scope (RF-F10) --------------------------------------------------------------
 const addSheet = useAddSheet()
@@ -287,26 +278,67 @@ async function viewPdf(row: MaterialRow) {
   }
 }
 
-const materialToDelete = ref<MaterialRow | null>(null)
-const deleteMaterialOpen = ref(false)
-const deleteMaterialLoaded = useLoadedOnce(() => deleteMaterialOpen.value)
-function askDeleteMaterial(row: MaterialRow) {
-  materialToDelete.value = row
-  deleteMaterialOpen.value = true
+// --- Organization (prd-4b-caderno-v3 4b-2): "Mover para…" and the trash, for a material, a matéria or this scope --
+const moveOpen = ref(false)
+const moveLoaded = useLoadedOnce(() => moveOpen.value)
+const moveItem = ref<MoveItem | null>(null)
+function openMove(item: MoveItem) {
+  moveItem.value = item
+  moveOpen.value = true
+}
+function moveMaterial(row: MaterialRow) {
+  openMove({ kind: row.kind, id: row.id, name: row.title, topicId: row.topic.id })
+}
+function moveSubject(s: ScopeSubject) {
+  openMove({ kind: 'topic', id: s.id, name: s.name, parentId: s.parent_id })
+}
+function moveScope() {
+  const s = summary.value
+  if (s) openMove({ kind: 'topic', id: s.topic.id, name: s.topic.name, parentId: s.topic.parent_id })
+}
+function onMoved(destination: { id: string | null; name: string }) {
+  const item = moveItem.value
+  // A matéria takes its materials along, and a filter may change what the row belongs to: all again
+  if ((item?.kind !== 'note' && item?.kind !== 'pdf') || store.query.subjectId || !destination.id) {
+    void store.refresh()
+    return
+  }
+  // One material: the pages already loaded keep their place (still in this scope, or out of it)
+  const stays = destination.id === id.value || summary.value?.subjects.some(s => s.id === destination.id)
+  if (stays) store.patchRow(item.kind, item.id, { topic: { id: destination.id, name: destination.name } })
+  else store.removeRow(item.kind, item.id)
+  void store.fetchSummary()
 }
 
-async function deleteMaterial() {
-  const row = materialToDelete.value
-  deleteMaterialOpen.value = false
-  if (!row) return
-  try {
-    await $api(row.kind === 'pdf' ? `/documents/${row.id}` : `/notes/${row.id}`, { method: 'DELETE' })
-    store.removeRow(row.kind, row.id)
-    toast.show(row.kind === 'pdf' ? 'PDF removido.' : 'Nota excluída.', 'success')
+const trashOpen = ref(false)
+const trashLoaded = useLoadedOnce(() => trashOpen.value)
+const trashItem = ref<TrashItem | null>(null)
+function openTrash(item: TrashItem) {
+  trashItem.value = item
+  trashOpen.value = true
+}
+function trashMaterial(row: MaterialRow) {
+  openTrash({ kind: row.kind, id: row.id, name: row.title, counts: { parts: row.kind === 'pdf' && row.parts && row.parts > 1 ? row.parts : 0, cards: row.cards } })
+}
+function trashSubject(s: ScopeSubject) {
+  openTrash({ kind: 'topic', id: s.id, name: s.name, depth: s.depth })
+}
+function trashScope() {
+  const s = summary.value
+  // "Desfazer" comes back here, wherever the person went meanwhile
+  if (s) openTrash({ kind: 'topic', id: s.topic.id, name: s.topic.name, depth: s.topic.depth, restoreTo: cadernoPath(s.topic.id) })
+}
+function onTrashed() {
+  const item = trashItem.value
+  // The open scope is gone: back to where it was
+  if (item?.kind === 'topic' && item.id === id.value) {
+    void navigateTo(cadernoPath(summary.value?.path.at(-1)?.id), { replace: true })
+  } else if (item?.kind === 'topic') {
+    void store.refresh()
+  } else if (item) {
+    // One material: the pages already loaded keep their place
+    store.removeRow(item.kind, item.id)
     void store.fetchSummary()
-    void topicStore.fetchTree()
-  } catch (e) {
-    reportApiError(e, { error: row.kind === 'pdf' ? 'Não foi possível remover o PDF.' : 'Não foi possível excluir a nota.' })
   }
 }
 
@@ -363,47 +395,5 @@ function openEdit() {
 
 function onTopicSaved() {
   void store.fetchSummary()
-}
-
-const deleteTopicOpen = ref(false)
-const deleteTopicLoaded = useLoadedOnce(() => deleteTopicOpen.value)
-const fmt = (n: number) => n.toLocaleString('pt-BR')
-const deleteTopicMessage = computed(() => {
-  const c = summary.value?.counts
-  if (!c) return ''
-  const parts = [
-    ...(c.subjects ? [`${fmt(c.subjects)} ${summary.value!.topic.depth === 0 ? (c.subjects === 1 ? 'matéria' : 'matérias') : (c.subjects === 1 ? 'assunto' : 'assuntos')}`] : []),
-    `${fmt(c.materials)} ${c.materials === 1 ? 'material' : 'materiais'}`,
-    `${fmt(c.cards)} ${c.cards === 1 ? 'card' : 'cards'}`,
-  ]
-  const last = parts.pop()
-  return `${parts.length ? `${parts.join(', ')} e ${last}` : last} serão excluídos. Você terá 10 segundos para desfazer.`
-})
-// A caderno with ≥ 50 cards asks for its name (RN-UX-08)
-const deleteRequiresName = computed(() => summary.value?.topic.depth === 0 && (summary.value?.counts.cards ?? 0) >= 50)
-
-async function openDelete() {
-  if (!topicStore.tree.length) await topicStore.fetchTree()
-  deleteTopicOpen.value = true
-}
-
-/** Optimistic, 10 s with "Desfazer" (until the trash of 4b-2): back to the parent scope or the list. */
-function deleteTopic() {
-  const s = summary.value
-  deleteTopicOpen.value = false
-  if (!s) return
-  const topic = topicStore.findById(s.topic.id) as Topic | null
-  if (!topic) return
-  const parent = s.path.at(-1) ?? null
-  topicStore.scheduleRemove(topic)
-  const deletedId = topic.id
-  void navigateTo(cadernoPath(parent?.id), { replace: true })
-  toast.show(`"${topic.name}" excluído`, 'success', {
-    duration: 10_000,
-    action: {
-      label: 'Desfazer',
-      onClick: () => { if (topicStore.cancelRemove(deletedId)) void navigateTo(cadernoPath(deletedId)) },
-    },
-  })
 }
 </script>

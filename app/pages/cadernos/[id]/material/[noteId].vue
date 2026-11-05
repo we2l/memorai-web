@@ -267,13 +267,7 @@
       :loading="regenerating"
       @confirm="confirmRegenerate"
     />
-    <UiConfirmModal
-      v-model="showDeleteNote"
-      title="Excluir nota?"
-      message="A nota será removida permanentemente. Os cards que vieram dela continuam na biblioteca."
-      confirm-label="Excluir"
-      @confirm="deleteNote"
-    />
+    <LazyCadernoTrashDialog v-if="trashLoaded" v-model="trashOpen" :item="trashItem" @trashed="onTrashed" />
   </div>
 </template>
 
@@ -289,6 +283,7 @@
 // the text and [ ] go to its neighbors, and regenerating rewrites in place, nothing is deleted.
 import { Check, ChevronDown, ChevronLeft, ChevronRight, Layers, ListTree, Pencil, Sparkles } from 'lucide-vue-next'
 import type { MenuItem } from '~/components/ui/Menu.vue'
+import type { TrashItem } from '~/components/caderno/TrashDialog.vue'
 import type { SelectionAction } from '~/components/material/SelectionActions.vue'
 import { outlineOf, type OutlineHeading } from '~/composables/useNoteOutline'
 import { reviewPath } from '~/utils/reviewScope'
@@ -523,14 +518,16 @@ async function openPdf(page: number | null) {
 // === ⋯ of the top bar ===
 const showMindMap = ref(false)
 const mindMapLoaded = useLoadedOnce(() => showMindMap.value)
-const showDeleteNote = ref(false)
+const trashOpen = ref(false)
+const trashLoaded = useLoadedOnce(() => trashOpen.value)
+const trashItem = ref<TrashItem | null>(null)
 const menuItems = computed<MenuItem[]>(() => [
   { label: 'Melhorar com IA', icon: Sparkles, onSelect: () => m.improveNote(), disabled: !canEdit.value },
   { label: 'Mapa da nota', onSelect: () => { showMindMap.value = true } },
   { label: 'Perguntar sobre este material', onSelect: askAboutMaterial },
   ...(isPdf.value ? [{ label: 'Ver o PDF', onSelect: () => { void openPdf(null) } }] : []),
   ...(isPdf.value && m.document.value && !m.generating.value ? [{ label: 'Gerar as partes de novo', meta: 'nada se apaga', onSelect: () => { regenerateOpen.value = true } }] : []),
-  { label: 'Excluir nota', tone: 'danger' as const, separator: true, onSelect: () => { showDeleteNote.value = true } },
+  { label: isPdf.value ? 'Excluir esta parte' : 'Excluir nota', tone: 'danger' as const, separator: true, onSelect: askTrash },
 ])
 function askAboutMaterial() {
   useChatStore().ask({
@@ -539,12 +536,25 @@ function askAboutMaterial() {
     source: 'note_help',
   }, `Tenho uma dúvida sobre o material "${m.noteTitle.value || 'sem título'}": `)
 }
-async function deleteNote() {
-  showDeleteNote.value = false
-  const target = noteId.value
-  await m.handleDeleteNote()
+// To the trash with its cards (prd-4b-caderno-v3 RF-F16); "Desfazer" brings the person back here
+function askTrash() {
+  // What was typed in the last seconds is saved first: "Desfazer" brings the note back whole
+  m.flushPendingSave()
+  trashItem.value = {
+    kind: 'note',
+    id: noteId.value,
+    name: m.noteTitle.value || 'esta nota',
+    counts: { cards: material.context.value?.cards.total ?? 0 },
+    restoreTo: cadernoPath(id.value, { note: noteId.value }),
+  }
+  trashOpen.value = true
+}
+function onTrashed() {
+  const target = trashItem.value?.id
+  if (!target) return
+  m.forgetNote(target)
   scopeStore.removeRow('note', target)
-  await navigateTo(cadernoPath(id.value), { replace: true })
+  void navigateTo(cadernoPath(id.value), { replace: true })
 }
 
 // "Melhorar com IA" from the menu also leaves reading: the preview replaces the text

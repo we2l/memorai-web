@@ -74,7 +74,7 @@ const OPTIONS: { kind: AddKind, label: string, meta: string, icon: Component, kb
   { kind: 'text', label: 'Colar texto', meta: 'Um resumo ou trecho vira uma nota', icon: ClipboardPaste },
   { kind: 'photo', label: 'Foto', meta: 'De uma página: a IA sugere os cards', icon: Camera },
   { kind: 'note', label: 'Nota em branco', meta: 'Abre o editor', icon: PenLine, kbd: 'Alt N' },
-  { kind: 'anki', label: 'Importar do Anki', meta: 'Arquivo .apkg: cria um caderno novo', icon: Download },
+  { kind: 'anki', label: 'Importar do Anki', meta: 'Arquivo .apkg, com os cards e o histórico', icon: Download },
 ]
 
 // "Criar cards automaticamente" of the PDF, explicit and remembered (prd-4b-caderno-v3 RF-F10)

@@ -71,23 +71,6 @@ export function scopeTopicOfRoute(route: { path: string; params: Record<string, 
   return null
 }
 
-interface NamedTopic { id: string; name: string; parent_id?: string | null }
-
-/**
- * Root caderno an Anki import wrote to (N4). The job turns each root deck "A::B" into the root topic
- * "A" (underscores read as spaces) and reuses a root of the same name; the status has no topic id.
- */
-export function findImportedRoot<T extends NamedTopic>(roots: T[], deckNames: string[]): T | null {
-  const norm = (s: string) => s.replace(/_/g, ' ').trim().toLocaleLowerCase('pt-BR')
-  for (const deck of deckNames) {
-    const rootName = norm(deck.split('::')[0] ?? '')
-    if (!rootName) continue
-    const hit = roots.find(t => !t.parent_id && norm(t.name) === rootName)
-    if (hit) return hit
-  }
-  return null
-}
-
 // The celebration of a caderno that the person's own session emptied (05/#11): /revisar marks the
 // scope when the session ends with nothing pending; the caderno consumes the mark once.
 const CLEARED_KEY = 'baigi-scope-cleared'

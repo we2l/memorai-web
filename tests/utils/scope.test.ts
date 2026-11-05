@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { cadernoPath, canAddSubtopic, consumeScopeCleared, findImportedRoot, legacyCadernoRedirect, markScopeCleared, materialPath, scopeTopicOfRoute } from '~/utils/scope'
+import { cadernoPath, canAddSubtopic, consumeScopeCleared, legacyCadernoRedirect, markScopeCleared, materialPath, scopeTopicOfRoute } from '~/utils/scope'
 import { reviewPath, scopeBackPath, scopeOf, scopeQuery, sessionScopeFromQuery } from '~/utils/reviewScope'
 
 describe('scope (prd-caderno-f1-pontes)', () => {
@@ -74,18 +74,6 @@ describe('scope (prd-caderno-f1-pontes)', () => {
     expect(scopeBackPath(null)).toBeNull()
     expect(scopeOf({ type: 'quiz', id: 'q1', label: 'S', topic })).toEqual({ type: 'quiz', id: 'q1' })
     expect(scopeOf({ type: 'cards', id: null, label: 'C', topic: null }, ['a'])).toEqual({ type: 'cards', ids: ['a'] })
-  })
-
-  it('fim do import: o caderno raiz do 1º baralho importado, pelo nome (N4)', () => {
-    const roots = [
-      { id: 'a', name: 'Português', parent_id: null },
-      { id: 'b', name: 'Inglês B2', parent_id: null },
-    ]
-    expect(findImportedRoot(roots, ['Inglês_B2::Vocabulary'])?.id).toBe('b')
-    expect(findImportedRoot(roots, ['inglês b2'])?.id).toBe('b')
-    expect(findImportedRoot(roots, ['Alemão', 'Português::Crase'])?.id).toBe('a')
-    expect(findImportedRoot(roots, ['Alemão'])).toBeNull()
-    expect(findImportedRoot(roots, [])).toBeNull()
   })
 
   it('celebração: só o caderno marcado pela própria sessão, uma vez (05/#11)', () => {

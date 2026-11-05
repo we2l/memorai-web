@@ -159,12 +159,13 @@ const moreItems = computed<MenuItem[]>(() => {
     ...(canSetExam.value ? [{ label: 'Definir prova', meta: 'data e o que cai', separator: true, onSelect: () => emit('exam') }] : []),
     ...(canSetExam.value && props.summary.exam ? [{ label: 'Ver as provas', meta: 'em Progresso', to: '/progresso#provas' }] : []),
     { label: 'Editar', meta: isRoot.value ? 'nome, cor e modo' : 'nome e cor', separator: true, onSelect: () => emitEdit() },
+    ...(props.summary.topic.is_sample ? [] : [{ label: 'Mover para…', onSelect: () => emit('move') }]),
     // The sample of the onboarding goes away the same way: nothing of the person's is in it (prd-4g RF-F9)
     { label: props.summary.topic.is_sample ? 'Apagar o exemplo' : 'Excluir', tone: 'danger', onSelect: () => emitDelete() },
   ]
 })
 
-const emit = defineEmits<{ (e: 'listen'): void; (e: 'edit'): void; (e: 'delete'): void; (e: 'exam'): void }>()
+const emit = defineEmits<{ (e: 'listen' | 'edit' | 'move' | 'delete' | 'exam'): void }>()
 /** "Definir prova": the caderno or a matéria, in the modes with exams (concurso, faculdade) */
 const canSetExam = computed(() => props.summary.topic.depth <= 1 && ['exam', 'academic'].includes(mode.value ?? ''))
 function emitEdit() { emit('edit') }

@@ -206,9 +206,16 @@ export const useScopeStore = defineStore('scope', () => {
   }
 
   /** Everything this scope shows may have changed (cards created, a note saved elsewhere): both again. */
-  function refresh() {
-    if (!topicId.value) return Promise.resolve()
-    return Promise.all([fetchSummary(), fetchMaterials()])
+  async function refresh() {
+    if (!topicId.value) return
+    if (!query.value.subjectId) {
+      await Promise.all([fetchSummary(), fetchMaterials()])
+      return
+    }
+    // The matéria of the filter may be gone (moved out, in the trash): the API would answer 422 to its subject_id
+    await fetchSummary()
+    if (summary.value && !summary.value.subjects.some(s => s.id === query.value.subjectId)) query.value = { ...query.value, subjectId: '' }
+    await fetchMaterials()
   }
 
   function reset() {

@@ -53,28 +53,26 @@ test.describe('Caderno — caminho feliz', () => {
     await expect(title(page)).toHaveText(renamed)
     expect(await topicsByName(page, renamed)).toHaveLength(1)
 
-    // Excluir: a confirmação diz o que vai junto e dá 10 s para desfazer; a tela volta à lista
+    // Excluir: vai para a lixeira, a confirmação diz o que dá para fazer e o toast desfaz; a tela volta à lista
     await menuAction(page, renamed, 'Excluir')
     const confirm = page.getByRole('alertdialog')
-    await expect(confirm.getByRole('heading', { name: `Excluir '${renamed}'?` })).toBeVisible()
-    await expect(confirm.getByText(/0 materiais e 0 cards.*10 segundos para desfazer/)).toBeVisible()
-    await confirm.getByRole('button', { name: 'Excluir' }).click()
+    await expect(confirm.getByRole('heading', { name: `Mandar “${renamed}” para a lixeira?` })).toBeVisible()
+    await expect(confirm.getByText('Você pode restaurar por 30 dias.')).toBeVisible()
+    await confirm.getByRole('button', { name: 'Mandar para a lixeira' }).click()
     await expect(page).toHaveURL(/\/cadernos$/)
     await page.getByRole('status').getByRole('button', { name: 'Desfazer' }).click()
     await expect(title(page)).toHaveText(renamed)
-    await page.waitForTimeout(11_000)
     expect(await topicsByName(page, renamed)).toHaveLength(1)
   })
 
-  test('excluir sem desfazer: o DELETE sai na janela de 10 s, mesmo trocando de página', async ({ page }) => {
+  test('excluir sem desfazer: o DELETE sai na hora e o caderno some da lista', async ({ page }) => {
     const name = `Excluir ${uid()}`
     await gotoApp(page, '/cadernos')
     const t = await apiCall(page, 'POST', '/topics', { name })
     await gotoApp(page, `/cadernos/${t.data.id}`)
     await menuAction(page, name, 'Excluir')
     const deleted = page.waitForRequest(r => r.method() === 'DELETE' && /\/api\/topics\//.test(r.url()), { timeout: 15_000 })
-    await page.getByRole('alertdialog').getByRole('button', { name: 'Excluir' }).click()
-    await page.getByRole('navigation', { name: 'Navegação principal' }).first().getByRole('link', { name: 'Hoje' }).click()
+    await page.getByRole('alertdialog').getByRole('button', { name: 'Mandar para a lixeira' }).click()
     await deleted
     await expect.poll(async () => (await topicsByName(page, name)).length).toBe(0)
   })
@@ -113,7 +111,7 @@ test.describe('Caderno — caminho triste', () => {
     await expect(edit.getByRole('button', { name: 'Salvar' })).toBeDisabled()
   })
 
-  test('caderno com ≥ 50 cards exige digitar o nome para excluir', async ({ page }) => {
+  test('caderno com ≥ 50 cards: vai para a lixeira sem digitar; apagar de vez exige o nome', async ({ page }) => {
     const name = `Grande ${uid()}`
     await gotoApp(page, '/cadernos')
     const topic = await apiCall(page, 'POST', '/topics', { name })
@@ -121,15 +119,21 @@ test.describe('Caderno — caminho triste', () => {
     await apiCall(page, 'POST', '/ai/accept-cards', { topic_id: topic.data.id, cards })
     await gotoApp(page, `/cadernos/${topic.data.id}`)
     await menuAction(page, name, 'Excluir')
+    await page.getByRole('alertdialog').getByRole('button', { name: 'Mandar para a lixeira' }).click()
+    await expect(page).toHaveURL(/\/cadernos$/)
+
+    // O passo irreversível é o que pede o nome (RN-UX-08)
+    await gotoApp(page, '/cadernos/lixeira')
+    await page.getByRole('button', { name: `Apagar agora ${name}` }).click()
     const confirm = page.getByRole('alertdialog')
-    const button = confirm.getByRole('button', { name: 'Excluir' })
+    const button = confirm.getByRole('button', { name: 'Apagar de vez' })
     await expect(button).toBeDisabled()
     await confirm.getByRole('textbox').fill('outro nome')
     await expect(button).toBeDisabled()
     await confirm.getByRole('textbox').fill(name)
     await expect(button).toBeEnabled()
     await confirm.getByRole('button', { name: 'Cancelar' }).click()
-    expect(await topicsByName(page, name)).toHaveLength(1)
+    await expect(page.getByTestId('trash-row').filter({ hasText: name })).toBeVisible()
   })
 
   test('falha da API ao criar: usuário recebe erro e não perde o nome digitado', async ({ page }) => {
@@ -143,7 +147,7 @@ test.describe('Caderno — caminho triste', () => {
     await expect(page.getByRole('alert').filter({ hasText: /não foi possível|erro|tente/i })).toBeVisible({ timeout: 5000 })
   })
 
-  test('falha da API ao excluir: o caderno volta para a lista com aviso', async ({ page }) => {
+  test('falha da API ao excluir: o diálogo fica, com aviso, e o caderno continua', async ({ page }) => {
     const name = `NaoExclui ${uid()}`
     await gotoApp(page, '/cadernos')
     const t = await apiCall(page, 'POST', '/topics', { name })
@@ -152,15 +156,15 @@ test.describe('Caderno — caminho triste', () => {
       ? route.fulfill({ status: 500, json: { message: 'Server Error' } })
       : route.fallback())
     await menuAction(page, name, 'Excluir')
-    await page.getByRole('alertdialog').getByRole('button', { name: 'Excluir' }).click()
-    await expect(page).toHaveURL(/\/cadernos$/)
-    await expect(page.getByRole('alert').getByText(`Não foi possível excluir "${name}".`)).toBeVisible({ timeout: 15_000 })
-    await page.reload()
+    await page.getByRole('alertdialog').getByRole('button', { name: 'Mandar para a lixeira' }).click()
+    await expect(page.getByRole('alert').getByText('Não foi possível mandar para a lixeira. Tente de novo.')).toBeVisible()
+    await expect(page.getByRole('alertdialog')).toBeVisible()
+    await expect(page).toHaveURL(new RegExp(`/cadernos/${t.data.id}$`))
+    await gotoApp(page, '/cadernos')
     await expect(listRow(page, name)).toBeVisible()
   })
 
-  // Lacuna de produto até a 4b-2 (RF-F15 "Mover para…"): reativar quando existir.
-  test.fixme('mover caderno/matéria para outro caderno: a interface oferece a ação', async ({ page }) => {
+  test('mover caderno/matéria para outro caderno: a interface oferece a ação (RF-F15)', async ({ page }) => {
     const name = `Mover ${uid()}`
     await gotoApp(page, '/cadernos')
     const t = await apiCall(page, 'POST', '/topics', { name })

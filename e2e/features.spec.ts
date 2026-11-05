@@ -264,6 +264,7 @@ test.describe.serial('Cadernos: URL e exclusão com Desfazer (RF-F6.2/F6.4, rota
     exam: null, next_step: null, listen: null, subjects: [], special: { quiz_errors: { cards: 0, session_count: 0 }, loose: { cards: 0, session_count: 0 } },
   })
   let deletes = 0
+  let restores = 0
 
   test.beforeAll(async ({ browser }) => {
     page = await browser.newPage()
@@ -274,9 +275,12 @@ test.describe.serial('Cadernos: URL e exclusão com Desfazer (RF-F6.2/F6.4, rota
     await page.route(/\/api\/topics\/[0-9a-f-]+\/summary$/, r => r.fulfill(json({ data: summaryOf(r.request().url().includes(B.id) ? B : A) })))
     await page.route(/\/api\/topics\/[0-9a-f-]+\/materials.*/, r => r.fulfill(json({ data: [], meta: { next_cursor: null, total: 0 } })))
     await page.route(/\/api\/topics\/[0-9a-f-]+$/, r => {
-      if (r.request().method() === 'DELETE') { deletes++; return r.fulfill(json({})) }
+      if (r.request().method() === 'DELETE') { deletes++; return r.fulfill(json({ data: { trash_batch_id: 'lote-b', purge_at: '2026-12-02T03:00:00Z', counts: {} } })) }
       return r.fulfill(json({ data: A }))
     })
+    await page.route(/\/api\/topics\/[0-9a-f-]+\/delete-preview$/, r => r.fulfill(json({ data: { subjects: 0, materials: 0, cards: 0, reviews: 0, quizzes: 0, podcasts: 0 } })))
+    await page.route(/\/api\/trash$/, r => r.fulfill(json({ data: [] })))
+    await page.route(/\/api\/trash\/lote-b\/restore$/, (r) => { restores++; return r.fulfill(json({ data: { id: 'lote-b' } })) })
   })
 
   test.afterAll(async () => { await page.close() })
@@ -294,17 +298,17 @@ test.describe.serial('Cadernos: URL e exclusão com Desfazer (RF-F6.2/F6.4, rota
     await expect(page.getByRole('heading', { level: 1, name: 'Caderno A' })).toBeVisible()
   })
 
-  test('excluir → Desfazer: o caderno volta sem request', async () => {
+  test('excluir → Desfazer: o DELETE sai na hora e o lote é restaurado', async () => {
     await page.goto(`/cadernos/${B.id}`)
     await page.getByRole('button', { name: 'Mais ações de Caderno B', exact: true }).click()
     await page.getByRole('menuitem', { name: 'Excluir' }).click()
     const dialog = page.getByRole('alertdialog')
-    await expect(dialog.getByRole('heading', { name: "Excluir 'Caderno B'?" })).toBeVisible()
-    await dialog.getByRole('button', { name: 'Excluir' }).click()
+    await expect(dialog.getByRole('heading', { name: 'Mandar “Caderno B” para a lixeira?' })).toBeVisible()
+    await dialog.getByRole('button', { name: 'Mandar para a lixeira' }).click()
     await expect(page).toHaveURL(/\/cadernos$/)
     await page.getByRole('button', { name: 'Desfazer' }).click()
     await expect(page.getByRole('heading', { level: 1, name: 'Caderno B' })).toBeVisible()
-    await page.waitForTimeout(500)
-    expect(deletes).toBe(0)
+    expect(deletes).toBe(1)
+    expect(restores).toBe(1)
   })
 })

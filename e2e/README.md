@@ -79,6 +79,17 @@ e2e/
 └── *.spec.ts           ← testes por fluxo (gerados sob demanda)
 ```
 
+## Regressão visual (`visual.spec.ts`)
+
+Compara pixel a pixel com `e2e/visual.spec.ts-snapshots`. **Fora do CI**: a renderização de fonte muda de máquina. Rode antes e depois de mexer em CSS global.
+
+```bash
+npx playwright test e2e/visual.spec.ts                       # compara
+npx playwright test e2e/visual.spec.ts --update-snapshots    # regrava, em commit separado
+```
+
+As telas do app usam a conta `e2e-visual@audit.test`, que nenhum outro spec toca, então a ordem da suíte não importa. As públicas e a landing usam um catálogo fixo. A **landing tem tolerância zero**: a aparência dela está congelada até a fase 4h voltar à pauta.
+
 ## Screenshots de PR (`@screens`)
 
 `e2e/screens.spec.ts` captura as telas principais (desktop 1440×900, mobile 375×812, dark em /hoje,

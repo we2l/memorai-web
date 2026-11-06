@@ -16,7 +16,9 @@ export function usePlans() {
     if (pending.value) return pending.value
 
     const { $api } = useNuxtApp()
-    pending.value = $api<{ data: PlanCatalog }>('/plans')
+    // Inside the chain, so a throwing client also ends in `failed` (never an unhandled rejection)
+    pending.value = Promise.resolve()
+      .then(() => $api<{ data: PlanCatalog }>('/plans'))
       .then((res) => {
         plans.value = res.data
         failed.value = false

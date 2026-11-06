@@ -15,6 +15,8 @@ function limitDetail(plan: CatalogPlan, key: string): string | null {
   if (key === 'pdf_to_note') return `até ${plan.extras.pdf_pages_per_note} páginas cada`
   if (key === 'quiz_ai') return `até ${plan.extras.quiz_max_questions} questões`
   if (key === 'podcast') {
+    // none: the plan has no podcast (the Free since the planos de lançamento), so no detail to give
+    if (plan.extras.podcast_format === 'none' || !plan.extras.podcast_max_minutes) return null
     return plan.extras.podcast_format === 'teaser'
       ? `prévia de ~${Math.round(plan.extras.podcast_max_minutes * 60)}s`
       : `até ${plan.extras.podcast_max_minutes} min`

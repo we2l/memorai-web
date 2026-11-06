@@ -21,7 +21,7 @@
           </UiLink>
           <nav aria-label="Caminho" class="hidden min-w-0 flex-1 items-center gap-1 text-meta text-fg-muted sm:flex">
             <template v-for="(p, i) in crumbs" :key="p.id">
-              <NuxtLink :to="cadernoPath(p.id)" class="max-w-40 truncate hover:text-fg-strong">{{ p.name }}</NuxtLink>
+              <NuxtLink :to="cadernoPath(p.id)" class="-my-3 max-w-40 truncate py-3 hover:text-fg-strong">{{ p.name }}</NuxtLink>
               <ChevronRight v-if="i < crumbs.length" class="size-3 shrink-0" aria-hidden="true" />
             </template>
             <span class="truncate font-semibold text-fg-strong" aria-current="page">{{ m.noteTitle.value || 'Sem título' }}</span>
@@ -176,7 +176,7 @@
       <!-- Phone: the reader alone, with Sumário and Cards in sheets and the primary at hand -->
       <div
         v-if="!desktop && !keyboardOpen && m.editingNote.value"
-        class="fixed inset-x-0 bottom-[calc(var(--nav-h)+var(--miniplayer-h))] z-sticky flex items-center gap-2 border-t border-line bg-raised px-gutter py-3"
+        class="fixed inset-x-0 bottom-[calc(var(--nav-h)+var(--miniplayer-h))] z-sticky flex items-center gap-2 border-t border-line bg-raised px-gutter-safe py-3 short:py-1.5"
         data-testid="material-bar"
       >
         <UiButton v-if="outlineItems.length" size="sm" class="whitespace-nowrap" :icon-left="ListTree" @click="outlineSheet = true">Sumário</UiButton>

@@ -41,11 +41,22 @@
 
   body {
     background-color: var(--surface-page);
+    /* dvh: o 100vh do Safari do iOS conta as barras recolhidas e deixa a página curta rolando */
     min-height: 100vh;
+    min-height: 100dvh;
+    /* Paisagem no iPhone com entalhe (viewport-fit=cover): o conteúdo não passa por baixo dele. As barras fixas
+       somam a área segura por conta própria (px-safe, px-gutter-safe; prd-responsividade RF-4) */
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
   }
 
   button {
     cursor: pointer;
+  }
+
+  /* Toque: sem o zoom do toque duplo em controles (o atraso do clique já não existe com width=device-width) */
+  a, button, input, select, textarea, label, summary, [role='button'] {
+    touch-action: manipulation;
   }
 
   /* Outline, não box-shadow: btn-* e shadow-* usam box-shadow e esconderiam o anel */

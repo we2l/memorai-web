@@ -15,3 +15,5 @@
 @import './base.css';
 
 @custom-variant dark (&:where(.dark, .dark *));
+/* Celular deitado: mesma condição do --bottomnav-h curto em tokens.css */
+@custom-variant short (@media (orientation: landscape) and (max-height: 480px));

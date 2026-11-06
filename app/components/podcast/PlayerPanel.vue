@@ -58,12 +58,6 @@
       </UiLink>
     </p>
 
-    <!-- Teaser (Free): the full episode is Pro -->
-    <div v-if="podcast.is_teaser && player.hasEnded" class="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-row bg-subtle px-3 py-2.5">
-      <p class="min-w-0 flex-1 text-meta text-fg">Essa foi só a prévia.<template v-if="podcastBenefit"> No Pro: {{ podcastBenefit }}.</template></p>
-      <UiButton size="sm" to="/planos" @click="player.collapse()">Ver planos</UiButton>
-    </div>
-
     <PodcastTranscript :lines="lines" :current-ms="player.currentTime * 1000" :loading="loadingTranscript" class="min-h-0" @seek="player.seek($event)" />
 
     <div class="flex flex-wrap items-center gap-2 border-t border-line pt-3">
@@ -94,6 +88,7 @@ async function loadTranscript(id: string): Promise<PodcastTranscriptLine[]> {
 // progress with elapsed and remaining time, −15 s / play-pause (the primary) / +15 s, speed, the transcript
 // of GET /podcasts/{id} (current line marked, click seeks) and "revisar os N agora" (scope=podcast:). Used
 // as a column of /podcasts on the desktop and inside the expanded sheet (ExpandedPlayer) everywhere else.
+// No teaser CTA since the planos de lançamento: the Free makes no preview (the paywall shows the demo video).
 import { Download, Pause, Play, RotateCcw, RotateCw } from 'lucide-vue-next'
 import { reviewPath } from '~/utils/reviewScope'
 
@@ -134,10 +129,6 @@ watch(() => podcast.value?.id, async (id) => {
     loadingTranscript.value = false
   }
 }, { immediate: true })
-
-const plans = usePlans()
-const podcastBenefit = computed(() => plans.feature('podcast')?.pro_benefit ?? null)
-watch(() => podcast.value?.is_teaser, (teaser) => { if (teaser) void plans.fetchPlans() }, { immediate: true })
 
 function toggle() {
   player.togglePlay()

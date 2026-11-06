@@ -312,7 +312,8 @@ test.describe('landing D', () => {
       const banner = (await page.getByTestId('consent-banner').boundingBox())!
       const heroCta = (await page.getByTestId('landing-cta-hero').boundingBox())!
       expect(heroCta.y + heroCta.height).toBeLessThan(banner.y)
-      expect(banner.height).toBeLessThanOrEqual(130)
+      // Two lines on a phone: the sentence with the policy link, then the three buttons
+      expect(banner.height).toBeLessThanOrEqual(110)
       await page.locator('.lp-story .lp-chap').first().locator('h3').scrollIntoViewIfNeeded()
       await page.evaluate(() => window.scrollBy(0, 300))
       await expect(page.getByTestId('consent-banner')).toBeVisible()
@@ -373,7 +374,7 @@ test.describe('landing D', () => {
     const heroCta = (await page.getByTestId('landing-cta-hero').boundingBox())!
     expect(heroCta.y + heroCta.height).toBeLessThan(box.y)
     for (const id of ['consent-reject', 'consent-accept', 'consent-customize']) await expect(page.getByTestId(id)).toBeVisible()
-    await expect(banner.getByRole('link', { name: 'Política de privacidade' })).toBeVisible()
+    await expect(banner.getByRole('link', { name: 'Privacidade' })).toHaveAttribute('href', '/privacidade')
     await ctx.close()
   })
 

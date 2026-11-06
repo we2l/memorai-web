@@ -142,6 +142,12 @@ export default defineNuxtConfig({
       ],
     },
     workbox: {
+      // A new release takes over at once and drops the precache of the previous one (autoUpdate already implies
+      // these; written out so nobody turns them off by accident). The open page reloads when it takes control
+      // (virtual:pwa-register); a chunk of the old release that still fails reloads once (plugins/chunk-recovery).
+      skipWaiting: true,
+      clientsClaim: true,
+      cleanupOutdatedCaches: true,
       // No app shell with ssr:false + prerender: a '/' fallback served the landing
       // instead of the app. Offline page is Phase 2.
       navigateFallback: null,

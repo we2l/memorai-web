@@ -13,7 +13,7 @@
   >
     <p class="text-label text-warning font-medium">
       Seu anual venceu em {{ formatBillingDayMonth(subscription.info?.plan_expires_at) }}.
-      Renove até {{ formatBillingDayMonth(subscription.info?.grace_ends_at) }} para não perder o Pro.
+      Renove até {{ formatBillingDayMonth(subscription.info?.grace_ends_at) }} para não perder o {{ proName }}.
     </p>
     <NuxtLink :to="ANNUAL_RENEWAL_PATH" class="text-label font-semibold text-warning underline shrink-0">
       Renovar
@@ -23,4 +23,5 @@
 
 <script setup lang="ts">
 const subscription = useSubscriptionStore()
+const proName = useProName()
 </script>

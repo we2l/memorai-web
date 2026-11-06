@@ -6,7 +6,7 @@
 
     <p v-if="limitReached" role="status" class="mb-3 flex flex-wrap items-center gap-x-2 rounded-row bg-subtle px-3 py-2 text-meta text-fg" data-testid="exam-limit">
       No plano Grátis, até 2 provas futuras ao mesmo tempo.
-      <UiLink to="/planos">No Pro, sem limite</UiLink>
+      <UiLink to="/planos">No {{ proName }}, sem limite</UiLink>
     </p>
 
     <p v-if="!exams.length" class="text-body text-fg-muted" data-testid="exams-empty">
@@ -57,6 +57,7 @@ const props = defineProps<{
   limitReached?: boolean
   savingOutcome?: { id: string; outcome: ExamOutcome } | null
 }>()
+const proName = useProName(() => !!props.limitReached)
 const emit = defineEmits<{
   create: []
   edit: [e: Exam]

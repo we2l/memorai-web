@@ -3,11 +3,11 @@
     <UiSwitch
       :model-value="on"
       label="Episódio da manhã"
-      :description="isPro ? 'Quando houver erros de ontem, um episódio curto fica pronto às 7h. Usa 1 dos seus 5 do mês.' : 'No Pro: um episódio curto dos seus erros de ontem, pronto às 7h.'"
+      :description="isPro ? 'Quando houver erros de ontem, um episódio curto fica pronto às 7h. Usa 1 dos seus 5 do mês.' : `No ${proName}: um episódio curto dos seus erros de ontem, pronto às 7h.`"
       :disabled="!isPro || loading || pending"
       @update:model-value="toggle"
     />
-    <UiLink v-if="!isPro" to="/planos" class="text-meta">No Pro</UiLink>
+    <UiLink v-if="!isPro" to="/planos" class="text-meta">No {{ proName }}</UiLink>
   </div>
 </template>
 
@@ -19,6 +19,7 @@ import type { UserSettings } from '~/types'
 const auth = useAuthStore()
 const { $api } = useNuxtApp()
 const isPro = computed(() => auth.user?.plan === 'pro')
+const proName = useProName(() => !isPro.value)
 
 const on = ref(false)
 const loading = ref(true)

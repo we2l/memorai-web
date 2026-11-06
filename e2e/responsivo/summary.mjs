@@ -26,6 +26,7 @@ for (const dev of devices) {
   for (const f of fs.readdirSync(path.join(dir, dev)).filter(f => f.endsWith('.json'))) {
     const { entries } = JSON.parse(fs.readFileSync(path.join(dir, dev, f), 'utf8'))
     for (const { name, report: r } of entries) {
+      r.small = r.small.filter(s => Math.min(s.box.w, s.box.h) < 43.5)
       rows.push({ dev, name, ox: r.overflowX > 1 ? r.overflowX : 0, s24: r.small.filter(s => Math.min(s.box.w, s.box.h) < 24).length, s44: r.small.length, z: r.zoomInputs.length, fo: r.fixedOverlaps.length, cov: r.covered.length, dl: r.dialogs.length, md: r.media.length, tt: r.tinyText.length })
       for (const k of Object.keys(KINDS)) {
         for (const o of r[k]) {

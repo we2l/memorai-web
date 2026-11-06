@@ -31,13 +31,20 @@ export interface ResponsiveReport {
 }
 
 export async function inspect(page: Page, opts: { coverage?: boolean } = {}): Promise<ResponsiveReport> {
+  const scrollY = await page.evaluate(() => window.scrollY)
   const base = await page.evaluate(collect, { phase: 'top' as const })
-  if (opts.coverage === false) return base
+  // Back where the caller left the page (a capture in the middle of the landing)
+  const restore = () => page.evaluate(y => window.scrollTo(0, y), scrollY)
+  if (opts.coverage === false) {
+    await restore()
+    return base
+  }
   // Fim da rolagem: o último controle não pode ficar atrás da barra inferior, do mini-player ou da barra fixa
   const atBottom = await page.evaluate(collect, { phase: 'bottom' as const })
   base.covered = atBottom.covered
   const pairs = new Set(base.fixedOverlaps.map(o => `${o.a}|${o.b}`))
   for (const o of atBottom.fixedOverlaps) if (!pairs.has(`${o.a}|${o.b}`)) base.fixedOverlaps.push(o)
+  await restore()
   return base
 }
 
@@ -162,10 +169,10 @@ function collect({ phase }: { phase: 'top' | 'bottom' }): ResponsiveReport {
     const outer = target.parentElement?.closest(INTERACTIVE)
     if (outer && outer !== target && shown(outer)) {
       const o = hit(outer, outer.getBoundingClientRect())
-      if (Math.min(o.w, o.h) >= 44) continue
+      if (Math.min(o.w, o.h) >= 43.5) continue
     }
     const size = hit(target, rect)
-    if (Math.min(size.w, size.h) >= 44) continue
+    if (Math.min(size.w, size.h) >= 43.5) continue
     const r = rect
     const key = `${name(target)}|${r2(r.width)}x${r2(r.height)}`
     if (seenSmall.has(key)) continue

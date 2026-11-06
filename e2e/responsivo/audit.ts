@@ -35,11 +35,17 @@ function recorder(info: TestInfo) {
     async shot(page: Page, name: string, opts: { full?: boolean } = {}) {
       await page.evaluate(() => document.fonts?.ready).catch(() => {})
       await page.waitForTimeout(350)
-      await page.screenshot({ path: path.join(dir, `${name}.png`), fullPage: opts.full ?? false, animations: 'disabled', caret: 'hide' })
       // Dialogs open: the page behind is locked, measuring the end of its scroll means nothing
       const dialogOpen = await page.locator('[role=dialog][aria-modal=true], [role=alertdialog]').filter({ visible: true }).count()
       entries.push({ name, report: await inspect(page, { coverage: dialogOpen === 0 }) })
       save()
+      // The whole page by growing the viewport, not fullPage: Chromium's full-page capture drops the device emulation
+      // (pointer: coarse) until the next navigation, and the next state of the same page would measure without it
+      const vp = page.viewportSize()!
+      const tall = opts.full ? await page.evaluate(() => document.documentElement.scrollHeight) : vp.height
+      if (tall > vp.height) await page.setViewportSize({ width: vp.width, height: Math.min(tall, 8000) })
+      await page.screenshot({ path: path.join(dir, `${name}.png`), animations: 'disabled', caret: 'hide' })
+      if (tall > vp.height) await page.setViewportSize(vp)
     },
     save,
   }

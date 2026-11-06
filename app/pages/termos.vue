@@ -22,7 +22,7 @@
 
     <h2 id="planos">3. Planos, cobrança, renovação e cancelamento</h2>
     <ul>
-      <li>O plano Grátis tem limites mensais de uso de IA. O Pro amplia esses limites, conforme a página <NuxtLink to="/planos">Planos</NuxtLink>.</li>
+      <li>O plano Grátis tem limites mensais de uso de IA. O Intensivo amplia esses limites, conforme a página <NuxtLink to="/planos">Planos</NuxtLink>.</li>
       <li><strong>Mensal:</strong> cobrado no cartão e renovado automaticamente a cada mês até você cancelar.</li>
       <li><strong>Anual (Pix ou cartão):</strong> pagamento único que vale por 12 meses, sem renovação automática. Avisamos por e-mail antes do vencimento.</li>
       <li>O cancelamento do mensal pode ser feito a qualquer momento no portal de assinatura e vale até o fim do período já pago.</li>
@@ -81,7 +81,7 @@ definePageMeta({ layout: 'public' })
 
 // TODO(jurídico): datas definitivas na publicação do texto revisado
 const EFFECTIVE_DATE = '1º de outubro de 2026'
-const UPDATED_AT = '29 de setembro de 2026'
+const UPDATED_AT = '6 de novembro de 2026'
 
 const sections = [
   { id: 'aceitacao', title: 'Aceitação' },

@@ -17,10 +17,9 @@ const props = withDefaults(defineProps<{
   plan: 'free',
 })
 
-const label = computed(() => {
-  const labels: Record<string, string> = { free: 'Grátis', pro: 'Pro' }
-  return labels[props.plan] || 'Grátis'
-})
+// The paid plan's name from the catalog ("Intensivo"); `pro` stays the key
+const proName = useProName(() => props.plan === 'pro')
+const label = computed(() => (props.plan === 'pro' ? proName.value : 'Grátis'))
 
 const badgeClass = computed(() => {
   const classes: Record<string, string> = {

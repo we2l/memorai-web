@@ -21,12 +21,9 @@
         <button type="button" class="min-h-touch font-medium text-action-fg underline underline-offset-2" @click="$emit('retry', row)">Tentar de novo</button>
       </p>
       <p v-else-if="row.status === 'blocked'" class="flex flex-wrap items-center gap-x-2 text-meta text-fg-muted">
-        <template v-if="reason === 'feature_limit'">
-          <span>Limite do mês atingido</span>
-          <button type="button" class="min-h-touch font-medium text-action-fg underline underline-offset-2" @click="openPlans">Ver planos</button>
-        </template>
-        <template v-else-if="reason === 'pages_cap'">
-          <span>Limite de leitura da IA atingido este mês</span>
+        <template v-if="reason === 'feature_limit' || reason === 'pages_cap'">
+          <span>{{ blockedText }}</span>
+          <button v-if="reason === 'feature_limit' || auth.onTrial" type="button" class="min-h-touch font-medium text-action-fg underline underline-offset-2" @click="openPlans">Ver planos</button>
         </template>
         <template v-else>
           <span>Resumo ainda não gerado</span>
@@ -86,6 +83,8 @@ const emit = defineEmits<{
 }>()
 
 const store = useScopeStore()
+const auth = useAuthStore()
+const { plans } = usePlans()
 const titleLink = ref<{ $el: HTMLElement } | null>(null)
 
 const scope = computed<ReviewScope>(() => (props.row.kind === 'pdf' ? { type: 'document', id: props.row.id } : { type: 'note', id: props.row.id }))
@@ -120,6 +119,15 @@ const progressText = computed(() => {
 
 // The reason comes with the line since the 4b-2 API; right after an upload here, from the upload's answer
 const reason = computed(() => props.row.blocked_reason ?? props.blockedReason ?? null)
+// The trial has its own quotas and 100 pages for its 7 days, from the catalog (prd-planos-lancamento RF-F5)
+const blockedText = computed(() => {
+  if (reason.value === 'pages_cap') {
+    const cap = auth.onTrial ? offeredTrial(plans.value)?.pdf_pages_cap : null
+    return cap ? `Teto de ${cap} páginas do teste atingido` : 'Limite de leitura da IA atingido este mês'
+  }
+  if (auth.onTrial) return 'Limite do teste atingido'
+  return auth.user?.plan === 'pro' ? 'Limite do mês atingido' : 'O resumo com IA não entra no plano Grátis'
+})
 
 const cardsBusy = computed(() => props.row.kind === 'pdf' && (props.row.auto_cards_status === 'pending' || props.row.auto_cards_status === 'generating'))
 

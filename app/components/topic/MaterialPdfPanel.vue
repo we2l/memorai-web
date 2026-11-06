@@ -2,7 +2,7 @@
   <div v-if="hasNotice" class="mt-4 flex flex-col gap-2" data-testid="material-pdf-panel">
       <!-- Partial: the plan read only part of the PDF -->
       <p v-if="partial" class="text-meta text-fg-muted">
-        Parcial: o plano grátis leu {{ doc.processed_pages }} de {{ doc.pages_count }} páginas. <UiLink to="/planos">Desbloquear o resto</UiLink>
+        Parcial: {{ reader }} leu {{ doc.processed_pages }} de {{ doc.pages_count }} páginas. <UiLink to="/planos">Desbloquear o resto</UiLink>
       </p>
 
       <!-- PDF → cards (RF-F5.2), now by the note it opened -->
@@ -10,7 +10,7 @@
         <UiSpinner size="sm" /> Nota pronta · criando os cards das primeiras partes…
       </p>
       <p v-else-if="doc.auto_cards_status === 'skipped_quota'" class="flex flex-wrap items-center gap-x-2 text-meta text-fg">
-        Sem gerações de cards este mês.
+        Sem gerações de cards {{ auth.onTrial ? 'no teste' : 'este mês' }}.
         <UiButton size="sm" variant="ghost" :loading="retrying" @click="retryCards">Gerar cards</UiButton>
       </p>
       <p v-else-if="doc.auto_cards_status === 'skipped_empty'" class="text-meta text-fg-muted">Resumo curto demais para gerar cards.</p>
@@ -47,6 +47,9 @@ const emit = defineEmits<{ (e: 'changed'): void; (e: 'regenerate'): void }>()
 const { $api } = useNuxtApp()
 const { run } = useApiAction()
 
+// The trial reads up to its 100 pages (prd-planos-lancamento RF-F5)
+const auth = useAuthStore()
+const reader = computed(() => (auth.onTrial ? 'o teste' : auth.user?.plan === 'pro' ? 'a IA' : 'o plano grátis'))
 const partial = computed(() => !!props.doc.processed_pages && !!props.doc.pages_count && props.doc.processed_pages < props.doc.pages_count)
 const modeChanged = computed(() => !!props.doc.learning_mode_used && !!props.topicLearningMode && props.doc.learning_mode_used !== props.topicLearningMode)
 const languageName = computed(() => TARGET_LANGUAGES.find(l => l.value === props.doc.source_language)?.label ?? 'outro idioma')

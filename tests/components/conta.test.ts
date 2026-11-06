@@ -100,29 +100,30 @@ describe('SettingsPlanUsageSection (RF-F1, RN 5)', () => {
     const monthly = (over: object) => ({ data: { plan: 'pro', billing: 'monthly', has_subscription: true, subscription_ends_at: null, ...over } })
     async function summary(user: object, subscription: object) {
       useAuthStore().user = { plan: 'pro', ...user } as never
-      stubApi({ '/plans': { data: { plans: [], features: {} } }, '/usage': { data: { features: {} } }, '/subscription': subscription })
+      // The plan's name comes from the catalog (decisão do dono: "Intensivo")
+      stubApi({ '/plans': { data: { plans: [{ key: 'pro', name: 'Intensivo', prices: { monthly: null, annual: null } }], features: {} } }, '/usage': { data: { features: {} } }, '/subscription': subscription })
       const w = await mountSuspended(PlanUsageSection)
       await flushPromises()
       return w.get('[data-testid="plan-summary"]').text()
     }
 
     it('com a data: renova em, e nunca junto de termina em', async () => {
-      expect(await summary({ subscription_renews_at: '2026-11-28T12:00:00-03:00' }, monthly({}))).toBe('Pro · renova em 28/11')
-      expect(await summary({ subscription_renews_at: '2026-11-28T12:00:00-03:00' }, monthly({ subscription_ends_at: '2026-01-01T12:00:00-03:00' }))).toBe('Pro · renova em 28/11')
+      expect(await summary({ subscription_renews_at: '2026-11-28T12:00:00-03:00' }, monthly({}))).toBe('Intensivo · renova em 28/11')
+      expect(await summary({ subscription_renews_at: '2026-11-28T12:00:00-03:00' }, monthly({ subscription_ends_at: '2026-01-01T12:00:00-03:00' }))).toBe('Intensivo · renova em 28/11')
     })
 
     it('null com assinatura cancelada no fim do período: termina em, sem "renova em" na seção', async () => {
-      expect(await summary({ subscription_renews_at: null }, monthly({ subscription_ends_at: '2026-12-10T12:00:00-03:00' }))).toBe('Pro · termina em 10/12')
+      expect(await summary({ subscription_renews_at: null }, monthly({ subscription_ends_at: '2026-12-10T12:00:00-03:00' }))).toBe('Intensivo · termina em 10/12')
       expect(document.body.textContent).not.toContain('renova em')
     })
 
     it('campo ausente (API sem o campo) ou null no mensal: não inventa data', async () => {
-      expect(await summary({}, monthly({}))).toBe('Pro mensal')
-      expect(await summary({ subscription_renews_at: null }, monthly({}))).toBe('Pro mensal')
+      expect(await summary({}, monthly({}))).toBe('Intensivo mensal')
+      expect(await summary({ subscription_renews_at: null }, monthly({}))).toBe('Intensivo mensal')
     })
 
     it('anual: null e a validade de sempre', async () => {
-      expect(await summary({ subscription_renews_at: null }, { data: { plan: 'pro', billing: 'annual', has_subscription: false, subscription_ends_at: null, plan_expires_at: '2027-09-28T15:05:00-03:00', monthly_scheduled: false } })).toBe('Pro anual · válido até 28/09/2027')
+      expect(await summary({ subscription_renews_at: null }, { data: { plan: 'pro', billing: 'annual', has_subscription: false, subscription_ends_at: null, plan_expires_at: '2027-09-28T15:05:00-03:00', monthly_scheduled: false } })).toBe('Intensivo anual · válido até 28/09/2027')
     })
   })
 
@@ -148,9 +149,45 @@ describe('SettingsPlanUsageSection (RF-F1, RN 5)', () => {
     expect(rows.map(r => r.findAll('span')[0]!.text())).toEqual(['Gerações de cards com IA', 'Podcasts', 'Mapas mentais com IA'])
     expect(rows[0]!.text()).toContain('3 de 10')
     expect(rows[1]!.text()).toContain('ilimitado')
-    expect(rows[2]!.text()).toContain('no Pro')
+    // Without the plan in the catalog, the name of the decision (PRO_NAME_FALLBACK)
+    expect(rows[2]!.text()).toContain('no Intensivo')
     expect(w.get('[data-testid="usage-renews"]').text()).toBe('a contagem recomeça em 01/12')
     expect(w.findAll('[data-testid="plan-upgrade"]')).toHaveLength(1)
+  })
+
+  it('no teste: "Intensivo grátis até" no lugar do "renova em", a contagem do teste e as páginas (prd-planos-lancamento RF-F6)', async () => {
+    useAuthStore().user = { plan: 'free', email_verified: true, trial: { status: 'active', started_at: '2026-11-05T13:00:00Z', ends_at: '2099-11-12T13:00:00Z' } } as never
+    stubApi({
+      '/plans': { data: { plans: [{ key: 'pro', name: 'Intensivo', prices: { monthly: null, annual: null } }], features: {
+        cards_ai: { label: 'gerações de cards com IA', unit: 'por mês', pro_benefit: 'x' },
+      } } },
+      '/usage': { data: { plan: 'free', tier: 'trial', period_start: '2026-11-05', period_end: '2026-11-12', features: {
+        cards_ai: { used: 4, limit: 20, remaining: 16 },
+      }, pdf_pages: { used: 30, limit: 100, remaining: 70 } } },
+      '/subscription': { data: {} },
+    })
+    const w = await mountSuspended(PlanUsageSection)
+    await flushPromises()
+    expect(w.get('[data-testid="plan-summary"]').text()).toBe('Intensivo grátis até 12/11')
+    expect(w.find('[data-testid="usage-renews"]').exists()).toBe(false)
+    expect(w.get('h3').text()).toBe('Uso de IA no teste')
+    const rows = w.findAll('[data-testid="usage-row"]')
+    expect(rows.map(r => r.findAll('span')[0]!.text())).toEqual(['Gerações de cards com IA', 'Páginas de PDF lidas pela IA'])
+    expect(rows[1]!.text()).toContain('30 de 100')
+    expect(w.get('[role="progressbar"]').attributes('aria-label')).toContain('4 de 20 no teste')
+  })
+
+  it('Free com o teste disponível: o convite com os dias do catálogo (RF-F2)', async () => {
+    useAuthStore().user = { plan: 'free', email_verified: true, trial: { status: 'available', started_at: null, ends_at: null } } as never
+    stubApi({
+      '/plans': { data: { trial: { days: 7, card_required: false }, plans: [{ key: 'pro', name: 'Intensivo', prices: { monthly: null, annual: null } }], features: {} } },
+      '/usage': { data: { plan: 'free', tier: 'free', period_end: '2026-11-30', features: {} } },
+      '/subscription': { data: {} },
+    })
+    const w = await mountSuspended(PlanUsageSection)
+    await flushPromises()
+    expect(w.text()).toContain('Sem cobrança. Mande seu primeiro material e ganhe 7 dias do Intensivo.')
+    expect(w.get('[data-testid="plan-upgrade"]').text()).toBe('Conhecer o Intensivo')
   })
 
   it('Pro: nenhum primário', async () => {

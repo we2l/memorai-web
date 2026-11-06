@@ -4,11 +4,12 @@ import { test, expect } from '@playwright/test'
  * Oferta vem só de GET /api/plans (RN-01): mudar o catálogo muda a landing sem deploy do front.
  */
 test.describe('Catálogo de planos na landing', () => {
-  test('preços e limites seguem a API', async ({ page, request }) => {
+  test('preços e linhas seguem a API', async ({ page, request }) => {
     const real = await request.get('http://localhost:8037/api/plans')
     expect(real.ok()).toBeTruthy()
     const catalog = (await real.json()).data
-    catalog.plans[1].limits.podcast = 7
+    catalog.features.podcast.pro_benefit = '7 episódios de até 8 min'
+    catalog.plans[1].prices.monthly.amount_cents = 3190
 
     await page.route('**/api/plans', route => route.fulfill({
       status: 200,
@@ -19,22 +20,21 @@ test.describe('Catálogo de planos na landing', () => {
     await page.goto('/#planos')
     const pricing = page.locator('#planos')
 
-    // Annual first, like /planos (prd-landing-v4 RF-L7): the monthly equivalent of the catalog
+    // Landing D (prd-landing-d §5.2): two cards of 5 lines, the monthly price and the annual one of the catalog
     const brl = (cents: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(cents / 100)
-    await expect(pricing.getByTestId('plan-pro-price')).toContainText(brl(catalog.plans[1].prices.annual.monthly_equivalent_cents))
-    await expect(pricing.getByText('Podcasts: 7 por mês (até 15 min)')).toBeVisible()
-    await expect(pricing.getByText('Gerações de cards com IA: 10 por mês')).toBeVisible()
+    await expect(pricing.getByTestId('landing-plan-paid-price')).toContainText(brl(3190))
+    await expect(pricing.getByTestId('landing-plan-paid-annual')).toContainText(brl(catalog.plans[1].prices.annual.amount_cents))
+    await expect(pricing.getByText('7 episódios de até 8 min')).toBeVisible()
     await expect(pricing.getByText(/30 PDFs|10 podcasts/)).toHaveCount(0)
   })
 
-  // Landing v4 (prd-landing-v4 RF-L7): the same PlanCards of /planos, with its error and "Tentar de novo"
   test('sem catálogo não mostra números, só o erro com "Tentar de novo"', async ({ page }) => {
     await page.route('**/api/plans', route => route.fulfill({ status: 500, body: '' }))
 
     await page.goto('/#planos')
     const pricing = page.locator('#planos')
 
-    await expect(pricing.getByText('Não conseguimos carregar os planos agora')).toBeVisible()
+    await expect(pricing.getByText('Não deu para carregar os preços agora.')).toBeVisible()
     await expect(pricing.getByRole('button', { name: 'Tentar de novo' })).toBeVisible()
     await expect(pricing.getByText(/R\$/)).toHaveCount(0)
   })

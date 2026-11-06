@@ -25,6 +25,11 @@ describe.skipIf(skipWithoutBuild)('páginas pré-renderizadas (build)', () => {
     for (const m of ['padrao', 'prova', 'esqueci', 'faculdade', 'ingles']) expect(html, m).toContain(`data-m-variant="${m}"`)
     const head = html.slice(0, html.indexOf('</head>'))
     expect(head).toContain("setAttribute('data-m',m)")
+    // Landing D (prd-landing-d RF-D14, RF-D15): the motion switch before the paint; the title face comes from the
+    // inline CSS (no preload competing with the LCP poster) and no pose of the dolphin is prefetched
+    expect(head).toContain("classList.add('lp-motion')")
+    expect(head).toContain('/landing/bricolage-700.woff2')
+    expect(head).not.toMatch(/rel="prefetch"[^>]*mascot/)
     expect(html).not.toContain('markmap')
   })
 })

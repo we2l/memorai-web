@@ -2,7 +2,7 @@
   <UiDialog v-model="open" size="sm" :title="title" :description="body">
     <template #footer>
       <template v-if="canUpgrade">
-        <UiButton variant="secondary" @click="open = false">Depois</UiButton>
+        <UiButton variant="ghost" @click="open = false">Depois</UiButton>
         <UiButton variant="primary" @click="goToPlans">Ver planos</UiButton>
       </template>
       <UiButton v-else variant="primary" @click="open = false">Entendi</UiButton>

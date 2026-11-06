@@ -95,7 +95,7 @@ const classes = computed(() => {
     state = `${v.rest} cursor-progress`
   }
   return [
-    'relative inline-flex items-center justify-center gap-2 rounded-control font-semibold text-center select-none transition duration-nav ease-calm',
+    'relative inline-flex items-center justify-center gap-2 rounded-control font-semibold text-center text-balance select-none transition duration-nav ease-calm',
     SIZES[props.size],
     state,
     props.block && 'w-full',

@@ -3,7 +3,7 @@
     <slot />
     <UiInput v-if="requireText" :id="inputId" v-model="typed" class="mt-1" :label="`Digite ${requireText} para confirmar`" autocomplete="off" />
     <template #footer>
-      <UiButton variant="secondary" @click="open = false">{{ cancelLabel }}</UiButton>
+      <UiButton variant="ghost" @click="open = false">{{ cancelLabel }}</UiButton>
       <UiButton :variant="variant === 'primary' ? 'primary' : 'danger'" :loading="loading" :disabled="!textMatches" @click="$emit('confirm')">
         {{ loading ? loadingLabel : confirmLabel }}
       </UiButton>

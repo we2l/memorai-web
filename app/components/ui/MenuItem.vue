@@ -14,7 +14,7 @@
     @click="emit('choose', item, $event)"
   >
     <component :is="item.icon" v-if="item.icon" class="size-4.5 shrink-0" :class="item.tone === 'danger' ? '' : 'text-fg-muted'" aria-hidden="true" />
-    <span class="min-w-0 flex-1">{{ item.label }}</span>
+    <span class="min-w-0 flex-1 break-words">{{ item.label }}</span>
     <span v-if="item.meta" class="shrink-0 text-meta text-fg-muted">{{ item.meta }}</span>
     <Check v-if="radio && item.checked" class="size-4.5 shrink-0 text-action-fg" aria-hidden="true" />
   </component>

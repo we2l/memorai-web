@@ -12,6 +12,8 @@ import { seedQuiz } from '../auditoria/support/seed-praticar'
  * through POST /ai/accept-cards (the persistence route), the notes get their content straight in the database (the
  * API would queue the embedding job), and the PDF, its parts, the quiz and the card states are rows written by
  * tinker. Then captures 390 px screens (DPR 2) in light and dark and writes AVIF + WebP to public/landing/.
+ * Landing D (prd-landing-d RF-D14): the Hoje and the review screens of each area; the clips of the material, the
+ * review and the quiz are real recordings of the same account (public/landing/video/), made outside this file.
  *
  * Needs the local API (http://localhost:8037) and the web build on :3000:
  *   NUXT_PUBLIC_API_BASE=http://localhost:8037/api npm run build && PORT=3000 node .output/server/index.mjs
@@ -318,11 +320,6 @@ async function save(page: Page, name: string, theme: string, { scrollY = 0 as nu
   await img.clone().webp({ quality: 74, effort: 6 }).toFile(path.join(OUT, `${name}-${theme}.webp`))
 }
 
-/** Viewport y of an element (the page as it is), minus an offset. */
-async function viewportTop(page: Page, selector: string, offset = 12) {
-  const y = await page.locator(selector).first().evaluate(el => el.getBoundingClientRect().top)
-  return Math.max(0, Math.round(y - offset))
-}
 
 async function settle(page: Page) {
   await page.waitForLoadState('networkidle')
@@ -330,11 +327,6 @@ async function settle(page: Page) {
   await page.waitForTimeout(700)
 }
 
-/** Page y of an element, minus an offset: where to scroll so it sits near the top of the capture. */
-async function topOf(page: Page, selector: string, offset = 16) {
-  const y = await page.locator(selector).first().evaluate(el => el.getBoundingClientRect().top + window.scrollY)
-  return Math.max(0, y - offset)
-}
 
 /**
  * The numbers the hero repeats in large type come from the same demo account, read from the API at capture time,
@@ -358,13 +350,9 @@ test('telas reais da landing', async ({ page }) => {
 
     await gotoApp(page, '/hoje')
     await settle(page)
-    await save(page, 'hoje', theme)
+    // The whole first screen of the Hoje: the phone of the projection (landing D) and of `?m=prova`
+    await save(page, 'hoje-tela', theme, { height: 844 })
     if (theme === 'light') await saveDemoNumbers(page)
-
-    await gotoApp(page, `/cadernos/${s.rootId}/material/${s.part5}`)
-    await settle(page)
-    // From the title of the part: the PDF, its pages and the "(pág. X-Y)" links of the text
-    await save(page, 'material', theme, { top: await viewportTop(page, 'h1', 24), height: 392 })
 
     // The short cards end higher: their capture stops under the answer
     for (const [name, url, height] of [['revisao', `/revisar?scope=document:${s.docId}`, 472], ['ingles', `/revisar?scope=topic:${s.inglesId}`, 320], ['anatomia', `/revisar?scope=topic:${s.anatomiaId}`, 320], ['oab', `/revisar?scope=topic:${s.oabId}`, 320], ['enem', `/revisar?scope=topic:${s.enemId}`, 340]] as const) {
@@ -374,20 +362,5 @@ test('telas reais da landing', async ({ page }) => {
       await settle(page)
       await save(page, name, theme, { height })
     }
-
-    await gotoApp(page, `/simulados/${s.quizId}/resultado`)
-    await settle(page)
-    // Score and accuracy by assunto, without the app header above them
-    await save(page, 'simulado', theme, { top: await viewportTop(page, 'h1', 56), height: 430 })
-
-    await gotoApp(page, `/progresso?caderno=${s.rootId}`)
-    await settle(page)
-    // The exam with the two numbers of the promise (the hero), and the domínio rows without the order picker
-    await save(page, 'projecao', theme, { scrollY: await topOf(page, '#provas', 4), height: 268 })
-    // The end of the page cannot scroll to the top of the rows: measure where they are once scrolled
-    const rows = '[data-testid=progress-performance] [role=row][data-testid]'
-    await page.locator(rows).first().evaluate(el => el.scrollIntoView({ block: 'start' }))
-    await page.waitForTimeout(300)
-    await save(page, 'dominio', theme, { scrollY: null, top: await viewportTop(page, rows, 12), height: 176 })
   }
 })

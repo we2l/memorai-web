@@ -22,6 +22,25 @@ export function offeredTrial(catalog: PlanCatalog | null | undefined): CatalogTr
   return trial && trial.days > 0 && !trial.card_required ? trial : null
 }
 
+/**
+ * "20 gerações de cards com IA, 30 perguntas ao tira-dúvidas, 3 PDFs transformados em nota (100 páginas no total) e
+ * 3 simulados com IA" — the trial's quotas for its whole period (catalog `trial.limits`, labels of `features`), in
+ * the catalog's order; what is out of it (0) is left out. Empty without the limits.
+ */
+export function trialLimitsText(catalog: PlanCatalog | null | undefined): string {
+  const trial = offeredTrial(catalog)
+  if (!trial?.limits || !catalog) return ''
+  const parts = Object.entries(catalog.features).flatMap(([key, f]) => {
+    const limit = trial.limits?.[key]
+    if (limit === 0 || limit === undefined) return []
+    if (limit === null) return [`${f.label} sem limite`]
+    const pages = key === 'pdf_to_note' && trial.pdf_pages_cap ? ` (${trial.pdf_pages_cap} páginas no total)` : ''
+    return [`${limit} ${f.label}${pages}`]
+  })
+  if (parts.length < 2) return parts.join('')
+  return `${parts.slice(0, -1).join(', ')} e ${parts[parts.length - 1]}`
+}
+
 /** Study days (Brasília) until the trial's last day: 0 = it ends today, 1 = tomorrow; null without a date. */
 export function trialDaysLeft(endsAt: string | null | undefined, now: Date = new Date()): number | null {
   const ago = daysAgo(endsAt, now)

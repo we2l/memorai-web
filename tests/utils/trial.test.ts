@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { hasProAccess, opensTrialOnUse, opensTrialRequest, proPlanName, trialDaysLeft, trialEnded, trialEndsLine, trialInvite, PRO_NAME_FALLBACK } from '~/utils/trial'
+import { trialLimitsText, hasProAccess, opensTrialOnUse, opensTrialRequest, proPlanName, trialDaysLeft, trialEnded, trialEndsLine, trialInvite, PRO_NAME_FALLBACK } from '~/utils/trial'
 import type { PlanCatalog, User } from '~/types'
 
 const user = (over: Partial<User>): User => ({ id: 'u', name: 'Ana', email: 'a@b.c', email_verified: true, plan: 'free', default_learning_mode: 'general', onboarding_completed: true, ...over })
@@ -63,5 +63,24 @@ describe('opensTrialRequest', () => {
     expect(opensTrialRequest('POST', '/notes/n1/opened')).toBe(false)
     expect(opensTrialRequest('GET', '/topics/t1/notes')).toBe(false)
     expect(opensTrialRequest(undefined, '/chat')).toBe(false)
+  })
+})
+
+describe('trialLimitsText', () => {
+  it('as cotas do teste no período inteiro, na ordem do catálogo, sem o que fica fora (0)', () => {
+    const catalog = {
+      trial: { days: 7, card_required: false, pdf_pages_cap: 100, limits: { cards_ai: 20, agent_chat: 30, pdf_to_note: 3, podcast: 0, quiz_ai: 3 } },
+      plans: [],
+      features: {
+        cards_ai: { label: 'gerações de cards com IA', unit: 'por mês', pro_benefit: '' },
+        agent_chat: { label: 'perguntas ao tira-dúvidas', unit: 'por mês', pro_benefit: '' },
+        pdf_to_note: { label: 'PDFs transformados em nota', unit: 'por mês', pro_benefit: '' },
+        quiz_ai: { label: 'simulados com IA', unit: 'por mês', pro_benefit: '' },
+        podcast: { label: 'podcasts', unit: 'por mês', pro_benefit: '' },
+      },
+    } as unknown as PlanCatalog
+    expect(trialLimitsText(catalog)).toBe('20 gerações de cards com IA, 30 perguntas ao tira-dúvidas, 3 PDFs transformados em nota (100 páginas no total) e 3 simulados com IA')
+    expect(trialLimitsText({ ...catalog, trial: { days: 7, card_required: false } } as PlanCatalog)).toBe('')
+    expect(trialLimitsText(null)).toBe('')
   })
 })

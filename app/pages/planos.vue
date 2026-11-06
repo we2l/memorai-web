@@ -98,14 +98,15 @@ const canScheduleMonthly = computed(() => {
 const proName = useProName()
 const { plans } = usePlans()
 const trial = computed(() => offeredTrial(plans.value))
+// "No teste: 20 gerações de cards com IA, 30 perguntas…" (catalog trial.limits, for the whole trial)
+const trialQuotas = computed(() => trialLimitsText(plans.value))
 
 /** The trial's line under the paid plan's action: the days of the catalog, never written by hand. */
 const trialLine = computed(() => {
   const t = trial.value
   const u = user.value
-  if (!t) return ''
-  if (!u) return `Crie a conta e ganhe ${t.days} dias grátis do ${proName.value} no primeiro material, sem cartão.`
-  if (u.plan === 'pro') return ''
+  // Signed in only: the visitor sees the trial in the questions (a line under the button would push the layout)
+  if (!t || !u || u.plan === 'pro') return ''
   if (u.trial?.status === 'active') return `${trialEndsLine(proName.value, u.trial.ends_at)}.`
   if (u.trial?.status === 'available') return `Ou teste ${t.days} dias grátis, sem cartão: começa quando você mandar o primeiro material.`
   return ''
@@ -113,7 +114,7 @@ const trialLine = computed(() => {
 
 const FAQS = computed(() => [
   ...(trial.value
-    ? [{ q: 'Como funciona o teste grátis?', a: `Ao mandar o primeiro material (um PDF ou uma nota), com o e-mail confirmado, você ganha ${trial.value.days} dias do ${proName.value}, sem cartão. Depois, a conta volta sozinha ao Grátis, sem cobrança.` }]
+    ? [{ q: 'Como funciona o teste grátis?', a: `Ao mandar o primeiro material (um PDF ou uma nota), com o e-mail confirmado, você ganha ${trial.value.days} dias do ${proName.value}, sem cartão.${trialQuotas.value ? ` No teste: ${trialQuotas.value}.` : ''} Depois, a conta volta sozinha ao Grátis, sem cobrança.` }]
     : []),
   { q: 'Posso cancelar quando quiser?', a: `Sim. Cancele quando quiser, pelo portal de assinatura. O ${proName.value} continua até o fim do período já pago.` },
   { q: 'Como funciona o plano anual?', a: 'É um pagamento único, no Pix ou no cartão, que vale por um ano. Não renova sozinho: avisamos por e-mail antes de vencer.' },

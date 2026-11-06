@@ -1,13 +1,13 @@
 <template>
   <div class="flex min-h-14 items-center justify-between gap-2 px-gutter pt-2 md:hidden">
-    <NuxtLink to="/hoje" class="flex items-center rounded-row" aria-label="Baigi, ir para Hoje">
+    <NuxtLink to="/hoje" class="hit-touch flex items-center rounded-row" aria-label="Baigi, ir para Hoje">
       <UiLogo :icon-size="28" :show-text="false" />
     </NuxtLink>
     <div class="flex items-center gap-1">
       <UiIconButton :icon="Search" label="Buscar" aria-haspopup="dialog" @click="openSearch" />
       <button
         type="button"
-        class="inline-flex min-h-9 items-center gap-1.5 rounded-row bg-subtle px-3 text-meta font-semibold text-fg-strong"
+        class="hit-touch inline-flex min-h-9 items-center gap-1.5 rounded-row bg-subtle px-3 text-meta font-semibold text-fg-strong"
         aria-haspopup="dialog"
         @click="addSheet.show('header')"
       >

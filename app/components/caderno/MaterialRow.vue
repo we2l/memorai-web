@@ -6,7 +6,7 @@
     </span>
 
     <div class="min-w-0 flex-1">
-      <NuxtLink v-if="openTo" ref="titleLink" :to="openTo" class="font-medium break-words text-fg-strong hover:text-action-fg focus-visible:text-action-fg" data-testid="material-title">
+      <NuxtLink v-if="openTo" ref="titleLink" :to="openTo" class="hit-touch font-medium break-words text-fg-strong hover:text-action-fg focus-visible:text-action-fg" data-testid="material-title">
         {{ row.title }}
       </NuxtLink>
       <span v-else class="font-medium break-words text-fg-strong" data-testid="material-title">{{ row.title }}</span>

@@ -21,6 +21,16 @@ const PREFIX = 'baigi:draft:'
 const TTL_MS = 7 * 24 * 60 * 60 * 1000
 const DEBOUNCE_MS = 300
 
+/** A draft the editor can open: a Tiptap document (or none), a title and when it was written. */
+export function isDraft(value: unknown): value is NoteDraft {
+  if (!value || typeof value !== 'object') return false
+  const d = value as Partial<NoteDraft>
+  const content = d.content
+  return typeof d.savedAt === 'number' && Number.isFinite(d.savedAt)
+    && typeof d.title === 'string'
+    && (content === null || (typeof content === 'object' && !Array.isArray(content) && content?.type === 'doc'))
+}
+
 export function useNoteDraft() {
   const auth = useAuthStore()
   let timer: ReturnType<typeof setTimeout> | null = null
@@ -63,7 +73,8 @@ export function useNoteDraft() {
       const raw = localStorage.getItem(key)
       if (!raw) return null
       const draft = JSON.parse(raw) as NoteDraft
-      if (typeof draft?.savedAt !== 'number' || Date.now() - draft.savedAt > TTL_MS) {
+      // Expired, or written by an older release in another shape: the editor would fail on it
+      if (!isDraft(draft) || Date.now() - draft.savedAt > TTL_MS) {
         localStorage.removeItem(key)
         return null
       }

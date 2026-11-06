@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import AxeBuilder from '@axe-core/playwright'
+import sharp from 'sharp'
 import type { Page } from '@playwright/test'
 import { test, expect } from './support/fixtures'
 
@@ -212,6 +213,25 @@ test.describe('landing D', () => {
     await expect(page.locator('.lp-proof')).toContainText(`${demo.keep_pace}%`, { timeout: 5000 })
     await expect(page.locator('.lp-proof')).toContainText(`${demo.stop_today}%`)
     await expect(page.getByText(`${demo.exam}, daqui a ${demo.days} dias, na conta de demonstração.`)).toBeVisible()
+  })
+
+  test('compartilhar: og:image absoluta de 1200×630, opaca e leve', async ({ page }) => {
+    await open(page)
+    const meta = (key: string) => page.locator(`meta[property="${key}"], meta[name="${key}"]`).getAttribute('content')
+    const image = await meta('og:image')
+    expect(image).toBe('https://baigi.com.br/landing/og-baigi.jpg')
+    expect(await meta('twitter:image')).toBe(image)
+    expect(await meta('twitter:card')).toBe('summary_large_image')
+    expect(await meta('og:url')).toBe('https://baigi.com.br/')
+    expect([await meta('og:image:width'), await meta('og:image:height')]).toEqual(['1200', '630'])
+    expect(await meta('og:image:alt')).toBeTruthy()
+    // The file of the build (e2e/landing/og.ts): JPEG has no alpha, so Facebook can't turn the mascot black
+    const res = await page.request.get('/landing/og-baigi.jpg')
+    expect(res.headers()['content-type']).toBe('image/jpeg')
+    const body = await res.body()
+    expect(body.length).toBeLessThan(300 * 1024)
+    const { width, height } = await sharp(body).metadata()
+    expect([width, height]).toEqual([1200, 630])
   })
 
   test('nenhuma frase que o produto não cumpre, e "FSRS-6" no máximo uma vez', async ({ page }) => {

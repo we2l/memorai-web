@@ -43,18 +43,20 @@ export function useCardWorkshop({ topicId, onReload }: UseCardWorkshopOptions) {
       topicId: topicId.value,
       timestamp: Date.now(),
     }
-    sessionStorage.setItem(`${STORAGE_KEY}-${topicId.value}`, JSON.stringify(data))
+    try { sessionStorage.setItem(`${STORAGE_KEY}-${topicId.value}`, JSON.stringify(data)) } catch { /* intencional: sem sessionStorage a oficina só não volta ao recarregar */ }
   }
 
   function restore() {
     if (!import.meta.client || !topicId.value) return
-    const raw = sessionStorage.getItem(`${STORAGE_KEY}-${topicId.value}`)
+    let raw: string | null = null
+    try { raw = sessionStorage.getItem(`${STORAGE_KEY}-${topicId.value}`) } catch { return }
     if (!raw) return
 
     try {
       const data: PersistedWorkshop = JSON.parse(raw)
-      // Only restore if same topic and recent (< 30 min)
-      if (data.topicId === topicId.value && Date.now() - data.timestamp < 30 * 60 * 1000) {
+      // Only restore if same topic, recent (< 30 min) and in the shape of this release
+      const cardsOk = Array.isArray(data?.cards) && data.cards.every(c => typeof c?.front === 'string' && typeof c?.back === 'string')
+      if (cardsOk && data.topicId === topicId.value && typeof data.timestamp === 'number' && Date.now() - data.timestamp < 30 * 60 * 1000) {
         cards.value = data.cards
         sourceNoteId.value = data.sourceNoteId
         state.value = 'workshop'
@@ -68,7 +70,7 @@ export function useCardWorkshop({ topicId, onReload }: UseCardWorkshopOptions) {
 
   function clearPersisted() {
     if (!import.meta.client || !topicId.value) return
-    sessionStorage.removeItem(`${STORAGE_KEY}-${topicId.value}`)
+    try { sessionStorage.removeItem(`${STORAGE_KEY}-${topicId.value}`) } catch { /* intencional: sem sessionStorage não há o que limpar */ }
   }
 
   // Restore when topic changes

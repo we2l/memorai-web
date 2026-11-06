@@ -17,10 +17,17 @@ export function episodeCardsCount(podcast: Podcast | null | undefined): number {
 
 type PendingProgress = Record<string, { position: number; completed: boolean }>
 
-function readPending(): PendingProgress {
+/** The offline copy; an entry an older release wrote in another shape is dropped (it would seek to NaN). */
+export function readPending(): PendingProgress {
   try {
-    const raw = JSON.parse(localStorage.getItem(PENDING_KEY) ?? '{}')
-    return raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : {}
+    const raw: unknown = JSON.parse(localStorage.getItem(PENDING_KEY) ?? '{}')
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {}
+    const valid: PendingProgress = {}
+    for (const [id, entry] of Object.entries(raw)) {
+      const { position, completed } = (entry ?? {}) as { position?: unknown, completed?: unknown }
+      if (typeof position === 'number' && Number.isFinite(position) && position >= 0) valid[id] = { position, completed: completed === true }
+    }
+    return valid
   } catch {
     return {}
   }

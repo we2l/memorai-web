@@ -52,6 +52,14 @@
   --palette-violet-900: #2A2140;
   --palette-violet-950: #231D33;
 
+  /* Landing D (prd-landing-d RF-D16): só servem aos semânticos --lp-* de components/landing/landing.css */
+  --palette-violet-200: #DCD0FF;
+  --palette-violet-800: #4C338B;
+  --palette-lilac-100: #EDE8FA;
+  --palette-lilac-200: #DCD3F5;
+  --palette-amber-200: #F3D9B1;
+  --palette-amber-900: #5C3A00;
+
   /* Modos de prática (só no ícone): Questões laranja, Ouvir petróleo */
   --palette-tangerine-700: #C26A00;
   --palette-tangerine-300: #F5A524;

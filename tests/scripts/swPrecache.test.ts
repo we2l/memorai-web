@@ -42,11 +42,12 @@ describe.skipIf(skipWithoutBuild)('service worker (build)', () => {
     expect(js.filter(f => readFileSync(join(nuxtDir, f), 'utf8').includes('data-ds-page'))).toEqual([])
   })
 
-  it('a landing (index.html, o chunk da página e o CSS dela) fica fora do precache (prd-landing-v4 RF-L14)', () => {
+  it('a landing (index.html, o chunk da página, o CSS, a fonte e a mídia dela) fica fora do precache (prd-landing-v4 RF-L14, prd-landing-d RF-D14)', () => {
     const urls = [...sw().matchAll(/url:"([^"]+)"/g)].map(m => m[1]!)
     expect(urls).not.toContain('index.html')
+    expect(urls.filter(u => u.startsWith('landing/') || u.includes('bricolage'))).toEqual([])
     const nuxtDir = join(PUBLIC_DIR, '_nuxt')
-    const holders = readdirSync(nuxtDir).filter(f => f.endsWith('.js') && readFileSync(join(nuxtDir, f), 'utf8').includes('landing-hero-cta'))
+    const holders = readdirSync(nuxtDir).filter(f => f.endsWith('.js') && readFileSync(join(nuxtDir, f), 'utf8').includes('lp-hero-cta'))
     expect(holders.length).toBeGreaterThan(0)
     expect(holders.filter(f => !f.startsWith('once-'))).toEqual([])
     expect(urls.filter(u => holders.some(h => u.endsWith(h)))).toEqual([])

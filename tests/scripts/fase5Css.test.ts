@@ -29,8 +29,9 @@ describe.skipIf(skipWithoutBuild)('Fase 5: o que o build entrega', () => {
     let end = start
     for (let depth = 1; depth > 0; end++) depth += css[end] === '{' ? 1 : css[end] === '}' ? -1 : 0
     const utilities = css.slice(start, end)
-    // The landing v4 compiles with the theme of the DS (prd-landing-v4 RF-L14): its own title scale, no default palette
-    expect(utilities).toContain('.landing-page .text-hero')
+    // The landing compiles with the theme of the DS (prd-landing-v4 RF-L14, prd-landing-d RF-D19): the tokens of the
+    // app (the subject dots of the areas), no default palette
+    expect(utilities).toContain('.landing-page .bg-subject-1')
     expect(css).not.toContain('--color-gray-')
     // Outside a nested block (media query, hover), every rule starts with the scope
     const loose = [...utilities.matchAll(/(?:^|\})\.(?!landing-page)[^{}]*\{/g)]
@@ -43,7 +44,14 @@ describe.skipIf(skipWithoutBuild)('Fase 5: o que o build entrega', () => {
     expect(cssFiles.filter(f => f.startsWith('index.'))).toEqual([landingFile])
   })
 
-  it('o CSS da landing fica leve (v4: ~4 KB gzip; era 5,8)', () => {
-    expect(gzipSync(read(landingFile!)).length / 1024).toBeLessThan(4.5)
+  // Landing D (prd-landing-d): the composition of the prototype (phone, bubbles, bands, stage, player, motion) lives
+  // here, out of the entry.css and of the precache. v4: ~4 KB gzip.
+  it('o CSS da landing fica leve (D: ~7 KB gzip)', () => {
+    expect(gzipSync(read(landingFile!)).length / 1024).toBeLessThan(8)
+  })
+
+  it('a fonte de título da landing (ADR-028) fica no CSS dela, nunca no entry.css', () => {
+    expect(read(landingFile!)).toContain('/landing/bricolage-700.woff2')
+    expect(read(entryFile!)).not.toContain('Bricolage')
   })
 })

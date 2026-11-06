@@ -109,7 +109,7 @@ for (const size of SIZES) {
       }
     })
 
-    // Landing v4 (prd-landing-v4): inside the DS, same tolerance as the rest. The lazy screens of the app load near
+    // Landing D (prd-landing-d): inside the DS, same tolerance as the rest. The lazy screens of the app load near
     // the viewport: scroll the page once before the full-page capture.
     test.describe('landing', () => {
       for (const theme of THEMES) {

@@ -1,11 +1,13 @@
-/* CSS da landing v4 (prd-landing-v4 RF-L14): só o que a landing usa e o app não, fora do entry.css e do precache.
-   Compila com o tema do design system (theme.css), então os tokens e as escalas são os mesmos do app; acrescenta só
-   a escala de título da página de marketing (modo Persuade) e as regras do ?m=. O escopo .landing-page
-   (pages/index.vue) impede que algo daqui alcance as telas do app quando se navega da landing para /entrar. */
+/* CSS da landing D (prd-landing-d; protótipo docs/research/assets/landing-prototipo/d.html): só o que a landing usa
+   e o app não, fora do entry.css e do precache (once-*, globIgnores). Tudo no escopo .landing-page, para nada daqui
+   alcançar o app quando se navega da landing para /entrar. Cor só por token: os primitivos estão em tokens.css (o
+   único arquivo com cor literal) e os semânticos --lp-* ficam aqui, em claro e escuro.
+   Movimento: só transform e opacity; o script do <head> (utils/landing.ts) liga html.lp-motion quando o sistema não
+   pede movimento reduzido, e utils/landingMotion.ts revela, conta e toca os vídeos. Sem lp-motion, tudo parado e
+   visível. */
 @layer theme, base, components, utilities;
 
 @import 'tailwindcss/theme.css' layer(theme);
-/* Só a referência: as variáveis do tema já estão no entry.css; aqui vão só as utilities que a landing usa */
 @reference '../../assets/css/theme.css';
 
 @source '../../pages/index.vue';
@@ -14,39 +16,507 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Títulos da landing: maiores que o text-page-title do app (32 px), com o mesmo peso e o mesmo tracking negativo */
-@theme static {
-  --text-hero: 2.5rem;
-  --text-hero--line-height: 1.1;
-  --text-hero--letter-spacing: -0.03em;
-  --text-hero--font-weight: 650;
-  --text-hero-lg: 3.5rem;
-  --text-hero-lg--line-height: 1.05;
-  --text-hero-lg--letter-spacing: -0.035em;
-  --text-hero-lg--font-weight: 650;
-  --text-heading: 1.75rem;
-  --text-heading--line-height: 2.25rem;
-  --text-heading--letter-spacing: -0.025em;
-  --text-heading--font-weight: 650;
-  --text-heading-lg: 2.25rem;
-  --text-heading-lg--line-height: 2.75rem;
-  --text-heading-lg--letter-spacing: -0.03em;
-  --text-heading-lg--font-weight: 650;
-  --text-lead: 1.125rem;
-  --text-lead--line-height: 1.75rem;
-
-  /* The frame of the app in the hero: a phone, rounder than any card of the app */
-  --radius-device: 2.25rem;
-  --radius-screen: 1.75rem;
-}
-
 @layer utilities {
   .landing-page {
     @tailwind utilities source(none);
   }
 }
 
-/* ?m= (RF-L11): o script do <head> grava data-m no <html> antes da pintura; cada variante está no HTML e o CSS
+/* Fonte de título (ADR-028): Bricolage Grotesque 700, latino, auto-hospedada fora do precache (public/landing) */
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  src: url('/landing/bricolage-700.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}
+
+/* ── Semânticos da landing ── */
+.landing-page {
+  --lp-display: 'Bricolage Grotesque', var(--font-sans);
+  --lp-ease: cubic-bezier(.16, 1, .3, 1);
+  --lp-header-h: 64px;
+  --lp-white: var(--palette-white);
+
+  /* Faixas de cor: iguais nos dois temas (texto branco; contrastes no README do protótipo) */
+  --lp-curve: var(--palette-violet-800);
+  --lp-curve-fg: var(--palette-lilac-100);
+  --lp-curve-muted: var(--palette-lilac-200);
+  --lp-curve-forget: var(--palette-tangerine-300);
+  --lp-curve-review: var(--palette-violet-300);
+  --lp-pod: var(--palette-petrol-700);
+  --lp-final: var(--palette-violet-500);
+  --lp-final-muted: var(--palette-violet-100);
+  --lp-final-press: var(--palette-violet-700);
+
+  /* Âmbar claro dos simulados (escuro: o âmbar do app) */
+  --lp-quiz: var(--palette-amber-50);
+  --lp-quiz-fg: var(--palette-ink-900);
+  --lp-quiz-muted: var(--palette-amber-900);
+  --lp-quiz-track: var(--palette-amber-200);
+  --lp-quiz-bar: var(--palette-tangerine-700);
+
+  /* Grifo de "peixe", etiqueta, balão e celular */
+  --lp-grifo: var(--palette-violet-200);
+  --lp-grifo-fg: var(--palette-ink-900);
+  --lp-tag: var(--palette-petrol-700);
+  --lp-bubble: var(--surface-float);
+  --lp-bubble-shadow: 0 14px 30px -14px color-mix(in srgb, var(--palette-violet-900) 45%, transparent);
+  --lp-device: var(--palette-black);
+  --lp-device-ring: var(--palette-night-750);
+  --lp-device-shadow: 0 30px 60px -20px color-mix(in srgb, var(--palette-night-950) 55%, transparent), 0 12px 24px -12px color-mix(in srgb, var(--palette-night-950) 40%, transparent);
+  --lp-band-btn-shadow: 0 3px 0 color-mix(in srgb, var(--palette-black) 28%, transparent);
+
+  background: var(--surface-page);
+  color: var(--fg);
+}
+
+.dark .landing-page {
+  --lp-quiz: var(--palette-amber-950);
+  --lp-quiz-fg: var(--palette-night-100);
+  --lp-quiz-muted: var(--palette-amber-300);
+  --lp-quiz-track: var(--palette-night-750);
+  --lp-quiz-bar: var(--palette-tangerine-300);
+  --lp-grifo: var(--palette-violet-700);
+  --lp-grifo-fg: var(--palette-white);
+  --lp-bubble-shadow: 0 14px 30px -14px color-mix(in srgb, var(--palette-black) 70%, transparent);
+  --lp-device-ring: var(--palette-night-600);
+}
+
+/* ── Base ── */
+.landing-page {
+  overflow-x: clip;
+
+  & h1, & h2, & .lp-display {
+    font-family: var(--lp-display);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: .98;
+    margin: 0;
+    color: var(--fg-strong);
+    text-wrap: balance;
+  }
+  & p { margin: 0; }
+  & img, & video, & svg { display: block; max-width: 100%; }
+  & img { height: auto; }
+  & section { position: relative; }
+  & section[id] { scroll-margin-top: calc(var(--lp-header-h) + 8px); }
+  & ::selection { background: var(--lp-grifo); color: var(--lp-grifo-fg); }
+  & .num { font-variant-numeric: tabular-nums; }
+  & .lp-wrap { width: 100%; max-width: 1240px; margin: 0 auto; padding: 0 var(--gutter); }
+  & .lp-fine { font-size: 13px; line-height: 1.4; color: var(--fg-muted); }
+  & .lp-lead { font-size: clamp(17px, 1.5vw, 20px); line-height: 1.5; max-width: 44ch; margin-top: 18px; }
+  & .lp-link { color: var(--action-fg); font-weight: 650; text-decoration: underline; text-underline-offset: 4px; }
+  & .lp-sec { position: relative; padding: 80px 0; }
+  & .lp-raised { background: var(--surface-raised); }
+  & .lp-h2 { font-size: clamp(40px, 5.6vw, 84px); max-width: 15ch; }
+  & .lp-split { display: grid; gap: 40px; align-items: center; }
+}
+
+@media (min-width: 1024px) {
+  .landing-page {
+    & .lp-sec { padding: 120px 0; }
+    & .lp-split { grid-template-columns: 1fr 1fr; gap: 64px; }
+  }
+}
+
+/* ── Chamadas: pílula de 56 px, texto centralizado; no celular na largura do conteúdo ── */
+.landing-page {
+  & .lp-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 56px;
+    padding: 8px 28px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    font-family: var(--font-sans);
+    font-size: 17px;
+    font-weight: 650;
+    line-height: 1.25;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition: transform 150ms var(--lp-ease), background-color 150ms var(--lp-ease);
+  }
+  & .lp-btn:active { transform: translateY(2px); }
+  & .lp-btn-sm { min-height: 44px; padding: 6px 18px; font-size: 15px; }
+  & .lp-btn-primary { background: var(--action); color: var(--on-action); box-shadow: var(--elev-press); }
+  & .lp-btn-primary:hover { background: var(--action-hover); }
+  & .lp-btn-ghost { background: var(--surface-raised); color: var(--fg-strong); border-color: var(--line-strong); }
+  & .lp-btn-ghost:hover { background: var(--surface-subtle); }
+  /* Nas faixas de cor: botão branco com o texto no tom da faixa */
+  & .lp-btn-band { background: var(--lp-white); color: var(--lp-band, var(--action)); box-shadow: var(--lp-band-btn-shadow); }
+  & .lp-btn-band:hover { background: var(--lp-final-muted); }
+  & .lp-btn:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 3px; }
+  /* Nas faixas de cor o anel roxo some: branco (no player, que é um cartão branco, fica o roxo) */
+  & .lp-band :focus-visible, & .lp-pod-sec .lp-act :focus-visible { outline-color: var(--lp-white); }
+
+  & .lp-act { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; margin-top: 28px; }
+}
+
+@media (max-width: 767px) {
+  .landing-page {
+    & .lp-act { flex-direction: column; align-items: stretch; gap: 10px; }
+    & .lp-act .lp-btn { width: 100%; }
+    & .lp-act .lp-fine, & .lp-act .lp-link { text-align: center; }
+  }
+}
+
+/* ── Cabeçalho ── */
+.landing-page {
+  & .lp-header { position: sticky; top: 0; z-index: var(--z-nav); background: color-mix(in srgb, var(--surface-page) 92%, transparent); backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); }
+  & .lp-header .lp-wrap { display: flex; align-items: center; gap: 24px; height: var(--lp-header-h); }
+  & .lp-logo { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; text-decoration: none; font-family: var(--lp-display); font-weight: 700; font-size: 22px; letter-spacing: .02em; color: var(--action-fg); }
+  & .lp-logo img { width: 34px; }
+  & .lp-nav { display: none; gap: 4px; margin-left: auto; }
+  & .lp-nav a, & .lp-enter { display: inline-flex; align-items: center; min-height: 44px; padding: 0 10px; font-size: 15px; font-weight: 600; color: var(--fg-strong); text-decoration: none; border-radius: 8px; }
+  & .lp-nav a:hover, & .lp-enter:hover { color: var(--action-fg); }
+  & .lp-enter { margin-left: auto; }
+  & .lp-header-cta { display: none; }
+}
+
+@media (min-width: 1024px) {
+  .landing-page {
+    & .lp-nav { display: flex; }
+    & .lp-enter { margin-left: 0; }
+    & .lp-header-cta { display: inline-flex; }
+  }
+}
+
+/* ── Celular (a tela é sempre do app real) ── */
+.landing-page {
+  & .lp-phone { position: relative; width: 300px; aspect-ratio: 390 / 844; border-radius: 46px; padding: 10px; background: var(--lp-device); box-shadow: 0 0 0 1.5px var(--lp-device-ring) inset, var(--lp-device-shadow); }
+  & .lp-phone::before { content: ''; position: absolute; top: 20px; left: 50%; width: 30%; height: 22px; transform: translateX(-50%); background: var(--lp-device); border-radius: 20px; z-index: 2; }
+  & .lp-screen { position: relative; width: 100%; height: 100%; border-radius: 36px; overflow: hidden; background: var(--surface-page); }
+  & .lp-screen > picture, & .lp-screen > picture > img, & .lp-screen > video, & .lp-media, & .lp-media > picture, & .lp-media img, & .lp-media video { width: 100%; height: 100%; }
+  & .lp-screen img, & .lp-screen video { object-fit: cover; object-position: top; }
+  & .lp-media { position: relative; }
+  & .lp-fill { height: 100%; }
+  & .lp-media video { position: absolute; inset: 0; opacity: 0; transition: opacity 300ms var(--lp-ease); }
+  & .lp-media video[data-playing='true'] { opacity: 1; }
+  & .lp-layer { position: absolute; inset: 0; opacity: 0; transition: opacity 500ms var(--lp-ease); }
+  & .lp-layer[data-on='true'] { opacity: 1; }
+}
+
+/* ── Golfinho e balão (todo balão sai do golfinho: a cauda aponta para ele) ── */
+.landing-page {
+  & .lp-mascot { display: block; user-select: none; pointer-events: none; }
+  & .lp-mascot img { width: 100%; height: auto; }
+  & .lp-bubble { position: absolute; z-index: 3; background: var(--lp-bubble); color: var(--fg-strong); font-weight: 650; font-size: 15px; line-height: 1.3; padding: 12px 16px; border-radius: 20px; box-shadow: var(--lp-bubble-shadow); max-width: 230px; }
+  & .lp-bubble::after { content: ''; position: absolute; width: 16px; height: 16px; background: var(--lp-bubble); transform: rotate(45deg); bottom: -6px; left: var(--tail, 28px); border-radius: 3px; }
+}
+
+/* ── 1. Herói ── */
+.landing-page {
+  & .lp-hero { position: relative; padding: 20px 0 0; overflow: hidden; }
+  & .lp-hero > .lp-wrap { display: grid; gap: 8px; position: relative; }
+  & .lp-hero h1 { font-size: clamp(56px, 9vw, 140px); position: relative; }
+  & .lp-hero h1 .ln { display: block; }
+  & .lp-grifo { position: relative; z-index: 0; white-space: nowrap; color: var(--lp-grifo-fg); }
+  & .lp-grifo::before { content: ''; position: absolute; z-index: -1; left: -.06em; right: -.08em; top: .2em; bottom: .02em; background: var(--lp-grifo); border-radius: .12em .2em .1em .25em; transform: rotate(-1.2deg); transform-origin: left; }
+  & .lp-tag { position: absolute; right: 0; bottom: -26px; display: inline-block; font-family: var(--lp-display); font-weight: 700; font-size: clamp(16px, 1.6vw, 22px); line-height: 1.1; padding: 6px 14px 8px; border-radius: 8px; transform: rotate(-5deg); white-space: nowrap; background: var(--lp-tag); color: var(--lp-white); letter-spacing: 0; }
+  & .lp-hero .lp-lead { max-width: 36ch; margin-top: 36px; }
+  & .lp-hero-cta { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin-top: 22px; }
+  & .lp-scene { position: relative; height: 380px; margin-top: 8px; }
+  & .lp-scene .lp-phone { position: absolute; width: 200px; right: 4%; top: 30px; transform: rotate(7deg); }
+  & .lp-scene .lp-hero-m { position: absolute; width: 200px; left: -28px; bottom: -6px; z-index: 2; }
+  & .lp-scene .lp-hero-m img { clip-path: inset(22% 0 0 0); }
+  & .lp-scene .lp-bubble { left: 0; top: 70px; max-width: 180px; font-size: 14px; --tail: 84px; }
+}
+
+@media (max-width: 767px) {
+  .landing-page {
+    & .lp-hero-cta { flex-direction: column; align-items: stretch; gap: 10px; }
+    & .lp-hero-cta .lp-btn { width: 100%; }
+    & .lp-hero-cta .lp-fine { text-align: center; }
+  }
+}
+
+@media (min-width: 1024px) {
+  .landing-page {
+    & .lp-hero { min-height: calc(100svh - var(--lp-header-h)); display: flex; align-items: center; padding: 40px 0 0; }
+    & .lp-hero > .lp-wrap { grid-template-columns: 1.25fr .75fr; align-items: center; }
+    & .lp-hero .lp-text { position: relative; z-index: 4; padding-bottom: 80px; }
+    & .lp-tag { right: 56px; bottom: -34px; }
+    /* A etiqueta fica à direita do <h1>: o apoio termina antes dela */
+    & .lp-hero .lp-lead { margin-top: 18px; max-width: 33ch; }
+    & .lp-scene { height: 600px; }
+    & .lp-scene .lp-phone { width: 280px; right: 0; top: 10px; }
+    & .lp-scene .lp-hero-m { width: 300px; left: -96px; bottom: 0; }
+    & .lp-scene .lp-bubble { left: -70px; top: 150px; max-width: 230px; font-size: 15px; --tail: 120px; }
+  }
+}
+
+/* ── 2. A curva (faixa violeta) ── */
+.landing-page {
+  & .lp-band { --lp-band: var(--lp-curve); }
+  & .lp-curve-sec { background: var(--lp-curve); color: var(--lp-curve-fg); padding: 140px 0 80px; overflow: hidden; }
+  & .lp-curve-sec h2 { color: var(--lp-white); font-size: clamp(44px, 6.6vw, 104px); max-width: 14ch; }
+  & .lp-curve-sec .lp-lead, & .lp-curve-sec .lp-legend, & .lp-curve-sec .lp-fine { color: var(--lp-curve-muted); }
+  & .lp-curve-sec .lp-lead { max-width: 46ch; }
+  & .lp-curve-m { position: absolute; width: 92px; right: 16px; top: 14px; }
+  & .lp-curve { margin-top: 28px; }
+  & .lp-curve svg { width: 100%; height: auto; overflow: visible; }
+  & .lp-curve .axis { stroke: color-mix(in srgb, var(--lp-white) 28%, transparent); }
+  & .lp-curve .forget { stroke: var(--lp-curve-forget); }
+  & .lp-curve .review { stroke: var(--lp-curve-review); }
+  & .lp-curve text { fill: var(--lp-curve-muted); font-family: var(--font-sans); }
+  & .lp-curve .cover { fill: var(--lp-curve); transform-origin: right; transform: scaleX(0); transition: transform 1800ms var(--lp-ease) 200ms; }
+  & .lp-legend { display: flex; flex-wrap: wrap; gap: 6px 20px; margin-top: 14px; font-size: 14px; }
+  & .lp-legend i { display: inline-block; width: 22px; height: 4px; border-radius: 2px; vertical-align: middle; margin-right: 8px; }
+  & .lp-legend .forget { background: var(--lp-curve-forget); }
+  & .lp-legend .review { background: var(--lp-curve-review); }
+}
+
+@media (min-width: 1024px) {
+  .landing-page {
+    & .lp-curve-sec { padding: 96px 0 128px; }
+    & .lp-curve-m { width: 150px; right: 4%; top: 48px; }
+  }
+}
+
+/* ── 3. Como funciona: celular fixo no desktop ── */
+.landing-page {
+  & .lp-story { padding: 40px 0 0; }
+  & .lp-story-in { display: grid; }
+  & .lp-chap { padding: 56px 0; }
+  & .lp-chap .n { font-family: var(--lp-display); font-weight: 700; font-size: 15px; color: var(--action-fg); }
+  & .lp-chap h3 { font-family: var(--lp-display); font-weight: 700; font-size: clamp(32px, 3.6vw, 52px); line-height: 1; letter-spacing: -0.01em; max-width: 14ch; margin: 8px 0 0; color: var(--fg-strong); transition: color 500ms var(--lp-ease); }
+  & .lp-chap .lp-lead { font-size: clamp(17px, 1.4vw, 19px); max-width: 38ch; margin-top: 14px; }
+  & .lp-chap .inline-media { margin-top: 28px; display: grid; justify-items: center; }
+  & .lp-chap .inline-media .lp-phone { width: min(270px, 72vw); }
+  & .lp-sticky-col { display: none; }
+}
+
+@media (min-width: 1024px) {
+  .landing-page {
+    & .lp-story-in { grid-template-columns: 1fr 1fr; gap: 64px; }
+    & .lp-chap { min-height: 88vh; display: flex; flex-direction: column; justify-content: center; padding: 0; }
+    /* O capítulo fora do centro fica em cinza (texto continua legível, 4,5:1), não transparente */
+    & .lp-chap[data-active='false'] h3, & .lp-chap[data-active='false'] .lp-lead { color: var(--fg-muted); }
+    & .lp-chap .inline-media { display: none; }
+    & .lp-sticky-col { display: block; }
+    & .lp-stage { position: sticky; top: var(--lp-header-h); height: calc(100vh - var(--lp-header-h)); display: grid; place-items: center; }
+    & .lp-stage .lp-phone { width: min(330px, 36vh); }
+    & .lp-stage .lp-guide { position: absolute; width: 140px; left: calc(50% + 140px); bottom: 10%; }
+  }
+}
+
+/* ── 4. Simulados (âmbar claro) ── */
+.landing-page {
+  & .lp-quiz-sec { background: var(--lp-quiz); color: var(--lp-quiz-fg); }
+  & .lp-quiz-sec h2 { color: var(--lp-quiz-fg); }
+  & .lp-quiz-sec .lp-lead { color: var(--lp-quiz-muted); }
+  & .lp-score { font-family: var(--lp-display); font-weight: 700; font-size: clamp(88px, 12vw, 176px); line-height: .9; color: var(--lp-quiz-fg); margin-top: 20px; }
+  & .lp-score small { display: block; font-family: var(--font-sans); font-weight: 650; font-size: 16px; line-height: 1.4; margin-top: 6px; color: var(--lp-quiz-muted); }
+  & .lp-bars { display: grid; gap: 12px; margin-top: 24px; max-width: 440px; font-weight: 650; font-size: 15px; }
+  & .lp-bars .bar { display: block; height: 12px; margin-top: 6px; border-radius: 6px; background: var(--lp-quiz-track); overflow: hidden; }
+  & .lp-bars .bar::after { content: ''; display: block; height: 100%; background: var(--lp-quiz-bar); transform-origin: left; transform: scaleX(var(--v)); transition: transform 1100ms var(--lp-ease) 250ms; }
+  & .lp-quiz-media { position: relative; display: grid; justify-items: center; }
+  & .lp-quiz-media .lp-phone { width: min(290px, 76vw); }
+  & .lp-quiz-media .lp-quiz-m { position: absolute; width: 110px; right: 0; bottom: -10px; }
+  & .lp-quiz-media .lp-bubble { right: 0; bottom: 165px; max-width: 150px; font-size: 13px; padding: 10px 12px; --tail: auto; }
+  & .lp-quiz-media .lp-bubble::after { left: auto; right: 44px; }
+}
+
+@media (min-width: 1024px) {
+  .landing-page {
+    & .lp-quiz-media .lp-quiz-m { width: 130px; right: -10px; }
+    & .lp-quiz-media .lp-bubble { bottom: 205px; right: -20px; max-width: none; white-space: nowrap; font-size: 15px; padding: 12px 16px; }
+  }
+}
+
+/* ── 5. Projeção ── */
+.landing-page {
+  & .lp-proj .lp-wrap { display: grid; gap: 28px; align-items: center; }
+  & .lp-proj h2 { font-size: clamp(40px, 5.2vw, 80px); max-width: 13ch; }
+  & .lp-how { font-size: 14px; line-height: 1.5; color: var(--fg-muted); max-width: 70ch; margin-top: 16px; }
+  & .lp-how b { color: var(--fg-strong); }
+  & .lp-proof { position: relative; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; margin-top: 12px; }
+  & .lp-proof .n b { display: block; font-family: var(--lp-display); font-weight: 700; font-size: clamp(44px, 8vw, 132px); line-height: .9; letter-spacing: -0.02em; color: var(--fg-strong); }
+  & .lp-proof .n:first-child { text-align: right; }
+  & .lp-proof .n:first-child b { color: var(--action-fg); }
+  & .lp-proof .n > span { display: block; font-size: clamp(13px, 1.2vw, 16px); color: var(--fg-muted); margin-top: 6px; }
+  & .lp-proof .lp-phone { width: clamp(150px, 20vw, 260px); position: relative; z-index: 1; }
+  /* Caixa fixa: a troca de pose (pensando -> comemorando) não muda o tamanho nem desloca nada */
+  & .lp-proof .lp-proj-m img { height: 100%; object-fit: contain; }
+  & .lp-proof .lp-proj-m { aspect-ratio: 192 / 311; position: absolute; z-index: 0; width: clamp(80px, 9vw, 130px); left: 50%; bottom: -14px; margin-left: clamp(40px, 14vw, 80px); rotate: 10deg; }
+  & .lp-proj-note { text-align: center; margin-top: 16px; }
+}
+
+@media (min-width: 1024px) {
+  .landing-page {
+    & .lp-proj .lp-wrap { grid-template-columns: .9fr 1.1fr; }
+    & .lp-proof { margin-top: 0; }
+    & .lp-proof .lp-proj-m { top: 0; bottom: auto; margin-left: clamp(20px, 6vw, 80px); translate: 0 -55%; }
+  }
+}
+
+/* ── 6. Podcast (petróleo) ── */
+.landing-page {
+  & .lp-pod-sec { --lp-band: var(--lp-pod); background: var(--lp-pod); color: var(--lp-white); }
+  & .lp-pod-sec h2, & .lp-pod-sec .lp-lead { color: var(--lp-white); }
+  & .lp-pod-sec .lp-link { color: var(--lp-white); }
+  & .lp-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; align-items: center; font-weight: 650; font-size: 14px; color: var(--lp-white); }
+  & .lp-chips span { background: var(--lp-white); color: var(--lp-pod); border-radius: 999px; padding: 6px 12px; }
+  & .lp-chips .step { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+  & .lp-pod-plan { margin-top: 14px; font-size: 14px; font-weight: 600; line-height: 1.45; color: var(--lp-white); max-width: 46ch; }
+  & .lp-podbox { position: relative; }
+  & .lp-podbox .lp-pod-m { width: 190px; margin: 0 auto -38px; position: relative; z-index: 1; }
+  & .lp-player { position: relative; background: var(--surface-raised); color: var(--fg-strong); border-radius: 24px; padding: 54px 18px 18px; box-shadow: 0 30px 60px -30px color-mix(in srgb, var(--palette-black) 45%, transparent); max-width: 520px; margin: 0 auto; }
+  & .lp-player .top { display: flex; align-items: center; gap: 12px; }
+  & .lp-play { width: 64px; height: 64px; flex: none; border-radius: 50%; border: 0; background: var(--action); color: var(--on-action); display: grid; place-items: center; cursor: pointer; box-shadow: var(--elev-press); }
+  & .lp-play svg { width: 26px; height: 26px; }
+  & .lp-play:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 3px; }
+  & .lp-player b { display: block; font-size: 16px; }
+  & .lp-player small { color: var(--fg-muted); font-size: 13px; }
+  & .lp-wave { display: flex; align-items: center; gap: 1px; height: 52px; margin-top: 14px; cursor: pointer; border: 0; padding: 0; background: none; width: 100%; }
+  & .lp-wave i { flex: 1; min-width: 0; height: 100%; border-radius: 2px; background: var(--line-strong); transform-origin: center; transform: scaleY(var(--h)); transition: transform 300ms var(--lp-ease); }
+  & .lp-wave i[data-on='true'] { background: var(--lp-pod); }
+  & .lp-tx { position: relative; overflow: hidden; height: 62px; margin-top: 10px; font-size: 15px; line-height: 1.35; }
+  & .lp-tx ol { list-style: none; margin: 0; padding: 0; transition: transform 600ms var(--lp-ease); }
+  & .lp-tx li { min-height: 62px; color: var(--fg-muted); transition: color 300ms; }
+  & .lp-tx li[data-cur='true'] { color: var(--fg-strong); }
+  & .lp-player .src { font-size: 12px; color: var(--fg-muted); margin-top: 8px; }
+  & .lp-player .err { font-size: 14px; color: var(--state-danger); margin-top: 8px; }
+  & .lp-player .err button { font: inherit; font-weight: 650; color: var(--action-fg); background: none; border: 0; padding: 0 0 0 6px; min-height: 44px; text-decoration: underline; cursor: pointer; }
+}
+
+/* ── 7. Áreas: uma aberta por vez; no celular as 5 abas quebram em linhas (sem rolar de lado) ── */
+.landing-page {
+  & .lp-area-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 28px; }
+  & .lp-area-tabs button { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--line-strong); background: var(--surface-raised); font: inherit; font-weight: 650; font-size: 15px; color: var(--fg); cursor: pointer; }
+  & .lp-area-tabs button[aria-selected='true'] { background: var(--fg-strong); border-color: var(--fg-strong); color: var(--surface-page); }
+  & .lp-area-tabs button:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
+  & .lp-area-tabs .dot { width: 10px; height: 10px; border-radius: 50%; }
+  & .lp-area-panel { margin-top: 24px; display: grid; gap: 32px; align-items: center; background: var(--surface-raised); border: 1px solid var(--line); border-radius: 28px; padding: 28px 20px; box-shadow: var(--elev-card); }
+  & .lp-area-panel[hidden] { display: none; }
+  & .lp-area-panel .pain { font-family: var(--lp-display); font-weight: 700; font-size: clamp(28px, 3.4vw, 46px); line-height: 1.05; color: var(--fg-strong); max-width: 18ch; text-wrap: balance; }
+  & .lp-area-panel ul { list-style: none; margin: 22px 0 0; padding: 0; display: grid; gap: 14px; }
+  & .lp-area-panel li { display: grid; grid-template-columns: 26px 1fr; gap: 10px; font-size: 17px; line-height: 1.45; }
+  & .lp-area-panel li svg { width: 22px; height: 22px; color: var(--action-fg); margin-top: 2px; }
+  & .lp-area-panel li b { color: var(--fg-strong); }
+  & .lp-area-media { display: grid; justify-items: center; }
+  & .lp-area-media .lp-phone { width: min(280px, 74vw); }
+  /* As telas das áreas são recortes (320–472 px): o celular acompanha a altura do recorte, sem meia tela vazia */
+  & .lp-area-media .lp-phone { aspect-ratio: auto; padding-bottom: 14px; }
+  & .lp-area-media .lp-screen { height: auto; border-radius: 36px 36px 28px 28px; }
+  & .lp-area-media .lp-screen img { height: auto; object-fit: contain; }
+}
+
+@media (min-width: 1024px) {
+  .landing-page {
+    & .lp-area-tabs { margin-top: 32px; }
+    & .lp-area-panel { grid-template-columns: 1.1fr .9fr; padding: 48px 56px; gap: 48px; }
+  }
+}
+
+/* ── 8. Planos e perguntas ── */
+.landing-page {
+  & .lp-plans-sec { text-align: center; }
+  & .lp-plans-sec h2 { margin: 0 auto; max-width: 18ch; }
+  & .lp-plans-sec .lp-lead { margin: 18px auto 0; }
+  & .lp-plans { display: grid; gap: 16px; margin: 36px auto 0; max-width: 880px; text-align: left; }
+  & .lp-plan { background: var(--surface-raised); border-radius: 22px; padding: 26px; border: 2px solid var(--line-strong); box-shadow: var(--elev-card); display: flex; flex-direction: column; }
+  & .lp-plan[data-paid='true'] { border-color: var(--action); }
+  & .lp-plan h3 { font-family: var(--lp-display); font-weight: 700; font-size: 30px; line-height: 1.1; margin: 0; color: var(--fg-strong); }
+  & .lp-plan .price { margin-top: 8px; font-family: var(--lp-display); font-weight: 700; font-size: 34px; line-height: 1.15; color: var(--fg-strong); }
+  & .lp-plan .price small { font-family: var(--font-sans); font-weight: 500; font-size: 15px; color: var(--fg-muted); }
+  & .lp-plan .alt { font-size: 14px; color: var(--fg-muted); margin-top: 2px; }
+  & .lp-plan ul { margin: 16px 0 0; padding: 0; list-style: none; display: grid; gap: 8px; font-size: 15px; line-height: 1.45; }
+  & .lp-plan li { display: grid; grid-template-columns: 22px 1fr; gap: 6px; }
+  & .lp-plan li svg { width: 18px; height: 18px; color: var(--action-fg); margin-top: 2px; }
+  & .lp-plan .lp-btn { margin-top: auto; align-self: stretch; }
+  & .lp-plan .spacer { height: 20px; }
+  & .lp-plans-state { max-width: 880px; margin: 36px auto 0; }
+  & .lp-compare { margin-top: 22px; font-size: 16px; }
+  & .lp-faq { max-width: 760px; margin: 56px auto 0; text-align: left; }
+  & .lp-faq details { border-bottom: 1px solid var(--line-strong); }
+  & .lp-faq summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 56px; padding: 12px 0; cursor: pointer; list-style: none; font-weight: 700; font-size: 17px; color: var(--fg-strong); }
+  & .lp-faq summary::-webkit-details-marker { display: none; }
+  & .lp-faq summary::after { content: '+'; font-size: 22px; font-weight: 500; color: var(--fg-muted); }
+  & .lp-faq details[open] summary::after { content: '–'; }
+  & .lp-faq summary:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; border-radius: 6px; }
+  & .lp-faq details p { padding-bottom: 18px; line-height: 1.55; }
+}
+
+@media (min-width: 768px) {
+  .landing-page {
+    & .lp-plans, & .lp-plans-state { grid-template-columns: 1fr 1fr; }
+    & .lp-plans-state { display: grid; gap: 16px; }
+    & .lp-plan .lp-btn { align-self: flex-start; }
+  }
+}
+
+/* ── 9. Final (roxo) e barra fixa ── */
+.landing-page {
+  & .lp-final { --lp-band: var(--lp-final-press); background: var(--lp-final); color: var(--lp-white); text-align: center; padding: 88px 0 120px; }
+  & .lp-final .lp-wrap { display: grid; justify-items: center; gap: 18px; }
+  & .lp-final h2 { color: var(--lp-white); font-size: clamp(52px, 8vw, 128px); }
+  & .lp-final .lp-lead { color: var(--lp-final-muted); font-size: 18px; max-width: 40ch; margin: 0; }
+  & .lp-final img { width: 200px; }
+  & .lp-sticky { position: fixed; left: 0; right: 0; bottom: 0; z-index: var(--z-sticky); padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); background: color-mix(in srgb, var(--surface-page) 94%, transparent); border-top: 1px solid var(--line); box-shadow: 0 -8px 24px -16px color-mix(in srgb, var(--palette-violet-900) 40%, transparent); transform: translateY(110%); transition: transform 150ms var(--lp-ease); }
+  & .lp-sticky[data-show='true'] { transform: none; }
+  & .lp-sticky .lp-btn { width: 100%; }
+  & .lp-footer-room { padding-bottom: 84px; }
+}
+
+@media (max-width: 767px) {
+  .landing-page .lp-final .lp-btn { width: 100%; }
+}
+/* O foco do teclado nunca para atrás da barra fixa do celular nem da barra de cookies (WCAG 2.4.11) */
+html:has(.landing-page) { scroll-padding-bottom: 104px; }
+
+@media (min-width: 768px) {
+  .landing-page {
+    & .lp-sticky { display: none; }
+    & .lp-footer-room { padding-bottom: 0; }
+  }
+}
+
+/* ── Movimento (só com html.lp-motion; com movimento reduzido nada disto existe) ── */
+@keyframes lp-in { to { opacity: 1; transform: none; } }
+/* Sem opacity: o <h1> e o celular são candidatos a LCP e precisam pintar na hora */
+@keyframes lp-rise { from { transform: translateY(40px) rotate(-1.5deg); } to { transform: none; } }
+@keyframes lp-up { from { transform: translateY(20px); } to { transform: none; } }
+@keyframes lp-grifo { from { transform: scaleX(0) rotate(-1.2deg); } to { transform: rotate(-1.2deg); } }
+@keyframes lp-tag { from { opacity: 0; transform: scale(.4) rotate(-20deg); } to { opacity: 1; transform: rotate(-5deg); } }
+@keyframes lp-phone { from { transform: translateY(80px) rotate(18deg); } to { transform: rotate(7deg); } }
+@keyframes lp-mascot { from { opacity: 0; transform: translate(-60px, 60px) rotate(-12deg); } to { opacity: 1; transform: none; } }
+@keyframes lp-pop-in { from { opacity: 0; transform: scale(.6); } to { opacity: 1; transform: none; } }
+@keyframes lp-float { 50% { transform: translateY(-6px); } }
+@keyframes lp-bob { 50% { transform: translateY(-4px) rotate(-3deg); } }
+@keyframes lp-pop { 0% { transform: scale(.7) rotate(-8deg); opacity: 0; } 60% { transform: scale(1.08) rotate(3deg); opacity: 1; } 100% { transform: none; } }
+
+html.lp-motion .landing-page {
+  & .lp-hero h1 .ln { animation: lp-rise 800ms var(--lp-ease) both; animation-delay: var(--d, 0ms); }
+  & .lp-hero .lp-grifo::before { animation: lp-grifo 900ms var(--lp-ease) 700ms both; }
+  & .lp-hero .lp-tag { animation: lp-tag 600ms var(--lp-ease) 1000ms both; }
+  /* Também só transform: o apoio e a chamada do herói ficam legíveis (e com contraste) desde a primeira pintura */
+  & .lp-hero .fade { animation: lp-up 800ms var(--lp-ease) both; animation-delay: var(--d, 0ms); }
+  & .lp-scene .lp-phone { animation: lp-phone 1100ms var(--lp-ease) 300ms both; }
+  & .lp-scene .lp-hero-m { opacity: 0; animation: lp-mascot 900ms var(--lp-ease) 700ms forwards; }
+  & .lp-scene .lp-bubble { opacity: 0; transform-origin: 20% 100%; animation: lp-pop-in 500ms var(--lp-ease) 1400ms forwards; }
+  & .lp-float { animation: lp-float 6s ease-in-out infinite; }
+  & .lp-bob { animation: lp-bob 1s ease-in-out infinite; }
+  & .lp-pop { animation: lp-pop 700ms var(--lp-ease); }
+
+  & [data-reveal] { opacity: 0; transform: translateY(28px); transition: opacity 700ms var(--lp-ease), transform 900ms var(--lp-ease); transition-delay: var(--d, 0ms); }
+  & [data-reveal='scale'] { transform: scale(.94); }
+  & [data-reveal].in { opacity: 1; transform: none; }
+  & .lp-curve:not(.in) .cover { transform: scaleX(1); }
+  & .lp-bars:not(.in) .bar::after { transform: scaleX(0); }
+  & .lp-wave.pre i { transform: scaleY(.04); }
+  & .lp-wave.live i[data-near='true'] { transform: scaleY(calc(var(--h) * 1.18)); }
+  & .lp-area-panel:not([hidden]) { animation: lp-in 500ms var(--lp-ease); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-page *, .landing-page *::before, .landing-page *::after { animation: none; transition: none; }
+}
+
+/* ?m= (RF-D13): o script do <head> grava data-m no <html> antes da pintura; cada variante está no HTML e o CSS
    mostra uma. Sem data-m (ou valor desconhecido), a padrão. */
 .landing-page [data-m-variant] { display: none; }
 .landing-page [data-m-variant='padrao'] { display: revert; }
@@ -55,6 +525,3 @@
 :root[data-m='esqueci'] .landing-page [data-m-variant='esqueci'],
 :root[data-m='faculdade'] .landing-page [data-m-variant='faculdade'],
 :root[data-m='ingles'] .landing-page [data-m-variant='ingles'] { display: revert; }
-
-/* Âncoras abaixo do cabeçalho fixo do desktop */
-.landing-page section[id] { scroll-margin-top: calc(var(--topnav-h) + 1rem); }

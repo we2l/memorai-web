@@ -25,14 +25,19 @@ export type MiniplayerAction = 'play' | 'pause' | 'expand' | 'close'
 export type HomePlanStepKey = 'review' | 'quiz' | 'listen' | 'material'
 export type HomeChecklistItem = 'topic' | 'material' | 'cards' | 'review' | 'streak'
 
-/** Landing v4 (prd-landing-v4 RF-L13): `?m=` of the video and where the click happened */
+/** Landing (prd-landing-v4 RF-L13, prd-landing-d RF-D18): `?m=` of the video and where the click happened */
 export type LandingMessageProp = 'padrao' | 'prova' | 'esqueci' | 'faculdade' | 'ingles'
-export type LandingCtaPosition = 'header' | 'hero' | 'sticky' | 'plans_free' | 'plans_pro' | 'final'
+export type LandingCtaPosition = 'header' | 'hero' | 'curve' | 'story_material' | 'story_review' | 'quiz' | 'projection'
+  | 'podcast' | 'areas' | 'plans_free' | 'plans_pro' | 'final' | 'sticky'
+/** The tab of the areas whose call was clicked (position `areas`) */
+export type LandingAreaProp = 'concurso' | 'faculdade' | 'oab' | 'enem' | 'idiomas'
 
 export interface FrontEventProps {
-  /** Landing v4 (prd-landing-v4 RF-L13) */
+  /** Landing (prd-landing-v4 RF-L13, prd-landing-d RF-D18) */
   landing_viewed: { message: LandingMessageProp, utm_source: string | null, utm_medium: string | null, utm_campaign: string | null, utm_content: string | null }
-  landing_cta_clicked: { position: LandingCtaPosition, message: LandingMessageProp }
+  landing_cta_clicked: { position: LandingCtaPosition, message: LandingMessageProp, area?: LandingAreaProp }
+  /** First play of the real podcast sample (prd-landing-d RF-D18) */
+  landing_sample_played: { message: LandingMessageProp }
   /** Conta e onboarding v3 (prd-4g-conta-onboarding-v3 RF-F16) */
   onboarding_step: { step: 1 | 2 | 3, mode: string | null }
   onboarding_path: { path: OnboardingPath }

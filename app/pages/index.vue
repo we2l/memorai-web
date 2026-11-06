@@ -1,59 +1,42 @@
 <template>
-  <div class="landing-page">
-    <LandingHeader :show-cta="!heroCtaOnScreen && !finalOnScreen" @cta="cta('header')" />
+  <div ref="root" class="landing-page">
+    <LandingHeader :show-cta="headerCta" />
 
     <main>
-      <LandingHero :trial="trial" @cta="cta('hero')" />
-      <LandingPains />
-      <LandingSteps />
+      <LandingHero />
+      <LandingCurve />
+      <LandingStory />
+      <LandingQuiz />
       <LandingProjection />
-      <LandingSegments />
-
-      <section id="planos" class="px-gutter py-14 lg:py-20" aria-labelledby="landing-plans" data-ds-scope>
-        <div class="mx-auto max-w-4xl">
-          <h2 id="landing-plans" class="text-heading text-balance text-fg-strong lg:text-heading-lg">Comece grátis, sem cartão</h2>
-          <p class="mt-3 max-w-prose text-lead text-fg" data-testid="landing-plans-lead">{{ plansLead }}</p>
-          <!-- The podcast as a bonus of Pro (RF-L6; research: audio is a niche, never the main promise), no number here -->
-          <p class="mt-4 mb-8 flex max-w-prose items-start gap-3 text-body text-fg" data-testid="landing-bonus">
-            <UiPracticeIcon mode="listen" size="sm" />
-            <span><strong class="font-semibold text-fg-strong">Bônus do Pro:</strong> ouça seus pontos fracos num episódio de áudio feito dos cards que você mais errou, para revisar com as mãos ocupadas.</span>
-          </p>
-          <!-- Far below the fold: the offer's chunk loads when the section nears the screen (route budget, RF-L14) -->
-          <LazyPlansPlanCards v-model:period="period" hydrate-on-visible>
-            <template #free-action>
-              <UiButton block to="/criar-conta" data-testid="landing-plans-free" @click="cta('plans_free')">Criar conta grátis</UiButton>
-            </template>
-            <template #pro-action>
-              <UiButton block to="/planos" data-testid="landing-plans-pro" @click="cta('plans_pro')">Ver o Pro em detalhe</UiButton>
-            </template>
-          </LazyPlansPlanCards>
-        </div>
-      </section>
-
-      <LandingFaq :trial="trial" />
-      <LandingFinal @cta="cta('final')" />
+      <LandingPodcast :catalog="catalog" @sample="sample" />
+      <LandingAreas />
+      <LandingPlans :catalog="catalog" :failed="failed" @retry="fetchPlans" />
+      <LandingFinal />
     </main>
 
-    <UiPublicFooter />
-    <LandingStickyCta :visible="stickyVisible" @cta="cta('sticky')" />
+    <div class="lp-footer-room">
+      <UiPublicFooter />
+    </div>
+    <LandingStickyCta :visible="stickyVisible" />
   </div>
 </template>
 
 <script setup lang="ts">
-// Landing v4 (prd-landing-v4): one promise, the real app on screen, phone first, DS v3. Prerendered; prices and
-// limits only from GET /api/plans (PlanCards, catalogTrial); `?m=` picks the hero before the first paint
-// (LANDING_MESSAGE_SCRIPT + landing.css). One highlight per visible screen: every section with an action is its
-// own [data-ds-scope], and the header/sticky actions only show when neither the hero's nor the final one is on
-// screen. Out of the precache: the chunk is once-* and the CSS is landing.css (nuxt.config.ts).
+// Landing D (prd-landing-d; prototype docs/research/assets/landing-prototipo/d.html): "Chega de memória de peixe.",
+// the dolphin as the guide, four color bands never touching each other, a call per section. Prerendered; prices,
+// trial and the name of the paid plan only from GET /api/plans. `?m=` picks the hero before the first paint
+// (LANDING_MESSAGE_SCRIPT + landing.css), and the same script turns the motion on (html.lp-motion) unless the
+// system asks for reduced motion. Out of the precache: the chunk is once-*, the CSS is landing.css and the media
+// and the title font live in public/landing (nuxt.config.ts).
 import '~/components/landing/landing.css'
-import type { BillingPeriod } from '~/components/plans/BillingToggle.vue'
-import type { LandingCtaPosition } from '~/types/analytics'
-import { LANDING_MESSAGE_SCRIPT, catalogTrial, landingMessageOf, landingQuery } from '~/utils/landing'
+import type { LandingMessageProp } from '~/types/analytics'
+import { LANDING_CTA, LANDING_MESSAGE_SCRIPT, landingMessageOf, landingQuery, type LandingArea, type LandingCtaPosition } from '~/utils/landing'
+import { startLandingMotion } from '~/utils/landingMotion'
 
 definePageMeta({ layout: 'landing' })
 
-const TITLE = 'Baigi: saiba quanto você vai lembrar no dia da prova'
-const DESCRIPTION = 'Mande seu PDF ou suas anotações. O Baigi cria os cards, diz o que revisar a cada dia e mostra quanto você domina de cada assunto. Para concurso, OAB, ENEM, faculdade, medicina e idiomas.'
+const TITLE = 'Baigi: chega de memória de peixe'
+const DESCRIPTION = 'Mande seu PDF ou suas anotações. O Baigi cria os cards, traz cada um de volta perto da hora de esquecer e mostra quanto você vai lembrar no dia da prova. Para concurso, OAB, ENEM, faculdade, medicina e idiomas.'
 
 useHead({
   title: TITLE,
@@ -64,52 +47,75 @@ useHead({
     { property: 'og:type', content: 'website' },
     { property: 'og:locale', content: 'pt_BR' },
   ],
+  // The poster of the hero's clip is the LCP: asked for first, ahead of the app's modulepreloads (measured: LCP 3.4 s
+  // -> 1.6 s with applied throttling). AVIF only (the <picture> falls back to WebP); the theme of the system picks one.
+  link: (['light', 'dark'] as const).map(theme => ({
+    rel: 'preload',
+    as: 'image',
+    href: `/landing/video/revisao-${theme}-poster.avif`,
+    type: 'image/avif',
+    media: `(prefers-color-scheme: ${theme})`,
+    fetchpriority: 'high' as const,
+    tagPriority: 'critical' as const,
+  })),
   script: [{ innerHTML: LANDING_MESSAGE_SCRIPT, tagPosition: 'head' }],
 })
 
-const { plans: catalog, fetchPlans } = usePlans()
-const trial = computed(() => catalogTrial(catalog.value))
-const plansLead = computed(() => trial.value
-  ? `Criar a conta não pede cartão, e o primeiro material abre ${trial.value.days} dias do Pro. Revisar, organizar cadernos e criar seus cards não têm prazo.`
-  : 'Criar a conta não pede cartão. Revisar, organizar cadernos e criar seus cards não têm prazo; o que usa IA tem os limites de cada plano.')
-const period = ref<BillingPeriod>('annual')
+const { plans: catalog, failed, fetchPlans } = usePlans()
 
-// ── Where the actions are (RF-L1, RF-L10) ──
-const heroCtaOnScreen = ref(true)
-const finalOnScreen = ref(false)
+// ── Where the calls are (RF-D1, RF-D12): the header's button and the sticky bar only when no section call shows ──
+const root = ref<HTMLElement | null>(null)
+const callsOnScreen = ref(new Set<Element>())
+const scrolled = ref(false)
+const ready = ref(false)
 const { analytics: consent } = useConsent()
-const stickyVisible = computed(() => !heroCtaOnScreen.value && !finalOnScreen.value && consent.value !== null)
+const headerCta = computed(() => ready.value && callsOnScreen.value.size === 0)
+const stickyVisible = computed(() => headerCta.value && scrolled.value && consent.value !== null)
 
-let observer: IntersectionObserver | null = null
-function watchActions() {
-  const hero = document.querySelector('[data-landing="hero-cta"]')
-  const final = document.querySelector('[data-landing="final"]')
-  if (!hero || !final || !('IntersectionObserver' in window)) return
-  observer = new IntersectionObserver((entries) => {
-    for (const e of entries) {
-      if (e.target === hero) heroCtaOnScreen.value = e.isIntersecting
-      else finalOnScreen.value = e.isIntersecting
-    }
-  })
-  observer.observe(hero)
-  observer.observe(final)
+let callsIo: IntersectionObserver | null = null
+let stopMotion: (() => void) | null = null
+
+function onScroll() {
+  scrolled.value = window.scrollY > 200
 }
 
-// ── Measurement, with consent only (RF-L13) ──
-const message = ref(landingMessageOf(null))
+function watchCalls() {
+  if (!root.value || !('IntersectionObserver' in window)) return
+  callsIo = new IntersectionObserver((entries) => {
+    const next = new Set(callsOnScreen.value)
+    for (const e of entries) {
+      if (e.isIntersecting) next.add(e.target)
+      else next.delete(e.target)
+    }
+    callsOnScreen.value = next
+    ready.value = true
+  })
+  for (const el of root.value.querySelectorAll('[data-cta]')) callsIo.observe(el)
+}
+
+// ── Measurement, with consent only (RF-D18) ──
+const message = ref<LandingMessageProp>('padrao')
 const { track, register } = useAnalytics()
 
 function utm(params: URLSearchParams, key: string): string | null {
   return params.get(key)?.slice(0, 100) || null
 }
 
-function cta(position: LandingCtaPosition) {
-  track('landing_cta_clicked', { position, message: message.value })
+function cta(position: LandingCtaPosition, area?: LandingArea) {
+  track('landing_cta_clicked', { position, message: message.value, ...(area ? { area } : {}) })
+}
+provide(LANDING_CTA, cta)
+
+function sample() {
+  track('landing_sample_played', { message: message.value })
 }
 
 onMounted(() => {
   fetchPlans()
-  watchActions()
+  if (root.value) stopMotion = startLandingMotion(root.value)
+  watchCalls()
+  onScroll()
+  window.addEventListener('scroll', onScroll, { passive: true })
   message.value = landingMessageOf(document.documentElement.getAttribute('data-m'))
   const params = landingQuery()
   register({ landing_message: message.value })
@@ -121,5 +127,9 @@ onMounted(() => {
     utm_content: utm(params, 'utm_content'),
   })
 })
-onBeforeUnmount(() => observer?.disconnect())
+onBeforeUnmount(() => {
+  callsIo?.disconnect()
+  stopMotion?.()
+  window.removeEventListener('scroll', onScroll)
+})
 </script>

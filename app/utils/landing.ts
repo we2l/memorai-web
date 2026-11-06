@@ -1,11 +1,15 @@
+import type { InjectionKey } from 'vue'
 import type { CatalogTrial, PlanCatalog } from '~/types'
+import type { LandingCtaPosition } from '~/types/analytics'
 
 /**
- * Copy and data of the landing v4 (prd-landing-v4). Every sentence here is something the product does today
- * (PRD §5.1); prices and limits never: they come from GET /api/plans (PlanCards, catalogTrial).
+ * Copy and data of the landing D (prd-landing-d; prototype docs/research/assets/landing-prototipo/d.html). Every
+ * sentence is something the product does today (prd-landing-v4 §5.1). Prices, the trial and the name of the paid
+ * plan never live here: they come from GET /api/plans. The numbers of the demo account (TRF, 45 dias, 90%, 75%,
+ * 7 de 10) are the ones of the recorded screens (assets/landing/demo.json).
  */
 
-/** `?m=` of the short video that brought the visitor (RF-L11); anything else is the default message. */
+/** `?m=` of the short video that brought the visitor; anything else is the default message. */
 export const LANDING_MESSAGES = ['prova', 'esqueci', 'faculdade', 'ingles'] as const
 export type LandingMessage = typeof LANDING_MESSAGES[number] | 'padrao'
 
@@ -14,10 +18,12 @@ export function landingMessageOf(raw: unknown): LandingMessage {
 }
 
 /**
- * Runs in the <head> of the prerendered page, before the first paint: the variant of `?m=` is picked by CSS
- * (landing.css, html[data-m]), so there is no flash, no layout shift and no hydration mismatch.
+ * Runs in the <head> of the prerendered page, before the first paint:
+ * - the variant of `?m=` is picked by CSS (landing.css, html[data-m]): no flash, no layout shift, no hydration mismatch;
+ * - html.lp-motion turns the motion on (entrance, reveal, counters) only when the system allows it. If the page's JS
+ *   never runs (window.__lpReady stays unset), the class goes away after 6 s, so nothing stays hidden.
  */
-export const LANDING_MESSAGE_SCRIPT = `(function(){try{window.__baigiLandingQuery=location.search;var m=new URLSearchParams(location.search).get('m');if(${JSON.stringify(LANDING_MESSAGES)}.indexOf(m)>=0)document.documentElement.setAttribute('data-m',m)}catch(e){window.__baigiLandingQuery=''}})()`
+export const LANDING_MESSAGE_SCRIPT = `(function(){var d=document.documentElement;try{window.__baigiLandingQuery=location.search;var m=new URLSearchParams(location.search).get('m');if(${JSON.stringify(LANDING_MESSAGES)}.indexOf(m)>=0)d.setAttribute('data-m',m)}catch(e){window.__baigiLandingQuery=''}try{if(!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)){d.classList.add('lp-motion');setTimeout(function(){if(!window.__lpReady)d.classList.remove('lp-motion')},6000)}}catch(e){d.classList.remove('lp-motion')}})()`
 
 /**
  * The query of the first load, kept by LANDING_MESSAGE_SCRIPT: Nuxt takes the query out of the address while it
@@ -28,193 +34,275 @@ export function landingQuery(): URLSearchParams {
   return new URLSearchParams(kept ?? window.location.search)
 }
 
-/** Real screens of the app (e2e/landing/shots.ts): 390 CSS px wide, captured at 2x. */
-export const SHOTS = {
-  hoje: { height: 640, alt: 'Tela Hoje de uma conta de demonstração do Baigi: a meta do dia em lotes, a prova marcada com a projeção e o plano do dia com os cards a revisar.' },
-  projecao: { height: 268, alt: 'Prova marcada numa conta de demonstração do Baigi: TRF 4ª Região em 45 dias, com a projeção de quanto lembrar mantendo o ritmo e se parar hoje.' },
-  dominio: { height: 176, alt: 'Desempenho por matéria numa conta de demonstração do Baigi: o domínio e o acerto nas questões de Direito Administrativo e de Direito Constitucional.' },
-  revisao: { height: 472, alt: 'Revisão no Baigi, conta de demonstração: lote 1 de 2, um card de Direito Constitucional virado e a origem dele, a parte e a página da apostila em PDF.' },
-  material: { height: 392, alt: 'Material no Baigi, conta de demonstração: a parte 5 de 6 de uma apostila em PDF, com as páginas de cada trecho.' },
-  simulado: { height: 430, alt: 'Resultado de um simulado no Baigi, conta de demonstração: 7 de 10 questões certas e o acerto em cada assunto, comparado com o histórico.' },
-  ingles: { height: 320, alt: 'Revisão de inglês no Baigi, conta de demonstração: o card “I’m looking forward to it” com a tradução.' },
-  anatomia: { height: 320, alt: 'Revisão de Anatomia no Baigi, conta de demonstração: o card sobre o principal músculo da inspiração, com a resposta.' },
-  oab: { height: 320, alt: 'Revisão para a OAB no Baigi, conta de demonstração: o card sobre o prazo da contestação no CPC, com a resposta.' },
-  enem: { height: 340, alt: 'Revisão para o ENEM no Baigi, conta de demonstração: o card sobre a 1ª Lei de Mendel, com a resposta.' },
+/** Real screens of the app (e2e/landing/shots.ts) in public/landing, 390 CSS px wide at 2x. */
+export const SCREENS = {
+  'hoje-tela': { height: 844, alt: 'Tela real do Hoje na conta de demonstração: TRF 4ª Região em 45 dias, com a projeção mantendo o ritmo e se parar hoje, e o plano do dia.' },
+  'revisao': { height: 472, alt: 'Tela real da revisão na conta de demonstração: um card de Direito Constitucional virado, com a origem dele na apostila do TRF.' },
+  'anatomia': { height: 320, alt: 'Tela real da revisão de Anatomia na conta de demonstração: o card sobre o principal músculo da inspiração, com a resposta.' },
+  'oab': { height: 320, alt: 'Tela real da revisão para a OAB na conta de demonstração: o card sobre o prazo da contestação no CPC, com a resposta.' },
+  'enem': { height: 340, alt: 'Tela real da revisão para o ENEM na conta de demonstração: o card sobre a 1ª Lei de Mendel, com a resposta.' },
+  'ingles': { height: 320, alt: 'Tela real da revisão de inglês na conta de demonstração: o card “I’m looking forward to it”, com a tradução.' },
 } as const
-export type ShotName = keyof typeof SHOTS
+export type ScreenName = keyof typeof SCREENS
 
-/** The `<h1>` of a variant: the key words get the lilac highlighter (`mark`). */
-export interface HeroVariant { key: LandingMessage, title: [before: string, mark: string, after: string], lead: string, shot: ShotName }
+/** Real recordings of the app (public/landing/video): muted loops, a poster each; `dark` when there is a dark take. */
+export const CLIPS = {
+  revisao: { dark: true, alt: 'Gravação do app na conta de demonstração: a revisão em lote, com um card de Direito Constitucional virando.' },
+  material: { dark: false, alt: 'Gravação do app na conta de demonstração: a nota de uma parte do PDF e os cards dela, cada um com a página de onde saiu.' },
+  simulado: { dark: true, alt: 'Gravação do app na conta de demonstração: o resultado do simulado, 7 de 10, e os 3 erros virando cards.' },
+} as const
+export type ClipName = keyof typeof CLIPS
+
+/**
+ * A hero variant. `lines` are the lines of the <h1>; the text between asterisks gets the lilac highlighter (always
+ * "peixe"). The phone shows a clip or a still screen, and the dolphin says `bubble`.
+ */
+export interface HeroVariant {
+  key: LandingMessage
+  lines: string[]
+  lead: string
+  media: { clip: ClipName } | { screen: ScreenName }
+  bubble: string
+}
 
 export const HERO_VARIANTS: HeroVariant[] = [
   {
     key: 'padrao',
-    title: ['Saiba quanto você vai lembrar ', 'no dia da prova', '.'],
-    lead: 'Mande seu PDF ou suas anotações. O Baigi cria os cards, diz o que revisar a cada dia e mostra quanto você domina de cada assunto.',
-    shot: 'hoje',
+    lines: ['Chega de', 'memória', 'de *peixe*.'],
+    lead: 'Leu ontem e hoje não lembra nada? Acontece com quem não revisa. O Baigi traz cada card de volta perto da hora de esquecer e mostra quanto você vai lembrar no dia da prova.',
+    media: { clip: 'revisao' },
+    bubble: 'Faltam 45 dias pro TRF. Hoje são 3 lotes de 20.',
   },
   {
     key: 'prova',
-    title: ['Prova marcada? Saiba ', 'o que revisar hoje', '.'],
-    lead: 'Marque a data. O Baigi monta o plano de cada dia e estima quanto você vai lembrar na prova: mantendo o ritmo e se parar hoje.',
-    shot: 'projecao',
+    lines: ['Até a prova,', 'sem memória', 'de *peixe*.'],
+    lead: 'Marque a data. O Baigi monta a revisão de cada dia em lotes de 20 e mostra quanto você vai lembrar na prova: mantendo o ritmo e se parar hoje.',
+    media: { screen: 'hoje-tela' },
+    bubble: 'Faltam 45 dias pro TRF. Hoje são 3 lotes de 20.',
   },
   {
     key: 'esqueci',
-    title: ['Você não esquece por falta de esforço. Esquece por ', 'falta de revisão', '.'],
-    lead: 'Mande o que você estudou. O Baigi cria os cards e traz cada um de volta perto da hora de esquecer.',
-    shot: 'revisao',
+    lines: ['Leu ontem,', 'esqueceu hoje?', 'Memória de *peixe*.'],
+    lead: 'Você não esquece por falta de esforço. Esquece por falta de revisão. O Baigi traz cada card de volta perto da hora de esquecer, em lotes de 20, com fim.',
+    media: { screen: 'revisao' },
+    bubble: 'Esse card volta amanhã. Os outros, mais pra frente.',
   },
   {
     key: 'faculdade',
-    title: ['Os slides da aula viram ', 'revisão até a prova', '.'],
-    lead: 'Mande o PDF da matéria, de Anatomia a Cálculo. O Baigi escreve a nota em partes, cria os cards e diz o que revisar a cada dia.',
-    shot: 'anatomia',
+    lines: ['Faculdade', 'sem memória', 'de *peixe*.'],
+    lead: 'Mande o PDF da matéria, de Anatomia a Cálculo. O Baigi escreve a nota em partes, cria os cards e divide a revisão do dia em lotes de 20.',
+    media: { screen: 'anatomia' },
+    bubble: 'Os slides viraram cards. Cada um com a página.',
   },
   {
     key: 'ingles',
-    title: ['Vocabulário que fica: ', 'cada palavra volta na hora certa', '.'],
-    lead: 'Crie cards de palavras e frases, por texto ou foto, ou traga seus baralhos do Anki sem recomeçar do zero. O Baigi diz o que revisar a cada dia.',
-    shot: 'ingles',
+    lines: ['Inglês', 'sem memória', 'de *peixe*.'],
+    lead: 'Crie cards de palavras e frases, por texto ou foto, ou traga seus baralhos do Anki. Cada palavra volta perto da hora de esquecer.',
+    media: { screen: 'ingles' },
+    bubble: 'Essa palavra volta amanhã. Aquela, semana que vem.',
   },
 ]
 
-/** The areas, in one line under the hero (each gets its own card further down). */
-export const AUDIENCE_LINE = 'Para concurso, OAB, ENEM, faculdade, medicina e idiomas.'
-
-/**
- * Around the app in the hero (as Knowt annotates its phone): what the screen proves. The first one carries the
- * numbers of the demo account (demo.json, written by the capture); the others name a mode by its icon.
- */
-export const ANNOTATIONS = [
-  { key: 'review', title: 'O que revisar hoje', text: 'Quantos cards revisar hoje, em lotes de 20.', icon: 'review' },
-  { key: 'origin', title: 'De onde veio o card', text: 'Card feito de PDF abre a página de onde saiu.', icon: 'origin' },
-  { key: 'errors', title: 'Seus erros viram revisão', text: 'As questões erradas do simulado voltam como cards.', icon: 'quiz' },
-] as const
-
-/** ✓ under the hero actions: the trial only when the catalog offers it; the free core is the owner's decision (05/11). */
-export function landingGuarantees(trial: CatalogTrial | null): string[] {
-  return ['Sem cartão', ...(trial ? [`${trial.days} dias de Pro`] : []), 'Revisão grátis para sempre']
+/** A line of the title split around the highlighter: odd parts are highlighted. */
+export function titleParts(line: string): { text: string, mark: boolean }[] {
+  return line.split('*').map((text, i) => ({ text, mark: i % 2 === 1 })).filter(p => p.text)
 }
 
-/** "Isso soa familiar?": what students write every week in study forums (research rodada 2 §4), paraphrased. */
-export const PAINS = [
+/** "Como funciona": the phone stays (desktop) and the screen changes, only material and review (owner, 06/11). */
+export const STORY = [
   {
-    pain: 'Entendo a matéria e, uma semana depois, esqueci quase tudo.',
-    answer: 'O Baigi agenda cada card para voltar perto da hora em que você ia esquecer: é a repetição espaçada. Você só abre e revisa.',
+    key: 'material',
+    step: '1 · Material',
+    title: 'Manda a apostila. O Baigi faz os cards.',
+    text: 'Um PDF de 180 páginas vira uma nota em 6 partes, com os cards de cada parte. Cada card mostra a página de onde saiu.',
+    clip: 'material',
+    cta: 'Testar com meu PDF',
+    position: 'story_material',
+    pose: 'thinking',
   },
   {
-    pain: 'Criar card dá tanta preguiça que eu desisto antes de começar.',
-    answer: 'Mande o PDF, o texto ou uma foto: os cards saem prontos, e os do PDF ficam ligados à página de onde vieram. Você edita o que quiser.',
+    key: 'revisao',
+    step: '2 · Revisão',
+    title: 'Todo dia um número, em lotes de 20.',
+    text: 'Abriu o app e viu 400 cards atrasados? Aqui não. Você faz um lote, vê quantos faltam e decide se para ou segue.',
+    clip: 'revisao',
+    cta: 'Fazer meu primeiro lote',
+    position: 'story_review',
+    pose: 'standing',
   },
-  {
-    pain: 'Parei uns dias e a revisão virou uma montanha.',
-    answer: 'A revisão vem em lotes de 20, com fim. Se atrasar, o modo recuperação mostra só os 20 mais urgentes de cada vez.',
-  },
-]
+] as const
 
-export const STEPS: { title: string, text: string, shot: ShotName }[] = [
+/** The areas, one open at a time: the pain, what the app does, a real screen and its own call. */
+export const AREAS = [
   {
-    title: 'Mande o material',
-    text: 'O PDF vira uma nota dividida em partes, com a página de cada trecho, e os cards saem dela. Também vale texto, foto ou um baralho do Anki.',
-    shot: 'material',
-  },
-  {
-    title: 'Revise o que vence hoje',
-    text: 'Você vê quantos cards revisar hoje e faz em lotes de 20. Depois de virar o card, vê de onde ele veio e abre o trecho com um toque.',
-    shot: 'revisao',
-  },
-  {
-    title: 'Treine com questões: seus erros viram revisão',
-    text: 'No resultado do simulado, você vê o acerto de cada assunto. Com um toque, as questões que errou viram cards e voltam na revisão.',
-    shot: 'simulado',
-  },
-]
-
-/** "Como o Baigi sabe": what the two numbers of the promise mean, and when they show up (prd-landing-v4 RF-L3c). */
-export const PROJECTION = [
-  { term: 'Mantendo o ritmo', text: 'Quanto você deve lembrar no dia da prova se revisar o que vencer até lá.' },
-  { term: 'Se parar hoje', text: 'Quanto sobra se você não revisar mais nada. A distância entre os dois é o que a revisão está segurando.' },
-  { term: 'Domínio de cada matéria', text: 'Quantos cards dela estão em dia, ao lado do acerto nas questões: você sabe onde treinar.' },
-]
-
-/** The gallery of areas (prd-landing-v4 RF-L4, Hubink's gallery): a real review screen and a sentence each. */
-export const SEGMENTS = [
-  {
+    key: 'concurso',
     name: 'Concurso',
-    text: 'Edital grande e prova com data. Cada matéria mostra o domínio e o acerto, e a projeção mostra quanto você deve lembrar no dia.',
     dot: 'bg-subject-1',
-    shot: 'dominio',
-    featured: true,
+    pain: 'Uma semana depois, já esqueceu tudo da matéria.',
+    points: [
+      ['Marque a data da prova.', 'O Baigi divide os cards por dia até lá, em lotes de 20.'],
+      ['Simulado por matéria.', 'Você vê que Controle de constitucionalidade está em 67% e os erros já viram card.'],
+      ['A projeção.', 'Quanto você vai lembrar no dia, mantendo o ritmo ou se parar hoje.'],
+    ],
+    cta: 'Começar pelo meu concurso',
+    screen: 'revisao',
   },
   {
+    key: 'faculdade',
     name: 'Medicina e faculdade',
-    text: 'Mande os slides ou a apostila: o PDF vira nota em partes, e cada card leva de volta à página de onde saiu.',
-    dot: 'bg-subject-5',
-    shot: 'anatomia',
-    featured: false,
-  },
-  {
-    name: 'ENEM e vestibular',
-    text: 'Fórmulas, datas e conceitos das quatro áreas, com a revisão do dia pelo celular.',
-    dot: 'bg-subject-3',
-    shot: 'enem',
-    featured: false,
-  },
-  {
-    name: 'OAB',
-    text: 'Prazos, artigos e súmulas em cards curtos, e o simulado mostra onde você mais erra.',
-    dot: 'bg-subject-4',
-    shot: 'oab',
-    featured: false,
-  },
-  {
-    name: 'Idiomas',
-    text: 'Palavras e frases por texto ou foto. Do Anki, os baralhos chegam com o intervalo e os erros de cada card.',
     dot: 'bg-subject-2',
-    shot: 'ingles',
-    featured: false,
+    pain: '300 cards por dia e a fila nunca acaba.',
+    points: [
+      ['Lotes de 20 com fim.', 'Fez um, sabe quantos faltam e decide se segue.'],
+      ['Atrasou?', 'O modo recuperação começa pelos 20 mais urgentes, sem a montanha toda na cara.'],
+      ['Os slides da aula viram cards,', 'cada um com a página de onde saiu.'],
+    ],
+    cta: 'Começar pela minha faculdade',
+    screen: 'anatomia',
   },
-] as const satisfies readonly { name: string, text: string, dot: string, shot: ShotName, featured: boolean }[]
+  {
+    key: 'oab',
+    name: 'OAB',
+    dot: 'bg-subject-3',
+    pain: 'Fez a segunda fase e já esqueceu boa parte.',
+    points: [
+      ['Prazos e artigos em cards,', 'saídos do seu material, com a página pra conferir.'],
+      ['Questões do seu material,', 'com o acerto por matéria no fim.'],
+      ['Data do exame marcada,', 'e o plano do dia sai dela.'],
+    ],
+    cta: 'Começar pela OAB',
+    screen: 'oab',
+  },
+  {
+    key: 'enem',
+    name: 'ENEM e vestibular',
+    dot: 'bg-subject-4',
+    pain: 'Criar card dá uma preguiça que você desiste antes de começar.',
+    points: [
+      ['Tira foto do resumo', 'e os cards saem dali.'],
+      ['Lote curto no metrô.', '20 cards e pronto.'],
+      ['Errou no simulado?', 'A questão vira card com o comentário no verso.'],
+    ],
+    cta: 'Começar pelo ENEM',
+    screen: 'enem',
+  },
+  {
+    key: 'idiomas',
+    name: 'Idiomas',
+    dot: 'bg-subject-6',
+    pain: 'Fazer card de vocabulário na mão cansa.',
+    points: [
+      ['Palavras e frases por texto ou foto', 'viram cards.'],
+      ['Traga seus baralhos do Anki', 'sem recomeçar do zero: intervalos e erros vêm junto.'],
+      ['Sem data de prova?', 'Tudo bem. Cada palavra volta perto da hora de esquecer.'],
+    ],
+    cta: 'Começar pelo meu inglês',
+    screen: 'ingles',
+  },
+] as const satisfies readonly { key: string, name: string, dot: string, pain: string, points: readonly (readonly [string, string])[], cta: string, screen: ScreenName }[]
+export type LandingArea = typeof AREAS[number]['key']
 
-/** The trial of the catalog (root or the Pro plan), only when it needs no card. */
+/** The real sample of the podcast (public/landing/podcast-amostra.mp3, 26 s), its transcript and its waveform. */
+export const SAMPLE = {
+  src: '/landing/podcast-amostra.mp3',
+  duration: 26.6,
+  title: 'Seus erros de Constitucional',
+  lines: [
+    { t: 0, text: 'Tenta lembrar… quem é que realmente é afetado pelas decisões em um caso específico?' },
+    { t: 5.4, text: '(pausa pra você responder de cabeça)' },
+    { t: 6.2, text: 'A resposta é que o controle difuso de constitucionalidade gera efeito apenas entre as partes do processo.' },
+    { t: 12.5, text: 'Isso significa que, em regra, a decisão só vale para quem está envolvido naquele julgamento.' },
+    { t: 18.3, text: 'A única exceção a essa regra acontece quando há uma resolução do Senado, conforme o artigo 52, inciso 10, da Constituição.' },
+  ],
+  /** RMS of the file in 120 slices (computed from the MP3 for the prototype) */
+  peaks: [0.04, 0.51, 0.68, 0.46, 0.04, 0.04, 0.42, 0.7, 0.52, 0.82, 0.9, 0.55, 0.53, 0.34, 0.9, 0.54, 0.58, 0.24, 0.71, 0.75, 0.71, 0.45, 0.39, 0.15, 0.04, 0.04, 0.04, 0.04, 0.81, 0.72, 0.44, 0.34, 0.72, 0.78, 0.61, 0.22, 0.67, 0.35, 0.54, 0.29, 0.34, 0.8, 0.1, 0.55, 0.7, 0.45, 0.37, 0.75, 0.63, 0.33, 0.52, 0.5, 0.52, 0.44, 0.42, 0.04, 0.04, 0.04, 0.61, 0.79, 0.47, 0.27, 0.52, 0.65, 0.65, 0.13, 0.47, 0.63, 0.7, 0.58, 0.79, 0.51, 0.68, 0.89, 0.54, 0.41, 0.85, 0.87, 0.72, 0.31, 0.04, 0.04, 0.04, 0.6, 1.0, 0.56, 0.29, 0.62, 0.34, 0.25, 0.5, 0.04, 0.63, 0.53, 0.71, 0.75, 0.62, 0.56, 0.25, 0.59, 0.52, 0.7, 0.06, 0.46, 0.72, 0.74, 0.4, 0.3, 0.54, 0.48, 0.53, 0.42, 0.47, 0.56, 0.25, 0.54, 0.33, 0.45, 0.04, 0.04],
+}
+
+// ── The plans, only from the catalog ──
+
+/** The trial of the catalog (root or the paid plan), only when it needs no card. */
 export function catalogTrial(catalog: PlanCatalog | null): CatalogTrial | null {
   const trial = catalog?.trial ?? catalog?.plans?.find(p => p.key === 'pro')?.trial ?? null
   return trial && trial.days > 0 && !trial.card_required ? trial : null
 }
 
-export function landingFaqs(trial: CatalogTrial | null) {
-  const free = 'Sim. Criar a conta não pede cartão, e revisar, organizar cadernos, criar seus cards e importar do Anki não têm prazo.'
+/** The name of the paid plan ("Intensivo", owner 06/11): the catalog's, with the decided name as the fallback. */
+export function paidPlanName(catalog: PlanCatalog | null): string {
+  return catalog?.plans?.find(p => p.key === 'pro')?.name?.trim() || 'Intensivo'
+}
+
+const LINES_PER_PLAN = 5
+const PAID_BENEFITS = ['pdf_to_note', 'quiz_ai', 'podcast'] as const
+
+/**
+ * The 5 lines of each card (prd-landing-d §5.2), from the catalog only.
+ * - free: its highlights without the one about the trial (up to 4) and the trial line, when the catalog has one;
+ * - paid: its first 2 highlights and the pro_benefit of PDF, questões and podcast, completed with its other highlights.
+ */
+export function landingPlanLines(catalog: PlanCatalog | null, key: 'free' | 'pro'): string[] {
+  const plan = catalog?.plans?.find(p => p.key === key)
+  if (!plan || !catalog) return []
+  const highlights = plan.highlights ?? []
+  if (key === 'free') {
+    const trial = catalogTrial(catalog)
+    const own = highlights.filter(h => !/\bteste\b/i.test(h))
+    return trial
+      ? [...own.slice(0, LINES_PER_PLAN - 1), `${trial.days} dias do ${paidPlanName(catalog)} no primeiro material, sem cartão`]
+      : own.slice(0, LINES_PER_PLAN)
+  }
+  const benefits = PAID_BENEFITS
+    .filter(k => plan.limits[k] !== 0 && catalog.features[k]?.pro_benefit)
+    .map(k => catalog.features[k]!.pro_benefit)
+  const lines = [...highlights.slice(0, 2), ...benefits]
+  for (const h of highlights.slice(2)) if (lines.length < LINES_PER_PLAN && !lines.includes(h)) lines.push(h)
+  return lines.slice(0, LINES_PER_PLAN)
+}
+
+/** Under "Revisar é de graça. Pra sempre.". */
+export function landingPlansLead(catalog: PlanCatalog | null): string {
+  const name = paidPlanName(catalog)
+  const trial = catalogTrial(catalog)
+  return trial
+    ? `A IA você testa por ${trial.days} dias, sem cartão, a partir do primeiro material. No ${name}, ela acompanha você até a prova.`
+    : `A IA faz parte do ${name}, que acompanha você até a prova.`
+}
+
+/** The plan line of the podcast section: the paid plan's benefit and whether the trial leaves it out. */
+export function landingPodcastLine(catalog: PlanCatalog | null): string {
+  const name = paidPlanName(catalog)
+  const feature = catalog?.features?.podcast
+  const trial = catalogTrial(catalog)
+  const own = feature?.pro_benefit ? `No ${name}: ${feature.pro_benefit.charAt(0).toLowerCase()}${feature.pro_benefit.slice(1)} ${feature.unit}.` : `Os episódios fazem parte do ${name}.`
+  return trial?.excludes?.includes('podcast') ? `${own} O teste de ${trial.days} dias não inclui o podcast.` : own
+}
+
+export function landingFaqs(catalog: PlanCatalog | null): { q: string, a: string }[] {
+  const name = paidPlanName(catalog)
+  const trial = catalogTrial(catalog)
+  const free = 'É. Criar e revisar cards, organizar cadernos e importar do Anki não têm prazo nem pedem cartão.'
   return [
     {
       q: 'É grátis mesmo?',
       a: trial
-        ? `${free} Ao mandar o primeiro material, você ganha ${trial.days} dias do Pro; depois, a conta volta ao plano grátis sem cobrança. Os limites de cada plano estão logo acima.`
-        : `${free} O que usa IA tem os limites que você vê nos planos, logo acima.`,
+        ? `${free} Ao mandar o primeiro material, você ganha ${trial.days} dias do ${name} para testar a IA. Depois, a conta volta ao Grátis, sem cobrança.`
+        : `${free} A IA faz parte do ${name}.`,
     },
     {
-      q: 'Qual a diferença para o ChatGPT ou o NotebookLM?',
-      a: 'Eles geram resumos e perguntas quando você pede. O Baigi guarda os cards, decide o que você revisa a cada dia, mostra o domínio e o acerto de cada assunto e estima quanto você vai lembrar na prova.',
+      q: 'Como vocês sabem quanto eu vou lembrar?',
+      a: 'Cada card tem uma força que sobe quando você acerta e cai com o tempo. A conta soma a força de todos os seus cards no dia da prova. Ela aparece com a prova marcada e os primeiros cards revisados.',
     },
+    { q: 'Já uso o Anki. Começo do zero?', a: 'Não. O Baigi traz os cards com os intervalos e os erros de cada um.' },
     {
-      q: 'Funciona no celular?',
-      a: 'Sim, pelo navegador do celular ou do computador, com os mesmos dados nos dois. Dá para instalar na tela inicial como um app. Precisa de internet.',
+      q: `Como cancelo o ${name}?`,
+      a: 'O mensal você cancela quando quiser, pelo portal de assinatura. O anual é pago uma vez e não renova sozinho. Seus cadernos e cards continuam no Grátis.',
     },
-    {
-      q: 'Já uso o Anki. Perco meu progresso?',
-      a: 'Não recomeça do zero: o arquivo .apkg traz os cards, a mídia e o ponto em que cada um estava (intervalo, repetições e erros). O registro de cada revisão antiga fica no Anki.',
-    },
-    {
-      q: 'A IA pode errar?',
-      a: 'Pode. Por isso cada card mostra de onde veio (a página, quando sai de um PDF), e você edita ou apaga o que quiser. Em assunto em que um erro custa caro, confira os cards com o material.',
-    },
-    {
-      q: 'Como cancelo o Pro?',
-      a: 'O mensal você cancela quando quiser, pelo portal de assinatura. O anual é pago uma vez por ano, sem renovação automática. Se sair do Pro, seus cadernos e cards continuam na conta grátis.',
-    },
-    {
-      q: 'Meus dados ficam seguros?',
-      a: 'Seus cadernos ficam só na sua conta, que é protegida por senha ou pelo login do Google, com conexão segura (HTTPS). Nas configurações, você exporta seus dados ou apaga a conta quando quiser.',
-    },
+    { q: 'A IA pode errar?', a: 'Pode. Por isso cada card mostra de onde saiu, e você edita na hora.' },
   ]
 }
+
+// ── Where each call is, for landing_cta_clicked (prd-landing-d RF-D18) ──
+
+export type { LandingCtaPosition } from '~/types/analytics'
+
+/** The page's tracker, given to every LandingCta (provide/inject). */
+export const LANDING_CTA: InjectionKey<(position: LandingCtaPosition, area?: LandingArea) => void> = Symbol('landing-cta')

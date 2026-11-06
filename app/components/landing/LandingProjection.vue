@@ -1,28 +1,40 @@
 <template>
-  <section class="px-gutter py-14 lg:py-20" aria-labelledby="landing-projection">
-    <div class="mx-auto grid max-w-page items-center gap-10 lg:grid-cols-2 lg:gap-20">
+  <section class="lp-sec lp-raised lp-proj" aria-labelledby="landing-projection">
+    <div class="lp-wrap">
       <div>
-        <h2 id="landing-projection" class="text-heading text-balance text-fg-strong lg:text-heading-lg">Como o Baigi sabe quanto você vai lembrar</h2>
-        <p class="mt-3 max-w-prose text-lead text-fg">
-          Para cada card dos assuntos da prova, o Baigi calcula a chance de você lembrar dele no dia, pelo histórico das suas revisões. A conta aparece quando a prova está marcada e já há pelo menos 20 cards nos assuntos dela, 10 deles revisados mais de uma vez.
-        </p>
-        <dl class="mt-8 flex flex-col gap-5">
-          <div v-for="row in PROJECTION" :key="row.term">
-            <dt class="text-section text-fg-strong">{{ row.term }}</dt>
-            <dd class="mt-1 text-body text-fg">{{ row.text }}</dd>
-          </div>
-        </dl>
+        <h2 id="landing-projection" data-reveal>Saiba quanto você vai lembrar no dia da prova.</h2>
+        <p class="lp-lead" data-reveal>Marque a data. A cada revisão o Baigi refaz a conta com os seus cards: um número se você mantiver o ritmo, outro se parar hoje.</p>
+        <p class="lp-how" data-reveal><b>Como calculamos:</b> cada card tem uma força que sobe quando você acerta e cai com o tempo; a conta soma todas no dia da prova.</p>
+        <div class="lp-act">
+          <LandingCta to="/criar-conta" position="projection" section>Marcar a data da minha prova</LandingCta>
+        </div>
       </div>
-      <!-- The exam with its two numbers, on the screen of the app (the domínio by matéria is in the gallery) -->
-      <div class="mx-auto w-full max-w-sm lg:max-w-md">
-        <LandingShot name="projecao" />
+      <div>
+        <div class="lp-proof" data-reveal="scale">
+          <div class="n">
+            <b class="num"><span :data-count="demo.keep_pace" data-suffix="%" data-ms="1600" @counted="celebrate">{{ demo.keep_pace }}%</span></b>
+            <span>mantendo o ritmo</span>
+          </div>
+          <LandingPhone><LandingScreen name="hoje-tela" /></LandingPhone>
+          <div class="n">
+            <b class="num"><span :data-count="demo.stop_today" data-suffix="%" data-ms="1600">{{ demo.stop_today }}%</span></b>
+            <span>se parar hoje</span>
+          </div>
+          <LandingMascot :pose="celebrating ? 'celebrating' : 'thinking'" class="lp-proj-m" :class="{ 'lp-pop': celebrating }" />
+        </div>
+        <p class="lp-fine lp-proj-note">{{ demo.exam }}, daqui a {{ demo.days }} dias, na conta de demonstração.</p>
       </div>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-// The promise explained (prd-landing-v4 RF-L3c; research rodada 2 §1.4: the risk is "how do you know?"): what the
-// two numbers of the hero mean, in plain words, next to the real domínio by matéria of the demo account.
-import { PROJECTION } from '~/utils/landing'
+// The projection (prd-landing-d RF-D6): 90% and 75% in huge type around the real Hoje, the same numbers of the demo
+// account (demo.json, written by e2e/landing/shots.ts). The dolphin swaps to the celebrating pose when 90% lands.
+import demo from '~/assets/landing/demo.json'
+
+const celebrating = ref(false)
+function celebrate() {
+  celebrating.value = true
+}
 </script>

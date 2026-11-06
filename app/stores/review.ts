@@ -1,13 +1,51 @@
 import { defineStore } from 'pinia'
-import type { Flashcard, WeakConnection } from '~/types'
+import type { CardOrigin, Flashcard, WeakConnection } from '~/types'
 import { getErrorStatus } from '~/utils/apiErrors'
+import { scopeQuery, type ReviewScope, type SessionScopeInfo } from '~/utils/reviewScope'
 
 export interface SessionCard extends Flashcard {
   next_intervals: { again: string; hard: string; good: string; easy: string }
   topic_name?: string | null
+  /** Where the card came from (prd-4d-revisao-v3 RF-B1): quiz question › part of a PDF › note */
+  origin?: CardOrigin | null
 }
 
+/** One rating of the session, for the batches (prd-4d-revisao-v3 RF-F1, RF-F5). */
+export interface RatingLog {
+  client_id: string
+  card_id: string
+  rating: Rating
+  /** Time on the card, from the moment it showed up to the rating */
+  duration_ms: number
+  topic_id: string | null
+  topic_name: string | null
+  /** The 1st rating of this card in the session (only those count in a batch) */
+  first: boolean
+  /** Batch (1-based) the rating belongs to */
+  batch: number
+  /** New due date from the server answer (null until it arrives) */
+  due: string | null
+}
+
+/** A batch is 20 distinct cards rated for the 1st time in the session (ReviewService::BATCH_SIZE). */
+export const REVIEW_BATCH = 20
+
 export type Rating = 1 | 2 | 3 | 4
+
+/** What /revisar asks the API for (prd-caderno-f2-recorte RF-F2). */
+export interface SessionOptions {
+  deckId?: string
+  /** Caderno or subject (the subtree): `topic_id=` */
+  topicId?: string
+  /** Any slice: document, note, quiz, podcast or a list of card ids */
+  scope?: ReviewScope
+  origin?: 'quiz' | 'loose'
+  ahead?: boolean
+  errorsOnly?: boolean
+  backlog?: boolean
+  mode?: string
+  includeRelated?: boolean
+}
 export type ErrorDiaryMode = 'always' | 'sometimes' | 'never'
 
 export interface QueueItem {
@@ -31,6 +69,11 @@ export interface UndoEntry {
 
 export const UNDO_MAX = 10
 export const RETRY_DELAYS = [1000, 2000, 4000]
+/** The next page of the session is asked when this many main cards are left (RF-F7). */
+export const NEXT_PAGE_AT = 10
+
+// Bumped by each fetchSession: a late page of the previous session is dropped
+let sessionSeq = 0
 
 function uuid(): string {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') return crypto.randomUUID()
@@ -71,6 +114,14 @@ export const useReviewStore = defineStore('review', {
     hints: [] as { type: string; text: string }[],
     hintsLoading: false,
     retaFinal: null as { active: boolean; exam_titles: string[]; extra_count: number } | null,
+    // GET /review/session pages (≤ 100 cards, prd-performance-caderno RF-F7): one continuous session
+    sessionQuery: '',
+    /** The slice the API reports for this session (null = the global one; prd-caderno-f2-recorte RF-B5) */
+    scope: null as SessionScopeInfo | null,
+    hasMore: false,
+    loadingMore: false,
+    /** Session cards beyond the loaded pages (session_count − page size, at the last page) */
+    unloadedCount: 0,
     // Optimistic submit queue (RF-F2.3/F2.4)
     reviewQueue: [] as QueueItem[],
     queuePaused: false,
@@ -81,6 +132,15 @@ export const useReviewStore = defineStore('review', {
     sessionStartedAt: 0,
     ratingsCount: { 1: 0, 2: 0, 3: 0, 4: 0 } as Record<Rating, number>,
     errorsThisSession: 0,
+    /** Size of the session the button promised (session_count of the 1st page) */
+    sessionCount: 0,
+    /** Cards rated at least once, in the order of their 1st rating */
+    firstPass: [] as string[],
+    log: [] as RatingLog[],
+    /** Batch ends the person already left ("Próximo lote") */
+    batchesAcked: 0,
+    /** When the current card showed up (duration of each rating) */
+    cardShownAt: 0,
     _tick: 0,
     _pendingAdvance: null as (() => void) | null,
   }),
@@ -102,20 +162,20 @@ export const useReviewStore = defineStore('review', {
       return this.currentCard?.next_intervals ?? { again: '', hard: '', good: '', easy: '' }
     },
     total(state): number {
-      return state.cards.length + state.learningQueue.length
+      return state.cards.length + state.learningQueue.length + state.unloadedCount
     },
     reviewed: (state) => state.currentIndex,
     progress(state): number {
       void state._tick // force reactivity
-      const total = state.cards.length + state.learningQueue.length
-      const left = (state.cards.length - state.currentIndex) + state.learningQueue.length
+      const total = state.cards.length + state.learningQueue.length + state.unloadedCount
+      const left = (state.cards.length - state.currentIndex) + state.learningQueue.length + state.unloadedCount
       if (!total) return 0
       return Math.min(100, Math.round(((total - left) / total) * 100))
     },
     pendingLearning: (state) => state.learningQueue.length,
     remaining(state): number {
       void state._tick // force reactivity
-      return (state.cards.length - state.currentIndex) + state.learningQueue.length
+      return (state.cards.length - state.currentIndex) + state.learningQueue.length + state.unloadedCount
     },
     pendingCount: (state) => state.reviewQueue.length,
     canUndo: (state) => state.undoStack.length > 0,
@@ -123,14 +183,25 @@ export const useReviewStore = defineStore('review', {
     saving(state): boolean {
       return state.currentIndex >= state.cards.length && state.learningQueue.length === 0 && state.reviewQueue.length > 0
     },
+    /** Nothing left to show while the next page of the session is on its way (never "Tudo em dia"). */
+    awaitingPage(state): boolean {
+      return state.currentIndex >= state.cards.length && state.learningQueue.length === 0 && state.hasMore
+    },
     totalRated: (state) => state.ratingsCount[1] + state.ratingsCount[2] + state.ratingsCount[3] + state.ratingsCount[4],
   },
 
   actions: {
-    async fetchSession(deckId?: string, topicId?: string, errorsOnly?: boolean, backlog?: boolean, mode?: string) {
+    /**
+     * Opens a session. `topicId` = the topic and its subtree; `scope` = any slice of the F2 (document,
+     * note, quiz, podcast, cards; prd-caderno-f2-recorte RF-F2). includeRelated adds the graph neighbours
+     * of a topic (F1 RF-B1, no UI yet).
+     */
+    async fetchSession(opts: SessionOptions = {}) {
+      const seq = ++sessionSeq
       this.loading = true
       this.finished = false
       this.sessionError = null
+      this.scope = null
       this.cards = []
       this.currentIndex = 0
       this.totalReviewed = 0
@@ -146,40 +217,104 @@ export const useReviewStore = defineStore('review', {
       this.undoStack = []
       this.ratingsCount = { 1: 0, 2: 0, 3: 0, 4: 0 }
       this.errorsThisSession = 0
+      this.sessionCount = 0
+      this.firstPass = []
+      this.log = []
+      this.batchesAcked = 0
+      this.hasMore = false
+      this.loadingMore = false
+      this.unloadedCount = 0
       try {
         const { $api } = useNuxtApp()
-        const params = new URLSearchParams()
-        if (deckId) params.set('deck_id', deckId)
-        if (topicId) params.set('topic_id', topicId)
-        if (errorsOnly) params.set('errors_only', '1')
-        if (backlog) params.set('backlog', '1')
-        if (mode) params.set('mode', mode)
+        const params = new URLSearchParams(scopeQuery(opts.scope ?? opts.topicId ?? null, {
+          errorsOnly: opts.errorsOnly, ahead: opts.ahead, origin: opts.origin,
+        }))
+        if (opts.deckId) params.set('deck_id', opts.deckId)
+        if (opts.backlog) params.set('backlog', '1')
+        if (opts.mode) params.set('mode', opts.mode)
+        if (opts.includeRelated) params.set('include_related', '1')
         const query = params.toString() ? `?${params}` : ''
         const res = await $api<any>(`/review/session${query}`)
-        const allCards = res.data as SessionCard[]
+        if (seq !== sessionSeq) return
+        this.sessionQuery = query
+        this.scope = res.scope ?? null
         this.retaFinal = res.reta_final ?? null
-        const now = Date.now()
-
-        // Separate learning/relearning cards with future due into learningQueue
-        for (const card of allCards) {
-          const isLearning = card.state === 'learning' || card.state === 'relearning'
-          const dueFuture = card.due && new Date(card.due).getTime() > now
-          if (isLearning && dueFuture) {
-            this.learningQueue.push({ card, dueAt: new Date(card.due!).getTime() })
-          } else {
-            this.cards.push(card)
-          }
-        }
+        this.addPage(res)
 
         this.initialTotal = this.cards.length
+        this.sessionCount = res.session_count ?? (this.cards.length + this.learningQueue.length)
         this.sessionStartedAt = Date.now()
+        this.cardShownAt = Date.now()
         // "Tudo em dia" only after a 2xx (RN-UX-03)
         this.checkFinished()
+        this.prefetchPage()
       } catch (e) {
+        if (seq !== sessionSeq) return
         this.sessionError = e
         this.finished = false
       } finally {
-        this.loading = false
+        if (seq === sessionSeq) this.loading = false
+      }
+    },
+
+    /**
+     * Cards of a session page. Reviewed cards are no longer eligible on the server, but the
+     * page may repeat cards still unrated here, in learning or with the answer on its way: an id
+     * already in the session is dropped.
+     */
+    addPage(res: { data: SessionCard[]; has_more?: boolean; session_count?: number }): number {
+      const seen = new Set([...this.cards.map(c => c.id), ...this.learningQueue.map(q => q.card.id), ...this.reviewQueue.map(q => q.flashcard_id)])
+      const now = Date.now()
+      let added = 0
+      // Separate learning/relearning cards with future due into learningQueue
+      for (const card of res.data) {
+        if (seen.has(card.id)) continue
+        seen.add(card.id)
+        added++
+        const isLearning = card.state === 'learning' || card.state === 'relearning'
+        const dueFuture = card.due && new Date(card.due).getTime() > now
+        if (isLearning && dueFuture) {
+          this.learningQueue.push({ card, dueAt: new Date(card.due!).getTime() })
+        } else {
+          this.cards.push(card)
+        }
+      }
+      // A page with nothing new (all of it already here) ends the paging: no request loop
+      this.hasMore = !!res.has_more && added > 0
+      this.unloadedCount = this.hasMore ? Math.max(0, (res.session_count ?? 0) - res.data.length) : 0
+      return added
+    },
+
+    /** Asks the next page when few main cards are left: after the first page, a page and each rating. */
+    prefetchPage() {
+      const mainLeft = this.cards.length - this.currentIndex
+      if (this.hasMore && !this.loadingMore && !this.sessionError && mainLeft <= NEXT_PAGE_AT) void this.fetchMore()
+    },
+
+    /** Next page of the session, asked before the current one runs out (RF-F7). */
+    async fetchMore() {
+      if (!this.hasMore || this.loadingMore) return
+      const seq = sessionSeq
+      this.loadingMore = true
+      let ok = false
+      try {
+        const { $api } = useNuxtApp()
+        const res = await $api<any>(`/review/session${this.sessionQuery}`)
+        if (seq !== sessionSeq) return
+        this.addPage(res)
+        ok = true
+      } catch (e) {
+        if (seq !== sessionSeq) return
+        // Cards still on screen: the next rating tries again; nothing left: the error screen retries
+        if (this.currentIndex >= this.cards.length && !this.learningQueue.length) this.sessionError = e
+        else reportApiError(e, { silent: true })
+      } finally {
+        if (seq === sessionSeq) {
+          this.loadingMore = false
+          this._tick++
+          this.checkFinished()
+          if (ok) this.prefetchPage()
+        }
       }
     },
 
@@ -203,6 +338,15 @@ export const useReviewStore = defineStore('review', {
       this.hints = []
       if (rating === 1) this.errorsThisSession++
 
+      // Batches: distinct cards in their 1st rating; a learning card that comes back belongs to the batch open now
+      const first = !this.firstPass.includes(card.id)
+      const batch = first ? Math.floor(this.firstPass.length / REVIEW_BATCH) + 1 : Math.max(1, this.batchesAcked + 1)
+      if (first) this.firstPass.push(card.id)
+      this.log.push({
+        client_id: clientId, card_id: card.id, rating, duration_ms: Math.max(0, Date.now() - (this.cardShownAt || Date.now())),
+        topic_id: card.topic_id ?? null, topic_name: card.topic_name ?? null, first, batch, due: null,
+      })
+
       // The rated card leaves the session until the server answers
       this.learningQueue = this.learningQueue.filter(q => q.card.id !== card.id)
 
@@ -216,8 +360,10 @@ export const useReviewStore = defineStore('review', {
           this.learningQueue = this.learningQueue.map(item => ({ ...item, dueAt: Date.now() }))
         }
         this.flipped = false
+        this.cardShownAt = Date.now()
         this._tick++
         this.checkFinished()
+        this.prefetchPage()
       }
 
       if (rating === 1 && shouldOpenDiary(this.errorDiaryMode, this.errorsThisSession)) {
@@ -300,6 +446,9 @@ export const useReviewStore = defineStore('review', {
 
       this.weakSuggestion = data?.weak_connections ?? null
       this.noteSnippet = data?.note_snippet ?? null
+
+      const logged = this.log.find(l => l.client_id === item.client_id)
+      if (logged) logged.due = data?.flashcard?.due ?? null
 
       const updatedCard = { ...data.flashcard, next_intervals: data.next_intervals } as SessionCard
       // The server answer is the source of truth for scheduling
@@ -395,6 +544,17 @@ export const useReviewStore = defineStore('review', {
     forgetRating(entry: UndoEntry) {
       this.ratingsCount[entry.rating] = Math.max(0, this.ratingsCount[entry.rating] - 1)
       if (entry.rating === 1) this.errorsThisSession = Math.max(0, this.errorsThisSession - 1)
+      const i = this.log.findIndex(l => l.client_id === entry.client_id)
+      if (i !== -1) {
+        const [gone] = this.log.splice(i, 1)
+        if (gone?.first) this.firstPass = this.firstPass.filter(id => id !== gone.card_id)
+      }
+    },
+
+    /** "Próximo lote": the batch end that is showing is left behind. */
+    ackBatch(index: number) {
+      this.batchesAcked = Math.max(this.batchesAcked, index)
+      this.cardShownAt = Date.now()
     },
 
     restoreCard(entry: UndoEntry, card: SessionCard, notAdvanced = false) {
@@ -431,8 +591,8 @@ export const useReviewStore = defineStore('review', {
     checkFinished() {
       const hasMainCards = this.currentIndex < this.cards.length
       const hasPendingLearning = this.learningQueue.length > 0
-      // The end screen waits for the queue to drain (RF-F2.4)
-      this.finished = !hasMainCards && !hasPendingLearning && this.reviewQueue.length === 0 && !this.sessionError
+      // The end screen waits for the queue to drain (RF-F2.4) and for the last page of the session
+      this.finished = !hasMainCards && !hasPendingLearning && this.reviewQueue.length === 0 && !this.sessionError && !this.hasMore
     },
   },
 })

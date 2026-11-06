@@ -1,15 +1,16 @@
 <template>
   <NodeViewWrapper v-if="topicExists" class="subpage-node-wrapper" :class="{ selected }">
-    <div
-      class="subpage-card cursor-pointer hover:border-[var(--color-accent-primary)]/40 hover:bg-[var(--color-primary-50)]"
+    <button
+      type="button"
+      class="subpage-card w-full cursor-pointer text-left hover:border-action-fg/40 hover:bg-action-subtle"
       @click="handleClick"
     >
-      <FolderOpen :size="16" class="shrink-0 text-[var(--badge-primary-text)]" />
-      <span class="flex-1 truncate text-body font-medium text-base-primary">
+      <FolderOpen :size="16" class="shrink-0 text-action-fg" aria-hidden="true" />
+      <span class="flex-1 truncate text-body font-medium text-fg-strong">
         {{ displayName }}
       </span>
-      <ChevronRight :size="14" class="shrink-0 text-base-muted" />
-    </div>
+      <ChevronRight :size="14" class="shrink-0 text-fg-muted" aria-hidden="true" />
+    </button>
   </NodeViewWrapper>
   <NodeViewWrapper v-else class="subpage-node-wrapper-empty" />
 </template>
@@ -91,14 +92,14 @@ function navigateToTopic() {
   align-items: center;
   gap: 0.625rem;
   padding: 0.625rem 0.875rem;
-  border-radius: 0.5rem;
-  border: 1px solid var(--border-base);
-  background: var(--bg-card);
-  transition: all 0.15s ease;
+  border-radius: var(--radius-row);
+  border: 1px solid var(--line-strong);
+  background: var(--surface-raised);
+  transition: border-color var(--motion-nav) ease, background-color var(--motion-nav) ease;
 }
 
 .subpage-node-wrapper.selected .subpage-card {
-  border-color: var(--color-accent-primary);
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+  border-color: var(--action-fg);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--focus-ring) 15%, transparent);
 }
 </style>

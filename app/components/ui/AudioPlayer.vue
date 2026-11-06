@@ -1,9 +1,9 @@
 <template>
-  <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--border-divider)]">
+  <div class="flex items-center gap-2 px-3 py-2 rounded-control bg-line">
     <button
       type="button"
       class="w-7 h-7 rounded-full flex items-center justify-center transition-colors shrink-0"
-      :class="playing ? 'bg-danger text-base-primary' : 'bg-accent-primary-subtle text-accent-primary'"
+      :class="playing ? 'bg-danger-subtle text-danger' : 'bg-action-subtle text-action-fg'"
       :aria-label="playing ? 'Pausar áudio' : 'Tocar áudio'"
       @click="toggle"
     >
@@ -12,20 +12,20 @@
     </button>
     <div class="flex-1 flex items-center gap-2 min-w-0">
       <div
-        class="flex-1 h-1.5 rounded-full bg-surface-secondary cursor-pointer relative overflow-hidden"
+        class="flex-1 h-1.5 rounded-full bg-subtle cursor-pointer relative overflow-hidden"
         @click="seek"
       >
         <div
           class="h-1.5 rounded-full"
-          :style="{ width: progressPct + '%', backgroundColor: 'var(--color-accent-primary)' }"
+          :style="{ width: progressPct + '%', backgroundColor: 'var(--action-fg)' }"
         />
       </div>
-      <span class="text-micro text-base-muted w-10 text-right shrink-0">{{ timeLabel }}</span>
+      <span class="text-label text-fg-muted w-10 text-right shrink-0">{{ timeLabel }}</span>
     </div>
     <button
       v-if="removable"
       type="button"
-      class="p-0.5 text-base-muted hover:text-[var(--badge-danger-text)] transition-colors"
+      class="p-0.5 text-fg-muted hover:text-danger transition-colors"
       aria-label="Remover áudio"
       @click="$emit('remove')"
     >

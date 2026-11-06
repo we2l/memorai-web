@@ -4,34 +4,39 @@
     role="dialog"
     aria-labelledby="consent-title"
     aria-describedby="consent-text"
-    class="fixed z-40 inset-x-0 bottom-[var(--consent-bottom)] sm:inset-x-auto sm:left-4 sm:bottom-4 sm:max-w-[420px] bg-[var(--bg-card)] border-t sm:border border-base sm:rounded-2xl shadow-lg px-4 pt-4 pb-[calc(1rem+var(--consent-safe))] sm:pb-4"
-    :style="{ '--consent-bottom': mobileBottom, '--consent-safe': hasNav ? '0px' : 'env(safe-area-inset-bottom)' }"
+    :class="bar
+      ? 'fixed z-40 inset-x-0 bottom-0 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line-strong bg-raised px-gutter pt-3 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-float'
+      : inline
+        ? 'flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line bg-raised px-gutter py-3'
+        : ['fixed z-40 inset-x-0 sm:inset-x-auto sm:left-4 sm:bottom-4 sm:max-w-105 bg-raised border-t sm:border border-line-strong sm:rounded-card shadow-float px-4 pt-4 sm:pb-4', hasNav ? 'bottom-nav pb-4' : 'bottom-0 pb-[calc(1rem+env(safe-area-inset-bottom))]']"
     data-testid="consent-banner"
   >
-    <h2 id="consent-title" class="text-title text-base-primary mb-1">Sua privacidade</h2>
-    <p id="consent-text" class="text-small text-base-secondary">
-      Usamos cookies essenciais para o Baigi funcionar e, com sua permissão, cookies de análise (PostHog) para entender como o produto é usado. Nunca vendemos seus dados.
-      <NuxtLink to="/privacidade" class="underline text-base-primary">Política de privacidade</NuxtLink>
+    <h2 id="consent-title" :class="thin ? 'sr-only' : 'text-section text-fg-strong mb-1'">Sua privacidade</h2>
+    <p id="consent-text" class="text-meta text-fg" :class="thin && 'min-w-0 flex-1 basis-64'">
+      <template v-if="bar">Cookies de análise só com a sua permissão.</template>
+      <template v-else-if="inline">Usamos cookies essenciais e, com sua permissão, de análise.</template>
+      <template v-else>Usamos cookies essenciais para o Baigi funcionar e, com sua permissão, cookies de análise (PostHog) para entender como o produto é usado. Nunca vendemos seus dados.</template>
+      {{ ' ' }}<NuxtLink to="/privacidade" class="underline text-fg-strong" :target="thin ? '_blank' : undefined">{{ bar ? 'Privacidade' : 'Política de privacidade' }}</NuxtLink>
     </p>
-    <div class="grid grid-cols-2 gap-2 mt-3">
-      <button type="button" class="btn-secondary w-full justify-center" data-testid="consent-reject" @click="reject">Recusar</button>
-      <button type="button" class="btn-secondary w-full justify-center" data-testid="consent-accept" @click="accept">Aceitar</button>
+    <div :class="thin ? 'flex flex-wrap items-center gap-2' : 'grid grid-cols-2 gap-2 mt-3'">
+      <UiButton variant="secondary" :size="thin ? 'sm' : 'md'" type="button" :block="!thin" :class="thin && 'min-w-24'" data-testid="consent-reject" @click="reject">Recusar</UiButton>
+      <UiButton variant="secondary" :size="thin ? 'sm' : 'md'" type="button" :block="!thin" :class="thin && 'min-w-24'" data-testid="consent-accept" @click="accept">Aceitar</UiButton>
+      <UiButton v-if="thin" variant="ghost" size="sm" type="button" data-testid="consent-customize" @click="openModal">Personalizar</UiButton>
     </div>
-    <button
-      type="button"
-      class="mt-2 min-h-[2.75rem] text-small text-base-muted underline hover:text-base-primary"
-      data-testid="consent-customize"
-      @click="openModal"
-    >
-      Personalizar
-    </button>
+    <UiButton v-if="!thin" variant="ghost" size="sm" type="button" class="mt-2" data-testid="consent-customize" @click="openModal">Personalizar</UiButton>
     <LazyUiConsentModal v-if="modalLoaded" v-model="showModal" />
   </div>
 </template>
 
 <script setup lang="ts">
 // LGPD banner (prd-analytics-posthog RF-F02): same weight for Recusar/Aceitar, no focus trap,
-// Esc does not dismiss it (a choice is required), never shown on /privacidade.
+// Esc does not dismiss it (a choice is required), never shown on /privacidade. `inline` (auth layout,
+// prd-4g RF-F11): a thin bar in the flow of the page, never over the form. `bar` (landing, prd-landing-d): the same
+// thin bar fixed at the bottom, so it never covers the hero's call (two lines on a phone, one row on the desktop).
+// Recusar and Aceitar keep the same width in every form (same weight, LGPD).
+const props = defineProps<{ inline?: boolean, bar?: boolean }>()
+const thin = computed(() => props.inline || props.bar)
+
 const route = useRoute()
 const auth = useAuthStore()
 const { analytics, accept, reject } = useConsent()
@@ -42,8 +47,8 @@ const modalLoaded = useLoadedOnce(() => showModal.value)
 const visible = computed(() => analytics.value === null && route.path !== '/privacidade')
 
 // Mobile: sits above the BottomNav on app pages (default layout, logged in)
-const hasNav = computed(() => !!auth.user && !['auth', 'landing'].includes(String(route.meta.layout ?? 'default')))
-const mobileBottom = computed(() => (hasNav.value ? 'calc(var(--nav-h) + env(safe-area-inset-bottom))' : '0px'))
+const hasNav = computed(() => !!auth.user && !['auth', 'landing', 'public'].includes(String(route.meta.layout ?? 'default')))
+// bottom-nav: the BottomNav height with the safe area (0 from 768 px: the TopNav is on top)
 
 function openModal() {
   showModal.value = true

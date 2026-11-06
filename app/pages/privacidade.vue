@@ -56,9 +56,9 @@
     <p>Pelo art. 18 da LGPD, você pode, a qualquer momento:</p>
     <ul>
       <li>confirmar a existência de tratamento e acessar seus dados;</li>
-      <li>corrigir dados incompletos ou desatualizados (em <NuxtLink to="/configuracoes#perfil">Configurações → Perfil</NuxtLink>);</li>
-      <li>obter a portabilidade — <NuxtLink to="/configuracoes#seus-dados">Configurações → Seus dados → Exportar meus dados</NuxtLink>;</li>
-      <li>eliminar seus dados — <NuxtLink to="/configuracoes#conta">Configurações → Conta → Excluir conta</NuxtLink>;</li>
+      <li>corrigir dados incompletos ou desatualizados (em <NuxtLink to="/configuracoes#conta">Configurações → Conta e segurança</NuxtLink>);</li>
+      <li>obter a portabilidade — <NuxtLink to="/configuracoes#dados">Configurações → Seus dados → Exportar meus dados</NuxtLink>;</li>
+      <li>eliminar seus dados — <NuxtLink to="/configuracoes#dados">Configurações → Seus dados → Excluir conta</NuxtLink>;</li>
       <li>revogar consentimentos e saber com quem seus dados são compartilhados.</li>
     </ul>
     <p>
@@ -69,7 +69,7 @@
     <h2 id="cookies">7. Cookies</h2>
     <ul>
       <li><strong>Essenciais:</strong> cookie de sessão e proteção CSRF, necessários para você entrar e usar o app, e o cookie <code>baigi_consent</code>, que guarda a sua escolha por 12 meses. Não podem ser desativados.</li>
-      <li><strong>Analytics (opcional):</strong> cookie e armazenamento local do PostHog (<code>ph_*</code>), criados apenas se você consentir no aviso de cookies. Você pode revogar a qualquer momento em <NuxtLink to="/configuracoes#privacidade">Configurações → Privacidade</NuxtLink>; a coleta para na hora.</li>
+      <li><strong>Analytics (opcional):</strong> cookie e armazenamento local do PostHog (<code>ph_*</code>), criados apenas se você consentir no aviso de cookies. Você pode revogar a qualquer momento em <NuxtLink to="/configuracoes#dados">Configurações → Seus dados</NuxtLink>; a coleta para na hora.</li>
     </ul>
 
     <h2 id="seguranca">8. Segurança</h2>
@@ -93,7 +93,7 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({ layout: 'landing' })
+definePageMeta({ layout: 'public' })
 
 // TODO(jurídico): datas definitivas na publicação do texto revisado
 const EFFECTIVE_DATE = '1º de outubro de 2026'

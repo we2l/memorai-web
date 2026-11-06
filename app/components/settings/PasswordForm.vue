@@ -1,38 +1,24 @@
 <template>
-  <div>
-    <template v-if="hasPassword">
-      <form class="space-y-3 max-w-sm" novalidate @submit.prevent="submit">
-        <div v-for="f in fields" :key="f.key">
-          <label :for="`pw-${f.key}`" class="text-label mb-1 block">{{ f.label }}</label>
-          <div class="relative">
-            <input
-              :id="`pw-${f.key}`"
-              v-model="form[f.key]"
-              :type="show ? 'text' : 'password'"
-              class="input-base w-full pr-12"
-              :autocomplete="f.key === 'current_password' ? 'current-password' : 'new-password'"
-              :aria-invalid="!!errors[f.key]"
-              :aria-describedby="[errors[f.key] ? `pw-${f.key}-error` : '', f.key === 'password' ? 'pw-rules' : ''].filter(Boolean).join(' ') || undefined"
-            />
-          </div>
-          <p v-if="f.key === 'password'" id="pw-rules" class="text-micro mt-1" :class="form.password.length >= 8 ? 'text-[var(--badge-success-text)]' : 'text-base-muted'">
-            Pelo menos 8 caracteres
-          </p>
-          <p v-if="errors[f.key]" :id="`pw-${f.key}-error`" class="text-micro text-[var(--badge-danger-text)] mt-1">{{ errors[f.key] }}</p>
-        </div>
-        <label class="flex items-center gap-2 text-small text-base-secondary cursor-pointer">
-          <input v-model="show" type="checkbox" class="w-4 h-4 accent-[var(--color-accent-primary)]" />
-          Mostrar senhas
-        </label>
-        <button type="submit" class="btn-primary" :disabled="pending || !canSubmit">
-          {{ pending ? 'Salvando...' : 'Trocar senha' }}
-        </button>
-      </form>
-    </template>
-    <template v-else>
-      <p class="text-small text-base-secondary mb-3">Você entra com Google. Para também entrar com e-mail e senha, defina uma senha pelo link que enviamos por e-mail.</p>
-      <NuxtLink to="/esqueci-senha" class="btn-secondary">Definir senha por e-mail</NuxtLink>
-    </template>
+  <form v-if="hasPassword" class="flex max-w-sm flex-col gap-3" novalidate @submit.prevent="submit">
+    <UiInput
+      v-for="f in fields"
+      :id="`pw-${f.key}`"
+      :key="f.key"
+      v-model="form[f.key]"
+      :label="f.label"
+      :type="show ? 'text' : 'password'"
+      :autocomplete="f.key === 'current_password' ? 'current-password' : 'new-password'"
+      :hint="f.key === 'password' ? 'Pelo menos 8 caracteres' : undefined"
+      :error="errors[f.key]"
+    />
+    <UiCheckbox v-model="show" label="Mostrar senhas" />
+    <div>
+      <UiButton type="submit" :loading="pending" :disabled="!canSubmit">Trocar senha</UiButton>
+    </div>
+  </form>
+  <div v-else class="flex flex-col items-start gap-3">
+    <p class="text-meta text-fg">Você entra com o Google. Para também entrar com e-mail e senha, defina uma senha pelo link que enviamos por e-mail.</p>
+    <UiButton to="/esqueci-senha">Definir senha por e-mail</UiButton>
   </div>
 </template>
 
@@ -51,7 +37,7 @@ const fields = [
   { key: 'password_confirmation', label: 'Confirmar nova senha' },
 ] as const
 
-const canSubmit = computed(() => form.current_password && form.password.length >= 8 && form.password_confirmation)
+const canSubmit = computed(() => !!form.current_password && form.password.length >= 8 && !!form.password_confirmation)
 
 async function submit() {
   for (const k of Object.keys(errors)) delete errors[k]

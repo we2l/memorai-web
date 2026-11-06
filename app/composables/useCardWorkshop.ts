@@ -80,7 +80,11 @@ export function useCardWorkshop({ topicId, onReload }: UseCardWorkshopOptions) {
 
   // --- Core logic ---
 
-  async function generate(source: 'notes' | 'pdf', noteId?: string, documentId?: string) {
+  /**
+   * Asks the AI for cards: the whole note (`notes`), a PDF, or an excerpt of the note (`selection`, 3 cards,
+   * prd-4c-material-v3 RF-B5). The accept sends `note_id`, so every card keeps its origin.
+   */
+  async function generate(source: 'notes' | 'pdf' | 'selection', noteId?: string, documentId?: string, text?: string) {
     if (!topicId.value) return
     if (state.value === 'loading') return
 
@@ -96,6 +100,7 @@ export function useCardWorkshop({ topicId, onReload }: UseCardWorkshopOptions) {
       }
       if (noteId) body.note_id = noteId
       if (documentId) body.document_id = documentId
+      if (text) body.text = text
 
       // 202 + job polled until done (RF-30)
       const result = await aiJob.run<{ cards: any[] }>('/ai/generate-cards', body)
@@ -111,7 +116,11 @@ export function useCardWorkshop({ topicId, onReload }: UseCardWorkshopOptions) {
       }
     } catch (e: any) {
       state.value = 'idle'
-      const msg = e?.data?.message || 'Erro ao gerar cards.'
+      // 402 opens the upgrade dialog (api plugin): no toast on top of it
+      if (getErrorStatus(e) === 402) return
+      const msg = e?.data?.code === 'selection_not_in_note'
+        ? 'Selecione um trecho do texto da nota para gerar cards.'
+        : e?.data?.message || 'Erro ao gerar cards.'
       toast.show(msg, 'error')
     }
   }
@@ -163,8 +172,9 @@ export function useCardWorkshop({ topicId, onReload }: UseCardWorkshopOptions) {
       if (acceptedIndexes.value.size === cards.value.length) {
         state.value = 'success'
         clearPersisted()
-        await onReload()
       }
+      // Each accepted card shows up where it belongs (the material's panel) without a reload
+      await onReload()
     } catch {
       toast.show('Erro ao aceitar card.', 'error')
     }

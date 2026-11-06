@@ -1,6 +1,25 @@
 import { defineStore } from 'pinia'
 import { PollTimeoutError, pollUntil } from '~/composables/usePoll'
-import type { Quiz, QuizQuestion, QuizStats } from '~/types'
+import type { Quiz, QuizKind, QuizQuestion, QuizStats } from '~/types'
+
+/** POST /quizzes (prd-4e-praticar-v3 RF-B1/B2): `scope` = topic:|document:|note:<id> (or the topic_id shortcut). */
+export interface CreateQuizInput {
+  topic_id?: string
+  scope?: string
+  kind?: QuizKind
+  quantity?: number
+  types?: string[]
+  time_limit?: number | null
+  mode?: string
+  difficulty?: string
+}
+
+/** POST /quizzes/{id}/create-cards: every card of the quiz's errors (all ids, not only the new ones). */
+export interface QuizCardsResult {
+  cards_created: number
+  card_ids: string[]
+  session_count: number
+}
 
 export const useQuizStore = defineStore('quiz', {
   state: () => ({
@@ -42,14 +61,7 @@ export const useQuizStore = defineStore('quiz', {
       }
     },
 
-    async createQuiz(data: {
-      topic_id: string
-      quantity?: number
-      types?: string[]
-      time_limit?: number | null
-      mode?: string
-      difficulty?: string
-    }) {
+    async createQuiz(data: CreateQuizInput) {
       this.generating = true
       try {
         const { $api } = useNuxtApp()
@@ -92,19 +104,13 @@ export const useQuizStore = defineStore('quiz', {
       })
 
       // Update local question state
-      const idx = this.questions.findIndex((q) => q.id === questionId)
-      if (idx !== -1) {
-        this.questions[idx].user_answer = answer
-        this.questions[idx].answered_at = new Date().toISOString()
-        if (res.data.is_correct !== null) {
-          this.questions[idx].is_correct = res.data.is_correct
-        }
-        if (res.data.correct_answer) {
-          this.questions[idx].correct_answer = res.data.correct_answer
-        }
-        if (res.data.explanation) {
-          this.questions[idx].explanation = res.data.explanation
-        }
+      const q = this.questions.find(x => x.id === questionId)
+      if (q) {
+        q.user_answer = answer
+        q.answered_at = new Date().toISOString()
+        if (res.data.is_correct !== null) q.is_correct = res.data.is_correct
+        if (res.data.correct_answer) q.correct_answer = res.data.correct_answer
+        if (res.data.explanation) q.explanation = res.data.explanation
       }
 
       return res.data
@@ -149,10 +155,30 @@ export const useQuizStore = defineStore('quiz', {
       return res.data as QuizStats
     },
 
-    async createCardsFromErrors(id: string) {
+    /**
+     * Cards of the wrong answers the person chose (prd-4e-praticar-v3 RF-B6): each one in the assunto of its
+     * question, idempotent per question. Without `questionIds` the API keeps the F2 call (all, once). The ids
+     * and the session size feed "Revisar os N agora" (scope=quiz:).
+     */
+    async createCardsFromErrors(id: string, questionIds?: string[]): Promise<QuizCardsResult> {
       const { $api } = useNuxtApp()
-      const res = await $api<any>(`/quizzes/${id}/create-cards`, { method: 'POST' })
-      return res.data.cards_created as number
+      const res = await $api<{ data: { cards_created: number; card_ids?: string[]; session_count?: number } }>(`/quizzes/${id}/create-cards`, {
+        method: 'POST',
+        ...(questionIds ? { body: { question_ids: questionIds } } : {}),
+      })
+      const out = { cards_created: res.data.cards_created, card_ids: res.data.card_ids ?? [], session_count: res.data.session_count ?? 0 }
+      if (this.currentQuiz?.id === id) {
+        this.currentQuiz.cards_from_errors = { count: out.card_ids.length, session_count: out.session_count }
+        this.currentQuiz.cards_created_at ??= new Date().toISOString()
+      }
+      return out
+    },
+
+    /** "Refazer as que errei" (RF-B4): a new bateria with copies of the wrong questions, no AI and no quota. */
+    async retryErrors(id: string): Promise<Quiz> {
+      const { $api } = useNuxtApp()
+      const res = await $api<{ data: Quiz }>(`/quizzes/${id}/retry-errors`, { method: 'POST' })
+      return res.data
     },
 
     // Navigation
@@ -208,21 +234,21 @@ export const useQuizStore = defineStore('quiz', {
       return this.currentQuiz.time_limit_seconds - this.timeRemaining
     },
 
-    // Polling for quiz generation (2 s, 60 s timeout, pauses with hidden tab)
+    // Polling for quiz generation (2 s; the job runs up to 180 s in blocks of 15, RF-B3; pauses with hidden tab)
     async pollUntilReady(id: string) {
       let quiz: Quiz
       try {
         quiz = await pollUntil(signal => this.fetchQuiz(id, signal), {
           interval: 2000,
           immediate: false,
-          timeout: 60_000,
+          timeout: 200_000,
           until: q => ['in_progress', 'completed', 'failed'].includes(q.status),
         })
       } catch (e) {
-        if (e instanceof PollTimeoutError) throw new Error('Timeout na geração do simulado.')
+        if (e instanceof PollTimeoutError) throw new Error('A geração das questões passou do tempo.')
         throw e
       }
-      if (quiz.status === 'failed') throw new Error('Falha ao gerar simulado. Tente novamente.')
+      if (quiz.status === 'failed') throw new Error('Não conseguimos gerar as questões.')
       return quiz
     },
 

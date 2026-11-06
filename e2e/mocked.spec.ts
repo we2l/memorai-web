@@ -12,8 +12,9 @@ test.describe('Mock: Sessão de revisão com cards', () => {
   const mockCards = [
     {
       id: 'mock-card-1',
-      front: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'O que é FSRS?' }] }] },
-      back: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Free Spaced Repetition Scheduler' }] }] },
+      // front/back are HTML strings now (TipTap JSON was the old shape: nothing rendered and the test skipped itself)
+      front: '<p>O que é FSRS?</p>',
+      back: '<p>Free Spaced Repetition Scheduler</p>',
       state: 'new',
       due: null,
       lapses: 0,
@@ -36,7 +37,7 @@ test.describe('Mock: Sessão de revisão com cards', () => {
     })
 
     // Mock review submit
-    await page.route('**/8037/api/review', route => {
+    await page.route('**/api/review', route => {
       if (route.request().method() === 'POST') {
         route.fulfill({
           status: 200,
@@ -70,13 +71,13 @@ test.describe('Mock: Sessão de revisão com cards', () => {
       await expect(cardText).toBeVisible()
 
       // Flip
-      await page.locator('.review-card').click()
+      await page.getByTestId('review-card').click()
       await page.waitForTimeout(500)
       await expect(page.getByText('Free Spaced Repetition Scheduler')).toBeVisible()
 
       // Rating
-      await expect(page.getByRole('button', { name: /Bom/i })).toBeVisible()
-      await page.getByRole('button', { name: /Bom/i }).click()
+      await expect(page.getByRole('button', { name: /^Bom/ })).toBeVisible()
+      await page.getByRole('button', { name: /^Bom/ }).click()
       await page.waitForTimeout(1000)
     } else {
       // Mock não interceptou (API real respondeu primeiro) — skip gracefully
@@ -85,28 +86,23 @@ test.describe('Mock: Sessão de revisão com cards', () => {
   })
 })
 
-test.describe('Mock: Backlog grande (modo sobrevivência)', () => {
-  test('dashboard mostra sugestão de modo sobrevivência', async ({ page }) => {
+test.describe('Mock: Backlog grande (atraso no plano do dia)', () => {
+  test('o passo Revisar mostra o atraso e leva a "Recuperar atraso" em /praticar', async ({ page }) => {
     await login(page)
 
-    await page.route('**/stats/today*', route => {
-      route.fulfill({
-        status: 200, contentType: 'application/json',
-        body: JSON.stringify({ data: { due_today: 150, reviewed_today: 0, total_cards: 500, streak: 3, correct_today: 0, incorrect_today: 0 } }),
-      })
-    })
-
-    await page.route('**/review/backlog*', route => {
-      route.fulfill({
-        status: 200, contentType: 'application/json',
-        body: JSON.stringify({ data: { overdue_count: 150, suggest_survival_mode: true, estimated_minutes: 38, main_topic: { id: 't1', name: 'Direito' } } }),
-      })
-    })
+    await page.route(/\/api\/stats$/, route => route.fulfill(json({ data: {
+      due_today: 40, reviewed_today: 0, cards_reviewed_today: 0, total_cards: 500, total_decks: 1, streak: 3,
+      ratings_today: { again: 0, hard: 0, good: 0, easy: 0 },
+      goal: { batch_size: 20, target_batches: 2, done_batches: 0, met: false, minutes_left: 10 },
+    } })))
+    await page.route('**/review/backlog-stats*', route => route.fulfill(json({ data: { overdue_count: 150, suggest_survival_mode: true, estimated_minutes: 38 } })))
+    await page.route(/\/api\/settings$/, route => route.fulfill(json({ data: { survival_mode: false } })))
 
     await page.goto('/hoje')
-    await page.waitForTimeout(3000)
-
-    await expect(page.getByText(/Modo Sobrevivência/i)).toBeVisible()
+    const review = page.getByTestId('plan-step-review')
+    await expect(review).toContainText('Revisar 40 cards')
+    await expect(review).toContainText('150 atrasados')
+    await expect(review.getByRole('link', { name: 'Recuperar atraso' })).toHaveAttribute('href', '/praticar')
   })
 })
 
@@ -222,22 +218,27 @@ test.describe('Mock: Sugestão de retenção', () => {
 })
 
 test.describe('Layout lazy (prd-performance-frontend RF-03)', () => {
-  test('⌘K abre a paleta mesmo com ela carregada sob demanda', async ({ page }) => {
+  test('⌘K abre a busca mesmo com ela carregada sob demanda', async ({ page }) => {
     await login(page)
     await page.waitForLoadState('networkidle')
     await page.keyboard.press('Control+k')
-    await expect(page.getByRole('dialog', { name: 'Busca rápida' })).toBeVisible()
-    await expect(page.getByPlaceholder('Buscar cadernos, notas, ações...')).toBeFocused()
+    await expect(page.getByRole('dialog', { name: 'Buscar' })).toBeVisible()
+    await expect(page.getByRole('combobox')).toBeFocused()
     await page.keyboard.press('Escape')
-    await expect(page.getByRole('dialog', { name: 'Busca rápida' })).toBeHidden()
+    await expect(page.getByRole('dialog', { name: 'Buscar' })).toBeHidden()
   })
 
-  test('FAB de captura abre o modal', async ({ page }) => {
+  test('"+ Adicionar" (e Alt+N) abre a folha sob demanda; sem FAB de captura', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 })
     await login(page)
-    await page.getByTitle('Anotar rapidamente (Ctrl+N)').click()
-    await expect(page.getByText('Anotação rápida')).toBeVisible()
-    await expect(page.getByPlaceholder('Escreva uma ideia, conceito ou anotação...')).toBeFocused()
+    await expect(page.getByTitle('Anotar rapidamente (Ctrl+N)')).toHaveCount(0)
+    await page.getByRole('banner').getByRole('button', { name: 'Adicionar' }).click()
+    const sheet = page.getByRole('dialog', { name: 'Adicionar' })
+    await expect(sheet).toBeVisible()
+    // With cadernos: the 5 options; with none: create one (or import from Anki) first
+    await expect(sheet.getByRole('button', { name: /Nota em branco/ }).or(sheet.getByRole('link', { name: 'Criar caderno' }))).toBeVisible()
+    await page.keyboard.press('Escape')
+    await expect(sheet).toBeHidden()
   })
 
   test('402 mockado abre o UpgradeModal', async ({ page }) => {
@@ -251,13 +252,13 @@ test.describe('Layout lazy (prd-performance-frontend RF-03)', () => {
       const app = (document.querySelector('#__nuxt') as any).__vue_app__
       await app.config.globalProperties.$api('/ai/generate', { method: 'POST', body: {} }).catch(() => {})
     })
-    await expect(page.getByRole('dialog', { name: 'Limite do plano' })).toBeVisible()
+    await expect(page.getByRole('dialog').getByRole('button', { name: 'Ver planos' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Ver planos' })).toBeVisible()
   })
 })
 
 test.describe('/cadernos sob demanda (prd-performance-frontend RF-02)', () => {
-  test('troca de abas e modal de card sem erro de console; editor só monta ao abrir', async ({ page }) => {
+  test('hub, biblioteca e mapa sem erro de console; editor do card só monta ao abrir', async ({ page }) => {
     const errors: string[] = []
     page.on('pageerror', e => errors.push(e.message))
     page.on('console', m => { if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) errors.push(m.text()) })
@@ -270,11 +271,10 @@ test.describe('/cadernos sob demanda (prd-performance-frontend RF-02)', () => {
       return res.data.id as string
     })
 
-    await page.goto(`/cadernos?topic=${topicId}`)
-    await page.waitForLoadState('networkidle')
-    for (const tab of ['Material', 'Cards', 'Mapa', 'Cards']) {
-      await page.getByRole('tab', { name: new RegExp(tab) }).click()
-      await page.waitForTimeout(300)
+    // The old tabs are routes of the scope (4b-1): hub, map and card library
+    for (const path of [`/cadernos/${topicId}`, `/cadernos/${topicId}/mapa`, `/cadernos/${topicId}/cards`]) {
+      await page.goto(path)
+      await page.waitForLoadState('networkidle')
     }
 
     // Tiptap only exists after opening the card form (Lazy + v-if)
@@ -372,13 +372,43 @@ test.describe('Revisão rápida (RF-F2.1–F2.4)', () => {
     await expect(page.getByText('Pergunta 2')).toBeVisible()
   })
 
+  test('sessão em páginas (has_more): cruza a página sem tela de fim e o lote conta a sessão inteira', async () => {
+    const sessionUrls: string[] = []
+    await page.unroute('**/api/review/session*')
+    // Page 1: 2 cards of a 4-card session; page 2 repeats card 2 (still unrated when it was asked)
+    await page.route('**/api/review/session*', (r) => {
+      sessionUrls.push(r.request().url())
+      return r.fulfill(json(sessionUrls.length === 1
+        ? { data: [1, 2].map(mkCard), total: 2, session_count: 4, has_more: true }
+        : { data: [2, 3, 4].map(mkCard), total: 3, session_count: 3, has_more: false }))
+    })
+    await page.route(/\/api\/review$/, async (route) => {
+      const body = route.request().postDataJSON()
+      await route.fulfill(json({ data: { review: { id: crypto.randomUUID() }, flashcard: { ...mkCard(1), id: body.flashcard_id }, next_intervals: intervals } }))
+    })
+    await page.goto('/revisar')
+    await expect(page.getByText('Pergunta 1')).toBeVisible()
+    await expect(page.getByTestId('review-batch')).toContainText('Lote 1 de 1 · card 1 de 4')
+    for (const next of [2, 3, 4]) {
+      await page.keyboard.press('Space')
+      await page.keyboard.press('3')
+      await expect(page.getByText(`Pergunta ${next}`)).toBeVisible()
+    }
+    await expect(page.getByTestId('review-batch')).toContainText('card 4 de 4')
+    expect(sessionUrls).toHaveLength(2)
+    expect(sessionUrls[1]).toBe(sessionUrls[0])
+    await page.keyboard.press('Space')
+    await page.keyboard.press('3')
+    await expect(page.getByTestId('review-session-end')).toBeVisible()
+  })
+
   test('erro 500 na sessão mostra "Tentar de novo" e nunca "Tudo em dia!"', async () => {
     let fail = true
     await page.unroute('**/api/review/session*')
     await page.route('**/api/review/session*', r => fail ? r.fulfill(json({ message: 'x' }, 500)) : r.fulfill(json({ data: [mkCard(1)], total: 1 })))
     await page.goto('/revisar')
     await expect(page.getByText('Não foi possível carregar sua revisão')).toBeVisible()
-    await expect(page.getByText('Tudo em dia!')).toHaveCount(0)
+    await expect(page.getByText('Tudo em dia')).toHaveCount(0)
     fail = false
     await page.getByRole('button', { name: 'Tentar de novo' }).click()
     await expect(page.getByText('Pergunta 1')).toBeVisible()
@@ -401,27 +431,29 @@ test.describe('Estados honestos (RF-F3.6–F3.9)', () => {
       ? r.fulfill(json({ message: 'x' }, 500))
       : r.fulfill(json({ data: { total_cards: 0, total_decks: 0, due_today: 0, reviewed_today: 0, cards_reviewed_today: 0, streak: 0 } })))
     await page.goto('/hoje')
-    await expect(page.getByText('Não foi possível carregar seu resumo de hoje')).toBeVisible()
-    await expect(page.getByText('Crie seus primeiros cards')).toHaveCount(0)
-    await expect(page.getByText('Tudo em dia!')).toHaveCount(0)
+    await expect(page.getByText('Não foi possível carregar seu plano de hoje')).toBeVisible()
+    await expect(page.getByText(/Que bom ter você aqui|Primeiros passos/)).toHaveCount(0)
+    await expect(page.getByText(/Tudo em dia/)).toHaveCount(0)
     fail = false
     await page.getByRole('button', { name: 'Tentar de novo' }).first().click()
-    await expect(page.getByText('Não foi possível carregar seu resumo de hoje')).toBeHidden()
+    await expect(page.getByText('Não foi possível carregar seu plano de hoje')).toBeHidden()
   })
 
   test('/progresso com 500 mostra "Tentar de novo"', async () => {
     let fail = true
-    await page.route('**/api/stats/progress', r => fail ? r.fulfill(json({ message: 'x' }, 500)) : r.continue())
+    // Each section fails on its own (prd-4f-progresso-v3 RF-F8): the agenda shows in every state of the account
+    await page.route(url => url.pathname === '/api/exams', r => fail ? r.fulfill(json({ message: 'x' }, 500)) : r.continue())
     await page.goto('/progresso')
-    await expect(page.getByText('Não foi possível carregar seu progresso')).toBeVisible()
+    await expect(page.getByText('Não foi possível carregar suas provas')).toBeVisible()
+    await expect(page.getByText('Defina sua prova para ver')).toHaveCount(0)
     fail = false
-    await page.getByRole('button', { name: 'Tentar de novo' }).click()
-    await expect(page.getByText('Não foi possível carregar seu progresso')).toBeHidden()
+    await page.getByRole('alert').filter({ hasText: 'Não foi possível carregar suas provas' }).getByRole('button', { name: 'Tentar de novo' }).click()
+    await expect(page.getByText('Não foi possível carregar suas provas')).toBeHidden()
   })
 
-  test('/cadernos com /topics 500 mostra erro inline na árvore', async () => {
+  test('/cadernos com /topics/progress 500 mostra erro inline na lista', async () => {
     let fail = true
-    await page.route(/\/api\/topics$/, r => fail && r.request().method() === 'GET' ? r.fulfill(json({ message: 'x' }, 500)) : r.continue())
+    await page.route(/\/api\/topics\/progress$/, r => fail && r.request().method() === 'GET' ? r.fulfill(json({ message: 'x' }, 500)) : r.continue())
     await page.goto('/cadernos')
     await expect(page.getByText('Não foi possível carregar seus cadernos').first()).toBeVisible()
     fail = false
@@ -431,7 +463,7 @@ test.describe('Estados honestos (RF-F3.6–F3.9)', () => {
 })
 
 test.describe('Onboarding sem armadilhas (RF-F4)', () => {
-  const newUser = { id: 'u-new', name: 'Nova Pessoa', email: 'nova@e2e.test', plan: 'free', onboarding_completed: false, email_verified_at: '2026-09-29T00:00:00Z', default_learning_mode: null }
+  const newUser = { id: 'u-new', name: 'Nova Pessoa', email: 'nova@e2e.test', plan: 'free', onboarding_completed: false, email_verified: true, email_verified_at: '2026-09-29T00:00:00Z', default_learning_mode: null }
 
   async function mockNewUserApi(page: import('@playwright/test').Page) {
     // Catch-all first (Playwright matches the most recent route first)
@@ -449,9 +481,15 @@ test.describe('Onboarding sem armadilhas (RF-F4)', () => {
     await page.fill('#name', newUser.name)
     await page.fill('#email', newUser.email)
     await page.fill('#password', 'password123')
-    await page.fill('#password_confirmation', 'password123')
     await page.check('#accept_terms')
     await page.click('button[type="submit"]')
+  }
+
+  /** Passo 1 sem data, até o passo 2 (prd-4g RF-F5). */
+  async function toContent(page: import('@playwright/test').Page) {
+    await page.getByRole('radio', { name: 'Outro' }).check()
+    await page.getByRole('button', { name: 'Continuar' }).click()
+    await expect(page.getByRole('heading', { name: 'Vamos criar seus primeiros cards' })).toBeVisible()
   }
 
   test('cadastro vai direto para /comecar (sem passar por /hoje)', async ({ page }) => {
@@ -467,8 +505,9 @@ test.describe('Onboarding sem armadilhas (RF-F4)', () => {
     await mockNewUserApi(page)
     await register(page)
     await page.waitForURL('**/comecar')
-    await page.getByRole('button', { name: /Pular/ }).first().click()
-    await page.getByRole('button', { name: /Importar Anki/ }).click()
+    await toContent(page)
+    await page.getByRole('radio', { name: 'Trazer do Anki' }).check()
+    await page.getByRole('button', { name: 'Importar do Anki' }).click()
     await page.waitForURL('**/importar')
     await page.waitForTimeout(800)
     expect(new URL(page.url()).pathname).toBe('/importar')
@@ -483,10 +522,11 @@ test.describe('Onboarding sem armadilhas (RF-F4)', () => {
     await page.route('**/api/ai/generate-cards', r => r.fulfill(json({ data: { id: 'job-1', status: 'done', result: { cards: [] } } }, 202)))
     await register(page)
     await page.waitForURL('**/comecar')
-    await page.getByRole('button', { name: /Pular/ }).first().click()
+    await toContent(page)
+    await page.getByRole('radio', { name: 'Colar um texto' }).check()
     await page.fill('#material', 'Texto curto demais')
     await expect(page.locator('#notebook-name')).toHaveValue('Texto curto demais')
-    await page.getByRole('button', { name: 'Transformar em estudo' }).click()
+    await page.getByRole('button', { name: 'Gerar cards do texto' }).click()
     await expect(page.getByText(/Não conseguimos criar cards com esse texto/)).toBeVisible()
     expect(completed).toBe(false)
   })
@@ -504,7 +544,8 @@ test.describe('Onboarding sem armadilhas (RF-F4)', () => {
     })
     await register(page)
     await page.waitForURL('**/comecar')
-    await page.getByRole('button', { name: /Pular/ }).first().click()
+    await toContent(page)
+    await page.getByRole('radio', { name: 'Enviar meu PDF ou apostila' }).check()
     await page.locator('input[type="file"][accept*="pdf"]').setInputFiles({
       name: 'enorme.pdf', mimeType: 'application/pdf', buffer: Buffer.alloc(2 * 1024 * 1024, 0),
     })
@@ -515,40 +556,55 @@ test.describe('Onboarding sem armadilhas (RF-F4)', () => {
   test('modo prova com data cria o Exam depois do caderno; sem data não cria', async ({ page }) => {
     await mockNewUserApi(page)
     const calls: string[] = []
-    await page.route(/\/api\/topics$/, r => { calls.push('topics'); return r.fulfill(json({ data: { id: 't-new' } }, 201)) })
+    await page.route(/\/api\/topics$/, (r) => { if (r.request().method() === 'POST') calls.push('topics'); return r.fulfill(json({ data: { id: 't-new' } }, 201)) })
     await page.route('**/api/topics/t-new/notes', r => r.fulfill(json({ data: { id: 'n1' } }, 201)))
     await page.route(/\/api\/exams$/, r => { calls.push('exams'); return r.fulfill(json({ data: { id: 'e1' } }, 201)) })
-    await page.route('**/api/ai/generate-cards', r => r.fulfill(json({ data: { id: 'job-1', status: 'done', result: { cards: [] } } }, 202)))
+    // The exam is only created once the cards are accepted: a failed attempt deletes its notebook (B2)
+    await page.route('**/api/ai/generate-cards', r => r.fulfill(json({ data: { id: 'job-1', status: 'done', result: { cards: [{ front: 'Q', back: 'A' }] } } }, 202)))
+    await page.route('**/api/ai/accept-cards', r => r.fulfill(json({ data: [{ id: 'c1' }] }, 201)))
     await register(page)
     await page.waitForURL('**/comecar')
-    await page.getByRole('button', { name: /Concurso/ }).click()
+    await page.getByRole('radio', { name: 'Concurso ou OAB' }).check()
     const d = new Date(Date.now() + 30 * 86400_000)
     await page.fill('#exam-date', d.toISOString().slice(0, 10))
     await page.getByRole('button', { name: /Continuar/ }).click()
+    await page.getByRole('radio', { name: 'Colar um texto' }).check()
     await page.fill('#material', 'Direito constitucional e seus princípios fundamentais')
-    await page.getByRole('button', { name: 'Transformar em estudo' }).click()
+    await page.getByRole('button', { name: 'Gerar cards do texto' }).click()
     await expect.poll(() => calls).toEqual(['topics', 'exams'])
   })
 })
 
 test.describe('PDF → cards automático (RF-F5.2)', () => {
-  test('polling pending → completed mostra "Revisar 12 cards"', async ({ page }) => {
+  test('PDF lendo: só a linha dele consulta o documento e, pronta, mostra "Revisar 12" do próprio PDF', async ({ page }) => {
     test.setTimeout(45_000)
     await login(page)
     const topic = { id: '00000000-0000-4000-8000-0000000000bb', name: 'Constitucional', parent_id: null, children: [], color: null, flashcards_count: 0, position: 0, learning_mode: 'exam' }
-    const doc = (status: string, count = 0) => ({
-      id: '00000000-0000-4000-8000-0000000000dd', original_name: 'apostila.pdf', file_size: 1000, pages_count: 20, processed_pages: 20,
-      status: 'completed', topic_id: topic.id, has_generated_note: true, note_generation_status: 'completed',
-      note_id: 'n1', auto_cards: true, auto_cards_status: status, auto_cards_count: count, created_at: '2026-09-29T10:00:00Z',
+    const DOC = '00000000-0000-4000-8000-0000000000dd'
+    const summary = {
+      topic: { id: topic.id, name: topic.name, color: null, depth: 0, learning_mode: 'exam', parent_id: null }, path: [],
+      counts: { cards: 0, materials: 1, subjects: 0 }, mastery: { percent: null, in_day: 0, cards: 0 }, questions: null,
+      session: { count: 0, overdue: 0, errors: 0 }, can_quiz: { ok: true }, can_podcast: { ok: true }, exam: null, next_step: null,
+      listen: null, subjects: [], special: { quiz_errors: { cards: 0, session_count: 0 }, loose: { cards: 0, session_count: 0 } },
+    }
+    const row = (ready: boolean) => ({
+      kind: 'pdf', id: DOC, note_id: ready ? 'n1' : null, title: 'apostila.pdf', topic: { id: topic.id, name: topic.name }, pages: 20, parts: ready ? 3 : null,
+      words: null, cards: ready ? 12 : 0, mastery: ready ? 0 : null, session_count: ready ? 12 : 0, ahead_count: ready ? 12 : 0,
+      status: ready ? 'ready' : 'generating', progress: ready ? null : { done: 1, total: 3 }, updated_at: '2026-09-29T10:00:00Z',
     })
-    let calls = 0
+    let docCalls = 0
+    let listCalls = 0
     await page.route(/\/api\/topics$/, r => r.request().method() === 'GET' ? r.fulfill(json({ data: [topic] })) : r.continue())
-    await page.route(`**/api/topics/${topic.id}/notes`, r => r.fulfill(json({ data: [] })))
-    await page.route(/\/api\/documents\?/, r => { calls++; return r.fulfill(json({ data: [calls < 2 ? doc('generating') : doc('completed', 12)] })) })
-    await page.goto(`/cadernos?topic=${topic.id}`)
-    await expect(page.getByText('Resumo pronto · Criando cards…')).toBeVisible()
-    await expect(page.getByRole('link', { name: 'Revisar 12 cards' })).toBeVisible({ timeout: 15_000 })
-    await expect(page.getByRole('link', { name: 'Revisar 12 cards' })).toHaveAttribute('href', `/revisar?topic_id=${topic.id}`)
+    await page.route(`**/api/topics/${topic.id}/summary`, r => r.fulfill(json({ data: summary })))
+    await page.route(`**/api/topics/${topic.id}/materials**`, r => { listCalls++; return r.fulfill(json({ data: [row(docCalls >= 2)], meta: { next_cursor: null, total: 1 } })) })
+    await page.route(`**/api/documents/${DOC}`, r => { docCalls++; return r.fulfill(json({ data: { id: DOC, status: 'completed', note_generation_status: docCalls < 2 ? 'generating' : 'completed', has_generated_note: true, note_generation_progress: docCalls, note_total_batches: 3, note_id: 'n1' } })) })
+    await page.goto(`/cadernos/${topic.id}`)
+    await expect(page.getByTestId('material-row')).toContainText('Escrevendo a nota · lote 2 de 3')
+    const review = page.getByTestId('material-review')
+    await expect(review).toHaveText('Revisar 12', { timeout: 15_000 })
+    // Only this PDF (prd-caderno-f2-recorte RF-F3), no longer the whole caderno; the list was not polled
+    await expect(review).toHaveAttribute('href', `/revisar?scope=document:${DOC}`)
+    expect(listCalls).toBe(2)
   })
 })
 
@@ -571,8 +627,8 @@ test.describe('Configurações de conta e LGPD (RF-F11.3–F11.5)', () => {
     await page.route('**/api/user/profile', r => r.fulfill(json({ data: { ...me, name: 'Nome Novo E2E' } })))
     await page.goto('/configuracoes')
     await page.fill('#profile-name', 'Nome Novo E2E')
-    await page.getByRole('button', { name: 'Salvar', exact: true }).first().click()
-    await expect(page.getByText('Nome atualizado.')).toBeVisible()
+    await page.locator('#profile-name').press('Enter')
+    await expect(page.getByTestId('name-saved')).toHaveText('Salvo')
   })
 
   test('422 da troca de senha aparece inline', async () => {

@@ -1,24 +1,18 @@
 <template>
-  <UiModal v-model="open" size="sm" aria-label="Limite do plano">
-    <div class="text-center py-4">
-      <div class="w-12 h-12 rounded-full bg-accent-primary-subtle flex items-center justify-center mx-auto mb-4">
-        <Zap :size="24" class="text-accent-primary" />
-      </div>
-      <h2 class="text-headline mb-2">{{ title }}</h2>
-      <p class="text-base-secondary text-small mb-6">{{ body }}</p>
-      <div class="flex gap-3 justify-center">
-        <template v-if="canUpgrade">
-          <button class="btn-secondary" @click="open = false">Depois</button>
-          <button class="btn-primary" @click="goToPlans">Ver planos</button>
-        </template>
-        <button v-else class="btn-primary" @click="open = false">Entendi</button>
-      </div>
-    </div>
-  </UiModal>
+  <UiDialog v-model="open" size="sm" :title="title" :description="body">
+    <!-- The podcast is not in the trial nor in the Free: the demo of the episode (prd-planos-lancamento RF-F3) -->
+    <LazyPodcastDemo v-if="feature === 'podcast' && canUpgrade" class="pt-1" />
+    <template #footer>
+      <template v-if="canUpgrade">
+        <UiButton variant="ghost" @click="open = false">Depois</UiButton>
+        <UiButton variant="primary" @click="goToPlans">Ver planos</UiButton>
+      </template>
+      <UiButton v-else variant="primary" @click="open = false">Entendi</UiButton>
+    </template>
+  </UiDialog>
 </template>
 
 <script setup lang="ts">
-import { Zap } from 'lucide-vue-next'
 import type { PlanKey } from '~/types'
 
 // Contextual to the 402 payload (PRD §4.1 / RF-56): `feature` is always a key, never a label.
@@ -39,6 +33,8 @@ const props = withDefaults(defineProps<{
 const open = defineModel<boolean>({ required: true })
 
 const plans = usePlans()
+const auth = useAuthStore()
+const proName = useProName()
 
 watch(open, (value) => {
   if (value) plans.fetchPlans()
@@ -48,12 +44,17 @@ const catalogFeature = computed(() => plans.feature(props.feature))
 const label = computed(() => catalogFeature.value?.label ?? 'usos com IA')
 const canUpgrade = computed(() => props.planRequired === 'pro')
 
+// After the trial the Free has no AI (limit 0): "Seu teste do Intensivo acabou" (prd-planos-lancamento RF-F5).
+// In the trial the counts are of its 7 days, not of the month.
+const trialOver = computed(() => props.limit === 0 && props.feature !== 'podcast' && auth.trialEnded)
+
 const title = computed(() => {
-  if (props.limit === 0) return `${capitalize(label.value)} fazem parte do Pro`
+  if (trialOver.value) return `Seu teste do ${proName.value} acabou`
+  if (props.limit === 0) return `${capitalize(label.value)} fazem parte do ${proName.value}`
   if (props.used != null && props.limit != null) {
-    return `Você usou ${props.used} de ${props.limit} ${label.value} deste mês`
+    return `Você usou ${props.used} de ${props.limit} ${label.value} ${auth.onTrial ? 'do teste' : 'deste mês'}`
   }
-  return 'Desbloqueie mais com o Pro'
+  return `Desbloqueie mais com o ${proName.value}`
 })
 
 const body = computed(() => {
@@ -62,7 +63,10 @@ const body = computed(() => {
     return date ? `Renova em ${date}.` : 'Seu limite renova no início do próximo mês.'
   }
   const benefit = catalogFeature.value?.pro_benefit
-  return benefit ? `No Pro: ${benefit}.` : 'O Pro libera mais IA. Sem compromisso.'
+  const offer = benefit ? `No ${proName.value}: ${benefit}.` : `O ${proName.value} libera mais IA. Sem compromisso.`
+  if (trialOver.value) return `Seus cadernos, notas e cards continuam com você. ${offer}`
+  if (auth.onTrial && props.feature === 'podcast') return `O podcast não entra no teste grátis. ${offer}`
+  return offer
 })
 
 function capitalize(text: string): string {
@@ -79,6 +83,7 @@ function formatResetDate(iso: string | null): string | null {
 async function goToPlans() {
   useAnalytics().track('upgrade_clicked', { feature: props.feature || null, billing: null, source: 'upgrade_modal' })
   open.value = false
+  useToast().clear()
   await navigateTo('/planos')
 }
 </script>

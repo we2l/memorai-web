@@ -1,58 +1,49 @@
 <template>
-  <Teleport to="body">
-    <div class="toast-stack fixed z-[100] flex flex-col gap-2 pointer-events-none">
-      <!-- Two live regions always mounted: polite for success/info, assertive for error/warning -->
-      <div role="status" aria-live="polite" class="flex flex-col gap-2">
-        <TransitionGroup name="toast">
-          <UiToastItem
-            v-for="item in politeItems"
-            :key="item.id"
-            :item="item"
-          />
-        </TransitionGroup>
-      </div>
-      <div role="alert" aria-live="assertive" class="flex flex-col gap-2">
-        <TransitionGroup name="toast">
-          <UiToastItem
-            v-for="item in assertiveItems"
-            :key="item.id"
-            :item="item"
-          />
-        </TransitionGroup>
-      </div>
-    </div>
-  </Teleport>
+  <div
+    class="pointer-events-auto flex items-center gap-3 rounded-control border border-line bg-float py-1 pl-4 pr-1 text-meta font-medium text-fg-strong shadow-float"
+    @mouseenter="action && emit('pause')"
+    @mouseleave="action && emit('resume')"
+    @focusin="action && emit('pause')"
+    @focusout="action && emit('resume')"
+  >
+    <component :is="TONES[tone].icon" class="size-4.5 shrink-0" :class="TONES[tone].color" aria-hidden="true" />
+    <span class="min-w-0 flex-1 py-2">
+      <span class="sr-only">{{ TONES[tone].label }}: </span>{{ message }}
+    </span>
+    <button
+      v-if="action"
+      type="button"
+      class="min-h-touch shrink-0 rounded-row px-3 font-semibold text-action-fg -outline-offset-2 hover:bg-subtle"
+      @click="emit('action')"
+    >
+      {{ action.label }}
+    </button>
+    <UiIconButton :icon="X" label="Fechar aviso" size="sm" @click="emit('dismiss')" />
+  </div>
 </template>
 
 <script setup lang="ts">
-const { state } = useToast()
+// Toast (raio-X §D, tasks 12.3, rewritten on the tokens): a floating surface with the state only in the
+// icon (v4: no colored fill) and the tone named for screen readers. The host (ShellToastHost) owns the
+// live regions, the queue and the timers; a toast with an action pauses while hovered or focused.
+import { CircleCheck, CircleX, Info, TriangleAlert, X } from 'lucide-vue-next'
 
-const politeItems = computed(() => state.items.filter(i => i.type === 'success' || i.type === 'info'))
-const assertiveItems = computed(() => state.items.filter(i => i.type === 'error' || i.type === 'warning'))
+export type ToastTone = 'success' | 'error' | 'warning' | 'info'
+
+withDefaults(defineProps<{
+  message: string
+  tone?: ToastTone
+  action?: { label: string }
+}>(), { tone: 'success', action: undefined })
+
+const emit = defineEmits<{
+  (e: 'action' | 'dismiss' | 'pause' | 'resume'): void
+}>()
+
+const TONES = {
+  success: { icon: CircleCheck, color: 'text-success', label: 'Sucesso' },
+  error: { icon: CircleX, color: 'text-danger', label: 'Erro' },
+  warning: { icon: TriangleAlert, color: 'text-warning', label: 'Atenção' },
+  info: { icon: Info, color: 'text-info', label: 'Aviso' },
+}
 </script>
-
-<style scoped>
-.toast-stack {
-  left: 1rem;
-  right: 1rem;
-  bottom: calc(var(--nav-h, 0px) + var(--miniplayer-h, 0px) + 12px + env(safe-area-inset-bottom));
-}
-@media (min-width: 1024px) {
-  .toast-stack {
-    left: auto;
-    bottom: auto;
-    top: 1rem;
-    right: 1rem;
-    width: 24rem;
-  }
-}
-.toast-enter-active,
-.toast-leave-active {
-  transition: all 200ms ease-in-out;
-}
-.toast-enter-from,
-.toast-leave-to {
-  opacity: 0;
-  transform: translateY(8px);
-}
-</style>

@@ -79,6 +79,9 @@ test.describe('Banner de consentimento', () => {
     await stubPosthog(page)
     // SPA route: reads the runtime key of `node .output/server` (prerendered pages bake the build-time key)
     await page.goto('/redefinir-senha?utm_source=e2e&t=segredo-e2e&token=segredo-e2e')
+    // Ambiente: sem NUXT_PUBLIC_POSTHOG_KEY no `node .output/server` o plugin é no-op e nada é enviado
+    const key = await page.evaluate(() => (window as any).__NUXT__?.config?.public?.posthogKey ?? '')
+    test.skip(!key, 'servidor sem NUXT_PUBLIC_POSTHOG_KEY (ver cabeçalho do spec)')
     await page.getByTestId('consent-accept').click()
     await expect(page.getByTestId('consent-banner')).toHaveCount(0)
 

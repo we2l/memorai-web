@@ -1,28 +1,25 @@
 <template>
-  <div class="min-h-screen bg-[var(--bg-base)]">
-    <UiPaymentBanner />
-    <UiSidebar v-show="!dive.active.value" :collapsed="sidebarCollapsed" />
-    <UiBottomNav v-show="!dive.active.value && !focusChrome" />
-    <UiDiveMode />
+  <div class="min-h-dvh bg-page">
+    <LazyUiPaymentBanner v-if="subscription.isPastDue || subscription.inGracePeriod" />
+    <ShellTopNav v-show="showChrome" />
 
-    <main class="app-main relative min-h-screen transition-[margin] duration-200" :class="[dive.active.value ? '' : mainMargin]">
-      <UiVerifyEmailBanner v-if="auth.user && !auth.isVerified" />
-      <div class="relative">
-        <slot />
-      </div>
+    <main class="relative" :class="focusChrome ? '' : 'pb-[calc(var(--nav-h)+var(--miniplayer-h)+var(--sticky-action-h)+16px)]'">
+      <ShellPageTools v-if="showChrome" />
+      <LazyUiVerifyEmailBanner v-if="auth.user && !auth.isVerified" :modal-only="focusChrome || route.path === '/configuracoes'" />
+      <slot />
     </main>
 
-    <UiToast />
+    <ShellBottomNav v-show="showChrome" />
+    <ShellToastHost />
+
+    <!-- Part of the shell: keeps playing while the person moves between the places -->
+    <LazyShellMiniPlayer v-if="hasMiniplayer && !focusChrome" />
 
     <!-- Heavy overlays load on first open and stay mounted (keeps leave transitions) -->
     <LazyChatDrawer v-if="chatLoaded" />
-    <ChatFab v-if="!focusChrome" />
-    <UiQuickCapture v-if="!focusChrome" />
-
-    <PodcastMiniplayer v-if="!focusChrome" />
     <LazyPodcastExpandedPlayer v-if="expandedPlayerLoaded" />
-
-    <LazyUiCommandPalette v-if="paletteLoaded" />
+    <LazyShellCommandPalette v-if="paletteLoaded" />
+    <LazyShellAddSheet v-if="addLoaded" />
 
     <LazyUiUpgradeModal
       v-if="upgradeLoaded"
@@ -37,37 +34,38 @@
 </template>
 
 <script setup lang="ts">
+// App shell v3 (prd-navegacao-v3, ADR-027 §7): TopNav from 768 px, BottomNav below it (4 places, no
+// "Mais"), the phone header tools, the mini-player, the toasts and the overlays of the shell (search,
+// "+ Adicionar", tira-dúvidas). Pages opt into a distraction-free chrome with
+// definePageMeta({ chrome: 'focus' }) (revisão): the whole shell hides.
 import type { FeatureLimitDetail } from '~/types'
 
 const route = useRoute()
 const auth = useAuthStore()
-const dive = useDiveMode()
-
 const player = usePlayerStore()
-const hasMiniplayer = computed(() => !!player.currentPodcast)
 
-const sidebarCollapsed = computed(() => route.path.startsWith('/cadernos'))
-const mainMargin = computed(() => sidebarCollapsed.value ? 'lg:ml-16' : 'lg:ml-[240px]')
-
-// Pages opt into a distraction-free chrome with definePageMeta({ chrome: 'focus' })
 const focusChrome = computed(() => route.meta.chrome === 'focus')
+const showChrome = computed(() => !focusChrome.value)
+const hasMiniplayer = computed(() => !!player.currentPodcast)
 const stickyActionH = useState<number>('sticky-action-h', () => 0)
 
-// Chrome vars live on :root (toasts and FABs are teleported to body)
+// Shell measures live on :root (tokens.css): toasts, the mini-player and sticky bars are teleported
 watchEffect(() => {
   if (!import.meta.client) return
   const root = document.documentElement
   if (focusChrome.value) root.dataset.chrome = 'focus'
   else delete root.dataset.chrome
-  root.style.setProperty('--miniplayer-h-set', hasMiniplayer.value ? '56px' : '0px')
-  root.style.setProperty('--sidebar-w-set', dive.active.value ? '0px' : (sidebarCollapsed.value ? '64px' : '240px'))
+  // Mini-player card (60 px) + its 8 px gap; on desktop it floats in the corner over the page bottom
+  // + the "Revisar os N do episódio" row when the episode ended (F2)
+  const endedRow = player.hasEnded && episodeCardsCount(player.currentPodcast) > 0
+  root.style.setProperty('--miniplayer-h-set', hasMiniplayer.value ? (endedRow ? '122px' : '72px') : '0px')
   root.style.setProperty('--sticky-action-h-set', `${stickyActionH.value}px`)
 })
 
 onBeforeUnmount(() => {
   const root = document.documentElement
   delete root.dataset.chrome
-  for (const v of ['--miniplayer-h-set', '--sidebar-w-set', '--sticky-action-h-set']) root.style.removeProperty(v)
+  for (const v of ['--miniplayer-h-set', '--sticky-action-h-set']) root.style.removeProperty(v)
 })
 
 const showUpgrade = ref(false)
@@ -75,9 +73,11 @@ const upgradeDetail = ref<FeatureLimitDetail>({ feature: '' })
 
 const chat = useChatStore()
 const paletteOpen = useCommandPaletteOpen()
+const addSheet = useAddSheet()
 const chatLoaded = useLoadedOnce(() => chat.isOpen)
 const expandedPlayerLoaded = useLoadedOnce(() => player.expanded)
 const paletteLoaded = useLoadedOnce(() => paletteOpen.value)
+const addLoaded = useLoadedOnce(() => addSheet.open.value)
 const upgradeLoaded = useLoadedOnce(() => showUpgrade.value)
 
 const subscription = useSubscriptionStore()
@@ -104,17 +104,3 @@ onMounted(() => {
   }) as EventListener)
 })
 </script>
-
-<style scoped>
-.app-main {
-  padding-bottom: calc(var(--nav-h) + var(--miniplayer-h) + var(--sticky-action-h) + 16px);
-}
-@media (min-width: 1024px) {
-  .app-main {
-    padding-bottom: var(--miniplayer-h);
-  }
-}
-:root[data-chrome="focus"] .app-main {
-  padding-bottom: 0;
-}
-</style>

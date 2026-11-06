@@ -27,6 +27,17 @@ const CSP = [
 
 const SESSION_HINT_SCRIPT = `(function(){var d=document.documentElement;if(['/','/entrar','/criar-conta','/planos','/ajuda'].indexOf(location.pathname.replace(/\\/$/,'')||'/')<0)return;if(!/(?:^|;\\s*)baigi_logged_in=1/.test(document.cookie))return;d.classList.add('baigi-session');setTimeout(function(){d.classList.remove('baigi-session')},4000)})()`
 
+// Page color of the DS v3 (--surface-page in app/assets/css/tokens.css, light and dark): the manifest and
+// the theme-color metas need the literal. tests/scripts/pwaManifest.test.ts keeps both in sync with tokens.css.
+const THEME_COLOR = { light: '#FAFAFB', dark: '#141218' }
+
+// Theme before the first paint (prd-ds-v3-fundacao RF-1.4): localStorage['color-mode'] is light | dark |
+// system (missing = system, the key the E2E set). .dark goes on <html> and color-scheme inline paints the
+// canvas dark even before the CSS arrives; "system" follows prefers-color-scheme and its changes. The
+// theme-color metas follow the app theme (not only the OS) once parsed. composables/useColorMode.ts
+// does the same at runtime.
+const THEME_SCRIPT = `(function(){var d=document.documentElement,q=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)');function pref(){try{var v=localStorage.getItem('color-mode');return v==='light'||v==='dark'?v:'system'}catch(e){return 'system'}}function meta(){var dark=d.classList.contains('dark'),m=document.querySelectorAll('meta[name="theme-color"]');for(var i=0;i<m.length;i++){m[i].setAttribute('content',dark?'${THEME_COLOR.dark}':'${THEME_COLOR.light}');m[i].removeAttribute('media')}}function apply(){var p=pref(),dark=p==='dark'||(p==='system'&&!!q&&q.matches);d.classList.toggle('dark',dark);d.style.colorScheme=dark?'dark':'light';meta()}apply();document.addEventListener('DOMContentLoaded',meta);if(q){var f=function(){if(pref()==='system')apply()};if(q.addEventListener)q.addEventListener('change',f);else if(q.addListener)q.addListener(f)}})()`
+
 // Public pages opened from study e-mails (prd-retencao-lembretes): online-only like
 // termos/privacidade, so their chunks carry a prefix and stay out of the SW precache.
 const EMAIL_PAGE_CHUNK = /\/pages\/(lembretes\/desativado|provas\/resultado)\.vue/
@@ -34,6 +45,18 @@ const EMAIL_PAGE_CHUNK = /\/pages\/(lembretes\/desativado|provas\/resultado)\.vu
 const ANALYTICS_CHUNK = /\/node_modules\/posthog-js\//
 // Consent banner/modal only matter online on a first visit: kept out of the precache too.
 const CONSENT_CHUNK = /\/components\/ui\/Consent(Banner|Modal)\.vue/
+// One-shot pages that only work online (onboarding, the auth screens, OAuth and checkout returns, reset link,
+// the first batch's end; the organization of the 4b-2: trash, Anki, move and delete dialogs): fetched when opened
+// instead of in every install download (precache budget, prd-correcoes-experiencia Q2, prd-4g-conta-onboarding-v3,
+// prd-4b-caderno-v3 §10.2), and the landing (prd-landing-v4 RF-L14: marketing, online only). /ajuda stays: "?" opens
+// the shortcuts offline too.
+const ONE_SHOT_PAGE_CHUNK = /\/(pages\/(index|comecar|entrar|criar-conta|esqueci-senha|checkout\/sucesso|auth\/google\/callback|redefinir-senha|termos|privacidade|planos|importar|cadernos\/lixeira)|layouts\/(auth|landing)|components\/review\/ReviewOnboardingEnd|components\/caderno\/(MaterialCardsState|MoveDialog|TrashDialog))\.vue/
+// Pieces shared only by those pages: a shared chunk has no facade module, so it goes by what is inside it.
+const ONE_SHOT_SHARED = /\/(components\/auth\/|components\/onboarding\/|utils\/(authMessages|organization|moveTargets|ankiMapping)|composables\/useTrashBatch)/
+// Reference page of the design system (prd-ds-v3-fundacao RF-2.5): only in `nuxt dev`. NUXT_DS_PAGE=1 keeps it
+// in a production build for screenshots; even then its chunk is `dev-*`, out of the precache.
+const DS_PAGE_FLAG = process.env.NUXT_DS_PAGE === '1'
+const DS_PAGE_CHUNK = /\/pages\/_ds\.vue/
 
 const SECURITY_HEADERS = {
   'X-Frame-Options': 'DENY',
@@ -47,13 +70,28 @@ const SECURITY_HEADERS = {
 export default defineNuxtConfig({
   future: { compatibilityVersion: 4 },
 
-  modules: ['@pinia/nuxt', '@vite-pwa/nuxt', '@nuxt/fonts'],
+  modules: [
+    '@pinia/nuxt',
+    '@vite-pwa/nuxt',
+    '@nuxt/fonts',
+    // /_ds exists in dev (or with NUXT_DS_PAGE=1): without the route its page and components never get bundled
+    (_options, nuxt) => {
+      nuxt.hook('pages:extend', (pages) => {
+        if (nuxt.options.dev || DS_PAGE_FLAG) return
+        const i = pages.findIndex(p => p.path === '/_ds')
+        if (i !== -1) pages.splice(i, 1)
+      })
+    },
+  ],
 
-  // Self-hosted at build time (/_fonts), font-display swap + metric fallback (RF-07)
+  // Self-hosted at build time (/_fonts), font-display swap + metric fallback (RF-07).
+  // Precache (prd-ds-v3-fundacao RF-0.4): the SW precaches every woff2, unicode-range or not, so only
+  // what PT-BR needs ships. Latin covers U+0000-00FF (ç, ã, ê, à...) plus dashes, quotes and €; rare
+  // latin-ext letters fall back to the system font. No italic file: <em>/cloze get a synthetic oblique.
+  // Inter is variable: one file covers 400-700.
   fonts: {
     families: [
-      { name: 'Inter', weights: [400, 500, 600, 700], subsets: ['latin', 'latin-ext'], provider: 'google' },
-      { name: 'Fredoka', weights: [600, 700], subsets: ['latin', 'latin-ext'], provider: 'google' },
+      { name: 'Inter', weights: [400, 500, 600, 700], styles: ['normal'], subsets: ['latin'], provider: 'google' },
     ],
   },
 
@@ -65,11 +103,14 @@ export default defineNuxtConfig({
       build: {
         rollupOptions: {
           output: {
-            chunkFileNames: (chunk: { facadeModuleId: string | null }) => {
+            chunkFileNames: (chunk: { facadeModuleId: string | null, moduleIds?: string[] }) => {
               const id = chunk.facadeModuleId ?? ''
+              if (chunk.moduleIds?.length && chunk.moduleIds.every(m => ONE_SHOT_SHARED.test(m))) return '_nuxt/once-[hash].js'
               if (EMAIL_PAGE_CHUNK.test(id)) return '_nuxt/email-[hash].js'
               if (ANALYTICS_CHUNK.test(id)) return '_nuxt/analytics-[hash].js'
               if (CONSENT_CHUNK.test(id)) return '_nuxt/consent-[hash].js'
+              if (ONE_SHOT_PAGE_CHUNK.test(id)) return '_nuxt/once-[hash].js'
+              if (DS_PAGE_CHUNK.test(id)) return '_nuxt/dev-[hash].js'
               return '_nuxt/[hash].js'
             },
           },
@@ -88,9 +129,9 @@ export default defineNuxtConfig({
       name: 'BAIGI',
       short_name: 'BAIGI',
       description: 'Estude de forma mais inteligente — repetição espaçada com IA',
-      // DS v2 light surface (--bg-base in assets/css/main.css)
-      theme_color: '#F9FAFD',
-      background_color: '#F9FAFD',
+      // DS v3 light page (--surface-page in assets/css/tokens.css)
+      theme_color: THEME_COLOR.light,
+      background_color: THEME_COLOR.light,
       display: 'standalone',
       scope: '/',
       start_url: '/hoje',
@@ -107,7 +148,10 @@ export default defineNuxtConfig({
       // Images are runtime-cached (below); never precache png/pdf (RF-05)
       globPatterns: ['**/*.{js,css,html,svg,ico,woff2}'],
       // Public/auth HTML only works online anyway (content or login): keep it out of the install download
-      globIgnores: ['termos/**', 'privacidade/**', 'planos/**', 'ajuda/**', 'entrar/**', 'criar-conta/**', 'esqueci-senha/**', '_nuxt/email-*.js', '_nuxt/analytics-*.js', '_nuxt/consent-*.js'],
+      // index.html + _nuxt/index.*.css + landing/** (title font, clips, screens, sample: prd-landing-d RF-D14/D15): the
+      // landing (prd-landing-v4 RF-L14), online like the rest of the marketing; the
+      // installed app starts at /hoje and navigateFallback is null, so nothing offline ever served it
+      globIgnores: ['index.html', 'landing/**', 'termos/**', 'privacidade/**', 'planos/**', 'ajuda/**', 'entrar/**', 'criar-conta/**', 'esqueci-senha/**', '_nuxt/email-*.js', '_nuxt/analytics-*.js', '_nuxt/consent-*.js', '_nuxt/once-*.js', '_nuxt/dev-*.js', '_nuxt/index.*.css'],
       // Heavy on-demand chunks (pdf.js ~330 KB) stay out of the install download;
       // maximumFileSizeToCacheInBytes would fail the build instead of skipping.
       manifestTransforms: [
@@ -151,7 +195,10 @@ export default defineNuxtConfig({
     '/dashboard': { redirect: { to: '/hoje', statusCode: 301 } },
     '/chat': { redirect: { to: '/hoje', statusCode: 301 } },
     '/stats': { redirect: { to: '/progresso', statusCode: 301 } },
-    '/graph': { redirect: { to: '/cadernos?view=graph', statusCode: 301 } },
+    // The agenda moved into Progresso (prd-4f-progresso-v3 RF-F12); /provas/resultado (e-mail link) stays
+    '/provas': { redirect: { to: '/progresso#provas', statusCode: 301 } },
+    // The graph of all cadernos left in the navegação v3 (RF-11): /cadernos?view=graph is cleaned by the page
+    '/graph': { redirect: { to: '/cadernos', statusCode: 301 } },
     '/documents': { redirect: { to: '/cadernos', statusCode: 301 } },
     '/decks': { redirect: { to: '/cadernos', statusCode: 301 } },
     '/decks/**': { redirect: { to: '/cadernos', statusCode: 301 } },
@@ -182,8 +229,9 @@ export default defineNuxtConfig({
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
         { name: 'description', content: 'Estude de forma mais inteligente — repetição espaçada com IA' },
-        { name: 'theme-color', content: '#F9FAFD', media: '(prefers-color-scheme: light)' },
-        { name: 'theme-color', content: '#0F001F', media: '(prefers-color-scheme: dark)' },
+        // Follow the OS until THEME_SCRIPT syncs them with the app theme (light, dark or system)
+        { name: 'theme-color', content: THEME_COLOR.light, media: '(prefers-color-scheme: light)' },
+        { name: 'theme-color', content: THEME_COLOR.dark, media: '(prefers-color-scheme: dark)' },
         { name: 'apple-mobile-web-app-capable', content: 'yes' },
         { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
       ],
@@ -191,6 +239,7 @@ export default defineNuxtConfig({
         // Prerendered /, /entrar, /criar-conta: a user with the session hint cookie is
         // redirected to /hoje by the middleware once JS runs; hide the static page until
         // then (no landing flash). plugins/auth.client.ts removes the class; 4 s failsafe.
+        { innerHTML: THEME_SCRIPT, tagPosition: 'head' },
         { innerHTML: SESSION_HINT_SCRIPT, tagPosition: 'head' },
       ],
       style: [

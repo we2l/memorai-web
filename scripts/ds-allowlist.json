@@ -1,0 +1,47 @@
+{
+  "$comment": "Exceções explícitas das guardas do design system (ADR-027 §8): check-tokens (hex, color-fn, palette) e check-ds (ghost-var, ghost-class, token-name). Cada entrada: path (glob a partir da raiz do repo), rules, motivo, prazo (\"permanente\", uma fase ou YYYY-MM-DD; data vencida ou fase de fasesConcluidas reprova) e match opcional (RegExp testada na linha). O resto do código fora do sistema fica na catraca (ds-baseline.json), não aqui.",
+  "entries": [
+    {
+      "path": "app/assets/css/tokens.css",
+      "rules": [
+        "hex",
+        "color-fn"
+      ],
+      "motivo": "Fonte dos valores do design system v3 (ADR-027 §1): o único arquivo com cor literal (primitivos --palette-* e as misturas das sombras/scrim).",
+      "prazo": "permanente"
+    },
+    {
+      "path": "app/components/ui/BaigiMascot.vue",
+      "rules": [
+        "hex",
+        "color-fn"
+      ],
+      "motivo": "Mascote: ilustração com a paleta própria da marca.",
+      "prazo": "permanente"
+    },
+    {
+      "path": "app/components/auth/GoogleButton.vue",
+      "rules": [
+        "hex"
+      ],
+      "match": "fill=\"#4285F4\"",
+      "motivo": "Logo do Google no botão de login e cadastro: cores oficiais da marca.",
+      "prazo": "permanente"
+    }
+  ],
+  "fasesConcluidas": [
+    "Fase 0",
+    "Fase 1",
+    "Fase 2",
+    "Fase 3",
+    "Fase 4a",
+    "Fase 4b",
+    "Fase 4c",
+    "Fase 4d",
+    "Fase 4e",
+    "Fase 4f",
+    "Fase 4g",
+    "Fase 5",
+    "Fase 4h"
+  ]
+}

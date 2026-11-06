@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { login } from './helpers'
+import { login, TEST_USER } from './helpers'
 
 test.describe('Dashboard (/hoje)', () => {
   test.beforeEach(async ({ page }) => {
@@ -8,12 +8,14 @@ test.describe('Dashboard (/hoje)', () => {
 
   test('exibe saudação e streak', async ({ page }) => {
     await expect(page.locator('h1')).toBeVisible()
-    await expect(page.getByText('dias 🔥')).toBeVisible()
+    // Streak só aparece com ≥ 1 dia ("N dias" com a chama); usuário novo não tem
+    const streak = page.getByTestId('hero-streak')
+    if (await streak.count()) await expect(streak.first()).toHaveText(/\d+ dias?/)
   })
 
   test('exibe CTA de revisão ou estado vazio', async ({ page }) => {
-    const cta = page.getByRole('link', { name: /Começar revisão/i })
-    const empty = page.getByText(/Tudo em dia|Pare de esquecer/i)
+    const cta = page.getByTestId('plan-step-review').getByRole('link', { name: 'Começar' })
+    const empty = page.getByText(/Tudo em dia|Que bom ter você aqui/i).first()
     await expect(cta.or(empty)).toBeVisible()
   })
 })
@@ -25,15 +27,16 @@ test.describe('Cadernos (/cadernos)', () => {
     await page.waitForLoadState('networkidle')
   })
 
-  test('página carrega com título e botão Novo', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: 'Cadernos' })).toBeVisible()
-    await expect(page.getByText('Novo', { exact: true })).toBeVisible()
+  test('página carrega com título e "Novo caderno"', async ({ page }) => {
+    await expect(page.getByRole('heading', { level: 1, name: 'Cadernos' })).toBeVisible()
+    await expect(page.getByRole('button', { name: /Novo caderno|Criar caderno/ }).first()).toBeVisible()
   })
 
-  test('botão Novo abre menu com opções', async ({ page }) => {
-    await page.getByText('Novo', { exact: true }).click()
-    await expect(page.getByText('Novo caderno').first()).toBeVisible()
-    await expect(page.getByText('Importar Anki')).toBeVisible()
+  test('"Novo caderno" abre o diálogo; o Anki fica a um link', async ({ page }) => {
+    await page.getByRole('button', { name: /Novo caderno|Criar caderno/ }).first().click()
+    await expect(page.getByRole('dialog', { name: 'Novo caderno' })).toBeVisible()
+    await page.getByRole('dialog', { name: 'Novo caderno' }).getByRole('button', { name: 'Cancelar' }).click()
+    await expect(page.getByRole('link', { name: /Importe seus baralhos|Importar do Anki/ }).first()).toBeVisible()
   })
 })
 
@@ -46,14 +49,14 @@ test.describe('Revisão (/revisar)', () => {
 
   test('carrega sessão de revisão ou mostra tudo em dia', async ({ page }) => {
     await page.waitForTimeout(2000)
-    const hasCards = await page.locator('.review-card').count() > 0
-    const finished = await page.getByText(/Tudo em dia|Missão de hoje concluída/i).count() > 0
-    const waiting = await page.getByText('Aguardando').count() > 0
+    const hasCards = await page.getByTestId('review-card').count() > 0
+    const finished = await page.getByTestId('review-all-done').or(page.getByTestId('review-session-end')).or(page.getByTestId('review-no-cards')).count() > 0
+    const waiting = await page.getByTestId('review-waiting').count() > 0
     expect(hasCards || finished || waiting).toBeTruthy()
   })
 
   test('botão Voltar leva ao dashboard', async ({ page }) => {
-    await page.getByText('← Voltar').click()
+    await page.getByTestId('review-exit').click()
     await expect(page).toHaveURL(/\/hoje/)
   })
 })
@@ -66,11 +69,9 @@ test.describe('Progresso (/progresso)', () => {
   })
 
   test('exibe título e métricas', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: 'Progresso' })).toBeVisible()
-    await page.waitForTimeout(2000)
-    const mastery = page.getByText('Domínio geral')
-    const loading = page.locator('.skeleton').first()
-    await expect(mastery.or(loading)).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: 'Progresso' })).toBeVisible()
+    await expect(page.getByTestId('progress-summary').or(page.getByTestId('progress-new'))).toBeVisible()
+    await expect(page.getByTestId('progress-exams')).toBeVisible()
   })
 })
 
@@ -83,8 +84,8 @@ test.describe('Configurações (/configuracoes)', () => {
 
   test('exibe perfil do usuário', async ({ page }) => {
     await expect(page.getByRole('heading', { name: 'Configurações' })).toBeVisible()
-    await expect(page.getByText('Perfil')).toBeVisible()
-    await expect(page.getByText('weslleyadesousa@gmail.com')).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Conta e segurança' })).toBeVisible()
+    await expect(page.getByText(TEST_USER.email)).toBeVisible()
   })
 
   test('exibe uso de IA', async ({ page }) => {
@@ -93,7 +94,7 @@ test.describe('Configurações (/configuracoes)', () => {
 
   test('exibe seção de aparência', async ({ page }) => {
     await expect(page.getByRole('heading', { name: 'Aparência' })).toBeVisible()
-    await expect(page.getByText('Tema')).toBeVisible()
+    await expect(page.getByText('Tema', { exact: true })).toBeVisible()
   })
 })
 
@@ -105,14 +106,14 @@ test.describe('Podcasts (/podcasts)', () => {
   })
 
   test('página carrega com título e botão gerar', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: 'Podcasts' })).toBeVisible()
-    await expect(page.getByText('Gerar podcast')).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: 'Ouvir' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Gerar episódio' })).toBeVisible()
   })
 
   test('exibe lista de podcasts ou estado vazio', async ({ page }) => {
-    const empty = page.getByText('Nenhum podcast ainda')
-    const list = page.getByText('Tocando agora').or(page.locator('[class*="space-y"]'))
-    await expect(empty.or(list)).toBeVisible()
+    const empty = page.getByTestId('podcasts-empty')
+    const list = page.getByTestId('podcasts-today').or(page.getByTestId('podcasts-continue')).or(page.getByTestId('podcasts-library'))
+    await expect(empty.or(list).first()).toBeVisible()
   })
 })
 
@@ -123,16 +124,20 @@ test.describe('Planos (/planos)', () => {
     await page.waitForLoadState('networkidle')
   })
 
-  test('exibe planos Grátis e Pro', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: /Escolha seu plano/i })).toBeVisible()
+  test('exibe planos Grátis e Pro', async ({ page, request }) => {
+    await expect(page.getByRole('heading', { name: 'Planos', level: 1 })).toBeVisible()
     const main = page.getByRole('main')
-    await expect(main.getByText('Grátis', { exact: true })).toBeVisible()
-    // Price comes from GET /api/plans
-    await expect(main.getByText('R$ 29,90')).toBeVisible()
+    await expect(main.getByRole('heading', { name: 'Grátis' })).toBeVisible()
+    // Price comes from GET /api/plans; /planos abre no anual: alterna para o mensal
+    const catalog = (await (await request.get('http://localhost:8037/api/plans')).json()).data
+    const monthly = catalog.plans.find((p: any) => p.key === 'pro').prices.monthly.amount_cents
+    const brl = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(monthly / 100)
+    await page.getByRole('radio', { name: 'Mensal' }).check()
+    await expect(main.getByTestId('plan-pro-price')).toContainText(brl)
   })
 
   test('mostra plano atual como desabilitado', async ({ page }) => {
-    await expect(page.getByText('Plano atual')).toBeVisible()
+    await expect(page.getByText('Seu plano')).toBeVisible()
   })
 })
 
@@ -144,7 +149,7 @@ test.describe('Importar Anki (/importar)', () => {
   })
 
   test('exibe upload de arquivo .apkg', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: /Importar Anki/i })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /Importar do Anki/i })).toBeVisible()
     await expect(page.getByText('Selecionar arquivo')).toBeVisible()
     await expect(page.getByText(/arraste e solte/i)).toBeVisible()
   })
@@ -171,7 +176,7 @@ test.describe('Navegação global', () => {
 
     await page.goto('/configuracoes')
     await page.waitForLoadState('networkidle')
-    await expect(page.getByText('weslleyadesousa@gmail.com')).toBeVisible()
+    await expect(page.getByText(TEST_USER.email)).toBeVisible()
   })
 })
 

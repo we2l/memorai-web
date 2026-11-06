@@ -24,29 +24,28 @@ test.describe.serial('Fluxo completo: Caderno → Card → Revisão', () => {
     await page.goto('/cadernos')
     await page.waitForLoadState('networkidle')
 
-    await page.getByText('Novo', { exact: true }).click()
-    await page.getByText('Novo caderno').first().click()
+    await page.getByRole('button', { name: /Novo caderno|Criar caderno/ }).first().click()
 
-    await expect(page.getByRole('dialog')).toBeVisible()
-    await page.locator('[aria-label="Criar caderno"] input').fill(TEST_NOTEBOOK)
-    await page.locator('[aria-label="Criar caderno"] button:has-text("Criar")').click()
+    const dialog = page.getByRole('dialog', { name: 'Novo caderno' })
+    await expect(dialog).toBeVisible()
+    await dialog.getByRole('textbox', { name: 'Nome do caderno' }).fill(TEST_NOTEBOOK)
+    await dialog.getByRole('button', { name: 'Criar' }).click()
 
-    await expect(page.getByText(TEST_NOTEBOOK)).toBeVisible({ timeout: 5000 })
+    // The new caderno opens its hub (/cadernos/{id})
+    await expect(page.getByRole('heading', { level: 1, name: TEST_NOTEBOOK })).toBeVisible({ timeout: 5000 })
   })
 
   test('2. Selecionar caderno e ver hub', async () => {
-    await page.getByText(TEST_NOTEBOOK).click()
+    await page.goto('/cadernos')
+    await page.waitForLoadState('networkidle')
+    await page.getByTestId('notebook-list').getByRole('link', { name: new RegExp(TEST_NOTEBOOK) }).click()
     await page.waitForLoadState('networkidle')
     await expect(page.getByRole('heading', { name: TEST_NOTEBOOK })).toBeVisible()
   })
 
   test('3. Criar card manualmente', async () => {
-    // Ir pra aba Cards
-    await page.getByText('Cards').first().click()
-    await page.waitForTimeout(500)
-
-    // Botão de criar card
-    await page.getByText(/Criar card|Novo card/i).first().click()
+    // Caderno vazio: "Criar um card à mão" abre a biblioteca de cards com o formulário (a antiga aba Cards)
+    await page.getByTestId('empty-card').click()
 
     // Modal de criação de card
     const dialog = page.getByRole('dialog')
@@ -72,7 +71,7 @@ test.describe.serial('Fluxo completo: Caderno → Card → Revisão', () => {
     await page.goto('/hoje')
     await page.waitForLoadState('networkidle')
 
-    const reviewLink = page.getByRole('link', { name: /Começar revisão/i })
+    const reviewLink = page.getByTestId('plan-step-review').getByRole('link', { name: 'Começar' })
     const hasDue = await reviewLink.count() > 0
 
     if (hasDue) {
@@ -81,8 +80,8 @@ test.describe.serial('Fluxo completo: Caderno → Card → Revisão', () => {
       await expect(page).toHaveURL(/\/revisar/)
       await page.waitForTimeout(2000)
 
-      const hasCard = await page.locator('.review-card').count() > 0
-      const finished = await page.getByText(/Tudo em dia|Missão de hoje concluída/i).count() > 0
+      const hasCard = await page.getByTestId('review-card').count() > 0
+      const finished = await page.getByTestId('review-all-done').or(page.getByTestId('review-session-end')).count() > 0
       expect(hasCard || finished).toBeTruthy()
     }
   })
@@ -92,18 +91,18 @@ test.describe.serial('Fluxo completo: Caderno → Card → Revisão', () => {
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(2000)
 
-    const hasCard = await page.locator('.review-card').count() > 0
+    const hasCard = await page.getByTestId('review-card').count() > 0
     if (!hasCard) {
       test.skip()
       return
     }
 
     // Flip card
-    await page.locator('.review-card').click()
+    await page.getByTestId('review-card').click()
     await page.waitForTimeout(500)
 
     // Rating
-    const goodBtn = page.getByRole('button', { name: /Bom/i })
+    const goodBtn = page.getByRole('button', { name: /^Bom/ })
     if (await goodBtn.count() > 0) {
       await goodBtn.click()
       await page.waitForTimeout(1000)
@@ -114,21 +113,14 @@ test.describe.serial('Fluxo completo: Caderno → Card → Revisão', () => {
     await page.goto('/cadernos')
     await page.waitForLoadState('networkidle')
 
-    await page.getByText(TEST_NOTEBOOK).click()
-    await page.waitForTimeout(500)
-
-    // Hover no item da árvore (span dentro do botão, não o heading)
-    const treeItem = page.getByRole('button', { name: TEST_NOTEBOOK })
-    await treeItem.hover()
-
-    const deleteBtn = page.locator('button[title*="Deletar"], button[title*="Excluir"]').first()
-    if (await deleteBtn.count() > 0) {
-      await deleteBtn.click()
-      // Confirmar no modal
-      await page.locator('.btn-danger').click()
-      await page.waitForTimeout(1000)
-      await expect(page.getByRole('heading', { name: TEST_NOTEBOOK })).not.toBeVisible({ timeout: 3000 })
-    }
+    // ⋯ do cabeçalho do hub → Excluir → confirmar: vai para a lixeira na hora e a tela volta à lista
+    await page.getByTestId('notebook-list').getByRole('link', { name: new RegExp(TEST_NOTEBOOK) }).click()
+    await page.getByRole('button', { name: `Mais ações de ${TEST_NOTEBOOK}`, exact: true }).click()
+    await page.getByRole('menuitem', { name: 'Excluir' }).click()
+    const deleted = page.waitForRequest(r => r.method() === 'DELETE' && r.url().includes('/api/topics/'), { timeout: 20_000 })
+    await page.getByRole('alertdialog').getByRole('button', { name: 'Mandar para a lixeira' }).click()
+    await deleted
+    await expect(page).toHaveURL(/\/cadernos$/)
   })
 })
 
@@ -139,10 +131,10 @@ test.describe('Revisão relâmpago (blitz)', () => {
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(2000)
 
-    // Badge "⚡ Relâmpago" ou timer com aria-label ou "Tudo em dia"
-    const blitzBadge = page.getByText('⚡ Relâmpago')
+    // Linha de contexto do Relâmpago, timer com aria-label ou "Tudo em dia"
+    const blitzBadge = page.getByTestId('review-context').filter({ hasText: 'Relâmpago' })
     const timer = page.locator('[aria-label*="restantes"]')
-    const noCards = page.getByText(/Tudo em dia|Missão de hoje concluída/i)
+    const noCards = page.getByTestId('review-all-done').or(page.getByTestId('review-no-cards'))
 
     const visible = await blitzBadge.count() > 0 || await timer.count() > 0 || await noCards.count() > 0
     expect(visible).toBeTruthy()
@@ -155,10 +147,12 @@ test.describe('Configurações de estudo', () => {
     await page.goto('/configuracoes')
     await page.waitForLoadState('networkidle')
 
-    await expect(page.getByText('Tema')).toBeVisible()
-    // Botões Escuro e Claro existem
-    await expect(page.getByRole('button', { name: 'Escuro', exact: true })).toBeVisible()
-    await expect(page.getByRole('button', { name: /Claro/i })).toBeVisible()
+    // Sistema, Claro e Escuro (prd-ds-v3-fundacao RF-1.4, prd-4g RF-F1); a escolha vira o tema da página
+    await expect(page.getByRole('radio', { name: 'Sistema' })).toBeVisible()
+    await page.getByRole('radio', { name: 'Escuro' }).check()
+    await expect(page.locator('html')).toHaveClass(/\bdark\b/)
+    await page.getByRole('radio', { name: 'Claro' }).check()
+    await expect(page.locator('html')).not.toHaveClass(/\bdark\b/)
   })
 
   test('configuração de sessão de estudo visível', async ({ page }) => {
@@ -166,9 +160,10 @@ test.describe('Configurações de estudo', () => {
     await page.goto('/configuracoes')
     await page.waitForLoadState('networkidle')
 
-    // Daily limits stay hidden (PRD F11.3); the study section exposes retention + error diary
-    await expect(page.getByRole('heading', { name: 'Estudo', exact: true })).toBeVisible()
-    await expect(page.getByRole('radiogroup').first()).toBeVisible()
+    // prd-4g RF-F1: the goal, the reminder, the limits of the day, retention and the error diary in one section
+    await expect(page.getByRole('heading', { name: 'Estudo e lembretes', exact: true })).toBeVisible()
+    await expect(page.getByTestId('daily-goal')).toBeVisible()
+    await expect(page.getByLabel('Cards novos por dia')).toBeVisible()
     await expect(page.getByText('Quanto você quer lembrar')).toBeVisible()
   })
 })
@@ -190,10 +185,10 @@ test.describe('Podcasts', () => {
     await page.goto('/podcasts')
     await page.waitForLoadState('networkidle')
 
-    await page.getByText('Gerar podcast').click()
+    await page.getByRole('button', { name: 'Gerar episódio' }).click()
     await page.waitForTimeout(500)
 
-    await expect(page.getByRole('dialog', { name: /Podcast/i })).toBeVisible({ timeout: 3000 })
+    await expect(page.getByRole('dialog', { name: 'Gerar episódio' })).toBeVisible({ timeout: 3000 })
   })
 })
 
@@ -204,9 +199,14 @@ test.describe('Progresso e estatísticas', () => {
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(2000)
 
-    await expect(page.getByText('Domínio geral')).toBeVisible()
-    await expect(page.getByText(/Retenção/).first()).toBeVisible()
-    await expect(page.getByText(/Streak/)).toBeVisible()
+    // A user with cards sees the summary; one without, the single block with the preview (no zeros)
+    const summary = page.getByTestId('progress-summary')
+    await expect(summary.or(page.getByTestId('progress-new'))).toBeVisible()
+    if (await summary.isVisible()) {
+      await expect(summary).toContainText('de domínio')
+      await expect(summary).toContainText(/lembrou ao revisar|Revise para ver quanto lembra/)
+      await expect(summary).toContainText('de sequência')
+    }
   })
 
   test('exibe estados de cards', async ({ page }) => {
@@ -215,7 +215,10 @@ test.describe('Progresso e estatísticas', () => {
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(2000)
 
-    await expect(page.getByText(/Dominados|Aprendendo|Novos/).first()).toBeVisible()
+    // The card states left for the performance table and the history (prd-4f-progresso-v3)
+    await expect(page.getByTestId('progress-performance').or(page.getByTestId('progress-new'))).toBeVisible()
+    if (await page.getByTestId('progress-new').isVisible()) return
+    await expect(page.getByTestId('progress-history').getByRole('grid')).toBeVisible()
   })
 })
 
@@ -225,7 +228,7 @@ test.describe('Planos e pagamento', () => {
     await page.goto('/planos')
     await page.waitForLoadState('networkidle')
 
-    await expect(page.getByText('Plano atual')).toBeVisible()
+    await expect(page.getByText('Seu plano')).toBeVisible()
   })
 
   test('features do Pro listadas', async ({ page }) => {
@@ -250,47 +253,62 @@ test.describe('Dashboard — ações rápidas', () => {
   })
 })
 
-test.describe.serial('Cadernos: URL e exclusão com Desfazer (RF-F6.2/F6.4)', () => {
+test.describe.serial('Cadernos: URL e exclusão com Desfazer (RF-F6.2/F6.4, rotas da 4b-1)', () => {
   let page: Page
   const A = { id: '00000000-0000-4000-8000-0000000000a1', name: 'Caderno A', parent_id: null, children: [], color: null, notes_count: 1, flashcards_count: 2, position: 0 }
   const B = { id: '00000000-0000-4000-8000-0000000000b2', name: 'Caderno B', parent_id: null, children: [], color: null, notes_count: 0, flashcards_count: 0, position: 1 }
+  const summaryOf = (t: typeof A) => ({
+    topic: { id: t.id, name: t.name, color: null, depth: 0, learning_mode: 'general', parent_id: null }, path: [],
+    counts: { cards: t.flashcards_count, materials: t.notes_count, subjects: 0 }, mastery: { percent: 0, in_day: 0, cards: t.flashcards_count },
+    questions: null, session: { count: t.flashcards_count, overdue: 0, errors: 0 }, can_quiz: { ok: true }, can_podcast: { ok: true },
+    exam: null, next_step: null, listen: null, subjects: [], special: { quiz_errors: { cards: 0, session_count: 0 }, loose: { cards: 0, session_count: 0 } },
+  })
   let deletes = 0
+  let restores = 0
 
   test.beforeAll(async ({ browser }) => {
     page = await browser.newPage()
     await login(page)
     const json = (data: unknown) => ({ status: 200, contentType: 'application/json', body: JSON.stringify(data) })
     await page.route(/\/api\/topics$/, r => r.request().method() === 'GET' ? r.fulfill(json({ data: [A, B] })) : r.continue())
+    await page.route(/\/api\/topics\/progress$/, r => r.fulfill(json({ data: [A, B].map(t => ({ ...t, progress: 0, review_count: 0, session_count: t.flashcards_count })) })))
+    await page.route(/\/api\/topics\/[0-9a-f-]+\/summary$/, r => r.fulfill(json({ data: summaryOf(r.request().url().includes(B.id) ? B : A) })))
+    await page.route(/\/api\/topics\/[0-9a-f-]+\/materials.*/, r => r.fulfill(json({ data: [], meta: { next_cursor: null, total: 0 } })))
     await page.route(/\/api\/topics\/[0-9a-f-]+$/, r => {
-      if (r.request().method() === 'DELETE') { deletes++; return r.fulfill(json({})) }
+      if (r.request().method() === 'DELETE') { deletes++; return r.fulfill(json({ data: { trash_batch_id: 'lote-b', purge_at: '2026-12-02T03:00:00Z', counts: {} } })) }
       return r.fulfill(json({ data: A }))
     })
-    await page.route(/\/api\/topics\/[0-9a-f-]+\/(notes|flashcards).*/, r => r.fulfill(json({ data: [], meta: { current_page: 1, last_page: 1, per_page: 50, total: 0 } })))
-    await page.route(/\/api\/documents\?.*/, r => r.fulfill(json({ data: [] })))
+    await page.route(/\/api\/topics\/[0-9a-f-]+\/delete-preview$/, r => r.fulfill(json({ data: { subjects: 0, materials: 0, cards: 0, reviews: 0, quizzes: 0, podcasts: 0 } })))
+    await page.route(/\/api\/trash$/, r => r.fulfill(json({ data: [] })))
+    await page.route(/\/api\/trash\/lote-b\/restore$/, (r) => { restores++; return r.fulfill(json({ data: { id: 'lote-b' } })) })
   })
 
   test.afterAll(async () => { await page.close() })
 
-  test('selecionar B → voltar → A selecionado', async () => {
+  test('URL antiga → hub; trocar de caderno pelo caminho → voltar', async () => {
     await page.goto(`/cadernos?topic=${A.id}`)
-    await expect(page.getByRole('button', { name: /Caderno A/ }).first()).toHaveAttribute('aria-current', 'true')
-    await page.getByRole('button', { name: /Caderno B/ }).first().click()
-    await expect(page).toHaveURL(new RegExp(`topic=${B.id}`))
+    await expect(page).toHaveURL(new RegExp(`/cadernos/${A.id}$`))
+    await expect(page.getByRole('heading', { level: 1, name: 'Caderno A' })).toBeVisible()
+    await page.getByRole('button', { name: 'Trocar de caderno' }).click()
+    await page.getByRole('menuitem', { name: 'Caderno B' }).click()
+    await expect(page).toHaveURL(new RegExp(`/cadernos/${B.id}$`))
+    await expect(page.getByRole('heading', { level: 1, name: 'Caderno B' })).toBeVisible()
     await page.goBack()
-    await expect(page).toHaveURL(new RegExp(`topic=${A.id}`))
-    await expect(page.getByRole('button', { name: /Caderno A/ }).first()).toHaveAttribute('aria-current', 'true')
+    await expect(page).toHaveURL(new RegExp(`/cadernos/${A.id}$`))
+    await expect(page.getByRole('heading', { level: 1, name: 'Caderno A' })).toBeVisible()
   })
 
-  test('excluir → Desfazer: o item volta sem request', async () => {
-    await page.getByRole('button', { name: 'Opções de Caderno B', exact: true }).click()
+  test('excluir → Desfazer: o DELETE sai na hora e o lote é restaurado', async () => {
+    await page.goto(`/cadernos/${B.id}`)
+    await page.getByRole('button', { name: 'Mais ações de Caderno B', exact: true }).click()
     await page.getByRole('menuitem', { name: 'Excluir' }).click()
     const dialog = page.getByRole('alertdialog')
-    await expect(dialog.getByRole('heading', { name: "Excluir 'Caderno B'?" })).toBeVisible()
-    await dialog.getByRole('button', { name: 'Excluir' }).click()
-    await expect(page.getByRole('button', { name: /Caderno B/ })).toHaveCount(0)
+    await expect(dialog.getByRole('heading', { name: 'Mandar “Caderno B” para a lixeira?' })).toBeVisible()
+    await dialog.getByRole('button', { name: 'Mandar para a lixeira' }).click()
+    await expect(page).toHaveURL(/\/cadernos$/)
     await page.getByRole('button', { name: 'Desfazer' }).click()
-    await expect(page.getByRole('button', { name: /Caderno B/ }).first()).toBeVisible()
-    await page.waitForTimeout(500)
-    expect(deletes).toBe(0)
+    await expect(page.getByRole('heading', { level: 1, name: 'Caderno B' })).toBeVisible()
+    expect(deletes).toBe(1)
+    expect(restores).toBe(1)
   })
 })

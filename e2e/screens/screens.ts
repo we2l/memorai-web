@@ -36,9 +36,6 @@ export const VIEWPORTS = {
 
 export const API_URL = /\/api\/|\/sanctum\//
 
-const isVisible = async (page: Page, selector: string) => {
-  try { return await page.locator(selector).first().isVisible() } catch { return false }
-}
 
 export async function settle(page: Page, ms = 800) {
   // Limitado: telas com polling (documento processando) nunca ficam networkidle
@@ -47,24 +44,9 @@ export async function settle(page: Page, ms = 800) {
   await page.waitForTimeout(ms)
 }
 
-/** No mobile o caderno abre com a árvore lateral; fecha para ver o hub */
-async function closeSidebar(page: Page, v: Variant) {
-  if (v.tag !== 'mobile') return
-  if (await isVisible(page, 'aside button[aria-label="Fechar"]')) {
-    await page.locator('aside button[aria-label="Fechar"]').first().click()
-    await page.waitForTimeout(300)
-  }
-}
-
-async function openTopic(page: Page, v: Variant, path: string) {
+async function openTopic(page: Page, path: string) {
   await page.goto(path)
   await settle(page, 1500)
-  await closeSidebar(page, v)
-}
-
-async function tab(page: Page, name: string) {
-  await page.getByRole('tab', { name: new RegExp('^' + name) }).first().click()
-  await settle(page, 1000)
 }
 
 export const SCREENS: Screen[] = [
@@ -75,37 +57,65 @@ export const SCREENS: Screen[] = [
     run: async (page) => { await page.goto('/hoje'); await settle(page, 1500) },
   },
   {
-    name: 'caderno-material',
+    name: 'cadernos',
+    run: async (page) => { await openTopic(page, '/cadernos') },
+  },
+  {
+    // The trash (4b-2): the state this fixture has (empty, or the lines it left)
+    name: 'lixeira',
+    run: async (page) => { await openTopic(page, '/cadernos/lixeira') },
+  },
+  {
+    // Hub of the caderno (4b-1): header with one number, next step, subjects, materials, practice
+    name: 'caderno-hub',
     fullPage: true,
     dark: true,
-    run: async (page, fx, v) => { await openTopic(page, v, `/cadernos?topic=${fx.topicId}`); await tab(page, 'Material') },
+    run: async (page, fx) => { await openTopic(page, `/cadernos/${fx.topicId}`) },
   },
   {
     name: 'caderno-cards',
     fullPage: true,
-    run: async (page, fx, v) => { await openTopic(page, v, `/cadernos?topic=${fx.topicId}`); await tab(page, 'Cards') },
+    run: async (page, fx) => { await openTopic(page, `/cadernos/${fx.topicId}/cards`) },
   },
   {
     name: 'caderno-mapa',
-    run: async (page, fx, v) => { await openTopic(page, v, `/cadernos?topic=${fx.topicId}`); await tab(page, 'Mapa'); await page.waitForTimeout(1500) },
+    run: async (page, fx) => { await openTopic(page, `/cadernos/${fx.topicId}/mapa`); await page.waitForTimeout(1500) },
   },
   {
     name: 'nota',
     dark: true,
-    run: async (page, fx, v) => {
-      await openTopic(page, v, `/cadernos?topic=${fx.topicId}`)
-      await tab(page, 'Material')
-      await page.locator('main .note-card').filter({ hasText: fx.noteTitle }).first().click()
-      await settle(page, 1500)
-    },
+    run: async (page, fx) => { await openTopic(page, `/cadernos/${fx.topicId}/material/${fx.noteId}`) },
   },
   {
     name: 'caderno-vazio',
-    run: async (page, fx, v) => { await openTopic(page, v, `/cadernos?topic=${fx.emptyTopicId}`) },
+    run: async (page, fx) => { await openTopic(page, `/cadernos/${fx.emptyTopicId}`) },
   },
   {
     name: 'revisar',
     run: async (page) => { await page.goto('/revisar'); await settle(page, 1500) },
+  },
+  {
+    // Praticar v3 (4e): the 3 modes with the accuracy of the scope and the episode of the day
+    name: 'praticar',
+    fullPage: true,
+    dark: true,
+    run: async (page) => { await page.goto('/praticar'); await settle(page, 1500) },
+  },
+  {
+    name: 'questoes',
+    run: async (page) => { await page.goto('/simulados'); await settle(page) },
+  },
+  {
+    name: 'ouvir',
+    fullPage: true,
+    run: async (page) => { await page.goto('/podcasts'); await settle(page) },
+  },
+  {
+    // Progresso e Provas v3 (4f): summary, exams with the projection, performance and the 26 weeks
+    name: 'progresso',
+    fullPage: true,
+    dark: true,
+    run: async (page) => { await page.goto('/progresso'); await settle(page, 1500) },
   },
   {
     name: 'planos',

@@ -1,82 +1,59 @@
 <template>
-  <UiModal v-model="modelValue" size="lg">
-    <div class="flex items-center justify-between mb-4">
-      <h2 class="text-headline inline-flex items-center gap-2"><Brain :size="20" class="text-[var(--badge-primary-text)]" /> Mapa Mental</h2>
-      <span v-if="noteTitle" class="text-small text-base-muted truncate max-w-[200px]">{{ noteTitle }}</span>
-    </div>
-
+  <UiDialog v-model="modelValue" title="Mapa da nota" :description="noteTitle || undefined" size="lg">
     <!-- Loading -->
-    <div v-if="loading" class="flex items-center justify-center h-64">
-      <div class="skeleton h-24 w-24 rounded-full" />
+    <div v-if="loading" class="flex h-64 items-center justify-center" aria-busy="true">
+      <span class="sr-only" role="status">Carregando o mapa…</span>
+      <UiSkeleton variant="block" size="lg" class="w-full" />
     </div>
 
-    <!-- No map, Free user -->
-    <div v-else-if="!mapData && !canGenerate" class="flex flex-col items-center justify-center h-64 gap-3 text-center">
-      <div class="w-14 h-14 rounded-2xl bg-surface-secondary flex items-center justify-center">
-        <Lock :size="28" class="text-base-muted" />
-      </div>
-      <p class="text-body text-base-secondary">Gere um mapa mental detalhado dos conceitos desta nota</p>
-      <NuxtLink to="/planos" class="btn-primary !py-2 !px-4 text-small" @click="modelValue = false">
-        Desbloquear com Plano Pro
-      </NuxtLink>
+    <!-- No map, Free after the trial -->
+    <div v-else-if="!mapData && !canGenerate" class="flex h-64 flex-col items-center justify-center gap-3 text-center">
+      <Lock class="size-7 text-fg-muted" aria-hidden="true" />
+      <p class="text-body text-fg">Gere um mapa mental com os conceitos desta nota</p>
+      <UiButton variant="primary" to="/planos" @click="modelValue = false">Conhecer o {{ proName }}</UiButton>
     </div>
 
-    <!-- No map, Pro user -->
-    <div v-else-if="!mapData && canGenerate && !generating" class="flex flex-col items-center justify-center h-64 gap-3 text-center">
-      <div class="w-14 h-14 rounded-2xl bg-accent-primary-subtle flex items-center justify-center">
-        <Brain :size="28" class="text-[var(--badge-primary-text)]" />
-      </div>
-      <p class="text-body text-base-secondary">Extraia conceitos, definições e exemplos desta nota em um mapa mental</p>
-      <button class="btn-primary !py-2 !px-4 text-small" @click="generate">
-        Gerar mapa mental
-      </button>
+    <!-- No map, the paid plan, the trial or a trial that opens on this click -->
+    <div v-else-if="!mapData && canGenerate && !generating" class="flex h-64 flex-col items-center justify-center gap-3 text-center">
+      <Brain class="size-7 text-action-fg" aria-hidden="true" />
+      <p class="text-body text-fg">Extraia conceitos, definições e exemplos desta nota em um mapa mental</p>
+      <UiButton variant="primary" @click="generate">Gerar mapa mental</UiButton>
     </div>
 
     <!-- Generating -->
-    <div v-else-if="generating" class="flex flex-col items-center justify-center h-64 gap-3">
-      <div class="w-8 h-8 border-3 border-[var(--color-accent-primary)] border-t-transparent rounded-full animate-spin" />
-      <p class="text-small text-base-muted">Extraindo conceitos com IA...</p>
+    <div v-else-if="generating" class="flex h-64 flex-col items-center justify-center gap-3" role="status">
+      <UiSpinner />
+      <p class="text-meta text-fg-muted">Extraindo conceitos com IA…</p>
     </div>
 
     <!-- Map ready -->
     <template v-else>
-      <!-- Legend + regenerate -->
-      <div class="flex items-center justify-between mb-3">
-        <div class="flex items-center gap-2 flex-wrap">
-          <span v-for="(color, type) in typeColors" :key="type" class="inline-flex items-center gap-1 text-micro text-base-muted">
-            <span class="w-2.5 h-2.5 rounded-full" :style="{ background: color }" />
+      <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <div class="flex flex-wrap items-center gap-3">
+          <span v-for="(color, type) in typeColors" :key="type" class="inline-flex items-center gap-1 text-label text-fg-muted">
+            <span class="size-2.5 rounded-full" :style="{ background: color }" aria-hidden="true" />
             {{ type }}
           </span>
         </div>
-        <button class="btn-secondary !py-1.5 !px-3 !min-h-0 text-small" @click="regenerate">
-          Regenerar
-        </button>
+        <UiButton size="sm" @click="regenerate">Gerar de novo</UiButton>
       </div>
-
-      <!-- Markmap -->
-      <div class="h-80 sm:h-96 relative overflow-hidden rounded-xl border border-base bg-[var(--bg-soft)]">
+      <div class="relative h-80 overflow-hidden rounded-row border border-line-strong bg-subtle sm:h-96">
         <TopicMindMapRenderer :data="mapData" :color-by-type="true" @node-click="handleNodeClick" />
       </div>
     </template>
+  </UiDialog>
 
-    <!-- Create card modal -->
-    <UiModal v-model="showCardCreate" size="sm">
-      <h3 class="text-headline mb-2">Criar card</h3>
-      <div class="space-y-3">
-        <div>
-          <label class="text-small text-base-muted">Frente</label>
-          <input v-model="cardFront" class="input-base mt-1" />
-        </div>
-        <div>
-          <label class="text-small text-base-muted">Verso</label>
-          <textarea v-model="cardBack" class="input-base mt-1 min-h-[80px]" />
-        </div>
-        <button class="btn-primary w-full" :disabled="!cardFront || !cardBack" @click="createCard">
-          Criar card
-        </button>
-      </div>
-    </UiModal>
-  </UiModal>
+  <!-- Card from a node of the map -->
+  <UiDialog v-model="showCardCreate" title="Criar card" size="sm">
+    <form :id="formId" class="flex flex-col gap-3" @submit.prevent="createCard">
+      <UiInput v-model="cardFront" label="Frente" />
+      <UiTextarea v-model="cardBack" label="Verso" :rows="3" />
+    </form>
+    <template #footer="{ close }">
+      <UiButton variant="ghost" @click="close">Cancelar</UiButton>
+      <UiButton type="submit" :form="formId" variant="primary" :disabled="!cardFront || !cardBack">Criar card</UiButton>
+    </template>
+  </UiDialog>
 </template>
 
 <script setup lang="ts">
@@ -99,18 +76,22 @@ const loading = ref(true)
 const generating = ref(false)
 const mapData = ref<MindMapNode | null>(null)
 const mapId = ref<string | null>(null)
-const canGenerate = computed(() => auth.user?.plan !== 'free')
+// meta.can_generate of GET /notes/{id}/mindmap (the paid plan, the trial and a trial that opens on the click)
+const serverCanGenerate = ref<boolean | null>(null)
+const canGenerate = computed(() => serverCanGenerate.value ?? (auth.hasProAccess || auth.opensTrialOnUse))
+const proName = useProName()
 
 const showCardCreate = ref(false)
+const formId = useId()
 const cardFront = ref('')
 const cardBack = ref('')
 
 const typeColors: Record<string, string> = {
-  conceito: 'var(--color-accent-primary)',
-  definição: 'var(--color-info)',
-  exemplo: 'var(--color-success)',
-  exceção: 'var(--color-danger)',
-  referência: 'var(--text-muted)',
+  conceito: 'var(--action)',
+  definição: 'var(--state-info)',
+  exemplo: 'var(--state-success)',
+  exceção: 'var(--state-danger)',
+  referência: 'var(--fg-muted)',
 }
 
 async function fetchMap() {
@@ -120,6 +101,8 @@ async function fetchMap() {
     if (res.meta?.exists) {
       mapData.value = res.data
       mapId.value = res.meta.id
+    } else if (typeof res.meta?.can_generate === 'boolean') {
+      serverCanGenerate.value = res.meta.can_generate
     }
   } catch (e) {
     reportApiError(e, { error: 'Não foi possível carregar o mapa mental da nota.' })
@@ -159,13 +142,10 @@ function handleNodeClick(node: MindMapNode) {
 async function createCard() {
   if (!mapId.value) return
   try {
-    const decksRes = await $api<any>('/decks')
-    const deckId = decksRes.data?.[0]?.id
-    if (!deckId) { toast.show('Nenhum deck encontrado.', 'error'); return }
-
+    // The API puts the card in the deck of the note's caderno (F1 RF-B3): no deck_id to send
     await $api<any>(`/mindmaps/${mapId.value}/create-card`, {
       method: 'POST',
-      body: { front: cardFront.value, back: cardBack.value, deck_id: deckId },
+      body: { front: cardFront.value, back: cardBack.value },
     })
     toast.show('Card criado ✓', 'success')
     showCardCreate.value = false

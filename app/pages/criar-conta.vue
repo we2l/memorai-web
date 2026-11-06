@@ -1,167 +1,87 @@
 <template>
-  <div>
-    <div class="flex justify-center mb-4">
-      <UiLogo :icon-size="36" text-class="text-display text-base-primary" />
-    </div>
-    <p class="text-base-muted text-center mb-1">Comece a memorizar de verdade</p>
-    <p class="text-micro text-base-muted text-center mb-10">Leva menos de 1 minuto</p>
+  <div class="flex flex-col gap-5">
+    <h1 class="text-page-title-sm text-fg-strong">Criar sua conta</h1>
 
-    <!-- Google OAuth -->
-    <button
-      type="button"
-      class="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-base bg-surface-secondary hover:bg-[var(--border-divider)] transition-colors mb-8"
-      :disabled="googleLoading"
-      @click="registerWithGoogle"
-    >
-      <svg class="w-5 h-5" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg> <!-- tokens-allow: marca -->
-      <span class="text-base-primary text-small font-medium">{{ googleLoading ? 'Redirecionando...' : 'Começar com Google (1 clique)' }}</span>
-    </button>
-    <p class="text-micro text-base-muted text-center -mt-6 mb-8">
-      Ao continuar você aceita os <NuxtLink to="/termos" class="underline">Termos</NuxtLink> e a <NuxtLink to="/privacidade" class="underline">Privacidade</NuxtLink>.
-    </p>
-
-    <div class="flex items-center gap-3 mb-6">
-      <div class="flex-1 h-px bg-[var(--border-base)]" />
-      <span class="text-micro text-base-muted">ou entre com e-mail</span>
-      <div class="flex-1 h-px bg-[var(--border-base)]" />
+    <div class="flex flex-col gap-2">
+      <AuthGoogleButton />
+      <p class="text-label text-fg-muted">
+        Ao continuar você aceita os <UiLink to="/termos" class="underline">Termos</UiLink> e a <UiLink to="/privacidade" class="underline">Privacidade</UiLink>.
+      </p>
     </div>
 
-    <form @submit.prevent="handleRegister" class="flex flex-col gap-4">
-      <div>
-        <label for="name" class="text-label mb-1 block">Nome</label>
-        <input
-          id="name"
-          v-model="form.name"
-          type="text"
-          placeholder="Seu nome"
-          class="input-base"
-          :aria-invalid="!!errors.name"
-          :aria-describedby="errors.name ? 'name-error' : undefined"
-        />
-        <p v-if="errors.name" id="name-error" role="alert" class="text-[var(--badge-danger-text)] text-micro mt-1">{{ errors.name }}</p>
+    <div class="flex items-center gap-3" aria-hidden="true">
+      <span class="h-px flex-1 bg-line" />
+      <span class="text-label text-fg-muted">ou</span>
+      <span class="h-px flex-1 bg-line" />
+    </div>
+
+    <form class="flex flex-col gap-4" novalidate @submit.prevent="submit">
+      <UiInput id="name" v-model="form.name" label="Nome" autocomplete="name" :error="errors.name" />
+      <UiInput id="email" v-model="form.email" label="E-mail" type="email" autocomplete="email" inputmode="email" :error="errors.email" />
+      <AuthPasswordInput id="password" v-model="form.password" label="Senha" autocomplete="new-password" :hint="hint" :error="errors.password" />
+
+      <div class="flex flex-col gap-1">
+        <UiCheckbox
+          id="accept_terms"
+          v-model="form.accept_terms"
+          :aria-invalid="errors.accept_terms ? 'true' : undefined"
+          :aria-describedby="errors.accept_terms ? 'accept-terms-error' : undefined"
+        >
+          Li e aceito os <UiLink to="/termos" target="_blank" class="underline">Termos de Uso</UiLink>
+          e a <UiLink to="/privacidade" target="_blank" class="underline">Política de Privacidade</UiLink>.
+        </UiCheckbox>
+        <p v-if="errors.accept_terms" id="accept-terms-error" role="alert" class="text-meta font-medium text-danger">{{ errors.accept_terms }}</p>
       </div>
 
-      <div>
-        <label for="email" class="text-label mb-1 block">E-mail</label>
-        <input
-          id="email"
-          v-model="form.email"
-          type="email"
-          placeholder="seu@email.com"
-          class="input-base"
-          :aria-invalid="!!errors.email"
-          :aria-describedby="errors.email ? 'email-error' : undefined"
-        />
-        <p v-if="errors.email" id="email-error" role="alert" class="text-[var(--badge-danger-text)] text-micro mt-1">{{ errors.email }}</p>
-      </div>
+      <p v-if="errors.general" role="alert" class="text-meta font-medium text-danger" data-testid="signup-error">{{ errors.general }}</p>
 
-      <div>
-        <label for="password" class="text-label mb-1 block">Senha</label>
-        <input
-          id="password"
-          v-model="form.password"
-          type="password"
-          placeholder="Mínimo 8 caracteres"
-          class="input-base"
-          :aria-invalid="!!errors.password"
-          :aria-describedby="errors.password ? 'password-error' : undefined"
-        />
-        <p v-if="errors.password" id="password-error" role="alert" class="text-[var(--badge-danger-text)] text-micro mt-1">{{ errors.password }}</p>
-      </div>
-
-      <div>
-        <label for="password_confirmation" class="text-label mb-1 block">Confirmar senha</label>
-        <input
-          id="password_confirmation"
-          v-model="form.password_confirmation"
-          type="password"
-          placeholder="Repita a senha"
-          class="input-base"
-        />
-      </div>
-
-      <div>
-        <label class="flex items-start gap-2 text-small text-base-secondary cursor-pointer">
-          <input
-            id="accept_terms"
-            v-model="form.accept_terms"
-            type="checkbox"
-            class="mt-1 w-4 h-4 shrink-0 accent-[var(--color-accent-primary)]"
-            :aria-invalid="!!errors.accept_terms"
-            :aria-describedby="errors.accept_terms ? 'accept-terms-error' : undefined"
-          />
-          <span>
-            Li e aceito os <NuxtLink to="/termos" target="_blank" class="text-accent-primary underline">Termos de Uso</NuxtLink>
-            e a <NuxtLink to="/privacidade" target="_blank" class="text-accent-primary underline">Política de Privacidade</NuxtLink>.
-          </span>
-        </label>
-        <p v-if="errors.accept_terms" id="accept-terms-error" role="alert" class="text-[var(--badge-danger-text)] text-micro mt-1">{{ errors.accept_terms }}</p>
-      </div>
-
-      <button type="submit" class="btn-primary w-full mt-2" :disabled="loading">
-        {{ loading ? 'Criando...' : 'Criar conta' }}
-      </button>
-
-      <p v-if="errors.general" role="alert" class="text-[var(--badge-danger-text)] text-small text-center">{{ errors.general }}</p>
+      <UiButton variant="primary" type="submit" block :loading="loading">Criar conta</UiButton>
     </form>
 
-    <p class="text-base-muted text-small text-center mt-6">
-      Já tem conta?
-      <NuxtLink to="/entrar" class="text-accent-primary hover:underline">Entrar</NuxtLink>
+    <p class="text-meta text-fg-muted">
+      Já tem conta? <UiLink to="/entrar" class="underline">Entrar</UiLink>
     </p>
   </div>
 </template>
 
 <script setup lang="ts">
+// Sign-up v4 (prd-4g-conta-onboarding-v3 RF-F13): no "confirm password" (show/hide in its place), the hint of
+// strength in text, the acceptance of the Terms unchanged. The API takes the sign-up without the confirmation.
+import { MIN_PASSWORD, fieldErrors, passwordHint } from '~/utils/authMessages'
+import { getErrorStatus } from '~/utils/apiErrors'
+
 definePageMeta({ layout: 'auth' })
+useHead({ title: 'Criar conta · Baigi' })
 
-const { $api } = useNuxtApp()
 const auth = useAuthStore()
-const route = useRoute()
+const router = useRouter()
 
-const form = reactive({
-  name: '',
-  email: '',
-  password: '',
-  password_confirmation: '',
-  accept_terms: false,
-})
+const form = reactive({ name: '', email: '', password: '', accept_terms: false })
 const errors = reactive<Record<string, string>>({})
 const loading = ref(false)
-const googleLoading = ref(false)
+const hint = computed(() => (errors.password ? undefined : passwordHint(form.password)))
 
-async function registerWithGoogle() {
-  googleLoading.value = true
-  try {
-    // The OAuth state is kept in the API session: make sure it exists first.
-    await ensureCsrfCookie()
-    const res = await $api<any>('/auth/google/redirect')
-    window.location.href = res.data.url
-  } catch {
-    googleLoading.value = false
-  }
-}
+async function submit() {
+  for (const k of Object.keys(errors)) delete errors[k]
+  if (!form.name.trim()) errors.name = 'Informe seu nome.'
+  if (!form.email.trim()) errors.email = 'Informe seu e-mail.'
+  if (form.password.length < MIN_PASSWORD) errors.password = `A senha precisa ter pelo menos ${MIN_PASSWORD} caracteres.`
+  if (!form.accept_terms) errors.accept_terms = 'Para criar a conta, aceite os Termos e a Política de Privacidade.'
+  if (Object.keys(errors).length) return
 
-async function handleRegister() {
-  Object.keys(errors).forEach(k => delete errors[k])
-  if (!form.accept_terms) {
-    errors.accept_terms = 'Para criar a conta, aceite os Termos e a Política de Privacidade.'
-    return
-  }
   loading.value = true
-
   try {
-    // Banner choice made before the account existed (RF-B04)
-    await auth.register({ ...form, ...useConsent().signupPayload() })
-    await navigateTo(postAuthRedirect(auth.user, route.query.redirect))
-  } catch (e: any) {
-    const data = e.data
-    if ((e.status ?? e.statusCode) === 429) {
-      errors.general = 'Muitas tentativas. Aguarde alguns minutos e tente novamente.'
-    } else if (data?.errors) {
-      Object.entries(data.errors).forEach(([k, v]: any) => { errors[k] = v[0] })
+    // Banner choice made before the account existed (prd-analytics-posthog RF-B04)
+    await auth.register({ ...form, name: form.name.trim(), email: form.email.trim(), ...useConsent().signupPayload() })
+    await navigateTo(postAuthRedirect(auth.user, router.currentRoute.value.query.redirect))
+  } catch (e) {
+    const status = getErrorStatus(e)
+    if (status === 429) {
+      errors.general = 'Muitas contas criadas daqui. Tente de novo mais tarde.'
+    } else if (status === 422) {
+      Object.assign(errors, fieldErrors(e))
     } else {
-      errors.general = data?.message || 'Erro ao criar conta.'
+      errors.general = 'Não foi possível criar a conta agora. Tente de novo.'
     }
   } finally {
     loading.value = false

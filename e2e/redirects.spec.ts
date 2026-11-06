@@ -6,7 +6,9 @@ const REDIRECTS: Record<string, string> = {
   '/dashboard': '/hoje',
   '/chat': '/hoje',
   '/stats': '/progresso',
-  '/graph': '/cadernos?view=graph',
+  // The agenda lives in Progresso (prd-4f-progresso-v3 RF-F12); /provas/resultado stays (e-mail link)
+  '/provas': '/progresso#provas',
+  '/graph': '/cadernos',
   '/documents': '/cadernos',
   '/decks': '/cadernos',
   '/decks/abc-123': '/cadernos',

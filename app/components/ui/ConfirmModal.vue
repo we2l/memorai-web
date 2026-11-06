@@ -1,28 +1,19 @@
 <template>
-  <UiModal v-model="open" size="sm" role="alertdialog">
-    <h2 class="text-headline mb-2 pr-10">{{ title }}</h2>
-    <p class="text-base-secondary text-small mb-4">{{ message }}</p>
+  <UiDialog v-model="open" size="sm" role="alertdialog" :title="title" :description="message">
     <slot />
-    <div v-if="requireText" class="mb-4">
-      <label :for="inputId" class="text-small text-base-secondary mb-1 block">
-        Digite <strong class="text-base-primary">{{ requireText }}</strong> para confirmar
-      </label>
-      <input :id="inputId" v-model="typed" type="text" class="input-base w-full" autocomplete="off" />
-    </div>
-    <div class="flex gap-3 justify-end mt-2">
-      <button class="btn-secondary" @click="open = false">{{ cancelLabel }}</button>
-      <button
-        :class="variant === 'primary' ? 'btn-primary' : 'btn-danger'"
-        :disabled="loading || !textMatches"
-        @click="$emit('confirm')"
-      >
+    <UiInput v-if="requireText" :id="inputId" v-model="typed" class="mt-1" :label="`Digite ${requireText} para confirmar`" autocomplete="off" />
+    <template #footer>
+      <UiButton variant="ghost" @click="open = false">{{ cancelLabel }}</UiButton>
+      <UiButton :variant="variant === 'primary' ? 'primary' : 'danger'" :loading="loading" :disabled="!textMatches" @click="$emit('confirm')">
         {{ loading ? loadingLabel : confirmLabel }}
-      </button>
-    </div>
-  </UiModal>
+      </UiButton>
+    </template>
+  </UiDialog>
 </template>
 
 <script setup lang="ts">
+// Confirmation of a destructive or irreversible action, over UiDialog (role alertdialog). `requireText` asks for
+// the name typed before enabling it (a caderno with 50 cards or more).
 const props = withDefaults(defineProps<{
   title: string
   message: string
@@ -36,7 +27,7 @@ const props = withDefaults(defineProps<{
 }>(), {
   confirmLabel: 'Confirmar',
   cancelLabel: 'Cancelar',
-  loadingLabel: 'Aguarde...',
+  loadingLabel: 'Aguarde…',
   loading: false,
   variant: 'danger',
   requireText: undefined,
@@ -46,7 +37,7 @@ defineEmits<{ (e: 'confirm'): void }>()
 
 const open = defineModel<boolean>({ required: true })
 const typed = ref('')
-const inputId = `confirm-text-${Math.random().toString(36).slice(2, 8)}`
+const inputId = useId()
 const textMatches = computed(() => !props.requireText || typed.value.trim() === props.requireText.trim())
 
 watch(open, (v) => { if (v) typed.value = '' })

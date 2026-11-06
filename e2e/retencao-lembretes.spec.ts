@@ -55,7 +55,10 @@ test.describe('Configurações > Lembretes', () => {
     await expect(toggle).toBeVisible()
     const initial = await toggle.getAttribute('aria-checked')
 
+    // O switch responde antes do PUT: recarregar sem esperar a resposta cancela a gravação
+    const saved = page.waitForResponse(r => r.url().endsWith('/api/settings') && r.request().method() === 'PUT')
     await toggle.click()
+    await saved
     const flipped = initial === 'true' ? 'false' : 'true'
     await expect(toggle).toHaveAttribute('aria-checked', flipped)
     if (flipped === 'false') await expect(page.locator('#reminder-hour')).toBeDisabled()

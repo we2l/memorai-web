@@ -1,57 +1,47 @@
 <template>
-  <UiModal v-model="open" size="md" role="alertdialog">
-    <h2 class="text-headline mb-3 text-[var(--badge-danger-text)]">Excluir sua conta?</h2>
-
+  <UiDialog v-model="open" size="md" role="alertdialog" title="Excluir sua conta?">
     <!-- Step 1: consequences -->
     <div v-if="step === 1">
-      <div ref="consequences" tabindex="-1" class="focus:outline-none" autofocus>
-        <p class="text-small text-base-secondary mb-2">Isso apaga para sempre:</p>
-        <ul class="list-disc pl-5 text-small text-base-secondary space-y-1 mb-3">
+      <div ref="consequences" tabindex="-1" class="outline-none" autofocus>
+        <p class="text-meta text-fg mb-2">Isso apaga para sempre:</p>
+        <ul class="list-disc pl-5 text-meta text-fg space-y-1 mb-3">
           <li>seus cadernos, notas, cards e histórico de revisões;</li>
           <li>PDFs, podcasts, imagens e áudios enviados;</li>
           <li>provas, simulados e conversas do Tira-dúvidas.</li>
         </ul>
-        <p v-if="isMonthly" class="text-small text-base-primary mb-2">Sua assinatura será cancelada agora, sem reembolso proporcional.</p>
-        <p v-else-if="isAnnual" class="text-small text-base-primary mb-2">
+        <p v-if="isMonthly" class="text-meta text-fg-strong mb-2">Sua assinatura será cancelada agora, sem reembolso proporcional.</p>
+        <p v-else-if="isAnnual" class="text-meta text-fg-strong mb-2">
           Seu plano anual deixa de valer agora. Para pedir reembolso, fale com o suporte em
           <a href="mailto:contato@baigi.com.br" class="underline">contato@baigi.com.br</a> antes de excluir.
         </p>
-        <p class="text-micro text-base-muted mb-4">Quer levar seus dados? Use "Exportar meus dados" antes.</p>
+        <p class="text-label text-fg-muted mb-4">Quer levar seus dados? Use "Exportar meus dados" antes.</p>
       </div>
-      <label class="flex items-start gap-2 text-small text-base-primary cursor-pointer mb-5">
-        <input v-model="understood" type="checkbox" class="mt-0.5 w-4 h-4 accent-[var(--color-accent-primary)]" />
-        Entendo que isso é permanente
-      </label>
-      <div class="flex gap-3 justify-end">
-        <button type="button" class="btn-secondary" @click="open = false">Cancelar</button>
-        <button type="button" class="btn-danger" :disabled="!understood" @click="step = 2">Continuar</button>
+      <UiCheckbox v-model="understood" label="Entendo que isso é permanente" class="mb-3" />
+      <div class="flex justify-end gap-3">
+        <UiButton variant="secondary" type="button" @click="open = false">Cancelar</UiButton>
+        <UiButton variant="danger" type="button" :disabled="!understood" @click="step = 2">Continuar</UiButton>
       </div>
     </div>
 
     <!-- Step 2: confirmation -->
     <form v-else novalidate @submit.prevent="submit">
-      <label for="delete-confirmation" class="text-label mb-1 block">
-        {{ hasPassword ? 'Digite sua senha atual' : `Digite seu e-mail (${auth.user?.email})` }}
-      </label>
-      <input
+      <UiInput
         id="delete-confirmation"
         v-model="confirmation"
+        :label="hasPassword ? 'Digite sua senha atual' : `Digite seu e-mail (${auth.user?.email})`"
         :type="hasPassword ? 'password' : 'email'"
-        class="input-base w-full"
         :autocomplete="hasPassword ? 'current-password' : 'email'"
         autofocus
-        :aria-invalid="!!error"
-        :aria-describedby="error ? 'delete-error' : undefined"
+        :error="error || undefined"
       />
-      <p v-if="error" id="delete-error" role="alert" class="text-micro text-[var(--badge-danger-text)] mt-1">{{ error }}</p>
       <div class="flex gap-3 justify-end mt-5">
-        <button type="button" class="btn-secondary" @click="step = 1">Voltar</button>
-        <button type="submit" class="btn-danger" :disabled="!confirmation || pending">
-          {{ pending ? 'Excluindo...' : 'Excluir minha conta' }}
-        </button>
+        <UiButton variant="secondary" type="button" @click="step = 1">Voltar</UiButton>
+        <UiButton variant="danger" type="submit" :loading="pending" :disabled="!confirmation">
+          {{ pending ? 'Excluindo…' : 'Excluir minha conta' }}
+        </UiButton>
       </div>
     </form>
-  </UiModal>
+  </UiDialog>
 </template>
 
 <script setup lang="ts">

@@ -1,222 +1,152 @@
 <template>
-  <div class="p-4 sm:p-6 pb-20 lg:pb-6 max-w-3xl mx-auto">
-    <button class="text-base-muted hover:text-base-primary text-sm flex items-center gap-1 mb-6" @click="navigateTo('/simulados')">
-      <ArrowLeft :size="16" /> Voltar aos simulados
-    </button>
+  <div class="mx-auto flex max-w-prose flex-col gap-5 px-gutter pt-2 pb-6 md:pt-8">
+    <UiLink v-if="scope" :to="scope.to" variant="muted" standalone class="-ml-1 self-start px-1">
+      <ChevronLeft class="size-4" aria-hidden="true" />
+      {{ scope.name }}
+    </UiLink>
 
-    <div v-if="!quiz" class="text-center py-16">
-      <div class="animate-spin w-8 h-8 border-2 border-[var(--color-primary-500)] border-t-transparent rounded-full mx-auto" />
+    <div v-if="state === 'loading'" class="flex flex-col gap-3" aria-busy="true">
+      <span class="sr-only">Carregando o resultado…</span>
+      <UiSkeleton variant="block" size="lg" />
+      <UiSkeleton variant="block" />
+      <UiSkeleton variant="row" />
     </div>
 
-    <template v-else>
-      <!-- Score Hero -->
-      <div class="rounded-2xl bg-[var(--bg-card)] border border-base p-8 shadow-sm text-center mb-6">
-        <div
-          class="inline-flex items-center justify-center w-28 h-28 rounded-full border-4 mb-4"
-          :class="scoreBorderClass"
-        >
-          <span class="text-3xl font-bold" :class="scoreTextClass">{{ Math.round(quiz.score_percent ?? 0) }}%</span>
-        </div>
-        <h1 class="font-heading font-bold text-xl text-base-primary">{{ quiz.title }}</h1>
-        <div class="flex items-center justify-center gap-3 text-sm text-base-muted mt-2">
-          <span class="flex items-center gap-1"><CheckCircle2 :size="14" class="text-[var(--badge-success-text)]" /> {{ quiz.correct_count }} certas</span>
-          <span>·</span>
-          <span class="flex items-center gap-1"><XCircle :size="14" class="text-[var(--badge-danger-text)]" /> {{ wrongCount }} erradas</span>
-          <span v-if="quiz.time_spent_seconds">·</span>
-          <span v-if="quiz.time_spent_seconds" class="flex items-center gap-1"><Clock :size="14" /> {{ formatTime(quiz.time_spent_seconds) }}</span>
-        </div>
+    <!-- Never an endless spinner (03 Q14): the error says it and retries -->
+    <UiErrorState v-else-if="state === 'error'" variant="hero" title="Não foi possível carregar o resultado" description="Verifique sua conexão e tente de novo." @retry="load" />
 
-        <!-- CTAs -->
-        <div class="flex flex-wrap justify-center gap-3 mt-6">
-          <button class="btn-primary !text-sm" @click="createCards" :disabled="creatingCards || wrongCount === 0 || cardsCreated">
-            <span v-if="cardsCreated">✓ Cards criados</span>
-            <span v-else-if="creatingCards">Criando...</span>
-            <span v-else>Criar cards dos erros ({{ wrongCount }})</span>
-          </button>
-          <button class="btn-secondary !text-sm" @click="navigateTo('/simulados')">Novo simulado</button>
-        </div>
-      </div>
-
-      <!-- Breakdown by topic_tag -->
-      <div v-if="breakdown.length > 1" class="rounded-2xl bg-[var(--bg-card)] border border-base p-5 shadow-sm mb-6">
-        <!-- Weak topic insight -->
-        <UiInsightBanner
-          v-if="weakTopics.length"
-          class="mb-4"
-          :icon="AlertTriangle"
-          :text="weakTopics.length === 1
-            ? `${weakTopics[0].tag}: ${weakTopics[0].percent}% acerto — considere revisar este tema`
-            : `${weakTopics.map(t => t.tag).join(' e ')}: abaixo de 50% — considere revisar`"
-          variant="warning"
-          dismissible
-        />
-        <p class="text-small font-medium text-base-secondary mb-4">Desempenho por tópico</p>
-        <div class="space-y-4">
-          <div v-for="item in breakdown" :key="item.tag">
-            <div class="flex justify-between text-sm mb-1.5">
-              <span class="text-base-primary font-medium">{{ item.tag }}</span>
-              <span class="text-base-muted">{{ item.correct }}/{{ item.total }} · {{ item.percent }}%</span>
-            </div>
-            <div class="h-2.5 bg-[var(--border-divider)] rounded-full overflow-hidden">
-              <div class="h-full rounded-full transition-all duration-500" :class="getBarColor(item.percent)" :style="{ width: `${item.percent}%` }" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Review -->
-      <div class="rounded-2xl bg-[var(--bg-card)] border border-base shadow-sm overflow-hidden">
-        <div class="flex items-center justify-between px-5 py-4 border-b border-[var(--border-divider)]">
-          <h2 class="font-heading font-semibold text-base text-base-primary">Gabarito</h2>
-          <div class="flex gap-1 bg-[var(--bg-soft)] rounded-lg p-0.5">
-            <button
-              class="text-xs px-3 py-1.5 rounded-md transition-colors"
-              :class="filter === 'all' ? 'bg-[var(--bg-card)] text-base-primary shadow-sm' : 'text-base-muted'"
-              @click="filter = 'all'"
-            >Todas</button>
-            <button
-              class="text-xs px-3 py-1.5 rounded-md transition-colors"
-              :class="filter === 'wrong' ? 'bg-[var(--bg-card)] text-[var(--badge-danger-text)] shadow-sm' : 'text-base-muted'"
-              @click="filter = 'wrong'"
-            >Só erros ({{ wrongCount }})</button>
-          </div>
-        </div>
-
-        <div class="divide-y divide-[var(--border-divider)]">
-          <div
-            v-for="q in filteredQuestions"
-            :key="q.id"
-            class="p-5"
-          >
-            <div class="flex items-start gap-3">
-              <div
-                class="w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5"
-                :class="q.is_correct ? 'bg-success/10' : 'bg-danger/10'"
-              >
-                <CheckCircle2 v-if="q.is_correct" :size="14" class="text-[var(--badge-success-text)]" />
-                <XCircle v-else :size="14" class="text-[var(--badge-danger-text)]" />
-              </div>
-              <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-2 mb-1">
-                  <span class="text-xs px-1.5 py-0.5 rounded bg-[var(--bg-soft)] text-base-muted">{{ q.position }}</span>
-                  <span v-if="q.topic_tag" class="text-xs px-1.5 py-0.5 rounded bg-[var(--bg-soft)] text-base-muted">{{ q.topic_tag }}</span>
-                </div>
-                <p class="text-sm text-base-primary leading-relaxed">{{ q.stem }}</p>
-
-                <div class="mt-3 space-y-1.5">
-                  <div v-if="!q.is_correct && q.user_answer" class="flex items-start gap-2 text-xs">
-                    <span class="text-[var(--badge-danger-text)] font-medium shrink-0">Você:</span>
-                    <span class="text-base-secondary">{{ formatAnswer(q, q.user_answer) }}</span>
-                  </div>
-                  <div class="flex items-start gap-2 text-xs">
-                    <span class="text-[var(--badge-success-text)] font-medium shrink-0">Correta:</span>
-                    <span class="text-base-primary font-medium">{{ formatAnswer(q, q.correct_answer ?? '') }}</span>
-                  </div>
-                </div>
-
-                <p v-if="q.explanation" class="text-xs text-base-muted mt-3 pl-3 border-l-2 border-[var(--border-divider)] leading-relaxed">{{ q.explanation }}</p>
-                <p v-if="q.ai_feedback" class="text-xs text-base-muted mt-2 italic">Correção IA: {{ q.ai_feedback }} ({{ Math.round((q.ai_score ?? 0) * 100) }}%)</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+    <template v-else-if="quiz">
+      <QuizScore :quiz="quiz" :scope-name="quiz.topic?.name" />
+      <QuizByTopic v-if="byTopic.length" :rows="byTopic" />
+      <QuizErrorCards v-if="errors.length" v-model="selected" :errors="errors" />
+      <QuizNextStep
+        :state="nextState"
+        :selected="selected.length"
+        :cards-count="cardsCount"
+        :session-count="sessionCount"
+        :creating="creating"
+        :review-to="reviewPath({ type: 'quiz', id: quiz.id })"
+        :new-quiz-to="newQuizPath"
+        :scope-to="scope?.to"
+        :scope-name="scope?.name"
+        @create="createCards"
+        @review="trackReview"
+      />
+      <QuizAnswerKey ref="answerKey" :questions="questions" :initially-open="/^#q\d+$/.test(route.hash)" @ask="askWhyWrong" />
+      <UiButton v-if="wrongCount > 0" variant="ghost" class="self-start" :loading="retrying" data-testid="quiz-retry-errors" @click="retryErrors">
+        Refazer as que errei ({{ wrongCount }})
+      </UiButton>
     </template>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ArrowLeft, CheckCircle2, XCircle, Clock, AlertTriangle } from 'lucide-vue-next'
+// Result of a quiz (prd-4e-praticar-v3 RF-F4, canvas Questoes): the score against the last time, the
+// accuracy by assunto, the errors that become cards (chosen, each in its assunto), the next step as the one
+// tinted block ("Criar N cards" → "Revisar os N agora", scope=quiz:), the answer key folded and "Refazer as
+// que errei" (copies, no AI and no quota).
+import { ChevronLeft } from 'lucide-vue-next'
 import type { QuizQuestion } from '~/types'
+import { cadernoPath } from '~/utils/scope'
+import { reviewPath } from '~/utils/reviewScope'
+import { formatAnswer } from '~/utils/quizAnswer'
 
-definePageMeta({ layout: 'default' })
+useHead({ title: 'Resultado · Baigi' })
 
 const route = useRoute()
 const quizStore = useQuizStore()
-const toast = useToast()
+const quizId = computed(() => String(route.params.id))
 
-const filter = ref<'all' | 'wrong'>('all')
-const creatingCards = ref(false)
-
-const quiz = computed(() => quizStore.currentQuiz)
+const state = ref<'loading' | 'error' | 'ready'>('loading')
+const quiz = computed(() => (quizStore.currentQuiz?.id === quizId.value ? quizStore.currentQuiz : null))
 const questions = computed(() => quizStore.questions)
-const wrongCount = computed(() => questions.value.filter((q) => q.is_correct === false).length)
-const cardsCreated = computed(() => !!quiz.value?.cards_created_at)
+const byTopic = computed(() => quiz.value?.by_topic ?? [])
+const errors = computed(() => quiz.value?.error_cards_preview ?? [])
+const wrongCount = computed(() => questions.value.filter(q => q.is_correct === false).length)
 
-const filteredQuestions = computed(() => {
-  if (filter.value === 'wrong') return questions.value.filter((q) => q.is_correct === false)
-  return questions.value
+/** The scope the quiz came from ("Voltar a …"); a caderno in the trash is not a destination */
+const scope = computed(() => {
+  const t = quiz.value?.topic
+  return t && !t.in_trash ? { to: cadernoPath(t.id), name: t.name } : null
+})
+const newQuizPath = computed(() => (quiz.value?.topic ? `/simulados?topic_id=${quiz.value.topic.id}` : '/simulados?action=new'))
+
+/** Errors chosen to become cards: every error without a card, by default */
+const selected = ref<string[]>([])
+const pending = computed(() => errors.value.filter(e => !e.card_id))
+watch(pending, (list) => { selected.value = selected.value.filter(id => list.some(e => e.question_id === id)) })
+
+const cardsCount = computed(() => quiz.value?.cards_from_errors?.count ?? errors.value.filter(e => e.card_id).length)
+const sessionCount = computed(() => quiz.value?.cards_from_errors?.session_count ?? 0)
+const nextState = computed<'create' | 'review' | 'done'>(() => {
+  if (pending.value.length && (selected.value.length || !cardsCount.value)) return 'create'
+  if (cardsCount.value > 0) return 'review'
+  return 'done'
 })
 
-const breakdown = computed(() => {
-  const map = new Map<string, { correct: number; total: number }>()
-  for (const q of questions.value) {
-    const tag = q.topic_tag || 'Geral'
-    if (!map.has(tag)) map.set(tag, { correct: 0, total: 0 })
-    const entry = map.get(tag)!
-    entry.total++
-    if (q.is_correct) entry.correct++
-  }
-  return Array.from(map.entries()).map(([tag, data]) => ({
-    tag,
-    ...data,
-    percent: data.total > 0 ? Math.round((data.correct / data.total) * 100) : 0,
-  }))
-})
+const answerKey = ref<{ open: () => void } | null>(null)
 
-const weakTopics = computed(() => breakdown.value.filter(t => t.percent < 50 && t.total >= 2).slice(0, 2))
-
-const scoreBorderClass = computed(() => {
-  const s = quiz.value?.score_percent ?? 0
-  if (s >= 70) return 'border-success'
-  if (s >= 50) return 'border-warning'
-  return 'border-danger'
-})
-
-const scoreTextClass = computed(() => {
-  const s = quiz.value?.score_percent ?? 0
-  if (s >= 70) return 'text-[var(--badge-success-text)]'
-  if (s >= 50) return 'text-[var(--badge-warning-text)]'
-  return 'text-[var(--badge-danger-text)]'
-})
-
-onMounted(async () => {
-  const id = route.params.id as string
-  await quizStore.fetchQuiz(id)
-})
-
-async function createCards() {
-  if (!quiz.value?.id) {
-    toast.show('Simulado não carregado', 'error')
-    return
-  }
-  creatingCards.value = true
+async function load() {
+  state.value = 'loading'
   try {
-    const count = await quizStore.createCardsFromErrors(quiz.value.id)
-    toast.show(`${count} cards criados dos erros!`, 'success')
+    const q = await quizStore.fetchQuiz(quizId.value)
+    if (q.status !== 'completed') return navigateTo(`/simulados/${quizId.value}`, { replace: true })
+    selected.value = (q.error_cards_preview ?? []).filter(e => !e.card_id).map(e => e.question_id)
+    state.value = 'ready'
+    // "Ver a questão" of the review (4d): #q7 lands on that question once the key is open
+    if (/^#q\d+$/.test(route.hash)) {
+      answerKey.value?.open()
+      // The list is a lazy chunk: wait for the question to exist (up to 3 s)
+      const id = route.hash.slice(1)
+      for (let i = 0; i < 30 && !document.getElementById(id); i++) await new Promise(r => setTimeout(r, 100))
+      document.getElementById(id)?.scrollIntoView({ block: 'start' })
+    }
+  } catch (e) {
+    reportApiError(e, { silent: true })
+    state.value = 'error'
+  }
+}
+
+const creating = ref(false)
+async function createCards() {
+  if (!quiz.value || !selected.value.length) return
+  creating.value = true
+  const chosen = [...selected.value]
+  try {
+    await quizStore.createCardsFromErrors(quiz.value.id, chosen)
+    useAnalytics().track('quiz_error_cards', { selected: chosen.length, total: errors.value.length })
+    // The preview now carries the card ids (and the session of these cards)
     await quizStore.fetchQuiz(quiz.value.id)
-  } catch (e: any) {
-    console.error('createCards error:', e)
-    toast.show(e?.data?.message || 'Erro ao criar cards', 'error')
+    selected.value = []
+  } catch (e) {
+    reportApiError(e, { error: 'Não foi possível criar os cards. Tente de novo.' })
   } finally {
-    creatingCards.value = false
+    creating.value = false
   }
 }
 
-function getBarColor(percent: number) {
-  if (percent >= 70) return 'bg-success'
-  if (percent >= 50) return 'bg-warning'
-  return 'bg-danger'
+function trackReview() {
+  useAnalytics().track('quiz_review_errors_now', { cards: sessionCount.value })
 }
 
-
-function formatAnswer(q: QuizQuestion, answer: string) {
-  if (q.type === 'true_false') return answer === 'true' ? 'Verdadeiro' : 'Falso'
-  if (q.type === 'multiple_choice' && q.options) {
-    const letter = answer.toLowerCase().trim()
-    const match = q.options.find((o) => o.toLowerCase().startsWith(letter + ')'))
-    if (match) return match
-  }
-  return answer
+const { run: runRetry, pending: retrying } = useApiAction()
+async function retryErrors() {
+  if (!quiz.value) return
+  const retry = await runRetry(() => quizStore.retryErrors(quiz.value!.id), { error: 'Não foi possível montar as questões de novo.' })
+  if (!retry) return
+  useAnalytics().track('quiz_retry_errors', { errors: wrongCount.value })
+  await navigateTo(`/simulados/${retry.id}`)
 }
+
+/** "Por que errei?" (prd-navegacao-v3 RF-9): the tira-dúvidas with the question, the answers and the caderno. */
+function askWhyWrong(q: QuizQuestion) {
+  useChatStore().ask({
+    topicId: quiz.value?.topic?.id,
+    topicName: quiz.value?.topic?.name,
+    cardFront: escapeHtml(q.stem),
+    source: 'quiz_error',
+  }, `Por que errei esta questão? "${q.stem}" Eu respondi "${formatAnswer(q, q.user_answer)}" e a correta é "${formatAnswer(q, q.correct_answer)}".`)
+}
+
+onMounted(load)
 </script>

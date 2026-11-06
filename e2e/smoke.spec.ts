@@ -1,8 +1,9 @@
 import { test, expect } from '@playwright/test'
-import { login } from './helpers'
+import { loginViaForm } from './helpers'
 
 test('login e acesso ao dashboard', async ({ page }) => {
-  await login(page)
+  // The one test that exercises the form (the others reuse an API session: login throttle 5/min)
+  await loginViaForm(page)
   await expect(page).toHaveURL(/\/hoje/)
   await expect(page.locator('body')).toBeVisible()
 })
@@ -38,7 +39,6 @@ test.describe('Páginas públicas (RF-F11)', () => {
     await page.fill('#name', 'Sem Aceite')
     await page.fill('#email', `sem-aceite-${Date.now()}@e2e.test`)
     await page.fill('#password', 'password123')
-    await page.fill('#password_confirmation', 'password123')
     await page.click('button[type="submit"]')
     await expect(page.getByText(/aceite os Termos/)).toBeVisible()
     expect(registerCalls).toBe(0)

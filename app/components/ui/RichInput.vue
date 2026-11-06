@@ -1,41 +1,41 @@
 <template>
-  <div class="border border-base rounded-lg overflow-hidden bg-surface-secondary">
-    <div v-if="editor" class="flex items-center gap-0.5 px-2 py-1.5 border-b border-base">
+  <div class="border border-line-strong rounded-control overflow-hidden bg-subtle">
+    <div v-if="editor" class="flex items-center gap-0.5 px-2 py-1.5 border-b border-line-strong">
       <button
         v-for="btn in toolbar"
         :key="btn.label"
         type="button"
-        class="p-1 rounded text-small transition-colors"
-        :class="btn.active() ? 'bg-accent-primary-subtle text-accent-primary' : 'text-base-muted hover:bg-[var(--border-divider)]'"
+        class="rounded-tag p-1 text-meta transition-colors"
+        :class="btn.active() ? 'bg-action-subtle text-action-fg' : 'text-fg-muted hover:bg-line'"
         :title="btn.label"
         @click="btn.action"
        :aria-label="btn.label">
         <component :is="btn.icon" :size="14" />
       </button>
 
-      <div class="w-px h-4 bg-[var(--border-divider)] mx-1" />
+      <div class="w-px h-4 bg-line mx-1" />
 
       <!-- Mic -->
       <button
         type="button"
-        class="p-1 rounded text-small transition-colors"
-        :class="recording ? 'bg-danger/15 text-[var(--badge-danger-text)]' : 'text-base-muted hover:bg-[var(--border-divider)]'"
+        class="rounded-tag p-1 text-meta transition-colors"
+        :class="recording ? 'bg-danger/15 text-danger' : 'text-fg-muted hover:bg-line'"
         :title="recording ? 'Parar gravação' : 'Gravar áudio'"
         @click="toggleRecording"
        :aria-label="recording ? 'Parar gravação' : 'Gravar áudio'">
         <Mic :size="14" aria-hidden="true" />
       </button>
-      <span v-if="recording" class="text-micro text-[var(--badge-danger-text)] animate-pulse ml-1">● {{ recordingTime }}s</span>
+      <span v-if="recording" class="text-label text-danger animate-pulse ml-1">● {{ recordingTime }}s</span>
     </div>
 
     <EditorContent
       :editor="editor"
-      class="rich-input px-3 py-2 text-[1rem] leading-relaxed text-base-primary overflow-y-auto"
+      class="rich-input overflow-y-auto px-3 py-2 text-body text-fg-strong"
       :style="{ minHeight: minHeight + 'px', maxHeight: maxHeight + 'px' }"
     />
 
     <!-- Audio preview -->
-    <div v-if="localAudioUrl" class="px-3 py-2 border-t border-base">
+    <div v-if="localAudioUrl" class="px-3 py-2 border-t border-line-strong">
       <UiAudioPlayer :src="localAudioUrl" removable @remove="removeAudio" />
     </div>
   </div>
@@ -271,7 +271,7 @@ onBeforeUnmount(() => {
   float: left;
   pointer-events: none;
   height: 0;
-  color: var(--text-muted);
+  color: var(--fg-muted);
 }
 .rich-input .tiptap img {
   max-width: 100%;
@@ -279,17 +279,17 @@ onBeforeUnmount(() => {
   margin: 0.5em 0;
 }
 .rich-input .tiptap .cloze-chip {
-  background: var(--color-accent-primary-subtle);
+  background: var(--action-subtle);
   border-radius: 4px;
   padding: 1px 4px;
-  border: 1px solid var(--color-accent-soft);
+  border: 1px solid var(--action-fg);
   position: relative;
 }
 .rich-input .tiptap .cloze-chip::after {
   content: attr(data-cloze-index);
   font-size: 0.6em;
   font-weight: 700;
-  color: var(--color-accent-primary);
+  color: var(--action-fg);
   vertical-align: super;
   margin-left: 2px;
 }

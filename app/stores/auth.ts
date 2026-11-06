@@ -1,8 +1,10 @@
 import { defineStore } from 'pinia'
 import type { User } from '~/types'
+import { hasProAccess, opensTrialOnUse, trialEnded } from '~/utils/trial'
 
 // Non-sensitive hint (not a credential): avoids calling /me for anonymous visitors.
 const LOGGED_IN_HINT = 'baigi_logged_in'
+let trialRefresh: Promise<unknown> | null = null
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -13,6 +15,11 @@ export const useAuthStore = defineStore('auth', {
   getters: {
     isAuthenticated: (state) => !!state.user,
     isVerified: (state) => !!state.user?.email_verified,
+    // The Intensivo trial (utils/trial.ts): `plan` stays free during it
+    onTrial: (state) => state.user?.trial?.status === 'active',
+    hasProAccess: (state) => hasProAccess(state.user),
+    opensTrialOnUse: (state) => opensTrialOnUse(state.user),
+    trialEnded: (state) => trialEnded(state.user),
   },
 
   actions: {
@@ -38,7 +45,7 @@ export const useAuthStore = defineStore('auth', {
       return res.data.user
     },
 
-    async register(payload: { name: string, email: string, password: string, password_confirmation: string, accept_terms: boolean, analytics_consent?: boolean }): Promise<User> {
+    async register(payload: { name: string, email: string, password: string, accept_terms: boolean, analytics_consent?: boolean }): Promise<User> {
       const { $api } = useNuxtApp()
       const res = await $api<{ data: { user: User } }>('/register', {
         method: 'POST',
@@ -52,8 +59,10 @@ export const useAuthStore = defineStore('auth', {
       const { $api } = useNuxtApp()
       try {
         await $api('/logout', { method: 'POST' })
-      } catch {
-        // intencional: a sessão pode já ter acabado — o estado local é limpo de qualquer forma
+      } catch (e) {
+        // A session already over (401, 419) is the goal. Without network the HttpOnly cookie stays valid: whoever
+        // opens this browser next must not get the account back, so the logout is finished on the next boot.
+        if (getErrorStatus(e) === undefined) markPendingLogout()
       }
       this.clearAuth()
     },
@@ -65,8 +74,19 @@ export const useAuthStore = defineStore('auth', {
       return res.data
     },
 
+    /**
+     * After a POST that can open the trial (utils/trial.ts opensTrialRequest), while it is available: /me again,
+     * once at a time, so the screen shows the trial the server just opened.
+     */
+    refreshTrialAfterUse(): Promise<unknown> | void {
+      if (!opensTrialOnUse(this.user)) return
+      trialRefresh ??= this.fetchMe().finally(() => { trialRefresh = null })
+      return trialRefresh
+    },
+
     setUser(user: User) {
       this.user = user
+      clearPendingLogout()
       if (import.meta.client) {
         document.cookie = `${LOGGED_IN_HINT}=1; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax`
         // Account consent vs. this device's cookie (RF-F01), then identify without PII (RF-F07)

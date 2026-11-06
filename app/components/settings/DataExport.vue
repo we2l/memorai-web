@@ -1,18 +1,18 @@
 <template>
   <div>
-    <p v-if="sentTo" role="status" class="text-small text-[var(--badge-success-text)] bg-[var(--badge-success-bg)] rounded-lg px-3 py-2">
+    <p v-if="sentTo" role="status" class="text-meta text-success bg-success-subtle rounded-control px-3 py-2">
       Pedido recebido. Enviaremos o link para {{ sentTo }} em alguns minutos. O link vale 7 dias.
     </p>
-    <p v-else-if="limited" role="status" class="text-small text-[var(--badge-warning-text)] bg-[var(--badge-warning-bg)] rounded-lg px-3 py-2">
+    <p v-else-if="limited" role="status" class="text-meta text-warning bg-warning-subtle rounded-control px-3 py-2">
       Você já pediu uma exportação nas últimas 24h.
     </p>
     <template v-else>
-      <p class="text-small text-base-muted mb-3">
+      <p class="text-meta text-fg-muted mb-3">
         Um arquivo .zip com seu perfil, cadernos e notas, cards, revisões, provas, simulados e assinatura.
       </p>
-      <button type="button" class="btn-secondary" :disabled="pending" @click="confirmOpen = true">
+      <UiButton variant="secondary" type="button" :disabled="pending" @click="confirmOpen = true">
         {{ pending ? 'Enviando pedido...' : 'Exportar meus dados' }}
-      </button>
+      </UiButton>
     </template>
 
     <UiConfirmModal

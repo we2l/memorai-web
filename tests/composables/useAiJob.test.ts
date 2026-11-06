@@ -44,6 +44,21 @@ describe('useAiJob', () => {
     await expect(promise).rejects.toBeInstanceOf(AiJobError)
   })
 
+  it('tempo esgotado: o erro traz o id do job, e wait() retoma sem novo POST (nem nova cota)', async () => {
+    apiMock.mockResolvedValue(job('pending'))
+    const promise = useAiJob().run('/ai/generate-cards')
+    const assertion = expect(promise).rejects.toMatchObject({ jobId: job('pending').data.id })
+    await vi.advanceTimersByTimeAsync(3 * 60_000 + 4000)
+    await assertion
+
+    apiMock.mockReset()
+    apiMock.mockResolvedValue(job('done', { result: { ok: true } }))
+    const resumed = useAiJob().wait(job('pending').data.id)
+    await vi.advanceTimersByTimeAsync(2000)
+    await expect(resumed).resolves.toEqual({ ok: true })
+    expect(apiMock.mock.calls.every(([, opts]) => opts?.method !== 'POST')).toBe(true)
+  })
+
   it('resposta já terminal (fila síncrona) não faz polling', async () => {
     apiMock.mockResolvedValueOnce(job('done', { result: { ok: true } }))
     await expect(useAiJob().run('/ai/generate-cards')).resolves.toEqual({ ok: true })

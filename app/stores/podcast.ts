@@ -15,6 +15,8 @@ export const usePodcastStore = defineStore('podcast', {
     generating: false,
     page: 1,
     lastPage: 1,
+    /** GET /podcasts?topic_id= (a caderno, matéria or assunto and its subtree); null = all */
+    topicId: null as string | null,
   }),
 
   getters: {
@@ -23,25 +25,6 @@ export const usePodcastStore = defineStore('podcast', {
     hasPending: (state) => state.podcasts.some(p =>
       ['pending', 'generating_script', 'generating_audio'].includes(p.status),
     ),
-
-    sessions: (state) => {
-      const grouped = new Map<string, Podcast[]>()
-      const standalone: Podcast[] = []
-      for (const p of state.podcasts) {
-        if (p.session_id) {
-          const list = grouped.get(p.session_id) || []
-          list.push(p)
-          grouped.set(p.session_id, list)
-        } else {
-          standalone.push(p)
-        }
-      }
-      // Sort episodes within sessions
-      for (const [, eps] of grouped) {
-        eps.sort((a, b) => (a.episode_number || 0) - (b.episode_number || 0))
-      }
-      return { grouped, standalone }
-    },
   },
 
   actions: {
@@ -51,7 +34,7 @@ export const usePodcastStore = defineStore('podcast', {
       this.loading = true
       try {
         const { $api } = useNuxtApp()
-        const res = await $api<{ data: Podcast[], meta: { last_page: number } }>('/podcasts', { params: { page: 1, per_page: PER_PAGE }, signal })
+        const res = await $api<{ data: Podcast[], meta: { last_page: number } }>('/podcasts', { params: { page: 1, per_page: PER_PAGE, topic_id: this.topicId ?? undefined }, signal })
         if (this.page <= 1) {
           this.podcasts = res.data
           this.lastPage = res.meta.last_page
@@ -64,13 +47,19 @@ export const usePodcastStore = defineStore('podcast', {
       }
     },
 
+    /** The episodes of a scope (the subtree; null = all): changing it empties the list and reloads page 1. */
+    async setScope(topicId: string | null) {
+      if (this.topicId !== topicId) this.$patch({ topicId, page: 1, lastPage: 1, podcasts: [] })
+      await this.fetchPodcasts()
+    },
+
     async loadMore() {
       if (this.loadingMore || !this.hasMore) return
       this.loadingMore = true
       try {
         const { $api } = useNuxtApp()
         const next = this.page + 1
-        const res = await $api<{ data: Podcast[], meta: { last_page: number } }>('/podcasts', { params: { page: next, per_page: PER_PAGE } })
+        const res = await $api<{ data: Podcast[], meta: { last_page: number } }>('/podcasts', { params: { page: next, per_page: PER_PAGE, topic_id: this.topicId ?? undefined } })
         const known = new Set(this.podcasts.map(p => p.id))
         this.podcasts.push(...res.data.filter(p => !known.has(p.id)))
         this.page = next

@@ -1,136 +1,78 @@
 <template>
-  <div class="card-workshop">
-    <!-- Loading state -->
-    <div v-if="loading" class="flex flex-col items-center justify-center py-16 gap-4">
-      <div class="w-10 h-10 border-2 border-[var(--color-accent-primary)] border-t-transparent rounded-full animate-spin" />
-      <div class="text-center">
-        <p class="text-body text-base-primary font-medium">Analisando seu material...</p>
-        <p class="text-small text-base-muted mt-1">A IA está encontrando conceitos para revisar</p>
-      </div>
+  <div data-testid="card-workshop" :class="panel ? '' : 'rounded-card bg-raised p-5 shadow-card'">
+    <!-- Generating -->
+    <div v-if="loading" class="flex flex-col items-center gap-3 py-10 text-center" role="status">
+      <UiSpinner />
+      <p class="text-meta font-medium text-fg-strong">Lendo o texto…</p>
+      <p class="text-label text-fg-muted">A IA está escolhendo o que vale revisar</p>
     </div>
 
-    <!-- Workshop -->
+    <!-- Suggestions to accept -->
     <template v-else-if="cards.length">
-      <!-- Header -->
-      <div class="px-5 py-4 max-w-3xl mx-auto">
-        <div class="flex items-center gap-2">
-          <Sparkles :size="18" class="text-[var(--badge-primary-text)]" />
-          <div>
-            <h3 class="text-body font-semibold text-base-primary">
-              {{ cards.length }} {{ cards.length === 1 ? 'sugestão' : 'sugestões' }} de flashcards
-            </h3>
-            <p class="text-small text-base-muted mt-0.5">Revise rapidamente antes de adicionar à sua coleção.</p>
-          </div>
+      <div class="mb-3 flex items-start gap-2">
+        <Sparkles class="mt-0.5 size-4 shrink-0 text-action-fg" aria-hidden="true" />
+        <div>
+          <h3 class="text-meta font-semibold text-fg-strong">
+            {{ cards.length }} {{ cards.length === 1 ? 'sugestão' : 'sugestões' }} de card
+          </h3>
+          <p class="text-label text-fg-muted">Revise antes de salvar: aceite, edite ou descarte.</p>
         </div>
       </div>
 
-      <!-- Card list -->
-      <div class="px-4 pb-4 space-y-2.5 max-h-[65vh] overflow-y-auto max-w-3xl mx-auto">
-        <div
+      <ul class="flex flex-col gap-2" :class="panel ? '' : 'max-h-[65vh] overflow-y-auto'" aria-label="Sugestões">
+        <li
           v-for="(card, index) in cards"
           :key="index"
-          class="card-item group"
-          :class="acceptedIndexes.has(index) ? 'ring-1 ring-success/30 bg-success/5' : ''"
+          class="rounded-row border p-3"
+          :class="acceptedIndexes?.has(index) ? 'border-success bg-success-subtle' : 'border-line-strong bg-raised'"
+          data-testid="workshop-card"
         >
           <!-- Edit mode -->
-          <template v-if="editingIndex === index">
-            <div class="space-y-3 p-4">
-              <div>
-                <label class="text-micro font-medium text-base-muted uppercase tracking-wide">Frente</label>
-                <textarea
-                  v-model="editFront"
-                  class="input-base w-full !text-body mt-1.5"
-                  rows="2"
-                  @keydown.stop
-                />
-              </div>
-              <div>
-                <label class="text-micro font-medium text-base-muted uppercase tracking-wide">Verso</label>
-                <textarea
-                  v-model="editBack"
-                  class="input-base w-full !text-small mt-1.5"
-                  rows="3"
-                  @keydown.stop
-                />
-              </div>
-              <div class="flex gap-2 pt-1">
-                <button class="btn-primary !py-1.5 !px-3 !min-h-0 text-small" @click="confirmEdit(index)">Salvar</button>
-                <button class="btn-secondary !py-1.5 !px-3 !min-h-0 text-small" @click="editingIndex = null">Cancelar</button>
-              </div>
+          <form v-if="editingIndex === index" class="flex flex-col gap-3" @submit.prevent="confirmEdit(index)">
+            <UiTextarea v-model="editFront" label="Frente" :rows="2" @keydown.stop />
+            <UiTextarea v-model="editBack" label="Verso" :rows="3" @keydown.stop />
+            <div class="flex gap-2">
+              <UiButton size="sm" variant="primary" type="submit">Salvar</UiButton>
+              <UiButton size="sm" variant="ghost" @click="editingIndex = null">Cancelar</UiButton>
             </div>
-          </template>
+          </form>
 
           <!-- View mode -->
           <template v-else>
-            <div class="p-4 flex items-start gap-3">
-              <!-- Content -->
-              <div class="flex-1 min-w-0">
-                <p class="text-sm text-base-primary font-semibold leading-snug">{{ card.front }}</p>
-                <p class="text-small text-base-secondary leading-relaxed mt-2.5">{{ card.back }}</p>
-                <p v-if="card.source_excerpt" class="flex items-center gap-1 text-micro text-base-muted mt-2.5">
-                  <FileText :size="11" class="shrink-0 opacity-60" />
-                  <span class="truncate">{{ card.source_excerpt }}</span>
-                </p>
-              </div>
-
-              <!-- Actions -->
-              <div class="flex items-center gap-0.5 shrink-0" :class="acceptedIndexes.has(index) ? '' : 'opacity-0 group-hover:opacity-100 transition-opacity'">
-                <button
-                  v-if="!acceptedIndexes.has(index)"
-                  class="p-1.5 rounded-lg text-success/70 hover:text-[var(--badge-success-text)] hover:bg-success/10 transition-colors"
-                  title="Aceitar"
-                  @click="$emit('accept-card', index)"
-                 aria-label="Aceitar">
-                  <Check :size="15" aria-hidden="true" />
-                </button>
-                <span v-else class="p-1.5 text-[var(--badge-success-text)]">
-                  <Check :size="15" />
-                </span>
-
-                <button
-                  v-if="!acceptedIndexes.has(index)"
-                  class="p-1.5 rounded-lg text-base-muted hover:text-base-primary hover:bg-surface-secondary transition-colors"
-                  title="Editar"
-                  @click="startEdit(index, card)"
-                 aria-label="Editar">
-                  <Pencil :size="13" aria-hidden="true" />
-                </button>
-
-                <button
-                  v-if="!acceptedIndexes.has(index)"
-                  class="p-1.5 rounded-lg text-base-muted hover:text-[var(--badge-danger-text)] hover:bg-[var(--badge-danger-bg)] transition-colors"
-                  title="Descartar"
-                  @click="$emit('remove-card', index)"
-                 aria-label="Descartar">
-                  <Trash2 :size="13" aria-hidden="true" />
-                </button>
-              </div>
+            <p class="text-meta font-semibold text-fg-strong">{{ card.front }}</p>
+            <p class="mt-1.5 text-meta text-fg">{{ card.back }}</p>
+            <p v-if="card.source_excerpt" class="mt-2 flex items-center gap-1 text-label text-fg-muted">
+              <FileText class="size-3 shrink-0" aria-hidden="true" />
+              <span class="truncate">{{ card.source_excerpt }}</span>
+            </p>
+            <div class="mt-2 flex items-center gap-1">
+              <template v-if="!acceptedIndexes?.has(index)">
+                <UiIconButton :icon="Check" label="Aceitar" size="sm" @click="$emit('accept-card', index)" />
+                <UiIconButton :icon="Pencil" label="Editar" size="sm" @click="startEdit(index, card)" />
+                <UiIconButton :icon="Trash2" label="Descartar" size="sm" @click="$emit('remove-card', index)" />
+              </template>
+              <UiTag v-else tone="success" :icon="Check">Salvo</UiTag>
             </div>
           </template>
-        </div>
-      </div>
+        </li>
+      </ul>
 
-      <!-- Footer -->
-      <div class="px-5 py-4 border-t border-base max-w-3xl mx-auto">
-        <div class="flex items-center justify-between">
-          <button class="btn-secondary !py-2.5 !px-4 text-small" @click="$emit('discard')">
-            Descartar tudo
-          </button>
-          <button class="btn-primary !py-2.5 !px-5 text-small font-medium" :disabled="saving" @click="$emit('save')">
-            {{ saving ? 'Salvando...' : `Adicionar ${cards.length - acceptedCount} card${(cards.length - acceptedCount) !== 1 ? 's' : ''}` }}
-          </button>
-        </div>
+      <div class="mt-4 flex flex-wrap items-center justify-between gap-2">
+        <UiButton variant="ghost" @click="$emit('discard')">Descartar tudo</UiButton>
+        <UiButton variant="primary" :loading="saving" @click="$emit('save')">
+          Salvar {{ remaining }} card{{ remaining !== 1 ? 's' : '' }}
+        </UiButton>
       </div>
     </template>
 
-    <!-- Post-save state -->
-    <div v-else-if="showSuccess" class="flex flex-col items-center justify-center py-12 gap-4 text-center">
-      <div class="text-3xl">🎉</div>
+    <!-- Saved -->
+    <div v-else-if="showSuccess" class="flex flex-col items-center gap-3 py-8 text-center" role="status">
+      <CheckCircle2 class="size-8 text-success" aria-hidden="true" />
       <div>
-        <p class="text-body font-semibold text-base-primary">Tudo pronto!</p>
-        <p class="text-small text-base-muted mt-1">{{ savedCount }} card{{ savedCount !== 1 ? 's' : '' }} adicionado{{ savedCount !== 1 ? 's' : '' }} à sua coleção.</p>
+        <p class="text-meta font-semibold text-fg-strong">Tudo pronto!</p>
+        <p class="text-meta text-fg-muted">{{ savedCount }} card{{ savedCount !== 1 ? 's' : '' }} salvo{{ savedCount !== 1 ? 's' : '' }}{{ panel ? ' nesta nota' : '' }}.</p>
       </div>
-      <div class="flex flex-col gap-2 w-full max-w-xs mt-2">
+      <div class="flex w-full max-w-xs flex-col gap-2">
         <slot name="post-save-actions" />
       </div>
     </div>
@@ -138,7 +80,10 @@
 </template>
 
 <script setup lang="ts">
-import { Sparkles, Pencil, Trash2, Check, FileText } from 'lucide-vue-next'
+// The AI's card suggestions to accept, edit or discard before saving (useCardWorkshop). `panel`: inside
+// "Cards desta parte" of the material (prd-4c-material-v3 RF-F4), 340 px wide, the text still on screen;
+// otherwise a section of its own (the library).
+import { Check, CheckCircle2, FileText, Pencil, Sparkles, Trash2 } from 'lucide-vue-next'
 
 const props = defineProps<{
   cards: Array<{ front: string; back: string; source_excerpt?: string }>
@@ -147,17 +92,18 @@ const props = defineProps<{
   acceptedIndexes?: Set<number>
   showSuccess?: boolean
   savedCount?: number
+  panel?: boolean
 }>()
 
 const emit = defineEmits<{
-  save: []
-  discard: []
+  'save': []
+  'discard': []
   'edit-card': [index: number, data: { front: string; back: string }]
   'remove-card': [index: number]
   'accept-card': [index: number]
 }>()
 
-const acceptedCount = computed(() => props.acceptedIndexes?.size ?? 0)
+const remaining = computed(() => props.cards.length - (props.acceptedIndexes?.size ?? 0))
 
 const editingIndex = ref<number | null>(null)
 const editFront = ref('')
@@ -174,32 +120,3 @@ function confirmEdit(index: number) {
   editingIndex.value = null
 }
 </script>
-
-<style scoped>
-.card-workshop {
-  border: 1px solid var(--border-divider);
-  border-radius: 0.75rem;
-  background: var(--bg-card);
-  overflow: hidden;
-}
-
-.card-item {
-  background: var(--bg-base);
-  border: 1px solid var(--border-divider);
-  border-radius: 0.625rem;
-  transition: box-shadow 0.15s ease, border-color 0.15s ease;
-}
-
-.card-item:hover {
-  border-color: color-mix(in srgb, var(--color-accent-soft) 40%, var(--border-divider));
-  box-shadow: 0 2px 8px color-mix(in srgb, var(--color-accent-soft) 8%, transparent);
-}
-
-:root.dark .card-item {
-  background: color-mix(in srgb, var(--bg-card) 60%, transparent);
-}
-
-:root.dark .card-item:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-</style>

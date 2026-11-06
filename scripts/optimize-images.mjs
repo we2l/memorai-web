@@ -9,12 +9,11 @@ import sharp from 'sharp'
 
 // name → output width in px (2x the largest use in the app)
 const TARGETS = {
-  'mascot-baigi': 256, //            landing/HeroPipeline.vue sm:w-32 (128 px)
-  'mascot-baigi-celebrating': 224, // pages/revisar.vue w-28 (112 px)
+  'mascot-baigi': 256, //            landing/HeroPipeline.vue sm:w-32 (128 px); home/HomeGreeting.vue 88 px tall
+  'mascot-baigi-celebrating': 224, // pages/revisar.vue w-28 (112 px); home/HomeGreeting.vue (goal met)
   'mascot-baigi-podcast': 224, //     pages/podcasts.vue w-28 (112 px)
   'mascot-baigi-thinking': 192, //    pages/simulados/index.vue, EmptyStateOnboarding w-24 (96 px)
-  'mascot-baigi-reading': 64, //      home/HomeHero.vue 24 px
-  'mascot-baigi-bust-64': 64, //      ui/Logo.vue, landing/LogoLanding.vue (22–36 px), HomeHero 24 px
+  'mascot-baigi-bust-64': 64, //      ui/Logo.vue, landing/LogoLanding.vue (22–36 px)
 }
 const SOURCE_OF = { 'mascot-baigi-bust-64': 'mascot-baigi-bust' }
 

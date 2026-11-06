@@ -324,3 +324,79 @@ describe('editar durante a revisão (RF-F2.11)', () => {
     expect(store.showErrorDiary).toBe(false)
   })
 })
+
+describe('sessão em páginas (prd-performance-caderno RF-F7)', () => {
+  const ids = (prefix: string, n: number, from = 0) => Array.from({ length: n }, (_, i) => card(`${prefix}${i + from}`))
+  let pages: unknown[]
+
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    pages = []
+    apiMock.mockReset().mockImplementation((url: string, opts?: any) => {
+      if (url.startsWith('/review/session')) {
+        const next = pages.shift()
+        return next instanceof Error ? Promise.reject(next) : Promise.resolve(next)
+      }
+      if (url === '/review') return Promise.resolve(answer(opts.body.flashcard_id, `r-${opts.body.flashcard_id}`))
+      return Promise.resolve({ data: {} })
+    })
+  })
+  const sessionCalls = () => apiMock.mock.calls.filter(([url]) => String(url).startsWith('/review/session'))
+
+  it('pede a próxima página antes de acabar, com a mesma query, e descarta cards repetidos', async () => {
+    pages.push(
+      { data: ids('a', 12), total: 12, session_count: 30, has_more: true },
+      // The server still returns the unrated a2..a11 (and a1, answer on its way) before the new ones
+      { data: [...ids('a', 11, 1), ...ids('b', 8)], total: 19, session_count: 28, has_more: false },
+    )
+    const store = useReviewStore()
+    await store.fetchSession({ topicId: 't1' })
+    expect(store.remaining).toBe(30) // "restantes" counts the whole session, not the page
+    expect(sessionCalls()).toHaveLength(1)
+
+    store.rate(3)
+    store.rate(3) // 10 main cards left: the next page is asked now
+    await vi.waitFor(() => expect(store.cards).toHaveLength(20))
+    expect(sessionCalls()).toHaveLength(2)
+    expect(sessionCalls()[1]![0]).toBe('/review/session?topic_id=t1')
+    expect(new Set(store.cards.map(c => c.id)).size).toBe(20)
+    expect(store.hasMore).toBe(false)
+    expect(store.remaining).toBe(18)
+    expect(store.finished).toBe(false)
+  })
+
+  it('página sem nada novo encerra a paginação (sem loop de requests)', async () => {
+    pages.push(
+      { data: ids('a', 3), total: 3, session_count: 150, has_more: true },
+      { data: ids('a', 3), total: 3, session_count: 150, has_more: true },
+    )
+    const store = useReviewStore()
+    await store.fetchSession()
+    await vi.waitFor(() => expect(store.loadingMore).toBe(false))
+    expect(sessionCalls()).toHaveLength(2)
+    expect(store.hasMore).toBe(false)
+    expect(store.cards).toHaveLength(3)
+  })
+
+  it('sem nada na tela: "Carregando mais cards" e, se a página falhar, erro com "Tentar de novo" (nunca "Tudo em dia")', async () => {
+    const next = deferred<any>()
+    pages.push({ data: ids('a', 1), total: 1, session_count: 101, has_more: true }, httpError(500))
+    const store = useReviewStore()
+    await store.fetchSession()
+    await vi.waitFor(() => expect(store.loadingMore).toBe(false)) // prefetch failed with a card on screen: silent
+    expect(store.sessionError).toBeNull()
+
+    apiMock.mockImplementation((url: string, opts?: any) => {
+      if (url.startsWith('/review/session')) return next.promise
+      return Promise.resolve(answer(opts.body.flashcard_id, 'r1'))
+    })
+    store.rate(3)
+    await vi.waitFor(() => expect(store.reviewQueue).toHaveLength(0))
+    expect(store.awaitingPage).toBe(true)
+    expect(store.finished).toBe(false)
+
+    next.reject(httpError(500))
+    await vi.waitFor(() => expect(store.sessionError).toBeTruthy())
+    expect(store.finished).toBe(false)
+  })
+})

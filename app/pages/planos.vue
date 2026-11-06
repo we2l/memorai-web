@@ -1,227 +1,178 @@
 <template>
-  <NuxtLayout :name="auth.user ? 'default' : 'landing'">
-    <UiPublicHeader v-if="!auth.user" />
-    <div class="p-4 sm:p-6 pb-20 lg:pb-6 max-w-3xl mx-auto">
-      <!-- Header -->
-      <div class="text-center mb-10">
-        <h1 class="text-display mb-2">Escolha seu plano</h1>
-        <p class="text-base-muted text-small">Core grátis pra sempre. Pague só pela IA que acelera seus estudos.</p>
+  <div class="mx-auto flex max-w-4xl flex-col gap-section px-gutter pt-8 lg:pt-12">
+    <UiPageHeader title="Planos" :meta="`Cadernos, notas e revisão são grátis. A IA é do ${proName}.`" />
 
-        <!-- Billing toggle -->
-        <div v-if="pro?.prices.annual" class="flex items-center justify-center gap-3 mt-5">
-          <span :class="!isYearly ? 'text-base-primary font-medium' : 'text-base-muted'" class="text-small">Mensal</span>
-          <button
-            class="relative w-12 h-6 rounded-full transition-colors"
-            :class="isYearly ? 'bg-accent-primary' : 'bg-[var(--border-divider)]'"
-            aria-label="Alternar entre plano mensal e anual"
-            @click="isYearly = !isYearly"
-          >
-            <span
-              class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform"
-              :style="{ transform: isYearly ? 'translateX(24px)' : 'translateX(0)' }"
-            />
-          </button>
-          <span :class="isYearly ? 'text-base-primary font-medium' : 'text-base-muted'" class="text-small">
-            Anual
-            <span v-if="pro.prices.annual.savings_cents" class="inline-block ml-1 text-micro bg-[var(--badge-success-bg)] text-[var(--badge-success-text)] px-1.5 py-0.5 rounded-full font-medium">
-              Economize {{ formatPrice(pro.prices.annual.savings_cents) }}
-            </span>
-          </span>
-        </div>
-      </div>
+    <PlansPlanCards v-model:period="period" @toggle="onToggle">
+      <template #free-action>
+        <UiButton v-if="!user" block to="/criar-conta?redirect=/planos">Criar conta grátis</UiButton>
+        <PlansCurrentPlan v-else-if="currentPlan === 'free'" />
+      </template>
 
-      <!-- Plans -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5 mb-10">
-        <!-- Free -->
-        <div class="card p-6 flex flex-col">
-          <p class="text-label uppercase tracking-wide mb-1">{{ free?.name ?? 'Grátis' }}</p>
-          <p v-if="free" class="text-3xl font-bold text-base-primary mb-1">{{ formatPrice(free.prices.monthly?.amount_cents ?? 0) }}</p>
-          <p class="text-micro text-base-muted mb-6">Para sempre</p>
+      <template #pro-action>
+        <UiButton v-if="!user" variant="primary" block to="/criar-conta?redirect=/planos">Criar conta para assinar</UiButton>
 
-          <NuxtLink v-if="!auth.user" to="/criar-conta?redirect=/planos" class="btn-secondary w-full justify-center mb-6">
-            Criar conta grátis
-          </NuxtLink>
-
-          <button
-            v-else-if="currentPlan === 'free'"
-            class="btn-secondary w-full justify-center mb-6 opacity-60"
-            disabled
-          >
-            Plano atual
-          </button>
-          <div v-else class="h-[42px] mb-6" />
-
-          <ul class="space-y-3 text-small">
-            <li class="flex gap-2.5"><Check :size="16" class="text-[var(--badge-success-text)] shrink-0 mt-0.5" /> Flashcards e revisão espaçada ilimitados</li>
-            <li class="flex gap-2.5"><Check :size="16" class="text-[var(--badge-success-text)] shrink-0 mt-0.5" /> Notas, cadernos e grafo</li>
-            <li class="flex gap-2.5"><Check :size="16" class="text-[var(--badge-success-text)] shrink-0 mt-0.5" /> Importar Anki</li>
-            <li class="flex gap-2.5"><Check :size="16" class="text-[var(--badge-success-text)] shrink-0 mt-0.5" /> Upload de PDFs</li>
-            <li v-for="line in freeLines" :key="line" class="flex gap-2.5"><Check :size="16" class="text-[var(--badge-success-text)] shrink-0 mt-0.5" /> {{ line }}</li>
-          </ul>
-        </div>
-
-        <!-- Pro -->
-        <div class="card-warm p-6 flex flex-col">
-          <div class="mb-4">
-            <span class="inline-block bg-accent-primary text-white text-micro font-semibold px-3 py-0.5 rounded-full">
-              Recomendado
-            </span>
-          </div>
-
-          <p class="text-label uppercase tracking-wide mb-1 text-accent-primary">{{ pro?.name ?? 'Pro' }}</p>
-          <p v-if="pro?.prices.monthly" class="text-3xl font-bold text-base-primary mb-1">
-            {{ formatPrice(isYearly && pro.prices.annual ? pro.prices.annual.monthly_equivalent_cents ?? 0 : pro.prices.monthly.amount_cents) }}
-            <span class="text-small font-normal text-base-muted">/mês</span>
+        <!-- Annual running: validity + renewal (RN-09) or monthly scheduling at D-7 (RN-08) -->
+        <div v-else-if="isAnnual" class="flex flex-col gap-2">
+          <p class="text-meta font-semibold text-fg-strong" data-testid="annual-valid-until">
+            Seu anual vale até {{ formatBillingDate(subscription.info?.plan_expires_at) }}
           </p>
-          <p class="text-micro text-base-muted mb-6">
-            <template v-if="isYearly && annualCopy">{{ annualCopy }}</template>
-            <template v-else>Mais IA, sem interrupções.</template>
-          </p>
-
-          <NuxtLink v-if="!auth.user" to="/criar-conta?redirect=/planos" class="btn-primary w-full justify-center mb-6">
-            Criar conta grátis
-          </NuxtLink>
-
-          <!-- Annual running: validity + renewal (RN-09) or monthly scheduling at D-7 (RN-08) -->
-          <template v-else-if="isAnnual">
-            <p class="text-small text-base-primary font-medium mb-2" data-testid="annual-valid-until">
-              Seu anual vale até {{ formatBillingDate(subscription.info?.plan_expires_at) }}
-            </p>
-            <template v-if="isYearly">
-              <UiTooltip v-if="!subscription.info?.can_renew_annual" :text="`A renovação abre ${ANNUAL_RENEWAL_WINDOW_DAYS} dias antes`">
-                <button class="btn-secondary w-full justify-center mb-6 opacity-60" disabled>
-                  Renovar
-                </button>
-              </UiTooltip>
-              <button v-else class="btn-primary w-full justify-center mb-6" :disabled="loading" @click="subscribe">
-                {{ loading ? 'Abrindo checkout...' : 'Renovar anual' }}
-              </button>
+          <template v-if="isYearly">
+            <UiButton v-if="subscription.info?.can_renew_annual" variant="primary" block :loading="loading" @click="subscribe">Renovar anual</UiButton>
+            <template v-else>
+              <UiButton block disabled>Renovar</UiButton>
+              <p class="text-meta text-fg-muted">A renovação abre {{ ANNUAL_RENEWAL_WINDOW_DAYS }} dias antes do fim.</p>
             </template>
-            <button
-              v-else-if="canScheduleMonthly"
-              class="btn-secondary w-full justify-center mb-6"
-              :disabled="loading"
-              @click="subscribe"
-            >
-              {{ loading ? 'Abrindo checkout...' : 'Agendar mensal para depois do anual' }}
-            </button>
-            <button v-else class="btn-secondary w-full justify-center mb-6 opacity-60" disabled>
-              Plano atual
-            </button>
           </template>
-          <button
-            v-else-if="currentPlan === 'pro'"
-            class="btn-secondary w-full justify-center mb-6 opacity-60"
-            disabled
-          >
-            Plano atual
-          </button>
-          <button
-            v-else
-            class="btn-primary w-full justify-center mb-6"
-            :disabled="loading"
-            @click="subscribe"
-          >
-            {{ loading ? 'Abrindo checkout...' : isYearly ? 'Assinar anual' : 'Assinar Pro' }}
-          </button>
-
-          <ul class="space-y-3 text-small">
-            <li class="flex gap-2.5 font-medium text-base-primary"><Zap :size="16" class="text-accent-primary shrink-0 mt-0.5" /> Tudo do Grátis, mais:</li>
-            <li v-for="line in proLines" :key="line" class="flex gap-2.5"><Check :size="16" class="text-[var(--badge-success-text)] shrink-0 mt-0.5" /> {{ line }}</li>
-          </ul>
+          <UiButton v-else-if="canScheduleMonthly" block :loading="loading" @click="subscribe">Agendar mensal para depois do anual</UiButton>
+          <PlansCurrentPlan v-else />
         </div>
-      </div>
 
-      <!-- Manage subscription -->
-      <div v-if="subscription.info?.has_subscription" class="card p-5 mb-8 flex items-center justify-between gap-3">
-        <div>
-          <p class="text-small font-medium text-base-primary">Gerenciar assinatura</p>
-          <p class="text-micro text-base-muted">Cancelar, trocar cartão ou ver faturas</p>
-          <!-- Monthly → annual: the annual starts when the paid month ends (RN-07) -->
-          <button
-            v-if="subscription.info?.billing === 'monthly' && pro?.prices.annual"
-            class="text-micro text-accent-primary font-medium underline mt-1"
-            :disabled="loading"
-            @click="switchToAnnual"
-          >
-            Mudar para anual e economizar {{ formatPrice(pro.prices.annual.savings_cents ?? 0) }}
-          </button>
-        </div>
-        <button class="btn-secondary shrink-0" @click="subscription.openPortal()">
-          Gerenciar
-        </button>
+        <PlansCurrentPlan v-else-if="currentPlan === 'pro'" />
+        <UiButton v-else variant="primary" block :loading="loading" @click="subscribe">{{ isYearly ? 'Assinar anual' : `Assinar ${proName}` }}</UiButton>
+        <!-- The trial of the catalog (prd-planos-lancamento RF-F4): offered, running, or nothing once used -->
+        <p v-if="trialLine" class="mt-2 text-meta text-fg-muted" data-testid="plan-trial">{{ trialLine }}</p>
+      </template>
+    </PlansPlanCards>
+
+    <UiSection v-if="subscription.info?.has_subscription" title="Sua assinatura" description="Cancelar, trocar cartão ou ver faturas" data-testid="plan-manage">
+      <template #action>
+        <UiButton :loading="portal.pending.value" @click="openPortal">Gerenciar assinatura</UiButton>
+      </template>
+      <!-- Monthly → annual: the annual starts when the paid month ends (RN-07) -->
+      <UiButton v-if="subscription.info?.billing === 'monthly' && pro?.prices.annual" variant="ghost" size="sm" :loading="loading" @click="switchToAnnual">
+        Mudar para anual e economizar {{ formatPrice(pro.prices.annual.savings_cents ?? 0) }}
+      </UiButton>
+    </UiSection>
+
+    <PlansPlanCompareTable />
+
+    <UiSection title="Perguntas sobre cobrança" flush class="px-5 pt-5 pb-1 sm:px-6 sm:pt-6" data-testid="plan-faq">
+      <div class="divide-y divide-line">
+        <details v-for="faq in FAQS" :key="faq.q" class="group">
+          <summary class="flex min-h-touch cursor-pointer list-none items-center justify-between gap-3 py-2 text-body font-semibold text-fg-strong">
+            {{ faq.q }}
+            <ChevronDown class="size-4 shrink-0 text-fg-muted transition-transform duration-nav group-open:rotate-180" aria-hidden="true" />
+          </summary>
+          <p class="pb-4 text-body text-fg">{{ faq.a }}</p>
+        </details>
       </div>
-    </div>
-    <UiPublicFooter />
-  </NuxtLayout>
+    </UiSection>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { Check, Zap } from 'lucide-vue-next'
+// /planos v4 (prd-4h-landing-v3 RF-F12): one layout, signed in or not; every price and limit from GET /api/plans
+// (RN-01). Prerendered: while hydrating, Nuxt takes the query out of the route and gives it back right after, so
+// the links (?ciclo=, ?success=, ?renovar=) follow router.currentRoute, like /entrar.
+import { ChevronDown } from 'lucide-vue-next'
+import type { BillingPeriod } from '~/components/plans/BillingToggle.vue'
 
-// Public page: app layout when logged in, landing when anonymous (RF-F11.2)
-definePageMeta({ layout: false })
+definePageMeta({ layout: 'public', quietHeaderCta: true })
 
-const route = useRoute()
+useHead({ title: 'Planos · Baigi' })
+
+const router = useRouter()
 const toast = useToast()
 const auth = useAuthStore()
 const subscription = useSubscriptionStore()
+const user = useHydratedUser()
+const { track } = useAnalytics()
+const portal = useApiAction()
 
 const loading = ref(false)
+const query = computed(() => router.currentRoute.value.query)
 // Annual is the default offer (RF-20); ?ciclo=mensal forces the monthly
-const isYearly = ref(route.query.ciclo !== 'mensal')
-const currentPlan = computed(() => auth.user?.plan || 'free')
+const period = ref<BillingPeriod>('annual')
+watch(() => query.value.ciclo, (ciclo) => { period.value = ciclo === 'mensal' ? 'monthly' : 'annual' }, { immediate: true })
+
+const { fetchPlans, limitOf, formatPrice } = usePlans()
+const pro = computed(() => limitOf('pro'))
+const isYearly = computed(() => period.value === 'annual' && !!pro.value?.prices.annual)
+const currentPlan = computed(() => user.value?.plan || 'free')
 const isAnnual = computed(() => subscription.isAnnual)
 const canScheduleMonthly = computed(() => {
   const info = subscription.info
   return !!info && !info.has_subscription && daysUntil(info.plan_expires_at) <= MONTHLY_SWITCH_WINDOW_DAYS
 })
 
-// Limits and prices come only from GET /api/plans (RN-01)
-const { fetchPlans, limitOf, formatPrice, benefitLines } = usePlans()
-const free = computed(() => limitOf('free'))
-const pro = computed(() => limitOf('pro'))
-const freeLines = computed(() => benefitLines('free'))
-const proLines = computed(() => benefitLines('pro'))
+const proName = useProName()
+const { plans } = usePlans()
+const trial = computed(() => offeredTrial(plans.value))
+// "No teste: 20 gerações de cards com IA, 30 perguntas…" (catalog trial.limits, for the whole trial)
+const trialQuotas = computed(() => trialLimitsText(plans.value))
 
-/** "R$ 287,90 no Pix ou 12x de R$ 23,99 sem juros no cartão" — numbers from GET /api/plans */
-const annualCopy = computed(() => {
-  const annual = pro.value?.prices.annual
-  if (!annual) return ''
-  const total = formatPrice(annual.amount_cents)
-  const installments = annual.installments_max ?? 1
-  return installments > 1
-    ? `${total} no Pix ou ${installments}x de ${formatPrice(Math.round(annual.amount_cents / installments))} sem juros no cartão`
-    : `${total} no Pix ou à vista no cartão`
+/** The trial's line under the paid plan's action: the days of the catalog, never written by hand. */
+const trialLine = computed(() => {
+  const t = trial.value
+  const u = user.value
+  // Signed in only: the visitor sees the trial in the questions (a line under the button would push the layout)
+  if (!t || !u || u.plan === 'pro') return ''
+  if (u.trial?.status === 'active') return `${trialEndsLine(proName.value, u.trial.ends_at)}.`
+  if (u.trial?.status === 'available') return `Ou teste ${t.days} dias grátis, sem cartão: começa quando você mandar o primeiro material.`
+  return ''
 })
+
+const FAQS = computed(() => [
+  ...(trial.value
+    ? [{ q: 'Como funciona o teste grátis?', a: `Ao mandar o primeiro material (um PDF ou uma nota), com o e-mail confirmado, você ganha ${trial.value.days} dias do ${proName.value}, sem cartão.${trialQuotas.value ? ` No teste: ${trialQuotas.value}.` : ''} Depois, a conta volta sozinha ao Grátis, sem cobrança.` }]
+    : []),
+  { q: 'Posso cancelar quando quiser?', a: `Sim. Cancele quando quiser, pelo portal de assinatura. O ${proName.value} continua até o fim do período já pago.` },
+  { q: 'Como funciona o plano anual?', a: 'É um pagamento único, no Pix ou no cartão, que vale por um ano. Não renova sozinho: avisamos por e-mail antes de vencer.' },
+  { q: 'Como funciona o plano mensal?', a: 'É cobrado no cartão e renova sozinho a cada mês, até você cancelar.' },
+  { q: 'O que acontece se eu voltar para o Grátis?', a: `Seus cadernos, notas e cards continuam com você, e a revisão segue grátis. A IA fica no ${proName.value}.` },
+])
+
+function onToggle(value: BillingPeriod) {
+  track('plans_toggle', { period: value })
+  // In the address: a link or a reload keeps the choice
+  void router.replace({ query: { ...query.value, ciclo: value === 'monthly' ? 'mensal' : 'anual' } })
+}
 
 async function startCheckout(annual: boolean) {
   loading.value = true
   try {
     if (annual) await subscription.checkoutAnnual()
     else await subscription.checkoutSubscription('pro', 'monthly')
-  } catch (e: any) {
+  } catch (e: unknown) {
     reportApiError(e, { error: extractApiMessage(e, 'Não foi possível abrir o checkout. Tente de novo.') })
   } finally {
     loading.value = false
   }
 }
 
-const { track } = useAnalytics()
-
 function subscribe() {
-  track('upgrade_clicked', { feature: null, billing: isYearly.value ? 'annual' : 'monthly', source: 'planos_page' })
+  const billing = isYearly.value ? 'annual' : 'monthly'
+  track('upgrade_clicked', { feature: null, billing, source: 'planos_page' })
+  track('plans_checkout_click', { period: billing })
   return startCheckout(isYearly.value)
 }
 
 function switchToAnnual() {
   track('upgrade_clicked', { feature: null, billing: 'annual', source: 'planos_page' })
+  track('plans_checkout_click', { period: 'annual' })
   return startCheckout(true)
 }
 
+function openPortal() {
+  return portal.run(() => subscription.openPortal(), { error: 'Não foi possível abrir o portal de assinatura. Tente de novo.' })
+}
+
+// The links of the Stripe return and of the expiry e-mails: once, with the session known and the query back
+const statusLoaded = ref(false)
+let linkHandled = false
+watch([statusLoaded, () => router.currentRoute.value.fullPath], () => {
+  const q = query.value
+  if (!statusLoaded.value || linkHandled || !Object.keys(q).length) return
+  linkHandled = true
+  if (q.success === '1') toast.show(`Assinatura ativada! Bem-vindo ao ${proName.value}.`, 'success')
+  if (q.canceled === '1') toast.show('Pagamento cancelado.', 'info')
+  // Renewal link from the expiry e-mails: open the annual checkout right away
+  if (q.ciclo === 'anual' && q.renovar === '1' && (subscription.info?.can_renew_annual ?? true)) startCheckout(true)
+})
+
 onMounted(async () => {
   track('paywall_viewed', { feature: null, source: 'planos_page', plan_required: 'pro' })
-  fetchPlans()
+  void fetchPlans()
   if (!auth.user) return // anonymous visitor: only the public catalog
 
   await subscription.fetchStatus().catch((e: unknown) => reportApiError(e, { silent: true }))
@@ -233,17 +184,6 @@ onMounted(async () => {
   } catch (e) {
     reportApiError(e, { silent: true })
   }
-
-  if (route.query.success === '1') {
-    toast.show('Assinatura ativada! Bem-vindo ao Pro.', 'success')
-  }
-  if (route.query.canceled === '1') {
-    toast.show('Pagamento cancelado.', 'info')
-  }
-
-  // Renewal link from the expiry e-mails: open the annual checkout right away
-  if (route.query.ciclo === 'anual' && route.query.renovar === '1' && (subscription.info?.can_renew_annual ?? true)) {
-    startCheckout(true)
-  }
+  statusLoaded.value = true
 })
 </script>

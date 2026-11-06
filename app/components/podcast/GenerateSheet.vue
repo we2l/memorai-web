@@ -1,326 +1,159 @@
 <template>
-  <UiModal v-model="model" :size="'lg'" aria-label="Gerar Podcast" no-overflow>
-    <h2 class="text-headline mb-1">Gerar Podcast</h2>
-    <p class="text-small text-base-muted mb-5">Personalize sua revisão de áudio</p>
-
-    <!-- Topic selector (only when no topicId prop) -->
-    <div v-if="!topicId" class="mb-5">
-      <div class="flex items-center gap-1.5 mb-2">
-        <p class="text-small font-medium text-base-primary">Caderno <span class="text-[var(--badge-danger-text)]">*</span></p>
-        <UiTooltip text="Só aparecem cadernos com pelo menos 5 cards revisados. Revise mais cards pra desbloquear os outros.">
-          <span class="w-4 h-4 rounded-full bg-[var(--border-divider)] text-base-muted flex items-center justify-center text-micro cursor-help">?</span>
-        </UiTooltip>
-      </div>
-      <template v-if="topicOptions.length">
-        <UiSelect v-model="selectedTopicId" :options="topicOptions" placeholder="Selecione um caderno" />
-      </template>
-      <div v-else-if="!loading" class="p-4 rounded-xl bg-surface-secondary border border-base text-center">
-        <p class="text-small text-base-muted">Nenhum caderno pronto pra podcast.</p>
-        <p class="text-micro text-base-muted mt-1">Revise pelo menos 5 cards em um caderno pra desbloquear.</p>
-      </div>
+  <!-- Not on the paid plan (Free and the trial, prd-planos-lancamento RF-F3): the demo of the episode instead of the form -->
+  <UiSheet
+    v-if="paywall"
+    v-model="model"
+    title="Podcast dos pontos fracos"
+    :description="`Um episódio curto com os cards que você mais erra, para ouvir no caminho. É do ${proName}.`"
+  >
+    <div class="flex flex-col items-center gap-4" data-testid="podcast-paywall">
+      <PodcastDemo />
+      <p class="text-center text-meta text-fg">
+        <template v-if="podcastBenefit">No {{ proName }}: {{ podcastBenefit }}.</template>
+        <template v-if="auth.onTrial"> O podcast não entra no teste grátis.</template>
+      </p>
     </div>
-
-    <!-- Content Mode -->
-    <div class="mb-5">
-      <p class="text-small font-medium text-base-primary mb-2">Modo de revisão</p>
-      <div class="grid grid-cols-3 gap-2">
-        <button
-          v-for="m in modes"
-          :key="m.value"
-          class="p-3 rounded-xl border text-center transition-all"
-          :class="contentMode === m.value
-            ? 'border-[var(--color-accent-soft)] bg-[var(--color-accent-soft)]/10 ring-2 ring-[var(--color-accent-soft)]/20'
-            : 'border-base bg-[var(--bg-card)] hover:bg-[var(--bg-soft)] hover:border-[var(--color-accent-soft)]/40'"
-          @click="selectMode(m.value)"
-        >
-          <p class="text-small font-medium" :class="contentMode === m.value ? 'text-accent-primary' : 'text-base-primary'">{{ m.label }}</p>
-          <p class="text-micro text-base-muted">{{ m.desc }}</p>
-        </button>
-      </div>
-    </div>
-
-    <!-- Duration -->
-    <div class="grid grid-cols-2 gap-3 mb-3">
-      <UiTooltip v-for="d in durations" :key="d.value" :text="durationTooltip(d.value)">
-        <button
-          class="p-4 rounded-xl border text-center transition-all relative w-full"
-          :class="[
-            !isFree && duration === d.value
-              ? 'border-[var(--color-accent-soft)] bg-[var(--color-accent-soft)]/10 ring-2 ring-[var(--color-accent-soft)]/20'
-              : 'border-base bg-[var(--bg-card)]',
-            isFree ? 'opacity-40 cursor-not-allowed' : 'hover:bg-[var(--bg-soft)] hover:border-[var(--color-accent-soft)]/40',
-          ]"
-          :aria-disabled="isFree"
-          @click="isFree ? openUpgrade() : (duration = d.value)"
-        >
-          <p class="text-small font-medium text-base-primary">{{ d.label }}</p>
-          <p class="text-micro text-base-muted">{{ d.time }}</p>
-          <p class="text-micro mt-1" :class="d.value === recommended ? 'text-accent-primary' : 'invisible'">Recomendado</p>
-          <span v-if="isFree" class="text-micro text-accent-primary"><Lock :size="10" class="inline" /> Pro</span>
-        </button>
-      </UiTooltip>
-    </div>
-
-    <p v-if="isFree" class="text-micro text-base-muted mb-5">No plano Grátis você ouve uma prévia curta do podcast.</p>
-
-    <!-- Customize toggle (hidden for now) -->
-    <template v-if="false">
-    <button class="text-small text-accent-primary mb-4 flex items-center gap-1" @click="showAdvanced = !showAdvanced">
-      Personalizar opções
-      <ChevronDown :size="16" :class="showAdvanced ? 'rotate-180' : ''" class="transition-transform" />
-    </button>
-
-    <div v-if="showAdvanced" class="space-y-5">
-      <!-- Tone -->
-      <div>
-        <p class="text-small font-medium text-base-primary mb-2">Tom</p>
-        <div class="flex flex-wrap gap-2">
-          <button
-            v-for="t in tones"
-            :key="t.value"
-            class="px-3 py-1.5 rounded-full text-small border transition-all"
-            :class="[
-              tone === t.value
-                ? 'border-[var(--color-accent-soft)] bg-[var(--color-accent-soft)]/10 text-[var(--badge-primary-text)]'
-                : 'border-base text-base-muted bg-[var(--bg-card)] hover:bg-[var(--bg-soft)] hover:border-[var(--color-accent-soft)]/40 hover:text-base-primary',
-              isFree && t.value !== 'conversational' ? 'opacity-60' : '',
-            ]"
-            @click="isFree && t.value !== 'conversational' ? openUpgrade() : (tone = t.value)"
-          >
-            {{ t.label }}
-            <span v-if="isFree && t.value !== 'conversational'" class="text-micro ml-1">< Lock :size="10" class="inline" /></span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Format -->
-      <div>
-        <p class="text-small font-medium text-base-primary mb-2">Formato</p>
-        <div class="grid grid-cols-2 gap-3">
-          <button
-            v-for="f in formats"
-            :key="f.value"
-            class="p-3 rounded-xl border text-center transition-all relative"
-            :class="[
-              format === f.value
-                ? 'border-[var(--color-accent-soft)] bg-[var(--color-accent-soft)]/10 ring-2 ring-[var(--color-accent-soft)]/20'
-                : 'border-base bg-[var(--bg-card)] hover:bg-[var(--bg-soft)] hover:border-[var(--color-accent-soft)]/40',
-              isFree && f.value !== 'expository' ? 'opacity-60' : '',
-            ]"
-            @click="isFree && f.value !== 'expository' ? openUpgrade() : (format = f.value)"
-          >
-            <component :is="f.icon" :size="24" class="mx-auto mb-1" :class="format === f.value ? 'text-[var(--badge-primary-text)]' : 'text-base-muted'" />
-            <p class="text-small" :class="format === f.value ? 'text-[var(--badge-primary-text)]' : 'text-base-muted'">{{ f.label }}</p>
-            <span v-if="isFree && f.value !== 'expository'" class="text-micro text-accent-primary"><Lock :size="10" class="inline" /> Pro</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Speakers -->
-      <div>
-        <p class="text-small font-medium text-base-primary mb-2">{{ format === 'debate' ? 'Vozes' : 'Narrador' }}</p>
-        <div class="space-y-3" :class="isFree ? 'opacity-60' : ''">
-          <div>
-            <label class="text-micro text-base-muted mb-1 block">{{ format === 'debate' ? 'Mentor' : 'Narrador' }}</label>
-            <div class="flex gap-3 items-center">
-              <input v-model="host1Name" type="text" class="input-base flex-1" placeholder="Nome" :disabled="isFree" @click="isFree && openUpgrade()" />
-              <UiSelect v-model="host1Voice" :options="voiceOptions" :disabled="isFree" @click="isFree && openUpgrade()" />
-            </div>
-          </div>
-          <div v-if="format === 'debate'">
-            <label class="text-micro text-base-muted mb-1 block">Estudante</label>
-            <div class="flex gap-3 items-center">
-              <input v-model="host2Name" type="text" class="input-base flex-1" placeholder="Nome" :disabled="isFree" @click="isFree && openUpgrade()" />
-              <UiSelect v-model="host2Voice" :options="voiceOptions" :disabled="isFree" @click="isFree && openUpgrade()" />
-            </div>
-          </div>
-          <p v-if="isFree" class="text-micro text-accent-primary"><Lock :size="10" class="inline" /> Personalização de voz disponível no Pro</p>
-        </div>
-      </div>
-    </div>
+    <template #footer>
+      <UiButton variant="primary" to="/planos" data-testid="podcast-paywall-plans" @click="toPlans">Conhecer o {{ proName }}</UiButton>
     </template>
+  </UiSheet>
 
-    <!-- Generate button -->
-    <button
-      class="btn-primary w-full mt-6"
-      :disabled="generating || (!topicId && !selectedTopicId)"
-      @click="handleGenerate"
-    >
-      <Loader2 v-if="generating" :size="16" class="animate-spin" />
-      <Mic :size="14" class="inline" /> {{ generating ? 'Gerando...' : 'Gerar podcast' }}
-    </button>
-    <p class="text-micro text-base-muted text-center mt-2">
-      {{ estimatedTime }}
-      <span v-if="usageText"> · {{ usageText }}</span>
-    </p>
-    <p class="text-micro text-base-muted text-center mt-1">↳ Áudio dos seus pontos fracos — ouça no ônibus, reforce sem esforço</p>
-  </UiModal>
+  <UiSheet v-else v-model="model" title="Gerar episódio" description="Áudio dos seus pontos fracos, para ouvir no caminho e reforçar sem tela.">
+    <div class="flex flex-col gap-5">
+      <!-- Any level of the tree: the episode covers the subtree (prd-4e-praticar-v3 RF-F9, RF-B9) -->
+      <div class="flex flex-col gap-2">
+        <UiSelect
+          v-model="selectedTopicId"
+          label="Escopo"
+          :options="topicOptions"
+          placeholder="Escolha o caderno ou o assunto"
+          :hint="topicOptions.length ? undefined : 'Crie um caderno e revise alguns cards para gerar um episódio.'"
+          data-testid="podcast-scope"
+        />
+        <TopicRequirementNotice :gate="gate" />
+      </div>
+
+      <UiRadioGroup v-model="contentMode" label="Conteúdo" :options="modes" variant="cards" :columns="3" @update:model-value="selectMode" />
+    </div>
+
+    <template #footer>
+      <p class="mr-auto text-label text-fg-muted" data-testid="podcast-quota">
+        {{ estimatedTime }}<span v-if="quotaText"> · {{ quotaText }}</span>
+      </p>
+      <UiButton variant="primary" :icon-left="Mic" :loading="generating" :disabled="!canGenerate" @click="handleGenerate">
+        {{ generating ? 'Gerando...' : 'Gerar episódio' }}
+      </UiButton>
+    </template>
+  </UiSheet>
 </template>
 
 <script setup lang="ts">
-import { User, Users, ChevronDown, Loader2, Lock, Mic } from 'lucide-vue-next'
-import type { PodcastContentMode, PodcastDuration, PodcastTone, PodcastFormat } from '~/types'
+// Generate an episode (prd-4e-praticar-v3 RF-F9): the scope in the tree (caderno, matéria, assunto), the
+// content, and the quota and the requirement before the action (F1 RF-F5: the 422 {code} becomes the same text).
+// The episode is always the short one, up to podcast_max_minutes of the catalog (8 min): the API records `short`
+// for every request (prd-planos-lancamento RF-B15), so there is no length to pick. Who is not on the paid plan
+// sees the demo video instead (RF-F3): Free and the trial have no podcast.
+import { Mic } from 'lucide-vue-next'
+import type { PodcastContentMode, PodcastFormat, PodcastTone } from '~/types'
+import { topicTreeOptions } from '~/utils/topicOptions'
 
 const props = defineProps<{
+  /** Scope it opens with (the caderno of the page) */
   topicId?: string
-  topicName?: string
-  weakCardsCount?: number
-  usage?: { used: number; limit: number } | null
 }>()
 
-const emit = defineEmits<{
-  generated: []
-}>()
+const emit = defineEmits<{ generated: [] }>()
 
-const model = defineModel<boolean>()
+const model = defineModel<boolean>({ default: false })
 const auth = useAuthStore()
 const podcastStore = usePodcastStore()
 const toast = useToast()
+const topicStore = useTopicStore()
 
-const isFree = computed(() => auth.user?.plan === 'free')
+const plans = usePlans()
+const usage = useFeatureUsage()
+
+// A known account outside the paid plan (the trial included): the paywall with the demo
+const paywall = computed(() => !!auth.user && auth.user.plan !== 'pro')
+const proName = useProName()
+const podcastBenefit = computed(() => plans.feature('podcast')?.pro_benefit ?? null)
 const generating = computed(() => podcastStore.generating)
-const usageText = computed(() => props.usage ? `${props.usage.used}/${props.usage.limit} este mês` : null)
 
-const estimatedTime = computed(() => {
-  if (isFree.value) return '~1 min para gerar'
-  const isDebate = format.value === 'debate'
-  if (duration.value === 'short') return isDebate ? '~4-5 min para gerar' : '~3-4 min para gerar'
-  return isDebate ? '~7-9 min para gerar' : '~5-6 min para gerar'
-})
-
-function openUpgrade() {
-  window.dispatchEvent(new CustomEvent('feature-limit-reached', {
-    detail: { feature: 'podcast', planRequired: 'pro' },
-  }))
-}
-
-// Topic selector for library mode
-const selectedTopicId = ref('')
-const topics = ref<{ id: string; name: string }[]>([])
-const topicOptions = computed(() => topics.value.map(t => ({ value: t.id, label: t.name })))
-watch(model, async (val) => {
-  if (val && !props.topicId && !topics.value.length) {
-    try {
-      const { $api } = useNuxtApp()
-      const res = await $api<any>('/topics')
-      topics.value = (res.data ?? []).filter((t: any) => !t.parent_id && (t.flashcards_count ?? 0) >= 5)
-    } catch (e) {
-      reportApiError(e, { silent: true })
-    }
+const selectedTopicId = ref(props.topicId ?? '')
+watch(() => [model.value, props.topicId] as const, ([open, id]) => { if (open && id) selectedTopicId.value = id }, { immediate: true })
+const topicOptions = computed(() => topicTreeOptions(topicStore.tree))
+watch(model, (val) => {
+  if (!val) return
+  void plans.fetchPlans()
+  if (paywall.value) {
+    useAnalytics().track('paywall_viewed', { feature: 'podcast', source: 'podcast_demo', plan_required: 'pro' })
+    return
   }
+  if (!topicStore.tree.length) void topicStore.fetchTree()
+  void usage.fetchUsage()
 }, { immediate: true }) // lazy-mounted already open
 
-const duration = ref<PodcastDuration>('medium')
+function toPlans() {
+  useAnalytics().track('upgrade_clicked', { feature: 'podcast', billing: null, source: 'podcast_demo' })
+  model.value = false
+}
+
+// can_podcast of /details (subtree), read when the sheet opens or the scope changes (never on the paywall)
+const scopeId = computed(() => (model.value && !paywall.value ? selectedTopicId.value || null : null))
+const { gate, blocked, fromError } = useTopicGate(() => scopeId.value, 'can_podcast')
+
+const quota = computed(() => usage.usage.value?.features?.podcast ?? null)
+const quotaText = computed(() => {
+  const q = quota.value
+  if (!q || q.limit === null) return null
+  return `${q.used} de ${q.limit} este mês`
+})
+const quotaSpent = computed(() => !!quota.value && quota.value.limit !== null && (quota.value.remaining ?? 1) <= 0)
+const canGenerate = computed(() => !!selectedTopicId.value && !blocked.value && !generating.value && !quotaSpent.value)
+
+// The length of the catalog (podcast_max_minutes: up to 8 min); the API makes every episode the short one
+const maxMinutes = computed(() => plans.limitOf('pro')?.extras?.podcast_max_minutes ?? null)
+const estimatedTime = computed(() => (maxMinutes.value ? `Até ${maxMinutes.value} min · pronto em ~4 min` : 'Pronto em ~4 min'))
+
 const tone = ref<PodcastTone>('conversational')
 const format = ref<PodcastFormat>('expository')
 const contentMode = ref<PodcastContentMode>('weak_points')
-const host1Name = ref('Ana')
-const host1Voice = ref('Achird')
-const host2Name = ref(auth.user?.name?.split(' ')[0] || 'Lucas')
-const host2Voice = ref('Charon')
-const showAdvanced = ref(false)
-const fetchedWeakCount = ref(0)
-
-watch(selectedTopicId, async (id) => {
-  if (!id) return
-  try {
-    const { $api } = useNuxtApp()
-    // weak_count comes aggregated by the API: no need to download the cards (cards_limit=1).
-    const res = await $api<{ data: { weak_count?: number } }>(`/topics/${id}/details`, { params: { cards_limit: 1 } })
-    fetchedWeakCount.value = res.data?.weak_count ?? 0
-  } catch {
-    fetchedWeakCount.value = 0
-  }
-})
-
-const recommended = computed<PodcastDuration>(() => {
-  const count = props.weakCardsCount ?? fetchedWeakCount.value
-  if (count <= 5) return 'short'
-  return 'medium'
-})
-
-watchEffect(() => { if (!isFree.value) duration.value = recommended.value })
-watchEffect(() => { if (isFree.value) duration.value = 'short' }) // the API turns Free into the teaser
-
-const durations = [
-  { value: 'short' as const, label: 'Curto', time: '3-5 min' },
-  { value: 'medium' as const, label: 'Médio', time: '8-15 min' },
-]
 
 const modes = [
-  { value: 'weak_points' as const, label: 'Pontos fracos', desc: 'Foca nos cards que você mais erra' },
-  { value: 'general_review' as const, label: 'Revisão geral', desc: 'Mix equilibrado — reforço + revisão + dopamina' },
-  { value: 'pre_exam' as const, label: 'Pré-prova', desc: 'Concentra nos tópicos da prova mais próxima' },
+  { value: 'weak_points' as const, label: 'Pontos fracos', description: 'Os cards que você mais erra' },
+  { value: 'general_review' as const, label: 'Revisão geral', description: 'Reforço do que está vencendo' },
+  { value: 'pre_exam' as const, label: 'Pré-prova', description: 'Os assuntos da prova mais próxima' },
 ]
 
-function selectMode(mode: PodcastContentMode) {
-  contentMode.value = mode
-  if (mode === 'pre_exam') {
-    tone.value = 'motivational'
-    format.value = 'debate'
-  } else {
-    tone.value = 'conversational'
-    format.value = 'expository'
-  }
-}
-
-const tones = [
-  { value: 'formal' as const, label: 'Formal' },
-  { value: 'conversational' as const, label: 'Conversa' },
-  { value: 'motivational' as const, label: 'Motivador' },
-  { value: 'didactic' as const, label: 'Didático' },
-]
-
-const formats = [
-  { value: 'expository' as const, label: 'Expositivo', icon: User },
-  { value: 'debate' as const, label: 'Debate', icon: Users },
-]
-
-const voices = [
-  { id: 'Leda', label: 'Leda · Profissional' },
-  { id: 'Aoede', label: 'Aoede · Suave' },
-  { id: 'Eirene', label: 'Eirene · Tranquila' },
-  { id: 'Puck', label: 'Puck · Animado' },
-  { id: 'Charon', label: 'Charon · Natural' },
-  { id: 'Orus', label: 'Orus · Grave' },
-]
-const voiceOptions = voices.map(v => ({ value: v.id, label: v.label }))
-
-function durationTooltip(value: string): string {
-  const count = props.weakCardsCount ?? fetchedWeakCount.value
-  if (value === recommended.value) {
-    if (count <= 5) return `Recomendado: você tem poucos pontos fracos (${count})`
-    if (count <= 15) return `Recomendado: ${count} pontos fracos cabem bem nessa duração`
-    return `Recomendado: ${count} pontos fracos precisam de mais tempo`
-  }
-  if (value === 'short') return count > 5 ? 'Curto demais pra cobrir todos os seus pontos fracos' : 'Bom pra revisão rápida no ônibus'
-  if (value === 'medium') return count <= 5 ? 'Mais longo que o necessário pra poucos pontos fracos' : 'Equilíbrio entre profundidade e tempo'
-  return count <= 15 ? 'Mais longo que o necessário — pode ficar repetitivo' : 'Ideal pra muitos pontos fracos'
+function selectMode(mode: string) {
+  tone.value = mode === 'pre_exam' ? 'motivational' : 'conversational'
+  format.value = mode === 'pre_exam' ? 'debate' : 'expository'
 }
 
 async function handleGenerate() {
-  const topicIdToUse = props.topicId || selectedTopicId.value
-  if (!topicIdToUse) {
-    toast.show('Selecione um caderno.', 'error')
+  if (!selectedTopicId.value) {
+    toast.show('Escolha o caderno ou o assunto.', 'error')
     return
   }
   try {
+    const firstName = auth.user?.name?.split(' ')[0] || 'Lucas'
     await podcastStore.generate({
-      topic_id: topicIdToUse,
+      topic_id: selectedTopicId.value,
       content_mode: contentMode.value,
-      duration: duration.value,
+      duration: 'short',
       tone: tone.value,
       format: format.value,
       speaker_config: {
-        host1: { name: host1Name.value, voice: host1Voice.value },
-        ...(format.value === 'debate' ? { host2: { name: host2Name.value, voice: host2Voice.value } } : {}),
+        host1: { name: 'Ana', voice: 'Achird' },
+        ...(format.value === 'debate' ? { host2: { name: firstName, voice: 'Charon' } } : {}),
       },
     })
-    toast.show('Podcast sendo gerado! Aguarde...', 'success')
+    toast.show('Episódio na fila. Ele aparece na lista quando ficar pronto.', 'success')
     model.value = false
     emit('generated')
-  } catch (e: any) {
-    toast.show(e?.data?.message || 'Erro ao gerar podcast.', 'error')
+  } catch (e) {
+    // A requirement (422 with code) becomes the notice under the scope; anything else, a toast
+    if (!fromError(e)) reportApiError(e)
   }
 }
 </script>

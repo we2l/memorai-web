@@ -1,81 +1,78 @@
 <template>
-  <div class="p-4 sm:p-6 pb-20 lg:pb-6 max-w-md mx-auto">
-    <UiConfetti :trigger="state === 'active'" />
-
-    <div class="card p-6 text-center" aria-live="polite" aria-atomic="true">
+  <div class="mx-auto max-w-md px-gutter py-8">
+    <UiSection as="div" class="text-center" aria-live="polite" aria-atomic="true">
       <!-- Loading -->
-      <template v-if="state === 'loading'">
-        <Loader2 :size="32" class="mx-auto mb-4 text-accent-primary animate-spin" aria-hidden="true" />
-        <p class="text-base-muted text-small">Carregando pagamento…</p>
-      </template>
+      <p v-if="state === 'loading'" class="flex items-center justify-center gap-2 py-6 text-meta text-fg-muted">
+        <UiSpinner size="sm" /> Carregando pagamento…
+      </p>
 
-      <!-- Pro active -->
-      <template v-else-if="state === 'active'">
-        <CheckCircle2 :size="40" class="mx-auto mb-4 text-[var(--badge-success-text)]" aria-hidden="true" />
-        <h1 class="text-headline mb-2">Pro ativado até {{ formatBillingDate(session?.plan_expires_at) }}</h1>
-        <p class="text-small text-base-muted mb-6">Obrigado! Enviamos o recibo para o seu e-mail.</p>
-        <NuxtLink to="/hoje" class="btn-primary w-full justify-center">Ir para Hoje</NuxtLink>
-      </template>
+      <!-- Pro active: the milestone of the page -->
+      <UiCelebration
+        v-else-if="state === 'active'"
+        kind="milestone"
+        :title="`Bem-vindo ao ${proName}!`"
+        :subtitle="`${proName} ativo até ${formatBillingDate(session?.plan_expires_at)}`"
+        :level="1"
+      >
+        <div class="flex w-full flex-col items-center gap-4">
+          <p class="text-meta text-fg-muted">Obrigado! Enviamos o recibo para o seu e-mail.</p>
+          <UiButton variant="primary" to="/hoje">Ir para o Hoje</UiButton>
+        </div>
+      </UiCelebration>
 
       <!-- Paid, webhook not processed yet -->
       <template v-else-if="state === 'confirming'">
-        <Loader2 :size="32" class="mx-auto mb-4 text-accent-primary animate-spin" aria-hidden="true" />
-        <h1 class="text-headline mb-2">Confirmando pagamento…</h1>
-        <p class="text-small text-base-muted">Isso leva poucos segundos.</p>
+        <UiSpinner class="mx-auto mb-4 text-fg-muted" />
+        <h1 class="mb-2 text-section text-fg-strong">Confirmando pagamento…</h1>
+        <p class="text-meta text-fg-muted">Isso leva poucos segundos.</p>
       </template>
 
       <!-- Waiting for Pix -->
       <template v-else-if="state === 'waiting'">
-        <h1 class="text-headline mb-2">Aguardando o Pix</h1>
-        <p class="text-small text-base-muted mb-5">Abra o app do seu banco e pague com o QR Code ou o código copia e cola.</p>
+        <h1 class="mb-2 text-section text-fg-strong">Aguardando o Pix</h1>
+        <p class="mb-5 text-meta text-fg-muted">Abra o app do seu banco e pague com o QR Code ou o código copia e cola.</p>
 
         <template v-if="session?.pix_qr">
           <img
             v-if="session.pix_qr.image_url_png"
             :src="session.pix_qr.image_url_png"
-            alt="QR Code do Pix para pagar o Baigi Pro anual"
-            class="w-56 h-56 mx-auto mb-4 rounded-lg bg-white p-2"
+            :alt="`QR Code do Pix para pagar o Baigi ${proName} anual`"
+            class="mx-auto mb-4 size-56 rounded-row bg-qr p-2"
             width="224"
             height="224"
           >
-          <button
-            v-if="session.pix_qr.data"
-            class="btn-secondary w-full justify-center mb-3"
-            @click="copyPixCode"
-          >
-            <Copy :size="16" aria-hidden="true" /> Copiar código Pix
-          </button>
-          <p v-if="remainingLabel" class="text-micro text-base-muted mb-4">
-            O código expira em <span class="font-medium text-base-primary tabular-nums">{{ remainingLabel }}</span>
+          <UiButton v-if="session.pix_qr.data" block class="mb-3" :icon-left="Copy" @click="copyPixCode">Copiar código Pix</UiButton>
+          <p v-if="remainingLabel" class="mb-4 text-meta text-fg-muted">
+            O código expira em <span class="font-semibold text-fg-strong tabular-nums">{{ remainingLabel }}</span>
           </p>
         </template>
 
-        <p class="text-micro text-base-muted">Pode fechar esta página: avisaremos por e-mail quando o pagamento cair.</p>
+        <p class="text-meta text-fg-muted">Pode fechar esta página: avisaremos por e-mail quando o pagamento cair.</p>
       </template>
 
       <!-- Pix expired -->
       <template v-else-if="state === 'expired'">
-        <Clock :size="36" class="mx-auto mb-4 text-[var(--badge-warning-text)]" aria-hidden="true" />
-        <h1 class="text-headline mb-2">O código Pix expirou</h1>
-        <p class="text-small text-base-muted mb-6">Nada foi cobrado. Gere um novo código para concluir.</p>
-        <button class="btn-primary w-full justify-center" :disabled="restarting" @click="newPix">
-          {{ restarting ? 'Abrindo checkout...' : 'Gerar novo Pix' }}
-        </button>
+        <Clock class="mx-auto mb-4 size-8 text-warning" aria-hidden="true" />
+        <h1 class="mb-2 text-section text-fg-strong">O código Pix expirou</h1>
+        <p class="mb-6 text-meta text-fg-muted">Nada foi cobrado. Gere um novo código para concluir.</p>
+        <UiButton variant="primary" block :loading="restart.pending.value" @click="newPix">Gerar novo Pix</UiButton>
       </template>
 
       <!-- Not found / error -->
       <template v-else>
-        <AlertCircle :size="36" class="mx-auto mb-4 text-[var(--badge-danger-text)]" aria-hidden="true" />
-        <h1 class="text-headline mb-2">Não encontramos este pagamento</h1>
-        <p class="text-small text-base-muted mb-6">Se você já pagou, o Pro aparece em instantes na sua conta.</p>
-        <NuxtLink to="/planos" class="btn-secondary w-full justify-center">Voltar para os planos</NuxtLink>
+        <AlertCircle class="mx-auto mb-4 size-8 text-danger" aria-hidden="true" />
+        <h1 class="mb-2 text-section text-fg-strong">Não encontramos este pagamento</h1>
+        <p class="mb-6 text-meta text-fg-muted">Se você já pagou, o {{ proName }} aparece em instantes na sua conta.</p>
+        <UiButton block to="/planos">Voltar para os planos</UiButton>
       </template>
-    </div>
+    </UiSection>
   </div>
 </template>
 
 <script setup lang="ts">
-import { AlertCircle, CheckCircle2, Clock, Copy, Loader2 } from 'lucide-vue-next'
+// Return of the annual checkout (prd-4h-landing-v3 RF-F13): the states of the payment polling, and UiCelebration
+// when the Pro is active. Stays in the app shell: only a signed-in person gets here.
+import { AlertCircle, Clock, Copy } from 'lucide-vue-next'
 import type { CheckoutSessionInfo } from '~/types'
 
 type ViewState = 'loading' | 'active' | 'confirming' | 'waiting' | 'expired' | 'error'
@@ -85,6 +82,7 @@ const MAX_POLL_MS = 30 * 60 * 1000
 
 const route = useRoute()
 const toast = useToast()
+const proName = useProName()
 const auth = useAuthStore()
 const subscription = useSubscriptionStore()
 
@@ -92,7 +90,7 @@ const sessionId = typeof route.query.session_id === 'string' ? route.query.sessi
 const session = ref<CheckoutSessionInfo | null>(null)
 const failed = ref(false)
 const now = ref(Date.now())
-const restarting = ref(false)
+const restart = useApiAction()
 const startedAt = Date.now()
 
 let pollTimer: ReturnType<typeof setTimeout> | null = null
@@ -178,14 +176,8 @@ async function copyPixCode() {
   }
 }
 
-async function newPix() {
-  restarting.value = true
-  try {
-    await subscription.checkoutAnnual()
-  } catch (e: any) {
-    toast.show(e?.data?.message || 'Erro ao iniciar checkout.', 'error')
-    restarting.value = false
-  }
+function newPix() {
+  return restart.run(() => subscription.checkoutAnnual(), { error: 'Não foi possível abrir o checkout. Tente de novo.' })
 }
 
 onMounted(() => {

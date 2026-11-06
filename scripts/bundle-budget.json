@@ -2,16 +2,88 @@
   "entryLayoutGzKb": 120,
   "largestChunkGzKb": 150,
   "precacheKb": 1536,
+  "entryCssGzKb": 13,
+  "precacheFontsKb": 50,
   "routes": {
     "/cadernos": {
       "file": "pages/cadernos/index.vue",
-      "gzKb": 80,
-      "closureGzKb": 60
+      "gzKb": 8,
+      "closureGzKb": 20
+    },
+    "/cadernos/:id": {
+      "file": "pages/cadernos/[id]/index.vue",
+      "gzKb": 25,
+      "closureGzKb": 40
+    },
+    "/cadernos/:id/material/:noteId": {
+      "file": "pages/cadernos/[id]/material/[noteId].vue",
+      "gzKb": 20,
+      "closureGzKb": 50
+    },
+    "/cadernos/:id/cards": {
+      "file": "pages/cadernos/[id]/cards.vue",
+      "gzKb": 15,
+      "closureGzKb": 35
     },
     "/": {
       "file": "pages/index.vue",
-      "gzKb": 12,
+      "gzKb": 15,
       "closureGzKb": 20
+    },
+    "/hoje": {
+      "file": "pages/hoje.vue",
+      "gzKb": 9.6,
+      "closureGzKb": 24
+    },
+    "/revisar": {
+      "file": "pages/revisar.vue",
+      "gzKb": 16.6,
+      "closureGzKb": 47.6
+    },
+    "/praticar": {
+      "file": "pages/praticar.vue",
+      "gzKb": 6,
+      "closureGzKb": 26
+    },
+    "/simulados/:id": {
+      "file": "pages/simulados/[id]/index.vue",
+      "gzKb": 6.5,
+      "closureGzKb": 22
+    },
+    "/simulados/:id/resultado": {
+      "file": "pages/simulados/[id]/resultado.vue",
+      "gzKb": 6.5,
+      "closureGzKb": 19.5
+    },
+    "/podcasts": {
+      "file": "pages/podcasts.vue",
+      "gzKb": 6.5,
+      "closureGzKb": 25.5
+    },
+    "/progresso": {
+      "file": "pages/progresso.vue",
+      "gzKb": 11.5,
+      "closureGzKb": 30
+    },
+    "/comecar": {
+      "file": "pages/comecar.vue",
+      "gzKb": 6.5,
+      "closureGzKb": 31
+    },
+    "/configuracoes": {
+      "file": "pages/configuracoes.vue",
+      "gzKb": 9.5,
+      "closureGzKb": 34.5
+    },
+    "/entrar": {
+      "file": "pages/entrar.vue",
+      "gzKb": 2,
+      "closureGzKb": 12
+    },
+    "/criar-conta": {
+      "file": "pages/criar-conta.vue",
+      "gzKb": 2,
+      "closureGzKb": 13
     }
   },
   "entryLayoutForbidden": {

@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test'
 import { login } from './helpers'
+import { catalogProName } from './auditoria/support/fixtures'
 
 /**
  * Anual via Pix/cartão (prd-checkout-anual-pix). Stripe nunca é chamado: checkout e sessão são mockados.
@@ -58,7 +59,11 @@ test.describe('Checkout anual', () => {
     await page.route('**/api/checkout/sessions/**', route => route.fulfill({ json: { data: pixSession() } }))
 
     await page.goto('/planos')
-    const copy = `${brl(annual.amount_cents)} no Pix ou ${annual.installments_max}x de ${brl(Math.round(annual.amount_cents / annual.installments_max))} sem juros no cartão`
+    // Parcelas só quando a conta Stripe oferece (installments_max > 1, prd-custo-abuso-p0 RF-7)
+    const share = `${brl(annual.monthly_equivalent_cents)} por mês, cobrado uma vez por ano`
+    const copy = annual.installments_max > 1
+      ? `${share}. No Pix ou em ${annual.installments_max}x de ${brl(Math.round(annual.amount_cents / annual.installments_max))} sem juros no cartão`
+      : `${share}. No Pix ou à vista no cartão`
     await expect(page.getByText(copy)).toBeVisible()
 
     await page.getByRole('button', { name: 'Assinar anual' }).click()
@@ -82,8 +87,11 @@ test.describe('Checkout anual', () => {
     await expect(page.getByRole('button', { name: /Copiar código Pix/ })).toBeVisible()
     await expect(page.getByText(/O código expira em/)).toBeVisible()
 
-    await expect(page.getByRole('heading', { name: 'Pro ativado até 28/09/2027' })).toBeVisible({ timeout: 10_000 })
-    await expect(page.getByRole('link', { name: 'Ir para Hoje' })).toBeVisible()
+    // The paid plan's name of the catalog ("Intensivo" since api #137)
+    const name = await catalogProName()
+    await expect(page.getByRole('heading', { name: `Bem-vindo ao ${name}!` })).toBeVisible({ timeout: 10_000 })
+    await expect(page.getByText(`${name} ativo até 28/09/2027`)).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Ir para o Hoje' })).toBeVisible()
   })
 
   test('Pix expirado oferece gerar novo código', async ({ page }) => {

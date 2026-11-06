@@ -4,6 +4,9 @@ export default defineNuxtRouteMiddleware((to) => {
 
   const auth = useAuthStore()
 
+  // A wrong address is a 404 for everyone (error.vue), not a login screen (prd-4g RF-F15)
+  if (to.matched.length === 0) return
+
   if (!isPublicRoute(to.path) && !auth.user) {
     return navigateTo({ path: '/entrar', query: { redirect: to.fullPath } })
   }
@@ -12,7 +15,10 @@ export default defineNuxtRouteMiddleware((to) => {
     return navigateTo('/hoje')
   }
 
-  if (auth.user && to.path !== '/comecar' && !auth.user.onboarding_completed) {
+  // Finished: "Voltar" never reopens the assistant (it would charge again). The legal pages stay open during it.
+  if (to.path === '/comecar' && auth.user?.onboarding_completed) return navigateTo('/hoje', { replace: true })
+
+  if (auth.user && to.path !== '/comecar' && !isPublicRoute(to.path) && !auth.user.onboarding_completed) {
     return navigateTo('/comecar')
   }
 })

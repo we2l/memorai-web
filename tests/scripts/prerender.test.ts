@@ -1,12 +1,10 @@
 // @vitest-environment node
 import { existsSync, readFileSync } from 'node:fs'
-import { join, resolve } from 'node:path'
-import { pathToFileURL } from 'node:url'
+import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { PUBLIC_DIR, skipWithoutBuild } from './buildOutput'
 
 const PAGES = ['index.html', 'entrar/index.html', 'criar-conta/index.html', 'termos/index.html', 'privacidade/index.html', 'planos/index.html', 'ajuda/index.html']
-const MANIFEST = resolve(__dirname, '../../node_modules/.cache/nuxt/.nuxt/dist/server/client.manifest.mjs')
 
 describe.skipIf(skipWithoutBuild)('páginas pré-renderizadas (build)', () => {
   it.each(PAGES)('%s existe e não tem dado de usuário nem preço fixo', (page) => {
@@ -20,13 +18,18 @@ describe.skipIf(skipWithoutBuild)('páginas pré-renderizadas (build)', () => {
     expect(emails.filter(e => !e.endsWith('@baigi.com.br') && e !== 'seu@email.com')).toEqual([])
   })
 
-  it('landing não pré-carrega o chunk do MockGraph (d3)', async () => {
-    const manifest = (await import(pathToFileURL(MANIFEST).href)).default
-    const key = Object.keys(manifest).find(k => k.endsWith('components/landing/MockGraph.vue'))
-    expect(key).toBeDefined()
-    const chunk = manifest[key!].file as string
+  // Landing v4 (prd-landing-v4 RF-L11): every ?m= variant is in the static HTML, and the <head> script picks one
+  // before the first paint (no flash, no layout shift)
+  it('landing traz as variantes do ?m= e o script que escolhe antes da pintura', () => {
     const html = readFileSync(join(PUBLIC_DIR, 'index.html'), 'utf8')
-    const preloads = [...html.matchAll(/<link[^>]+rel="modulepreload"[^>]*>/g)].map(m => m[0])
-    expect(preloads.some(l => l.includes(chunk))).toBe(false)
+    for (const m of ['padrao', 'prova', 'esqueci', 'faculdade', 'ingles']) expect(html, m).toContain(`data-m-variant="${m}"`)
+    const head = html.slice(0, html.indexOf('</head>'))
+    expect(head).toContain("setAttribute('data-m',m)")
+    // Landing D (prd-landing-d RF-D14, RF-D15): the motion switch before the paint; the title face comes from the
+    // inline CSS (no preload competing with the LCP poster) and no pose of the dolphin is prefetched
+    expect(head).toContain("classList.add('lp-motion')")
+    expect(head).toContain('/landing/bricolage-700.woff2')
+    expect(head).not.toMatch(/rel="prefetch"[^>]*mascot/)
+    expect(html).not.toContain('markmap')
   })
 })

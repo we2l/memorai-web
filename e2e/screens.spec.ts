@@ -34,10 +34,13 @@ for (const s of SCREENS) {
       // Datas relativas ("vence hoje", streak) batem com o momento da gravação
       await ctx.clock.install({ time: new Date(fx.recordedAt) })
       await ctx.routeFromHAR(HAR, { url: API_URL, notFound: 'abort' })
+      // Fire-and-forget writes of a screen (opening a note posts /notes/{id}/opened, Hoje v3) are never
+      // recorded (the recorder blocks writes): they are not screen data, so they are left out of the list
+      const SIDE_WRITE = /\/sanctum\/csrf-cookie$|\/api\/notes\/[^/]+\/opened$/
 
       const unmatched: string[] = []
       ctx.on('requestfailed', (r) => {
-        if (API_URL.test(r.url())) unmatched.push(`${r.method()} ${r.url()} (${r.failure()?.errorText ?? 'falhou'})`)
+        if (API_URL.test(r.url()) && !SIDE_WRITE.test(r.url())) unmatched.push(`${r.method()} ${r.url()} (${r.failure()?.errorText ?? 'falhou'})`)
       })
 
       const page = await ctx.newPage()

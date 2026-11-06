@@ -33,6 +33,19 @@ jobs:
       - name: Unit tests
         run: npm test
 
+      # PascalCase tags that Nuxt does not register render nothing in production (.nuxt from postinstall)
+      - name: Unresolved components
+        run: npm run lint:components
+
+      # Color utilities whose token is not in @theme generate no CSS (app/assets/css)
+      - name: Color classes without CSS
+        run: npm run lint:classes
+
+      # Raw colors (hex, rgba/hsl/oklch, Tailwind palette) in a ratchet: fails when a file goes up
+      # (scripts/ds-baseline.json; exceptions in scripts/ds-allowlist.json, ADR-027 §8)
+      - name: Design tokens
+        run: npm run lint:tokens
+
       - name: Build
         run: npm run build
 
@@ -44,6 +57,12 @@ jobs:
 
       - name: Bundle budget
         run: npm run budget
+
+      # Ratchet (scripts/ds-baseline.json): var(--x) and classes with no rule in the built CSS (needs .output)
+      # and the component guards (btn-*/card/input-base outside ui/, fixed inset-0, animate-spin, arbitrary
+      # values, !important, z-*, v2 names of scripts/ds-v3-map.json...); warns on pages with 2+ primaries
+      - name: Design system ghosts and component guards
+        run: npm run lint:ds
 
       - name: Bundle analyze
         run: npx nuxi analyze --no-serve

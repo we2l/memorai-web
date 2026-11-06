@@ -27,7 +27,7 @@ export const useSubscriptionStore = defineStore('subscription', {
       window.location.href = res.checkout_url
     },
 
-    /** One-off annual payment (Pix or card in installments) — ADR-025 */
+    /** One-off annual payment (Pix or card; installments only when /api/plans has installments_max > 1) — ADR-025 */
     async checkoutAnnual() {
       const { $api } = useNuxtApp()
       const res = await $api<{ checkout_url: string; session_id: string }>('/checkout/annual', {

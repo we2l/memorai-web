@@ -1,39 +1,34 @@
 <template>
-  <div class="space-y-6">
-    <UiErrorState v-if="loadError" title="Não foi possível carregar suas preferências de estudo" @retry="$emit('retry')" />
-    <template v-else>
-      <fieldset>
-        <legend class="text-title mb-1">Quanto você quer lembrar</legend>
-        <p class="text-small text-base-muted mb-3">Mais revisões por dia ↔ menos revisões. Vale para todos os seus cadernos.</p>
-        <UiRadioCards
-          :model-value="retentionKey"
-          name="retention"
-          :options="retentionOptions"
-          :disabled="disabled"
-          @update:model-value="setRetention"
-        />
-      </fieldset>
-
-      <fieldset>
-        <legend class="text-title mb-1">Diário de erros</legend>
-        <p class="text-small text-base-muted mb-3">Quando você marca "Não lembrei", podemos perguntar o motivo.</p>
-        <UiRadioCards
-          :model-value="settings.error_diary_mode ?? 'sometimes'"
-          name="diary"
-          :options="diaryOptions"
-          :disabled="disabled"
-          @update:model-value="setDiary"
-        />
-      </fieldset>
-    </template>
+  <div class="flex flex-col gap-6">
+    <UiRadioGroup
+      :model-value="retentionKey"
+      label="Quanto você quer lembrar"
+      hint="Mais revisões por dia ↔ menos revisões. Vale para todos os seus cadernos."
+      name="retention"
+      variant="cards"
+      :columns="3"
+      :options="retentionOptions"
+      :disabled="disabled"
+      @update:model-value="setRetention"
+    />
+    <UiRadioGroup
+      :model-value="settings.error_diary_mode ?? 'sometimes'"
+      label="Diário de erros"
+      hint="Quando você marca &quot;De novo&quot;, podemos perguntar o motivo."
+      name="diary"
+      variant="cards"
+      :columns="3"
+      :options="diaryOptions"
+      :disabled="disabled"
+      @update:model-value="setDiary"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import type { UserSettings } from '~/types'
 
-const props = defineProps<{ settings: UserSettings; loadError?: boolean; disabled?: boolean }>()
-defineEmits<{ (e: 'retry'): void }>()
+const props = defineProps<{ settings: UserSettings; disabled?: boolean }>()
 
 const { $api } = useNuxtApp()
 const { run } = useApiAction()
@@ -45,7 +40,7 @@ const retentionOptions = [
   { value: '0.95', label: 'Mais revisões', description: 'Lembrar 95% · mais cards por dia' },
 ]
 const diaryOptions = [
-  { value: 'always', label: 'Sempre', description: 'A cada "Não lembrei"' },
+  { value: 'always', label: 'Sempre', description: 'A cada "De novo"' },
   { value: 'sometimes', label: 'Às vezes', description: 'No 1º erro e a cada 3 · recomendado' },
   { value: 'never', label: 'Nunca', description: 'Não perguntar' },
 ]

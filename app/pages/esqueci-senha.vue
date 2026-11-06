@@ -1,74 +1,60 @@
 <template>
-  <div>
-    <div class="flex justify-center mb-4">
-      <UiLogo :icon-size="36" text-class="text-display text-base-primary" />
+  <div class="flex flex-col gap-5">
+    <div>
+      <h1 class="text-page-title-sm text-fg-strong">Esqueci a senha</h1>
+      <p v-if="!sent" class="mt-1 text-body text-fg-muted">Enviamos um link para você criar uma nova.</p>
     </div>
-    <h1 class="text-base-primary text-lg font-semibold text-center mb-1">Esqueci minha senha</h1>
-    <p class="text-base-muted text-small text-center mb-8">Informe seu e-mail e enviaremos um link para criar uma nova senha.</p>
 
-    <div v-if="sent" role="status" class="card p-5 text-center">
-      <p class="text-base-primary text-small">
-        Se existir uma conta com esse e-mail, enviamos um link para redefinir a senha. Confira também o spam.
-      </p>
-    </div>
+    <!-- The same answer whether the account exists or not (RN 6) -->
+    <p v-if="sent" role="status" class="text-body text-fg" data-testid="forgot-sent">
+      Se houver uma conta com <span class="font-semibold break-all text-fg-strong">{{ sentTo }}</span>, enviamos um link (vale por 60 min). Confira também o spam.
+    </p>
 
     <form v-else class="flex flex-col gap-4" novalidate @submit.prevent="submit">
-      <div>
-        <label for="email" class="text-label mb-1 block">E-mail</label>
-        <input
-          id="email"
-          v-model="email"
-          type="email"
-          autocomplete="email"
-          placeholder="seu@email.com"
-          class="input-base"
-          required
-          :aria-invalid="!!error"
-          :aria-describedby="error ? 'email-error' : undefined"
-        />
-        <p v-if="error" id="email-error" role="alert" class="text-[var(--badge-danger-text)] text-micro mt-1">{{ error }}</p>
-      </div>
-
-      <button type="submit" class="btn-primary w-full mt-2" :disabled="loading">
-        {{ loading ? 'Enviando...' : 'Enviar link' }}
-      </button>
+      <UiInput id="email" v-model="email" label="E-mail" type="email" autocomplete="email" inputmode="email" :error="error || undefined" />
+      <UiButton variant="primary" type="submit" block :loading="loading">Enviar link</UiButton>
     </form>
 
-    <p class="text-small text-center mt-6">
-      <NuxtLink to="/entrar" class="text-accent-primary hover:underline">Voltar para entrar</NuxtLink>
+    <p class="text-meta">
+      <UiLink to="/entrar">Voltar para entrar</UiLink>
     </p>
   </div>
 </template>
 
 <script setup lang="ts">
+// "Esqueci a senha" v4 (prd-4g-conta-onboarding-v3 RF-F14). Prerendered.
+import { fieldErrors, retryAfterSeconds, waitLabel } from '~/utils/authMessages'
+import { getErrorStatus } from '~/utils/apiErrors'
+
 definePageMeta({ layout: 'auth' })
-useHead({ title: 'Esqueci minha senha — BAIGI' })
+useHead({ title: 'Esqueci a senha · Baigi' })
 
 const { $api } = useNuxtApp()
 
 const email = ref('')
+const sentTo = ref('')
 const error = ref('')
 const loading = ref(false)
 const sent = ref(false)
 
 async function submit() {
   error.value = ''
-  if (!email.value.trim()) {
+  const address = email.value.trim()
+  if (!address) {
     error.value = 'Informe seu e-mail.'
     return
   }
 
   loading.value = true
   try {
-    await $api('/forgot-password', { method: 'POST', body: { email: email.value.trim() } })
+    await $api('/forgot-password', { method: 'POST', body: { email: address } })
+    sentTo.value = address
     sent.value = true
-  } catch (e: any) {
-    const status = e?.response?.status ?? e?.statusCode
-    if (status === 429) {
-      error.value = 'Aguarde alguns minutos para pedir outro link.'
-    } else {
-      error.value = e?.data?.errors?.email?.[0] || e?.data?.message || 'Não foi possível enviar o link.'
-    }
+  } catch (e) {
+    const status = getErrorStatus(e)
+    if (status === 429) error.value = `Muitos pedidos. Tente de novo em ${waitLabel(retryAfterSeconds(e))}.`
+    else if (status === 422) error.value = fieldErrors(e).email || 'Confira o e-mail.'
+    else error.value = 'Não foi possível enviar o link. Tente de novo.'
   } finally {
     loading.value = false
   }

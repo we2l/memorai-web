@@ -5,11 +5,15 @@ export interface ReviewShortcutHandlers {
   rate: (rating: 1 | 2 | 3 | 4) => void
   undo: () => void
   edit?: () => void
+  /** O: open the origin of the card (the material, the note or the question) */
+  openOrigin?: () => void
   toggleHelp: () => void
   escape: () => void
   isFlipped: () => boolean
   /** Suspend everything (card editor open, timer modal...). */
   isSuspended?: () => boolean
+  /** End of a batch on screen: Enter = next batch, Esc = back to the scope; the rest is off */
+  batchEnd?: () => { next: () => void; stop: () => void } | null
 }
 
 export function isTypingTarget(el: EventTarget | null): boolean {
@@ -34,6 +38,23 @@ export function createReviewShortcutHandler(h: ReviewShortcutHandlers) {
     if (h.isSuspended?.() || hasOpenModal()) return
 
     const key = e.key
+    const batch = h.batchEnd?.()
+    if (batch) {
+      if (key === 'Enter' && !(e.target as HTMLElement | null)?.closest?.('button, a')) {
+        e.preventDefault()
+        batch.next()
+      } else if (key === 'Escape') {
+        e.preventDefault()
+        batch.stop()
+      } else if ((key === 'z' || key === 'Z') && e.ctrlKey) {
+        e.preventDefault()
+        h.undo()
+      } else if (key === 'u' || key === 'U') {
+        e.preventDefault()
+        h.undo()
+      }
+      return
+    }
     if ((key === 'z' || key === 'Z') && e.ctrlKey) {
       e.preventDefault()
       h.undo()
@@ -44,7 +65,7 @@ export function createReviewShortcutHandler(h: ReviewShortcutHandlers) {
     if (key === ' ' || key === 'Enter') {
       // Let Enter/Space activate a focused button (other than the card itself)
       const target = e.target as HTMLElement | null
-      if (target?.closest?.('button, a') && !target.closest('.review-card')) return
+      if (target?.closest?.('button, a') && !target.closest('[data-review-card]')) return
       e.preventDefault()
       if (h.isFlipped()) h.rate(3)
       else h.flip()
@@ -65,6 +86,12 @@ export function createReviewShortcutHandler(h: ReviewShortcutHandlers) {
       if (!h.edit) return
       e.preventDefault()
       h.edit()
+      return
+    }
+    if (key === 'o' || key === 'O') {
+      if (!h.openOrigin || !h.isFlipped()) return
+      e.preventDefault()
+      h.openOrigin()
       return
     }
     if (key === '?') {

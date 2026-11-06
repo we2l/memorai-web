@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mountSuspended } from '@nuxt/test-utils/runtime'
 import { useToast, TOAST_MAX } from '~/composables/useToast'
-import Toast from '~/components/ui/Toast.vue'
+import ToastHost from '~/components/shell/ToastHost.vue'
 
 function clear() {
   const t = useToast()
@@ -16,6 +16,15 @@ describe('useToast', () => {
   afterEach(() => {
     clear()
     vi.useRealTimers()
+  })
+
+  it('clear tira todos os toasts', () => {
+    const t = useToast()
+    t.show('um', 'error')
+    t.show('dois', 'info')
+    t.clear()
+    expect(t.state.items).toHaveLength(0)
+    expect(t.state.visible).toBe(false)
   })
 
   it('starts hidden', () => {
@@ -88,14 +97,14 @@ describe('useToast', () => {
   })
 })
 
-describe('UiToast', () => {
+describe('ShellToastHost', () => {
   beforeEach(() => clear())
 
   it('announces success politely and errors assertively', async () => {
     const { show } = useToast()
     show('Salvo', 'success')
     show('Falhou', 'error')
-    await mountSuspended(Toast)
+    await mountSuspended(ToastHost)
     const status = document.body.querySelector('[role="status"]')
     const alert = document.body.querySelector('[role="alert"]')
     expect(status?.getAttribute('aria-live')).toBe('polite')

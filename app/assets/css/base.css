@@ -1,0 +1,90 @@
+/* ============================================
+   Design System v3 — regras de base (ADR-027, prd-ds-v3-fundacao RF-0.3)
+   Em @layer base: qualquer utility vence (título com cor de perigo, botão com focus-visible:*).
+   ============================================ */
+
+/* Lacuna do cloze: classes escritas em HTML por composables/useCloze.ts */
+@layer components {
+  .cloze-blank {
+    display: inline;
+    padding: 0.1em 0.6em;
+    border-radius: var(--radius-tag);
+    background: var(--action-subtle);
+    border-bottom: 2px solid var(--action-fg);
+    color: var(--action-fg);
+    font-style: italic;
+  }
+
+  .cloze-answer {
+    color: var(--action-fg);
+    font-weight: 600;
+  }
+}
+
+@layer base {
+  html {
+    background-color: var(--surface-page);
+    color: var(--fg);
+    font-family: var(--font-sans);
+  }
+
+  /* Anchors (/configuracoes#aparencia) land below the sticky TopNav */
+  @media (min-width: 768px) {
+    html {
+      scroll-padding-top: calc(var(--topnav-h) + 16px);
+    }
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--fg-strong);
+  }
+
+  body {
+    background-color: var(--surface-page);
+    min-height: 100vh;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  /* Outline, não box-shadow: btn-* e shadow-* usam box-shadow e esconderiam o anel */
+  :focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--line-strong);
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--line-input);
+  }
+
+  ::selection {
+    background-color: color-mix(in srgb, var(--action) 20%, transparent);
+    color: inherit;
+  }
+
+  /* Movimento reduzido (prd-ux-critica RF-F9.4): vale em todo lugar */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}

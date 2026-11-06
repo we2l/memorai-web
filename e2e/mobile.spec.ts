@@ -37,8 +37,8 @@ test.describe('Mobile — Dashboard', () => {
     await page.goto('/hoje')
     await page.waitForLoadState('domcontentloaded')
     await page.waitForTimeout(2000)
-    const cta = page.getByRole('link', { name: /Começar revisão/i })
-    const empty = page.getByText(/Tudo em dia|Pare de esquecer|Crie seus primeiros cards/i).first()
+    const cta = page.getByTestId('plan-step-review').getByRole('link', { name: 'Começar' })
+    const empty = page.getByText(/Tudo em dia|Que bom ter você aqui/i).first()
     await expect(cta.or(empty)).toBeVisible()
   })
 })
@@ -50,7 +50,7 @@ test.describe('Mobile — Revisão', () => {
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(2000)
 
-    const card = page.locator('.review-card')
+    const card = page.getByTestId('review-card')
     if (await card.count() > 0) {
       const box = await card.boundingBox()
       expect(box).not.toBeNull()
@@ -64,12 +64,12 @@ test.describe('Mobile — Revisão', () => {
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(2000)
 
-    const card = page.locator('.review-card')
+    const card = page.getByTestId('review-card')
     if (await card.count() > 0) {
       await card.click()
       await page.waitForTimeout(500)
 
-      const buttons = page.getByRole('button', { name: /Bom|Fácil|Difícil|De novo/i })
+      const buttons = page.getByRole('button', { name: /^(De novo|Difícil|Bom|Fácil)/ })
       if (await buttons.count() > 0) {
         const firstBtn = buttons.first()
         await expect(firstBtn).toBeVisible()
@@ -88,7 +88,7 @@ test.describe('Mobile — Configurações', () => {
     await page.waitForTimeout(2000)
 
     await expect(page.getByRole('heading', { name: 'Configurações' })).toBeVisible()
-    await expect(page.getByText('Perfil')).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Conta e segurança' })).toBeVisible()
   })
 })
 
@@ -98,8 +98,8 @@ test.describe('Mobile — Podcasts', () => {
     await page.goto('/podcasts')
     await page.waitForLoadState('networkidle')
 
-    await expect(page.getByText('Gerar podcast')).toBeVisible()
-    const btn = page.getByText('Gerar podcast')
+    const btn = page.getByRole('button', { name: 'Gerar episódio' })
+    await expect(btn).toBeVisible()
     const box = await btn.boundingBox()
     expect(box!.width).toBeLessThanOrEqual(375)
   })
@@ -111,23 +111,24 @@ test.describe('Mobile — Planos', () => {
     await page.goto('/planos')
     await page.waitForLoadState('networkidle')
 
-    await expect(page.getByRole('main').getByText('Grátis', { exact: true }).first()).toBeVisible()
-    await expect(page.getByRole('main').getByText('Plano atual').first()).toBeVisible()
+    await expect(page.getByRole('main').getByRole('heading', { name: 'Grátis' })).toBeVisible()
+    await expect(page.getByRole('main').getByText('Seu plano').first()).toBeVisible()
   })
 })
 
 test.describe('Mobile — 320px (telas muito pequenas)', () => {
   test.use({ viewport: { width: 320, height: 568 } })
 
-  test('os 4 destinos + "Mais" cabem na tela', async ({ page }) => {
+  test('as 4 abas (sem "Mais") cabem na tela, com alvo de 44 px', async ({ page }) => {
     await login(page)
     const nav = page.locator('nav[aria-label="Navegação mobile"]')
     await expect(nav).toBeVisible()
 
     const items = nav.locator('a, button')
-    await expect(items).toHaveCount(5)
+    await expect(items).toHaveCount(4)
+    await expect(nav.getByRole('button', { name: 'Mais' })).toHaveCount(0)
 
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 4; i++) {
       const item = items.nth(i)
       await expect(item).toBeVisible()
       const box = await item.boundingBox()
@@ -146,112 +147,135 @@ async function expectNoHorizontalOverflow(page: import('@playwright/test').Page,
   expect(scrollWidth, `overflow em ${page.url()}`).toBeLessThanOrEqual(width)
 }
 
-async function openMore(page: import('@playwright/test').Page) {
-  const more = page.getByRole('button', { name: 'Mais' })
-  await more.click()
-  await expect(page.getByRole('dialog', { name: 'Mais opções' })).toBeVisible()
+/** Account menu: on the phone the avatar is in the header of Hoje and Progresso (navegação v3). */
+async function openAccount(page: import('@playwright/test').Page) {
+  await page.getByRole('button', { name: 'Menu da conta' }).click()
+  await expect(page.getByRole('menu')).toBeVisible()
 }
 
-test.describe('Mobile — todas as rotas por toque (RF-F1)', () => {
+test.describe('Mobile — todas as rotas por toque (RF-F1, navegação v3)', () => {
   test('a partir de /hoje alcança todas as rotas e o Sair, sem overflow', async ({ page }) => {
     test.setTimeout(120_000)
     await login(page)
     await expectNoHorizontalOverflow(page)
     const nav = page.locator('nav[aria-label="Navegação mobile"]')
 
-    for (const label of ['Cadernos', 'Progresso']) {
+    for (const label of ['Cadernos', 'Praticar', 'Progresso']) {
       await nav.getByRole('link', { name: label }).click()
       await expectNoHorizontalOverflow(page)
     }
 
-    // /revisar is focus mode (no BottomNav): back via "← Voltar"
-    await nav.getByRole('link', { name: 'Revisão' }).click()
-    await page.waitForURL('**/revisar**')
-    await expect(nav).toBeHidden()
-    await expectNoHorizontalOverflow(page)
-    await page.getByRole('link', { name: /Voltar/ }).first().click()
-    await page.waitForURL('**/hoje')
-
-    for (const [label, path] of [['Simulados', '/simulados'], ['Provas', '/provas'], ['Podcasts', '/podcasts'], ['Configurações', '/configuracoes'], ['Ajuda', '/ajuda']] as const) {
-      await openMore(page)
-      await page.getByRole('dialog').getByRole('link', { name: label }).click()
-      await page.waitForURL(`**${path}`)
-      await expect(page.getByRole('dialog', { name: 'Mais opções' })).toBeHidden()
+    // Praticar: Questões (/simulados) e Ouvir (/podcasts)
+    for (const [label, path] of [['Questões e simulados', '/simulados'], ['Todos os episódios', '/podcasts']] as const) {
+      await nav.getByRole('link', { name: 'Praticar' }).click()
+      await page.waitForURL('**/praticar**')
+      await page.getByRole('link', { name: label }).click()
+      await page.waitForURL(`**${path}**`)
+      await expect(nav.getByRole('link', { name: 'Praticar' })).toHaveAttribute('aria-current', 'page')
       await expectNoHorizontalOverflow(page)
     }
 
-    // /planos via PlanBadge in the sheet
-    await openMore(page)
-    await page.getByRole('dialog').locator('a[href="/planos"]').first().click()
+    // /revisar is focus mode (no BottomNav): back via "‹ Sair"
+    await nav.getByRole('link', { name: 'Praticar' }).click()
+    await page.getByRole('link', { name: /5 minutos/ }).click()
+    await page.waitForURL('**/revisar**')
+    await expect(nav).toBeHidden()
+    await expectNoHorizontalOverflow(page)
+    await page.getByTestId('review-exit').click()
+    await page.waitForURL('**/hoje')
+
+    // Progresso → agenda de provas e volta
+    // Progresso: the agenda of exams is a section of it (prd-4f-progresso-v3), and /provas lands there
+    await nav.getByRole('link', { name: 'Progresso' }).click()
+    await page.getByTestId('progress-exams').waitFor()
+    await page.goto('/provas')
+    await page.waitForURL('**/progresso#provas')
+    await expect(nav.getByRole('link', { name: 'Progresso' })).toHaveAttribute('aria-current', 'page')
+    await expectNoHorizontalOverflow(page)
+
+    // Conta: configurações e ajuda pelo avatar
+    for (const [label, path] of [['Conta e segurança', '/configuracoes'], ['Ajuda e atalhos', '/ajuda']] as const) {
+      await nav.getByRole('link', { name: 'Hoje' }).click()
+      await page.waitForURL('**/hoje')
+      await openAccount(page)
+      await page.getByRole('menuitem', { name: label }).click()
+      await page.waitForURL(`**${path}**`)
+      await expectNoHorizontalOverflow(page)
+    }
+
+    // /planos pela busca do cabeçalho
+    await page.goto('/hoje')
+    await page.getByRole('button', { name: 'Buscar' }).click()
+    await page.getByRole('combobox').fill('planos')
+    await page.getByRole('option', { name: /Planos/ }).click()
     await page.waitForURL('**/planos')
     await expectNoHorizontalOverflow(page)
 
-    // /importar via the "Novo" menu in /cadernos
-    await nav.getByRole('link', { name: 'Cadernos' }).click()
-    await page.waitForURL('**/cadernos**')
-    const importLink = page.locator('a[href="/importar"]:visible').first()
-    if (await importLink.count() === 0) {
-      await page.getByRole('button', { name: /Novo|Adicionar/i }).first().click()
-    }
-    await page.locator('a[href="/importar"]:visible').first().click()
+    // /importar pelo "+ Adicionar" (Importar do Anki)
+    await page.goto('/hoje')
+    await page.getByRole('button', { name: 'Adicionar' }).click()
+    const sheet = page.getByRole('dialog', { name: 'Adicionar' })
+    await sheet.getByRole('button', { name: /Importar do Anki/ }).or(sheet.getByRole('link', { name: 'Importar do Anki' })).click()
     await page.waitForURL('**/importar')
     await expectNoHorizontalOverflow(page)
 
     // Sair
-    await openMore(page)
-    await page.getByRole('dialog').getByRole('button', { name: 'Sair' }).click()
+    await nav.getByRole('link', { name: 'Hoje' }).click()
+    await openAccount(page)
+    await page.getByRole('menuitem', { name: 'Sair' }).click()
     await page.waitForURL('**/entrar**')
   })
 
-  test('Esc fecha o sheet e devolve o foco ao "Mais"', async ({ page }) => {
+  test('Esc fecha o menu da conta e devolve o foco ao avatar', async ({ page }) => {
     await login(page)
-    await openMore(page)
+    await openAccount(page)
     await page.keyboard.press('Escape')
-    await expect(page.getByRole('dialog', { name: 'Mais opções' })).toBeHidden()
-    await expect(page.getByRole('button', { name: 'Mais' })).toBeFocused()
-    await expect(page.getByRole('button', { name: 'Mais' })).toHaveAttribute('aria-expanded', 'false')
+    await expect(page.getByRole('menu')).toBeHidden()
+    const avatar = page.getByRole('button', { name: 'Menu da conta' })
+    await expect(avatar).toBeFocused()
+    await expect(avatar).toHaveAttribute('aria-expanded', 'false')
   })
 })
 
-test.describe('Tablet — FABs não se sobrepõem', () => {
+test.describe('Tablet — navegação no topo a partir de 768 px', () => {
   test.use({ viewport: { width: 768, height: 1024 } })
 
-  test('ChatFab e QuickCapture não se intersectam em 768px', async ({ page }) => {
+  test('TopNav com os 4 lugares; sem BottomNav e sem botões flutuantes', async ({ page }) => {
     await login(page)
-    await page.goto('/cadernos')
-    await page.waitForTimeout(1000)
-    const chat = page.locator('button[aria-label="Tirar dúvida"], button[aria-label="Perguntar sobre o caderno"]').first()
-    const quick = page.locator('button[aria-label^="Anotar rapidamente"]')
-    const a = await chat.boundingBox()
-    const b = (await quick.isVisible()) ? await quick.boundingBox() : null
-    expect(a).not.toBeNull()
-    if (a && b) {
-      const overlap = a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height
-      expect(overlap).toBe(false)
-    }
+    const top = page.getByRole('navigation', { name: 'Navegação principal' })
+    await expect(top).toBeVisible()
+    await expect(top.getByRole('link')).toHaveText(['Hoje', 'Cadernos', 'Praticar', 'Progresso'])
+    await expect(page.locator('nav[aria-label="Navegação mobile"]')).toBeHidden()
+    await expect(page.locator('button[aria-label^="Anotar rapidamente"], button[aria-label="Tirar dúvida"]')).toHaveCount(0)
+    // Nothing of the shell sticks out of the viewport at 768 px
+    const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth)
+    expect(scrollWidth).toBeLessThanOrEqual(768)
   })
 })
 
-test.describe('Mobile — árvore de cadernos no toque (RF-F6.1)', () => {
+test.describe('Mobile — ⋯ do caderno no toque (RF-F6.1, hub da 4b-1)', () => {
   test.use({ viewport: { width: 375, height: 812 }, hasTouch: true })
 
-  test('tap no ⋯ → "Editar" abre o modal', async ({ page }) => {
+  test('tap no ⋯ do cabeçalho → "Editar" abre o diálogo', async ({ page }) => {
     await login(page)
     const topic = { id: '00000000-0000-4000-8000-0000000000aa', name: 'Direito', parent_id: null, children: [], color: null, flashcards_count: 0, position: 0 }
-    await page.route(/\/api\/topics$/, r => r.request().method() === 'GET'
-      ? r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ data: [topic] }) })
-      : r.continue())
-    await page.goto('/cadernos')
-    const trigger = page.getByRole('button', { name: 'Opções de Direito', exact: true }).first()
-    if (!(await trigger.isVisible())) {
-      // Tree lives in a collapsible panel on small screens
-      await page.getByRole('button', { name: /Ver cadernos/i }).first().tap()
+    const summary = {
+      topic: { id: topic.id, name: topic.name, color: null, depth: 0, learning_mode: 'general', parent_id: null }, path: [],
+      counts: { cards: 0, materials: 0, subjects: 0 }, mastery: { percent: null, in_day: 0, cards: 0 }, questions: null,
+      session: { count: 0, overdue: 0, errors: 0 }, exam: null, next_step: null, listen: null, subjects: [],
+      special: { quiz_errors: { cards: 0, session_count: 0 }, loose: { cards: 0, session_count: 0 } },
     }
+    const json = (data: unknown) => ({ status: 200, contentType: 'application/json', body: JSON.stringify(data) })
+    await page.route(/\/api\/topics$/, r => r.request().method() === 'GET' ? r.fulfill(json({ data: [topic] })) : r.continue())
+    await page.route(`**/api/topics/${topic.id}/summary`, r => r.fulfill(json({ data: summary })))
+    await page.route(`**/api/topics/${topic.id}/materials**`, r => r.fulfill(json({ data: [], meta: { next_cursor: null, total: 0 } })))
+    await page.goto(`/cadernos/${topic.id}`)
+    const trigger = page.getByRole('button', { name: 'Mais ações de Direito', exact: true }).first()
     await expect(trigger).toBeVisible()
     await expect(trigger).toHaveAttribute('aria-expanded', 'false')
     await trigger.tap()
     await expect(trigger).toHaveAttribute('aria-expanded', 'true')
-    await page.getByRole('menuitem', { name: 'Editar' }).tap()
-    await expect(page.getByRole('dialog')).toBeVisible()
+    await page.getByRole('menuitem', { name: /^Editar/ }).tap()
+    await expect(page.getByRole('dialog', { name: 'Editar caderno' })).toBeVisible()
   })
 })

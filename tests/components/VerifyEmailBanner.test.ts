@@ -47,7 +47,34 @@ describe('VerifyEmailBanner', () => {
 
     auth.setUser({ ...baseUser, email_verified: false })
     const unverified = await mountSuspended(Host)
-    expect(unverified.find('[role="status"]').text()).toContain('Confirme seu e-mail (ana@baigi.com.br)')
+    expect(unverified.find('[role="status"]').text()).toContain('Confirme seu e-mail para usar a IA: enviamos um link para ana@baigi.com.br.')
+  })
+
+  it('inline (onboarding) has no dismiss button', async () => {
+    useAuthStore().setUser({ ...baseUser, email_verified: false })
+    const wrapper = await mountSuspended(VerifyEmailBanner, { props: { inline: true } })
+    expect(wrapper.find('[aria-label="Fechar aviso"]').exists()).toBe(false)
+    expect(wrapper.find('#verify-email-notice').exists()).toBe(true)
+  })
+
+  it('"Já confirmei" re-reads /me and the host stops rendering the notice once verified', async () => {
+    const auth = useAuthStore()
+    auth.setUser({ ...baseUser, email_verified: false })
+    const verified = [false, true]
+    apiMock.mockImplementation((url: string) => Promise.resolve(url === '/me' ? { data: { ...baseUser, email_verified: verified.shift() ?? true } } : { data: null }))
+    const host = await mountSuspended(Host)
+    const check = host.findAll('[role="status"] button').find(b => b.text() === 'Já confirmei')!
+
+    await check.trigger('click')
+    await vi.waitFor(() => expect(apiMock).toHaveBeenCalledWith('/me'))
+    await vi.waitFor(() => expect(check.attributes('disabled')).toBeUndefined())
+    expect(auth.isVerified).toBe(false)
+    expect(host.text()).toContain('Confirme seu e-mail')
+
+    await check.trigger('click')
+    await vi.waitFor(() => expect(auth.isVerified).toBe(true))
+    await host.vm.$nextTick()
+    expect(host.text()).toBe('verified')
   })
 
   it('resend calls the endpoint and disables the button for 60 s', async () => {
@@ -69,5 +96,13 @@ describe('VerifyEmailBanner', () => {
     await wrapper.vm.$nextTick()
     expect(button.attributes('disabled')).toBeUndefined()
     expect(apiMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('teste disponível: diz que o teste do Intensivo pede o e-mail confirmado, com os dias do catálogo (prd-planos-lancamento RF-F2)', async () => {
+    useState('plans').value = { trial: { days: 7, card_required: false }, plans: [{ key: 'pro', name: 'Intensivo' }], features: {} }
+    useAuthStore().setUser({ ...baseUser, email_verified: false, trial: { status: 'available', started_at: null, ends_at: null } } as any)
+    const wrapper = await mountSuspended(VerifyEmailBanner)
+    expect(wrapper.get('#verify-email-notice').text()).toContain('Confirme seu e-mail para usar a IA e ganhar 7 dias do Intensivo no primeiro material')
+    useState('plans').value = null
   })
 })

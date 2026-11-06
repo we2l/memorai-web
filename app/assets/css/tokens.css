@@ -215,6 +215,14 @@
   --toast-bottom: calc(var(--nav-h) + var(--miniplayer-h) + var(--sticky-action-h) + 12px);
 }
 
+/* Celular deitado (paisagem, até 480 px de altura): a BottomNav fica com 44 px e o rótulo ao lado do ícone, para
+   sobrar tela entre as barras fixas (prd-responsividade RF-5; variante `short:` em main.css) */
+@media (orientation: landscape) and (max-height: 480px) {
+  :root {
+    --bottomnav-h: calc(44px + env(safe-area-inset-bottom));
+  }
+}
+
 @media (min-width: 768px) {
   :root {
     /* TopNav: nada embaixo além do mini-player (flutua no canto, fora do fluxo) */

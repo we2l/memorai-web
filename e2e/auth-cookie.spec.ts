@@ -34,6 +34,16 @@ test.describe('sessão por cookie', () => {
     expect(jsCookies).not.toContain('baigi-session')
   })
 
+  test('logado em /: vai para /hoje antes da landing, sem aviso de hidratação', async ({ page }) => {
+    await login(page)
+    const errors: string[] = []
+    page.on('console', (m) => { if (/Hydration/i.test(m.text())) errors.push(m.text()) })
+    await page.goto('/')
+    await page.waitForURL('**/hoje')
+    await page.waitForLoadState('networkidle')
+    expect(errors).toEqual([])
+  })
+
   test('recarregar /hoje mantém a sessão', async ({ page }) => {
     await login(page)
     await page.reload()

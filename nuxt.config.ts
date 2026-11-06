@@ -25,7 +25,11 @@ const CSP = [
   "form-action 'self'",
 ].join('; ')
 
-const SESSION_HINT_SCRIPT = `(function(){var d=document.documentElement;if(['/','/entrar','/criar-conta','/planos','/ajuda'].indexOf(location.pathname.replace(/\\/$/,'')||'/')<0)return;if(!/(?:^|;\\s*)baigi_logged_in=1/.test(document.cookie))return;d.classList.add('baigi-session');setTimeout(function(){d.classList.remove('baigi-session')},4000)})()`
+// Logged-in hint (cookie baigi_logged_in) on a prerendered public page: hide it until the app decides. On `/` go
+// straight to /hoje before the landing loads: the middleware's redirect during hydration rendered the app over the
+// landing's HTML ("Hydration completed but contains mismatches"). A stale hint lands on /entrar via /hoje, and /me's
+// 401 clears it; only `/`, so an API down never bounces /entrar and /hoje into a loop.
+const SESSION_HINT_SCRIPT = `(function(){var d=document.documentElement,p=location.pathname.replace(/\\/$/,'')||'/';if(['/','/entrar','/criar-conta','/planos','/ajuda'].indexOf(p)<0)return;if(!/(?:^|;\\s*)baigi_logged_in=1/.test(document.cookie))return;d.classList.add('baigi-session');if(p==='/'){location.replace('/hoje');return}setTimeout(function(){d.classList.remove('baigi-session')},4000)})()`
 
 // Page color of the DS v3 (--surface-page in app/assets/css/tokens.css, light and dark): the manifest and
 // the theme-color metas need the literal. tests/scripts/pwaManifest.test.ts keeps both in sync with tokens.css.
@@ -142,6 +146,12 @@ export default defineNuxtConfig({
       ],
     },
     workbox: {
+      // A new release takes over at once and drops the precache of the previous one (autoUpdate already implies
+      // these; written out so nobody turns them off by accident). The open page reloads when it takes control
+      // (virtual:pwa-register); a chunk of the old release that still fails reloads once (plugins/chunk-recovery).
+      skipWaiting: true,
+      clientsClaim: true,
+      cleanupOutdatedCaches: true,
       // No app shell with ssr:false + prerender: a '/' fallback served the landing
       // instead of the app. Offline page is Phase 2.
       navigateFallback: null,
@@ -227,13 +237,17 @@ export default defineNuxtConfig({
       title: 'BAIGI',
       meta: [
         { charset: 'utf-8' },
-        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        // viewport-fit=cover: without it iOS reports env(safe-area-inset-*) as 0 and the bottom bars sit on the home
+        // indicator (prd-responsividade RF-4). The sides of landscape are handled in base.css and on the fixed bars.
+        { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' },
         { name: 'description', content: 'Estude de forma mais inteligente — repetição espaçada com IA' },
         // Follow the OS until THEME_SCRIPT syncs them with the app theme (light, dark or system)
         { name: 'theme-color', content: THEME_COLOR.light, media: '(prefers-color-scheme: light)' },
         { name: 'theme-color', content: THEME_COLOR.dark, media: '(prefers-color-scheme: dark)' },
         { name: 'apple-mobile-web-app-capable', content: 'yes' },
-        { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
+        // default, not black-translucent: the installed app starts below the status bar (translucent drew the page under
+        // the clock, with white text over the light page; prd-responsividade RF-4)
+        { name: 'apple-mobile-web-app-status-bar-style', content: 'default' },
       ],
       script: [
         // Prerendered /, /entrar, /criar-conta: a user with the session hint cookie is

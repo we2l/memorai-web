@@ -3,14 +3,14 @@
     v-if="player.currentPodcast && !inPagePlayer"
     role="region"
     aria-label="Tocando agora"
-    class="fixed inset-x-2.5 bottom-[calc(var(--nav-h)+8px)] z-player overflow-hidden rounded-float border border-line bg-raised shadow-raised md:inset-x-auto md:right-4 md:bottom-4 md:w-96"
+    class="fixed right-[calc(10px+env(safe-area-inset-right))] bottom-[calc(var(--nav-h)+8px)] left-[calc(10px+env(safe-area-inset-left))] z-player overflow-hidden rounded-float border border-line bg-raised shadow-raised md:right-4 md:bottom-[calc(16px+env(safe-area-inset-bottom))] md:left-auto md:w-96"
   >
     <div class="flex items-center gap-3 py-2 pr-1.5 pl-2.5">
       <span class="flex size-10 shrink-0 items-center justify-center rounded-control bg-subtle text-listen" aria-hidden="true">
         <UiBaigiMascot v-if="player.isPlaying" state="subtle" :visible="true" :size="34" />
         <Headphones v-else class="size-5" />
       </span>
-      <button type="button" class="min-w-0 flex-1 rounded-row text-left" aria-label="Abrir o player" @click="expand">
+      <button type="button" class="hit-touch min-w-0 flex-1 rounded-row text-left" aria-label="Abrir o player" @click="expand">
         <span class="block truncate text-meta font-semibold text-fg-strong">{{ player.currentPodcast.title }}</span>
         <span class="block truncate text-label text-fg-muted">
           <span class="tabular-nums">{{ formatTime(player.currentTime) }} de {{ formatTime(player.duration) }}</span>
@@ -18,7 +18,7 @@
       </button>
       <button
         type="button"
-        class="flex size-10 shrink-0 items-center justify-center rounded-full bg-fg-strong text-raised transition-transform duration-nav active:scale-95"
+        class="hit-touch flex size-10 shrink-0 items-center justify-center rounded-full bg-fg-strong text-raised transition-transform duration-nav active:scale-95"
         :aria-label="player.isPlaying ? 'Pausar' : 'Reproduzir'"
         @click="toggle"
       >

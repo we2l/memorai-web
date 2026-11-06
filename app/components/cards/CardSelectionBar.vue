@@ -5,7 +5,7 @@
     aria-label="Cards selecionados"
     data-testid="card-selection"
   >
-    <div class="flex flex-wrap items-center gap-2 px-gutter py-3">
+    <div class="flex flex-wrap items-center gap-2 px-gutter-safe py-3">
       <p class="mr-auto text-meta font-semibold text-fg-strong" aria-live="polite">{{ count }} {{ count === 1 ? 'selecionado' : 'selecionados' }}</p>
       <UiButton size="sm" variant="ghost" @click="$emit('toggle-all')">{{ allSelected ? 'Desmarcar todos' : 'Selecionar todos desta página' }}</UiButton>
       <UiButton

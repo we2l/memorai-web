@@ -46,6 +46,17 @@ useHead({
     { property: 'og:description', content: DESCRIPTION },
     { property: 'og:type', content: 'website' },
     { property: 'og:locale', content: 'pt_BR' },
+    { property: 'og:url', content: 'https://baigi.com.br/' },
+    { property: 'og:site_name', content: 'Baigi' },
+    // Share card (1200×630, opaque): the fold of this page captured by e2e/landing/og.ts. Without it Facebook and
+    // WhatsApp crop the transparent mascot of the page (its belly turned black).
+    { property: 'og:image', content: 'https://baigi.com.br/landing/og-baigi.jpg' },
+    { property: 'og:image:type', content: 'image/jpeg' },
+    { property: 'og:image:width', content: '1200' },
+    { property: 'og:image:height', content: '630' },
+    { property: 'og:image:alt', content: 'Chega de memória de peixe. O golfinho do Baigi ao lado do app no celular.' },
+    { name: 'twitter:card', content: 'summary_large_image' },
+    { name: 'twitter:image', content: 'https://baigi.com.br/landing/og-baigi.jpg' },
   ],
   // The poster of the hero's clip is the LCP: asked for first, ahead of the app's modulepreloads (measured: LCP 3.4 s
   // -> 1.6 s with applied throttling). AVIF only (the <picture> falls back to WebP); the theme of the system picks one.

@@ -1,6 +1,6 @@
 <template>
   <div
-    class="fixed inset-x-0 bottom-[calc(var(--nav-h)+var(--miniplayer-h))] z-sticky flex gap-2 border-t border-line bg-raised px-gutter py-3 md:hidden"
+    class="fixed inset-x-0 bottom-[calc(var(--nav-h)+var(--miniplayer-h))] z-sticky flex gap-2 border-t border-line bg-raised px-gutter-safe py-3 short:py-1.5 md:hidden"
     data-testid="scope-review-bar"
   >
     <UiButton variant="primary" block :to="reviewPath(topicId)" class="flex-1">Revisar hoje · {{ count }}</UiButton>

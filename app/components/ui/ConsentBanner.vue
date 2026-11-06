@@ -1,11 +1,12 @@
 <template>
   <div
     v-if="visible"
+    ref="root"
     role="dialog"
     aria-labelledby="consent-title"
     aria-describedby="consent-text"
     :class="bar
-      ? 'fixed z-40 inset-x-0 bottom-0 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line-strong bg-raised px-gutter pt-3 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-float'
+      ? 'fixed z-40 inset-x-0 bottom-0 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line-strong bg-raised px-gutter-safe pt-3 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-float'
       : inline
         ? 'flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line bg-raised px-gutter py-3'
         : ['fixed z-40 inset-x-0 sm:inset-x-auto sm:left-4 sm:bottom-4 sm:max-w-105 bg-raised border-t sm:border border-line-strong sm:rounded-card shadow-float px-4 pt-4 sm:pb-4', hasNav ? 'bottom-nav pb-4' : 'bottom-0 pb-[calc(1rem+env(safe-area-inset-bottom))]']"
@@ -53,4 +54,23 @@ const hasNav = computed(() => !!auth.user && !['auth', 'landing', 'public'].incl
 function openModal() {
   showModal.value = true
 }
+
+// Fixed (bar and phone card): the end of the page (footer links, last call) stays reachable above it while it is
+// open, through a bottom padding on <body> as tall as the banner (prd-responsividade RF-3)
+const root = ref<HTMLElement | null>(null)
+let observer: ResizeObserver | null = null
+function reserve(px: number) {
+  document.body.style.paddingBottom = px ? `${px}px` : ''
+}
+watch(root, (el) => {
+  observer?.disconnect()
+  observer = null
+  if (!el || props.inline || typeof ResizeObserver === 'undefined') return reserve(0)
+  observer = new ResizeObserver(() => reserve(getComputedStyle(el).position === 'fixed' ? el.offsetHeight : 0))
+  observer.observe(el)
+})
+onBeforeUnmount(() => {
+  observer?.disconnect()
+  reserve(0)
+})
 </script>

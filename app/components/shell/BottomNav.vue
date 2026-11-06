@@ -1,13 +1,13 @@
 <template>
   <nav
     aria-label="Navegação mobile"
-    class="fixed inset-x-0 bottom-0 z-nav border-t border-line bg-raised pb-safe-bottom md:hidden"
+    class="fixed inset-x-0 bottom-0 z-nav border-t border-line bg-raised px-safe pb-safe-bottom md:hidden"
   >
-    <ul class="grid h-14 grid-cols-4">
+    <ul class="grid h-14 grid-cols-4 short:h-11">
       <li v-for="place in places" :key="place.key" class="flex">
         <NuxtLink
           :to="place.to"
-          class="flex min-h-touch flex-1 flex-col items-center justify-center gap-0.5 px-1 text-label transition-colors duration-nav"
+          class="flex min-h-touch flex-1 flex-col items-center justify-center gap-0.5 px-1 text-label short:flex-row short:gap-1.5 transition-colors duration-nav"
           :class="active === place.key ? 'font-semibold text-fg-strong' : 'text-fg-muted'"
           :aria-current="active === place.key ? 'page' : undefined"
           @click="track(place.key)"

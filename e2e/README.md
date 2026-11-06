@@ -121,3 +121,20 @@ O gravador faz login uma vez (contexto A), reaproveita a sessão no contexto B (
 bloqueia escritas, guarda uma resposta por URL e remove `cookie`/`set-cookie`/`x-xsrf-token`/
 `authorization`; falha se a senha ou cookie de sessão aparecer no arquivo. Revise o diff do HAR antes
 de commitar. Os dados ficam congelados na data da gravação (o spec instala o relógio em `recordedAt`).
+
+## Responsividade (`@responsivo`, prd-responsividade)
+
+- **CI:** `e2e/responsivo.spec.ts` roda no job `screens` com o mesmo HAR, em 5 aparelhos (Galaxy S5 360×640,
+  iPhone SE, iPhone 14 Pro Max, iPhone 13 deitado e iPad Mini) × as telas do `screens.ts` e as públicas. Falha com
+  rolagem horizontal, folha ou diálogo fora da tela, campo com fonte < 16 px (zoom do iOS) ou alvo de toque < 24 px.
+- **Auditoria completa (local, com a API):** 12 aparelhos × ~57 estados, capturas e JSON por aparelho, mais um
+  resumo. Fora do testMatch padrão. Achados de 2026-11 em `docs/research/responsividade-2026-11.md` (raiz do projeto).
+
+```bash
+RESP_OUT=/tmp/resp npx playwright test -c e2e/responsivo/audit.config.ts [--project=iphone-se]
+node e2e/responsivo/summary.mjs /tmp/resp > resumo.md
+# Outra porta (a 3000 ocupada): RESP_BASE_URL=http://localhost:3020 (CORS desligado só no Chromium local)
+```
+
+As checagens ficam em `e2e/responsivo/checks.ts` e os aparelhos em `e2e/responsivo/devices.ts` (descritores do
+Playwright, sempre no Chromium; a área segura do iPhone é simulada por CDP no teste `area segura`).

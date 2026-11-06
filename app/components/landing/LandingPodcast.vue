@@ -4,7 +4,8 @@
       <div>
         <h2 id="landing-podcast" class="lp-h2" data-reveal>E o que você mais erra vira podcast.</h2>
         <p class="lp-lead" data-reveal>O Baigi faz a pergunta, espera você pensar e dá a resposta. Episódio curto, feito dos seus cards, pra ouvir com as mãos ocupadas.</p>
-        <p class="lp-chips" data-reveal><span>Errou no simulado</span>›<span>virou card</span>›<span>virou episódio</span></p>
+        <!-- The "›" travels with the next step: it never ends a line alone -->
+        <p class="lp-chips" data-reveal><span>Errou no simulado</span><b class="step">›<span>virou card</span></b><b class="step">›<span>virou episódio</span></b></p>
         <div class="lp-act">
           <button type="button" class="lp-btn lp-btn-band" data-cta data-testid="landing-cta-podcast" @click="listen">Ouvir um exemplo</button>
           <NuxtLink to="/criar-conta" class="lp-link" data-testid="landing-cta-podcast-signup" @click="track?.('podcast')">ou criar conta grátis</NuxtLink>

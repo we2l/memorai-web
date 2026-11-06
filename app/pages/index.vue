@@ -1,6 +1,6 @@
 <template>
   <div ref="root" class="landing-page">
-    <LandingHeader :show-cta="headerCta" />
+    <LandingHeader />
 
     <main>
       <LandingHero />
@@ -63,14 +63,14 @@ useHead({
 
 const { plans: catalog, failed, fetchPlans } = usePlans()
 
-// ── Where the calls are (RF-D1, RF-D12): the header's button and the sticky bar only when no section call shows ──
+// ── Where the calls are (RF-D12): the sticky bar of the phone only when no section call shows ──
 const root = ref<HTMLElement | null>(null)
 const callsOnScreen = ref(new Set<Element>())
 const scrolled = ref(false)
 const ready = ref(false)
 const { analytics: consent } = useConsent()
-const headerCta = computed(() => ready.value && callsOnScreen.value.size === 0)
-const stickyVisible = computed(() => headerCta.value && scrolled.value && consent.value !== null)
+const noCallOnScreen = computed(() => ready.value && callsOnScreen.value.size === 0)
+const stickyVisible = computed(() => noCallOnScreen.value && scrolled.value && consent.value !== null)
 
 let callsIo: IntersectionObserver | null = null
 let stopMotion: (() => void) | null = null
@@ -79,19 +79,34 @@ function onScroll() {
   scrolled.value = window.scrollY > 200
 }
 
+const observed = new WeakSet<Element>()
+
+/** Observes every call on the page, including the ones rendered later (the plans' cards wait for the catalog). */
+function observeCalls() {
+  if (!root.value || !callsIo) return
+  for (const el of root.value.querySelectorAll('[data-cta]')) {
+    if (observed.has(el)) continue
+    observed.add(el)
+    callsIo.observe(el)
+  }
+}
+
 function watchCalls() {
   if (!root.value || !('IntersectionObserver' in window)) return
   callsIo = new IntersectionObserver((entries) => {
     const next = new Set(callsOnScreen.value)
     for (const e of entries) {
-      if (e.isIntersecting) next.add(e.target)
+      if (e.isIntersecting && e.target.isConnected) next.add(e.target)
       else next.delete(e.target)
     }
+    // A call that left the DOM (the plans' skeleton swapped for the cards) no longer counts
+    for (const el of next) if (!el.isConnected) next.delete(el)
     callsOnScreen.value = next
     ready.value = true
   })
-  for (const el of root.value.querySelectorAll('[data-cta]')) callsIo.observe(el)
+  observeCalls()
 }
+watch([catalog, failed], () => nextTick(observeCalls))
 
 // ── Measurement, with consent only (RF-D18) ──
 const message = ref<LandingMessageProp>('padrao')

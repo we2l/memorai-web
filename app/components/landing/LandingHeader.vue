@@ -12,8 +12,8 @@
         <a href="#planos">Planos</a>
       </nav>
       <NuxtLink to="/entrar" class="lp-enter">Entrar</NuxtLink>
-      <!-- Desktop only, and only when no call of a section is on screen (one highlight per screen) -->
-      <LandingCta to="/criar-conta" position="header" small class="lp-header-cta" :data-hidden="String(!showCta)" :tabindex="showCta ? undefined : -1">
+      <!-- Desktop only, always there, like the prototype D (owner, 06/11) -->
+      <LandingCta to="/criar-conta" position="header" small class="lp-header-cta">
         Criar conta grátis
       </LandingCta>
     </div>
@@ -21,7 +21,6 @@
 </template>
 
 <script setup lang="ts">
-// Header of the landing D (prd-landing-d RF-D1): sticky; the logo in the title face; the anchors of the sections on
-// the desktop; "Entrar"; the call only when the page says no other call is on screen.
-defineProps<{ showCta: boolean }>()
+// Header of the landing D (prd-landing-d RF-D1): sticky; the logo in the title face; the anchors of the sections and
+// the call on the desktop (always, owner 06/11: hiding it left a hole after "Entrar"); "Entrar".
 </script>

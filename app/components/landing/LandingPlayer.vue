@@ -4,7 +4,7 @@
       <button
         class="lp-play"
         type="button"
-        :aria-label="playing ? 'Pausar o exemplo' : 'Ouvir o exemplo'"
+        aria-label="Ouvir o exemplo"
         :aria-pressed="playing"
         :aria-busy="loading"
         data-testid="landing-player-play"

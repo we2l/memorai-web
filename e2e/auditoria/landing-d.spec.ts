@@ -187,8 +187,9 @@ test.describe('landing D', () => {
     await expect(play).toHaveAttribute('aria-label', 'Ouvir o exemplo')
     // "Ouvir um exemplo" plays right there
     await page.getByTestId('landing-cta-podcast').click()
+    // A toggle button: the name stays, the state is aria-pressed (announced once)
     await expect(play).toHaveAttribute('aria-pressed', 'true')
-    await expect(play).toHaveAttribute('aria-label', 'Pausar o exemplo')
+    await expect(play).toHaveAttribute('aria-label', 'Ouvir o exemplo')
     await expect.poll(() => page.getByTestId('landing-player-time').textContent(), { timeout: 8000 }).toMatch(/^0:0[1-9] \//)
     await play.click()
     await expect(play).toHaveAttribute('aria-pressed', 'false')
@@ -307,6 +308,11 @@ test.describe('landing D', () => {
       const ctx = await browser.newContext({ baseURL: 'http://localhost:3000', storageState: { cookies: [], origins: [] }, viewport: { width: 390, height: 844 } })
       const page = await ctx.newPage()
       await open(page)
+      // A thin bar at the bottom (owner, 06/11): never over the hero's call
+      const banner = (await page.getByTestId('consent-banner').boundingBox())!
+      const heroCta = (await page.getByTestId('landing-cta-hero').boundingBox())!
+      expect(heroCta.y + heroCta.height).toBeLessThan(banner.y)
+      expect(banner.height).toBeLessThanOrEqual(130)
       await page.locator('.lp-story .lp-chap').first().locator('h3').scrollIntoViewIfNeeded()
       await page.evaluate(() => window.scrollBy(0, 300))
       await expect(page.getByTestId('consent-banner')).toBeVisible()
@@ -320,12 +326,13 @@ test.describe('landing D', () => {
   test.describe('desktop', () => {
     test.use({ viewport: { width: 1440, height: 900 } })
 
-    test('o herói ocupa a tela, as âncoras levam às seções e o CTA do cabeçalho só aparece sem outra chamada', async ({ page }) => {
+    test('o herói ocupa a tela, as âncoras levam às seções e o CTA do cabeçalho fica sempre', async ({ page }) => {
       await open(page)
       const hero = (await page.locator('.lp-hero').boundingBox())!
       expect(hero.y + hero.height).toBeGreaterThanOrEqual(900 - 1)
+      // Always there on the desktop, like the prototype D (owner, 06/11)
       const headerCta = page.getByTestId('landing-cta-header')
-      await expect(headerCta).toHaveAttribute('data-hidden', 'true')
+      await expect(headerCta).toBeVisible()
       const nav = page.getByRole('navigation', { name: 'Seções' })
       await nav.getByRole('link', { name: 'Planos' }).click()
       await expect(page.locator('#planos h2')).toBeInViewport()
@@ -333,12 +340,9 @@ test.describe('landing D', () => {
       await expect(page.locator('#podcast h2')).toBeInViewport()
       await nav.getByRole('link', { name: 'Como funciona' }).click()
       await expect(page.locator('#como h2')).toBeInViewport()
-      // With no call of a section on screen, the header carries the one call
-      expect(await scrollToNoCall(page)).toBe(true)
-      await expect(headerCta).toHaveAttribute('data-hidden', 'false')
       await expect(headerCta).toBeVisible()
-      await page.getByTestId('landing-cta-final').scrollIntoViewIfNeeded()
-      await expect(headerCta).toHaveAttribute('data-hidden', 'true')
+      await headerCta.click()
+      await page.waitForURL('**/criar-conta')
     })
 
     test('no "Como funciona" a tela do celular fixo troca com o capítulo', async ({ page }) => {
@@ -355,6 +359,22 @@ test.describe('landing D', () => {
       await expect(layer('material')).toHaveAttribute('data-on', 'false')
       await expect(page.locator('.lp-chap[data-step="revisao"]')).toHaveAttribute('data-active', 'true')
     })
+  })
+
+  test('desktop sem consentimento: a barra de cookies é uma linha no rodapé, longe da chamada do herói', async ({ browser }) => {
+    const ctx = await browser.newContext({ baseURL: 'http://localhost:3000', storageState: { cookies: [], origins: [] }, viewport: { width: 1440, height: 900 } })
+    const page = await ctx.newPage()
+    await open(page)
+    const banner = page.getByTestId('consent-banner')
+    const box = (await banner.boundingBox())!
+    expect(box.y + box.height).toBe(900)
+    expect(box.width).toBe(1440)
+    expect(box.height).toBeLessThanOrEqual(80)
+    const heroCta = (await page.getByTestId('landing-cta-hero').boundingBox())!
+    expect(heroCta.y + heroCta.height).toBeLessThan(box.y)
+    for (const id of ['consent-reject', 'consent-accept', 'consent-customize']) await expect(page.getByTestId(id)).toBeVisible()
+    await expect(banner.getByRole('link', { name: 'Política de privacidade' })).toBeVisible()
+    await ctx.close()
   })
 
   for (const theme of ['light', 'dark'] as const) {

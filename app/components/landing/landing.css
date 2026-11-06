@@ -165,7 +165,7 @@
 
 /* ── Cabeçalho ── */
 .landing-page {
-  & .lp-header { position: sticky; top: 0; z-index: var(--z-nav); background: color-mix(in srgb, var(--surface-page) 92%, transparent); border-bottom: 1px solid var(--line); }
+  & .lp-header { position: sticky; top: 0; z-index: var(--z-nav); background: color-mix(in srgb, var(--surface-page) 92%, transparent); backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); }
   & .lp-header .lp-wrap { display: flex; align-items: center; gap: 24px; height: var(--lp-header-h); }
   & .lp-logo { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; text-decoration: none; font-family: var(--lp-display); font-weight: 700; font-size: 22px; letter-spacing: .02em; color: var(--action-fg); }
   & .lp-logo img { width: 34px; }
@@ -180,8 +180,7 @@
   .landing-page {
     & .lp-nav { display: flex; }
     & .lp-enter { margin-left: 0; }
-    & .lp-header-cta { display: inline-flex; transition: opacity 150ms var(--lp-ease), transform 150ms var(--lp-ease); }
-    & .lp-header-cta[data-hidden='true'] { opacity: 0; transform: translateY(-4px); pointer-events: none; visibility: hidden; }
+    & .lp-header-cta { display: inline-flex; }
   }
 }
 
@@ -240,7 +239,8 @@
     & .lp-hero > .lp-wrap { grid-template-columns: 1.25fr .75fr; align-items: center; }
     & .lp-hero .lp-text { position: relative; z-index: 4; padding-bottom: 80px; }
     & .lp-tag { right: 56px; bottom: -34px; }
-    & .lp-hero .lp-lead { margin-top: 18px; }
+    /* A etiqueta fica à direita do <h1>: o apoio termina antes dela */
+    & .lp-hero .lp-lead { margin-top: 18px; max-width: 33ch; }
     & .lp-scene { height: 600px; }
     & .lp-scene .lp-phone { width: 280px; right: 0; top: 10px; }
     & .lp-scene .lp-hero-m { width: 300px; left: -96px; bottom: 0; }
@@ -339,7 +339,9 @@
   & .lp-proof .n:first-child b { color: var(--action-fg); }
   & .lp-proof .n > span { display: block; font-size: clamp(13px, 1.2vw, 16px); color: var(--fg-muted); margin-top: 6px; }
   & .lp-proof .lp-phone { width: clamp(150px, 20vw, 260px); position: relative; z-index: 1; }
-  & .lp-proof .lp-proj-m { position: absolute; z-index: 0; width: clamp(80px, 9vw, 130px); left: 50%; bottom: -14px; margin-left: clamp(40px, 14vw, 80px); rotate: 10deg; }
+  /* Caixa fixa: a troca de pose (pensando -> comemorando) não muda o tamanho nem desloca nada */
+  & .lp-proof .lp-proj-m img { height: 100%; object-fit: contain; }
+  & .lp-proof .lp-proj-m { aspect-ratio: 192 / 311; position: absolute; z-index: 0; width: clamp(80px, 9vw, 130px); left: 50%; bottom: -14px; margin-left: clamp(40px, 14vw, 80px); rotate: 10deg; }
   & .lp-proj-note { text-align: center; margin-top: 16px; }
 }
 
@@ -358,6 +360,7 @@
   & .lp-pod-sec .lp-link { color: var(--lp-white); }
   & .lp-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; align-items: center; font-weight: 650; font-size: 14px; color: var(--lp-white); }
   & .lp-chips span { background: var(--lp-white); color: var(--lp-pod); border-radius: 999px; padding: 6px 12px; }
+  & .lp-chips .step { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
   & .lp-pod-plan { margin-top: 14px; font-size: 14px; font-weight: 600; line-height: 1.45; color: var(--lp-white); max-width: 46ch; }
   & .lp-podbox { position: relative; }
   & .lp-podbox .lp-pod-m { width: 190px; margin: 0 auto -38px; position: relative; z-index: 1; }
@@ -396,6 +399,9 @@
   & .lp-area-panel li b { color: var(--fg-strong); }
   & .lp-area-media { display: grid; justify-items: center; }
   & .lp-area-media .lp-phone { width: min(280px, 74vw); }
+  /* As telas das áreas são recortes (320–472 px): o celular acompanha a altura do recorte, sem meia tela vazia */
+  & .lp-area-media .lp-phone { aspect-ratio: auto; padding-bottom: 14px; }
+  & .lp-area-media .lp-screen { height: auto; border-radius: 36px 36px 28px 28px; }
   & .lp-area-media .lp-screen img { height: auto; object-fit: contain; }
 }
 
@@ -459,6 +465,8 @@
 @media (max-width: 767px) {
   .landing-page .lp-final .lp-btn { width: 100%; }
 }
+/* O foco do teclado nunca para atrás da barra fixa do celular nem da barra de cookies (WCAG 2.4.11) */
+html:has(.landing-page) { scroll-padding-bottom: 104px; }
 
 @media (min-width: 768px) {
   .landing-page {
@@ -471,6 +479,7 @@
 @keyframes lp-in { to { opacity: 1; transform: none; } }
 /* Sem opacity: o <h1> e o celular são candidatos a LCP e precisam pintar na hora */
 @keyframes lp-rise { from { transform: translateY(40px) rotate(-1.5deg); } to { transform: none; } }
+@keyframes lp-up { from { transform: translateY(20px); } to { transform: none; } }
 @keyframes lp-grifo { from { transform: scaleX(0) rotate(-1.2deg); } to { transform: rotate(-1.2deg); } }
 @keyframes lp-tag { from { opacity: 0; transform: scale(.4) rotate(-20deg); } to { opacity: 1; transform: rotate(-5deg); } }
 @keyframes lp-phone { from { transform: translateY(80px) rotate(18deg); } to { transform: rotate(7deg); } }
@@ -484,7 +493,8 @@ html.lp-motion .landing-page {
   & .lp-hero h1 .ln { animation: lp-rise 800ms var(--lp-ease) both; animation-delay: var(--d, 0ms); }
   & .lp-hero .lp-grifo::before { animation: lp-grifo 900ms var(--lp-ease) 700ms both; }
   & .lp-hero .lp-tag { animation: lp-tag 600ms var(--lp-ease) 1000ms both; }
-  & .lp-hero .fade { opacity: 0; transform: translateY(20px); animation: lp-in 800ms var(--lp-ease) forwards; animation-delay: var(--d, 0ms); }
+  /* Também só transform: o apoio e a chamada do herói ficam legíveis (e com contraste) desde a primeira pintura */
+  & .lp-hero .fade { animation: lp-up 800ms var(--lp-ease) both; animation-delay: var(--d, 0ms); }
   & .lp-scene .lp-phone { animation: lp-phone 1100ms var(--lp-ease) 300ms both; }
   & .lp-scene .lp-hero-m { opacity: 0; animation: lp-mascot 900ms var(--lp-ease) 700ms forwards; }
   & .lp-scene .lp-bubble { opacity: 0; transform-origin: 20% 100%; animation: lp-pop-in 500ms var(--lp-ease) 1400ms forwards; }

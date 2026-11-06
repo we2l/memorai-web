@@ -21,15 +21,15 @@ export const API = `${API_ORIGIN}/api`
 export const AUDIT_PASSWORD = 'Senha-Audit-2026'
 const CONTAINER = process.env.E2E_API_CONTAINER || 'baigi-app'
 
-export type UserKey = 'visual' | 'pro' | 'free' | 'quota' | 'unverified' | 'onboarding' | 'onboardingUnverified' | 'empty' | 'session' | 'logout' | 'account' | 'mobile' | 'legacy' | 'scope' | 'nav' | 'hoje' | 'hojeNew' | 'hojeGoal' | 'recorte' | 'hub' | 'material' | 'library' | 'revisao' | 'revisaoEmpty' | 'praticar' | 'praticarFree' | 'progresso' | 'progressoNew' | 'onbText' | 'onbExit' | 'onbExam' | 'onbAnki' | 'onbSample' | 'onbKeyboard' | 'conta' | 'contaPro' | 'parts' | 'organizacao' | 'landingShots'
+export type UserKey = 'visual' | 'pro' | 'free' | 'quota' | 'unverified' | 'onboarding' | 'onboardingUnverified' | 'empty' | 'session' | 'logout' | 'account' | 'mobile' | 'legacy' | 'scope' | 'nav' | 'hoje' | 'hojeNew' | 'hojeGoal' | 'recorte' | 'hub' | 'material' | 'library' | 'revisao' | 'revisaoEmpty' | 'praticar' | 'praticarFree' | 'progresso' | 'progressoNew' | 'onbText' | 'onbExit' | 'onbExam' | 'onbAnki' | 'onbSample' | 'onbKeyboard' | 'conta' | 'contaPro' | 'parts' | 'organizacao' | 'landingShots' | 'trialInvite' | 'trialUnverified' | 'trialActive' | 'trialTomorrow' | 'trialToday' | 'trialUsed'
 
-type UserSpec = { email: string; plan: 'free' | 'pro'; verified: boolean; onboarded: boolean; reset: true; quota_exhausted?: Record<string, number>; name?: string }
+type UserSpec = { email: string; plan: 'free' | 'pro'; verified: boolean; onboarded: boolean; reset: true; quota_exhausted?: Record<string, number>; name?: string; trial?: 'used' | 'active' | 'tomorrow' | 'today' }
 
 export const USERS: Record<UserKey, UserSpec> = {
   pro: { email: 'e2e-pro@audit.test', plan: 'pro', verified: true, onboarded: true, reset: true },
   free: { email: 'e2e-free@audit.test', plan: 'free', verified: true, onboarded: true, reset: true },
-  // Free with the monthly cards_ai quota (10) already spent: the API answers 402 before any AI call
-  quota: { email: 'e2e-quota@audit.test', plan: 'free', verified: true, onboarded: true, reset: true, quota_exhausted: { cards_ai: 10, agent_chat: 5 } },
+  // Free after the trial (the AI of the Free is 0 since the planos de lançamento): the API answers 402 before any AI call
+  quota: { email: 'e2e-quota@audit.test', plan: 'free', verified: true, onboarded: true, reset: true, trial: 'used' },
   unverified: { email: 'e2e-unverified@audit.test', plan: 'pro', verified: false, onboarded: true, reset: true },
   onboarding: { email: 'e2e-onboarding@audit.test', plan: 'free', verified: true, onboarded: false, reset: true },
   // Fresh e-mail sign-up: onboarding pending and e-mail not confirmed yet (verified mid-test)
@@ -63,7 +63,8 @@ export const USERS: Record<UserKey, UserSpec> = {
   revisaoEmpty: { email: 'e2e-revisao-empty@audit.test', plan: 'free', verified: true, onboarded: true, reset: true },
   // Praticar v3 (prd-4e-praticar-v3, questoes-v3.spec.ts e ouvir-v3.spec.ts): Pro com caderno, simulados e episódios; e um Free
   praticar: { email: 'e2e-praticar@audit.test', plan: 'pro', verified: true, onboarded: true, reset: true },
-  praticarFree: { email: 'e2e-praticar-free@audit.test', plan: 'free', verified: true, onboarded: true, reset: true },
+  // Free after the trial: the AI quota of the Free is 0 (planos de lançamento), so the gates of the Free show
+  praticarFree: { email: 'e2e-praticar-free@audit.test', plan: 'free', verified: true, onboarded: true, reset: true, trial: 'used' },
   // Progresso e Provas v3 (prd-4f-progresso-v3, progresso-v3.spec.ts): Pro com provas e revisões; e uma conta nova sem cards
   progresso: { email: 'e2e-progresso@audit.test', plan: 'pro', verified: true, onboarded: true, reset: true },
   progressoNew: { email: 'e2e-progresso-new@audit.test', plan: 'free', verified: true, onboarded: true, reset: true },
@@ -81,6 +82,14 @@ export const USERS: Record<UserKey, UserSpec> = {
   parts: { email: 'e2e-parts@audit.test', plan: 'pro', verified: true, onboarded: true, reset: true },
   // Organização do caderno (prd-4b-caderno-v3 4b-2, organizacao.spec.ts): mover, lixeira e Anki
   organizacao: { email: 'e2e-organizacao@audit.test', plan: 'pro', verified: true, onboarded: true, reset: true },
+  // Teste do Intensivo (prd-planos-lancamento, planos-teste.spec.ts): available (opens on the 1st material), unverified,
+  // running, last days and over
+  trialInvite: { email: 'e2e-trial-invite@audit.test', plan: 'free', verified: true, onboarded: true, reset: true },
+  trialUnverified: { email: 'e2e-trial-unverified@audit.test', plan: 'free', verified: false, onboarded: true, reset: true },
+  trialActive: { email: 'e2e-trial-active@audit.test', plan: 'free', verified: true, onboarded: true, reset: true, trial: 'active' },
+  trialTomorrow: { email: 'e2e-trial-tomorrow@audit.test', plan: 'free', verified: true, onboarded: true, reset: true, trial: 'tomorrow' },
+  trialToday: { email: 'e2e-trial-today@audit.test', plan: 'free', verified: true, onboarded: true, reset: true, trial: 'today' },
+  trialUsed: { email: 'e2e-trial-used@audit.test', plan: 'free', verified: true, onboarded: true, reset: true, trial: 'used' },
   // Real screens of the landing (e2e/landing/shots.ts, prd-landing-v4 RF-L12): a demo account, never a spec of the suite
   landingShots: { email: 'e2e-landing-shots@audit.test', plan: 'pro', verified: true, onboarded: true, reset: true, name: 'Ana' },
 }
@@ -197,6 +206,15 @@ export async function apiCall(page: Page, method: 'GET' | 'POST' | 'PUT' | 'DELE
   const body = await res.json().catch(() => null)
   if (!res.ok()) throw new Error(`${method} ${url} → ${res.status()} ${JSON.stringify(body)}`)
   return body
+}
+
+/**
+ * The paid plan's name of the catalog (GET /plans, public): "Intensivo" since api #137, "Pro" before. Specs that
+ * read the name on screen take it from here, so they follow the catalog like the screen does.
+ */
+export async function catalogProName(): Promise<string> {
+  const res = await fetch(`${API}/plans`, { headers: { Accept: 'application/json' } })
+  return (await res.json()).data.plans.find((p: { key: string }) => p.key === 'pro').name
 }
 
 /** TipTap doc from plain paragraphs (note bodies). */

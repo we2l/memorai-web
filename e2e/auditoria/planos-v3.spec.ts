@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import type { Page } from '@playwright/test'
-import { test, expect, gotoApp, API } from './support/fixtures'
+import { test, expect, gotoApp, API, catalogProName } from './support/fixtures'
 import { mockSubscription, expectNoHydrationMismatch } from './support/public-pages'
 
 /**
@@ -29,7 +29,9 @@ test.describe('/planos anônimo', () => {
     await expect(page.locator('.bg-tinted').filter({ visible: true })).toHaveCount(1)
 
     await expect(page.getByRole('radio', { name: 'Anual' })).toBeChecked()
-    await expect(page.getByTestId('plan-pro-price')).toContainText(brl(pro.prices.annual.monthly_equivalent_cents))
+    // The annual by its total, and its monthly share "cobrado uma vez por ano" (prd-planos-lancamento RF-F4)
+    await expect(page.getByTestId('plan-pro-price')).toContainText(brl(pro.prices.annual.amount_cents))
+    await expect(page.getByTestId('plan-pro-note')).toContainText(`${brl(pro.prices.annual.monthly_equivalent_cents)} por mês, cobrado uma vez por ano`)
     await expect(page.getByTestId('billing-savings')).toContainText(brl(pro.prices.annual.savings_cents))
 
     await page.getByRole('radio', { name: 'Mensal' }).check()
@@ -100,10 +102,10 @@ test.describe('/planos anônimo', () => {
 
   test('as perguntas abrem pelo teclado', async ({ page }) => {
     await gotoApp(page, '/planos')
-    const summary = page.getByTestId('plan-faq').locator('summary').first()
+    const summary = page.getByTestId('plan-faq').locator('summary').filter({ hasText: 'Posso cancelar quando quiser?' })
     await summary.focus()
     await page.keyboard.press('Enter')
-    await expect(page.getByText('Cancele quando quiser, pelo portal de assinatura. O Pro continua')).toBeVisible()
+    await expect(page.getByText(`Cancele quando quiser, pelo portal de assinatura. O ${await catalogProName()} continua`)).toBeVisible()
   })
 
   for (const width of [360, 390, 768, 1440]) {
@@ -141,7 +143,7 @@ test.describe('/planos logado: o mesmo layout', () => {
 
     test('retorno da Stripe: o toast do ?success=1 aparece depois da hidratação', async ({ page }) => {
       await page.goto('/planos?success=1')
-      await expect(page.getByText('Assinatura ativada! Bem-vindo ao Pro.')).toBeVisible()
+      await expect(page.getByText(`Assinatura ativada! Bem-vindo ao ${await catalogProName()}.`)).toBeVisible()
     })
 
     test('link de renovação abre o checkout anual sozinho', async ({ page }) => {
@@ -206,15 +208,15 @@ test.describe('/configuracoes: "Pro · renova em" (GET /me com subscription_rene
   }
 
   test('com a data: renova em', async ({ page }) => {
-    await expect(await open(page, { subscription_renews_at: '2026-11-28T12:00:00-03:00' }, {})).toHaveText('Pro · renova em 28/11')
+    await expect(await open(page, { subscription_renews_at: '2026-11-28T12:00:00-03:00' }, {})).toHaveText(`${await catalogProName()} · renova em 28/11`)
   })
 
   test('cancelada (null): termina em', async ({ page }) => {
-    await expect(await open(page, { subscription_renews_at: null }, { subscription_ends_at: '2026-12-10T12:00:00-03:00' })).toHaveText('Pro · termina em 10/12')
+    await expect(await open(page, { subscription_renews_at: null }, { subscription_ends_at: '2026-12-10T12:00:00-03:00' })).toHaveText(`${await catalogProName()} · termina em 10/12`)
   })
 
   test('sem o campo: "Pro mensal", sem data inventada', async ({ page }) => {
-    await expect(await open(page, {}, {})).toHaveText('Pro mensal')
+    await expect(await open(page, {}, {})).toHaveText(`${await catalogProName()} mensal`)
   })
 })
 
@@ -312,8 +314,9 @@ test.describe('/checkout/sucesso', () => {
   test('Pro ativo: marco com o mascote, data do catálogo e um primário; sem confete', async ({ page }) => {
     await page.route('**/api/checkout/sessions/**', route => route.fulfill({ json: { data: { session_id: 's', status: 'complete', payment_status: 'paid', payment_method: 'pix', pix_qr: null, plan_active: true, plan_expires_at: '2027-09-28T15:05:00-03:00' } } }))
     await gotoApp(page, '/checkout/sucesso?session_id=s')
-    await expect(page.getByRole('heading', { name: 'Bem-vindo ao Pro!', level: 1 })).toBeVisible()
-    await expect(page.getByText('Pro ativo até 28/09/2027')).toBeVisible()
+    const name = await catalogProName()
+    await expect(page.getByRole('heading', { name: `Bem-vindo ao ${name}!`, level: 1 })).toBeVisible()
+    await expect(page.getByText(`${name} ativo até 28/09/2027`)).toBeVisible()
     await expect(page.locator('.confetti-particle')).toHaveCount(0)
     await expect(primaries(page)).toHaveCount(1)
     await page.getByRole('link', { name: 'Ir para o Hoje' }).click()

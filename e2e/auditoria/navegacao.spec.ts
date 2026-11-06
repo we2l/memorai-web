@@ -61,7 +61,7 @@ test.describe('Navegação v3 — mapa de destinos', () => {
       ['PlanBadge "Meu plano" → conta › plano › Meu plano', async () => {
         await from()
         await openAccount(page)
-        await page.getByRole('menuitem', { name: /Plano Pro|Pro ·|Pro mensal/ }).click()
+        await page.getByRole('menuitem', { name: /^Plano |·|mensal/ }).first().click()
         await page.waitForURL('**/configuracoes**')
         await page.getByRole('main').locator('a[href="/planos"]').first().click()
       }, /\/planos$/],

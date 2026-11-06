@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import type { Page } from '@playwright/test'
-import { test, expect, gotoApp, apiCall, cachedLoginState, USERS } from './support/fixtures'
+import { test, expect, gotoApp, apiCall, cachedLoginState, USERS, catalogProName } from './support/fixtures'
 import { ensurePraticarSeed, fakeAudio, seedEpisode, type PraticarSeed } from './support/seed-praticar'
 
 /**
@@ -127,7 +127,7 @@ test.describe('Free', () => {
     await gotoApp(page, '/podcasts')
     const box = page.getByTestId('daily-episode')
     await expect(box.getByRole('switch')).toBeDisabled()
-    await expect(box.getByRole('link', { name: 'No Pro' })).toHaveAttribute('href', '/planos')
+    await expect(box.getByRole('link', { name: `No ${await catalogProName()}` })).toHaveAttribute('href', '/planos')
     await expect(page.getByTestId('podcasts-empty')).toContainText('Seu primeiro episódio')
     await expect(page.locator('.shadow-press').filter({ visible: true })).toHaveCount(1)
   })

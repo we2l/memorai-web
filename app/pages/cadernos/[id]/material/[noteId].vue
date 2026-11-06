@@ -179,7 +179,7 @@
         class="fixed inset-x-0 bottom-[calc(var(--nav-h)+var(--miniplayer-h))] z-sticky flex items-center gap-2 border-t border-line bg-raised px-gutter py-3"
         data-testid="material-bar"
       >
-        <UiButton v-if="outlineItems.length" size="sm" variant="ghost" class="whitespace-nowrap" :icon-left="ListTree" @click="outlineSheet = true">Sumário</UiButton>
+        <UiButton v-if="outlineItems.length" size="sm" class="whitespace-nowrap" :icon-left="ListTree" @click="outlineSheet = true">Sumário</UiButton>
         <UiButton size="sm" class="whitespace-nowrap" :icon-left="Layers" data-testid="material-bar-cards" @click="cardsSheet = true">Cards ({{ material.context.value?.cards.total ?? 0 }})</UiButton>
         <UiButton
           v-if="primary === 'review'"

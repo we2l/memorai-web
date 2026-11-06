@@ -23,8 +23,10 @@
         </p>
         <div v-else class="flex flex-wrap items-center gap-2" role="group" :aria-label="`Como foi ${exam.title}?`">
           <span class="text-meta text-fg">Como foi?</span>
-          <UiButton size="sm" :loading="saving === 'passed'" @click="emit('outcome', 'passed')">Passei</UiButton>
-          <UiButton size="sm" :loading="saving === 'failed'" @click="emit('outcome', 'failed')">Não passei</UiButton>
+          <span class="flex gap-2">
+            <UiButton size="sm" :loading="saving === 'passed'" @click="emit('outcome', 'passed')">Passei</UiButton>
+            <UiButton size="sm" :loading="saving === 'failed'" @click="emit('outcome', 'failed')">Não passei</UiButton>
+          </span>
         </div>
       </template>
     </div>

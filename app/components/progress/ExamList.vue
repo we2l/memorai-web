@@ -1,7 +1,7 @@
 <template>
   <UiSection id="provas" title="Provas" class="scroll-mt-24" data-testid="progress-exams">
     <template #action>
-      <UiButton size="sm" variant="ghost" :icon-left="Plus" data-testid="exam-new" @click="emit('create')">Nova prova</UiButton>
+      <UiButton size="sm" :icon-left="Plus" data-testid="exam-new" @click="emit('create')">Nova prova</UiButton>
     </template>
 
     <p v-if="limitReached" role="status" class="mb-3 flex flex-wrap items-center gap-x-2 rounded-row bg-subtle px-3 py-2 text-meta text-fg" data-testid="exam-limit">

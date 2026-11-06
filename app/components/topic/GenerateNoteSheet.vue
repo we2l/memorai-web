@@ -28,7 +28,7 @@
     </div>
 
     <template #footer>
-      <UiButton @click="open = false">Cancelar</UiButton>
+      <UiButton variant="ghost" @click="open = false">Cancelar</UiButton>
       <UiButton variant="primary" :loading="generating" @click="generate">Gerar resumo</UiButton>
     </template>
   </UiSheet>

@@ -1,7 +1,7 @@
 <template>
   <UiSection :title="title" data-testid="scope-subjects">
     <template v-if="canAdd" #action>
-      <UiButton size="sm" variant="ghost" :icon-left="Plus" data-testid="scope-add-subject" @click="$emit('add')">{{ addLabel }}</UiButton>
+      <UiButton size="sm" :icon-left="Plus" data-testid="scope-add-subject" @click="$emit('add')">{{ addLabel }}</UiButton>
     </template>
 
     <p v-if="!rows.length" class="text-body text-fg-muted">Organize por matéria, como no edital.</p>

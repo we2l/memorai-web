@@ -31,7 +31,7 @@
         {{ error.message }}
         <UiLink v-if="error.next" :to="error.next.to" @click="open = false">{{ error.next.label }}</UiLink>
       </p>
-      <UiButton @click="open = false">Cancelar</UiButton>
+      <UiButton variant="ghost" @click="open = false">Cancelar</UiButton>
       <UiButton variant="primary" :loading="pending" data-testid="move-confirm" @click="move">Mover</UiButton>
     </template>
   </UiDialog>

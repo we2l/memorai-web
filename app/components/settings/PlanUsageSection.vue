@@ -2,7 +2,8 @@
   <div class="flex flex-col gap-6">
     <div class="flex flex-col items-start gap-3">
       <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
-        <UiPlanBadge :plan="auth.user?.plan" />
+        <!-- The badge is a padded link: -ml-3 puts its pill on the edge of the section text -->
+        <UiPlanBadge class="-ml-3" :plan="auth.user?.plan" />
         <span v-if="planSummary" class="text-body text-fg-strong" data-testid="plan-summary">{{ planSummary }}</span>
         <span v-else-if="isFree" class="text-body text-fg-muted">Sem cobrança. O uso de IA tem limite mensal.</span>
       </div>
@@ -14,7 +15,7 @@
         Seu anual venceu em {{ formatBillingDayMonth(subscription.info?.plan_expires_at) }}.
         Renove até {{ formatBillingDayMonth(subscription.info?.grace_ends_at) }} para não perder o Pro.
       </p>
-      <div class="flex flex-wrap gap-2">
+      <div v-if="isFree || showRenew || showPortal" class="flex flex-wrap gap-2">
         <!-- The one primary of the page, only for Free (RF-F3) -->
         <UiButton v-if="isFree" variant="primary" to="/planos" data-testid="plan-upgrade">Conhecer o Pro</UiButton>
         <UiButton v-if="showRenew" :to="ANNUAL_RENEWAL_PATH">Renovar</UiButton>
@@ -34,7 +35,7 @@
         <li v-for="row in rows" :key="row.key" class="flex flex-wrap items-center gap-x-4 gap-y-1 py-3" data-testid="usage-row">
           <span class="min-w-0 flex-1 basis-56 text-body text-fg-strong">{{ row.label }}</span>
           <UiProgressBar v-if="row.limit" class="w-32" :value="row.used" :max="row.limit" :label="`${row.label}: ${row.used} de ${row.limit} ${row.unit}`" />
-          <span class="w-28 text-right text-meta text-fg-muted tabular-nums">
+          <span class="ml-auto w-28 text-right text-meta text-fg-muted tabular-nums">
             <template v-if="row.limit === null"><span class="font-semibold text-fg-strong">{{ row.used }}</span> · ilimitado</template>
             <template v-else-if="row.limit === 0">no Pro</template>
             <template v-else><span class="font-semibold text-fg-strong">{{ row.used }}</span> de {{ row.limit }}</template>

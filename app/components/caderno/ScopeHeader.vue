@@ -31,7 +31,7 @@
     </div>
 
     <!-- Context only: the percentages; the one number of review is on the button (RN 1) -->
-    <div v-if="!empty && hasCards" class="flex flex-wrap items-end gap-x-10 gap-y-4">
+    <div v-if="!empty && hasCards" class="flex flex-wrap items-start gap-x-10 gap-y-4">
       <UiStat :value="`${mastery}%`" :label="`de domínio · ${fmt(summary.mastery.in_day)} de ${fmt(summary.mastery.cards)} em dia`">
         <UiProgressBar class="mt-2 w-40" :value="mastery" :label="`Domínio de ${summary.topic.name}`" />
       </UiStat>

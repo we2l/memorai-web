@@ -11,7 +11,9 @@
           <UiButton variant="primary" :icon-left="Mic" data-testid="podcast-generate" @click="openGenerate">Gerar episódio</UiButton>
         </template>
       </UiPageHeader>
-      <PodcastDailyEpisodeSwitch class="max-w-xl" />
+      <div class="grid gap-6 lg:grid-cols-2">
+        <PodcastDailyEpisodeSwitch class="max-w-xl lg:max-w-none" />
+      </div>
     </div>
 
     <!-- ?topic_id= (Praticar or the caderno): the episodes of that scope and its subtree (GET /podcasts?topic_id=) -->

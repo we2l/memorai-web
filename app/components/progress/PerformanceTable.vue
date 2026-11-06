@@ -45,7 +45,7 @@
           </span>
           <span role="cell" class="col-span-3 col-start-10 row-start-1 flex justify-end sm:col-span-1 sm:col-start-auto sm:row-start-auto">
             <UiButton v-if="line.action.kind === 'train'" size="sm" variant="ghost" :icon-left="CircleHelp" icon-tone="quiz" @click="act(line.action.kind, line.row)">Treinar</UiButton>
-            <UiLink v-else :to="line.action.to" class="text-meta font-semibold whitespace-nowrap" @click="act(line.action.kind, line.row)">{{ line.action.label }}</UiLink>
+            <UiButton v-else size="sm" variant="ghost" :to="line.action.to" class="whitespace-nowrap" @click="act(line.action.kind, line.row)">{{ line.action.label }}</UiButton>
           </span>
         </div>
       </div>

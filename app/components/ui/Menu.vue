@@ -6,7 +6,7 @@
     <div
       v-if="open"
       class="absolute top-full z-popover mt-1 min-w-56 rounded-control border border-line bg-float py-1 shadow-float"
-      :class="align === 'end' ? 'right-0' : 'left-0'"
+      :class="align === 'end' ? 'right-0 w-max max-w-80' : 'left-0'"
       data-menu-panel
     >
       <slot name="header" />
@@ -29,7 +29,9 @@
 // item, ArrowUp on the last; arrows cycle, Home/End, type-ahead by first letter; Esc closes and returns
 // focus to the trigger; Tab and a click outside close. `align` picks the edge; `tone: 'danger'` for
 // destructive items. Default trigger: an icon button ("Mais ações"); the `trigger` slot gets the props
-// to v-bind on its own button. Replaces the 4 hand-made menus.
+// to v-bind on its own button. Replaces the 4 hand-made menus. The end-aligned panel sizes to its items
+// (w-max, up to 20rem): its containing block is the 44 px trigger, and min-w-56 alone squeezed a label
+// over its meta ("Relâmpago" under "5 minutos, os mais urgentes").
 // Shell additions (navegação v3, AccountMenu): a `header` slot above the items (informative only: it is
 // outside role="menu" and Tab closes the menu), `separator` (a divider above the item) and radio groups:
 // consecutive items with the same `group` become role="group" labelled by it, and `checked` makes the

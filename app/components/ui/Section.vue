@@ -1,6 +1,6 @@
 <template>
   <component :is="as" ref="root" :aria-labelledby="title ? titleId : undefined" :class="surfaceClass">
-    <div v-if="title || label || $slots.action" class="mb-3 flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
+    <div v-if="title || label || $slots.action" class="mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
       <div class="min-w-0">
         <p v-if="label" class="text-label font-semibold" :class="variant === 'tinted' ? 'text-action-fg' : 'text-fg-muted'">{{ label }}</p>
         <component :is="`h${level}`" v-if="title" :id="titleId" class="text-section text-fg-strong">{{ title }}</component>

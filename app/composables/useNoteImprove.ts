@@ -64,11 +64,8 @@ export function useNoteImprove(topicId: Ref<string | null>) {
     } catch (e: any) {
       state.value = 'idle'
       const msg = e?.data?.message || 'Erro ao melhorar nota.'
-      if (e?.data?.feature === 'note_improve') {
-        toast.show('Limite atingido. Seja Pro para melhorar notas ilimitadas.', 'error')
-      } else {
-        toast.show(msg, 'error')
-      }
+      // The 402 of the quota opens the UpgradeModal (api plugin), with the plan's name: no second message
+      if (e?.data?.feature !== 'note_improve') toast.show(msg, 'error')
     }
   }
 

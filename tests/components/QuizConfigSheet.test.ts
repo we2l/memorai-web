@@ -8,7 +8,7 @@ mockNuxtImport('useNuxtApp', original => () => new Proxy(original(), {
   get: (target, key) => (key === '$api' ? apiMock : Reflect.get(target, key)),
 }))
 mockNuxtImport('useToast', () => () => ({ show: toastShow, toasts: { value: [] }, dismiss: vi.fn() }))
-mockNuxtImport('usePlans', () => () => ({ fetchPlans: vi.fn(), limitOf: () => ({ extras: { quiz_max_questions: plan.value === 'free' ? 10 : 50, quiz_short_answer: plan.value !== 'free' } }) }))
+mockNuxtImport('usePlans', () => () => ({ plans: { value: null }, fetchPlans: vi.fn(), limitOf: (key: string) => ({ extras: { quiz_max_questions: key === 'free' ? 10 : 50, quiz_short_answer: key !== 'free' } }) }))
 
 enableAutoUnmount(afterEach)
 afterEach(() => { document.body.innerHTML = '' })
@@ -34,9 +34,9 @@ function api(details: Record<string, unknown>, opts: { create?: () => Promise<un
   })
 }
 
-async function mountSheet(props: Record<string, unknown>) {
+async function mountSheet(props: Record<string, unknown>, user: Record<string, unknown> = {}) {
   useTopicStore().tree = tree as any
-  useAuthStore().user = { id: 'u', plan: plan.value } as any
+  useAuthStore().user = { id: 'u', plan: plan.value, ...user } as any
   const wrapper = await mountSuspended(ConfigSheet, { props: { modelValue: true, ...props }, attachTo: document.body })
   await flushPromises()
   return wrapper
@@ -109,17 +109,55 @@ describe('QuizConfigSheet (prd-4e-praticar-v3 RF-F2)', () => {
     expect(apiMock).toHaveBeenCalledWith('/quizzes', expect.objectContaining({ body: expect.objectContaining({ scope: 'topic:trf', kind: 'exam', quantity: 60, time_limit: 10800, mode: 'exam' }) }))
   })
 
-  it('Free: a cota antes e o simulado do caderno só no Pro', async () => {
+  it('Free: a cota antes e o simulado do caderno só no Intensivo (nome sem catálogo)', async () => {
     plan.value = 'free'
     api({ can_quiz: { ok: true } }, { usage: { features: { quiz_ai: { used: 0, limit: 1, remaining: 1 } } } })
     await mountSheet({ topicId: 'trf' })
     expect(document.querySelector('[data-testid="quiz-quota"]')?.textContent).toContain('0 de 1 geração este mês')
     const fifty = [...document.querySelectorAll('option')].find(o => o.textContent?.startsWith('50 questões'))!
-    expect(fifty.textContent).toContain('No Pro')
+    expect(fifty.textContent).toContain('No Intensivo')
     expect((fifty as HTMLOptionElement).disabled).toBe(true)
     tab('Simulado').click()
     await flushPromises()
     expect(submit().disabled).toBe(true)
-    expect(document.body.textContent).toContain('é do Pro')
+    expect(document.body.textContent).toContain('é do Intensivo')
+  })
+
+  it('Grátis com o teste disponível e e-mail confirmado: sem "0 de 0" nem bloqueio, o clique chega ao servidor (prd-planos-lancamento RF-F7b)', async () => {
+    plan.value = 'free'
+    api({ can_quiz: { ok: true } }, { usage: { tier: 'free', features: { quiz_ai: { used: 0, limit: 0, remaining: 0 } } } })
+    await mountSheet({ topicId: 'trf' }, { email_verified: true, trial: { status: 'available', started_at: null, ends_at: null } })
+    expect(document.querySelector('[data-testid="quiz-quota"]')).toBeNull()
+    expect(submit().textContent).toContain('Gerar 10 questões')
+    submit().click()
+    await flushPromises()
+    expect(apiMock).toHaveBeenCalledWith('/quizzes', expect.objectContaining({ method: 'POST' }))
+  })
+
+  it('Grátis depois do teste (cota 0): "Ver o Intensivo" abre o aviso em vez de gerar', async () => {
+    plan.value = 'free'
+    api({ can_quiz: { ok: true } }, { usage: { tier: 'free', features: { quiz_ai: { used: 0, limit: 0, remaining: 0 } } } })
+    const events: Event[] = []
+    const listen = (e: Event) => events.push(e)
+    window.addEventListener('feature-limit-reached', listen)
+    await mountSheet({ topicId: 'trf' }, { email_verified: true, trial: { status: 'used', started_at: '2026-10-01T00:00:00Z', ends_at: '2026-10-08T00:00:00Z' } })
+    expect(submit().textContent).toContain('Ver o Intensivo')
+    submit().click()
+    await flushPromises()
+    window.removeEventListener('feature-limit-reached', listen)
+    expect(events).toHaveLength(1)
+    expect(apiMock).not.toHaveBeenCalledWith('/quizzes', expect.anything())
+  })
+
+  it('no teste: os gates do plano pago (50 questões, o simulado do caderno) e a cota do teste', async () => {
+    plan.value = 'free'
+    api({ can_quiz: { ok: true } }, { usage: { tier: 'trial', features: { quiz_ai: { used: 1, limit: 3, remaining: 2 } } } })
+    await mountSheet({ topicId: 'trf' }, { email_verified: true, trial: { status: 'active', started_at: null, ends_at: null } })
+    expect(document.querySelector('[data-testid="quiz-quota"]')?.textContent).toContain('1 de 3 gerações no teste')
+    const fifty = [...document.querySelectorAll('option')].find(o => o.textContent?.startsWith('50 questões'))!
+    expect((fifty as HTMLOptionElement).disabled).toBe(false)
+    tab('Simulado').click()
+    await flushPromises()
+    expect(document.body.textContent).not.toContain('é do Intensivo')
   })
 })

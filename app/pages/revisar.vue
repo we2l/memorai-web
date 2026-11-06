@@ -558,9 +558,10 @@ onMounted(() => {
 
 // === Tira-dúvidas in context: the card goes to the server (flashcard_id, RF-B4) ===
 const chatQuota = computed(() => {
-  if (!featureUsage.isLimited('agent_chat')) return ''
+  // A Free account whose trial opens on this click: no "0 de 0", the server opens the trial (RF-F7b)
+  if (!featureUsage.isLimited('agent_chat') || featureUsage.opensTrial('agent_chat')) return ''
   const f = featureUsage.usage.value?.features.agent_chat
-  return f && f.limit !== null ? `${f.remaining ?? 0} de ${f.limit} este mês` : ''
+  return f && f.limit ? `${f.remaining ?? 0} de ${f.limit} ${featureUsage.periodLabel.value}` : ''
 })
 function askAbout(card: { id: string; front: string; back: string; topic_id?: string | null }, source: 'review_card' | 'review_error', draft: string) {
   if (!featureUsage.canUse('agent_chat')) {

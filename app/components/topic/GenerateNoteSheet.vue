@@ -16,15 +16,18 @@
 
       <!-- The page limit comes from the catalog (RN-01) -->
       <p v-if="isPartial" class="rounded-row bg-subtle p-3 text-meta text-fg-muted">
-        <template v-if="isFree">
-          Seu PDF tem {{ document?.pages_count }} páginas. No Grátis, a nota cobre as primeiras {{ pageLimit }}, o suficiente para avaliar a qualidade. O restante fica disponível no Pro.
+        <template v-if="auth.onTrial">
+          Seu PDF tem {{ document?.pages_count }} páginas. Restam {{ pageLimit }} das {{ trialPages }} páginas do teste: a nota cobre as primeiras {{ pageLimit }}.
+        </template>
+        <template v-else-if="isFree">
+          Seu PDF tem {{ document?.pages_count }} páginas. No Grátis, a nota cobre as primeiras {{ pageLimit }}, o suficiente para avaliar a qualidade. O restante fica disponível no {{ proName }}.
         </template>
         <template v-else>
           Seu PDF tem {{ document?.pages_count }} páginas. Serão processadas as primeiras {{ pageLimit }}, o limite ideal para a qualidade da IA.
         </template>
       </p>
 
-      <p class="text-label text-fg-muted">{{ used }} de {{ limit ?? 'ilimitados' }} créditos usados este mês</p>
+      <p v-if="quotaText" class="text-label text-fg-muted">{{ quotaText }}</p>
     </div>
 
     <template #footer>
@@ -46,27 +49,33 @@ const { $api } = useNuxtApp()
 const toast = useToast()
 const auth = useAuthStore()
 const generating = ref(false)
-const limit = ref<number | null>(null)
-const used = ref(0)
+const featureUsage = useFeatureUsage()
+const proName = useProName()
 
 const isFree = computed(() => auth.user?.plan !== 'pro')
-const { limitOf, fetchPlans } = usePlans()
-const pageLimit = computed(() => limitOf(isFree.value ? 'free' : 'pro')?.extras.pdf_pages_per_note ?? null)
+const { limitOf, fetchPlans, feature } = usePlans()
+// In the trial the pages are of its whole period (100): what is left of them (prd-planos-lancamento RF-B6)
+const trialPages = computed(() => featureUsage.usage.value?.pdf_pages?.limit ?? null)
+const pageLimit = computed(() => (auth.onTrial
+  ? featureUsage.usage.value?.pdf_pages?.remaining ?? null
+  : limitOf(isFree.value ? 'free' : 'pro')?.extras.pdf_pages_per_note ?? null))
+// "PDFs transformados em nota: 1 de 3 no teste" (label of the catalog); nothing for a Free account whose trial
+// opens on this click (RF-F7b)
+const quotaText = computed(() => {
+  const f = featureUsage.usage.value?.features?.pdf_to_note
+  if (!f || featureUsage.opensTrial('pdf_to_note')) return ''
+  const label = feature('pdf_to_note')?.label ?? 'PDFs transformados em nota'
+  const count = f.limit === null ? `${f.used}` : `${f.used} de ${f.limit}`
+  return `${label.charAt(0).toUpperCase()}${label.slice(1)}: ${count} ${featureUsage.periodLabel.value}`
+})
 const isPartial = computed(() =>
   !!pageLimit.value && !!props.document?.pages_count && props.document.pages_count > pageLimit.value,
 )
 
-watch(open, async (val) => {
+watch(open, (val) => {
   if (!val) return
   void fetchPlans()
-  try {
-    const res = await $api<{ data: { features: Record<string, { limit: number | null; used: number; remaining: number | null }> } }>('/usage')
-    const feature = res.data?.features?.pdf_to_note
-    limit.value = feature?.limit ?? null
-    used.value = feature?.used ?? 0
-  } catch (e) {
-    reportApiError(e, { silent: true })
-  }
+  void featureUsage.fetchUsage()
 })
 
 async function generate() {

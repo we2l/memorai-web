@@ -137,6 +137,8 @@ export function useDocumentUpload() {
         docStore.startPolling()
       }
 
+      // The first material opens the Intensivo trial on the server (XHR: outside the api plugin)
+      void useAuthStore().refreshTrialAfterUse()
       toast.show('PDF enviado!')
       return { document, topic_id: topicId, topic_created: !!body?.topic_created }
     } catch (e: any) {

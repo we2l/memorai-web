@@ -31,14 +31,14 @@
 
       <!-- AI -->
       <div v-else class="flex flex-1 flex-col">
-        <!-- Free: what the Pro gives -->
-        <UiEmptyState v-if="!isPro && !aiMap" title="Mapa detalhado no Pro" description="Gere um mapa mental detalhado com conceitos extraídos por IA.">
+        <!-- Free after the trial: what the paid plan gives -->
+        <UiEmptyState v-if="!isPro && !aiMap" :title="`Mapa detalhado no ${proName}`" description="Gere um mapa mental detalhado com conceitos extraídos por IA.">
           <template #action>
-            <UiButton variant="primary" to="/planos">Conhecer o Pro</UiButton>
+            <UiButton variant="primary" to="/planos">Conhecer o {{ proName }}</UiButton>
           </template>
         </UiEmptyState>
 
-        <!-- Pro: no map yet -->
+        <!-- Pro, the trial or a trial that opens on this click: no map yet -->
         <UiEmptyState v-else-if="!aiMap && !generating" title="Mapa detalhado com IA" description="Gere um mapa mental com conceitos, definições e exemplos extraídos por IA.">
           <template #action>
             <UiButton variant="primary" @click="generateAiMap">Gerar mapa detalhado</UiButton>
@@ -111,7 +111,9 @@ const activeLevel = ref('auto')
 const showNodeAction = ref(false)
 const selectedNode = ref<MindMapNode | null>(null)
 
-const isPro = computed(() => !!auth.user && auth.user.plan !== 'free')
+// The AI map: the paid plan, the trial (RN-03) and a Free account whose trial opens on the click (RF-F7b)
+const isPro = computed(() => auth.hasProAccess || auth.opensTrialOnUse)
+const proName = useProName(() => !isPro.value)
 
 const LEVELS = [{ key: 'auto', label: 'Automático' }, { key: 'ai', label: 'Detalhado (IA)' }]
 // The same tokens of the branches (useMindMap)

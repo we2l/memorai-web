@@ -14,6 +14,12 @@ export default defineNuxtPlugin(() => {
       if (xsrf) headers.set('X-XSRF-TOKEN', xsrf)
       options.headers = headers
     },
+    onResponse({ request, options, response }) {
+      // The first material or AI action may have opened the Intensivo trial on the server: /me again
+      if (import.meta.client && response.ok && opensTrialRequest(options.method, typeof request === 'string' ? request : request.url)) {
+        void useAuthStore().refreshTrialAfterUse()
+      }
+    },
     async onResponseError({ response }) {
       if (response.status === 401 && import.meta.client) {
         useAuthStore().clearAuth()

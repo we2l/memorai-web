@@ -32,7 +32,7 @@
             <UiCheckbox
               v-model="types.short_answer"
               label="Dissertativa curta"
-              :description="allowShortAnswer ? 'Corrigida no fim, com comentário' : 'No Pro'"
+              :description="allowShortAnswer ? 'Corrigida no fim, com comentário' : `No ${proName}`"
               :disabled="!allowShortAnswer"
             />
           </fieldset>
@@ -55,8 +55,8 @@
             <p class="mt-1 text-fg-muted">Modo Prova: o gabarito aparece no fim. Proporcional aos cards de cada matéria.</p>
           </div>
           <div v-if="isFree" class="flex flex-wrap items-center gap-x-3 gap-y-1">
-            <p class="text-meta text-fg-muted">O simulado do caderno, de 30 a 120 questões, é do Pro.</p>
-            <UiButton size="sm" variant="ghost" :icon-left="Lock" @click="openUpgrade">Conhecer o Pro</UiButton>
+            <p class="text-meta text-fg-muted">O simulado do caderno, de 30 a 120 questões, é do {{ proName }}.</p>
+            <UiButton size="sm" variant="ghost" :icon-left="Lock" @click="openUpgrade">Conhecer o {{ proName }}</UiButton>
           </div>
         </template>
       </form>
@@ -101,7 +101,9 @@ const quizStore = useQuizStore()
 const topicStore = useTopicStore()
 const auth = useAuthStore()
 
-const isFree = computed(() => auth.user?.plan === 'free')
+// The trial has the Pro's gates (50 questions, short answer, the simulado do caderno: RN-03)
+const isFree = computed(() => !!auth.user && !auth.hasProAccess)
+const proName = useProName()
 const plans = usePlans()
 const planExtras = computed(() => plans.limitOf(isFree.value ? 'free' : 'pro')?.extras ?? null)
 const maxQuestions = computed(() => planExtras.value?.quiz_max_questions ?? (isFree.value ? 10 : 50))
@@ -156,11 +158,11 @@ watch(tab, (t) => {
 
 const batteryCounts = computed(() => BATTERY_COUNTS.map(q => ({
   value: String(q),
-  label: q > maxQuestions.value ? `${q} questões · No Pro: até 50` : `${q} questões`,
+  label: q > maxQuestions.value ? `${q} questões · No ${proName.value}: até 50` : `${q} questões`,
   disabled: q > maxQuestions.value,
 })))
 // Free: max_exam_questions is 10 on the API, below every size of the simulado do caderno
-const examCounts = computed(() => EXAM_COUNTS.map(q => ({ value: String(q), label: isFree.value ? `${q} questões · No Pro` : `${q} questões`, disabled: isFree.value })))
+const examCounts = computed(() => EXAM_COUNTS.map(q => ({ value: String(q), label: isFree.value ? `${q} questões · No ${proName.value}` : `${q} questões`, disabled: isFree.value })))
 const timerOptions = EXAM_TIMERS.map(t => ({ value: String(t), label: timerLabel(t) }))
 
 // Materials of the chosen scope (GET /topics/{id}/materials, first page): "Um material…"
@@ -200,15 +202,16 @@ const distributionText = computed(() => (topicId.value ? distributionLabel(distr
 
 const { gate, blocked, fromError } = useTopicGate(() => (props.modelValue ? topicId.value || null : null), 'can_quiz')
 
-// The quota before the action: "1 de 1 este mês" on Free (Pro has no monthly cap on questions)
+// The quota before the action: "1 de 3 gerações no teste" (the Pro has no cap on questions). A Free account
+// whose trial is available goes to the server, which opens the trial (RF-F7b): no "0 de 0" and no block.
 const usage = useFeatureUsage()
 const quota = computed(() => usage.usage.value?.features?.quiz_ai ?? null)
 const quotaText = computed(() => {
   const q = quota.value
-  if (!q || q.limit === null) return null
-  return `${q.used} de ${q.limit} ${q.limit === 1 ? 'geração' : 'gerações'} este mês`
+  if (!q || !q.limit || usage.opensTrial('quiz_ai')) return null
+  return `${q.used} de ${q.limit} ${q.limit === 1 ? 'geração' : 'gerações'} ${usage.periodLabel.value}`
 })
-const quotaSpent = computed(() => !!quota.value && quota.value.limit !== null && (quota.value.remaining ?? 1) <= 0)
+const quotaSpent = computed(() => !usage.canUse('quiz_ai'))
 
 const selectedTypes = computed(() => (Object.keys(types) as (keyof typeof types)[]).filter(t => types[t]))
 const quantity = computed(() => Number(tab.value === 'exam' ? examCount.value : count.value))
@@ -219,7 +222,7 @@ const canSubmit = computed(() => {
 })
 const submitLabel = computed(() => {
   if (generating.value) return 'Gerando...'
-  if (quotaSpent.value) return 'Ver o Pro'
+  if (quotaSpent.value) return `Ver o ${proName.value}`
   return tab.value === 'exam' ? `Gerar simulado de ${quantity.value}` : `Gerar ${quantity.value} questões`
 })
 

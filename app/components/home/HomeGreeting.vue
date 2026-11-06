@@ -35,6 +35,10 @@
         </div>
 
         <p v-if="state === 'done'" class="mt-2 text-meta text-fg-muted" data-testid="hero-tomorrow">{{ tomorrowLine }}</p>
+        <!-- The Intensivo trial: a line of the greeting, never a block of its own (prd-planos-lancamento RF-F1) -->
+        <p v-if="trialLine" class="mt-2 text-meta text-fg" data-testid="home-trial">
+          {{ trialLine }}. <UiLink to="/planos">Ver planos</UiLink>
+        </p>
       </div>
     </div>
 
@@ -66,6 +70,9 @@ const props = defineProps<{
 }>()
 
 const name = computed(() => firstName(props.userName))
+const auth = useAuthStore()
+const proName = useProName(() => auth.onTrial)
+const trialLine = computed(() => (auth.onTrial ? trialEndsLine(proName.value, auth.user?.trial?.ends_at) : ''))
 const date = longDate()
 
 const state = computed<GreetingState>(() => {

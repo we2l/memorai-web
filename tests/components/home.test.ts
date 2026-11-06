@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mockNuxtImport, mountSuspended } from '@nuxt/test-utils/runtime'
 import { enableAutoUnmount, flushPromises } from '@vue/test-utils'
+import { nextTick } from 'vue'
 import HomeGreeting from '~/components/home/HomeGreeting.vue'
 import HomePlan from '~/components/home/HomePlan.vue'
 import HomeExam from '~/components/home/HomeExam.vue'
@@ -110,6 +111,26 @@ describe('HomeGreeting', () => {
     const w = await mountSuspended(HomeGreeting, { props: { stats: null, error: true, userName: 'Ana' } })
     expect(w.get('h1').text()).toMatch(/^(Bom dia|Boa tarde|Boa noite), Ana\.$/)
     expect(w.find('[data-testid="hero-streak"]').exists()).toBe(false)
+  })
+
+  it('no teste: uma linha do cumprimento, sem bloco novo, com "Ver planos"; no último dia, "acaba hoje" (prd-planos-lancamento RF-F1)', async () => {
+    useState('plans').value = { plans: [{ key: 'pro', name: 'Intensivo' }], features: {} }
+    const endsAt = new Date(Date.now() + 9 * 86_400_000).toISOString()
+    useAuthStore().user = { id: 'u', plan: 'free', trial: { status: 'active', started_at: null, ends_at: endsAt } } as any
+    const w = await mountSuspended(HomeGreeting, { props: { stats: stats(), userName: 'Ana', minutes: 10 }, attachTo: document.body })
+    const line = w.get('[data-testid="home-trial"]')
+    expect(line.text()).toBe(`Intensivo grátis até ${formatBillingDayMonth(endsAt)}. Ver planos`)
+    expect(line.get('a').attributes('href')).toBe('/planos')
+    expect(w.findAll('.bg-tinted')).toHaveLength(1)
+    expect(await axeViolations(w.element)).toEqual([])
+    useAuthStore().user!.trial!.ends_at = new Date().toISOString()
+    await nextTick()
+    expect(w.get('[data-testid="home-trial"]').text()).toContain('Seu Intensivo grátis acaba hoje')
+    useAuthStore().user = { id: 'u', plan: 'free', trial: { status: 'available', started_at: null, ends_at: null } } as any
+    await nextTick()
+    expect(w.find('[data-testid="home-trial"]').exists()).toBe(false)
+    useAuthStore().user = null
+    useState('plans').value = null
   })
 
   it('carregando: skeleton do tamanho do bloco', async () => {
@@ -235,6 +256,14 @@ describe('UiActivationChecklist (Hoje)', () => {
     expect(w.emitted('select')![0]).toEqual(['material'])
     expect(w.get('a[href="/cadernos/t1/cards"]').text()).toContain('Gerar ou criar cards')
     expect(await axeViolations(w.element)).toEqual([])
+  })
+
+  it('o convite do teste fica sob "Adicionar material" enquanto ele está pendente (RF-F2)', async () => {
+    const hint = 'Mande seu primeiro material e ganhe 7 dias do Intensivo'
+    const w = await mountSuspended(ActivationChecklist, { props: { ...props, primary: true, materialHint: hint } })
+    expect(w.get('[data-testid="checklist-hint"]').text()).toBe(hint)
+    const done = await mountSuspended(ActivationChecklist, { props: { ...props, hasMaterial: true, materialHint: hint } })
+    expect(done.find('[data-testid="checklist-hint"]').exists()).toBe(false)
   })
 
   it('sem primary, nenhum botão primário; tudo feito some', async () => {

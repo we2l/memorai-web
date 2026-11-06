@@ -130,7 +130,7 @@ describe('ShellAccountMenu', () => {
     expect(panel.text()).toContain('rafael@exemplo.com')
     const items = w.findAll('[role^="menuitem"]')
     expect(items.map(i => i.text())).toEqual([
-      'Plano ProGerenciar', 'Conta e segurança', 'Estudo e lembretes', 'Uso de IA no mês',
+      'Plano IntensivoGerenciar', 'Conta e segurança', 'Estudo e lembretes', 'Uso de IA no mês',
       'Sistema', 'Claro', 'Escuro', 'Exportar meus dados', 'Ajuda e atalhos?', 'Sair',
     ])
     expect(items[1]!.attributes('href')).toBe('/configuracoes#conta')
@@ -143,12 +143,31 @@ describe('ShellAccountMenu', () => {
     useColorMode().set('system')
   })
 
-  it('mensal com subscription_renews_at: "Pro · renova em" no item do plano', async () => {
+  it('mensal com subscription_renews_at: "Intensivo · renova em" no item do plano, com o nome do catálogo', async () => {
     useAuthStore().user = { id: 'u1', name: 'Ana', email: 'a@b.c', plan: 'pro', subscription_renews_at: '2026-11-28T12:00:00-03:00' } as any
     const w = await mountSuspended(AccountMenu, { attachTo: document.body })
     await w.get('button[aria-haspopup="menu"]').trigger('click')
     await tick()
+    expect(w.findAll('[role="menuitem"]')[0]!.text()).toContain('Intensivo · renova em 28/11')
+    // The name follows the catalog (the API may still say "Pro")
+    useState('plans').value = { plans: [{ key: 'pro', name: 'Pro' }], features: {} }
+    await tick()
     expect(w.findAll('[role="menuitem"]')[0]!.text()).toContain('Pro · renova em 28/11')
+    useState('plans').value = null
+  })
+
+  it('no teste: "Intensivo grátis até dd/mm", e no último dia "acaba hoje" (prd-planos-lancamento RF-F1)', async () => {
+    const endsAt = new Date(Date.now() + 9 * 86_400_000).toISOString()
+    useAuthStore().user = { id: 'u1', name: 'Ana', email: 'a@b.c', plan: 'free', trial: { status: 'active', started_at: null, ends_at: endsAt } } as any
+    const w = await mountSuspended(AccountMenu, { attachTo: document.body })
+    await w.get('button[aria-haspopup="menu"]').trigger('click')
+    await tick()
+    const plan = w.findAll('[role="menuitem"]')[0]!
+    expect(plan.text()).toContain(`Intensivo grátis até ${formatBillingDayMonth(endsAt)}`)
+    expect(plan.attributes('href')).toBe('/planos')
+    useAuthStore().user!.trial!.ends_at = new Date().toISOString()
+    await tick()
+    expect(w.findAll('[role="menuitem"]')[0]!.text()).toContain('Seu Intensivo grátis acaba hoje')
   })
 
   it('Free: o plano leva a /planos', async () => {
@@ -157,7 +176,7 @@ describe('ShellAccountMenu', () => {
     await w.get('button[aria-haspopup="menu"]').trigger('click')
     await tick()
     const plan = w.findAll('[role="menuitem"]')[0]!
-    expect(plan.text()).toContain('Plano Free')
+    expect(plan.text()).toContain('Plano Grátis')
     expect(plan.attributes('href')).toBe('/planos')
   })
 })

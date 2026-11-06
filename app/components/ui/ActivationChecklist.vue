@@ -15,7 +15,10 @@
         <div v-else-if="primary && item.key === firstPending" class="flex items-center gap-3 px-3 py-2">
           <span class="size-5 shrink-0 rounded-full border-2 border-line-strong" aria-hidden="true" />
           <div class="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-x-3 gap-y-2">
-            <span :id="`${uid}-${item.key}`" class="font-medium text-fg-strong">{{ item.label }}</span>
+            <span :id="`${uid}-${item.key}`" class="font-medium text-fg-strong">
+              {{ item.label }}
+              <span v-if="item.hint" class="block text-meta font-normal text-fg-muted" data-testid="checklist-hint">{{ item.hint }}</span>
+            </span>
             <UiButton variant="primary" :to="item.to" :aria-describedby="`${uid}-${item.key}`" @click="select(item.key)">{{ item.cta }}</UiButton>
           </div>
         </div>
@@ -29,7 +32,10 @@
           @click="select(item.key)"
         >
           <span class="size-5 shrink-0 rounded-full border-2 border-line-strong" aria-hidden="true" />
-          <span class="flex-1 font-medium text-fg-strong">{{ item.label }}</span>
+          <span class="flex-1 font-medium text-fg-strong">
+            {{ item.label }}
+            <span v-if="item.hint" class="block text-meta font-normal text-fg-muted" data-testid="checklist-hint">{{ item.hint }}</span>
+          </span>
           <ChevronRight class="size-4 shrink-0 text-fg-muted" aria-hidden="true" />
         </component>
       </li>
@@ -55,6 +61,8 @@ const props = defineProps<{
   topicId?: string | null
   /** The first pending step gets the primary button (account without cards: it replaces the plan) */
   primary?: boolean
+  /** A line under "Adicionar material" while it is pending (the trial's invitation, prd-planos-lancamento RF-F2) */
+  materialHint?: string | null
 }>()
 
 const emit = defineEmits<{ (e: 'select', item: ChecklistItem): void }>()
@@ -65,9 +73,9 @@ const uid = useId()
 
 const notebook = (view?: 'cards') => cadernoPath(props.topicId, view ? { view } : {})
 
-const items = computed<{ key: ChecklistItem; label: string; cta: string; done: boolean; to?: string }[]>(() => [
+const items = computed<{ key: ChecklistItem; label: string; cta: string; done: boolean; to?: string; hint?: string | null }[]>(() => [
   { key: 'topic', label: 'Criar um caderno', cta: 'Criar caderno', done: props.hasTopics, to: '/cadernos?action=new-notebook' },
-  { key: 'material', label: 'Adicionar material (nota ou PDF)', cta: 'Adicionar', done: props.hasMaterial },
+  { key: 'material', label: 'Adicionar material (nota ou PDF)', cta: 'Adicionar', done: props.hasMaterial, hint: props.materialHint },
   { key: 'cards', label: 'Gerar ou criar cards', cta: 'Criar cards', done: props.hasCards, to: notebook('cards') },
   { key: 'review', label: 'Fazer a primeira revisão', cta: 'Revisar', done: props.hasReviewed, to: '/revisar' },
   { key: 'streak', label: 'Estudar 3 dias seguidos', cta: 'Revisar', done: props.streak >= 3, to: '/revisar' },

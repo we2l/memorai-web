@@ -35,7 +35,7 @@
       <p class="flex min-w-0 flex-1 items-center gap-2 text-meta text-fg-strong">
         <Sparkles class="size-4 shrink-0 text-warning" aria-hidden="true" /> Melhore suas notas com IA
       </p>
-      <UiButton size="sm" to="/planos">Seja Pro</UiButton>
+      <UiButton size="sm" to="/planos">Ver planos</UiButton>
     </template>
   </div>
 </template>

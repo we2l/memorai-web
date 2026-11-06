@@ -31,13 +31,14 @@
       </UiSection>
 
       <!-- Pro: the recommendation is written, and the page's only lilac block -->
-      <UiSection :title="pro?.name ?? 'Pro'" variant="tinted" data-testid="plan-pro">
+      <UiSection :title="pro?.name ?? PRO_NAME_FALLBACK" variant="tinted" data-testid="plan-pro">
         <template #action><UiTag tone="action">Recomendado</UiTag></template>
         <div class="flex h-full flex-col">
           <div class="min-h-24">
             <template v-if="pro?.prices.monthly">
+              <!-- The annual says what is charged (once a year) and its monthly share (prd-planos-lancamento RF-F4) -->
               <p class="text-page-title text-fg-strong tabular-nums" data-testid="plan-pro-price">
-                {{ formatPrice(annual ? annual.monthly_equivalent_cents ?? 0 : pro.prices.monthly.amount_cents) }}<span class="text-meta font-normal tracking-normal text-fg-muted">/mês</span>
+                {{ formatPrice(annual ? annual.amount_cents : pro.prices.monthly.amount_cents) }}<span class="text-meta font-normal tracking-normal text-fg-muted">{{ annual ? '/ano' : '/mês' }}</span>
               </p>
               <p class="mt-1 text-meta text-fg-muted" data-testid="plan-pro-note">{{ annualCopy || 'Cancele quando quiser, pelo portal de assinatura' }}</p>
             </template>
@@ -68,7 +69,9 @@ const emit = defineEmits<{ toggle: [period: BillingPeriod] }>()
 const { plans: catalog, failed, fetchPlans, limitOf, formatPrice } = usePlans()
 const free = computed(() => limitOf('free'))
 const pro = computed(() => limitOf('pro'))
-const freeLines = computed(() => [...(free.value?.highlights ?? []), ...planBenefitLines(catalog.value, 'free')])
+// The Free has no AI quota since the planos de lançamento: its phrases only (RF-F4); the lines of the limits
+// are the fallback of a catalog without highlights
+const freeLines = computed(() => (free.value?.highlights?.length ? free.value.highlights : planBenefitLines(catalog.value, 'free')))
 const proLines = computed(() => [...(pro.value?.highlights ?? []), ...planBenefitLines(catalog.value, 'pro')])
 const annual = computed(() => (period.value === 'annual' ? pro.value?.prices.annual ?? null : null))
 const savings = computed(() => {
@@ -77,15 +80,17 @@ const savings = computed(() => {
 })
 
 /**
- * "R$ 287,90 no Pix ou 12x de R$ 23,99 sem juros no cartão" only when the Stripe account offers
- * installments (installments_max > 1); otherwise "à vista no cartão" (prd-custo-abuso-p0 RF-7).
+ * "R$ 19,99 por mês, cobrado uma vez por ano" (prd-planos-lancamento RF-F4), then how it is paid: "12x de R$ 19,99
+ * sem juros no cartão" only when the Stripe account offers installments (installments_max > 1); otherwise "no Pix
+ * ou à vista no cartão" (prd-custo-abuso-p0 RF-7).
  */
 const annualCopy = computed(() => {
   if (!annual.value) return ''
-  const total = formatPrice(annual.value.amount_cents)
+  const monthly = annual.value.monthly_equivalent_cents ?? Math.round(annual.value.amount_cents / 12)
+  const share = `${formatPrice(monthly)} por mês, cobrado uma vez por ano`
   const installments = annual.value.installments_max ?? 1
   return installments > 1
-    ? `Um pagamento por ano: ${total} no Pix ou ${installments}x de ${formatPrice(Math.round(annual.value.amount_cents / installments))} sem juros no cartão`
-    : `Um pagamento por ano: ${total} no Pix ou à vista no cartão`
+    ? `${share}. No Pix ou em ${installments}x de ${formatPrice(Math.round(annual.value.amount_cents / installments))} sem juros no cartão`
+    : `${share}. No Pix ou à vista no cartão`
 })
 </script>

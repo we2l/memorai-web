@@ -78,7 +78,7 @@
           </li>
           <li><UiListRow title="Escolher matéria" meta="10 a 50 questões" as="button" @click="openQuiz({ topicId: scope || null }, 'one_subject')" /></li>
           <li v-if="examRoot">
-            <UiListRow :title="`Simulado do ${examRoot.name}`" :meta="isFree ? 'No Pro · 30 a 120 questões' : `60 questões · ${timerLabel(suggestedTimer(60))}`" as="button" @click="openQuiz({ topicId: examRoot.id, tab: 'exam' }, 'new_quiz')" />
+            <UiListRow :title="`Simulado do ${examRoot.name}`" :meta="isFree ? `No ${proName} · 30 a 120 questões` : `60 questões · ${timerLabel(suggestedTimer(60))}`" as="button" @click="openQuiz({ topicId: examRoot.id, tab: 'exam' }, 'new_quiz')" />
           </li>
           <li v-if="lastWithErrors">
             <UiListRow title="Refazer as que errei" :meta="`${plural(lastWrong, 'questão', 'questões')} · sem gastar geração`" as="button" :disabled="retrying" data-testid="practice-retry" @click="retryLast">
@@ -99,6 +99,13 @@
           </div>
         </header>
         <UiSkeleton v-if="loading" variant="block" />
+        <!-- Not on the paid plan, nothing to listen to: the demo of the episode instead of "Gerar" (prd-planos-lancamento RF-F3) -->
+        <template v-else-if="podcastPaywall && !latest">
+          <PodcastDemo compact />
+          <UiButton block icon-tone="listen" :icon-left="Headphones" to="/planos" data-testid="practice-listen-plans" @click="toPlans">
+            Conhecer o {{ proName }}
+          </UiButton>
+        </template>
         <UiStat
           v-else
           :value="latest?.duration_seconds ? `${Math.max(1, Math.round(latest.duration_seconds / 60))} min` : '—'"
@@ -108,14 +115,14 @@
         <UiButton v-if="latest" block icon-tone="listen" :icon-left="Headphones" @click="listen(latest)">
           {{ player.currentPodcast?.id === latest.id ? (player.isPlaying ? 'Tocando agora' : 'Continuar') : 'Ouvir agora' }}
         </UiButton>
-        <UiButton v-else block icon-tone="listen" :icon-left="Headphones" :to="withScope('/podcasts', { action: 'generate' }, 'topic_id')" @click="started('listen', 'generate')">
+        <UiButton v-else-if="!podcastPaywall" block icon-tone="listen" :icon-left="Headphones" :to="withScope('/podcasts', { action: 'generate' }, 'topic_id')" @click="started('listen', 'generate')">
           Gerar um episódio
         </UiButton>
         <ul class="-mx-3 divide-y divide-line border-t border-line">
           <li v-if="continuing">
             <UiListRow :title="`Continuar · ${continuing.title}`" :meta="`ouvido ${Math.round((continuing.progress ?? 0) * 100)}%`" as="button" @click="listen(continuing, 'continue')" />
           </li>
-          <li v-if="latest">
+          <li v-if="latest && !podcastPaywall">
             <UiListRow title="Gerar de um assunto" :meta="podcastQuotaText ?? 'Do caderno, de uma matéria ou de um assunto'" :to="withScope('/podcasts', { action: 'generate' }, 'topic_id')" @click="started('listen', 'generate')" />
           </li>
           <li>
@@ -164,7 +171,10 @@ const quizStore = useQuizStore()
 const podcastStore = usePodcastStore()
 const player = usePlayerStore()
 const auth = useAuthStore()
-const isFree = computed(() => auth.user?.plan === 'free')
+// The trial has the simulado do caderno (RN-03); the podcast only the paid plan (RF-F3)
+const isFree = computed(() => !!auth.user && !auth.hasProAccess)
+const podcastPaywall = computed(() => !!auth.user && auth.user.plan !== 'pro')
+const proName = useProName()
 
 /** '' = all cadernos; else a caderno, matéria or assunto (its subtree) */
 const scope = ref((typeof route.query.topic_id === 'string' && route.query.topic_id) || '')
@@ -353,6 +363,10 @@ function listen(podcast: Podcast, entry: PracticeEntry = 'main') {
     return
   }
   player.play(podcast)
+}
+
+function toPlans() {
+  useAnalytics().track('upgrade_clicked', { feature: 'podcast', billing: null, source: 'podcast_demo' })
 }
 
 onMounted(() => {

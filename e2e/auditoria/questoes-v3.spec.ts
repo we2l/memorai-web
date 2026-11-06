@@ -54,16 +54,19 @@ test('Praticar: "20 questões do pior assunto" abre a folha já preenchida com o
 test.describe('Free', () => {
   test.use({ auditUser: 'praticarFree' })
 
-  test('a cota e o requisito antes: "0 de 1 geração", "faltam N palavras" e o simulado do caderno no Pro', async ({ page }) => {
+  test('depois do teste: sem cota de IA ("Ver o …" com o nome do catálogo), "faltam N palavras" e o simulado do caderno no plano pago', async ({ page }) => {
     const empty = (await apiCall(page, 'POST', '/topics', { name: `Sem material ${Date.now()}` })).data
+    const pro = (await apiCall(page, 'GET', '/plans')).data.plans.find((p: any) => p.key === 'pro').name
     await gotoApp(page, `/simulados?topic_id=${empty.id}`)
     await expect(sheet(page)).toBeVisible()
-    await expect(sheet(page).getByTestId('quiz-quota')).toHaveText('0 de 1 geração este mês')
+    // The Free has no AI since the planos de lançamento: no "0 de 0", the action says where it is
+    await expect(sheet(page).getByTestId('quiz-quota')).toHaveCount(0)
+    await expect(sheet(page).getByTestId('quiz-submit')).toHaveText(`Ver o ${pro}`)
     await expect(sheet(page).getByRole('status')).toContainText('Escreva 100 palavras em notas para liberar')
     await expect(sheet(page).getByTestId('quiz-submit')).toBeDisabled()
     await expect(sheet(page).getByTestId('quiz-count').locator('option', { hasText: '50 questões' })).toBeDisabled()
     await sheet(page).getByRole('tab', { name: 'Simulado' }).click()
-    await expect(sheet(page)).toContainText('é do Pro')
+    await expect(sheet(page)).toContainText(`é do ${pro}`)
     await expect(sheet(page).getByTestId('quiz-submit')).toBeDisabled()
   })
 })

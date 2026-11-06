@@ -12,7 +12,7 @@
         >
           <Lightbulb class="size-4 text-action-fg" aria-hidden="true" />
           <span class="flex-1 text-meta text-action-fg">A IA pode criar cards automaticamente</span>
-          <span class="text-label font-medium text-action-fg">Pro →</span>
+          <span class="text-label font-medium text-action-fg">{{ proName }} →</span>
         </button>
 
         <UiSelect
@@ -115,9 +115,11 @@ const isEdit = computed(() => !!props.card)
 
 const auth = useAuthStore()
 const featureUsage = useFeatureUsage()
+// Not for a Free account whose trial opens on its first AI use: that click goes to the server (RF-F7b)
 const showAiHint = computed(() =>
-  !isEdit.value && auth.user?.plan === 'free' && featureUsage.remaining('cards_ai') === 0,
+  !isEdit.value && auth.user?.plan === 'free' && featureUsage.remaining('cards_ai') === 0 && !featureUsage.opensTrial('cards_ai'),
 )
+const proName = useProName(() => showAiHint.value)
 
 function openUpgrade() {
   window.dispatchEvent(new CustomEvent('feature-limit-reached', {

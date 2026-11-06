@@ -9,6 +9,7 @@
     :streak="stats?.streak ?? 0"
     :topic-id="roots[0]?.id ?? null"
     :primary="primary"
+    :material-hint="trialHint"
     @select="track"
   />
 </template>
@@ -39,6 +40,10 @@ const isNewAccount = computed(() => {
 const notesInRoots = computed(() => props.roots.some(t => (t.notes_count ?? 0) > 0))
 const hasDocuments = ref(false)
 const hasMaterial = computed(() => notesInRoots.value || hasDocuments.value)
+
+// The trial opens on the first material (prd-planos-lancamento RF-F2): days from the catalog, never by hand.
+// Without a verified e-mail the banner of the layout says the trial asks for it.
+const trialHint = useTrialInvite()
 
 function track(item: ChecklistItem) {
   useAnalytics().track('home_checklist_click', { item })

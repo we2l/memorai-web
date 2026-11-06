@@ -54,10 +54,11 @@ test.describe('Parcelamento do anual em /planos', () => {
 
       await page.goto('/planos')
       const brl = (cents: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(cents / 100)
+      const share = `${brl(annual.monthly_equivalent_cents)} por mês, cobrado uma vez por ano`
       if (installments > 1) {
-        await expect(page.getByText(`${brl(annual.amount_cents)} no Pix ou 12x de ${brl(Math.round(annual.amount_cents / 12))} sem juros no cartão`)).toBeVisible()
+        await expect(page.getByText(`${share}. No Pix ou em 12x de ${brl(Math.round(annual.amount_cents / 12))} sem juros no cartão`)).toBeVisible()
       } else {
-        await expect(page.getByText(`${brl(annual.amount_cents)} no Pix ou à vista no cartão`)).toBeVisible()
+        await expect(page.getByText(`${share}. No Pix ou à vista no cartão`)).toBeVisible()
         await expect(page.getByText(/\d+x de/)).toHaveCount(0)
       }
     })
@@ -76,7 +77,7 @@ test.describe('Catálogo em /planos', () => {
     await page.goto('/planos')
     await expect(page.getByTestId('plan-free').getByText('Frase do catálogo para o Grátis')).toBeVisible()
     await expect(page.getByTestId('plan-pro').getByText('Frase do catálogo para o Pro')).toBeVisible()
-    await expect(page.getByTestId('plan-pro').getByText('Podcasts: 7 por mês (até 15 min)')).toBeVisible()
+    await expect(page.getByTestId('plan-pro').getByText(`Podcasts: 7 por mês (até ${catalog.plans[1].extras.podcast_max_minutes} min)`)).toBeVisible()
     await expect(page.getByTestId('compare-podcast').getByRole('cell').nth(1)).toContainText('7 por mês')
   })
 })

@@ -25,7 +25,7 @@
         <p class="text-label text-fg-muted">{{ quotaText }}</p>
       </template>
       <p v-else class="text-meta text-fg">
-        Você usou as gerações de cards do mês. <UiLink to="/planos">Ver planos</UiLink>
+        {{ spentText }} <UiLink to="/planos">Ver planos</UiLink>
       </p>
       <UiButton variant="ghost" :icon-left="Plus" block @click="$emit('create-card')">Criar card</UiButton>
     </div>
@@ -117,13 +117,20 @@ const emptyText = computed(() => (isPart.value
   ? 'Esta parte ainda não tem cards. Gere a partir do texto ou crie da seleção.'
   : 'Esta nota ainda não tem cards. Gere a partir do texto ou crie da seleção.'))
 
+// The trial counts its own 7 days, also when this click opens it (prd-planos-lancamento RF-F7b)
+const auth = useAuthStore()
+const period = computed(() => (auth.onTrial || auth.opensTrialOnUse ? 'teste' : 'mês'))
+const spentText = computed(() => {
+  if (auth.onTrial) return 'Você usou as gerações de cards do teste.'
+  return auth.user?.plan === 'pro' ? 'Você usou as gerações de cards do mês.' : 'Os cards com IA não entram no plano Grátis.'
+})
 const quotaShort = computed(() => {
   const left = canGenerate.value.remaining
-  return left == null ? 'sem limite no seu plano' : `${left} ${left === 1 ? 'geração restante' : 'gerações restantes'} no mês`
+  return left == null ? 'sem limite no seu plano' : `${left} ${left === 1 ? 'geração restante' : 'gerações restantes'} no ${period.value}`
 })
 const quotaText = computed(() => {
   const left = canGenerate.value.remaining
-  const uses = left == null ? 'Usa 1 geração (sem limite no seu plano)' : `Usa 1 das suas ${left} ${left === 1 ? 'geração' : 'gerações'} do mês`
+  const uses = left == null ? 'Usa 1 geração (sem limite no seu plano)' : `Usa 1 das suas ${left} ${left === 1 ? 'geração' : 'gerações'} do ${period.value}`
   return `${uses} · cerca de 15 cards · você revisa antes de salvar`
 })
 

@@ -25,7 +25,7 @@ function catalog(installments = 1) {
         name: 'Pro',
         prices: {
           monthly: { amount_cents: 2990, label: 'R$ 29,90/mês' },
-          annual: { amount_cents: 28790, label: 'R$ 287,90/ano', monthly_equivalent_cents: 2399, installments_max: installments, savings_cents: 7090 },
+          annual: { amount_cents: 23990, label: 'R$ 239,90/ano', monthly_equivalent_cents: 1999, installments_max: installments, savings_cents: 11890 },
         },
         highlights: ['Tudo do Grátis'],
         limits: { cards_ai: null },
@@ -57,25 +57,44 @@ describe('PlanCards', () => {
     expect(wrapper.text()).not.toContain('AÇÃO DO PRO')
   })
 
-  it('anual: equivalente mensal, total à vista, destaques + linhas do catálogo e "Recomendado" escrito', async () => {
+  it('anual: o total do ano, "R$ 19,99 por mês, cobrado uma vez por ano", destaques + linhas do catálogo e "Recomendado" escrito', async () => {
     useState('plans').value = catalog()
     const wrapper = await mountCards()
     const pro = wrapper.find('[data-testid="plan-pro"]')
     expect(pro.text()).toContain('Recomendado')
-    expect(wrapper.find('[data-testid="plan-pro-price"]').text().replace(/\s/g, ' ')).toBe('R$ 23,99/mês')
-    expect(wrapper.find('[data-testid="plan-pro-note"]').text().replace(/\s/g, ' ')).toBe('Um pagamento por ano: R$ 287,90 no Pix ou à vista no cartão')
+    expect(wrapper.find('[data-testid="plan-pro-price"]').text().replace(/\s/g, ' ')).toBe('R$ 239,90/ano')
+    expect(wrapper.find('[data-testid="plan-pro-note"]').text().replace(/\s/g, ' ')).toBe('R$ 19,99 por mês, cobrado uma vez por ano. No Pix ou à vista no cartão')
     expect(pro.text()).toContain('Tudo do Grátis')
     expect(pro.text()).toContain('Gerações ilimitadas')
     expect(pro.text()).toContain('AÇÃO DO PRO')
-    expect(wrapper.find('[data-testid="plan-free"]').text()).toContain('Cadernos sem limite')
+    expect(wrapper.find('[data-testid="billing-savings"]').text().replace(/\s/g, ' ')).toContain('R$ 118,90')
+  })
+
+  it('Free só com os destaques do catálogo (sem IA, prd-planos-lancamento RF-F4); sem destaques, as linhas dos limites', async () => {
+    useState('plans').value = catalog()
+    const wrapper = await mountCards()
+    const free = wrapper.find('[data-testid="plan-free"]')
+    expect(free.text()).toContain('Cadernos sem limite')
+    expect(free.text()).not.toContain('Gerações de cards com IA')
+    const noHighlights = catalog()
+    noHighlights.plans[0]!.highlights = []
+    useState('plans').value = noHighlights
+    await flushPromises()
     expect(wrapper.find('[data-testid="plan-free"]').text()).toContain('Gerações de cards com IA: 10 por mês')
-    expect(wrapper.find('[data-testid="billing-savings"]').text().replace(/\s/g, ' ')).toContain('R$ 70,90')
+  })
+
+  it('o nome do plano pago vem do catálogo', async () => {
+    const renamed = catalog()
+    renamed.plans[1]!.name = 'Intensivo'
+    useState('plans').value = renamed
+    const wrapper = await mountCards()
+    expect(wrapper.find('[data-testid="plan-pro"] h2').text()).toBe('Intensivo')
   })
 
   it('parcelamento só com installments_max > 1', async () => {
     useState('plans').value = catalog(12)
     const wrapper = await mountCards()
-    expect(wrapper.find('[data-testid="plan-pro-note"]').text().replace(/\s/g, ' ')).toContain('12x de R$ 23,99 sem juros no cartão')
+    expect(wrapper.find('[data-testid="plan-pro-note"]').text().replace(/\s/g, ' ')).toContain('No Pix ou em 12x de R$ 19,99 sem juros no cartão')
   })
 
   it('mensal: preço do mês e cancelamento pelo portal, sem o total do ano', async () => {
@@ -117,7 +136,7 @@ describe('PlanCompareTable', () => {
 describe('BillingToggle', () => {
   it('rádios nativos num grupo com nome, marcando o período e emitindo a troca', async () => {
     const wrapper = await mountSuspended(BillingToggle, { props: { modelValue: 'annual', savings: 'R$ 70,90' } })
-    expect(wrapper.find('legend').text()).toBe('Período de cobrança do Pro')
+    expect(wrapper.find('legend').text()).toBe('Período de cobrança')
     const radios = wrapper.findAll('input[type="radio"]')
     expect(radios).toHaveLength(2)
     expect((radios[1]!.element as HTMLInputElement).checked).toBe(true)

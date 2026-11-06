@@ -5,7 +5,7 @@
         <!-- The badge is a padded link: -ml-3 puts its pill on the edge of the section text -->
         <UiPlanBadge class="-ml-3" :plan="auth.user?.plan" />
         <span v-if="planSummary" class="text-body text-fg-strong" data-testid="plan-summary">{{ planSummary }}</span>
-        <span v-else-if="isFree" class="text-body text-fg-muted">Sem cobrança. O uso de IA tem limite mensal.</span>
+        <span v-else-if="isFree" class="text-body text-fg-muted">{{ trialInvite ? `Sem cobrança. ${trialInvite}.` : `Sem cobrança. A IA é do ${proName}.` }}</span>
       </div>
       <p
         v-if="subscription.inGracePeriod && !subscription.info?.monthly_scheduled"
@@ -13,11 +13,11 @@
         role="status"
       >
         Seu anual venceu em {{ formatBillingDayMonth(subscription.info?.plan_expires_at) }}.
-        Renove até {{ formatBillingDayMonth(subscription.info?.grace_ends_at) }} para não perder o Pro.
+        Renove até {{ formatBillingDayMonth(subscription.info?.grace_ends_at) }} para não perder o {{ proName }}.
       </p>
       <div v-if="isFree || showRenew || showPortal" class="flex flex-wrap gap-2">
         <!-- The one primary of the page, only for Free (RF-F3) -->
-        <UiButton v-if="isFree" variant="primary" to="/planos" data-testid="plan-upgrade">Conhecer o Pro</UiButton>
+        <UiButton v-if="isFree" variant="primary" to="/planos" data-testid="plan-upgrade">Conhecer o {{ proName }}</UiButton>
         <UiButton v-if="showRenew" :to="ANNUAL_RENEWAL_PATH">Renovar</UiButton>
         <UiButton v-if="showPortal" data-testid="plan-portal" @click="subscription.openPortal()">Gerenciar assinatura</UiButton>
       </div>
@@ -25,8 +25,9 @@
 
     <div class="border-t border-line pt-5" data-testid="usage">
       <div class="mb-3 flex flex-wrap items-baseline justify-between gap-x-4">
-        <h3 class="text-body font-semibold text-fg-strong">Uso de IA este mês</h3>
-        <p v-if="renews" class="text-meta text-fg-muted" data-testid="usage-renews">a contagem recomeça em {{ renews }}</p>
+        <h3 class="text-body font-semibold text-fg-strong">Uso de IA {{ featureUsage.periodLabel.value }}</h3>
+        <!-- In the trial the counts are of its 7 days: its end is the plan's line above (prd-planos-lancamento RF-F6) -->
+        <p v-if="renews && !auth.onTrial" class="text-meta text-fg-muted" data-testid="usage-renews">a contagem recomeça em {{ renews }}</p>
       </div>
 
       <UiSkeleton v-if="loading" variant="text" :lines="4" />
@@ -37,7 +38,7 @@
           <UiProgressBar v-if="row.limit" class="w-32" :value="row.used" :max="row.limit" :label="`${row.label}: ${row.used} de ${row.limit} ${row.unit}`" />
           <span class="ml-auto w-28 text-right text-meta text-fg-muted tabular-nums">
             <template v-if="row.limit === null"><span class="font-semibold text-fg-strong">{{ row.used }}</span> · ilimitado</template>
-            <template v-else-if="row.limit === 0">no Pro</template>
+            <template v-else-if="row.limit === 0">no {{ proName }}</template>
             <template v-else><span class="font-semibold text-fg-strong">{{ row.used }}</span> de {{ row.limit }}</template>
           </span>
         </li>
@@ -58,22 +59,27 @@ const featureUsage = useFeatureUsage()
 const loading = computed(() => featureUsage.loading.value || !hasLoaded.value)
 const hasLoaded = ref(false)
 const isFree = computed(() => (auth.user?.plan ?? 'free') === 'free')
+const proName = useProName()
+const trialInvite = useTrialInvite()
 
 // Annual validity, scheduled monthly; the portal is only for the monthly (monetização RN-12)
 const planSummary = computed(() => {
   // One or the other, never both (a canceled subscription has only subscription_ends_at, api #134)
+  const name = proName.value
+  // The trial: its end in place of the renewal (prd-planos-lancamento RF-F6)
+  if (auth.onTrial) return trialEndsLine(name, auth.user?.trial?.ends_at)
   const renewsAt = auth.user?.subscription_renews_at
-  if (renewsAt) return `Pro · renova em ${formatBillingDayMonth(renewsAt)}`
+  if (renewsAt) return `${name} · renova em ${formatBillingDayMonth(renewsAt)}`
   const info = subscription.info
   if (!info?.billing) return ''
-  if (info.subscription_ends_at) return `Pro · termina em ${formatBillingDayMonth(info.subscription_ends_at)}`
-  if (info.billing === 'monthly') return 'Pro mensal'
+  if (info.subscription_ends_at) return `${name} · termina em ${formatBillingDayMonth(info.subscription_ends_at)}`
+  if (info.billing === 'monthly') return `${name} mensal`
   const until = formatBillingDate(info.plan_expires_at)
   if (info.monthly_scheduled) {
     const monthly = limitOf('pro')?.prices.monthly
-    return `Pro anual até ${until}` + (monthly ? ` · depois, mensal ${formatPrice(monthly.amount_cents)}` : ' · depois, mensal')
+    return `${name} anual até ${until}` + (monthly ? ` · depois, mensal ${formatPrice(monthly.amount_cents)}` : ' · depois, mensal')
   }
-  return `Pro anual · válido até ${until}`
+  return `${name} anual · válido até ${until}`
 })
 const showRenew = computed(() => subscription.isAnnual && !!subscription.info?.can_renew_annual && !subscription.info?.monthly_scheduled)
 const showPortal = computed(() => !!subscription.info?.has_subscription)
@@ -82,12 +88,17 @@ const rows = computed(() => {
   const usage = featureUsage.usage.value?.features
   const features = plans.value?.features
   if (!usage || !features) return []
-  return Object.entries(features).flatMap(([key, f]) => {
+  const trial = featureUsage.usage.value?.tier === 'trial'
+  const out = Object.entries(features).flatMap(([key, f]) => {
     const data = usage[key]
     if (!data) return []
     const label = f.label.charAt(0).toUpperCase() + f.label.slice(1)
-    return [{ key, label, unit: f.unit, used: data.used, limit: data.limit }]
+    return [{ key, label, unit: trial ? 'no teste' : f.unit, used: data.used, limit: data.limit }]
   })
+  // The trial's pages of PDF (100 for the whole trial): "Páginas de PDF lidas pela IA · 30 de 100"
+  const pages = featureUsage.usage.value?.pdf_pages
+  if (trial && pages?.limit) out.push({ key: 'pdf_pages', label: 'Páginas de PDF lidas pela IA', unit: 'no teste', used: pages.used, limit: pages.limit })
+  return out
 })
 
 /** The day after the last day of the period: "01/12" */

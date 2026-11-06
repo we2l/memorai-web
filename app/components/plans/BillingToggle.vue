@@ -1,6 +1,6 @@
 <template>
   <fieldset class="flex flex-col items-center gap-2" data-testid="billing-toggle">
-    <legend class="sr-only">Período de cobrança do Pro</legend>
+    <legend class="sr-only">Período de cobrança</legend>
     <div class="inline-flex gap-1 rounded-control bg-subtle p-1">
       <label
         v-for="option in OPTIONS"

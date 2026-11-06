@@ -1,6 +1,6 @@
 <template>
   <div class="mx-auto flex max-w-4xl flex-col gap-section px-gutter pt-8 lg:pt-12">
-    <UiPageHeader title="Planos" meta="Cadernos, notas e revisão são grátis. O Pro tira os limites da IA." />
+    <UiPageHeader title="Planos" :meta="`Cadernos, notas e revisão são grátis. A IA é do ${proName}.`" />
 
     <PlansPlanCards v-model:period="period" @toggle="onToggle">
       <template #free-action>
@@ -28,7 +28,9 @@
         </div>
 
         <PlansCurrentPlan v-else-if="currentPlan === 'pro'" />
-        <UiButton v-else variant="primary" block :loading="loading" @click="subscribe">{{ isYearly ? 'Assinar anual' : 'Assinar Pro' }}</UiButton>
+        <UiButton v-else variant="primary" block :loading="loading" @click="subscribe">{{ isYearly ? 'Assinar anual' : `Assinar ${proName}` }}</UiButton>
+        <!-- The trial of the catalog (prd-planos-lancamento RF-F4): offered, running, or nothing once used -->
+        <p v-if="trialLine" class="mt-2 text-meta text-fg-muted" data-testid="plan-trial">{{ trialLine }}</p>
       </template>
     </PlansPlanCards>
 
@@ -93,12 +95,32 @@ const canScheduleMonthly = computed(() => {
   return !!info && !info.has_subscription && daysUntil(info.plan_expires_at) <= MONTHLY_SWITCH_WINDOW_DAYS
 })
 
-const FAQS = [
-  { q: 'Posso cancelar quando quiser?', a: 'Sim. Cancele quando quiser, pelo portal de assinatura. O Pro continua até o fim do período já pago.' },
+const proName = useProName()
+const { plans } = usePlans()
+const trial = computed(() => offeredTrial(plans.value))
+// "No teste: 20 gerações de cards com IA, 30 perguntas…" (catalog trial.limits, for the whole trial)
+const trialQuotas = computed(() => trialLimitsText(plans.value))
+
+/** The trial's line under the paid plan's action: the days of the catalog, never written by hand. */
+const trialLine = computed(() => {
+  const t = trial.value
+  const u = user.value
+  // Signed in only: the visitor sees the trial in the questions (a line under the button would push the layout)
+  if (!t || !u || u.plan === 'pro') return ''
+  if (u.trial?.status === 'active') return `${trialEndsLine(proName.value, u.trial.ends_at)}.`
+  if (u.trial?.status === 'available') return `Ou teste ${t.days} dias grátis, sem cartão: começa quando você mandar o primeiro material.`
+  return ''
+})
+
+const FAQS = computed(() => [
+  ...(trial.value
+    ? [{ q: 'Como funciona o teste grátis?', a: `Ao mandar o primeiro material (um PDF ou uma nota), com o e-mail confirmado, você ganha ${trial.value.days} dias do ${proName.value}, sem cartão.${trialQuotas.value ? ` No teste: ${trialQuotas.value}.` : ''} Depois, a conta volta sozinha ao Grátis, sem cobrança.` }]
+    : []),
+  { q: 'Posso cancelar quando quiser?', a: `Sim. Cancele quando quiser, pelo portal de assinatura. O ${proName.value} continua até o fim do período já pago.` },
   { q: 'Como funciona o plano anual?', a: 'É um pagamento único, no Pix ou no cartão, que vale por um ano. Não renova sozinho: avisamos por e-mail antes de vencer.' },
   { q: 'Como funciona o plano mensal?', a: 'É cobrado no cartão e renova sozinho a cada mês, até você cancelar.' },
-  { q: 'O que acontece se eu voltar para o Grátis?', a: 'Seus cadernos, notas e cards continuam com você. O que volta são os limites mensais de IA.' },
-]
+  { q: 'O que acontece se eu voltar para o Grátis?', a: `Seus cadernos, notas e cards continuam com você, e a revisão segue grátis. A IA fica no ${proName.value}.` },
+])
 
 function onToggle(value: BillingPeriod) {
   track('plans_toggle', { period: value })
@@ -142,7 +164,7 @@ watch([statusLoaded, () => router.currentRoute.value.fullPath], () => {
   const q = query.value
   if (!statusLoaded.value || linkHandled || !Object.keys(q).length) return
   linkHandled = true
-  if (q.success === '1') toast.show('Assinatura ativada! Bem-vindo ao Pro.', 'success')
+  if (q.success === '1') toast.show(`Assinatura ativada! Bem-vindo ao ${proName.value}.`, 'success')
   if (q.canceled === '1') toast.show('Pagamento cancelado.', 'info')
   // Renewal link from the expiry e-mails: open the annual checkout right away
   if (q.ciclo === 'anual' && q.renovar === '1' && (subscription.info?.can_renew_annual ?? true)) startCheckout(true)

@@ -1,5 +1,24 @@
 <template>
-  <UiSheet v-model="model" title="Gerar episódio" description="Áudio dos seus pontos fracos, para ouvir no caminho e reforçar sem tela.">
+  <!-- Not on the paid plan (Free and the trial, prd-planos-lancamento RF-F3): the demo of the episode instead of the form -->
+  <UiSheet
+    v-if="paywall"
+    v-model="model"
+    title="Podcast dos pontos fracos"
+    :description="`Um episódio curto com os cards que você mais erra, para ouvir no caminho. É do ${proName}.`"
+  >
+    <div class="flex flex-col items-center gap-4" data-testid="podcast-paywall">
+      <PodcastDemo />
+      <p class="text-center text-meta text-fg">
+        <template v-if="podcastBenefit">No {{ proName }}: {{ podcastBenefit }}.</template>
+        <template v-if="auth.onTrial"> O podcast não entra no teste grátis.</template>
+      </p>
+    </div>
+    <template #footer>
+      <UiButton variant="primary" to="/planos" data-testid="podcast-paywall-plans" @click="toPlans">Conhecer o {{ proName }}</UiButton>
+    </template>
+  </UiSheet>
+
+  <UiSheet v-else v-model="model" title="Gerar episódio" description="Áudio dos seus pontos fracos, para ouvir no caminho e reforçar sem tela.">
     <div class="flex flex-col gap-5">
       <!-- Any level of the tree: the episode covers the subtree (prd-4e-praticar-v3 RF-F9, RF-B9) -->
       <div class="flex flex-col gap-2">
@@ -15,12 +34,6 @@
       </div>
 
       <UiRadioGroup v-model="contentMode" label="Conteúdo" :options="modes" variant="cards" :columns="3" @update:model-value="selectMode" />
-
-      <UiRadioGroup v-if="!isFree" v-model="duration" label="Duração" :options="durationOptions" variant="cards" :columns="2" />
-      <div v-else class="flex flex-wrap items-center gap-x-3 gap-y-1">
-        <p class="text-meta text-fg-muted">No plano Grátis você ouve uma prévia curta do episódio.</p>
-        <UiButton size="sm" variant="ghost" :icon-left="Lock" @click="openUpgrade">Episódios completos no Pro</UiButton>
-      </div>
     </div>
 
     <template #footer>
@@ -36,16 +49,17 @@
 
 <script setup lang="ts">
 // Generate an episode (prd-4e-praticar-v3 RF-F9): the scope in the tree (caderno, matéria, assunto), the
-// content, the length with the real time of the catalog ("Completo · ≈ 15 min" from podcast_max_minutes),
-// and the quota and the requirement before the action (F1 RF-F5: the 422 {code} becomes the same text).
-import { Lock, Mic } from 'lucide-vue-next'
-import type { PodcastContentMode, PodcastDuration, PodcastFormat, PodcastTone } from '~/types'
+// content, and the quota and the requirement before the action (F1 RF-F5: the 422 {code} becomes the same text).
+// The episode is always the short one, up to podcast_max_minutes of the catalog (8 min): the API records `short`
+// for every request (prd-planos-lancamento RF-B15), so there is no length to pick. Who is not on the paid plan
+// sees the demo video instead (RF-F3): Free and the trial have no podcast.
+import { Mic } from 'lucide-vue-next'
+import type { PodcastContentMode, PodcastFormat, PodcastTone } from '~/types'
 import { topicTreeOptions } from '~/utils/topicOptions'
 
 const props = defineProps<{
   /** Scope it opens with (the caderno of the page) */
   topicId?: string
-  weakCardsCount?: number
 }>()
 
 const emit = defineEmits<{ generated: [] }>()
@@ -59,7 +73,10 @@ const topicStore = useTopicStore()
 const plans = usePlans()
 const usage = useFeatureUsage()
 
-const isFree = computed(() => auth.user?.plan === 'free')
+// A known account outside the paid plan (the trial included): the paywall with the demo
+const paywall = computed(() => !!auth.user && auth.user.plan !== 'pro')
+const proName = useProName()
+const podcastBenefit = computed(() => plans.feature('podcast')?.pro_benefit ?? null)
 const generating = computed(() => podcastStore.generating)
 
 const selectedTopicId = ref(props.topicId ?? '')
@@ -67,14 +84,23 @@ watch(() => [model.value, props.topicId] as const, ([open, id]) => { if (open &&
 const topicOptions = computed(() => topicTreeOptions(topicStore.tree))
 watch(model, (val) => {
   if (!val) return
-  if (!topicStore.tree.length) void topicStore.fetchTree()
   void plans.fetchPlans()
+  if (paywall.value) {
+    useAnalytics().track('paywall_viewed', { feature: 'podcast', source: 'podcast_demo', plan_required: 'pro' })
+    return
+  }
+  if (!topicStore.tree.length) void topicStore.fetchTree()
   void usage.fetchUsage()
 }, { immediate: true }) // lazy-mounted already open
 
-// can_podcast of /details (subtree), read when the sheet opens or the scope changes
-const scopeId = computed(() => (model.value ? selectedTopicId.value || null : null))
-const { gate, details, blocked, fromError } = useTopicGate(() => scopeId.value, 'can_podcast')
+function toPlans() {
+  useAnalytics().track('upgrade_clicked', { feature: 'podcast', billing: null, source: 'podcast_demo' })
+  model.value = false
+}
+
+// can_podcast of /details (subtree), read when the sheet opens or the scope changes (never on the paywall)
+const scopeId = computed(() => (model.value && !paywall.value ? selectedTopicId.value || null : null))
+const { gate, blocked, fromError } = useTopicGate(() => scopeId.value, 'can_podcast')
 
 const quota = computed(() => usage.usage.value?.features?.podcast ?? null)
 const quotaText = computed(() => {
@@ -85,26 +111,13 @@ const quotaText = computed(() => {
 const quotaSpent = computed(() => !!quota.value && quota.value.limit !== null && (quota.value.remaining ?? 1) <= 0)
 const canGenerate = computed(() => !!selectedTopicId.value && !blocked.value && !generating.value && !quotaSpent.value)
 
-// Real length of the catalog (RF-T1: medium ≤ 15 min; short ≈ half, ~910 words ≈ 7 min)
-const maxMinutes = computed(() => plans.limitOf('pro')?.extras?.podcast_max_minutes ?? 15)
+// The length of the catalog (podcast_max_minutes: up to 8 min); the API makes every episode the short one
+const maxMinutes = computed(() => plans.limitOf('pro')?.extras?.podcast_max_minutes ?? null)
+const estimatedTime = computed(() => (maxMinutes.value ? `Até ${maxMinutes.value} min · pronto em ~4 min` : 'Pronto em ~4 min'))
 
-const duration = ref<PodcastDuration>('medium')
 const tone = ref<PodcastTone>('conversational')
 const format = ref<PodcastFormat>('expository')
 const contentMode = ref<PodcastContentMode>('weak_points')
-const weakCount = computed(() => props.weakCardsCount ?? details.value?.weak_count ?? 0)
-
-watchEffect(() => { duration.value = isFree.value ? 'short' : (weakCount.value <= 5 ? 'short' : 'medium') })
-
-const durationOptions = computed(() => [
-  { value: 'short', label: `Curto · ≈ ${Math.max(1, Math.round(maxMinutes.value / 2))} min`, description: weakCount.value && weakCount.value <= 5 ? 'Recomendado para poucos pontos fracos' : '5 cards' },
-  { value: 'medium', label: `Completo · ≈ ${maxMinutes.value} min`, description: weakCount.value > 5 ? `Recomendado: ${weakCount.value} pontos fracos` : '10 cards' },
-])
-
-const estimatedTime = computed(() => {
-  if (isFree.value) return 'Pronto em ~1 min'
-  return duration.value === 'short' ? 'Pronto em ~4 min' : 'Pronto em ~8 min'
-})
 
 const modes = [
   { value: 'weak_points' as const, label: 'Pontos fracos', description: 'Os cards que você mais erra' },
@@ -117,10 +130,6 @@ function selectMode(mode: string) {
   format.value = mode === 'pre_exam' ? 'debate' : 'expository'
 }
 
-function openUpgrade() {
-  window.dispatchEvent(new CustomEvent('feature-limit-reached', { detail: { feature: 'podcast', planRequired: 'pro' } }))
-}
-
 async function handleGenerate() {
   if (!selectedTopicId.value) {
     toast.show('Escolha o caderno ou o assunto.', 'error')
@@ -131,7 +140,7 @@ async function handleGenerate() {
     await podcastStore.generate({
       topic_id: selectedTopicId.value,
       content_mode: contentMode.value,
-      duration: duration.value,
+      duration: 'short',
       tone: tone.value,
       format: format.value,
       speaker_config: {

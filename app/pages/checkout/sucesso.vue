@@ -10,8 +10,8 @@
       <UiCelebration
         v-else-if="state === 'active'"
         kind="milestone"
-        title="Bem-vindo ao Pro!"
-        :subtitle="`Pro ativo até ${formatBillingDate(session?.plan_expires_at)}`"
+        :title="`Bem-vindo ao ${proName}!`"
+        :subtitle="`${proName} ativo até ${formatBillingDate(session?.plan_expires_at)}`"
         :level="1"
       >
         <div class="flex w-full flex-col items-center gap-4">
@@ -36,7 +36,7 @@
           <img
             v-if="session.pix_qr.image_url_png"
             :src="session.pix_qr.image_url_png"
-            alt="QR Code do Pix para pagar o Baigi Pro anual"
+            :alt="`QR Code do Pix para pagar o Baigi ${proName} anual`"
             class="mx-auto mb-4 size-56 rounded-row bg-qr p-2"
             width="224"
             height="224"
@@ -62,7 +62,7 @@
       <template v-else>
         <AlertCircle class="mx-auto mb-4 size-8 text-danger" aria-hidden="true" />
         <h1 class="mb-2 text-section text-fg-strong">Não encontramos este pagamento</h1>
-        <p class="mb-6 text-meta text-fg-muted">Se você já pagou, o Pro aparece em instantes na sua conta.</p>
+        <p class="mb-6 text-meta text-fg-muted">Se você já pagou, o {{ proName }} aparece em instantes na sua conta.</p>
         <UiButton block to="/planos">Voltar para os planos</UiButton>
       </template>
     </UiSection>
@@ -82,6 +82,7 @@ const MAX_POLL_MS = 30 * 60 * 1000
 
 const route = useRoute()
 const toast = useToast()
+const proName = useProName()
 const auth = useAuthStore()
 const subscription = useSubscriptionStore()
 

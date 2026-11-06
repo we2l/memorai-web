@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright'
-import { test, expect, gotoApp, apiCall, sql, USERS, API, WEB } from './support/fixtures'
+import { test, expect, gotoApp, apiCall, sql, USERS, API, WEB, catalogProName } from './support/fixtures'
 import type { Page } from '@playwright/test'
 
 /**
@@ -55,7 +55,7 @@ test.describe('Configurações (Free)', () => {
   test('primário só o "Conhecer o Pro"; nome salva sozinho com "Salvo"', async ({ page }) => {
     await gotoApp(page, '/configuracoes')
     await expect(page.locator('main .bg-action.text-on-action, .bg-action.text-on-action').filter({ visible: true })).toHaveCount(1)
-    await expect(page.getByRole('link', { name: 'Conhecer o Pro' })).toHaveAttribute('href', '/planos')
+    await expect(page.getByRole('link', { name: `Conhecer o ${await catalogProName()}` })).toHaveAttribute('href', '/planos')
     await page.locator('#profile-name').fill('Conta Nova')
     await page.locator('#profile-name').blur()
     await expect(page.getByTestId('name-saved')).toHaveText('Salvo')

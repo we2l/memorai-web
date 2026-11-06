@@ -1,8 +1,10 @@
 import { defineStore } from 'pinia'
 import type { User } from '~/types'
+import { hasProAccess, opensTrialOnUse, trialEnded } from '~/utils/trial'
 
 // Non-sensitive hint (not a credential): avoids calling /me for anonymous visitors.
 const LOGGED_IN_HINT = 'baigi_logged_in'
+let trialRefresh: Promise<unknown> | null = null
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -13,6 +15,11 @@ export const useAuthStore = defineStore('auth', {
   getters: {
     isAuthenticated: (state) => !!state.user,
     isVerified: (state) => !!state.user?.email_verified,
+    // The Intensivo trial (utils/trial.ts): `plan` stays free during it
+    onTrial: (state) => state.user?.trial?.status === 'active',
+    hasProAccess: (state) => hasProAccess(state.user),
+    opensTrialOnUse: (state) => opensTrialOnUse(state.user),
+    trialEnded: (state) => trialEnded(state.user),
   },
 
   actions: {
@@ -65,6 +72,16 @@ export const useAuthStore = defineStore('auth', {
       const res = await $api<{ data: User }>('/user/profile', { method: 'PUT', body: { name } })
       this.setUser(res.data)
       return res.data
+    },
+
+    /**
+     * After a POST that can open the trial (utils/trial.ts opensTrialRequest), while it is available: /me again,
+     * once at a time, so the screen shows the trial the server just opened.
+     */
+    refreshTrialAfterUse(): Promise<unknown> | void {
+      if (!opensTrialOnUse(this.user)) return
+      trialRefresh ??= this.fetchMe().finally(() => { trialRefresh = null })
+      return trialRefresh
     },
 
     setUser(user: User) {

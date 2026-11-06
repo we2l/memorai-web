@@ -35,6 +35,13 @@ describe('planBenefitLines', () => {
     ])
   })
 
+  it('podcast_format none (o Grátis sem podcast): sem "prévia" nem detalhe', () => {
+    const none = { ...catalog, plans: [{ ...catalog.plans[0]!, limits: { podcast: 0 }, extras: { ...extras, podcast_format: 'none' as const, podcast_max_minutes: 0 } }, catalog.plans[1]!] }
+    expect(planBenefitLines(none, 'free')).toEqual([])
+    const row = planComparison(none).find(r => r.key === 'podcast')!
+    expect(row.cells[0]).toEqual({ plan: 'free', text: 'Não incluído', detail: null, included: false })
+  })
+
   it('sem catálogo não inventa linha', () => {
     expect(planBenefitLines(null, 'free')).toEqual([])
   })

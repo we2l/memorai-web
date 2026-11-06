@@ -22,6 +22,18 @@ export interface User {
   /** LGPD analytics consent: null = not decided (prd-analytics-posthog RF-B03). */
   analytics_consent?: boolean | null
   analytics_consent_at?: string | null
+  /** Intensivo trial without a card (prd-planos-lancamento §4): absent on older API builds */
+  trial?: UserTrial
+}
+
+/** available = never started (opens on the first material or AI use, verified e-mail); active; used = over or never offered */
+export type TrialStatus = 'available' | 'active' | 'used'
+
+export interface UserTrial {
+  status: TrialStatus
+  /** ISO 8601; null while available */
+  started_at: string | null
+  ends_at: string | null
 }
 
 export interface ApiResponse<T> {
@@ -374,9 +386,14 @@ export interface FeatureData {
 
 export interface FeatureUsageData {
   plan: string
+  /** free | trial | pro: in the trial the period is the trial window (prd-planos-lancamento §4) */
+  tier?: 'free' | 'trial' | 'pro'
   period_start: string
   period_end: string
+  resets_at?: string
   features: Record<string, FeatureData>
+  /** Pages of PDF read by the AI in the period (the trial's cap: 100) */
+  pdf_pages?: FeatureData
 }
 
 // Documents (PDF)
@@ -791,7 +808,8 @@ export interface CatalogPlan {
     pdf_pages_monthly_cap: number
     quiz_max_questions: number
     quiz_short_answer: boolean
-    podcast_format: 'teaser' | 'full'
+    /** none: the plan has no podcast (Free since the planos de lançamento) */
+    podcast_format: 'teaser' | 'full' | 'none'
     podcast_max_minutes: number
   }
 }
@@ -802,13 +820,15 @@ export interface CatalogFeature {
   pro_benefit: string
 }
 
-/** Pro trial without a card (planos de lançamento, 2026-11): absent while the API does not offer it */
+/** Intensivo trial without a card (planos de lançamento, 2026-11): null when the API does not offer it */
 export interface CatalogTrial {
   days: number
   card_required: boolean
   starts_on?: string
   excludes?: string[]
   pdf_pages_cap?: number
+  /** Quotas for the whole trial, same shape as plans[].limits (null = no cap, 0 = not in the trial) */
+  limits?: Record<string, number | null>
 }
 
 export interface PlanCatalog {

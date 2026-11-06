@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mockNuxtImport, mountSuspended } from '@nuxt/test-utils/runtime'
+import { nextTick } from 'vue'
 import { enableAutoUnmount, flushPromises } from '@vue/test-utils'
 import ScopeHeader from '~/components/caderno/ScopeHeader.vue'
 import NextStep from '~/components/caderno/NextStep.vue'
@@ -180,10 +181,19 @@ describe('CadernoMaterialRow (RF-F6)', () => {
     const failed = await mountSuspended(MaterialRow, { props: { row: row({ status: 'failed' }), scopeId: 'root' } })
     await failed.get('button.underline').trigger('click')
     expect(failed.emitted('retry')).toHaveLength(1)
+    useAuthStore().user = { plan: 'pro' } as any
     const blocked = await mountSuspended(MaterialRow, { props: { row: row({ status: 'blocked', note_id: null }), scopeId: 'root', blockedReason: 'feature_limit' } })
     expect(blocked.text()).toContain('Limite do mês atingido')
     expect(blocked.text()).toContain('Ver planos')
     expect(blocked.find('a[data-testid="material-title"]').exists()).toBe(false)
+    // Free has no AI since the planos de lançamento; the trial counts its own 7 days
+    useAuthStore().user = { plan: 'free' } as any
+    await nextTick()
+    expect(blocked.text()).toContain('O resumo com IA não entra no plano Grátis')
+    useAuthStore().user = { plan: 'free', trial: { status: 'active', started_at: null, ends_at: null } } as any
+    await nextTick()
+    expect(blocked.text()).toContain('Limite do teste atingido')
+    useAuthStore().user = null
   })
 })
 
@@ -259,7 +269,19 @@ describe('CadernoMaterialRow: cards automáticos e bloqueio (prd-4c-material-v3 
   it('bloqueio: o motivo vem da linha (API) ou do upload', async () => {
     const fromApi = await mountRow(pdf({ status: 'blocked', blocked_reason: 'pages_cap' }))
     expect(fromApi.text()).toContain('Limite de leitura da IA atingido este mês')
+    useAuthStore().user = { plan: 'pro' } as any
     const fromUpload = await mountRow(pdf({ status: 'blocked' }), 'feature_limit')
     expect(fromUpload.text()).toContain('Limite do mês atingido')
+    useAuthStore().user = null
+  })
+
+  it('teto de páginas do teste: o número vem do catálogo (trial.pdf_pages_cap, prd-planos-lancamento RF-F5)', async () => {
+    useAuthStore().user = { plan: 'free', trial: { status: 'active', started_at: null, ends_at: null } } as any
+    useState('plans').value = { trial: { days: 7, card_required: false, pdf_pages_cap: 100 }, plans: [], features: {} }
+    const w = await mountRow(pdf({ status: 'blocked', blocked_reason: 'pages_cap' }))
+    expect(w.text()).toContain('Teto de 100 páginas do teste atingido')
+    expect(w.text()).toContain('Ver planos')
+    useState('plans').value = null
+    useAuthStore().user = null
   })
 })

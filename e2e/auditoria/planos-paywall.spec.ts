@@ -1,4 +1,4 @@
-import { test, expect, gotoApp, apiCall, uid, doc, realGate, sql, USERS } from './support/fixtures'
+import { test, expect, gotoApp, apiCall, uid, doc, realGate, sql, USERS, catalogProName } from './support/fixtures'
 import type { Page } from '@playwright/test'
 
 /**
@@ -23,7 +23,8 @@ async function mockCheckout(page: Page) {
   return calls
 }
 
-const subscribeButton = (page: Page) => page.getByRole('main').getByRole('button', { name: /^Assinar (anual|Pro)$/ })
+// "Assinar anual" or "Assinar <plano pago>" (the name of the catalog)
+const subscribeButton = (page: Page) => page.getByRole('main').getByRole('button', { name: /^Assinar \S+$/ })
 
 test.describe('Planos → checkout (Free)', () => {
   test.use({ auditUser: 'free' })
@@ -69,25 +70,26 @@ test.describe('Planos — link direto', () => {
     await page.goto('/planos?ciclo=mensal')
     await page.waitForLoadState('networkidle')
     // Prerendered: the query only comes back after hydration, and the page follows router.currentRoute
-    await expect(subscribeButton(page)).toHaveText('Assinar Pro')
+    await expect(subscribeButton(page)).toHaveText(`Assinar ${await catalogProName()}`)
   })
 })
 
-test.describe('Paywall: Free com cota de IA esgotada', () => {
+test.describe('Paywall: Free sem IA depois do teste', () => {
   test.use({ auditUser: 'quota' })
 
   test('"Gerar cards" recebe 402 do servidor e abre o modal de limite → Ver planos', async ({ page }) => {
     await gotoApp(page, '/hoje')
     const t = await apiCall(page, 'POST', '/topics', { name: `Cota ${uid()}` })
     await apiCall(page, 'POST', `/topics/${t.data.id}/notes`, { title: 'Material', content: doc('Fotossíntese e clorofila.') })
-    const quotaSpent = () => Number(sql(`select coalesce(sum(count),0) from feature_usages f join users u on u.id=f.user_id where u.email='${USERS.quota.email}' and f.feature='cards_ai' and f.period_start <= current_date and f.period_end >= current_date`)) >= 10
-    expect(quotaSpent(), 'pré-condição: cota cards_ai esgotada').toBe(true)
-    const gate = await realGate(page, /\/api\/ai\/generate-cards$/, 'quota', quotaSpent)
+    // The Free's AI is 0 since the planos de lançamento; the trial of this account already ran (it does not reopen)
+    const noAi = () => sql(`select trial_started_at is not null and trial_ends_at < now() and plan = 'free' from users where email='${USERS.quota.email}'`) === 't'
+    expect(noAi(), 'pré-condição: Grátis depois do teste').toBe(true)
+    const gate = await realGate(page, /\/api\/ai\/generate-cards$/, 'quota', noAi)
 
     // The hub of a caderno with material and no cards: "Gerar cards de…" opens the material and its workshop
     await gotoApp(page, `/cadernos/${t.data.id}`)
     await page.getByTestId('scope-generate').click()
-    const modal = page.getByRole('dialog', { name: /^Você usou 10 de 10/ })
+    const modal = page.getByRole('dialog', { name: /^Seu teste do .+ acabou$/ })
     await expect(modal).toBeVisible()
     expect(gate.map(g => g.status)).toEqual([402])
     expect(gate[0].body.code).toBe('feature_limit_reached')

@@ -1,6 +1,8 @@
 <?php
 // Audit users for e2e/auditoria (run through `php artisan tinker` by support/users.ts).
-// Input: env E2E_AUDIT_USERS = JSON [{email, plan, verified, onboarded, reset, quota_exhausted?}]
+// Input: env E2E_AUDIT_USERS = JSON [{email, plan, verified, onboarded, reset, quota_exhausted?, trial?}]
+// trial (prd-planos-lancamento): used = ran and ended | active = 7 days from now | tomorrow / today = ends on that
+// study day of Brasília. Absent = untouched (a Free verified account is "available": its first material opens it).
 // Recreates users marked `reset` (cascade wipes their data). Never touches other accounts.
 // Without `reset` an existing user keeps its password (its sessions stay valid): used to mark
 // the e-mail as verified in the middle of a test, standing in for the link in the e-mail.
@@ -32,6 +34,21 @@ foreach ($specs as $s) {
         'onboarding_completed_at' => ! empty($s['onboarded']) ? ($user->onboarding_completed_at ?? now()) : null,
         'analytics_consent' => false,
     ])->save();
+
+    if (! empty($s['trial'])) {
+        $sp = now('America/Sao_Paulo');
+        [$start, $end] = match ($s['trial']) {
+            'used' => [now()->subDays(9), now()->subDays(2)],
+            'active' => [now(), now()->addDays(7)],
+            'tomorrow' => [now()->subDays(6), $sp->copy()->addDay()->setTime(12, 0)->utc()],
+            'today' => [now()->subDays(6), $sp->copy()->endOfDay()->subMinute()->utc()],
+        };
+        $user->forceFill([
+            'trial_started_at' => $start,
+            'trial_ends_at' => $end,
+            'trial_ended_at' => $s['trial'] === 'used' ? $end : null,
+        ])->save();
+    }
 
     if (! empty($s['quota_exhausted'])) {
         $period = app(FeatureLimitServiceInterface::class)->currentPeriod();

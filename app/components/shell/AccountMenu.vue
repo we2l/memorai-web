@@ -43,16 +43,22 @@ const initials = computed(() => {
   return ((parts[0]![0] ?? '') + (parts.length > 1 ? parts[parts.length - 1]![0] : '')).toUpperCase()
 })
 
-/** "Pro · renova em 28/11", "Pro mensal" or "Plano Free" (the menu item of the plan). */
+/**
+ * "Intensivo · renova em 28/11", "Intensivo mensal", "Intensivo grátis até 12/11" (the trial, prd-planos-lancamento
+ * RF-F1) or "Plano Grátis": the menu item of the plan, with the plan's name from the catalog.
+ */
+const proName = useProName()
 const planItem = computed<MenuItem>(() => {
-  if ((auth.user?.plan ?? 'free') === 'free') return { label: 'Plano Free', meta: 'Ver o Pro', to: '/planos' }
+  const name = proName.value
+  if (auth.onTrial) return { label: trialEndsLine(name, auth.user?.trial?.ends_at), meta: 'Ver planos', to: '/planos' }
+  if ((auth.user?.plan ?? 'free') === 'free') return { label: 'Plano Grátis', meta: `Ver o ${name}`, to: '/planos' }
   const info = subscription.info
-  let label = 'Plano Pro'
+  let label = `Plano ${name}`
   const renewsAt = auth.user?.subscription_renews_at
-  if (renewsAt) label = `Pro · renova em ${formatBillingDayMonth(renewsAt)}`
-  else if (info?.subscription_ends_at) label = `Pro · termina em ${formatBillingDayMonth(info.subscription_ends_at)}`
-  else if (info?.billing === 'annual' && info.plan_expires_at) label = `Pro · renova em ${formatBillingDayMonth(info.plan_expires_at)}`
-  else if (info?.billing === 'monthly') label = 'Pro mensal'
+  if (renewsAt) label = `${name} · renova em ${formatBillingDayMonth(renewsAt)}`
+  else if (info?.subscription_ends_at) label = `${name} · termina em ${formatBillingDayMonth(info.subscription_ends_at)}`
+  else if (info?.billing === 'annual' && info.plan_expires_at) label = `${name} · renova em ${formatBillingDayMonth(info.plan_expires_at)}`
+  else if (info?.billing === 'monthly') label = `${name} mensal`
   return { label, meta: 'Gerenciar', to: '/configuracoes#plano' }
 })
 

@@ -25,7 +25,7 @@
       <UiSwitch v-model="retaFinal" label="Reta final nos últimos 3 dias" description="A revisão traz até 20 cards extras dos assuntos da prova." />
 
       <p v-if="limitError" role="alert" class="flex flex-wrap items-center gap-x-2 rounded-row bg-subtle px-3 py-2 text-meta text-fg" data-testid="exam-limit-error">
-        {{ limitError }} <UiLink to="/planos">Conhecer o Pro</UiLink>
+        {{ limitError }} <UiLink to="/planos">Conhecer o {{ proName }}</UiLink>
       </p>
     </form>
 
@@ -53,6 +53,7 @@ const props = defineProps<{
   origin: 'progress' | 'scope' | 'hoje'
 }>()
 const emit = defineEmits<{ 'update:modelValue': [v: boolean]; saved: [exam: Exam] }>()
+const proName = useProName()
 
 const examStore = useExamStore()
 const topicStore = useTopicStore()
@@ -158,7 +159,7 @@ async function submit() {
   } catch (e) {
     const data = (e as { data?: { code?: string; errors?: Record<string, string[]>; requirement?: { limit?: number } } })?.data
     if (getErrorStatus(e) === 422 && data?.code === 'coverage_mixed_roots') errors.coverage = 'A prova cobre um caderno só: escolha matérias do mesmo caderno.'
-    else if (getErrorStatus(e) === 422 && (data?.code === 'exam_limit_reached' || data?.errors?.limit?.[0])) limitError.value = `No plano Grátis, até ${data?.requirement?.limit ?? 2} provas futuras ao mesmo tempo. Exclua uma prova ou assine o Pro.`
+    else if (getErrorStatus(e) === 422 && (data?.code === 'exam_limit_reached' || data?.errors?.limit?.[0])) limitError.value = `No plano Grátis, até ${data?.requirement?.limit ?? 2} provas futuras ao mesmo tempo. Exclua uma prova ou assine o ${proName.value}.`
     else if (getErrorStatus(e) === 422 && data?.errors?.exam_date?.[0]) errors.date = 'A data precisa ser de amanhã em diante.'
     else reportApiError(e, { error: 'Não foi possível salvar a prova. Tente de novo.' })
   } finally {

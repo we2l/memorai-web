@@ -45,8 +45,9 @@ export interface FrontEventProps {
   pdf_upload_started: { size_mb: number, source: UploadSource }
   review_session_started: { mode: ReviewMode, scoped: ReviewScope, cards_available: number, scope_type: ReviewScopeType | null, origin: 'quiz' | 'loose' | null, ahead: boolean, errors_only: boolean }
   review_session_completed: { cards: number, duration_s: number, mode: ReviewMode, again_rate: number }
-  paywall_viewed: { feature: string | null, source: 'limit_402' | 'planos_page', plan_required: 'pro' | null }
-  upgrade_clicked: { feature: string | null, billing: AnalyticsBilling | null, source: 'upgrade_modal' | 'planos_page' }
+  // podcast_demo: the podcast paywall with the demo video (GenerateSheet, Ouvir of /praticar; prd-planos-lancamento RF-F3)
+  paywall_viewed: { feature: string | null, source: 'limit_402' | 'planos_page' | 'podcast_demo', plan_required: 'pro' | null }
+  upgrade_clicked: { feature: string | null, billing: AnalyticsBilling | null, source: 'upgrade_modal' | 'planos_page' | 'podcast_demo' }
   plans_toggle: { period: 'monthly' | 'annual' }
   plans_checkout_click: { period: 'monthly' | 'annual' }
   reminder_toggled: { on: boolean, hour: number, source: ReminderSource }

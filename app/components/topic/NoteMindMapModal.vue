@@ -6,14 +6,14 @@
       <UiSkeleton variant="block" size="lg" class="w-full" />
     </div>
 
-    <!-- No map, Free user -->
+    <!-- No map, Free after the trial -->
     <div v-else-if="!mapData && !canGenerate" class="flex h-64 flex-col items-center justify-center gap-3 text-center">
       <Lock class="size-7 text-fg-muted" aria-hidden="true" />
       <p class="text-body text-fg">Gere um mapa mental com os conceitos desta nota</p>
-      <UiButton variant="primary" to="/planos" @click="modelValue = false">Desbloquear com o Pro</UiButton>
+      <UiButton variant="primary" to="/planos" @click="modelValue = false">Conhecer o {{ proName }}</UiButton>
     </div>
 
-    <!-- No map, Pro user -->
+    <!-- No map, the paid plan, the trial or a trial that opens on this click -->
     <div v-else-if="!mapData && canGenerate && !generating" class="flex h-64 flex-col items-center justify-center gap-3 text-center">
       <Brain class="size-7 text-action-fg" aria-hidden="true" />
       <p class="text-body text-fg">Extraia conceitos, definições e exemplos desta nota em um mapa mental</p>
@@ -76,7 +76,10 @@ const loading = ref(true)
 const generating = ref(false)
 const mapData = ref<MindMapNode | null>(null)
 const mapId = ref<string | null>(null)
-const canGenerate = computed(() => auth.user?.plan !== 'free')
+// meta.can_generate of GET /notes/{id}/mindmap (the paid plan, the trial and a trial that opens on the click)
+const serverCanGenerate = ref<boolean | null>(null)
+const canGenerate = computed(() => serverCanGenerate.value ?? (auth.hasProAccess || auth.opensTrialOnUse))
+const proName = useProName()
 
 const showCardCreate = ref(false)
 const formId = useId()
@@ -98,6 +101,8 @@ async function fetchMap() {
     if (res.meta?.exists) {
       mapData.value = res.data
       mapId.value = res.meta.id
+    } else if (typeof res.meta?.can_generate === 'boolean') {
+      serverCanGenerate.value = res.meta.can_generate
     }
   } catch (e) {
     reportApiError(e, { error: 'Não foi possível carregar o mapa mental da nota.' })

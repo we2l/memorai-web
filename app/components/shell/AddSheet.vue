@@ -26,6 +26,8 @@
           </UiListRow>
         </li>
       </ul>
+      <!-- The trial opens on the first material (prd-planos-lancamento RF-F2) -->
+      <p v-if="step === 'menu' && trialHint" class="mt-3 rounded-row bg-subtle px-3 py-2 text-meta text-fg" data-testid="add-trial">{{ trialHint }}.</p>
       <UiCheckbox v-if="step === 'menu'" v-model="autoCards" class="mt-3" label="Gerar cards automaticamente" description="Usa 1 geração para o material todo (as 4 primeiras partes)." />
 
       <form v-else class="flex flex-col gap-3" @submit.prevent="saveText">
@@ -63,6 +65,7 @@ import type { AddIntent, AddKind } from '~/composables/useAddSheet'
 import { readAutoCardsPref, writeAutoCardsPref } from '~/utils/autoCardsPref'
 
 const { open, preset } = useAddSheet()
+const trialHint = useTrialInvite()
 const intent = useAddIntent()
 const topicStore = useTopicStore()
 const route = useRoute()

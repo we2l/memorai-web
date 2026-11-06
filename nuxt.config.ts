@@ -25,7 +25,11 @@ const CSP = [
   "form-action 'self'",
 ].join('; ')
 
-const SESSION_HINT_SCRIPT = `(function(){var d=document.documentElement;if(['/','/entrar','/criar-conta','/planos','/ajuda'].indexOf(location.pathname.replace(/\\/$/,'')||'/')<0)return;if(!/(?:^|;\\s*)baigi_logged_in=1/.test(document.cookie))return;d.classList.add('baigi-session');setTimeout(function(){d.classList.remove('baigi-session')},4000)})()`
+// Logged-in hint (cookie baigi_logged_in) on a prerendered public page: hide it until the app decides. On `/` go
+// straight to /hoje before the landing loads: the middleware's redirect during hydration rendered the app over the
+// landing's HTML ("Hydration completed but contains mismatches"). A stale hint lands on /entrar via /hoje, and /me's
+// 401 clears it; only `/`, so an API down never bounces /entrar and /hoje into a loop.
+const SESSION_HINT_SCRIPT = `(function(){var d=document.documentElement,p=location.pathname.replace(/\\/$/,'')||'/';if(['/','/entrar','/criar-conta','/planos','/ajuda'].indexOf(p)<0)return;if(!/(?:^|;\\s*)baigi_logged_in=1/.test(document.cookie))return;d.classList.add('baigi-session');if(p==='/'){location.replace('/hoje');return}setTimeout(function(){d.classList.remove('baigi-session')},4000)})()`
 
 // Page color of the DS v3 (--surface-page in app/assets/css/tokens.css, light and dark): the manifest and
 // the theme-color metas need the literal. tests/scripts/pwaManifest.test.ts keeps both in sync with tokens.css.

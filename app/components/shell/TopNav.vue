@@ -1,7 +1,7 @@
 <template>
   <header class="sticky top-0 z-nav hidden h-topnav border-b border-line bg-raised md:block">
     <div class="mx-auto flex h-full max-w-page items-center gap-4 px-gutter lg:gap-6">
-      <NuxtLink to="/hoje" class="flex shrink-0 items-center rounded-row" aria-label="Baigi, ir para Hoje">
+      <NuxtLink to="/hoje" class="hit-touch flex shrink-0 items-center rounded-row" aria-label="Baigi, ir para Hoje">
         <UiLogo :icon-size="28" text-class="hidden text-section text-fg-strong lg:inline" />
       </NuxtLink>
 
@@ -10,7 +10,7 @@
           <li v-for="place in places" :key="place.key">
             <NuxtLink
               :to="place.to"
-              class="inline-flex min-h-9 items-center rounded-row px-3 text-meta transition-colors duration-nav"
+              class="hit-touch inline-flex min-h-9 items-center rounded-row px-3 text-meta transition-colors duration-nav"
               :class="active === place.key ? 'bg-subtle font-semibold text-fg-strong' : 'font-medium text-fg-muted hover:bg-subtle hover:text-fg-strong'"
               :aria-current="active === place.key ? 'page' : undefined"
               :data-tour="place.key === 'praticar' ? 'review-link' : undefined"
@@ -25,7 +25,7 @@
       <div class="flex shrink-0 items-center gap-2">
         <button
           type="button"
-          class="inline-flex min-h-9 items-center gap-1.5 rounded-row bg-subtle px-3 text-meta font-medium text-fg-strong transition-colors duration-nav hover:bg-line"
+          class="hit-touch inline-flex min-h-9 items-center gap-1.5 rounded-row bg-subtle px-3 text-meta font-medium text-fg-strong transition-colors duration-nav hover:bg-line"
           aria-haspopup="dialog"
           @click="addSheet.show('topnav')"
         >
@@ -34,7 +34,7 @@
         </button>
         <button
           type="button"
-          class="inline-flex min-h-9 items-center gap-1.5 rounded-row bg-subtle px-3 text-meta font-medium text-fg-muted transition-colors duration-nav hover:bg-line hover:text-fg-strong"
+          class="hit-touch inline-flex min-h-9 items-center gap-1.5 rounded-row bg-subtle px-3 text-meta font-medium text-fg-muted transition-colors duration-nav hover:bg-line hover:text-fg-strong"
           aria-haspopup="dialog"
           :aria-keyshortcuts="isMac ? 'Meta+K' : 'Control+K'"
           @click="openSearch"

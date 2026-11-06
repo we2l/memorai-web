@@ -237,13 +237,17 @@ export default defineNuxtConfig({
       title: 'BAIGI',
       meta: [
         { charset: 'utf-8' },
-        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        // viewport-fit=cover: without it iOS reports env(safe-area-inset-*) as 0 and the bottom bars sit on the home
+        // indicator (prd-responsividade RF-4). The sides of landscape are handled in base.css and on the fixed bars.
+        { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' },
         { name: 'description', content: 'Estude de forma mais inteligente — repetição espaçada com IA' },
         // Follow the OS until THEME_SCRIPT syncs them with the app theme (light, dark or system)
         { name: 'theme-color', content: THEME_COLOR.light, media: '(prefers-color-scheme: light)' },
         { name: 'theme-color', content: THEME_COLOR.dark, media: '(prefers-color-scheme: dark)' },
         { name: 'apple-mobile-web-app-capable', content: 'yes' },
-        { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' },
+        // default, not black-translucent: the installed app starts below the status bar (translucent drew the page under
+        // the clock, with white text over the light page; prd-responsividade RF-4)
+        { name: 'apple-mobile-web-app-status-bar-style', content: 'default' },
       ],
       script: [
         // Prerendered /, /entrar, /criar-conta: a user with the session hint cookie is

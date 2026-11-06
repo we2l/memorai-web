@@ -106,6 +106,11 @@
   & .lp-fine { font-size: 13px; line-height: 1.4; color: var(--fg-muted); }
   & .lp-lead { font-size: clamp(17px, 1.5vw, 20px); line-height: 1.5; max-width: 44ch; margin-top: 18px; }
   & .lp-link { color: var(--action-fg); font-weight: 650; text-decoration: underline; text-underline-offset: 4px; }
+  /* No toque, a área do link cresce até 44 × 44 px em volta do texto, sem mudar o desenho (prd-responsividade RF-3) */
+  @media (pointer: coarse) {
+    & .lp-link { position: relative; }
+    & .lp-link::before { content: ''; position: absolute; inset: min(0px, calc((100% - 44px) / 2)); }
+  }
   & .lp-sec { position: relative; padding: 80px 0; }
   & .lp-raised { background: var(--surface-raised); }
   & .lp-h2 { font-size: clamp(40px, 5.6vw, 84px); max-width: 15ch; }
@@ -456,7 +461,7 @@
   & .lp-final h2 { color: var(--lp-white); font-size: clamp(52px, 8vw, 128px); }
   & .lp-final .lp-lead { color: var(--lp-final-muted); font-size: 18px; max-width: 40ch; margin: 0; }
   & .lp-final img { width: 200px; }
-  & .lp-sticky { position: fixed; left: 0; right: 0; bottom: 0; z-index: var(--z-sticky); padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); background: color-mix(in srgb, var(--surface-page) 94%, transparent); border-top: 1px solid var(--line); box-shadow: 0 -8px 24px -16px color-mix(in srgb, var(--palette-violet-900) 40%, transparent); transform: translateY(110%); transition: transform 150ms var(--lp-ease); }
+  & .lp-sticky { position: fixed; left: 0; right: 0; bottom: 0; z-index: var(--z-sticky); padding: 10px calc(16px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left)); background: color-mix(in srgb, var(--surface-page) 94%, transparent); border-top: 1px solid var(--line); box-shadow: 0 -8px 24px -16px color-mix(in srgb, var(--palette-violet-900) 40%, transparent); transform: translateY(110%); transition: transform 150ms var(--lp-ease); }
   & .lp-sticky[data-show='true'] { transform: none; }
   & .lp-sticky .lp-btn { width: 100%; }
   & .lp-footer-room { padding-bottom: 84px; }

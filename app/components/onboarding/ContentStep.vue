@@ -44,7 +44,7 @@
       </div>
 
       <p class="text-meta text-fg-muted">
-        Prefere olhar primeiro? <button type="button" class="font-semibold text-action-fg underline" :disabled="busy" data-testid="content-skip" @click="$emit('skip')">Explorar o app sem cards</button>
+        Prefere olhar primeiro? <button type="button" class="hit-touch font-semibold text-action-fg underline" :disabled="busy" data-testid="content-skip" @click="$emit('skip')">Explorar o app sem cards</button>
       </p>
 
       <UiVerifyEmailBanner v-if="!verified && !needsAi" compact />

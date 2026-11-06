@@ -109,6 +109,12 @@ jobs:
       - name: Screenshots
         run: npx playwright test e2e/screens.spec.ts
 
+      # Responsividade (prd-responsividade RF-2): 5 aparelhos × as mesmas telas e as públicas, com o mesmo HAR;
+      # falha com rolagem horizontal, folha fora da tela, campo < 16 px (zoom do iOS) ou alvo de toque < 24 px
+      - name: Responsiveness
+        if: always()
+        run: npx playwright test e2e/responsivo.spec.ts
+
       - name: Summary
         if: always()
         run: |

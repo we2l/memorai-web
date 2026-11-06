@@ -14,7 +14,7 @@
       <Check class="pointer-events-none absolute inset-0 m-auto size-3.5 text-on-action opacity-0 peer-checked:opacity-100" stroke-width="3" aria-hidden="true" />
     </span>
     <span class="min-w-0">
-      <label :for="inputId" class="block cursor-pointer text-body text-fg-strong" :class="disabled && 'cursor-not-allowed'">
+      <label :for="inputId" class="-my-2.5 block cursor-pointer py-2.5 text-body text-fg-strong" :class="disabled && 'cursor-not-allowed'">
         <slot>{{ label }}</slot>
       </label>
       <span v-if="description" :id="descriptionId" class="block text-meta text-fg-muted">{{ description }}</span>

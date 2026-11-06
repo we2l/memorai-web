@@ -29,7 +29,7 @@
             </div>
             <UiIconButton v-if="dismissible" :icon="X" label="Fechar" size="sm" data-modal-close="1" class="-mr-2" @click="close" />
           </div>
-          <div class="min-h-0 flex-1 overflow-y-auto px-5 pb-5 sm:px-6">
+          <div class="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-5 sm:px-6">
             <slot :close="close" />
           </div>
           <div v-if="$slots.footer" class="flex flex-wrap items-center justify-end gap-2 border-t border-line px-5 py-3 max-sm:*:grow sm:px-6">
@@ -72,7 +72,7 @@ const SIZES = { sm: 'sm:max-w-sm', md: 'sm:max-w-lg', lg: 'sm:max-w-2xl', xl: 'h
 const LAYOUT: Record<DialogPlacement, { scrim: string; panel: string }> = {
   center: { scrim: 'items-center justify-center p-4', panel: 'max-h-full rounded-float' },
   bottom: { scrim: 'items-end justify-center', panel: 'max-h-9/10 rounded-t-float pb-safe-bottom' },
-  right: { scrim: 'justify-end', panel: 'h-full' },
+  right: { scrim: 'justify-end', panel: 'h-full pr-safe-right pb-safe-bottom' },
 }
 // One fade (200 ms, --motion-respond) for the backdrop and the panel together: cheap in CSS and calm
 const motion = { active: 'transition-opacity duration-respond ease-calm', from: 'opacity-0' }

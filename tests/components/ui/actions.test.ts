@@ -167,6 +167,11 @@ describe('UiLink', () => {
     const w = await mountSuspended(Link, { props: { to: '/x', standalone: true }, slots: label('Ver') })
     expect(w.classes()).toContain('min-h-touch')
   })
+
+  it('no toque, a área cresce até 44 px em volta do texto (hit-touch, prd-responsividade)', async () => {
+    const w = await mountSuspended(Link, { props: { to: '/x' }, slots: label('Termos') })
+    expect(w.classes()).toContain('hit-touch')
+  })
 })
 
 describe('UiTabs', () => {

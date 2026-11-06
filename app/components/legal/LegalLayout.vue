@@ -21,7 +21,7 @@
       <p class="mb-8 text-meta text-fg-muted">Vigência a partir de {{ effectiveDate }} · Última atualização: {{ updatedAt }}</p>
       <slot />
       <p class="mt-12 text-meta">
-        <a href="#topo">Voltar ao topo</a>
+        <a href="#topo" class="hit-touch">Voltar ao topo</a>
       </p>
     </article>
   </div>

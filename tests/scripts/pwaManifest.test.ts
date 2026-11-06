@@ -33,6 +33,13 @@ describe.skipIf(skipWithoutBuild)('manifest do PWA (build)', () => {
     expect(script).toBeLessThan(html.indexOf('<body'))
   })
 
+  it('área segura do iPhone: viewport-fit=cover e barra de status default (prd-responsividade RF-4)', () => {
+    const html = readFileSync(join(PUBLIC_DIR, 'entrar/index.html'), 'utf8')
+    // Without cover, iOS reports env(safe-area-inset-*) as 0 and the bottom bars sit on the home indicator
+    expect(html).toMatch(/<meta name="viewport" content="[^"]*viewport-fit=cover[^"]*">/)
+    expect(html).toContain('<meta name="apple-mobile-web-app-status-bar-style" content="default">')
+  })
+
   it('ícone 512 otimizado (≤ 40 KB)', () => {
     expect(statSync(join(PUBLIC_DIR, 'pwa-512x512.png')).size).toBeLessThanOrEqual(40 * 1024)
   })

@@ -1,12 +1,15 @@
 <template>
   <li class="content-auto flex items-start gap-3 px-3 py-3" :class="selected && 'bg-action-subtle'" data-testid="card-row">
-    <input
-      type="checkbox"
-      class="mt-1 size-5 shrink-0 cursor-pointer accent-action"
-      :checked="selected"
-      :aria-label="`Selecionar: ${front}`"
-      @click="(e: MouseEvent) => $emit('toggle', e.shiftKey)"
-    >
+    <!-- The label stretches the 20 px box to a 44 px touch area without moving it (prd-responsividade RF-3) -->
+    <label class="-m-3 flex shrink-0 cursor-pointer p-3">
+      <input
+        type="checkbox"
+        class="mt-1 size-5 shrink-0 cursor-pointer accent-action"
+        :checked="selected"
+        :aria-label="`Selecionar: ${front}`"
+        @click="(e: MouseEvent) => $emit('toggle', e.shiftKey)"
+      >
+    </label>
     <button
       ref="button"
       type="button"

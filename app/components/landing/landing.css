@@ -149,7 +149,8 @@
   & .lp-btn-band { background: var(--lp-white); color: var(--lp-band, var(--action)); box-shadow: var(--lp-band-btn-shadow); }
   & .lp-btn-band:hover { background: var(--lp-final-muted); }
   & .lp-btn:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 3px; }
-  & .lp-band :focus-visible { outline-color: var(--lp-white); }
+  /* Nas faixas de cor o anel roxo some: branco (no player, que é um cartão branco, fica o roxo) */
+  & .lp-band :focus-visible, & .lp-pod-sec .lp-act :focus-visible { outline-color: var(--lp-white); }
 
   & .lp-act { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; margin-top: 28px; }
 }

@@ -6,6 +6,7 @@
  */
 import type { BacklogStats, PendingAction, Podcast, RecentNote, Stats, TopicPerformance, TopicProgress } from '~/types'
 import { cadernoPath } from '~/utils/scope'
+import { REVIEW_BATCH, SECONDS_PER_CARD } from '~/utils/reviewBatch'
 import { openedLabel, plural } from '~/utils/greeting'
 
 export type DayPlanKey = 'review' | 'quiz' | 'listen' | 'material'
@@ -43,8 +44,9 @@ export interface DayPlanInput {
   now?: Date
 }
 
-export const BATCH_SIZE = 20
-export const SECONDS_PER_CARD = 15
+/** Batch when /stats.goal does not say (the person picks 10, 20 or 30) */
+export const BATCH_SIZE = REVIEW_BATCH
+export { SECONDS_PER_CARD }
 /** Questões step: one short set of questions */
 export const QUIZ_MINUTES = 10
 const QUIZ_MIN_CARDS = 10
@@ -62,10 +64,12 @@ function reviewStep(input: DayPlanInput): DayPlanStep | null {
   if (due <= 0) return null
   const roots = input.progress.filter(t => !t.parent_id && (t.session_count ?? 0) > 0)
   const where = roots.length === 1 ? ` de ${roots[0]!.name}` : ''
-  const lots = Math.ceil(due / BATCH_SIZE)
+  // The person's batch (10, 20 or 30) comes with the goal; older API builds omit it
+  const size = input.stats?.goal?.batch_size || BATCH_SIZE
+  const lots = Math.ceil(due / size)
   const minutes = input.stats?.goal?.minutes_left ?? Math.ceil((due * SECONDS_PER_CARD) / 60)
   const overdue = input.backlog?.overdue_count ?? 0
-  const parts = [due > BATCH_SIZE ? `${plural(lots, 'lote', 'lotes')} de ~${BATCH_SIZE}` : '1 lote', `≈ ${minutes} min`]
+  const parts = [due > size ? `${plural(lots, 'lote', 'lotes')} de ~${size}` : '1 lote', `≈ ${minutes} min`]
   if (overdue > due) parts.push(`${overdue} atrasados`)
   return {
     key: 'review',

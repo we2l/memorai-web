@@ -68,6 +68,8 @@ cd memorai-web
 npx playwright test                 # usuário padrão provisionado (precisa do docker local)
 E2E_EMAIL=x@y E2E_PASSWORD=z npx playwright test   # outro usuário já existente
 npx playwright test --headed
+# worktree com API e web próprias (3000 e 8037 ocupadas): origem da web, API, container e banco por variável
+E2E_WEB_ORIGIN=http://localhost:3011 E2E_API_ORIGIN=http://localhost:8099 E2E_API_CONTAINER=lote-api E2E_DB_NAME=baigi_dev_lote npx playwright test e2e/auditoria/conta-v3.spec.ts
 ```
 
 ## Estrutura de testes

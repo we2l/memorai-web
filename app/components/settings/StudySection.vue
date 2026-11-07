@@ -6,6 +6,7 @@
   </div>
   <div v-else class="flex flex-col gap-6">
     <SettingsDailyGoalPicker :settings="settings" />
+    <SettingsBatchSizePicker :settings="settings" />
 
     <div class="border-t border-line pt-5">
       <h3 class="mb-1 text-body font-semibold text-fg-strong">Lembrete diário</h3>

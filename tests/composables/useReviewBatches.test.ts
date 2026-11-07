@@ -2,6 +2,7 @@ import { describe, expect, it, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { batchesTotal, batchPosition, batchSummary, endedBatch, studyDayEnd } from '~/composables/useReviewBatches'
 import { useReviewStore, type RatingLog } from '~/stores/review'
+import { reviewBatchSizeOf } from '~/utils/reviewBatch'
 
 const log = (i: number, extra: Partial<RatingLog> = {}): RatingLog => ({
   client_id: `c${i}`, card_id: `k${i}`, rating: 3, duration_ms: 30_000, topic_id: 't1', topic_name: 'Controle', first: true, batch: 1, due: null, ...extra,
@@ -77,5 +78,31 @@ describe('store: avaliações por lote', () => {
     expect(store.log).toHaveLength(2)
     store.forgetRating(store.undoStack.at(-2)!)
     expect(store.firstPass).toEqual(['a'])
+  })
+
+  it('lote de 10 escolhido pela pessoa: o 11º card abre o lote 2', () => {
+    const store = useReviewStore()
+    store.batchSize = 10
+    store.cards = Array.from({ length: 11 }, (_, i) => card(`c${i}`))
+    store.reviewQueue = []
+    store.processing = true
+    store.errorDiaryMode = 'never'
+    for (let i = 0; i < 11; i++) store.rate(3)
+    expect(store.log.map(l => l.batch)).toEqual([...Array(10).fill(1), 2])
+    expect(endedBatch(10, 0, 25, false, store.batchSize)).toBe(1)
+    expect(batchPosition(11, 1, 25, store.batchSize)).toMatchObject({ index: 2, total: 3, card: 2, size: 10 })
+  })
+})
+
+describe('tamanho do lote (/me.review_batch_size)', () => {
+  beforeEach(() => setActivePinia(createPinia()))
+
+  it('10, 20 ou 30; ausente ou outro valor = 20', () => {
+    expect([10, 20, 30, undefined, null, 15, 0].map(reviewBatchSizeOf)).toEqual([10, 20, 30, 20, 20, 20, 20])
+  })
+
+  it('lotes de 30: 45 cards = 2 lotes, o último com 15', () => {
+    expect(batchesTotal(45, 30)).toBe(2)
+    expect(batchPosition(30, 1, 45, 30)).toMatchObject({ index: 2, total: 2, card: 1, size: 15 })
   })
 })

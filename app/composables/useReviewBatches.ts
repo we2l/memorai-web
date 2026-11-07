@@ -2,7 +2,7 @@ import { REVIEW_BATCH, type RatingLog } from '~/stores/review'
 
 /**
  * Batches of the review (prd-4d-revisao-v3 RF-F1): a cut of the interface, not of the session. A batch is
- * 20 distinct cards rated for the 1st time; a learning card that comes back does not count again. The
+ * the person's size (10, 20 or 30; /me.review_batch_size) of distinct cards rated for the 1st time; a learning card that comes back does not count again. The
  * number of batches comes from the session_count of the 1st page (the number of the button that opened
  * the session); learning extras make the last batch longer, never add a batch. The pages of 100 keep
  * going underneath. Pure functions here (tested); `useReviewBatches` ties them to the store.
@@ -111,8 +111,8 @@ export function studyDayEnd(now = new Date()): number {
 /** The batches of the open session (`blitz`: none, the timer is the end). */
 export function useReviewBatches(blitz: Ref<boolean>) {
   const review = useReviewStore()
-  const position = computed(() => batchPosition(review.firstPass.length, review.batchesAcked, review.sessionCount))
-  const ended = computed(() => (blitz.value ? null : endedBatch(review.firstPass.length, review.batchesAcked, review.sessionCount, review.finished)))
+  const position = computed(() => batchPosition(review.firstPass.length, review.batchesAcked, review.sessionCount, review.batchSize))
+  const ended = computed(() => (blitz.value ? null : endedBatch(review.firstPass.length, review.batchesAcked, review.sessionCount, review.finished, review.batchSize)))
   const enabled = computed(() => !blitz.value && review.sessionCount > 0)
   return { position, ended, enabled }
 }

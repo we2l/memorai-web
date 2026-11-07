@@ -19,7 +19,7 @@
         <!-- The one primary of the page, only for Free (RF-F3) -->
         <UiButton v-if="isFree" variant="primary" to="/planos" data-testid="plan-upgrade">Conhecer o {{ proName }}</UiButton>
         <UiButton v-if="showRenew" :to="ANNUAL_RENEWAL_PATH">Renovar</UiButton>
-        <UiButton v-if="showPortal" data-testid="plan-portal" @click="subscription.openPortal()">Gerenciar assinatura</UiButton>
+        <UiButton v-if="showPortal" data-testid="plan-portal" :loading="portal.pending.value" @click="openPortal">Gerenciar assinatura</UiButton>
       </div>
     </div>
 
@@ -81,8 +81,14 @@ const planSummary = computed(() => {
   }
   return `${name} anual · válido até ${until}`
 })
-const showRenew = computed(() => subscription.isAnnual && !!subscription.info?.can_renew_annual && !subscription.info?.monthly_scheduled)
-const showPortal = computed(() => !!subscription.info?.has_subscription)
+// The portal and the renewal are paying actions: hidden while the checkout is closed ("Assinatura em breve")
+const checkoutOpen = computed(() => checkoutAvailable(plans.value))
+const showRenew = computed(() => checkoutOpen.value && subscription.isAnnual && !!subscription.info?.can_renew_annual && !subscription.info?.monthly_scheduled)
+const showPortal = computed(() => checkoutOpen.value && !!subscription.info?.has_subscription)
+const portal = useApiAction()
+function openPortal() {
+  return portal.run(() => subscription.openPortal(), { error: 'Não foi possível abrir o portal de assinatura. Tente de novo.' })
+}
 
 const rows = computed(() => {
   const usage = featureUsage.usage.value?.features

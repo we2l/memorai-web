@@ -9,14 +9,17 @@
       </template>
 
       <template #pro-action>
-        <UiButton v-if="!user" variant="primary" block to="/criar-conta?redirect=/planos">Criar conta para assinar</UiButton>
+        <!-- Checkout closed ("Assinatura em breve"): the visitor starts free; a signed-in account only sees the notice -->
+        <UiButton v-if="!user && !checkoutOpen" variant="primary" block to="/criar-conta?redirect=/planos" data-testid="plan-start-free">Começar grátis</UiButton>
+        <UiButton v-else-if="!user" variant="primary" block to="/criar-conta?redirect=/planos">Criar conta para assinar</UiButton>
 
         <!-- Annual running: validity + renewal (RN-09) or monthly scheduling at D-7 (RN-08) -->
         <div v-else-if="isAnnual" class="flex flex-col gap-2">
           <p class="text-meta font-semibold text-fg-strong" data-testid="annual-valid-until">
             Seu anual vale até {{ formatBillingDate(subscription.info?.plan_expires_at) }}
           </p>
-          <template v-if="isYearly">
+          <PlansCheckoutSoon v-if="!checkoutOpen" />
+          <template v-else-if="isYearly">
             <UiButton v-if="subscription.info?.can_renew_annual" variant="primary" block :loading="loading" @click="subscribe">Renovar anual</UiButton>
             <template v-else>
               <UiButton block disabled>Renovar</UiButton>
@@ -28,6 +31,7 @@
         </div>
 
         <PlansCurrentPlan v-else-if="currentPlan === 'pro'" />
+        <PlansCheckoutSoon v-else-if="!checkoutOpen" />
         <UiButton v-else variant="primary" block :loading="loading" @click="subscribe">{{ isYearly ? 'Assinar anual' : `Assinar ${proName}` }}</UiButton>
         <!-- The trial of the catalog (prd-planos-lancamento RF-F4): offered, running, or nothing once used -->
         <p v-if="trialLine" class="mt-2 text-meta text-fg-muted" data-testid="plan-trial">{{ trialLine }}</p>
@@ -36,10 +40,10 @@
 
     <UiSection v-if="subscription.info?.has_subscription" title="Sua assinatura" description="Cancelar, trocar cartão ou ver faturas" data-testid="plan-manage">
       <template #action>
-        <UiButton :loading="portal.pending.value" @click="openPortal">Gerenciar assinatura</UiButton>
+        <UiButton v-if="checkoutOpen" :loading="loading" @click="openPortal">Gerenciar assinatura</UiButton>
       </template>
       <!-- Monthly → annual: the annual starts when the paid month ends (RN-07) -->
-      <UiButton v-if="subscription.info?.billing === 'monthly' && pro?.prices.annual" variant="ghost" size="sm" :loading="loading" @click="switchToAnnual">
+      <UiButton v-if="checkoutOpen && subscription.info?.billing === 'monthly' && pro?.prices.annual" variant="ghost" size="sm" :loading="loading" @click="switchToAnnual">
         Mudar para anual e economizar {{ formatPrice(pro.prices.annual.savings_cents ?? 0) }}
       </UiButton>
     </UiSection>
@@ -77,9 +81,9 @@ const auth = useAuthStore()
 const subscription = useSubscriptionStore()
 const user = useHydratedUser()
 const { track } = useAnalytics()
-const portal = useApiAction()
-
-const loading = ref(false)
+const checkout = useCheckout()
+const checkoutOpen = checkout.available
+const loading = checkout.pending
 const query = computed(() => router.currentRoute.value.query)
 // Annual is the default offer (RF-20); ?ciclo=mensal forces the monthly
 const period = ref<BillingPeriod>('annual')
@@ -113,6 +117,7 @@ const trialLine = computed(() => {
 })
 
 const FAQS = computed(() => [
+  ...(checkoutOpen.value ? [] : [{ q: 'Já dá para assinar?', a: `Ainda não: o pagamento abre em breve. Até lá, nada é cobrado, e cadernos, notas e revisão seguem grátis.` }]),
   ...(trial.value
     ? [{ q: 'Como funciona o teste grátis?', a: `Ao mandar o primeiro material (um PDF ou uma nota), com o e-mail confirmado, você ganha ${trial.value.days} dias do ${proName.value}, sem cartão.${trialQuotas.value ? ` No teste: ${trialQuotas.value}.` : ''} Depois, a conta volta sozinha ao Grátis, sem cobrança.` }]
     : []),
@@ -128,16 +133,11 @@ function onToggle(value: BillingPeriod) {
   void router.replace({ query: { ...query.value, ciclo: value === 'monthly' ? 'mensal' : 'anual' } })
 }
 
-async function startCheckout(annual: boolean) {
-  loading.value = true
-  try {
-    if (annual) await subscription.checkoutAnnual()
-    else await subscription.checkoutSubscription('pro', 'monthly')
-  } catch (e: unknown) {
-    reportApiError(e, { error: extractApiMessage(e, 'Não foi possível abrir o checkout. Tente de novo.') })
-  } finally {
-    loading.value = false
-  }
+function startCheckout(annual: boolean) {
+  return checkout.run(
+    () => (annual ? subscription.checkoutAnnual() : subscription.checkoutSubscription('pro', 'monthly')),
+    { error: 'Não foi possível abrir o checkout. Tente de novo.', serverMessage: true },
+  )
 }
 
 function subscribe() {
@@ -154,7 +154,7 @@ function switchToAnnual() {
 }
 
 function openPortal() {
-  return portal.run(() => subscription.openPortal(), { error: 'Não foi possível abrir o portal de assinatura. Tente de novo.' })
+  return checkout.run(() => subscription.openPortal(), { error: 'Não foi possível abrir o portal de assinatura. Tente de novo.' })
 }
 
 // The links of the Stripe return and of the expiry e-mails: once, with the session known and the query back
@@ -167,7 +167,7 @@ watch([statusLoaded, () => router.currentRoute.value.fullPath], () => {
   if (q.success === '1') toast.show(`Assinatura ativada! Bem-vindo ao ${proName.value}.`, 'success')
   if (q.canceled === '1') toast.show('Pagamento cancelado.', 'info')
   // Renewal link from the expiry e-mails: open the annual checkout right away
-  if (q.ciclo === 'anual' && q.renovar === '1' && (subscription.info?.can_renew_annual ?? true)) startCheckout(true)
+  if (q.ciclo === 'anual' && q.renovar === '1' && checkoutOpen.value && (subscription.info?.can_renew_annual ?? true)) startCheckout(true)
 })
 
 onMounted(async () => {

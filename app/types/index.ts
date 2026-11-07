@@ -840,6 +840,8 @@ export interface PlanCatalog {
   plans: CatalogPlan[]
   features: Record<string, CatalogFeature>
   trial?: CatalogTrial | null
+  /** false = "Assinatura em breve": POST /checkout/* answer 503 checkout_unavailable (absent on an older API) */
+  checkout?: { available: boolean }
 }
 
 /** Detail of the `feature-limit-reached` event (402 payload, PRD §4.1). */

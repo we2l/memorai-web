@@ -1,6 +1,7 @@
 <?php
 // Audit users for e2e/auditoria (run through `php artisan tinker` by support/users.ts).
 // Input: env E2E_AUDIT_USERS = JSON [{email, plan, verified, onboarded, reset, quota_exhausted?, trial?}]
+// quota_exhausted of a Free account goes to the preview's lifetime row when the API has it (prd-uso-justo §9).
 // trial (prd-planos-lancamento): used = ran and ended | active = 7 days from now | tomorrow / today = ends on that
 // study day of Brasília. Absent = untouched (a Free verified account is "available": its first material opens it).
 // Recreates users marked `reset` (cascade wipes their data). Never touches other accounts.
@@ -52,10 +53,14 @@ foreach ($specs as $s) {
 
     if (! empty($s['quota_exhausted'])) {
         $period = app(FeatureLimitServiceInterface::class)->currentPeriod();
+        // The Free's preview (prd-uso-justo §9) counts in one fixed row per feature that never renews
+        $lifetime = $s['plan'] === 'free' && in_array('free', (array) config('feature-limits.lifetime_tiers', []), true);
+        $start = $lifetime ? '2000-01-01' : $period['start']->toDateString();
+        $end = $lifetime ? '2999-12-31' : $period['end']->toDateString();
         foreach ($s['quota_exhausted'] as $feature => $count) {
             FeatureUsage::updateOrCreate(
-                ['user_id' => $user->id, 'feature' => $feature, 'period_start' => $period['start']->toDateString()],
-                ['period_end' => $period['end']->toDateString(), 'count' => $count],
+                ['user_id' => $user->id, 'feature' => $feature, 'period_start' => $start],
+                ['period_end' => $end, 'count' => $count],
             );
         }
     }

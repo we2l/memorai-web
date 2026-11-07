@@ -18,7 +18,9 @@
         </p>
         <div class="lp-hero-cta fade" style="--d: 760ms">
           <LandingCta to="/criar-conta" position="hero" section>Criar conta grátis</LandingCta>
-          <span class="lp-fine">Sem cartão. A revisão é grátis pra sempre.</span>
+          <span class="lp-fine">
+            <span v-for="v in HERO_VARIANTS" :key="v.key" :data-m-variant="v.key">{{ v.ai ? `Sem cartão. Revisar é grátis pra sempre. ${landingAiLine(catalog)}` : 'Sem cartão. A revisão é grátis pra sempre.' }}</span>
+          </span>
         </div>
       </div>
 
@@ -46,5 +48,9 @@
 // highlighter and the "golfinho não é peixe" sticker, the real app tilted in a phone, the dolphin in front of it
 // saying the line of the demo account. Every `?m=` variant is in the HTML; landing.css shows the one of html[data-m].
 // The entrance moves the <h1> and the phone with transform only: they are the LCP candidates and paint at once.
-import { HERO_VARIANTS, titleParts } from '~/utils/landing'
+// The variants that sell the AI (PDF, photo) say under the call where it is: the Free plan has none.
+import type { PlanCatalog } from '~/types'
+import { HERO_VARIANTS, landingAiLine, titleParts } from '~/utils/landing'
+
+defineProps<{ catalog: PlanCatalog | null }>()
 </script>

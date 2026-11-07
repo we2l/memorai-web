@@ -236,7 +236,9 @@ test.describe('Planos e pagamento', () => {
     await page.goto('/planos')
     await page.waitForLoadState('networkidle')
 
-    await expect(page.getByText(/ilimitad/i).first()).toBeVisible()
+    // Uso justo (prd-uso-justo RF-F1): as cotas do Intensivo em números, nunca "ilimitado"
+    await expect(page.getByText(/\d+ por mês/).first()).toBeVisible()
+    await expect(page.getByText(/ilimitad/i)).toHaveCount(0)
   })
 })
 

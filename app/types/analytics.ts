@@ -48,7 +48,7 @@ export interface FrontEventProps {
   auth_password_toggle: { visible: boolean }
   onboarding_completed: { path: OnboardingPath, learning_mode: string | null }
   pdf_upload_started: { size_mb: number, source: UploadSource }
-  review_session_started: { mode: ReviewMode, scoped: ReviewScope, cards_available: number, scope_type: ReviewScopeType | null, origin: 'quiz' | 'loose' | null, ahead: boolean, errors_only: boolean }
+  review_session_started: { mode: ReviewMode, scoped: ReviewScope, cards_available: number, scope_type: ReviewScopeType | null, origin: 'quiz' | 'question' | 'loose' | null, ahead: boolean, errors_only: boolean }
   review_session_completed: { cards: number, duration_s: number, mode: ReviewMode, again_rate: number }
   // podcast_demo: the podcast paywall with the demo video (GenerateSheet, Ouvir of /praticar; prd-planos-lancamento RF-F3)
   paywall_viewed: { feature: string | null, source: 'limit_402' | 'planos_page' | 'podcast_demo', plan_required: 'pro' | null }
@@ -80,6 +80,9 @@ export interface FrontEventProps {
   /** Material em partes (prd-4c-material-v3 4c-2) */
   part_nav: { direction: 'previous' | 'next', via: 'link' | 'key' }
   library_filter: { filter: 'q' | 'state' | 'origin' | 'errors' | 'tag' | 'sort' | 'clear' }
+  /** "Colar questão errada" (prd-questao-errada) */
+  question_paste_opened: { origin: 'add' | 'library' | 'shortcut' }
+  question_pasted: { count: number, edited: boolean, with_reason: boolean }
   library_bulk: { action: 'review' | 'delete', count: number }
   /** Organização do caderno (prd-4b-caderno-v3 RF-F18) */
   item_move: { kind: 'topic' | 'note' | 'pdf' | 'cards' }
@@ -90,7 +93,7 @@ export interface FrontEventProps {
   review_batch_end: { batch_index: number, batches_total: number, remembered: number, size: number, scope_type: ReviewScopeType | null }
   review_batch_continue: { batch_index: number }
   review_batch_stop: { batch_index: number }
-  review_origin_open: { kind: 'quiz' | 'document' | 'note' }
+  review_origin_open: { kind: 'quiz' | 'document' | 'note' | 'question' }
   review_explain_open: Record<string, never>
   retention_suggestion: { action: 'apply' | 'dismiss' }
   review_goal_met: { target_batches: number }

@@ -74,25 +74,26 @@ test.describe('Planos — link direto', () => {
   })
 })
 
-test.describe('Paywall: Free sem IA depois do teste', () => {
+test.describe('Paywall: Free com a prévia da IA esgotada', () => {
   test.use({ auditUser: 'quota' })
 
   test('"Gerar cards" recebe 402 do servidor e abre o modal de limite → Ver planos', async ({ page }) => {
     await gotoApp(page, '/hoje')
     const t = await apiCall(page, 'POST', '/topics', { name: `Cota ${uid()}` })
     await apiCall(page, 'POST', `/topics/${t.data.id}/notes`, { title: 'Material', content: doc('Fotossíntese e clorofila.') })
-    // The Free's AI is 0 since the planos de lançamento; the trial of this account already ran (it does not reopen)
-    const noAi = () => sql(`select trial_started_at is not null and trial_ends_at < now() and plan = 'free' from users where email='${USERS.quota.email}'`) === 't'
-    expect(noAi(), 'pré-condição: Grátis depois do teste').toBe(true)
+    // The Free's preview of the AI is spent (prd-uso-justo §9, provision quota_exhausted): the server answers 402
+    const noAi = () => sql(`select plan = 'free' from users where email='${USERS.quota.email}'`) === 't'
+    expect(noAi(), 'pré-condição: Grátis com a prévia esgotada').toBe(true)
     const gate = await realGate(page, /\/api\/ai\/generate-cards$/, 'quota', noAi)
 
     // The hub of a caderno with material and no cards: "Gerar cards de…" opens the material and its workshop
     await gotoApp(page, `/cadernos/${t.data.id}`)
     await page.getByTestId('scope-generate').click()
-    const modal = page.getByRole('dialog', { name: /^Seu teste do .+ acabou$/ })
+    const modal = page.getByRole('dialog', { name: /^Você usou a prévia grátis de / })
     await expect(modal).toBeVisible()
     expect(gate.map(g => g.status)).toEqual([402])
     expect(gate[0].body.code).toBe('feature_limit_reached')
+    expect(gate[0].body.lifetime).toBe(true)
     await modal.getByRole('button', { name: 'Ver planos' }).click()
     await expect(page).toHaveURL(/\/planos/)
   })

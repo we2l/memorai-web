@@ -23,3 +23,12 @@ export function formatBillingDayMonth(iso: string | null | undefined): string {
 
 /** Link used by the renewal CTAs and the expiry e-mails. */
 export const ANNUAL_RENEWAL_PATH = '/planos?ciclo=anual&renovar=1'
+
+const monthFormatter = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit' })
+
+/** "01/12": the 1st of next month in Brasília, the day the monthly count starts again (when /usage is not at hand). */
+export function nextMonthStartLabel(now: Date = new Date()): string {
+  const [, month] = monthFormatter.format(now).split('-').map(Number)
+  const next = month === 12 ? 1 : (month ?? 0) + 1
+  return `01/${String(next).padStart(2, '0')}`
+}

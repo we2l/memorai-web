@@ -149,6 +149,7 @@
               :topic-id="shownCard?.topic_id"
               :back-to="route.fullPath"
               @open="(kind) => track('review_origin_open', { kind })"
+              @view-question="openQuestion"
             />
           </template>
         </ReviewCard>
@@ -220,6 +221,7 @@
         </template>
       </dl>
     </UiDialog>
+    <LazyQuestionViewDialog v-if="questionLoaded" v-model="questionOpen" :question-id="questionId" />
   </div>
 </template>
 
@@ -249,7 +251,7 @@ const addSheet = useAddSheet()
 const route = useRoute()
 const { $api } = useNuxtApp()
 const { track } = useAnalytics()
-const featureUsage = useFeatureUsage()
+const featureUsage = usePaidQuota()
 const lastErrorCard = ref<any>(null)
 
 // === Session modes ===
@@ -518,6 +520,15 @@ function onCardUpdated(card?: { id: string; front: string; back: string }) {
   if (card) review.updateCurrentContent(card)
 }
 
+// "Ver a questão" of a pasted question (prd-questao-errada RF-F5): a dialog over the session
+const questionOpen = ref(false)
+const questionId = ref<string | null>(null)
+const questionLoaded = useLoadedOnce(() => questionOpen.value)
+function openQuestion(id: string) {
+  questionId.value = id
+  questionOpen.value = true
+}
+
 function openOrigin() {
   const link = document.querySelector<HTMLAnchorElement>('[data-testid=review-origin-link]')
   link?.click()
@@ -565,8 +576,8 @@ const chatQuota = computed(() => {
 })
 function askAbout(card: { id: string; front: string; back: string; topic_id?: string | null }, source: 'review_card' | 'review_error', draft: string) {
   if (!featureUsage.canUse('agent_chat')) {
-    const f = featureUsage.usage.value?.features.agent_chat
-    window.dispatchEvent(new CustomEvent('feature-limit-reached', { detail: { feature: 'agent_chat', used: f?.used, limit: f?.limit, planRequired: 'pro' } }))
+    // The paid plan at the limit gets the toast with the reset day, not the upgrade (prd-uso-justo RN-3)
+    window.dispatchEvent(new CustomEvent('feature-limit-reached', { detail: featureUsage.limitDetail('agent_chat') }))
     return
   }
   chat.ask({ cardId: card.id, cardFront: card.front, topicId: card.topic_id ?? scopeTopicId.value ?? undefined, source }, draft)

@@ -22,7 +22,9 @@
 
     <h2 id="planos">3. Planos, cobrança, renovação e cancelamento</h2>
     <ul>
-      <li>O plano Grátis tem limites mensais de uso de IA. O Intensivo amplia esses limites, conforme a página <NuxtLink to="/planos">Planos</NuxtLink>.</li>
+      <li>O plano Grátis inclui uma prévia da IA, uma vez por conta e sem prazo, que pede o e-mail confirmado. O Intensivo tem cotas mensais de IA, conforme a página <NuxtLink to="/planos">Planos</NuxtLink>.</li>
+      <!-- "Assinatura em breve" (CHECKOUT_ENABLED=false na produção): sai quando o pagamento abrir -->
+      <li>A assinatura do Intensivo ainda não está à venda, e nada é cobrado. Quando o pagamento abrir, valem as regras abaixo.</li>
       <li><strong>Mensal:</strong> cobrado no cartão e renovado automaticamente a cada mês até você cancelar.</li>
       <li><strong>Anual (Pix ou cartão):</strong> pagamento único que vale por 12 meses, sem renovação automática. Avisamos por e-mail antes do vencimento.</li>
       <li>O cancelamento do mensal pode ser feito a qualquer momento no portal de assinatura e vale até o fim do período já pago.</li>
@@ -43,32 +45,40 @@
       <li>É proibido tentar burlar limites, acessar dados de outros usuários, fazer engenharia reversa ou sobrecarregar o serviço.</li>
     </ul>
 
-    <h2 id="ia">6. Limitações da IA</h2>
+    <h2 id="uso-justo">6. Uso justo</h2>
+    <ul>
+      <li>As cotas de IA do Intensivo são mensais; as da prévia do Grátis valem uma vez por conta. Elas aparecem em <NuxtLink to="/planos">Planos</NuxtLink> e em Configurações, com o quanto você já usou.</li>
+      <li>Criar várias contas para repetir a prévia grátis também é uso indevido.</li>
+      <li>É proibido o uso automatizado (robôs, scripts), a revenda do acesso e o compartilhamento da conta com outras pessoas.</li>
+      <li>Em caso de abuso, o BAIGI pode suspender a IA ou a conta, avisando por e-mail.</li>
+    </ul>
+
+    <h2 id="ia">7. Limitações da IA</h2>
     <p>
       Resumos, flashcards, podcasts, simulados e respostas gerados por IA <strong>podem conter erros</strong>. Revise o
       material antes de confiar nele para provas ou decisões. O BAIGI é uma ferramenta de estudo e não substitui fontes
       oficiais, professores ou orientação profissional.
     </p>
 
-    <h2 id="disponibilidade">7. Disponibilidade</h2>
+    <h2 id="disponibilidade">8. Disponibilidade</h2>
     <p>
       Buscamos manter o serviço disponível 24 horas por dia, mas podem ocorrer interrupções para manutenção ou por
       falhas de terceiros. Funcionalidades podem ser alteradas para melhorar o produto.
     </p>
 
-    <h2 id="responsabilidade">8. Limitação de responsabilidade</h2>
+    <h2 id="responsabilidade">9. Limitação de responsabilidade</h2>
     <p>
       Na extensão permitida pela lei, o BAIGI não responde por danos indiretos, lucros cessantes ou resultados em provas.
       Nada nestes termos limita direitos garantidos pelo Código de Defesa do Consumidor.
     </p>
 
-    <h2 id="rescisao">9. Rescisão</h2>
+    <h2 id="rescisao">10. Rescisão</h2>
     <p>
       Você pode encerrar a conta a qualquer momento. Podemos suspender ou encerrar contas que violem estes termos,
       com aviso sempre que possível.
     </p>
 
-    <h2 id="foro">10. Foro e lei aplicável</h2>
+    <h2 id="foro">11. Foro e lei aplicável</h2>
     <p>
       Estes termos seguem as leis brasileiras. Fica eleito o foro do domicílio do consumidor para resolver eventuais
       conflitos.
@@ -81,7 +91,7 @@ definePageMeta({ layout: 'public' })
 
 // TODO(jurídico): datas definitivas na publicação do texto revisado
 const EFFECTIVE_DATE = '1º de outubro de 2026'
-const UPDATED_AT = '6 de novembro de 2026'
+const UPDATED_AT = '7 de novembro de 2026'
 
 const sections = [
   { id: 'aceitacao', title: 'Aceitação' },
@@ -89,6 +99,7 @@ const sections = [
   { id: 'planos', title: 'Planos e cobrança' },
   { id: 'arrependimento', title: 'Direito de arrependimento' },
   { id: 'uso', title: 'Uso aceitável e conteúdo' },
+  { id: 'uso-justo', title: 'Uso justo' },
   { id: 'ia', title: 'Limitações da IA' },
   { id: 'disponibilidade', title: 'Disponibilidade' },
   { id: 'responsabilidade', title: 'Limitação de responsabilidade' },
@@ -98,6 +109,6 @@ const sections = [
 
 useSeoMeta({
   title: 'Termos de Uso — BAIGI',
-  description: 'Regras de uso do BAIGI: conta, planos, cobrança, cancelamento, direito de arrependimento e limitações da IA.',
+  description: 'Regras de uso do BAIGI: conta, planos, cobrança, cancelamento, direito de arrependimento, uso justo e limitações da IA.',
 })
 </script>

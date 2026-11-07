@@ -70,7 +70,7 @@
 <script setup lang="ts">
 // Filters of the library (prd-4c-material-v3 RF-F10), all on the server and in the URL (back and share
 // keep them): search (300 ms), state (several at once), origin (a material of the scope, the quiz
-// errors or the loose cards), only with errors, tag (only when the scope has some) and the order.
+// errors, the pasted questions or the loose cards), only with errors, tag (only when the scope has some) and the order.
 import type { SelectOption } from '~/components/ui/Select.vue'
 import { LIBRARY_SORTS, LIBRARY_STATES, hasFilters, type LibraryFilters, type LibrarySort, type LibraryState } from '~/composables/useCardLibrary'
 
@@ -92,6 +92,7 @@ const originOptions = computed<SelectOption[]>(() => {
     { value: '', label: 'Todas as origens' },
     ...props.materials,
     { value: 'quiz', label: 'Erros das questões' },
+    { value: 'question', label: 'Questões coladas' },
     { value: 'loose', label: 'Cards avulsos' },
   ]
   // A material out of the first page (or from a link): still shown as chosen

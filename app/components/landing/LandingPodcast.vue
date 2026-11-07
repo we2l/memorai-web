@@ -14,7 +14,7 @@
       </div>
       <div ref="box" class="lp-podbox" data-reveal="scale">
         <LandingMascot pose="podcast" class="lp-pod-m" :class="playing ? 'lp-bob' : 'lp-float'" />
-        <LandingPlayer ref="player" @playing="playing = $event" @first-play="emit('sample')" />
+        <LandingPlayer ref="player" :catalog="catalog" @playing="playing = $event" @first-play="emit('sample')" />
       </div>
     </div>
   </section>

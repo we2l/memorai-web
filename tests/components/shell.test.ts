@@ -198,7 +198,7 @@ describe('ShellAddSheet', () => {
     const select = dialog.querySelector('select') as HTMLSelectElement
     expect(select.value).toBe('t1a')
     const rows = [...dialog.querySelectorAll('ul[aria-label="O que adicionar"] button .font-medium')].map(b => b.textContent?.trim())
-    expect(rows).toEqual(['PDF', 'Colar texto', 'Foto', 'Nota em branco', 'Importar do Anki'])
+    expect(rows).toEqual(['PDF', 'Colar texto', 'Questão que errei', 'Foto', 'Nota em branco', 'Importar do Anki'])
     expect(await axeViolations(dialog)).toEqual([])
     ;(dialog.querySelectorAll('ul[aria-label="O que adicionar"] button')[1] as HTMLButtonElement).click()
     await tick()
@@ -221,11 +221,25 @@ describe('ShellAddSheet', () => {
     await openSheet()
     const dialog = document.querySelector('[role="dialog"]') as HTMLElement
     expect((dialog.querySelector('select') as HTMLSelectElement).value).toBe('t2')
-    ;(dialog.querySelectorAll('ul[aria-label="O que adicionar"] button')[3] as HTMLButtonElement).click()
+    ;(dialog.querySelectorAll('ul[aria-label="O que adicionar"] button')[4] as HTMLButtonElement).click()
     await tick()
     expect(useAddIntent().value).toEqual({ kind: 'note', topicId: 't2' })
     expect(navigateToMock).toHaveBeenCalledWith('/cadernos/t2')
     useAddIntent().value = null
+  })
+
+  it('"Questão que errei" passa o escopo escolhido para a folha da questão (prd-questao-errada RF-F3)', async () => {
+    setRoute('/cadernos', { topic: 't1a' })
+    await openSheet()
+    const dialog = document.querySelector('[role="dialog"]') as HTMLElement
+    ;(dialog.querySelectorAll('ul[aria-label="O que adicionar"] button')[2] as HTMLButtonElement).click()
+    await tick()
+    expect(useAddSheet().open.value).toBe(false)
+    expect(usePasteQuestion().open.value).toBe(true)
+    expect(usePasteQuestion().topicId.value).toBe('t1a')
+    expect(trackMock).toHaveBeenCalledWith('question_paste_opened', { origin: 'add' })
+    expect(localStorage.getItem('baigi-add-last-topic')).toBe('t1a')
+    usePasteQuestion().open.value = false
   })
 
   it('Alt+N (preset note) abre direto na nota em branco do escopo', async () => {

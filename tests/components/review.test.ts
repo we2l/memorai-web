@@ -49,6 +49,21 @@ describe('origem do card (RF-F3)', () => {
   })
 })
 
+describe('questão colada (prd-questao-errada RF-F5)', () => {
+  it('"questão colada · fonte" e "Ver a questão" abre o diálogo, não sai da sessão', async () => {
+    const w = await mountSuspended(ReviewOrigin, { props: { origin: { kind: 'question', question_id: 'pq1', title: 'Sobre o controle', source: 'FGV · 2023' }, backTo: '/revisar' } })
+    expect(w.text()).toContain('Origem: questão colada · FGV · 2023')
+    const link = w.get('[data-testid=review-origin-link]')
+    expect(link.element.tagName).toBe('BUTTON')
+    expect(link.attributes('aria-keyshortcuts')).toBe('O')
+    await link.trigger('click')
+    expect(w.emitted('view-question')![0]).toEqual(['pq1'])
+    expect(w.emitted('open')![0]).toEqual(['question'])
+    const plain = await mountSuspended(ReviewOrigin, { props: { origin: { kind: 'question', question_id: 'pq2', title: 'T', source: null }, backTo: '/revisar' } })
+    expect(plain.text()).toContain('Origem: questão colada')
+  })
+})
+
 describe('fim do lote (RF-F5)', () => {
   const base = { index: 1, goal: { batch_size: 20, target_batches: 3, done_batches: 1, met: false }, streak: { current: 7, record: true, extendedNow: true }, nextCount: 20, backTo: '/cadernos/t', backLabel: 'Voltar a TRF' }
 

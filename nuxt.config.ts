@@ -144,6 +144,11 @@ export default defineNuxtConfig({
         { src: '/pwa-512x512.png', sizes: '512x512', type: 'image/png' },
         { src: '/pwa-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
       ],
+      // Long press on the installed icon (Android/desktop; iOS has no shortcuts): straight to the sheet
+      // "Questão que errei" (prd-questao-errada RF-F3), opened by ?add=question in layouts/default.vue
+      shortcuts: [
+        { name: 'Colar questão que errei', short_name: 'Colar questão', url: '/hoje?add=question', icons: [{ src: '/pwa-192x192.png', sizes: '192x192', type: 'image/png' }] },
+      ],
     },
     workbox: {
       // A new release takes over at once and drops the precache of the previous one (autoUpdate already implies

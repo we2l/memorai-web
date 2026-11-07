@@ -7,7 +7,7 @@ import { CONSENT_DECIDED } from '../helpers'
 export default defineConfig({
   testDir: '.',
   testMatch: 'shots.ts',
-  timeout: 240_000,
+  timeout: 600_000,
   workers: 1,
   retries: 0,
   use: { baseURL: 'http://localhost:3000', headless: true, storageState: CONSENT_DECIDED },

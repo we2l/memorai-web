@@ -3,10 +3,13 @@
     <UiPageHeader title="Todos os cards" :meta="meta" :back="{ to: hubPath, label: scopeName || 'Caderno' }">
       <template #actions>
         <UiButton variant="primary" :icon-left="Plus" data-testid="library-create" @click="openCreateCard">Criar card</UiButton>
-        <UiButton :icon-left="Camera" :loading="photo.reading.value" @click="photoInput?.click()">Foto</UiButton>
+        <UiButton :icon-left="ClipboardX" data-testid="library-paste-question" @click="pasteQuestion.show('library', id)">Colar questão</UiButton>
+        <UiButton :icon-left="Camera" :loading="photo.reading.value" :disabled="photoSpent" @click="photoInput?.click()">Foto</UiButton>
         <input ref="photoInput" type="file" accept="image/*" capture="environment" class="hidden" aria-label="Foto do material" @change="onPhoto">
       </template>
     </UiPageHeader>
+    <!-- Foto → cards uses the paid plan's month of generations (prd-uso-justo RF-F3) -->
+    <LazyPlansUsageNotice feature="cards_ai" class="-mt-3" @at-limit="photoSpent = $event" />
 
     <!-- The AI's suggestions from a photo -->
     <LazyTopicAiGeneratedCards
@@ -117,7 +120,7 @@
 // generation lives on each material's panel (the old "Preparar revisão" of the whole scope left, F4).
 // ?origin=note:<id> ("Ver os N cards" of the material) and the old ?source_note_id= open filtered;
 // ?highlight=<id> (search) opens that card; ?new=1 opens the form.
-import { Camera, Plus } from 'lucide-vue-next'
+import { Camera, ClipboardX, Plus } from 'lucide-vue-next'
 import type { SelectOption } from '~/components/ui/Select.vue'
 import type { LibraryCard, MaterialsPage } from '~/types'
 import type { LibraryFilters } from '~/composables/useCardLibrary'
@@ -135,6 +138,9 @@ const { track } = useAnalytics()
 const id = computed(() => String(route.params.id))
 const topicRef = computed<string | null>(() => id.value)
 const lib = useCardLibrary(id)
+// "Colar questão" (prd-questao-errada RF-F3): the new cards show up on the list
+const pasteQuestion = usePasteQuestion()
+watch(pasteQuestion.created, () => { void lib.load() })
 const photo = usePhotoCards(topicRef, async () => { await lib.load() })
 
 const hubPath = computed(() => cadernoPath(id.value))
@@ -288,10 +294,21 @@ function onMoved() {
 
 // === Photo (OCR) ===
 const photoInput = ref<HTMLInputElement | null>(null)
+// The paid plan's month of generations (prd-uso-justo RF-F3): the notice reads /usage (in its own chunk, the
+// library is tight on budget) and says when the month is spent; the server's 402 covers the rest
+const photoSpent = ref(false)
+function readPhoto(file: File) {
+  if (photoSpent.value) {
+    // Only the paid plan reaches its limit here: the toast with the day it starts again (RF-F4)
+    window.dispatchEvent(new CustomEvent('feature-limit-reached', { detail: { feature: 'cards_ai', planRequired: null } }))
+    return
+  }
+  void photo.processImage(file)
+}
 async function onPhoto(e: Event) {
   const input = e.target as HTMLInputElement
   const file = input.files?.[0]
-  if (file) await photo.processImage(file)
+  if (file) readPhoto(file)
   input.value = ''
 }
 
@@ -301,7 +318,7 @@ function consumePhoto() {
   const next = addIntent.value
   if (!next || next.kind !== 'photo' || next.topicId !== id.value || !next.file) return
   addIntent.value = null
-  void photo.processImage(next.file)
+  readPhoto(next.file)
 }
 watch(addIntent, consumePhoto)
 

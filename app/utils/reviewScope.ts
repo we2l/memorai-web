@@ -19,7 +19,7 @@ export interface ReviewPathOptions {
   /** "Praticar adiantado": every card of a container scope, by due date */
   ahead?: boolean
   /** Only with a topic: cards born from quiz errors, or loose cards */
-  origin?: 'quiz' | 'loose'
+  origin?: 'quiz' | 'question' | 'loose'
 }
 
 /** The scope as the API describes it in GET /review/session (RF-B5). */
@@ -28,7 +28,7 @@ export interface SessionScopeInfo {
   id: string | null
   label: string
   topic: { id: string; name: string } | null
-  origin?: 'quiz' | 'loose' | null
+  origin?: 'quiz' | 'question' | 'loose' | null
 }
 
 /** Query of a scope for /review/session and /review/session-count (without the leading "?"). */
@@ -87,7 +87,7 @@ const SCOPE_RE = /^(topic|document|note|quiz|podcast):([0-9a-f-]{36})$/i
 export function sessionScopeFromQuery(query: Record<string, unknown>): {
   topicId?: string
   scope?: ReviewScope
-  origin?: 'quiz' | 'loose'
+  origin?: 'quiz' | 'question' | 'loose'
   ahead?: boolean
   errorsOnly?: boolean
 } {
@@ -103,7 +103,7 @@ export function sessionScopeFromQuery(query: Record<string, unknown>): {
   const topicId = str(query.topic_id)
   if (topicId && !out.scope) out.topicId = topicId
   const origin = str(query.origin)
-  if (origin === 'quiz' || origin === 'loose') out.origin = origin
+  if (origin === 'quiz' || origin === 'question' || origin === 'loose') out.origin = origin
   if (str(query.ahead) === '1') out.ahead = true
   if (str(query.errors_only) === '1') out.errorsOnly = true
   return out

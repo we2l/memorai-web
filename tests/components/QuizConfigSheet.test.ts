@@ -149,6 +149,37 @@ describe('QuizConfigSheet (prd-4e-praticar-v3 RF-F2)', () => {
     expect(apiMock).not.toHaveBeenCalledWith('/quizzes', expect.anything())
   })
 
+  it('Intensivo aos 80%: só a linha "Restam N"; no limite, a data e o primário desabilitado, sem upgrade (prd-uso-justo RF-F3)', async () => {
+    api({ can_quiz: { ok: true } }, { usage: { tier: 'pro', resets_at: '2026-12-01T00:00:00-03:00', features: { quiz_ai: { used: 32, limit: 40, remaining: 8, near_limit: true } } } })
+    await mountSheet({ topicId: 'pt' })
+    expect(document.querySelector('[data-testid="quiz-quota"]')).toBeNull()
+    expect(document.querySelector('[data-testid="usage-notice"]')?.textContent?.trim()).toBe('Restam 8 de 40 usos com IA este mês.')
+    expect(submit().disabled).toBe(false)
+    document.body.innerHTML = ''
+
+    api({ can_quiz: { ok: true } }, { usage: { tier: 'pro', resets_at: '2026-12-01T00:00:00-03:00', features: { quiz_ai: { used: 40, limit: 40, remaining: 0, near_limit: true } } } })
+    await mountSheet({ topicId: 'pt' })
+    expect(document.querySelector('[data-testid="usage-notice"]')?.textContent?.trim()).toBe('Você usou 40 de 40 usos com IA deste mês. A contagem recomeça em 01/12.')
+    expect(submit().disabled).toBe(true)
+    expect(submit().textContent).not.toContain('Ver o')
+  })
+
+  it('Grátis na prévia (prd-uso-justo §9): "Prévia grátis: 0 de 1 …" no lugar da contagem do mês', async () => {
+    plan.value = 'free'
+    api({ can_quiz: { ok: true } }, { usage: { tier: 'free', period: 'lifetime', resets_at: null, period_start: null, period_end: null, features: { quiz_ai: { used: 0, limit: 1, remaining: 1 } } } })
+    await mountSheet({ topicId: 'pt' }, { email_verified: true, trial: { status: 'used', started_at: null, ends_at: null } })
+    expect(document.querySelector('[data-testid="quiz-quota"]')).toBeNull()
+    expect(document.querySelector('[data-testid="usage-notice"]')?.textContent?.trim()).toBe('Prévia grátis: 0 de 1 usos com IA.')
+    expect(submit().disabled).toBe(false)
+  })
+
+  it('Intensivo abaixo de 80%: nenhuma linha de cota', async () => {
+    api({ can_quiz: { ok: true } }, { usage: { tier: 'pro', features: { quiz_ai: { used: 3, limit: 40, remaining: 37 } } } })
+    await mountSheet({ topicId: 'pt' })
+    expect(document.querySelector('[data-testid="usage-notice"]')).toBeNull()
+    expect(document.querySelector('[data-testid="quiz-quota"]')).toBeNull()
+  })
+
   it('no teste: os gates do plano pago (50 questões, o simulado do caderno) e a cota do teste', async () => {
     plan.value = 'free'
     api({ can_quiz: { ok: true } }, { usage: { tier: 'trial', features: { quiz_ai: { used: 1, limit: 3, remaining: 2 } } } })

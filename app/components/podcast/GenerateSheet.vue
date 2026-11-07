@@ -34,6 +34,7 @@
       </div>
 
       <UiRadioGroup v-model="contentMode" label="Conteúdo" :options="modes" variant="cards" :columns="3" @update:model-value="selectMode" />
+      <LazyPlansUsageNotice feature="podcast" :usage="usage" />
     </div>
 
     <template #footer>
@@ -71,10 +72,15 @@ const toast = useToast()
 const topicStore = useTopicStore()
 
 const plans = usePlans()
-const usage = useFeatureUsage()
+const usage = usePaidQuota()
+const quota = computed(() => usage.usage.value?.features?.podcast ?? null)
 
-// A known account outside the paid plan (the trial included): the paywall with the demo
-const paywall = computed(() => !!auth.user && auth.user.plan !== 'pro')
+// A known account outside the paid plan (the trial included): the paywall with the demo. The Free's preview
+// (prd-uso-justo §9) has one ~30 s podcast of its own cards: the form while it is not spent.
+const previewPodcast = computed(() => hasPreview(plans.plans.value, auth.user) && previewIncludes(plans.plans.value, 'podcast')
+  && (quota.value?.remaining ?? 1) > 0)
+const paywall = computed(() => !!auth.user && auth.user.plan !== 'pro' && !previewPodcast.value)
+const previewSeconds = computed(() => (previewPodcast.value ? plans.plans.value?.preview?.podcast_seconds ?? 30 : null))
 const proName = useProName()
 const podcastBenefit = computed(() => plans.feature('podcast')?.pro_benefit ?? null)
 const generating = computed(() => podcastStore.generating)
@@ -82,15 +88,17 @@ const generating = computed(() => podcastStore.generating)
 const selectedTopicId = ref(props.topicId ?? '')
 watch(() => [model.value, props.topicId] as const, ([open, id]) => { if (open && id) selectedTopicId.value = id }, { immediate: true })
 const topicOptions = computed(() => topicTreeOptions(topicStore.tree))
-watch(model, (val) => {
+watch(model, async (val) => {
   if (!val) return
-  void plans.fetchPlans()
+  // The catalog says whether the Free has the preview's podcast; /usage whether it is spent
+  await plans.fetchPlans()
+  if (previewPodcast.value) await usage.fetchUsage()
   if (paywall.value) {
     useAnalytics().track('paywall_viewed', { feature: 'podcast', source: 'podcast_demo', plan_required: 'pro' })
     return
   }
   if (!topicStore.tree.length) void topicStore.fetchTree()
-  void usage.fetchUsage()
+  if (!usage.usage.value) void usage.fetchUsage()
 }, { immediate: true }) // lazy-mounted already open
 
 function toPlans() {
@@ -102,10 +110,10 @@ function toPlans() {
 const scopeId = computed(() => (model.value && !paywall.value ? selectedTopicId.value || null : null))
 const { gate, blocked, fromError } = useTopicGate(() => scopeId.value, 'can_podcast')
 
-const quota = computed(() => usage.usage.value?.features?.podcast ?? null)
 const quotaText = computed(() => {
   const q = quota.value
-  if (!q || q.limit === null) return null
+  // The preview says its own line (LazyPlansUsageNotice)
+  if (!q || q.limit === null || usage.preview.value) return null
   return `${q.used} de ${q.limit} este mês`
 })
 const quotaSpent = computed(() => !!quota.value && quota.value.limit !== null && (quota.value.remaining ?? 1) <= 0)
@@ -113,7 +121,10 @@ const canGenerate = computed(() => !!selectedTopicId.value && !blocked.value && 
 
 // The length of the catalog (podcast_max_minutes: up to 8 min); the API makes every episode the short one
 const maxMinutes = computed(() => plans.limitOf('pro')?.extras?.podcast_max_minutes ?? null)
-const estimatedTime = computed(() => (maxMinutes.value ? `Até ${maxMinutes.value} min · pronto em ~4 min` : 'Pronto em ~4 min'))
+const estimatedTime = computed(() => {
+  if (previewSeconds.value) return `Prévia de ~${previewSeconds.value} s · pronta em ~2 min`
+  return maxMinutes.value ? `Até ${maxMinutes.value} min · pronto em ~4 min` : 'Pronto em ~4 min'
+})
 
 const tone = ref<PodcastTone>('conversational')
 const format = ref<PodcastFormat>('expository')

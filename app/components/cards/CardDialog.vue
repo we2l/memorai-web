@@ -46,6 +46,8 @@ const originTo = computed(() => {
   const o = props.card?.origin
   if (!o) return null
   if (o.kind === 'quiz') return `/simulados/${o.quiz_id}/resultado`
+  // The pasted question is the card itself (statement, alternatives, key): "Ver a questão" lives in the review
+  if (o.kind === 'question') return null
   const topic = (o.kind === 'note' && o.topic_id) || props.card?.topic_id || props.topicId
   return cadernoPath(topic, { note: o.note_id })
 })

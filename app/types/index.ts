@@ -58,6 +58,8 @@ export interface Flashcard {
   deck_id: string
   topic_id?: string | null
   source_note_id?: string | null
+  /** The pasted question the card was made from (prd-questao-errada) */
+  source_question_id?: string | null
   tags: string[]
   type: string
   cloze_index?: number | null
@@ -382,15 +384,20 @@ export interface FeatureData {
   used: number
   limit: number | null
   remaining: number | null
+  /** used >= ceil(limit × 0,8) with a numeric limit (prd-uso-justo RF-B3); absent on an older API */
+  near_limit?: boolean
 }
 
 export interface FeatureUsageData {
   plan: string
   /** free | trial | pro: in the trial the period is the trial window (prd-planos-lancamento §4) */
   tier?: 'free' | 'trial' | 'pro'
-  period_start: string
-  period_end: string
-  resets_at?: string
+  /** month | trial | lifetime (the Free's preview, prd-uso-justo §9): absent on an older API */
+  period?: 'month' | 'trial' | 'lifetime'
+  /** null in the preview (lifetime: it never resets) */
+  period_start: string | null
+  period_end: string | null
+  resets_at?: string | null
   features: Record<string, FeatureData>
   /** Pages of PDF read by the AI in the period (the trial's cap: 100) */
   pdf_pages?: FeatureData
@@ -831,6 +838,19 @@ export interface CatalogTrial {
   limits?: Record<string, number | null>
 }
 
+/** The Free's preview of the AI, once per account and with no deadline (prd-uso-justo §9): null without it */
+export interface CatalogPreview {
+  lifetime: boolean
+  requires_verified_email: boolean
+  limits: Record<string, number | null>
+  pdf_pages: number
+  quiz_max_questions: number
+  quiz_short_answer: boolean
+  podcast_seconds: number
+  /** "Prévia grátis da IA, uma vez por conta: 1 PDF de até 50 páginas, …" (the API's sentence) */
+  text: string
+}
+
 export interface PlanCatalog {
   currency: string
   period: string
@@ -838,6 +858,9 @@ export interface PlanCatalog {
   plans: CatalogPlan[]
   features: Record<string, CatalogFeature>
   trial?: CatalogTrial | null
+  /** false = "Assinatura em breve": POST /checkout/* answer 503 checkout_unavailable (absent on an older API) */
+  checkout?: { available: boolean }
+  preview?: CatalogPreview | null
 }
 
 /** Detail of the `feature-limit-reached` event (402 payload, PRD §4.1). */
@@ -847,6 +870,8 @@ export interface FeatureLimitDetail {
   limit?: number | null
   planRequired?: PlanKey | null
   resetsAt?: string | null
+  /** The Free's preview is spent: it never resets (prd-uso-justo §9) */
+  lifetime?: boolean
 }
 
 /** `auto_generation` of POST /documents (PRD §4.3) */
@@ -927,7 +952,7 @@ export interface ScopeSummary {
   next_step: ScopeNextStep | null
   listen: { id: string; title: string; duration_seconds: number | null } | null
   subjects: ScopeSubject[]
-  special: { quiz_errors: { cards: number; session_count: number }; loose: { cards: number; session_count: number } }
+  special: { quiz_errors: { cards: number; session_count: number }; questions?: { cards: number; session_count: number }; loose: { cards: number; session_count: number } }
 }
 
 export type MaterialStatus = 'ready' | 'processing' | 'generating' | 'failed' | 'blocked'
@@ -982,6 +1007,7 @@ export type CardOrigin =
   | { kind: 'quiz'; quiz_id: string; title: string; question_number: number | null }
   | { kind: 'document'; note_id: string; title: string; document_id: string; document_name: string; part: { index: number; total: number } | null; page: number | null }
   | { kind: 'note'; note_id: string; title: string; topic_id: string | null }
+  | { kind: 'question'; question_id: string; title: string; source: string | null }
 
 /** A card of the library (GET /topics/{id}/flashcards, cursor mode). */
 export interface LibraryCard extends Flashcard {

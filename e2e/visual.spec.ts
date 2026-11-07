@@ -38,14 +38,17 @@ const CATALOG = {
   currency: 'BRL',
   period: 'calendar_month',
   period_timezone: 'America/Sao_Paulo',
+  // The Free's preview of the AI in place of the trial (prd-uso-justo §9)
+  trial: null,
+  preview: { lifetime: true, requires_verified_email: true, limits: { cards_ai: 10, agent_chat: 10, podcast: 1, pdf_to_note: 1, quiz_ai: 1, note_improve: 1, mindmap_ai: 1 }, pdf_pages: 50, quiz_max_questions: 10, quiz_short_answer: false, podcast_seconds: 30, text: 'Prévia grátis da IA, uma vez por conta: 1 PDF de até 50 páginas, 10 gerações de cards, 10 perguntas ao tira-dúvidas, 1 simulado de 10 questões, 1 melhoria de nota, 1 mapa mental e 1 podcast de 30 s.' },
   plans: [
     {
       key: 'free',
       name: 'Grátis',
       prices: { monthly: null, annual: null },
-      highlights: ['Cadernos, notas e cards sem limite', 'Revisão com FSRS-6', 'Importar do Anki com o histórico', 'Modo recuperação e revisão relâmpago'],
-      limits: { cards_ai: 10, pdf_upload: null, agent_chat: 5, podcast: 1, pdf_to_note: 1, quiz_ai: 1, note_improve: 1, mindmap_ai: 0 },
-      extras: { pdf_pages_per_note: 100, rag_max_pages: 300, upload_max_mb: 50, pdf_pages_monthly_cap: 4000, quiz_max_questions: 10, quiz_short_answer: false, podcast_format: 'teaser', podcast_max_minutes: 0.5 },
+      highlights: ['Cadernos, notas e cards sem limite', 'Revisão com FSRS-6', 'Importar do Anki com o histórico', 'Modo recuperação e revisão relâmpago', 'Prévia da IA, uma vez por conta e sem prazo'],
+      limits: { cards_ai: 10, pdf_upload: null, agent_chat: 10, podcast: 1, pdf_to_note: 1, quiz_ai: 1, note_improve: 1, mindmap_ai: 1 },
+      extras: { pdf_pages_per_note: 50, rag_max_pages: 300, upload_max_mb: 50, pdf_pages_monthly_cap: 4000, quiz_max_questions: 10, quiz_short_answer: false, podcast_format: 'teaser', podcast_max_minutes: 0.5 },
     },
     {
       key: 'pro',
@@ -54,19 +57,19 @@ const CATALOG = {
         monthly: { amount_cents: 2990, label: 'R$ 29,90/mês' },
         annual: { amount_cents: 28790, label: 'R$ 287,90/ano', monthly_equivalent_cents: 2399, installments_max: 1, savings_cents: 7090 },
       },
-      highlights: ['Tudo do Grátis', 'IA sem limite mensal nos cards, no tira-dúvidas e nas questões'],
-      limits: { cards_ai: null, pdf_upload: null, agent_chat: null, podcast: 5, pdf_to_note: 20, quiz_ai: null, note_improve: null, mindmap_ai: null },
+      highlights: ['Tudo do Grátis', 'IA nos cards, no tira-dúvidas, nas questões e nos mapas mentais'],
+      limits: { cards_ai: 400, pdf_upload: null, agent_chat: 700, podcast: 8, pdf_to_note: 20, quiz_ai: 40, note_improve: 60, mindmap_ai: 40 },
       extras: { pdf_pages_per_note: 500, rag_max_pages: 1000, upload_max_mb: 100, pdf_pages_monthly_cap: 4000, quiz_max_questions: 50, quiz_short_answer: true, podcast_format: 'full', podcast_max_minutes: 15 },
     },
   ],
   features: {
-    cards_ai: { label: 'gerações de cards com IA', unit: 'por mês', pro_benefit: 'Gerações ilimitadas' },
-    agent_chat: { label: 'perguntas ao tira-dúvidas', unit: 'por mês', pro_benefit: 'Tira-dúvidas ilimitado' },
+    cards_ai: { label: 'gerações de cards com IA', unit: 'por mês', pro_benefit: '400 gerações por mês' },
+    agent_chat: { label: 'perguntas ao tira-dúvidas', unit: 'por mês', pro_benefit: '700 perguntas por mês' },
     pdf_to_note: { label: 'PDFs transformados em nota', unit: 'por mês', pro_benefit: '20 PDFs por mês, até 500 páginas cada' },
-    quiz_ai: { label: 'simulados com IA', unit: 'por mês', pro_benefit: 'Simulados ilimitados, com dissertativas' },
-    note_improve: { label: 'melhorias de nota com IA', unit: 'por mês', pro_benefit: 'Melhorias ilimitadas' },
-    podcast: { label: 'podcasts', unit: 'por mês', pro_benefit: '5 episódios de até 15 min' },
-    mindmap_ai: { label: 'mapas mentais com IA', unit: 'por mês', pro_benefit: 'Mapas mentais com IA ilimitados' },
+    quiz_ai: { label: 'simulados com IA', unit: 'por mês', pro_benefit: '40 simulados por mês, com dissertativas' },
+    note_improve: { label: 'melhorias de nota com IA', unit: 'por mês', pro_benefit: '60 melhorias por mês' },
+    podcast: { label: 'podcasts', unit: 'por mês', pro_benefit: '8 episódios por mês, de até 8 min' },
+    mindmap_ai: { label: 'mapas mentais com IA', unit: 'por mês', pro_benefit: '40 mapas mentais por mês' },
   },
 }
 

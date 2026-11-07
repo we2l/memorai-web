@@ -20,6 +20,7 @@
     <LazyPodcastExpandedPlayer v-if="expandedPlayerLoaded" />
     <LazyShellCommandPalette v-if="paletteLoaded" />
     <LazyShellAddSheet v-if="addLoaded" />
+    <LazyQuestionPasteSheet v-if="pasteLoaded" />
 
     <LazyUiUpgradeModal
       v-if="upgradeLoaded"
@@ -29,6 +30,7 @@
       :limit="upgradeDetail.limit"
       :plan-required="upgradeDetail.planRequired"
       :resets-at="upgradeDetail.resetsAt"
+      :lifetime="upgradeDetail.lifetime"
     />
   </div>
 </template>
@@ -41,6 +43,7 @@
 import type { FeatureLimitDetail } from '~/types'
 
 const route = useRoute()
+const router = useRouter()
 const auth = useAuthStore()
 const player = usePlayerStore()
 
@@ -78,9 +81,26 @@ const chatLoaded = useLoadedOnce(() => chat.isOpen)
 const expandedPlayerLoaded = useLoadedOnce(() => player.expanded)
 const paletteLoaded = useLoadedOnce(() => paletteOpen.value)
 const addLoaded = useLoadedOnce(() => addSheet.open.value)
+const pasteQuestion = usePasteQuestion()
+const pasteLoaded = useLoadedOnce(() => pasteQuestion.open.value)
+
+// ?add=question opens "Questão que errei" (the PWA shortcut, prd-questao-errada RF-F3); the query goes away
+watch(() => route.query.add, (add) => {
+  if (add !== 'question') return
+  const { add: _add, ...rest } = route.query
+  void router.replace({ query: rest })
+  pasteQuestion.show('shortcut')
+}, { immediate: true })
 const upgradeLoaded = useLoadedOnce(() => showUpgrade.value)
 
 const subscription = useSubscriptionStore()
+
+const plansCatalog = usePlans()
+async function showLimitToast(detail: Partial<FeatureLimitDetail>) {
+  await plansCatalog.fetchPlans()
+  const label = plansCatalog.feature(detail.feature || '')?.label ?? 'usos com IA'
+  useToast().show(limitReachedText(detail.used, detail.limit, label, detail.resetsAt), 'warning')
+}
 
 onMounted(() => {
   subscription.fetchStatus().catch((e: unknown) => reportApiError(e, { silent: true }))
@@ -88,12 +108,18 @@ onMounted(() => {
   window.addEventListener('feature-limit-reached', ((e: CustomEvent) => {
     // Full 402 detail: planRequired null means a Pro at the limit (no upgrade CTA)
     const detail = (e.detail ?? {}) as Partial<FeatureLimitDetail>
+    // The paid plan at its monthly limit: a toast with the day it starts again, never the upgrade (prd-uso-justo RF-F4)
+    if (limitReachedRoute(detail) === 'toast') {
+      void showLimitToast(detail)
+      return
+    }
     upgradeDetail.value = {
       feature: detail.feature || '',
       used: detail.used ?? null,
       limit: detail.limit ?? null,
       planRequired: detail.planRequired === undefined ? 'pro' : detail.planRequired,
       resetsAt: detail.resetsAt ?? null,
+      lifetime: detail.lifetime === true,
     }
     showUpgrade.value = true
     useAnalytics().track('paywall_viewed', {

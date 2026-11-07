@@ -14,12 +14,15 @@ import { test, expect } from './support/fixtures'
  */
 
 /** The launch catalog of the API (#136), with the name of the paid plan as a parameter. */
-function launchCatalog(name: string, { trial = true } = {}) {
+const PREVIEW_TEXT = 'Prévia grátis da IA, uma vez por conta: 1 PDF de até 50 páginas, 10 gerações de cards, 10 perguntas ao tira-dúvidas, 1 simulado de 10 questões, 1 melhoria de nota, 1 mapa mental e 1 podcast de 30 s.'
+
+function launchCatalog(name: string, { trial = true, preview = false } = {}) {
   return {
     currency: 'BRL',
     period: 'calendar_month',
     period_timezone: 'America/Sao_Paulo',
-    trial: trial ? { days: 7, card_required: false, starts_on: 'first_material', excludes: ['podcast'], pdf_pages_cap: 100 } : null,
+    preview: preview ? { lifetime: true, requires_verified_email: true, limits: { cards_ai: 10, agent_chat: 10, podcast: 1, pdf_to_note: 1, quiz_ai: 1, note_improve: 1, mindmap_ai: 1 }, pdf_pages: 50, quiz_max_questions: 10, quiz_short_answer: false, podcast_seconds: 30, text: PREVIEW_TEXT } : null,
+    trial: trial ? { days: 7, card_required: false, starts_on: 'first_material', excludes: ['podcast'], pdf_pages_cap: 100, limits: { cards_ai: 20, agent_chat: 30, podcast: 0, pdf_to_note: 3, quiz_ai: 3 } } : null,
     plans: [
       {
         key: 'free', name: 'Grátis', prices: { monthly: null, annual: null },
@@ -33,16 +36,17 @@ function launchCatalog(name: string, { trial = true } = {}) {
           monthly: { amount_cents: 2990, label: 'R$ 29,90/mês' },
           annual: { amount_cents: 23990, label: 'R$ 239,90/ano', monthly_equivalent_cents: 1999, installments_max: 1, savings_cents: 11890 },
         },
-        highlights: ['Tudo do Grátis', 'IA sem limite mensal nos cards, no tira-dúvidas e nas questões', 'Podcast curto dos seus pontos fracos'],
-        limits: { cards_ai: null, agent_chat: null, podcast: 5, pdf_to_note: 20, quiz_ai: null, note_improve: null, mindmap_ai: null },
+        highlights: ['Tudo do Grátis', 'IA nos cards, no tira-dúvidas, nas questões e nos mapas mentais', 'Podcast curto dos seus pontos fracos'],
+        limits: { cards_ai: 400, agent_chat: 700, podcast: 8, pdf_to_note: 20, quiz_ai: 40, note_improve: 60, mindmap_ai: 40 },
         extras: { pdf_pages_per_note: 500, rag_max_pages: 1000, upload_max_mb: 100, pdf_pages_monthly_cap: 4000, quiz_max_questions: 50, quiz_short_answer: true, podcast_format: 'full', podcast_max_minutes: 8 },
       },
     ],
     features: {
-      cards_ai: { label: 'gerações de cards com IA', unit: 'por mês', pro_benefit: 'Gerações ilimitadas' },
+      cards_ai: { label: 'gerações de cards com IA', unit: 'por mês', pro_benefit: '400 gerações por mês' },
+      agent_chat: { label: 'perguntas ao tira-dúvidas', unit: 'por mês', pro_benefit: '700 perguntas por mês' },
       pdf_to_note: { label: 'PDFs transformados em nota', unit: 'por mês', pro_benefit: '20 PDFs por mês, até 500 páginas cada' },
-      quiz_ai: { label: 'simulados com IA', unit: 'por mês', pro_benefit: 'Simulados ilimitados, com dissertativas' },
-      podcast: { label: 'podcasts', unit: 'por mês', pro_benefit: '5 episódios de até 8 min' },
+      quiz_ai: { label: 'simulados com IA', unit: 'por mês', pro_benefit: '40 simulados por mês, com dissertativas' },
+      podcast: { label: 'podcasts', unit: 'por mês', pro_benefit: '8 episódios por mês, de até 8 min' },
     },
   }
 }
@@ -76,7 +80,7 @@ async function scrollToNoCall(page: Page): Promise<boolean> {
 }
 
 /** What the old landings promised and the product does not keep (prd-landing-v4 §5.1). */
-const FORBIDDEN = [/offline/i, /servidores no brasil/i, /1 clique/i, /sem perder nada/i, /o que cai mais/i, /em segundos/i, /mais popular/i, /mesmo algoritmo do anki/i, /sobreviv/i, /mapa mental/i, /nunca mais esque/i, /aprove em/i, /aprovação garantida/i]
+const FORBIDDEN = [/offline/i, /servidores no brasil/i, /1 clique/i, /sem perder nada/i, /o que cai mais/i, /em segundos/i, /mais popular/i, /mesmo algoritmo do anki/i, /sobreviv/i, /mapa mental/i, /nunca mais esque/i, /aprove em/i, /aprovação garantida/i, /180 páginas/i, /página de onde saiu/i, /intervalos e erros vêm junto/i, /dias do (Pro|Intensivo) no primeiro/i]
 
 /** The calls of the sections (prd-landing-d RF-D2 a RF-D10): each one goes to sign-up or to /planos. */
 const CALLS: [testId: string, path: string][] = [
@@ -110,11 +114,19 @@ test.describe('landing D', () => {
       await expect(plans.getByTestId('landing-plan-paid-name')).toHaveText(name)
       await expect(plans.getByTestId('landing-plan-paid-price')).toContainText('R$ 29,90')
       await expect(plans.getByTestId('landing-plan-paid-annual')).toContainText('R$ 239,90 por ano (R$ 19,99 por mês, cobrado uma vez por ano)')
-      await expect(plans.getByText(`7 dias do ${name} no primeiro material, sem cartão`)).toBeVisible()
-      await expect(plans.getByText('5 episódios de até 8 min')).toBeVisible()
+      await expect(plans.getByText('Teste de 7 dias da IA no primeiro material, sem cartão')).toBeVisible()
+      // The trial's conditions, from the catalog: e-mail, quotas and no podcast (landing-promessas)
+      await expect(page.getByTestId('landing-player-sample')).toContainText(`de um episódio de até 8 min do ${name}.`)
+      await expect(plans.getByTestId('landing-plans-trial')).toHaveText(`O teste de 7 dias começa no primeiro material, pede o e-mail confirmado e vale uma vez por conta. Inclui 20 gerações de cards com IA, 30 perguntas ao tira-dúvidas, 3 PDFs transformados em nota (100 páginas no total) e 3 simulados com IA. O podcast fica só no ${name}.`)
+      await expect(plans.getByText('20 PDFs por mês, até 500 páginas cada (4.000 páginas no mês)')).toBeVisible()
+      // The AI says its plan next to the calls that sell it
+      await expect(page.getByTestId('landing-ai-story')).toHaveText(`A IA está no teste grátis, com até 100 páginas de PDF, e no ${name}.`)
+      await expect(page.getByTestId('landing-ai-quiz')).toHaveText(`A IA está no teste grátis e no ${name}.`)
+      await expect(page.locator('#areas [data-testid="landing-ai-areas"]:visible')).toHaveText(`A IA está no teste grátis e no ${name}.`)
+      await expect(plans.getByText('8 episódios por mês, de até 8 min')).toBeVisible()
       await expect(page.getByTestId('landing-cta-plans_pro')).toHaveText(`Ver o ${name} em detalhe`)
       await expect(page.getByTestId('landing-plans-lead')).toContainText(`No ${name}, ela acompanha você até a prova`)
-      await expect(page.getByTestId('landing-podcast-plan')).toHaveText(`No ${name}: 5 episódios de até 8 min por mês. O teste de 7 dias não inclui o podcast.`)
+      await expect(page.getByTestId('landing-podcast-plan')).toHaveText(`No ${name}: 8 episódios por mês, de até 8 min. O teste de 7 dias não inclui o podcast.`)
       await expect(plans.locator('summary', { hasText: `Como cancelo o ${name}?` })).toHaveCount(1)
       // Two cards of 5 lines each (prd-landing-d §5.2)
       await expect(plans.getByTestId('landing-plans').locator('li')).toHaveCount(10)
@@ -127,8 +139,16 @@ test.describe('landing D', () => {
 
   test('sem teste no catálogo, nenhuma linha de teste', async ({ page }) => {
     await open(page, '/#planos', launchCatalog('Intensivo', { trial: false }))
-    await expect(page.locator('main').getByText(/dias do Intensivo|teste de \d+ dias/)).toHaveCount(0)
+    await expect(page.locator('main').getByText(/dias do Intensivo|teste de \d+ dias|teste grátis/i)).toHaveCount(0)
+    await expect(page.getByTestId('landing-ai-quiz')).toHaveText('A IA faz parte do Intensivo.')
     await expect(page.getByTestId('landing-plans').locator('li')).toHaveCount(10)
+  })
+
+  test('prévia grátis no catálogo (prd-uso-justo §9): a frase da API nas condições, nada do teste', async ({ page }) => {
+    await open(page, '/#planos', launchCatalog('Intensivo', { trial: false, preview: true }))
+    await expect(page.getByTestId('landing-plans-trial')).toHaveText(`${PREVIEW_TEXT} Pede o e-mail confirmado.`)
+    await expect(page.getByTestId('landing-ai-quiz')).toHaveText('Experimente na prévia grátis. A IA fica no Intensivo.')
+    await expect(page.locator('main').getByText(/teste de \d+ dias|dias do Intensivo/i)).toHaveCount(0)
   })
 
   test('sem catálogo: nenhum R$, o erro e "Tentar de novo" que recarrega', async ({ page }) => {

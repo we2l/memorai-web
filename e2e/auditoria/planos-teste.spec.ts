@@ -18,6 +18,11 @@ const banner = (page: Page) => page.getByRole('banner')
 async function catalog(page: Page) {
   return (await apiCall(page, 'GET', '/plans')).data
 }
+
+// The 7-day trial is off since the preview of the AI (prd-uso-justo §9, TRIAL_DAYS=0): these run only with it on
+test.beforeEach(async ({ page }) => {
+  test.skip(!(await catalog(page)).trial, 'teste de 7 dias desligado (TRIAL_DAYS=0): ver planos-previa.spec.ts')
+})
 async function proName(page: Page): Promise<string> {
   return (await catalog(page)).plans.find((p: any) => p.key === 'pro').name
 }

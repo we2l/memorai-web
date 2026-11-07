@@ -6,8 +6,8 @@ import { trialLimitsText } from '~/utils/trial'
 /**
  * Copy and data of the landing D (prd-landing-d; prototype docs/research/assets/landing-prototipo/d.html). Every
  * sentence is something the product does today (prd-landing-v4 §5.1). Prices, the trial and the name of the paid
- * plan never live here: they come from GET /api/plans. The numbers of the demo account (TRF, 45 dias, 90%, 75%,
- * 7 de 10) are the ones of the recorded screens (assets/landing/demo.json).
+ * plan never live here: they come from GET /api/plans. The numbers of the demo account (Técnico do INSS, 45 dias,
+ * 90%, 75%, 7 de 10) are the ones of the recorded screens (assets/landing/demo.json).
  */
 
 /** `?m=` of the short video that brought the visitor; anything else is the default message. */
@@ -37,8 +37,8 @@ export function landingQuery(): URLSearchParams {
 
 /** Real screens of the app (e2e/landing/shots.ts) in public/landing, 390 CSS px wide at 2x. */
 export const SCREENS = {
-  'hoje-tela': { height: 844, alt: 'Tela real do Hoje na conta de demonstração: TRF 4ª Região em 45 dias, com a projeção mantendo o ritmo e se parar hoje, e o plano do dia.' },
-  'revisao': { height: 472, alt: 'Tela real da revisão na conta de demonstração: um card de Direito Constitucional virado, com a origem dele na apostila do TRF.' },
+  'hoje-tela': { height: 844, alt: 'Tela real do Hoje na conta de demonstração: Técnico do INSS em 45 dias, com a projeção mantendo o ritmo e o plano do dia.' },
+  'revisao': { height: 472, alt: 'Tela real da revisão na conta de demonstração: o card “Quanto vale o auxílio-acidente?” virado, com a origem dele na apostila de Seguridade Social.' },
   'anatomia': { height: 320, alt: 'Tela real da revisão de Anatomia na conta de demonstração: o card sobre o principal músculo da inspiração, com a resposta.' },
   'oab': { height: 320, alt: 'Tela real da revisão para a OAB na conta de demonstração: o card sobre o prazo da contestação no CPC, com a resposta.' },
   'enem': { height: 340, alt: 'Tela real da revisão para o ENEM na conta de demonstração: o card sobre a 1ª Lei de Mendel, com a resposta.' },
@@ -48,9 +48,9 @@ export type ScreenName = keyof typeof SCREENS
 
 /** Real recordings of the app (public/landing/video): muted loops, a poster each; `dark` when there is a dark take. */
 export const CLIPS = {
-  revisao: { dark: true, alt: 'Gravação do app na conta de demonstração: a revisão em lote, com um card de Direito Constitucional virando.' },
-  material: { dark: false, alt: 'Gravação do app na conta de demonstração: a nota de uma parte do PDF e os cards dela, cada um com a parte de onde saiu.' },
-  simulado: { dark: true, alt: 'Gravação do app na conta de demonstração: o resultado do simulado, 7 de 10, e os 3 erros virando cards.' },
+  revisao: { dark: true, alt: 'Gravação do app na conta de demonstração: a revisão em lote da apostila de Seguridade Social, com os cards virando.' },
+  material: { dark: false, alt: 'Gravação do app na conta de demonstração: a parte “Benefícios” da apostila de Seguridade Social e os cards dela.' },
+  simulado: { dark: true, alt: 'Gravação do app na conta de demonstração: o resultado de um simulado de Fisiologia, 7 de 10, e os 3 erros virando cards.' },
 } as const
 export type ClipName = keyof typeof CLIPS
 
@@ -74,14 +74,14 @@ export const HERO_VARIANTS: HeroVariant[] = [
     lines: ['Chega de', 'memória', 'de *peixe*.'],
     lead: 'Leu ontem e hoje não lembra nada? Acontece com quem não revisa. O Baigi traz cada card de volta perto da hora de esquecer e mostra quanto você vai lembrar no dia da prova.',
     media: { clip: 'revisao' },
-    bubble: 'Faltam 45 dias pro TRF. Hoje são 3 lotes de 20.',
+    bubble: 'Faltam 45 dias pra prova do INSS. Hoje são 3 lotes de 20.',
   },
   {
     key: 'prova',
     lines: ['Até a prova,', 'sem memória', 'de *peixe*.'],
     lead: 'Marque a data. O Baigi monta a revisão de cada dia em lotes de 20 e mostra quanto você vai lembrar na prova: mantendo o ritmo e se parar hoje.',
     media: { screen: 'hoje-tela' },
-    bubble: 'Faltam 45 dias pro TRF. Hoje são 3 lotes de 20.',
+    bubble: 'Faltam 45 dias pra prova do INSS. Hoje são 3 lotes de 20.',
   },
   {
     key: 'esqueci',
@@ -148,7 +148,7 @@ export const AREAS = [
     pain: 'Uma semana depois, já esqueceu tudo da matéria.',
     points: [
       ['Marque a data da prova.', 'O Baigi mostra quantos cards por dia até lá e põe as matérias da prova na frente.'],
-      ['Simulado por matéria.', 'Você vê que Controle de constitucionalidade está em 67% e os erros já viram card.'],
+      ['Simulado por matéria.', 'Você vê o acerto de cada assunto, de Benefícios a Português, e os erros já viram card.'],
       ['A projeção.', 'Quanto você vai lembrar no dia, mantendo o ritmo ou se parar hoje.'],
     ],
     cta: 'Começar pelo meu concurso',
@@ -210,22 +210,23 @@ export const AREAS = [
 export type LandingArea = typeof AREAS[number]['key']
 
 /**
- * The real sample of the podcast (public/landing/podcast-amostra.mp3, 25 s), its transcript and its waveform. The
+ * The real sample of the podcast (public/landing/podcast-amostra.mp3, 22 s), its transcript and its waveform. The
  * question, a pause with a tick while you answer in your head, then the answer. The times of the lines match the
- * silences of the file (ffmpeg silencedetect, 07/11).
+ * silences of the file (ffmpeg silencedetect, 07/11). The card is the one of the hero's clip (auxílio-acidente), from
+ * an episode of 5 cards of Seguridade Social generated in an @audit.test account (docs/research/landing-personas-2026-11.md).
  */
 export const SAMPLE = {
   src: '/landing/podcast-amostra.mp3',
-  duration: 25.2,
-  title: 'Seus erros de Direito do Trabalho',
+  duration: 22.4,
+  title: 'Seus erros de Seguridade Social',
   lines: [
-    { t: 0.7, text: 'Você sabe quanto tempo os trabalhadores têm para reivindicar seus créditos trabalhistas? Qual é o prazo prescricional dos créditos trabalhistas?' },
-    { t: 9.1, text: 'Pensa um pouco antes de eu responder.' },
-    { t: 10.1, text: '(pausa pra você responder de cabeça)' },
-    { t: 14.7, text: 'Cinco anos para trabalhadores urbanos e rurais, até o limite de dois anos após a extinção do contrato de trabalho, conforme o artigo sétimo, inciso vigésimo nono da Constituição Federal.' },
+    { t: 0.7, text: 'Você sabia que existem diferentes tipos de auxílios financeiros? Quanto vale o auxílio-acidente?' },
+    { t: 7, text: 'Pensa um pouco antes de eu responder.' },
+    { t: 8.2, text: '(pausa pra você responder de cabeça)' },
+    { t: 12.8, text: '50% do salário de benefício, pago como indenização, conforme o artigo 86, parágrafo 1º, da Lei 8.213 de 1991.' },
   ],
   /** RMS of the file in 120 slices */
-  peaks: [0.04, 0.04, 0.04, 0.32, 0.37, 0.62, 0.31, 0.68, 0.26, 0.41, 0.45, 0.6, 0.49, 0.31, 0.36, 0.54, 0.33, 0.48, 0.3, 0.51, 0.19, 0.44, 0.51, 0.17, 0.07, 0.04, 0.04, 1.0, 0.69, 0.75, 0.39, 0.57, 0.35, 0.68, 0.34, 0.63, 0.2, 0.56, 0.34, 0.06, 0.04, 0.04, 0.04, 0.54, 0.89, 0.5, 0.55, 0.3, 0.05, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.61, 0.69, 0.37, 0.55, 0.63, 0.52, 0.43, 0.59, 0.73, 0.59, 0.65, 0.26, 0.04, 0.32, 0.55, 0.32, 0.35, 0.74, 0.46, 0.5, 0.6, 0.48, 0.4, 0.55, 0.39, 0.38, 0.4, 0.61, 0.41, 0.04, 0.04, 0.42, 0.66, 0.45, 0.28, 0.5, 0.48, 0.48, 0.4, 0.41, 0.46, 0.43, 0.5, 0.38, 0.29, 0.31, 0.42, 0.67, 0.1, 0.04],
+  peaks: [0.04, 0.04, 0.04, 0.08, 0.53, 0.64, 0.49, 0.58, 0.44, 0.39, 0.72, 0.57, 0.28, 0.36, 0.34, 0.64, 0.29, 0.41, 0.21, 0.21, 0.73, 0.09, 0.04, 0.04, 0.04, 0.4, 0.4, 0.81, 0.41, 0.67, 0.35, 0.86, 0.27, 0.32, 0.04, 0.04, 0.04, 0.57, 0.46, 0.78, 0.46, 0.48, 0.58, 0.37, 0.15, 0.04, 0.04, 0.04, 0.06, 0.04, 0.04, 0.04, 0.04, 0.06, 0.04, 0.04, 0.04, 0.04, 0.04, 0.06, 0.04, 0.04, 0.04, 0.04, 0.06, 0.04, 0.04, 0.04, 0.04, 0.63, 0.58, 0.49, 0.52, 0.57, 0.24, 1.0, 0.56, 0.52, 0.25, 0.09, 0.04, 0.04, 0.82, 0.51, 0.47, 0.51, 0.54, 0.54, 0.38, 0.38, 0.39, 0.74, 0.5, 0.31, 0.58, 0.5, 0.59, 0.26, 0.62, 0.74, 0.35, 0.41, 0.54, 0.46, 0.73, 0.65, 0.35, 0.47, 0.3, 0.32, 0.38, 0.56, 0.15, 0.33, 0.4, 0.2, 0.35, 0.38, 0.17, 0.04],
 }
 
 // ── The plans, only from the catalog ──

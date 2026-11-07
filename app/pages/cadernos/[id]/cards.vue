@@ -4,12 +4,12 @@
       <template #actions>
         <UiButton variant="primary" :icon-left="Plus" data-testid="library-create" @click="openCreateCard">Criar card</UiButton>
         <UiButton :icon-left="ClipboardX" data-testid="library-paste-question" @click="pasteQuestion.show('library', id)">Colar questão</UiButton>
-        <UiButton :icon-left="Camera" :loading="photo.reading.value" :disabled="aiUsage.atLimit('cards_ai')" @click="photoInput?.click()">Foto</UiButton>
+        <UiButton :icon-left="Camera" :loading="photo.reading.value" :disabled="photoSpent" @click="photoInput?.click()">Foto</UiButton>
         <input ref="photoInput" type="file" accept="image/*" capture="environment" class="hidden" aria-label="Foto do material" @change="onPhoto">
       </template>
     </UiPageHeader>
     <!-- Foto → cards uses the paid plan's month of generations (prd-uso-justo RF-F3) -->
-    <LazyPlansUsageNotice feature="cards_ai" :usage="aiUsage" class="-mt-3" />
+    <LazyPlansUsageNotice feature="cards_ai" class="-mt-3" @at-limit="photoSpent = $event" />
 
     <!-- The AI's suggestions from a photo -->
     <LazyTopicAiGeneratedCards
@@ -294,11 +294,13 @@ function onMoved() {
 
 // === Photo (OCR) ===
 const photoInput = ref<HTMLInputElement | null>(null)
-// The paid plan's month of generations (prd-uso-justo RF-F3): /usage once per opening, only for the paid plan
-const aiUsage = usePaidQuota()
+// The paid plan's month of generations (prd-uso-justo RF-F3): the notice reads /usage (in its own chunk, the
+// library is tight on budget) and says when the month is spent; the server's 402 covers the rest
+const photoSpent = ref(false)
 function readPhoto(file: File) {
-  if (aiUsage.atLimit('cards_ai')) {
-    window.dispatchEvent(new CustomEvent('feature-limit-reached', { detail: aiUsage.limitDetail('cards_ai') }))
+  if (photoSpent.value) {
+    // Only the paid plan reaches its limit here: the toast with the day it starts again (RF-F4)
+    window.dispatchEvent(new CustomEvent('feature-limit-reached', { detail: { feature: 'cards_ai', planRequired: null } }))
     return
   }
   void photo.processImage(file)
@@ -335,7 +337,7 @@ async function openHighlighted(cardId: string) {
 onMounted(async () => {
   if (!topicStore.tree.length && !topicStore.loading) void topicStore.fetchTree()
   void loadMaterials()
-  await Promise.all([lib.load(), aiUsage.fetchUsageIfPaid()])
+  await lib.load()
   consumePhoto()
   const { new: isNew, highlight, ...query } = route.query
   if (isNew === '1') openCreateCard()

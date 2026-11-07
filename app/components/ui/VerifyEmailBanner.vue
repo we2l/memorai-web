@@ -63,7 +63,7 @@ const { $api } = useNuxtApp()
 const { plans } = usePlans()
 // The catalog is read while the e-mail is not confirmed: the preview of the AI asks for it (prd-uso-justo §9)
 const proName = useProName(() => auth.user?.trial?.status === 'available' || auth.user?.email_verified === false)
-const hasPreviewOffer = computed(() => !trialDays.value && !!catalogPreview(plans.value) && auth.user?.plan !== 'pro')
+const hasPreviewOffer = computed(() => !trialDays.value && !!plans.value?.preview && auth.user?.plan !== 'pro')
 const trialDays = computed(() => (auth.user?.trial?.status === 'available' ? offeredTrial(plans.value)?.days ?? null : null))
 
 const dismissed = ref(false)

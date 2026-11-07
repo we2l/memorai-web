@@ -46,9 +46,9 @@ describe('prévia grátis (prd-uso-justo §9)', () => {
 
   it('a landing lê a prévia do catálogo no lugar do teste', () => {
     const c = catalog()
-    expect(landingTrialTerms(c)).toBe(`${TEXT} Pede o e-mail confirmado e não expira.`)
+    expect(landingTrialTerms(c)).toBe(`${TEXT} Pede o e-mail confirmado.`)
     expect(landingPlansLead(c)).toBe('A IA você experimenta na prévia grátis, uma vez por conta. No Intensivo, ela acompanha você até a prova.')
-    expect(landingAiLine(c, { pdf: true })).toBe('Experimente na prévia grátis, com até 50 páginas de PDF. A IA fica no Intensivo.')
+    expect(landingAiLine(c, { pdf: true })).toBe('Experimente na prévia grátis. A IA fica no Intensivo.')
     expect(landingPodcastLine(c)).toBe('No Intensivo: 8 episódios por mês, de até 8 min. No Grátis, uma prévia de 30 s.')
     expect(landingFaqs(c)[0]!.a).toContain(TEXT)
     expect(JSON.stringify([landingTrialTerms(c), landingPlansLead(c), landingFaqs(c)])).not.toMatch(/teste de \d+ dias|7 dias/)

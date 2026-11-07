@@ -63,7 +63,7 @@ const isFree = computed(() => (auth.user?.plan ?? 'free') === 'free')
 const proName = useProName()
 const trialInvite = useTrialInvite()
 const onPreview = computed(() => featureUsage.usage.value?.period === 'lifetime')
-const freeLine = computed(() => (catalogPreview(plans.value) ? 'Sem cobrança, com uma prévia grátis da IA.' : `Sem cobrança. A IA é do ${proName.value}.`))
+const freeLine = computed(() => (plans.value?.preview ? 'Sem cobrança, com uma prévia grátis da IA.' : `Sem cobrança. A IA é do ${proName.value}.`))
 
 // Annual validity, scheduled monthly; the portal is only for the monthly (monetização RN-12)
 const planSummary = computed(() => {

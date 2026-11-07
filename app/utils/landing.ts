@@ -288,13 +288,8 @@ function pdfBenefit(catalog: PlanCatalog, plan: PlanCatalog['plans'][number]): s
 export function landingAiLine(catalog: PlanCatalog | null, opts: { pdf?: boolean } = {}): string {
   const name = paidPlanName(catalog)
   const trial = catalogTrial(catalog)
-  const preview = catalog?.preview
-  if (!trial && preview) {
-    // The Free's preview of the AI in place of the trial (prd-uso-justo §9), from the catalog
-    return opts.pdf && preview.pdf_pages
-      ? `Experimente na prévia grátis, com até ${preview.pdf_pages} páginas de PDF. A IA fica no ${name}.`
-      : `Experimente na prévia grátis. A IA fica no ${name}.`
-  }
+  // The Free's preview of the AI in place of the trial (prd-uso-justo §9)
+  if (!trial && catalog?.preview) return `Experimente na prévia grátis. A IA fica no ${name}.`
   if (!trial) return `A IA faz parte do ${name}.`
   return opts.pdf && trial.pdf_pages_cap
     ? `A IA está no teste grátis, com até ${trial.pdf_pages_cap} páginas de PDF, e no ${name}.`
@@ -313,7 +308,7 @@ function trialExcludesText(catalog: PlanCatalog | null, trial: CatalogTrial): st
 export function landingTrialTerms(catalog: PlanCatalog | null): string {
   const trial = catalogTrial(catalog)
   // The preview's sentence comes whole from the API (prd-uso-justo §9)
-  if (!trial && catalog?.preview) return `${catalog.preview.text}${catalog.preview.requires_verified_email ? ' Pede o e-mail confirmado' : ''} e não expira.`
+  if (!trial && catalog?.preview) return `${catalog.preview.text} Pede o e-mail confirmado.`
   if (!trial) return ''
   const limits = trialLimitsText(catalog)
   return `O teste de ${trial.days} dias começa no primeiro material, pede o e-mail confirmado e vale uma vez por conta.`

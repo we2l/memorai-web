@@ -74,7 +74,7 @@
         :goal-met="goalCelebrated"
         :streak="streakInfo"
         :stats-loading="statsLoading"
-        :next-count="Math.min(REVIEW_BATCH, review.remaining)"
+        :next-count="Math.min(review.batchSize, review.remaining)"
         :back-to="backTo"
         :back-label="backLabel"
         :language="language"
@@ -226,7 +226,7 @@
 </template>
 
 <script setup lang="ts">
-// Review v3 (prd-4d-revisao-v3): batches of 20 with a visible end, the origin of each card with a link to the
+// Review v3 (prd-4d-revisao-v3): batches of 10, 20 or 30 (the person's choice) with a visible end, the origin of each card with a link to the
 // excerpt, the 4 ratings in the same order on every screen, the end of a batch with the celebration, the goal
 // of the day and the streak, and the end of the session with tomorrow and the retention suggestion. The
 // reward moved from each rating (the old toasts) to the end of the batch; the 3 banners became one line; the
@@ -237,7 +237,6 @@ import { cadernoPath, markScopeCleared } from '~/utils/scope'
 import { reviewPath, scopeBackPath, scopeOf, scopeQuery, sessionScopeFromQuery } from '~/utils/reviewScope'
 import { batchSummary, studyDayEnd } from '~/composables/useReviewBatches'
 import type { StreakInfo } from '~/components/review/ReviewBatchEnd.vue'
-import { REVIEW_BATCH } from '~/stores/review'
 import { MessageCircle } from 'lucide-vue-next'
 
 definePageMeta({ chrome: 'focus' })

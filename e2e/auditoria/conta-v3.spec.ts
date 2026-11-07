@@ -83,6 +83,31 @@ test.describe('Configurações (Free)', () => {
     await expect(page.getByText(/de 2 lotes/).first()).toBeVisible()
   })
 
+  test('o tamanho do lote salva sozinho e muda a meta do /stats e o lote da revisão', async ({ page }) => {
+    await apiCall(page, 'PUT', '/settings', { daily_new_cards_limit: 100, daily_goal_batches: 6 })
+    const topic = (await apiCall(page, 'POST', '/topics', { name: 'Lote' })).data.id
+    for (let i = 0; i < 25; i++) await apiCall(page, 'POST', '/flashcards', { topic_id: topic, front: `L${i}`, back: `R${i}` })
+
+    await gotoApp(page, '/configuracoes#estudo')
+    const size = page.getByTestId('batch-size')
+    await expect(size.getByRole('radio')).toHaveCount(3)
+    await expect(size.getByRole('radio', { name: '20 cards' })).toBeChecked()
+    const saved = page.waitForResponse(r => r.url().endsWith('/api/settings') && r.request().method() === 'PUT')
+    await size.getByRole('radio', { name: '10 cards' }).check()
+    expect((await saved).request().postDataJSON()).toEqual({ review_batch_size: 10 })
+    await expect(page.getByTestId('batch-size-saved')).toHaveText('Salvo')
+    await expect(page.getByTestId('daily-goal')).toContainText('Um lote = 10 cards.')
+    expect(sql(`select review_batch_size from users where email='${USERS.conta.email}'`)).toBe('10')
+    const stats = (await apiCall(page, 'GET', '/stats')).data
+    expect(stats.goal.batch_size).toBe(10)
+    // The account keeps the cards of the other tests: the goal counts the whole day in lotes of 10, up to 6
+    expect(stats.goal.target_batches).toBe(Math.min(6, Math.ceil((stats.due_today + stats.reviewed_today) / 10)))
+
+    // 25 cards in lotes of 10: 3 lotes, the review cuts them with the size of /me
+    await gotoApp(page, `/revisar?scope=topic:${topic}`)
+    await expect(page.getByText(/Lote 1 de 3 · card 1 de 10/)).toBeVisible()
+  })
+
   test('âncoras antigas vão para a seção nova', async ({ page }) => {
     await gotoApp(page, '/configuracoes#lembretes')
     await expect(page).toHaveURL(/\/configuracoes#estudo$/)

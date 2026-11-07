@@ -5,6 +5,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { reactive } from 'vue'
 import PasswordInput from '~/components/auth/PasswordInput.vue'
 import DailyGoalPicker from '~/components/settings/DailyGoalPicker.vue'
+import BatchSizePicker from '~/components/settings/BatchSizePicker.vue'
 import PlanUsageSection from '~/components/settings/PlanUsageSection.vue'
 import SettingsAccountSection from '~/components/settings/AccountSection.vue'
 import NotebookRow from '~/components/caderno/NotebookRow.vue'
@@ -79,6 +80,42 @@ describe('SettingsDailyGoalPicker (RF-F2)', () => {
     await w.findAll('input[type="radio"]')[0]!.setValue(true)
     await flushPromises()
     expect(settings.daily_goal_batches).toBe(3)
+  })
+})
+
+describe('SettingsBatchSizePicker', () => {
+  it('10 · 20 · 30 cards, padrão 20; escolher grava review_batch_size, diz "Salvo" e atualiza o /me', async () => {
+    useAuthStore().user = { name: 'Ana', review_batch_size: 20 } as never
+    const calls = stubApi({ '/settings': { data: { review_batch_size: 10 } } })
+    const settings = reactive<UserSettings>({ daily_new_cards_limit: null, daily_review_limit: null, session_time_limit: null, survival_mode: false, daily_goal_batches: 3 })
+    const w = await mountSuspended(BatchSizePicker, { props: { settings } })
+    const radios = w.findAll('input[type="radio"]')
+    expect(radios).toHaveLength(3)
+    expect((radios[1]!.element as HTMLInputElement).checked).toBe(true)
+    expect(w.text()).toContain('10 cards')
+    expect(w.text()).toContain('~5 min por lote · padrão')
+    await radios[0]!.setValue(true)
+    await flushPromises()
+    expect(calls.at(-1)).toMatchObject({ url: '/settings', opts: { method: 'PUT', body: { review_batch_size: 10 } } })
+    expect(settings.review_batch_size).toBe(10)
+    expect(useAuthStore().user!.review_batch_size).toBe(10)
+    expect(w.get('[data-testid="batch-size-saved"]').text()).toBe('Salvo')
+  })
+
+  it('falha: volta ao valor anterior', async () => {
+    stubApi({})
+    const settings = reactive<UserSettings>({ daily_new_cards_limit: null, daily_review_limit: null, session_time_limit: null, survival_mode: false, review_batch_size: 30 })
+    const w = await mountSuspended(BatchSizePicker, { props: { settings } })
+    await w.findAll('input[type="radio"]')[0]!.setValue(true)
+    await flushPromises()
+    expect(settings.review_batch_size).toBe(30)
+  })
+
+  it('a meta mostra os minutos no tamanho escolhido', async () => {
+    const settings = reactive<UserSettings>({ daily_new_cards_limit: null, daily_review_limit: null, session_time_limit: null, survival_mode: false, daily_goal_batches: 3, review_batch_size: 10 })
+    const w = await mountSuspended(DailyGoalPicker, { props: { settings } })
+    expect(w.text()).toContain('Um lote = 10 cards.')
+    expect(w.text()).toContain('~8 min · padrão')
   })
 })
 

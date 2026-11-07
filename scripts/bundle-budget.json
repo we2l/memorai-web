@@ -27,7 +27,7 @@
     },
     "/": {
       "file": "pages/index.vue",
-      "gzKb": 15,
+      "gzKb": 15.1,
       "closureGzKb": 20
     },
     "/hoje": {
@@ -38,7 +38,7 @@
     "/revisar": {
       "file": "pages/revisar.vue",
       "gzKb": 16.6,
-      "closureGzKb": 47.6
+      "closureGzKb": 47.8
     },
     "/praticar": {
       "file": "pages/praticar.vue",
@@ -72,8 +72,8 @@
     },
     "/configuracoes": {
       "file": "pages/configuracoes.vue",
-      "gzKb": 9.5,
-      "closureGzKb": 36
+      "gzKb": 9.7,
+      "closureGzKb": 36.3
     },
     "/entrar": {
       "file": "pages/entrar.vue",

@@ -399,4 +399,14 @@ describe('sessão em páginas (prd-performance-caderno RF-F7)', () => {
     await vi.waitFor(() => expect(store.sessionError).toBeTruthy())
     expect(store.finished).toBe(false)
   })
+
+  it('a sessão abre com o tamanho de lote do /me (padrão 20)', async () => {
+    pages.push({ data: ids('a', 3), total: 3, session_count: 3, has_more: false }, { data: ids('b', 3), total: 3, session_count: 3, has_more: false })
+    const store = useReviewStore()
+    await store.fetchSession()
+    expect(store.batchSize).toBe(20)
+    useAuthStore().user = { review_batch_size: 30 } as never
+    await store.fetchSession()
+    expect(store.batchSize).toBe(30)
+  })
 })

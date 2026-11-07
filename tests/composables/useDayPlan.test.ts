@@ -48,6 +48,9 @@ describe('buildDayPlan (prd-4a-hoje-v3 §5.2)', () => {
     const [review] = buildDayPlan(input())
     expect(review!.title).toBe('Revisar 45 cards de TRF 4ª Região')
     expect(review!.detail).toBe('3 lotes de ~20 · ≈ 12 min')
+    // The person's batch comes with /stats.goal
+    const small = buildDayPlan(input({ stats: stats({ goal: { batch_size: 10, target_batches: 3, done_batches: 1, met: false, minutes_left: 12 } }) }))[0]
+    expect(small!.detail).toBe('5 lotes de ~10 · ≈ 12 min')
     expect(review!.action).toEqual({ label: 'Começar', to: '/revisar' })
 
     const two = buildDayPlan(input({ progress: [topic({ id: 'a', session_count: 3 }), topic({ id: 'b', session_count: 9 })] }))

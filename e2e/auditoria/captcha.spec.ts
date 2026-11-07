@@ -79,8 +79,10 @@ test.describe('Captcha', () => {
     await page.locator('#accept_terms').check()
     await page.getByRole('button', { name: 'Criar conta' }).click()
 
+    // Without the site key the form posts right away (the aborted request also ends in an error): skip on the call
     const error = page.getByTestId('signup-error')
-    test.skip(!(await error.isVisible().catch(() => false)) && calls === 1, 'build sem NUXT_PUBLIC_TURNSTILE_SITE_KEY')
+    await expect(error).toBeVisible()
+    test.skip(calls === 1, 'build sem NUXT_PUBLIC_TURNSTILE_SITE_KEY')
     await expect(error).toHaveText(/verificação anti-robô/)
     expect(calls).toBe(0)
   })

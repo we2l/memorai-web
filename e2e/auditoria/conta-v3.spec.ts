@@ -119,12 +119,18 @@ test.describe('Configurações (Free)', () => {
   test('uso de IA: rótulos exatos do catálogo e quando a contagem recomeça', async ({ page }) => {
     const plans = (await (await page.context().request.get(`${API}/plans`, { headers: { Accept: 'application/json', Origin: WEB } })).json()).data
     const expected = Object.values(plans.features as Record<string, { label: string }>).map(f => f.label.charAt(0).toUpperCase() + f.label.slice(1))
+    // The Free's preview of the AI (prd-uso-justo §9): + the PDF pages line, and it never resets
+    if (plans.preview) expected.push('Páginas de PDF lidas pela IA')
     await gotoApp(page, '/configuracoes#plano')
     const rows = page.getByTestId('usage-row')
     await expect(rows).toHaveCount(expected.length)
     for (let i = 0; i < expected.length; i++) await expect(rows.nth(i)).toContainText(expected[i]!)
     await expect(page.getByText('Revisão em áudio')).toHaveCount(0)
-    await expect(page.getByTestId('usage-renews')).toHaveText(/^a contagem recomeça em 01\/\d\d$/)
+    if (plans.preview) {
+      await expect(page.getByTestId('usage-renews')).toHaveCount(0)
+    } else {
+      await expect(page.getByTestId('usage-renews')).toHaveText(/^a contagem recomeça em 01\/\d\d$/)
+    }
   })
 
   test('axe nas configurações: claro e escuro, 390 e 1440', async ({ page }) => {

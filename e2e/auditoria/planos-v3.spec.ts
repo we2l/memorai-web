@@ -46,13 +46,15 @@ test.describe('/planos anônimo', () => {
   test('a tabela de comparação vem do catálogo: limite e nome mudam com o mock', async ({ page }) => {
     const data = await catalog(page)
     data.plans[0].limits.cards_ai = 3
+    data.plans[0].limits.mindmap_ai = 0
     data.plans[1].limits.podcast = 9
     data.features.podcast.label = 'episódios de áudio'
     await page.route('**/api/plans', route => route.fulfill({ json: { data } }))
     await gotoApp(page, '/planos')
 
     const table = page.getByTestId('plan-compare')
-    await expect(table.getByTestId('compare-cards_ai').getByRole('cell').first()).toHaveText('3 por mês')
+    // The Free's quotas are the preview's, once per account (prd-uso-justo §9): "na prévia", never "por mês"
+    await expect(table.getByTestId('compare-cards_ai').getByRole('cell').first()).toHaveText(data.preview ? '3 na prévia' : '3 por mês')
     await expect(table.getByTestId('compare-podcast').getByRole('rowheader')).toHaveText('Episódios de áudio')
     await expect(table.getByTestId('compare-podcast').getByRole('cell').nth(1)).toContainText('9 por mês')
     await expect(table.getByTestId('compare-mindmap_ai').getByRole('cell').first()).toHaveText('Não incluído')
@@ -228,7 +230,7 @@ test.describe('Páginas públicas', () => {
     await expect(page.getByText('[[CNPJ]]')).toBeVisible()
     await page.getByRole('navigation', { name: 'Índice' }).getByRole('link', { name: 'Rescisão' }).click()
     await expect(page).toHaveURL(/#rescisao/)
-    await expect(page.getByRole('heading', { name: '9. Rescisão' })).toBeInViewport()
+    await expect(page.getByRole('heading', { name: /^\d+\. Rescisão$/ })).toBeInViewport()
     // The prose styles really apply (a missing legal-prose.css fails in silence)
     expect(await page.locator('.legal-prose ul').first().evaluate(el => getComputedStyle(el).listStyleType)).toBe('disc')
     await gotoApp(page, '/privacidade')

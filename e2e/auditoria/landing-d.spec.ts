@@ -19,7 +19,7 @@ function launchCatalog(name: string, { trial = true } = {}) {
     currency: 'BRL',
     period: 'calendar_month',
     period_timezone: 'America/Sao_Paulo',
-    trial: trial ? { days: 7, card_required: false, starts_on: 'first_material', excludes: ['podcast'], pdf_pages_cap: 100 } : null,
+    trial: trial ? { days: 7, card_required: false, starts_on: 'first_material', excludes: ['podcast'], pdf_pages_cap: 100, limits: { cards_ai: 20, agent_chat: 30, podcast: 0, pdf_to_note: 3, quiz_ai: 3 } } : null,
     plans: [
       {
         key: 'free', name: 'Grátis', prices: { monthly: null, annual: null },
@@ -40,6 +40,7 @@ function launchCatalog(name: string, { trial = true } = {}) {
     ],
     features: {
       cards_ai: { label: 'gerações de cards com IA', unit: 'por mês', pro_benefit: 'Gerações ilimitadas' },
+      agent_chat: { label: 'perguntas ao tira-dúvidas', unit: 'por mês', pro_benefit: 'Tira-dúvidas ilimitado' },
       pdf_to_note: { label: 'PDFs transformados em nota', unit: 'por mês', pro_benefit: '20 PDFs por mês, até 500 páginas cada' },
       quiz_ai: { label: 'simulados com IA', unit: 'por mês', pro_benefit: 'Simulados ilimitados, com dissertativas' },
       podcast: { label: 'podcasts', unit: 'por mês', pro_benefit: '5 episódios de até 8 min' },
@@ -76,7 +77,7 @@ async function scrollToNoCall(page: Page): Promise<boolean> {
 }
 
 /** What the old landings promised and the product does not keep (prd-landing-v4 §5.1). */
-const FORBIDDEN = [/offline/i, /servidores no brasil/i, /1 clique/i, /sem perder nada/i, /o que cai mais/i, /em segundos/i, /mais popular/i, /mesmo algoritmo do anki/i, /sobreviv/i, /mapa mental/i, /nunca mais esque/i, /aprove em/i, /aprovação garantida/i]
+const FORBIDDEN = [/offline/i, /servidores no brasil/i, /1 clique/i, /sem perder nada/i, /o que cai mais/i, /em segundos/i, /mais popular/i, /mesmo algoritmo do anki/i, /sobreviv/i, /mapa mental/i, /nunca mais esque/i, /aprove em/i, /aprovação garantida/i, /180 páginas/i, /página de onde saiu/i, /intervalos e erros vêm junto/i, /dias do (Pro|Intensivo) no primeiro/i]
 
 /** The calls of the sections (prd-landing-d RF-D2 a RF-D10): each one goes to sign-up or to /planos. */
 const CALLS: [testId: string, path: string][] = [
@@ -110,7 +111,14 @@ test.describe('landing D', () => {
       await expect(plans.getByTestId('landing-plan-paid-name')).toHaveText(name)
       await expect(plans.getByTestId('landing-plan-paid-price')).toContainText('R$ 29,90')
       await expect(plans.getByTestId('landing-plan-paid-annual')).toContainText('R$ 239,90 por ano (R$ 19,99 por mês, cobrado uma vez por ano)')
-      await expect(plans.getByText(`7 dias do ${name} no primeiro material, sem cartão`)).toBeVisible()
+      await expect(plans.getByText('Teste de 7 dias da IA no primeiro material, sem cartão')).toBeVisible()
+      // The trial's conditions, from the catalog: e-mail, quotas and no podcast (landing-promessas)
+      await expect(plans.getByTestId('landing-plans-trial')).toHaveText(`O teste de 7 dias começa no primeiro material, pede o e-mail confirmado e vale uma vez por conta. Inclui 20 gerações de cards com IA, 30 perguntas ao tira-dúvidas, 3 PDFs transformados em nota (100 páginas no total) e 3 simulados com IA. O podcast fica só no ${name}.`)
+      await expect(plans.getByText('20 PDFs por mês, até 500 páginas cada (4.000 páginas no mês)')).toBeVisible()
+      // The AI says its plan next to the calls that sell it
+      await expect(page.getByTestId('landing-ai-story')).toHaveText(`A IA está no teste grátis, com até 100 páginas de PDF, e no ${name}.`)
+      await expect(page.getByTestId('landing-ai-quiz')).toHaveText(`A IA está no teste grátis e no ${name}.`)
+      await expect(page.locator('#areas [data-testid="landing-ai-areas"]:visible')).toHaveText(`A IA está no teste grátis e no ${name}.`)
       await expect(plans.getByText('5 episódios de até 8 min')).toBeVisible()
       await expect(page.getByTestId('landing-cta-plans_pro')).toHaveText(`Ver o ${name} em detalhe`)
       await expect(page.getByTestId('landing-plans-lead')).toContainText(`No ${name}, ela acompanha você até a prova`)
@@ -127,7 +135,8 @@ test.describe('landing D', () => {
 
   test('sem teste no catálogo, nenhuma linha de teste', async ({ page }) => {
     await open(page, '/#planos', launchCatalog('Intensivo', { trial: false }))
-    await expect(page.locator('main').getByText(/dias do Intensivo|teste de \d+ dias/)).toHaveCount(0)
+    await expect(page.locator('main').getByText(/dias do Intensivo|teste de \d+ dias|teste grátis/i)).toHaveCount(0)
+    await expect(page.getByTestId('landing-ai-quiz')).toHaveText('A IA faz parte do Intensivo.')
     await expect(page.getByTestId('landing-plans').locator('li')).toHaveCount(10)
   })
 

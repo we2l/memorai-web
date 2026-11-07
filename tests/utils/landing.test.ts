@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { AREAS, HERO_VARIANTS, LANDING_MESSAGES, LANDING_MESSAGE_SCRIPT, SCREENS, catalogTrial, landingFaqs, landingMessageOf, landingPlanLines, landingPlansLead, landingPodcastLine, paidPlanName, titleParts } from '~/utils/landing'
+import { AREAS, HERO_VARIANTS, LANDING_MESSAGES, LANDING_MESSAGE_SCRIPT, SCREENS, catalogTrial, landingAiLine, landingFaqs, landingMessageOf, landingPlanLines, landingPlansLead, landingPodcastLine, landingTrialTerms, paidPlanName, titleParts } from '~/utils/landing'
 import type { PlanCatalog } from '~/types'
 
 const catalog = (over: Partial<PlanCatalog> = {}, proTrial?: object, proName = 'Pro'): PlanCatalog => ({
@@ -16,7 +16,7 @@ const catalog = (over: Partial<PlanCatalog> = {}, proTrial?: object, proName = '
 
 /** The launch catalog of the API (#136), trimmed to what the landing reads. */
 function launch(proName = 'Intensivo'): PlanCatalog {
-  const c = catalog({ trial: { days: 7, card_required: false, excludes: ['podcast'], pdf_pages_cap: 100 } }, undefined, proName)
+  const c = catalog({ trial: { days: 7, card_required: false, excludes: ['podcast'], pdf_pages_cap: 100, limits: { cards_ai: 20, quiz_ai: 3, pdf_to_note: 3, podcast: 0 } } }, undefined, proName)
   c.plans[0]!.highlights = ['Cadernos, notas e cards sem limite', 'Revisão com FSRS-6', 'Importar do Anki sem recomeçar do zero', 'Modo recuperação e revisão relâmpago', 'Domínio e acerto por assunto', 'Teste do Pro sem cartão no primeiro material']
   c.plans[1]!.highlights = ['Tudo do Grátis', 'IA sem limite mensal nos cards, no tira-dúvidas e nas questões', 'Podcast curto dos seus pontos fracos']
   c.plans[1]!.limits = { cards_ai: null, pdf_to_note: 20, quiz_ai: null, podcast: 5 }
@@ -24,9 +24,37 @@ function launch(proName = 'Intensivo'): PlanCatalog {
     pdf_to_note: { label: 'PDFs transformados em nota', unit: 'por mês', pro_benefit: '20 PDFs por mês, até 500 páginas cada' },
     quiz_ai: { label: 'simulados com IA', unit: 'por mês', pro_benefit: 'Simulados ilimitados, com dissertativas' },
     podcast: { label: 'podcasts', unit: 'por mês', pro_benefit: '5 episódios de até 8 min' },
+    cards_ai: { label: 'gerações de cards com IA', unit: 'por mês', pro_benefit: 'Gerações sem limite' },
   }
   return c
 }
+
+describe('landing: promessas com a condição à vista (landing-promessas 2026-11)', () => {
+  it('o teste diz quando começa, o e-mail, as cotas do catálogo e o que fica de fora', () => {
+    expect(landingTrialTerms(launch())).toBe('O teste de 7 dias começa no primeiro material, pede o e-mail confirmado e vale uma vez por conta. Inclui 3 PDFs transformados em nota (100 páginas no total), 3 simulados com IA e 20 gerações de cards com IA. O podcast fica só no Intensivo.')
+    expect(landingTrialTerms(catalog())).toBe('')
+    expect(landingTrialTerms(null)).toBe('')
+  })
+
+  it('a linha da IA diz o plano, com o teto de páginas do teste quando é PDF', () => {
+    expect(landingAiLine(launch())).toBe('A IA está no teste grátis e no Intensivo.')
+    expect(landingAiLine(launch('Pro'), { pdf: true })).toBe('A IA está no teste grátis, com até 100 páginas de PDF, e no Pro.')
+    expect(landingAiLine(null)).toBe('A IA faz parte do Intensivo.')
+  })
+
+  it('o PDF do pago mostra o teto do mês quando N × páginas passa dele', () => {
+    const c = launch()
+    c.plans[1]!.extras = { pdf_pages_per_note: 500, pdf_pages_monthly_cap: 4000 } as never
+    expect(landingPlanLines(c, 'pro')).toContain('20 PDFs por mês, até 500 páginas cada (4.000 páginas no mês)')
+    c.plans[1]!.extras = { pdf_pages_per_note: 100, pdf_pages_monthly_cap: 4000 } as never
+    expect(landingPlanLines(c, 'pro')).toContain('20 PDFs por mês, até 500 páginas cada')
+  })
+
+  it('a landing não promete o que o produto não faz', () => {
+    const all = JSON.stringify([HERO_VARIANTS, AREAS, landingFaqs(launch())])
+    expect(all).not.toMatch(/180 páginas|6 partes|página de onde saiu|divide os cards por dia|plano do dia sai|Aqui não\./)
+  })
+})
 
 describe('landing D (prd-landing-d)', () => {
   it('?m= conhecido escolhe a variante; o resto cai no padrão', () => {
@@ -98,7 +126,7 @@ describe('landing D (prd-landing-d)', () => {
       'Revisão com FSRS-6',
       'Importar do Anki sem recomeçar do zero',
       'Modo recuperação e revisão relâmpago',
-      '7 dias do Intensivo no primeiro material, sem cartão',
+      'Teste de 7 dias da IA no primeiro material, sem cartão',
     ])
     expect(landingPlanLines(c, 'pro')).toEqual([
       'Tudo do Grátis',
@@ -125,7 +153,9 @@ describe('landing D (prd-landing-d)', () => {
     expect(landingPodcastLine(launch())).toBe('No Intensivo: 5 episódios de até 8 min por mês. O teste de 7 dias não inclui o podcast.')
     expect(landingPodcastLine(null)).toBe('Os episódios fazem parte do Intensivo.')
     expect(landingFaqs(launch('Pro')).map(f => f.q)).toContain('Como cancelo o Pro?')
-    expect(landingFaqs(launch())[0]!.a).toContain('7 dias do Intensivo')
+    expect(landingFaqs(launch())[0]!.a).toContain('7 dias para testar a IA')
+    expect(landingFaqs(launch())[0]!.a).toContain('e-mail confirmado')
+    expect(landingFaqs(launch())[0]!.a).toContain('O podcast fica só no Intensivo.')
     expect(landingFaqs(null)[0]!.a).not.toMatch(/\d/)
     const all = JSON.stringify([landingFaqs(null), HERO_VARIANTS, AREAS, landingPlansLead(null), landingPodcastLine(null)])
     expect(all).not.toMatch(/R\$|\d+x de|grátis todo mês|podcast grátis|FSRS/i)

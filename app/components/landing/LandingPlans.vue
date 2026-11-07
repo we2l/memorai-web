@@ -43,6 +43,8 @@
         <UiSkeleton variant="block" size="lg" />
       </div>
 
+      <p v-if="free && paid && trialTerms" class="lp-fine lp-trial-terms" data-testid="landing-plans-trial">{{ trialTerms }}</p>
+
       <p class="lp-compare"><NuxtLink to="/planos" class="lp-link">Ver a comparação completa</NuxtLink></p>
 
       <div class="lp-faq">
@@ -59,7 +61,7 @@
 // Plans and questions (prd-landing-d RF-D9, §5.2): two cards of 5 lines, centered, only from the catalog (prices,
 // trial, the name of the paid plan); the long comparison lives in /planos. The paid card is the section's purple.
 import type { PlanCatalog } from '~/types'
-import { landingFaqs, landingPlanLines, landingPlansLead } from '~/utils/landing'
+import { landingFaqs, landingPlanLines, landingPlansLead, landingTrialTerms } from '~/utils/landing'
 
 const props = defineProps<{ catalog: PlanCatalog | null, failed: boolean }>()
 const emit = defineEmits<{ retry: [] }>()
@@ -70,4 +72,6 @@ const paid = computed(() => props.catalog?.plans?.find(p => p.key === 'pro') ?? 
 const annual = computed(() => paid.value?.prices.annual ?? null)
 const freeLines = computed(() => landingPlanLines(props.catalog, 'free'))
 const paidLines = computed(() => landingPlanLines(props.catalog, 'pro'))
+// The trial's quotas, e-mail and what it leaves out, from the catalog (the same text of /planos)
+const trialTerms = computed(() => landingTrialTerms(props.catalog))
 </script>

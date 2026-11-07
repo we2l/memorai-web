@@ -14,7 +14,8 @@
     >
       <Upload class="size-10 text-fg-muted" aria-hidden="true" />
       <h2 class="text-section text-fg-strong">Selecione seu arquivo .apkg</h2>
-      <p class="max-w-sm text-body text-fg-muted">Exporte o baralho no Anki com o histórico e envie aqui, até 500&nbsp;MB. Se preferir, arraste e solte o arquivo nesta área.</p>
+      <p class="max-w-sm text-body text-fg-muted" data-testid="import-hint">No Anki: <span class="font-semibold text-fg">Arquivo → Exportar → Pacote de baralho (.apkg)</span>, com “Incluir informações de agendamento” marcado para manter o progresso. Envie aqui, até 500&nbsp;MB, ou arraste o arquivo para esta área.</p>
+      <p v-if="fileError" class="max-w-sm text-meta text-danger" role="alert" data-testid="import-file-error">{{ fileError }}</p>
       <UiButton variant="primary" :loading="store.uploading" class="mt-2" @click="fileInput?.click()">
         {{ store.uploading ? 'Enviando…' : 'Selecionar arquivo' }}
       </UiButton>
@@ -142,7 +143,6 @@ const fmt = (n: number) => n.toLocaleString('pt-BR')
 const route = useRoute()
 const store = useImportStore()
 const topicStore = useTopicStore()
-const toast = useToast()
 const { $api } = useNuxtApp()
 const { track } = useAnalytics()
 
@@ -150,6 +150,8 @@ const fileInput = ref<HTMLInputElement | null>(null)
 const dragOver = ref(false)
 const confirming = ref(false)
 const confirmError = ref<OrganizationErrorView | null>(null)
+/** Why the last file could not be read (upload 422 or preview failed), shown in the drop area. */
+const fileError = ref<string | null>(null)
 
 // The caderno the import began from: only offered once the tree knows it (not someone else's, not in the trash)
 const topicId = computed(() => (typeof route.query.topic_id === 'string' && route.query.topic_id) || null)
@@ -229,15 +231,17 @@ function handleDrop(e: DragEvent) {
 }
 
 async function uploadFile(file: File) {
+  fileError.value = null
   if (!file.name.toLowerCase().endsWith('.apkg')) {
-    toast.show('Selecione um arquivo .apkg válido.', 'error')
+    fileError.value = 'Este arquivo não é um .apkg. No Anki, use Arquivo → Exportar → Pacote de baralho (.apkg).'
     return
   }
   try {
     await store.upload(file)
     await store.fetchPreview(destination.value === 'existing' ? topicId.value : null)
   } catch (e: any) {
-    toast.show(e?.data?.errors?.file?.[0] || e?.data?.message || (e?.message === PREVIEW_TIMEOUT_MESSAGE ? e.message : 'Erro ao processar o arquivo. Confira se é um .apkg exportado do Anki.'), 'error')
+    // Stays on the screen (not a toast): the API message says how to export again.
+    fileError.value = e?.data?.errors?.file?.[0] || e?.data?.message || (e?.message === PREVIEW_TIMEOUT_MESSAGE ? e.message : 'Não conseguimos ler este arquivo. No Anki, use Arquivo → Exportar → Pacote de baralho (.apkg) e envie de novo.')
     store.reset()
   }
 }

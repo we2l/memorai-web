@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import type { CardOrigin, Flashcard, WeakConnection } from '~/types'
 import { getErrorStatus } from '~/utils/apiErrors'
 import { scopeQuery, type ReviewScope, type SessionScopeInfo } from '~/utils/reviewScope'
+import { REVIEW_BATCH, reviewBatchSizeOf } from '~/utils/reviewBatch'
 
 export interface SessionCard extends Flashcard {
   next_intervals: { again: string; hard: string; good: string; easy: string }
@@ -27,8 +28,8 @@ export interface RatingLog {
   due: string | null
 }
 
-/** A batch is 20 distinct cards rated for the 1st time in the session (ReviewService::BATCH_SIZE). */
-export const REVIEW_BATCH = 20
+/** A batch is N distinct cards rated for the 1st time in the session: 10, 20 (default) or 30, utils/reviewBatch.ts. */
+export { REVIEW_BATCH } from '~/utils/reviewBatch'
 
 export type Rating = 1 | 2 | 3 | 4
 
@@ -139,6 +140,8 @@ export const useReviewStore = defineStore('review', {
     log: [] as RatingLog[],
     /** Batch ends the person already left ("Próximo lote") */
     batchesAcked: 0,
+    /** Cards per batch, read from /me when the session opens (fixed until the next one) */
+    batchSize: REVIEW_BATCH,
     /** When the current card showed up (duration of each rating) */
     cardShownAt: 0,
     _tick: 0,
@@ -221,6 +224,7 @@ export const useReviewStore = defineStore('review', {
       this.firstPass = []
       this.log = []
       this.batchesAcked = 0
+      this.batchSize = reviewBatchSizeOf(useAuthStore().user?.review_batch_size)
       this.hasMore = false
       this.loadingMore = false
       this.unloadedCount = 0
@@ -340,7 +344,7 @@ export const useReviewStore = defineStore('review', {
 
       // Batches: distinct cards in their 1st rating; a learning card that comes back belongs to the batch open now
       const first = !this.firstPass.includes(card.id)
-      const batch = first ? Math.floor(this.firstPass.length / REVIEW_BATCH) + 1 : Math.max(1, this.batchesAcked + 1)
+      const batch = first ? Math.floor(this.firstPass.length / this.batchSize) + 1 : Math.max(1, this.batchesAcked + 1)
       if (first) this.firstPass.push(card.id)
       this.log.push({
         client_id: clientId, card_id: card.id, rating, duration_ms: Math.max(0, Date.now() - (this.cardShownAt || Date.now())),

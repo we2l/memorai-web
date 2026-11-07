@@ -27,7 +27,7 @@
     },
     "/": {
       "file": "pages/index.vue",
-      "gzKb": 15,
+      "gzKb": 15.1,
       "closureGzKb": 20
     },
     "/hoje": {
@@ -38,7 +38,7 @@
     "/revisar": {
       "file": "pages/revisar.vue",
       "gzKb": 16.6,
-      "closureGzKb": 47.6
+      "closureGzKb": 47.8
     },
     "/praticar": {
       "file": "pages/praticar.vue",
@@ -68,12 +68,12 @@
     "/comecar": {
       "file": "pages/comecar.vue",
       "gzKb": 6.5,
-      "closureGzKb": 31
+      "closureGzKb": 32.5
     },
     "/configuracoes": {
       "file": "pages/configuracoes.vue",
-      "gzKb": 9.5,
-      "closureGzKb": 34.5
+      "gzKb": 9.7,
+      "closureGzKb": 36.3
     },
     "/entrar": {
       "file": "pages/entrar.vue",
@@ -83,7 +83,7 @@
     "/criar-conta": {
       "file": "pages/criar-conta.vue",
       "gzKb": 2,
-      "closureGzKb": 13
+      "closureGzKb": 14.5
     }
   },
   "entryLayoutForbidden": {

@@ -58,7 +58,7 @@ export async function loginViaForm(page: Page, user = TEST_USER) {
  * in serial tests.
  */
 export async function sharedPage(browser: import('@playwright/test').Browser, opts: import('@playwright/test').BrowserContextOptions = {}) {
-  const context = await browser.newContext({ baseURL: 'http://localhost:3000', storageState: CONSENT_DECIDED, ...opts })
+  const context = await browser.newContext({ baseURL: process.env.E2E_WEB_ORIGIN || 'http://localhost:3000', storageState: CONSENT_DECIDED, ...opts })
   const page = await context.newPage()
   await login(page)
   return page

@@ -83,6 +83,31 @@ test.describe('Configurações (Free)', () => {
     await expect(page.getByText(/de 2 lotes/).first()).toBeVisible()
   })
 
+  test('o tamanho do lote salva sozinho e muda a meta do /stats e o lote da revisão', async ({ page }) => {
+    await apiCall(page, 'PUT', '/settings', { daily_new_cards_limit: 100, daily_goal_batches: 6 })
+    const topic = (await apiCall(page, 'POST', '/topics', { name: 'Lote' })).data.id
+    for (let i = 0; i < 25; i++) await apiCall(page, 'POST', '/flashcards', { topic_id: topic, front: `L${i}`, back: `R${i}` })
+
+    await gotoApp(page, '/configuracoes#estudo')
+    const size = page.getByTestId('batch-size')
+    await expect(size.getByRole('radio')).toHaveCount(3)
+    await expect(size.getByRole('radio', { name: '20 cards' })).toBeChecked()
+    const saved = page.waitForResponse(r => r.url().endsWith('/api/settings') && r.request().method() === 'PUT')
+    await size.getByRole('radio', { name: '10 cards' }).check()
+    expect((await saved).request().postDataJSON()).toEqual({ review_batch_size: 10 })
+    await expect(page.getByTestId('batch-size-saved')).toHaveText('Salvo')
+    await expect(page.getByTestId('daily-goal')).toContainText('Um lote = 10 cards.')
+    expect(sql(`select review_batch_size from users where email='${USERS.conta.email}'`)).toBe('10')
+    const stats = (await apiCall(page, 'GET', '/stats')).data
+    expect(stats.goal.batch_size).toBe(10)
+    // The account keeps the cards of the other tests: the goal counts the whole day in lotes of 10, up to 6
+    expect(stats.goal.target_batches).toBe(Math.min(6, Math.ceil((stats.due_today + stats.reviewed_today) / 10)))
+
+    // 25 cards in lotes of 10: 3 lotes, the review cuts them with the size of /me
+    await gotoApp(page, `/revisar?scope=topic:${topic}`)
+    await expect(page.getByText(/Lote 1 de 3 · card 1 de 10/)).toBeVisible()
+  })
+
   test('âncoras antigas vão para a seção nova', async ({ page }) => {
     await gotoApp(page, '/configuracoes#lembretes')
     await expect(page).toHaveURL(/\/configuracoes#estudo$/)
@@ -94,12 +119,18 @@ test.describe('Configurações (Free)', () => {
   test('uso de IA: rótulos exatos do catálogo e quando a contagem recomeça', async ({ page }) => {
     const plans = (await (await page.context().request.get(`${API}/plans`, { headers: { Accept: 'application/json', Origin: WEB } })).json()).data
     const expected = Object.values(plans.features as Record<string, { label: string }>).map(f => f.label.charAt(0).toUpperCase() + f.label.slice(1))
+    // The Free's preview of the AI (prd-uso-justo §9): + the PDF pages line, and it never resets
+    if (plans.preview) expected.push('Páginas de PDF lidas pela IA')
     await gotoApp(page, '/configuracoes#plano')
     const rows = page.getByTestId('usage-row')
     await expect(rows).toHaveCount(expected.length)
     for (let i = 0; i < expected.length; i++) await expect(rows.nth(i)).toContainText(expected[i]!)
     await expect(page.getByText('Revisão em áudio')).toHaveCount(0)
-    await expect(page.getByTestId('usage-renews')).toHaveText(/^a contagem recomeça em 01\/\d\d$/)
+    if (plans.preview) {
+      await expect(page.getByTestId('usage-renews')).toHaveCount(0)
+    } else {
+      await expect(page.getByTestId('usage-renews')).toHaveText(/^a contagem recomeça em 01\/\d\d$/)
+    }
   })
 
   test('axe nas configurações: claro e escuro, 390 e 1440', async ({ page }) => {

@@ -441,9 +441,30 @@ describe('/importar (RF-F17)', () => {
     Object.defineProperty(input.element, 'files', { value: [new File(['nada'], 'x.apkg')] })
     await input.trigger('change')
     await flushPromises()
-    const toasts = useToast().state.items.map(t => t.message)
-    expect(toasts).toContain(message)
-    expect(toasts.join(' ')).not.toContain('Erro ao processar o arquivo')
+    // Fica escrita na área do arquivo (role=alert), não num toast que some
+    const error = w.find('[data-testid="import-file-error"]')
+    expect(error.attributes('role')).toBe('alert')
+    expect(error.text()).toBe(message)
+    expect(w.find('[data-testid="import-drop"]').exists()).toBe(true)
+  })
+
+  it('preview que falha no job: a mensagem da API fica na tela; um arquivo novo limpa', async () => {
+    const message = 'Não conseguimos ler este arquivo do Anki. No Anki, use Arquivo → Exportar → "Pacote de baralho (.apkg)" e envie o arquivo de novo.'
+    route({ 'POST /import/anki': { data: { id: 'imp9', status: 'pending' } }, 'GET /import/imp9/preview': refused(422, { message }) })
+    const w = await mountSuspended(Importar, { attachTo: document.body, route: '/importar' })
+    const input = w.find('input[type="file"]')
+    Object.defineProperty(input.element, 'files', { value: [new File(['nada'], 'x.apkg')], configurable: true })
+    await input.trigger('change')
+    await flushPromises()
+    expect(w.find('[data-testid="import-file-error"]').text()).toBe(message)
+    expect(w.find('[data-testid="import-hint"]').text()).toContain('Arquivo → Exportar → Pacote de baralho (.apkg)')
+
+    // The drop area was rendered again after the reset: a new input
+    const again = w.find('input[type="file"]')
+    Object.defineProperty(again.element, 'files', { value: [new File(['x'], 'baralho.zip')], configurable: true })
+    await again.trigger('change')
+    await flushPromises()
+    expect(w.find('[data-testid="import-file-error"]').text()).toContain('não é um .apkg')
   })
 
   it('topic_id que a árvore não conhece: caderno novo, sem seletor', async () => {

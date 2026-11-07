@@ -15,7 +15,7 @@ import { CONSENT_DECIDED } from '../../helpers'
  * - Nothing here calls an AI endpoint. Specs that reach an AI flow mock it with `page.route`.
  */
 
-export const WEB = 'http://localhost:3000'
+export const WEB = process.env.E2E_WEB_ORIGIN || 'http://localhost:3000'
 export const API_ORIGIN = process.env.E2E_API_ORIGIN || 'http://localhost:8037'
 export const API = `${API_ORIGIN}/api`
 export const AUDIT_PASSWORD = 'Senha-Audit-2026'
@@ -122,7 +122,7 @@ export function tinker(code: string, env: Record<string, string> = {}): string {
 
 /** Plain SQL (read-only checks and evidence) on the local Postgres. */
 export function sql(query: string): string {
-  return execFileSync('docker', ['exec', process.env.E2E_DB_CONTAINER || 'baigi-db', 'psql', '-U', 'baigi', '-d', 'baigi', '-Atc', query], { encoding: 'utf8', timeout: 30_000 }).trim()
+  return execFileSync('docker', ['exec', process.env.E2E_DB_CONTAINER || 'baigi-db', 'psql', '-U', 'baigi', '-d', process.env.E2E_DB_NAME || 'baigi', '-Atc', query], { encoding: 'utf8', timeout: 30_000 }).trim()
 }
 
 const sessionFile = (email: string) => path.join(AUTH_DIR, `${email}.run-${RUN_ID}.json`)

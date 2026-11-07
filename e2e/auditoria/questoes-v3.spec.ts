@@ -56,13 +56,16 @@ test.describe('Free', () => {
 
   test('depois do teste: sem cota de IA ("Ver o …" com o nome do catálogo), "faltam N palavras" e o simulado do caderno no plano pago', async ({ page }) => {
     const empty = (await apiCall(page, 'POST', '/topics', { name: `Sem material ${Date.now()}` })).data
-    const pro = (await apiCall(page, 'GET', '/plans')).data.plans.find((p: any) => p.key === 'pro').name
+    const catalog = (await apiCall(page, 'GET', '/plans')).data
+    const pro = catalog.plans.find((p: any) => p.key === 'pro').name
     await gotoApp(page, `/simulados?topic_id=${empty.id}`)
     await expect(sheet(page)).toBeVisible()
-    // The Free has no AI since the planos de lançamento: no "0 de 0", the action says where it is
     await expect(sheet(page).getByTestId('quiz-quota')).toHaveCount(0)
-    await expect(sheet(page).getByTestId('quiz-submit')).toHaveText(`Ver o ${pro}`)
-    await expect(sheet(page).getByRole('status')).toContainText('Escreva 100 palavras em notas para liberar')
+    // With the preview of the AI (prd-uso-justo §9) the Free has 1 bateria of up to 10 questões, once per account;
+    // without it, no AI: no "0 de 0", the action says where it is
+    await expect(sheet(page).getByTestId('quiz-submit')).toHaveText(catalog.preview ? `Gerar ${catalog.preview.quiz_max_questions} questões` : `Ver o ${pro}`)
+    // The preview's usage notice is a status too: the requirement is the one in the Bateria tab
+    await expect(sheet(page).getByRole('tabpanel', { name: 'Bateria' }).getByRole('status')).toContainText('Escreva 100 palavras em notas para liberar')
     await expect(sheet(page).getByTestId('quiz-submit')).toBeDisabled()
     await expect(sheet(page).getByTestId('quiz-count').locator('option', { hasText: '50 questões' })).toBeDisabled()
     await sheet(page).getByRole('tab', { name: 'Simulado' }).click()

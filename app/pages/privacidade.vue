@@ -39,6 +39,8 @@
       <li><strong>AWS</strong>: armazenamento de arquivos (PDFs, áudios, imagens).</li>
       <li><strong>Stripe</strong>: pagamentos. <strong>Resend</strong>: e-mails. <strong>PostHog</strong> (PostHog Inc., nuvem na União Europeia): operador de analytics de produto, com consentimento.</li>
       <li><strong>Vercel</strong> e <strong>Contabo</strong>: hospedagem do site e da API.</li>
+      <li><strong>Cloudflare (Turnstile)</strong>: verificação anti-robô no cadastro, em "esqueci a senha" e no reenvio do e-mail de verificação, para prevenir abuso (legítimo interesse). Recebe dados técnicos do navegador e o IP, sem cookies de rastreamento.</li>
+      <li><strong>Sentry</strong> (Functional Software Inc.): registro de erros técnicos do serviço, para corrigir falhas. Recebe a mensagem do erro e onde ele ocorreu, sem nome, e-mail, senha nem conteúdo de estudo. Na API, por legítimo interesse; no navegador, só com o seu consentimento de analytics.</li>
     </ul>
     <p>
       Alguns desses operadores ficam fora do Brasil. A transferência internacional ocorre com base no art. 33 da LGPD,
@@ -97,7 +99,7 @@ definePageMeta({ layout: 'public' })
 
 // TODO(jurídico): datas definitivas na publicação do texto revisado
 const EFFECTIVE_DATE = '1º de outubro de 2026'
-const UPDATED_AT = '29 de setembro de 2026'
+const UPDATED_AT = '7 de novembro de 2026'
 
 const sections = [
   { id: 'controlador', title: 'Controlador e encarregado' },

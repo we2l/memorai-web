@@ -13,6 +13,8 @@ export interface User {
   created_at?: string
   /** First batch of the account concluded: the activation (prd-4g-conta-onboarding-v3 RF-B3) */
   first_batch_at?: string | null
+  /** Cards per batch, 10 | 20 | 30 (Configurações → Estudo); older API builds omit it (20) */
+  review_batch_size?: number
   /** False for Google sign-ups that never defined a password (RF-B3). */
   has_password?: boolean
   /** The account has a Google identity (api #133; the id itself never comes) */
@@ -104,7 +106,7 @@ export interface Stats {
     good: number
     easy: number
   }
-  /** Goal of the day in batches of 20 (prd-4a-hoje-v3 RF-B1); older API builds omit it. */
+  /** Goal of the day in batches of the user's size (prd-4a-hoje-v3 RF-B1); older API builds omit it. */
   goal?: DayGoal
 }
 
@@ -265,6 +267,8 @@ export interface UserSettings {
   /** "Episódio da manhã" (prd-4e-praticar-v3 RF-B11): only Pro can turn it on (422 pro_only) */
   daily_episode?: boolean
   daily_goal_batches?: number
+  /** Cards per batch: 10, 20 (default) or 30 */
+  review_batch_size?: number
 }
 
 /** GET /review/tomorrow (prd-retencao-lembretes §4.3). Dates in America/Sao_Paulo. */

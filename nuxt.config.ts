@@ -1,4 +1,13 @@
+import { readdirSync, rmSync } from 'node:fs'
+import { join } from 'node:path'
 import tailwindcss from '@tailwindcss/vite'
+import { sentryVitePlugin } from '@sentry/vite-plugin'
+
+// Source maps of the browser bundle go to Sentry only when the build has its credentials (Vercel env, optional):
+// 'hidden' writes them without the sourceMappingURL comment, the plugin uploads and deletes them, and the
+// nitro:build:public-assets hook below removes any .map left, so none is ever served.
+const SENTRY_UPLOAD = !!(process.env.SENTRY_AUTH_TOKEN && process.env.SENTRY_ORG && process.env.SENTRY_PROJECT)
+const APP_VERSION = process.env.NUXT_PUBLIC_APP_VERSION || (process.env.VERCEL_GIT_COMMIT_SHA || '').slice(0, 7) || 'dev'
 
 // CSP in Report-Only (RN-09 of prd-hardening-seguranca): promote to enforcing
 // only after a week without legitimate violations.
@@ -8,17 +17,21 @@ const s3Origin = process.env.CSP_S3_ORIGIN || 'https://*.amazonaws.com'
 // PostHog (ADR-024): same-origin /ingest proxy by default; the cloud hosts cover a direct
 // NUXT_PUBLIC_POSTHOG_HOST and the SDK's assets (doc: connect-src/script-src *.posthog.com).
 const posthogOrigins = 'https://*.posthog.com'
+// Cloudflare Turnstile (sign-up, forgot password, resend verification): script + iframe from this origin
+const turnstileOrigin = 'https://challenges.cloudflare.com'
+// Sentry (errors only, after consent): events go to the ingest host of the DSN (*.ingest.sentry.io, EU or US)
+const sentryOrigins = 'https://*.ingest.sentry.io https://*.ingest.us.sentry.io https://*.ingest.de.sentry.io'
 
 const CSP = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com ${posthogOrigins}`,
+  `script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com ${posthogOrigins} ${turnstileOrigin}`,
   "style-src 'self' 'unsafe-inline'",
   "font-src 'self'",
   `img-src 'self' data: blob: ${s3Origin} ${apiOrigin} https://lh3.googleusercontent.com`,
   `media-src 'self' blob: ${s3Origin} ${apiOrigin}`,
-  `connect-src 'self' ${apiOrigin} ${s3Origin} ${posthogOrigins}`,
+  `connect-src 'self' ${apiOrigin} ${s3Origin} ${posthogOrigins} ${turnstileOrigin} ${sentryOrigins}`,
   "worker-src 'self' blob: https://cdnjs.cloudflare.com",
-  `frame-src 'self' blob: ${apiOrigin} ${s3Origin}`,
+  `frame-src 'self' blob: ${apiOrigin} ${s3Origin} ${turnstileOrigin}`,
   "frame-ancestors 'none'",
   "object-src 'none'",
   "base-uri 'self'",
@@ -45,8 +58,8 @@ const THEME_SCRIPT = `(function(){var d=document.documentElement,q=window.matchM
 // Public pages opened from study e-mails (prd-retencao-lembretes): online-only like
 // termos/privacidade, so their chunks carry a prefix and stay out of the SW precache.
 const EMAIL_PAGE_CHUNK = /\/pages\/(lembretes\/desativado|provas\/resultado)\.vue/
-// posthog-js is imported only after consent (prd-analytics-posthog RF-F05): never precached.
-const ANALYTICS_CHUNK = /\/node_modules\/posthog-js\//
+// posthog-js and the Sentry SDK are imported only after consent (prd-analytics-posthog RF-F05): never precached.
+const ANALYTICS_CHUNK = /\/node_modules\/posthog-js\/|\/utils\/sentryClient\.ts/
 // Consent banner/modal only matter online on a first visit: kept out of the precache too.
 const CONSENT_CHUNK = /\/components\/ui\/Consent(Banner|Modal)\.vue/
 // One-shot pages that only work online (onboarding, the auth screens, OAuth and checkout returns, reset link,
@@ -101,8 +114,23 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
+  sourcemap: { client: SENTRY_UPLOAD ? 'hidden' : false },
+
   vite: {
-    plugins: [tailwindcss()],
+    plugins: [
+      tailwindcss(),
+      ...(SENTRY_UPLOAD
+        ? [sentryVitePlugin({
+            org: process.env.SENTRY_ORG,
+            project: process.env.SENTRY_PROJECT,
+            authToken: process.env.SENTRY_AUTH_TOKEN,
+            release: { name: APP_VERSION },
+            // Browser bundle only; the maps are deleted once uploaded
+            sourcemaps: { assets: ['./.nuxt/dist/client/**'], filesToDeleteAfterUpload: ['./.nuxt/dist/client/**/*.map'] },
+            telemetry: false,
+          })]
+        : []),
+    ],
     $client: {
       build: {
         rollupOptions: {
@@ -232,7 +260,12 @@ export default defineNuxtConfig({
       posthogKey: process.env.NUXT_PUBLIC_POSTHOG_KEY || '',
       posthogHost: process.env.NUXT_PUBLIC_POSTHOG_HOST || '/ingest',
       posthogUiHost: process.env.NUXT_PUBLIC_POSTHOG_UI_HOST || 'https://eu.posthog.com',
-      appVersion: process.env.NUXT_PUBLIC_APP_VERSION || (process.env.VERCEL_GIT_COMMIT_SHA || '').slice(0, 7) || 'dev',
+      // Cloudflare Turnstile site key (public). Empty = captcha off (the API without TURNSTILE_SECRET_KEY asks for none).
+      turnstileSiteKey: process.env.NUXT_PUBLIC_TURNSTILE_SITE_KEY || '',
+      // Sentry DSN of the browser (errors only, after the analytics consent). Empty = the SDK is never downloaded.
+      sentryDsn: process.env.NUXT_PUBLIC_SENTRY_DSN || '',
+      sentryEnvironment: process.env.NUXT_PUBLIC_SENTRY_ENVIRONMENT || process.env.VERCEL_ENV || 'production',
+      appVersion: APP_VERSION,
     },
   },
 
@@ -272,6 +305,13 @@ export default defineNuxtConfig({
   },
 
   hooks: {
+    // Source maps are never public (see SENTRY_UPLOAD): whatever reached the output is removed before deploy
+    'nitro:build:public-assets'(nitro) {
+      const dir = nitro.options.output.publicDir
+      for (const file of readdirSync(dir, { recursive: true }) as string[]) {
+        if (file.endsWith('.map')) rmSync(join(dir, file))
+      }
+    },
     // No <link rel="prefetch"> for analytics/consent chunks: without consent the browser must not
     // download posthog-js at all (prd-analytics-posthog RF-F05, "0 KB para quem recusa").
     'build:manifest'(manifest) {

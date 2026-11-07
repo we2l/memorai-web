@@ -61,10 +61,11 @@
         </template>
       </form>
     </UiTabs>
+    <!-- The paid plan's month (prd-uso-justo RF-F3): in the body, so the footer keeps its two buttons on one line -->
+    <LazyPlansUsageNotice feature="quiz_ai" :usage="usage" class="mt-4" />
 
     <template #footer="{ close }">
       <p v-if="quotaText" class="mr-auto text-label text-fg-muted" data-testid="quiz-quota">{{ quotaText }}</p>
-      <LazyPlansUsageNotice v-else feature="quiz_ai" :usage="usage" class="mr-auto" />
       <UiButton variant="ghost" @click="close">Cancelar</UiButton>
       <UiButton variant="primary" type="submit" form="quiz-config" :loading="generating" :disabled="!canSubmit" data-testid="quiz-submit">
         {{ submitLabel }}

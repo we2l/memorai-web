@@ -104,6 +104,9 @@
   & .num { font-variant-numeric: tabular-nums; }
   & .lp-wrap { width: 100%; max-width: 1240px; margin: 0 auto; padding: 0 var(--gutter); }
   & .lp-fine { font-size: 13px; line-height: 1.4; color: var(--fg-muted); }
+  /* "Conteúdo de exemplo": the demo account's content was written for it, not by the AI */
+  & .lp-demo-note { margin-top: 12px; }
+  & .lp-area-media .lp-demo-note { text-align: center; }
   & .lp-lead { font-size: clamp(17px, 1.5vw, 20px); line-height: 1.5; max-width: 44ch; margin-top: 18px; }
   & .lp-link { color: var(--action-fg); font-weight: 650; text-decoration: underline; text-underline-offset: 4px; }
   /* No toque, a área do link cresce até 44 × 44 px em volta do texto, sem mudar o desenho (prd-responsividade RF-3) */
@@ -313,6 +316,7 @@
   & .lp-quiz-sec { background: var(--lp-quiz); color: var(--lp-quiz-fg); }
   & .lp-quiz-sec h2 { color: var(--lp-quiz-fg); }
   & .lp-quiz-sec .lp-lead { color: var(--lp-quiz-muted); }
+  & .lp-quiz-sec .lp-fine { color: var(--lp-quiz-muted); }
   & .lp-score { font-family: var(--lp-display); font-weight: 700; font-size: clamp(88px, 12vw, 176px); line-height: .9; color: var(--lp-quiz-fg); margin-top: 20px; }
   & .lp-score small { display: block; font-family: var(--font-sans); font-weight: 650; font-size: 16px; line-height: 1.4; margin-top: 6px; color: var(--lp-quiz-muted); }
   & .lp-bars { display: grid; gap: 12px; margin-top: 24px; max-width: 440px; font-weight: 650; font-size: 15px; }
@@ -436,6 +440,7 @@
   & .lp-plan .spacer { height: 20px; }
   & .lp-plans-state { max-width: 880px; margin: 36px auto 0; }
   & .lp-compare { margin-top: 22px; font-size: 16px; }
+  & .lp-trial-terms { max-width: 68ch; margin: 22px auto 0; }
   & .lp-faq { max-width: 760px; margin: 56px auto 0; text-align: left; }
   & .lp-faq details { border-bottom: 1px solid var(--line-strong); }
   & .lp-faq summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 56px; padding: 12px 0; cursor: pointer; list-style: none; font-weight: 700; font-size: 17px; color: var(--fg-strong); }

@@ -1,6 +1,7 @@
 import type { InjectionKey } from 'vue'
 import type { CatalogTrial, PlanCatalog } from '~/types'
 import type { LandingCtaPosition } from '~/types/analytics'
+import { trialLimitsText } from '~/utils/trial'
 
 /**
  * Copy and data of the landing D (prd-landing-d; prototype docs/research/assets/landing-prototipo/d.html). Every
@@ -48,7 +49,7 @@ export type ScreenName = keyof typeof SCREENS
 /** Real recordings of the app (public/landing/video): muted loops, a poster each; `dark` when there is a dark take. */
 export const CLIPS = {
   revisao: { dark: true, alt: 'Gravação do app na conta de demonstração: a revisão em lote, com um card de Direito Constitucional virando.' },
-  material: { dark: false, alt: 'Gravação do app na conta de demonstração: a nota de uma parte do PDF e os cards dela, cada um com a página de onde saiu.' },
+  material: { dark: false, alt: 'Gravação do app na conta de demonstração: a nota de uma parte do PDF e os cards dela, cada um com a parte de onde saiu.' },
   simulado: { dark: true, alt: 'Gravação do app na conta de demonstração: o resultado do simulado, 7 de 10, e os 3 erros virando cards.' },
 } as const
 export type ClipName = keyof typeof CLIPS
@@ -63,6 +64,8 @@ export interface HeroVariant {
   lead: string
   media: { clip: ClipName } | { screen: ScreenName }
   bubble: string
+  /** The lead sells the AI: the line under the call says which plan has it (landingAiLine) */
+  ai?: boolean
 }
 
 export const HERO_VARIANTS: HeroVariant[] = [
@@ -90,9 +93,10 @@ export const HERO_VARIANTS: HeroVariant[] = [
   {
     key: 'faculdade',
     lines: ['Faculdade', 'sem memória', 'de *peixe*.'],
-    lead: 'Mande o PDF da matéria, de Anatomia a Cálculo. O Baigi escreve a nota em partes, cria os cards e divide a revisão do dia em lotes de 20.',
+    lead: 'Mande o PDF da matéria, de Anatomia a Cálculo. O Baigi escreve a nota em partes, já com os cards das primeiras, e divide a revisão do dia em lotes de 20.',
     media: { screen: 'anatomia' },
-    bubble: 'Os slides viraram cards. Cada um com a página.',
+    bubble: 'Os slides viraram cards. Cada um diz de onde saiu.',
+    ai: true,
   },
   {
     key: 'ingles',
@@ -100,6 +104,7 @@ export const HERO_VARIANTS: HeroVariant[] = [
     lead: 'Crie cards de palavras e frases, por texto ou foto, ou traga seus baralhos do Anki. Cada palavra volta perto da hora de esquecer.',
     media: { screen: 'ingles' },
     bubble: 'Essa palavra volta amanhã. Aquela, semana que vem.',
+    ai: true,
   },
 ]
 
@@ -114,7 +119,8 @@ export const STORY = [
     key: 'material',
     step: '1 · Material',
     title: 'Manda a apostila. O Baigi faz os cards.',
-    text: 'Um PDF de 180 páginas vira uma nota em 6 partes, com os cards de cada parte. Cada card mostra a página de onde saiu.',
+    text: 'O PDF vira uma nota em partes, e as primeiras já saem com cards. Nas outras, é um toque. Cada card mostra de que parte do PDF saiu.',
+    ai: true,
     clip: 'material',
     cta: 'Testar com meu PDF',
     position: 'story_material',
@@ -124,7 +130,8 @@ export const STORY = [
     key: 'revisao',
     step: '2 · Revisão',
     title: 'Todo dia um número, em lotes de 20.',
-    text: 'Abriu o app e viu 400 cards atrasados? Aqui não. Você faz um lote, vê quantos faltam e decide se para ou segue.',
+    text: 'Abriu o app e viu 400 cards atrasados? Aqui eles vêm em lotes de 20: você faz um, vê quantos faltam e decide se para ou segue.',
+    ai: false,
     clip: 'revisao',
     cta: 'Fazer meu primeiro lote',
     position: 'story_review',
@@ -140,7 +147,7 @@ export const AREAS = [
     dot: 'bg-subject-1',
     pain: 'Uma semana depois, já esqueceu tudo da matéria.',
     points: [
-      ['Marque a data da prova.', 'O Baigi divide os cards por dia até lá, em lotes de 20.'],
+      ['Marque a data da prova.', 'O Baigi mostra quantos cards por dia até lá e põe as matérias da prova na frente.'],
       ['Simulado por matéria.', 'Você vê que Controle de constitucionalidade está em 67% e os erros já viram card.'],
       ['A projeção.', 'Quanto você vai lembrar no dia, mantendo o ritmo ou se parar hoje.'],
     ],
@@ -155,7 +162,7 @@ export const AREAS = [
     points: [
       ['Lotes de 20 com fim.', 'Fez um, sabe quantos faltam e decide se segue.'],
       ['Atrasou?', 'O modo recuperação começa pelos 20 mais urgentes, sem a montanha toda na cara.'],
-      ['Os slides da aula viram cards,', 'cada um com a página de onde saiu.'],
+      ['Os slides da aula em PDF viram cards,', 'cada um com a parte de onde saiu.'],
     ],
     cta: 'Começar pela minha faculdade',
     screen: 'anatomia',
@@ -166,9 +173,9 @@ export const AREAS = [
     dot: 'bg-subject-3',
     pain: 'Fez a segunda fase e já esqueceu boa parte.',
     points: [
-      ['Prazos e artigos em cards,', 'saídos do seu material, com a página pra conferir.'],
+      ['Prazos e artigos em cards,', 'saídos do seu material, com o trecho pra conferir.'],
       ['Questões do seu material,', 'com o acerto por matéria no fim.'],
-      ['Data do exame marcada,', 'e o plano do dia sai dela.'],
+      ['Data do exame marcada,', 'e as matérias dele vêm na frente da revisão.'],
     ],
     cta: 'Começar pela OAB',
     screen: 'oab',
@@ -193,7 +200,7 @@ export const AREAS = [
     pain: 'Fazer card de vocabulário na mão cansa.',
     points: [
       ['Palavras e frases por texto ou foto', 'viram cards.'],
-      ['Traga seus baralhos do Anki', 'sem recomeçar do zero: intervalos e erros vêm junto.'],
+      ['Traga seus baralhos do Anki', 'sem recomeçar do zero: vêm o intervalo e os erros de cada card.'],
       ['Sem data de prova?', 'Tudo bem. Cada palavra volta perto da hora de esquecer.'],
     ],
     cta: 'Começar pelo meu inglês',
@@ -202,20 +209,23 @@ export const AREAS = [
 ] as const satisfies readonly { key: string, name: string, dot: string, pain: string, points: readonly (readonly [string, string])[], cta: string, screen: ScreenName }[]
 export type LandingArea = typeof AREAS[number]['key']
 
-/** The real sample of the podcast (public/landing/podcast-amostra.mp3, 26 s), its transcript and its waveform. */
+/**
+ * The real sample of the podcast (public/landing/podcast-amostra.mp3, 25 s), its transcript and its waveform. The
+ * question, a pause with a tick while you answer in your head, then the answer. The times of the lines match the
+ * silences of the file (ffmpeg silencedetect, 07/11).
+ */
 export const SAMPLE = {
   src: '/landing/podcast-amostra.mp3',
-  duration: 26.6,
-  title: 'Seus erros de Constitucional',
+  duration: 25.2,
+  title: 'Seus erros de Direito do Trabalho',
   lines: [
-    { t: 0, text: 'Tenta lembrar… quem é que realmente é afetado pelas decisões em um caso específico?' },
-    { t: 5.4, text: '(pausa pra você responder de cabeça)' },
-    { t: 6.2, text: 'A resposta é que o controle difuso de constitucionalidade gera efeito apenas entre as partes do processo.' },
-    { t: 12.5, text: 'Isso significa que, em regra, a decisão só vale para quem está envolvido naquele julgamento.' },
-    { t: 18.3, text: 'A única exceção a essa regra acontece quando há uma resolução do Senado, conforme o artigo 52, inciso 10, da Constituição.' },
+    { t: 0.7, text: 'Você sabe quanto tempo os trabalhadores têm para reivindicar seus créditos trabalhistas? Qual é o prazo prescricional dos créditos trabalhistas?' },
+    { t: 9.1, text: 'Pensa um pouco antes de eu responder.' },
+    { t: 10.1, text: '(pausa pra você responder de cabeça)' },
+    { t: 14.7, text: 'Cinco anos para trabalhadores urbanos e rurais, até o limite de dois anos após a extinção do contrato de trabalho, conforme o artigo sétimo, inciso vigésimo nono da Constituição Federal.' },
   ],
-  /** RMS of the file in 120 slices (computed from the MP3 for the prototype) */
-  peaks: [0.04, 0.51, 0.68, 0.46, 0.04, 0.04, 0.42, 0.7, 0.52, 0.82, 0.9, 0.55, 0.53, 0.34, 0.9, 0.54, 0.58, 0.24, 0.71, 0.75, 0.71, 0.45, 0.39, 0.15, 0.04, 0.04, 0.04, 0.04, 0.81, 0.72, 0.44, 0.34, 0.72, 0.78, 0.61, 0.22, 0.67, 0.35, 0.54, 0.29, 0.34, 0.8, 0.1, 0.55, 0.7, 0.45, 0.37, 0.75, 0.63, 0.33, 0.52, 0.5, 0.52, 0.44, 0.42, 0.04, 0.04, 0.04, 0.61, 0.79, 0.47, 0.27, 0.52, 0.65, 0.65, 0.13, 0.47, 0.63, 0.7, 0.58, 0.79, 0.51, 0.68, 0.89, 0.54, 0.41, 0.85, 0.87, 0.72, 0.31, 0.04, 0.04, 0.04, 0.6, 1.0, 0.56, 0.29, 0.62, 0.34, 0.25, 0.5, 0.04, 0.63, 0.53, 0.71, 0.75, 0.62, 0.56, 0.25, 0.59, 0.52, 0.7, 0.06, 0.46, 0.72, 0.74, 0.4, 0.3, 0.54, 0.48, 0.53, 0.42, 0.47, 0.56, 0.25, 0.54, 0.33, 0.45, 0.04, 0.04],
+  /** RMS of the file in 120 slices */
+  peaks: [0.04, 0.04, 0.04, 0.32, 0.37, 0.62, 0.31, 0.68, 0.26, 0.41, 0.45, 0.6, 0.49, 0.31, 0.36, 0.54, 0.33, 0.48, 0.3, 0.51, 0.19, 0.44, 0.51, 0.17, 0.07, 0.04, 0.04, 1.0, 0.69, 0.75, 0.39, 0.57, 0.35, 0.68, 0.34, 0.63, 0.2, 0.56, 0.34, 0.06, 0.04, 0.04, 0.04, 0.54, 0.89, 0.5, 0.55, 0.3, 0.05, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.61, 0.69, 0.37, 0.55, 0.63, 0.52, 0.43, 0.59, 0.73, 0.59, 0.65, 0.26, 0.04, 0.32, 0.55, 0.32, 0.35, 0.74, 0.46, 0.5, 0.6, 0.48, 0.4, 0.55, 0.39, 0.38, 0.4, 0.61, 0.41, 0.04, 0.04, 0.42, 0.66, 0.45, 0.28, 0.5, 0.48, 0.48, 0.4, 0.41, 0.46, 0.43, 0.5, 0.38, 0.29, 0.31, 0.42, 0.67, 0.1, 0.04],
 }
 
 // ── The plans, only from the catalog ──
@@ -247,15 +257,59 @@ export function landingPlanLines(catalog: PlanCatalog | null, key: 'free' | 'pro
     const trial = catalogTrial(catalog)
     const own = highlights.filter(h => !/\bteste\b/i.test(h))
     return trial
-      ? [...own.slice(0, LINES_PER_PLAN - 1), `${trial.days} dias do ${paidPlanName(catalog)} no primeiro material, sem cartão`]
+      ? [...own.slice(0, LINES_PER_PLAN - 1), `Teste de ${trial.days} dias da IA no primeiro material, sem cartão`]
       : own.slice(0, LINES_PER_PLAN)
   }
   const benefits = PAID_BENEFITS
     .filter(k => plan.limits[k] !== 0 && catalog.features[k]?.pro_benefit)
-    .map(k => catalog.features[k]!.pro_benefit)
+    .map(k => k === 'pdf_to_note' ? pdfBenefit(catalog, plan) : catalog.features[k]!.pro_benefit)
   const lines = [...highlights.slice(0, 2), ...benefits]
   for (const h of highlights.slice(2)) if (lines.length < LINES_PER_PLAN && !lines.includes(h)) lines.push(h)
   return lines.slice(0, LINES_PER_PLAN)
+}
+
+/**
+ * The PDF line of the paid plan with its monthly page cap, when the cap is below "N PDFs × pages each"
+ * (20 × 500 > 4.000): "20 PDFs por mês, até 500 páginas cada (4.000 páginas no mês)".
+ */
+function pdfBenefit(catalog: PlanCatalog, plan: PlanCatalog['plans'][number]): string {
+  const text = catalog.features.pdf_to_note!.pro_benefit
+  const cap = plan.extras?.pdf_pages_monthly_cap
+  const count = plan.limits.pdf_to_note
+  const each = plan.extras?.pdf_pages_per_note
+  const capped = cap && (count === null || count === undefined || !each || count * each > cap)
+  return capped ? `${text} (${cap.toLocaleString('pt-BR')} páginas no mês)` : text
+}
+
+/**
+ * The line under a call that sells the AI (PDF, cards from text or photo, questões): the Free plan has no AI, so it
+ * says where it is. With `pdf`, the trial's page cap too. Only from the catalog.
+ */
+export function landingAiLine(catalog: PlanCatalog | null, opts: { pdf?: boolean } = {}): string {
+  const name = paidPlanName(catalog)
+  const trial = catalogTrial(catalog)
+  if (!trial) return `A IA faz parte do ${name}.`
+  return opts.pdf && trial.pdf_pages_cap
+    ? `A IA está no teste grátis, com até ${trial.pdf_pages_cap} páginas de PDF, e no ${name}.`
+    : `A IA está no teste grátis e no ${name}.`
+}
+
+/** What the trial leaves out, said once: "O podcast fica só no Intensivo." */
+function trialExcludesText(catalog: PlanCatalog | null, trial: CatalogTrial): string {
+  return trial.excludes?.includes('podcast') ? ` O podcast fica só no ${paidPlanName(catalog)}.` : ''
+}
+
+/**
+ * The trial's conditions under the plan cards: when it starts, the verified e-mail, once per account, the quotas of
+ * the catalog (trialLimitsText, the same of /planos) and what it leaves out. Empty without a trial.
+ */
+export function landingTrialTerms(catalog: PlanCatalog | null): string {
+  const trial = catalogTrial(catalog)
+  if (!trial) return ''
+  const limits = trialLimitsText(catalog)
+  return `O teste de ${trial.days} dias começa no primeiro material, pede o e-mail confirmado e vale uma vez por conta.`
+    + (limits ? ` Inclui ${limits}.` : '')
+    + trialExcludesText(catalog, trial)
 }
 
 /** Under "Revisar é de graça. Pra sempre.". */
@@ -276,6 +330,16 @@ export function landingPodcastLine(catalog: PlanCatalog | null): string {
   return trial?.excludes?.includes('podcast') ? `${own} O teste de ${trial.days} dias não inclui o podcast.` : own
 }
 
+/**
+ * Under the player: the sample is a cut of an episode. Its length comes from SAMPLE, the episode's cap and the plan's
+ * name from the catalog: "Amostra de 29 s de um episódio de até 8 min do Intensivo."
+ */
+export function landingSampleLine(catalog: PlanCatalog | null, seconds: number = SAMPLE.duration): string {
+  const cut = `Amostra de ${Math.round(seconds)} s de um episódio`
+  const minutes = catalog?.plans?.find(p => p.key === 'pro')?.extras?.podcast_max_minutes
+  return minutes ? `${cut} de até ${minutes} min do ${paidPlanName(catalog)}.` : `${cut} do ${paidPlanName(catalog)}.`
+}
+
 export function landingFaqs(catalog: PlanCatalog | null): { q: string, a: string }[] {
   const name = paidPlanName(catalog)
   const trial = catalogTrial(catalog)
@@ -284,14 +348,17 @@ export function landingFaqs(catalog: PlanCatalog | null): { q: string, a: string
     {
       q: 'É grátis mesmo?',
       a: trial
-        ? `${free} Ao mandar o primeiro material, você ganha ${trial.days} dias do ${name} para testar a IA. Depois, a conta volta ao Grátis, sem cobrança.`
+        ? `${free} Ao mandar o primeiro material, com o e-mail confirmado, você ganha ${trial.days} dias para testar a IA${trialLimitsText(catalog) ? `: ${trialLimitsText(catalog)}` : ''}.${trialExcludesText(catalog, trial)} Depois, a conta volta ao Grátis, sem cobrança.`
         : `${free} A IA faz parte do ${name}.`,
     },
     {
       q: 'Como vocês sabem quanto eu vou lembrar?',
-      a: 'Cada card tem uma força que sobe quando você acerta e cai com o tempo. A conta soma a força de todos os seus cards no dia da prova. Ela aparece com a prova marcada e os primeiros cards revisados.',
+      a: 'Cada card tem uma força que sobe quando você acerta e cai com o tempo. A conta soma a força de todos os seus cards no dia da prova. Ela aparece com a prova marcada, a partir de 20 cards da prova, com pelo menos 10 já revisados e firmes.',
     },
-    { q: 'Já uso o Anki. Começo do zero?', a: 'Não. O Baigi traz os cards com os intervalos e os erros de cada um.' },
+    {
+      q: 'Já uso o Anki. Começo do zero?',
+      a: 'Não. O Baigi traz os cards com o intervalo e o número de erros de cada um; o histórico de revisões fica no Anki. Ao exportar no Anki, marque a opção de suporte a versões antigas.',
+    },
     {
       q: `Como cancelo o ${name}?`,
       a: 'O mensal você cancela quando quiser, pelo portal de assinatura. O anual é pago uma vez e não renova sozinho. Seus cadernos e cards continuam no Grátis.',

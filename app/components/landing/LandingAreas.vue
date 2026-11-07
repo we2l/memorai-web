@@ -41,10 +41,12 @@
           </ul>
           <div class="lp-act">
             <LandingCta to="/criar-conta" position="areas" :area="a.key" section>{{ a.cta }}</LandingCta>
+            <span class="lp-fine" data-testid="landing-ai-areas">{{ landingAiLine(catalog) }}</span>
           </div>
         </div>
         <div class="lp-area-media">
           <LandingPhone><LandingScreen :name="a.screen" /></LandingPhone>
+          <p class="lp-fine lp-demo-note">Conta de demonstração, com conteúdo de exemplo.</p>
         </div>
       </div>
     </div>
@@ -54,7 +56,11 @@
 <script setup lang="ts">
 // The areas (prd-landing-d RF-D8): one open at a time, each with the pain, what the app does, a real review screen
 // and its own call. Tabs by the WAI-ARIA pattern: roving tabindex, arrows, Home and End. Every panel is in the HTML.
-import { AREAS, type LandingArea } from '~/utils/landing'
+// Every area sells some AI (questões, PDF, photo): the line under the call says where it is.
+import type { PlanCatalog } from '~/types'
+import { AREAS, landingAiLine, type LandingArea } from '~/utils/landing'
+
+defineProps<{ catalog: PlanCatalog | null }>()
 
 const selected = ref<LandingArea>(AREAS[0].key)
 const tabs = ref<HTMLButtonElement[]>([])

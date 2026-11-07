@@ -3,13 +3,13 @@
     <LandingHeader />
 
     <main>
-      <LandingHero />
+      <LandingHero :catalog="catalog" />
       <LandingCurve />
-      <LandingStory />
-      <LandingQuiz />
+      <LandingStory :catalog="catalog" />
+      <LandingQuiz :catalog="catalog" />
       <LandingProjection />
       <LandingPodcast :catalog="catalog" @sample="sample" />
-      <LandingAreas />
+      <LandingAreas :catalog="catalog" />
       <LandingPlans :catalog="catalog" :failed="failed" @retry="fetchPlans" />
       <LandingFinal />
     </main>
@@ -30,20 +30,22 @@
 // and the title font live in public/landing (nuxt.config.ts).
 import '~/components/landing/landing.css'
 import type { LandingMessageProp } from '~/types/analytics'
-import { LANDING_CTA, LANDING_MESSAGE_SCRIPT, landingMessageOf, landingQuery, type LandingArea, type LandingCtaPosition } from '~/utils/landing'
+import { LANDING_CTA, LANDING_MESSAGE_SCRIPT, landingMessageOf, landingQuery, paidPlanName, type LandingArea, type LandingCtaPosition } from '~/utils/landing'
 import { startLandingMotion } from '~/utils/landingMotion'
 
 definePageMeta({ layout: 'landing' })
 
 const TITLE = 'Baigi: chega de memória de peixe'
-const DESCRIPTION = 'Mande seu PDF ou suas anotações. O Baigi cria os cards, traz cada um de volta perto da hora de esquecer e mostra quanto você vai lembrar no dia da prova. Para concurso, OAB, ENEM, faculdade, medicina e idiomas.'
+const { plans: catalog, failed, fetchPlans } = usePlans()
+// The AI (cards from the PDF) is not in the Free plan: the description says where it is, with the catalog's name
+const description = computed(() => `Mande seu PDF ou suas anotações e a IA cria os cards, no teste grátis e no ${paidPlanName(catalog.value)}. Revisar é grátis: cada card volta perto da hora de esquecer, e você vê quanto vai lembrar no dia da prova. Para concurso, OAB, ENEM, faculdade, medicina e idiomas.`)
 
 useHead({
   title: TITLE,
   meta: [
-    { name: 'description', content: DESCRIPTION },
+    { name: 'description', content: description },
     { property: 'og:title', content: TITLE },
-    { property: 'og:description', content: DESCRIPTION },
+    { property: 'og:description', content: description },
     { property: 'og:type', content: 'website' },
     { property: 'og:locale', content: 'pt_BR' },
     { property: 'og:url', content: 'https://baigi.com.br/' },
@@ -72,7 +74,6 @@ useHead({
   script: [{ innerHTML: LANDING_MESSAGE_SCRIPT, tagPosition: 'head' }],
 })
 
-const { plans: catalog, failed, fetchPlans } = usePlans()
 
 // ── Where the calls are (RF-D12): the sticky bar of the phone only when no section call shows ──
 const root = ref<HTMLElement | null>(null)

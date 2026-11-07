@@ -3,13 +3,15 @@ import { test, expect, gotoApp, sql, USERS } from './support/fixtures'
 import type { Page } from '@playwright/test'
 
 /**
- * Importar .apkg (fixture copiada de memorai-api/tests/fixtures/test_deck.apkg).
+ * Importar .apkg (fixtures copiadas de memorai-api/tests/fixtures: test_deck.apkg, formato antigo, e anki/novo.apkg,
+ * formato do Anki 23.10+ com collection.anki21b em zstd, gerado por memorai-api/scripts/anki-fixtures/gerar.py).
  * O upload é real (POST /import/anki só grava o arquivo); preview, confirmação e status são mockados:
  * sem worker no ambiente, o PreviewAnkiJob nunca rodaria (e o GET real o enfileiraria).
  */
 test.use({ auditUser: 'free' })
 
 const APKG = path.join(__dirname, 'fixtures', 'test_deck.apkg')
+const APKG_NOVO = path.join(__dirname, 'fixtures', 'anki-novo.apkg')
 const fileInput = (page: Page) => page.locator('input[type="file"][accept=".apkg"]')
 
 const preview = {
@@ -54,6 +56,17 @@ test.describe('Importar Anki — caminho feliz', () => {
     await expect(page).toHaveURL(/\/cadernos/)
   })
 
+  test('formato novo do Anki (anki21b): upload aceito e preview, sem pedir compatibilidade', async ({ page }) => {
+    await mockImportFlow(page, 'completed')
+    await gotoApp(page, '/importar')
+    await expect(page.getByTestId('import-hint')).toContainText('Arquivo → Exportar → Pacote de baralho (.apkg)')
+    await expect(page.getByText(/compatibilidade|versões antigas/i)).toHaveCount(0)
+    const upload = page.waitForResponse(r => r.url().endsWith('/api/import/anki') && r.request().method() === 'POST')
+    await fileInput(page).setInputFiles(APKG_NOVO)
+    expect((await upload).status()).toBe(201)
+    await expect(page.getByText('Prévia da importação')).toBeVisible()
+  })
+
   test('cancelar no preview volta para a seleção de arquivo', async ({ page }) => {
     await mockImportFlow(page, 'completed')
     await gotoApp(page, '/importar')
@@ -71,7 +84,7 @@ test.describe('Importar Anki — caminho triste', () => {
     await gotoApp(page, '/importar')
     // accept=".apkg" filtra o seletor nativo, mas arrastar/forçar ainda entrega outro arquivo
     await fileInput(page).setInputFiles({ name: 'baralho.zip', mimeType: 'application/zip', buffer: Buffer.from('PK\u0003\u0004') })
-    await expect(page.getByRole('alert').getByText('Selecione um arquivo .apkg válido.')).toBeVisible()
+    await expect(page.getByTestId('import-file-error')).toHaveText(/não é um \.apkg.*Pacote de baralho/)
     expect(uploads).toBe(0)
   })
 
@@ -80,10 +93,11 @@ test.describe('Importar Anki — caminho triste', () => {
     const upload = page.waitForResponse(r => r.url().endsWith('/api/import/anki'))
     await fileInput(page).setInputFiles({ name: 'corrompido.apkg', mimeType: 'application/octet-stream', buffer: Buffer.from('isto não é um zip do anki\n'.repeat(20)) })
     const res = await upload
-    const toast = page.getByRole('alert').locator(':scope *').filter({ hasText: /\S/ }).first()
+    const error = page.getByTestId('import-file-error')
     if (res.status() === 422) {
-      await expect(toast).toBeVisible()
-      await expect(toast).not.toHaveText(/The file|must be|mimetypes/i)
+      await expect(error).toBeVisible()
+      await expect(error).toHaveText(/Arquivo (→|>) Exportar/)
+      await expect(error).not.toHaveText(/The file|must be|mimetypes/i)
     } else {
       // Aceito no upload: a validação fica para o job de preview (sem worker aqui) — o usuário espera até 60 s
       test.info().annotations.push({ type: 'observação', description: `upload de .apkg inválido respondeu ${res.status()}: só o PreviewAnkiJob vai descobrir que o arquivo é inválido` })
@@ -105,12 +119,17 @@ test.describe('Importar Anki — caminho triste', () => {
     expect(status, 'arquivo não-zip aceito no upload').toBe(422)
   })
 
-  test('preview falha (arquivo corrompido detectado no job): aviso e volta ao início', async ({ page }) => {
-    await page.route(/\/api\/import\/[^/]+\/preview$/, route => route.fulfill({ status: 422, json: { message: 'Não foi possível ler o arquivo .apkg.' } }))
+  test('preview falha (arquivo corrompido detectado no job): a mensagem da API fica na tela e volta ao início', async ({ page }) => {
+    const message = 'Não conseguimos ler este arquivo do Anki. No Anki, use Arquivo → Exportar → "Pacote de baralho (.apkg)" e envie o arquivo de novo.'
+    await page.route(/\/api\/import\/[^/]+\/preview$/, route => route.fulfill({ status: 422, json: { message } }))
     await gotoApp(page, '/importar')
     await fileInput(page).setInputFiles(APKG)
-    await expect(page.getByRole('alert').getByText('Não foi possível ler o arquivo .apkg.')).toBeVisible()
+    await expect(page.getByTestId('import-file-error')).toHaveText(message)
+    await expect(page.getByTestId('import-file-error')).toHaveAttribute('role', 'alert')
     await expect(page.getByText('Selecione seu arquivo .apkg')).toBeVisible()
+    // Persiste (não é toast) até a próxima tentativa
+    await page.waitForTimeout(6_000)
+    await expect(page.getByTestId('import-file-error')).toBeVisible()
   })
 
   test('importação falha no processamento: "Erro na importação" com "Tentar novamente"', async ({ page }) => {

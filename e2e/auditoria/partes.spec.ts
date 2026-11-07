@@ -146,8 +146,9 @@ test('linha do material: cards automáticos e motivo do bloqueio', async ({ page
 
   setRowDocument(seed.rowDocId, { auto_cards_status: 'skipped_quota', blocked_reason: null })
   await gotoApp(page, `/cadernos/${seed.rootId}`)
-  await expect(state).toContainText('Sem gerações de cards este mês')
-  await expect(state.getByRole('button', { name: 'Ver planos' })).toBeVisible()
+  // The paid plan (this user is Pro) at its monthly limit: the day the count starts again, never "Ver planos" (prd-uso-justo RN-3)
+  await expect(state).toContainText('Sem gerações de cards este mês. A contagem recomeça em')
+  await expect(state.getByRole('button', { name: 'Ver planos' })).toHaveCount(0)
 
   setRowDocument(seed.rowDocId, { auto_cards_status: 'skipped_empty' })
   await gotoApp(page, `/cadernos/${seed.rootId}`)

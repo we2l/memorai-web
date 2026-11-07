@@ -26,7 +26,7 @@
           <ul v-if="catalog" class="flex flex-col gap-2.5 text-meta text-fg">
             <li v-for="line in freeLines" :key="line" class="flex gap-2"><Check class="mt-0.5 size-4 shrink-0 text-success" aria-hidden="true" />{{ line }}</li>
           </ul>
-          <UiSkeleton v-else variant="text" :lines="10" />
+          <div v-else class="flex flex-col gap-2.5"><UiSkeleton v-for="i in SKELETON_LINES.free" :key="i" variant="text" :lines="1" class="h-5 justify-center" /></div>
         </div>
       </UiSection>
 
@@ -50,7 +50,7 @@
           <ul v-if="catalog" class="flex flex-col gap-2.5 text-meta text-fg">
             <li v-for="line in proLines" :key="line" class="flex gap-2"><Check class="mt-0.5 size-4 shrink-0 text-success" aria-hidden="true" />{{ line }}</li>
           </ul>
-          <UiSkeleton v-else variant="text" :lines="10" />
+          <div v-else class="flex flex-col gap-2.5"><UiSkeleton v-for="i in SKELETON_LINES.pro" :key="i" variant="text" :lines="1" class="h-5 justify-center" /></div>
         </div>
       </UiSection>
     </div>
@@ -65,6 +65,11 @@
 import { Check } from 'lucide-vue-next'
 import type { BillingPeriod } from '~/components/plans/BillingToggle.vue'
 import { CHECKOUT_SOON_NOTE, checkoutAvailable } from '~/utils/checkout'
+
+// One skeleton row per line of the loaded list, in the li's rhythm (20 px + gap 10): the cards keep their final height
+// and nothing below them jumps (e2e planos-v3 "o esqueleto segura o layout"). Counts of the current catalog
+// (config/stripe.php highlights + planBenefitLines); a new line in the catalog means updating them here.
+const SKELETON_LINES = { free: 6, pro: 11 }
 
 const period = defineModel<BillingPeriod>('period', { required: true })
 const emit = defineEmits<{ toggle: [period: BillingPeriod] }>()

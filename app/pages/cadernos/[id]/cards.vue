@@ -3,6 +3,7 @@
     <UiPageHeader title="Todos os cards" :meta="meta" :back="{ to: hubPath, label: scopeName || 'Caderno' }">
       <template #actions>
         <UiButton variant="primary" :icon-left="Plus" data-testid="library-create" @click="openCreateCard">Criar card</UiButton>
+        <UiButton :icon-left="ClipboardX" data-testid="library-paste-question" @click="pasteQuestion.show('library', id)">Colar questão</UiButton>
         <UiButton :icon-left="Camera" :loading="photo.reading.value" @click="photoInput?.click()">Foto</UiButton>
         <input ref="photoInput" type="file" accept="image/*" capture="environment" class="hidden" aria-label="Foto do material" @change="onPhoto">
       </template>
@@ -117,7 +118,7 @@
 // generation lives on each material's panel (the old "Preparar revisão" of the whole scope left, F4).
 // ?origin=note:<id> ("Ver os N cards" of the material) and the old ?source_note_id= open filtered;
 // ?highlight=<id> (search) opens that card; ?new=1 opens the form.
-import { Camera, Plus } from 'lucide-vue-next'
+import { Camera, ClipboardX, Plus } from 'lucide-vue-next'
 import type { SelectOption } from '~/components/ui/Select.vue'
 import type { LibraryCard, MaterialsPage } from '~/types'
 import type { LibraryFilters } from '~/composables/useCardLibrary'
@@ -135,6 +136,9 @@ const { track } = useAnalytics()
 const id = computed(() => String(route.params.id))
 const topicRef = computed<string | null>(() => id.value)
 const lib = useCardLibrary(id)
+// "Colar questão" (prd-questao-errada RF-F3): the new cards show up on the list
+const pasteQuestion = usePasteQuestion()
+watch(pasteQuestion.created, () => { void lib.load() })
 const photo = usePhotoCards(topicRef, async () => { await lib.load() })
 
 const hubPath = computed(() => cadernoPath(id.value))

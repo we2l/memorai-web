@@ -34,7 +34,7 @@ export interface LibraryFilters {
   sort: LibrarySort
 }
 
-const ORIGIN_RE = /^(?:(?:note|document):[0-9a-f-]{36}|quiz|loose)$/i
+const ORIGIN_RE = /^(?:(?:note|document):[0-9a-f-]{36}|quiz|question|loose)$/i
 const str = (v: unknown) => (typeof v === 'string' ? v : Array.isArray(v) && typeof v[0] === 'string' ? v[0] : '')
 
 /** The filters a URL asks for (unknown values dropped; the old ?source_note_id= is origin=note:). */

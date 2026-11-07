@@ -20,7 +20,7 @@ export function reviewScopeOf(query: LocationQuery): ReviewScope {
 }
 
 /** The F2 slice of a /revisar URL: scope_type, origin, ahead and errors_only (RF-F7). */
-export function reviewSliceOf(query: LocationQuery): { scope_type: ReviewScopeType | null, origin: 'quiz' | 'loose' | null, ahead: boolean, errors_only: boolean } {
+export function reviewSliceOf(query: LocationQuery): { scope_type: ReviewScopeType | null, origin: 'quiz' | 'question' | 'loose' | null, ahead: boolean, errors_only: boolean } {
   const slice = sessionScopeFromQuery(query)
   return {
     scope_type: slice.scope?.type ?? (slice.topicId ? 'topic' : null),

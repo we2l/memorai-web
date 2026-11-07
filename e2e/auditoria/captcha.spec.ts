@@ -14,6 +14,7 @@ async function isolateThrottle(page: Page, path: string) {
   await page.route(`**/api/${path}`, async route => route.continue({ headers: { ...(await route.request().allHeaders()), 'x-forwarded-for': RUN_IP } }))
 }
 
+/** True once the Turnstile script answered (the form asks for it on the first focus). */
 async function captchaOn(page: Page) {
   const script = page.waitForResponse(r => r.url().startsWith('https://challenges.cloudflare.com/turnstile/'), { timeout: 10_000 }).catch(() => null)
   return !!(await script)
@@ -25,10 +26,10 @@ test.describe('Captcha', () => {
     await isolateThrottle(page, 'register')
     const loaded = captchaOn(page)
     await page.goto('/criar-conta')
-    test.skip(!(await loaded), 'build sem NUXT_PUBLIC_TURNSTILE_SITE_KEY')
-
     const email = `e2e-captcha-${uid()}@audit.test`
+    // The script comes when the form gets focus
     await page.locator('#name').fill('Captcha')
+    test.skip(!(await loaded), 'build sem NUXT_PUBLIC_TURNSTILE_SITE_KEY')
     await page.locator('#email').fill(email)
     await page.locator('#password').fill(AUDIT_PASSWORD)
     await page.locator('#accept_terms').check()
@@ -58,9 +59,8 @@ test.describe('Captcha', () => {
     await isolateThrottle(page, 'forgot-password')
     const loaded = captchaOn(page)
     await page.goto('/esqueci-senha')
-    test.skip(!(await loaded), 'build sem NUXT_PUBLIC_TURNSTILE_SITE_KEY')
-
     await page.locator('#email').fill(`e2e-ninguem-${uid()}@audit.test`)
+    test.skip(!(await loaded), 'build sem NUXT_PUBLIC_TURNSTILE_SITE_KEY')
     const req = page.waitForRequest(r => r.url().endsWith('/api/forgot-password'))
     await page.getByRole('button', { name: 'Enviar link' }).click()
     expect((await req).postDataJSON().captcha_token).toBe(DUMMY_TOKEN)
@@ -92,8 +92,8 @@ test.describe('Captcha', () => {
     }))
     const loaded = captchaOn(page)
     await page.goto('/criar-conta')
-    test.skip(!(await loaded), 'build sem NUXT_PUBLIC_TURNSTILE_SITE_KEY')
     await page.locator('#name').fill('Recusa')
+    test.skip(!(await loaded), 'build sem NUXT_PUBLIC_TURNSTILE_SITE_KEY')
     await page.locator('#email').fill(`e2e-recusa-${uid()}@audit.test`)
     await page.locator('#password').fill(AUDIT_PASSWORD)
     await page.locator('#accept_terms').check()

@@ -10,10 +10,10 @@
       Se houver uma conta com <span class="font-semibold break-all text-fg-strong">{{ sentTo }}</span>, enviamos um link (vale por 60 min). Confira também o spam.
     </p>
 
-    <form v-else class="flex flex-col gap-4" novalidate @submit.prevent="submit">
+    <form v-else class="flex flex-col gap-4" novalidate @focusin.once="captcha.render(captchaEl)" @submit.prevent="submit">
       <UiInput id="email" v-model="email" label="E-mail" type="email" autocomplete="email" inputmode="email" :error="emailError || undefined" />
       <!-- Turnstile (M4): invisible unless Cloudflare asks for a click -->
-      <div ref="captchaEl" data-testid="forgot-captcha" />
+      <div ref="captchaEl" class="contents" data-testid="forgot-captcha" />
       <p v-if="captchaError" role="alert" class="text-meta font-medium text-danger" data-testid="forgot-captcha-error">{{ captchaError }}</p>
       <UiButton variant="primary" type="submit" block :loading="loading">Enviar link</UiButton>
     </form>
@@ -44,7 +44,7 @@ const sent = ref(false)
 const captcha = useTurnstile()
 const captchaEl = ref<HTMLElement | null>(null)
 
-onMounted(() => captcha.render(captchaEl.value))
+// The check starts when the person starts filling the form (the script is not fetched for a visit that only looks)
 
 async function submit() {
   emailError.value = ''
@@ -58,7 +58,7 @@ async function submit() {
   loading.value = true
   let captchaToken: string | undefined
   try {
-    captchaToken = await captcha.getToken()
+    captchaToken = await captcha.getToken(captchaEl.value)
   } catch {
     captchaError.value = captcha.error.value || CAPTCHA_MESSAGES.load
     loading.value = false

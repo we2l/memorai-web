@@ -15,7 +15,7 @@
       <span class="h-px flex-1 bg-line" />
     </div>
 
-    <form class="flex flex-col gap-4" novalidate @submit.prevent="submit">
+    <form class="flex flex-col gap-4" novalidate @focusin.once="captcha.render(captchaEl)" @submit.prevent="submit">
       <UiInput id="name" v-model="form.name" label="Nome" autocomplete="name" :error="errors.name" />
       <UiInput id="email" v-model="form.email" label="E-mail" type="email" autocomplete="email" inputmode="email" :error="errors.email" />
       <AuthPasswordInput id="password" v-model="form.password" label="Senha" autocomplete="new-password" :hint="hint" :error="errors.password" />
@@ -34,7 +34,7 @@
       </div>
 
       <!-- Turnstile (M3): invisible unless Cloudflare asks for a click; the Google button above has no captcha -->
-      <div ref="captchaEl" data-testid="signup-captcha" />
+      <div ref="captchaEl" class="contents" data-testid="signup-captcha" />
 
       <p v-if="errors.general" role="alert" class="text-meta font-medium text-danger" data-testid="signup-error">{{ errors.general }}</p>
 
@@ -67,7 +67,7 @@ const hint = computed(() => (errors.password ? undefined : passwordHint(form.pas
 const captcha = useTurnstile()
 const captchaEl = ref<HTMLElement | null>(null)
 
-onMounted(() => captcha.render(captchaEl.value))
+// The check starts when the person starts filling the form (the script is not fetched for a visit that only looks)
 
 async function submit() {
   for (const k of Object.keys(errors)) delete errors[k]
@@ -80,7 +80,7 @@ async function submit() {
   loading.value = true
   let captchaToken: string | undefined
   try {
-    captchaToken = await captcha.getToken()
+    captchaToken = await captcha.getToken(captchaEl.value)
   } catch {
     errors.general = captcha.error.value || CAPTCHA_MESSAGES.load
     loading.value = false

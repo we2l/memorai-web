@@ -197,7 +197,7 @@ test.describe('Onboarding de quem não confirmou o e-mail', () => {
     await page.route('**/api/email/verification-notification', (r) => { resends.push(r.request().method()); return r.fulfill({ status: 202, json: { message: 'ok' } }) })
     const calls = await mockGenerate(page)
     await toTextPath(page)
-    const notice = page.getByRole('status').filter({ hasText: 'Confirme seu e-mail para usar a IA' })
+    const notice = page.getByRole('status').filter({ hasText: /Confirme seu e-mail para usar (a prévia grátis d)?a IA/ })
     await expect(notice).toContainText(USERS.onboardingUnverified.email)
 
     await page.locator('#material').fill('Fotossíntese ocorre nos cloroplastos.')

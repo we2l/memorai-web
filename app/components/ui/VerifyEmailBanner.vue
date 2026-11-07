@@ -24,7 +24,7 @@
         </UiButton>
       </div>
       <!-- Turnstile (M4) only after a click on Reenviar: invisible unless Cloudflare asks for one -->
-      <div ref="bannerCaptchaEl" />
+      <div ref="bannerCaptchaEl" class="contents" />
       <UiIconButton
         v-if="!inline"
         :icon="X"
@@ -40,7 +40,7 @@
         <template v-if="hasPreviewOffer">A prévia grátis da IA fica disponível</template><template v-else>Os recursos de IA<template v-if="trialDays"> e o teste de {{ trialDays }} dias do {{ proName }}</template> ficam disponíveis</template> depois que você confirmar <span class="break-all">{{ auth.user?.email }}</span>.
         Confira sua caixa de entrada e o spam.
       </p>
-      <div ref="modalCaptchaEl" />
+      <div ref="modalCaptchaEl" class="contents" />
       <template #footer>
         <UiButton variant="primary" type="button" block :loading="sending" :disabled="cooldown > 0" @click="resend">
           {{ buttonLabel }}

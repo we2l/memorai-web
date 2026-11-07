@@ -36,13 +36,13 @@
     <p v-if="failed" class="err" role="alert" data-testid="landing-player-error">
       Não deu para tocar o áudio agora.<button type="button" @click="retry">Tentar de novo</button>
     </p>
-    <p v-else class="src">Trecho real que o Baigi gerou de um card errado 2 vezes, na conta de demonstração.</p>
+    <p v-else class="src">Trecho real que o Baigi gerou de um card da conta de demonstração.</p>
     <audio ref="audio" preload="none" :src="SAMPLE.src" @play="onPlay" @playing="loading = false" @waiting="loading = true" @pause="onStop" @ended="onStop" @timeupdate="sync" @loadedmetadata="sync" @error="onError" />
   </div>
 </template>
 
 <script setup lang="ts">
-// The player of the podcast section (prd-landing-d RF-D7; the A direction's): the real 26 s sample, downloaded only
+// The player of the podcast section (prd-landing-d RF-D7; the A direction's): the real 29 s sample, downloaded only
 // on play (`preload="none"`), the waveform of the file, the transcript following the voice, and the states the
 // prototype lacked: loading ("carregando…") and failure ("Tentar de novo"). Emits `playing` (the dolphin bobs) and
 // `firstPlay` (landing_sample_played).

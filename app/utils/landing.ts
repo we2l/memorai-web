@@ -202,20 +202,24 @@ export const AREAS = [
 ] as const satisfies readonly { key: string, name: string, dot: string, pain: string, points: readonly (readonly [string, string])[], cta: string, screen: ScreenName }[]
 export type LandingArea = typeof AREAS[number]['key']
 
-/** The real sample of the podcast (public/landing/podcast-amostra.mp3, 26 s), its transcript and its waveform. */
+/**
+ * The real sample of the podcast (public/landing/podcast-amostra.mp3, 29 s), its transcript and its waveform. The
+ * question, a pause with a tick while you answer in your head, then the answer. The times of the lines match the
+ * silences of the file (ffmpeg silencedetect, 07/11).
+ */
 export const SAMPLE = {
   src: '/landing/podcast-amostra.mp3',
-  duration: 26.6,
+  duration: 29.0,
   title: 'Seus erros de Constitucional',
   lines: [
-    { t: 0, text: 'Tenta lembrar… quem é que realmente é afetado pelas decisões em um caso específico?' },
-    { t: 5.4, text: '(pausa pra você responder de cabeça)' },
-    { t: 6.2, text: 'A resposta é que o controle difuso de constitucionalidade gera efeito apenas entre as partes do processo.' },
-    { t: 12.5, text: 'Isso significa que, em regra, a decisão só vale para quem está envolvido naquele julgamento.' },
-    { t: 18.3, text: 'A única exceção a essa regra acontece quando há uma resolução do Senado, conforme o artigo 52, inciso 10, da Constituição.' },
+    { t: 0.4, text: 'Você sabe como é composta a Federação brasileira? Quais são os entes que a formam?' },
+    { t: 5.7, text: 'Pensa um pouco antes de eu responder.' },
+    { t: 6.9, text: '(pausa pra você responder de cabeça)' },
+    { t: 11.3, text: 'A Federação brasileira é formada pela união indissolúvel dos Estados, dos Municípios e do Distrito Federal, conforme o artigo primeiro da Constituição.' },
+    { t: 20.8, text: 'Essa união indissolúvel significa que não existe o direito de secessão, ou seja, os entes federativos não podem se separar.' },
   ],
-  /** RMS of the file in 120 slices (computed from the MP3 for the prototype) */
-  peaks: [0.04, 0.51, 0.68, 0.46, 0.04, 0.04, 0.42, 0.7, 0.52, 0.82, 0.9, 0.55, 0.53, 0.34, 0.9, 0.54, 0.58, 0.24, 0.71, 0.75, 0.71, 0.45, 0.39, 0.15, 0.04, 0.04, 0.04, 0.04, 0.81, 0.72, 0.44, 0.34, 0.72, 0.78, 0.61, 0.22, 0.67, 0.35, 0.54, 0.29, 0.34, 0.8, 0.1, 0.55, 0.7, 0.45, 0.37, 0.75, 0.63, 0.33, 0.52, 0.5, 0.52, 0.44, 0.42, 0.04, 0.04, 0.04, 0.61, 0.79, 0.47, 0.27, 0.52, 0.65, 0.65, 0.13, 0.47, 0.63, 0.7, 0.58, 0.79, 0.51, 0.68, 0.89, 0.54, 0.41, 0.85, 0.87, 0.72, 0.31, 0.04, 0.04, 0.04, 0.6, 1.0, 0.56, 0.29, 0.62, 0.34, 0.25, 0.5, 0.04, 0.63, 0.53, 0.71, 0.75, 0.62, 0.56, 0.25, 0.59, 0.52, 0.7, 0.06, 0.46, 0.72, 0.74, 0.4, 0.3, 0.54, 0.48, 0.53, 0.42, 0.47, 0.56, 0.25, 0.54, 0.33, 0.45, 0.04, 0.04],
+  /** RMS of the file in 120 slices */
+  peaks: [0.04, 0.53, 0.59, 0.81, 0.63, 0.57, 1.0, 0.47, 0.68, 0.58, 0.56, 0.79, 0.05, 0.04, 0.46, 0.8, 0.68, 0.58, 0.49, 0.59, 0.04, 0.04, 0.04, 0.27, 0.53, 0.94, 0.5, 0.55, 0.24, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.55, 0.96, 0.83, 0.82, 0.93, 0.33, 0.68, 0.59, 0.78, 0.7, 0.26, 0.98, 0.51, 0.54, 0.42, 0.41, 0.63, 0.4, 0.42, 0.59, 0.44, 0.33, 0.43, 0.4, 0.36, 0.48, 0.81, 0.04, 0.68, 0.8, 0.7, 0.59, 0.32, 0.88, 0.57, 0.38, 0.42, 0.43, 0.04, 0.06, 0.04, 0.97, 0.82, 0.68, 0.65, 0.79, 0.39, 0.43, 0.45, 0.47, 0.83, 0.44, 0.36, 0.41, 0.73, 0.37, 0.43, 0.68, 0.15, 0.51, 0.98, 0.11, 0.25, 0.47, 0.6, 0.59, 0.45, 0.7, 0.57, 0.74, 0.33, 0.72, 0.11],
 }
 
 // ── The plans, only from the catalog ──

@@ -33,17 +33,17 @@ function launchCatalog(name: string, { trial = true } = {}) {
           monthly: { amount_cents: 2990, label: 'R$ 29,90/mês' },
           annual: { amount_cents: 23990, label: 'R$ 239,90/ano', monthly_equivalent_cents: 1999, installments_max: 1, savings_cents: 11890 },
         },
-        highlights: ['Tudo do Grátis', 'IA sem limite mensal nos cards, no tira-dúvidas e nas questões', 'Podcast curto dos seus pontos fracos'],
-        limits: { cards_ai: null, agent_chat: null, podcast: 5, pdf_to_note: 20, quiz_ai: null, note_improve: null, mindmap_ai: null },
+        highlights: ['Tudo do Grátis', 'IA nos cards, no tira-dúvidas, nas questões e nos mapas mentais', 'Podcast curto dos seus pontos fracos'],
+        limits: { cards_ai: 400, agent_chat: 700, podcast: 8, pdf_to_note: 20, quiz_ai: 40, note_improve: 60, mindmap_ai: 40 },
         extras: { pdf_pages_per_note: 500, rag_max_pages: 1000, upload_max_mb: 100, pdf_pages_monthly_cap: 4000, quiz_max_questions: 50, quiz_short_answer: true, podcast_format: 'full', podcast_max_minutes: 8 },
       },
     ],
     features: {
-      cards_ai: { label: 'gerações de cards com IA', unit: 'por mês', pro_benefit: 'Gerações ilimitadas' },
-      agent_chat: { label: 'perguntas ao tira-dúvidas', unit: 'por mês', pro_benefit: 'Tira-dúvidas ilimitado' },
+      cards_ai: { label: 'gerações de cards com IA', unit: 'por mês', pro_benefit: '400 gerações por mês' },
+      agent_chat: { label: 'perguntas ao tira-dúvidas', unit: 'por mês', pro_benefit: '700 perguntas por mês' },
       pdf_to_note: { label: 'PDFs transformados em nota', unit: 'por mês', pro_benefit: '20 PDFs por mês, até 500 páginas cada' },
-      quiz_ai: { label: 'simulados com IA', unit: 'por mês', pro_benefit: 'Simulados ilimitados, com dissertativas' },
-      podcast: { label: 'podcasts', unit: 'por mês', pro_benefit: '5 episódios de até 8 min' },
+      quiz_ai: { label: 'simulados com IA', unit: 'por mês', pro_benefit: '40 simulados por mês, com dissertativas' },
+      podcast: { label: 'podcasts', unit: 'por mês', pro_benefit: '8 episódios por mês, de até 8 min' },
     },
   }
 }

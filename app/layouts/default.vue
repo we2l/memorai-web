@@ -94,12 +94,24 @@ const upgradeLoaded = useLoadedOnce(() => showUpgrade.value)
 
 const subscription = useSubscriptionStore()
 
+const plansCatalog = usePlans()
+async function showLimitToast(detail: Partial<FeatureLimitDetail>) {
+  await plansCatalog.fetchPlans()
+  const label = plansCatalog.feature(detail.feature || '')?.label ?? 'usos com IA'
+  useToast().show(limitReachedText(detail.used, detail.limit, label, detail.resetsAt), 'warning')
+}
+
 onMounted(() => {
   subscription.fetchStatus().catch((e: unknown) => reportApiError(e, { silent: true }))
 
   window.addEventListener('feature-limit-reached', ((e: CustomEvent) => {
     // Full 402 detail: planRequired null means a Pro at the limit (no upgrade CTA)
     const detail = (e.detail ?? {}) as Partial<FeatureLimitDetail>
+    // The paid plan at its monthly limit: a toast with the day it starts again, never the upgrade (prd-uso-justo RF-F4)
+    if (limitReachedRoute(detail) === 'toast') {
+      void showLimitToast(detail)
+      return
+    }
     upgradeDetail.value = {
       feature: detail.feature || '',
       used: detail.used ?? null,

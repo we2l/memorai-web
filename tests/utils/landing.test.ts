@@ -18,13 +18,13 @@ const catalog = (over: Partial<PlanCatalog> = {}, proTrial?: object, proName = '
 function launch(proName = 'Intensivo'): PlanCatalog {
   const c = catalog({ trial: { days: 7, card_required: false, excludes: ['podcast'], pdf_pages_cap: 100, limits: { cards_ai: 20, quiz_ai: 3, pdf_to_note: 3, podcast: 0 } } }, undefined, proName)
   c.plans[0]!.highlights = ['Cadernos, notas e cards sem limite', 'Revisão com FSRS-6', 'Importar do Anki sem recomeçar do zero', 'Modo recuperação e revisão relâmpago', 'Domínio e acerto por assunto', 'Teste do Pro sem cartão no primeiro material']
-  c.plans[1]!.highlights = ['Tudo do Grátis', 'IA sem limite mensal nos cards, no tira-dúvidas e nas questões', 'Podcast curto dos seus pontos fracos']
-  c.plans[1]!.limits = { cards_ai: null, pdf_to_note: 20, quiz_ai: null, podcast: 5 }
+  c.plans[1]!.highlights = ['Tudo do Grátis', 'IA nos cards, no tira-dúvidas, nas questões e nos mapas mentais', 'Podcast curto dos seus pontos fracos']
+  c.plans[1]!.limits = { cards_ai: 400, pdf_to_note: 20, quiz_ai: 40, podcast: 8 }
   c.features = {
     pdf_to_note: { label: 'PDFs transformados em nota', unit: 'por mês', pro_benefit: '20 PDFs por mês, até 500 páginas cada' },
-    quiz_ai: { label: 'simulados com IA', unit: 'por mês', pro_benefit: 'Simulados ilimitados, com dissertativas' },
-    podcast: { label: 'podcasts', unit: 'por mês', pro_benefit: '5 episódios de até 8 min' },
-    cards_ai: { label: 'gerações de cards com IA', unit: 'por mês', pro_benefit: 'Gerações sem limite' },
+    quiz_ai: { label: 'simulados com IA', unit: 'por mês', pro_benefit: '40 simulados por mês, com dissertativas' },
+    podcast: { label: 'podcasts', unit: 'por mês', pro_benefit: '8 episódios por mês, de até 8 min' },
+    cards_ai: { label: 'gerações de cards com IA', unit: 'por mês', pro_benefit: '400 gerações por mês' },
   }
   return c
 }
@@ -137,10 +137,10 @@ describe('landing D (prd-landing-d)', () => {
     ])
     expect(landingPlanLines(c, 'pro')).toEqual([
       'Tudo do Grátis',
-      'IA sem limite mensal nos cards, no tira-dúvidas e nas questões',
+      'IA nos cards, no tira-dúvidas, nas questões e nos mapas mentais',
       '20 PDFs por mês, até 500 páginas cada',
-      'Simulados ilimitados, com dissertativas',
-      '5 episódios de até 8 min',
+      '40 simulados por mês, com dissertativas',
+      '8 episódios por mês, de até 8 min',
     ])
     // Without the trial, the free card keeps its own highlights (5); without the catalog, nothing
     const noTrial = { ...c, trial: null }
@@ -151,13 +151,14 @@ describe('landing D (prd-landing-d)', () => {
     const noPodcast = launch()
     noPodcast.plans[1]!.limits.podcast = 0
     expect(landingPlanLines(noPodcast, 'pro')).toContain('Podcast curto dos seus pontos fracos')
-    expect(landingPlanLines(noPodcast, 'pro')).not.toContain('5 episódios de até 8 min')
+    expect(landingPlanLines(noPodcast, 'pro')).not.toContain('8 episódios por mês, de até 8 min')
   })
 
   it('textos dos planos, do podcast e das perguntas seguem o catálogo, sem número próprio', () => {
     expect(landingPlansLead(launch())).toBe('A IA você testa por 7 dias, sem cartão, a partir do primeiro material. No Intensivo, ela acompanha você até a prova.')
     expect(landingPlansLead(catalog())).not.toMatch(/\d/)
-    expect(landingPodcastLine(launch())).toBe('No Intensivo: 5 episódios de até 8 min por mês. O teste de 7 dias não inclui o podcast.')
+    // The benefit already says "por mês" (prd-uso-justo RF-B2): the unit is not repeated
+    expect(landingPodcastLine(launch())).toBe('No Intensivo: 8 episódios por mês, de até 8 min. O teste de 7 dias não inclui o podcast.')
     expect(landingPodcastLine(null)).toBe('Os episódios fazem parte do Intensivo.')
     expect(landingFaqs(launch('Pro')).map(f => f.q)).toContain('Como cancelo o Pro?')
     expect(landingFaqs(launch())[0]!.a).toContain('7 dias para testar a IA')

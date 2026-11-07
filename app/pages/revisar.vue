@@ -251,7 +251,7 @@ const addSheet = useAddSheet()
 const route = useRoute()
 const { $api } = useNuxtApp()
 const { track } = useAnalytics()
-const featureUsage = useFeatureUsage()
+const featureUsage = usePaidQuota()
 const lastErrorCard = ref<any>(null)
 
 // === Session modes ===
@@ -576,8 +576,8 @@ const chatQuota = computed(() => {
 })
 function askAbout(card: { id: string; front: string; back: string; topic_id?: string | null }, source: 'review_card' | 'review_error', draft: string) {
   if (!featureUsage.canUse('agent_chat')) {
-    const f = featureUsage.usage.value?.features.agent_chat
-    window.dispatchEvent(new CustomEvent('feature-limit-reached', { detail: { feature: 'agent_chat', used: f?.used, limit: f?.limit, planRequired: 'pro' } }))
+    // The paid plan at the limit gets the toast with the reset day, not the upgrade (prd-uso-justo RN-3)
+    window.dispatchEvent(new CustomEvent('feature-limit-reached', { detail: featureUsage.limitDetail('agent_chat') }))
     return
   }
   chat.ask({ cardId: card.id, cardFront: card.front, topicId: card.topic_id ?? scopeTopicId.value ?? undefined, source }, draft)

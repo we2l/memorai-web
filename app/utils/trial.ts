@@ -32,8 +32,8 @@ export function trialLimitsText(catalog: PlanCatalog | null | undefined): string
   if (!trial?.limits || !catalog) return ''
   const parts = Object.entries(catalog.features).flatMap(([key, f]) => {
     const limit = trial.limits?.[key]
-    if (limit === 0 || limit === undefined) return []
-    if (limit === null) return [`${f.label} sem limite`]
+    // null (no cap) never reaches the AI quotas (prd-uso-justo RN-1): the text only lists numbers
+    if (limit === 0 || limit === undefined || limit === null) return []
     const pages = key === 'pdf_to_note' && trial.pdf_pages_cap ? ` (${trial.pdf_pages_cap} páginas no total)` : ''
     return [`${limit} ${f.label}${pages}`]
   })

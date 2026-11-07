@@ -28,11 +28,12 @@
       </p>
 
       <p v-if="quotaText" class="text-label text-fg-muted">{{ quotaText }}</p>
+      <LazyPlansUsageNotice v-else feature="pdf_to_note" :usage="featureUsage" />
     </div>
 
     <template #footer>
       <UiButton variant="ghost" @click="open = false">Cancelar</UiButton>
-      <UiButton variant="primary" :loading="generating" @click="generate">Gerar resumo</UiButton>
+      <UiButton variant="primary" :loading="generating" :disabled="featureUsage.atLimit('pdf_to_note')" @click="generate">Gerar resumo</UiButton>
     </template>
   </UiSheet>
 </template>
@@ -49,7 +50,7 @@ const { $api } = useNuxtApp()
 const toast = useToast()
 const auth = useAuthStore()
 const generating = ref(false)
-const featureUsage = useFeatureUsage()
+const featureUsage = usePaidQuota()
 const proName = useProName()
 
 const isFree = computed(() => auth.user?.plan !== 'pro')
@@ -63,7 +64,8 @@ const pageLimit = computed(() => (auth.onTrial
 // opens on this click (RF-F7b)
 const quotaText = computed(() => {
   const f = featureUsage.usage.value?.features?.pdf_to_note
-  if (!f || featureUsage.opensTrial('pdf_to_note')) return ''
+  // The paid plan: only the 80% line and the limit (PlansUsageNotice, prd-uso-justo RF-F3)
+  if (!f || featureUsage.opensTrial('pdf_to_note') || featureUsage.paid.value) return ''
   const label = feature('pdf_to_note')?.label ?? 'PDFs transformados em nota'
   const count = f.limit === null ? `${f.used}` : `${f.used} de ${f.limit}`
   return `${label.charAt(0).toUpperCase()}${label.slice(1)}: ${count} ${featureUsage.periodLabel.value}`
@@ -79,7 +81,7 @@ watch(open, (val) => {
 })
 
 async function generate() {
-  if (!props.document) return
+  if (!props.document || featureUsage.atLimit('pdf_to_note')) return
   generating.value = true
   try {
     const res = await $api<{ message: string }>(`/documents/${props.document.id}/generate-note`, { method: 'POST' })

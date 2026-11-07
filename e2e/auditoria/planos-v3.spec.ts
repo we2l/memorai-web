@@ -56,7 +56,7 @@ test.describe('/planos anônimo', () => {
     await expect(table.getByTestId('compare-podcast').getByRole('rowheader')).toHaveText('Episódios de áudio')
     await expect(table.getByTestId('compare-podcast').getByRole('cell').nth(1)).toContainText('9 por mês')
     await expect(table.getByTestId('compare-mindmap_ai').getByRole('cell').first()).toHaveText('Não incluído')
-    await expect(table.getByTestId('compare-mindmap_ai').getByRole('cell').nth(1)).toHaveText('Ilimitado')
+    await expect(table.getByTestId('compare-mindmap_ai').getByRole('cell').nth(1)).toHaveText('40 por mês')
   })
 
   test('catálogo fora do ar: nenhum número e "Tentar de novo" traz os planos', async ({ page }) => {

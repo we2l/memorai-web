@@ -32,19 +32,19 @@ export function useFeatureUsage() {
 
   function canUse(feature: string): boolean {
     if (!usage.value || opensTrial(feature)) return true
-    const f = usage.value.features[feature]
+    const f = usage.value.features?.[feature]
     if (!f || f.limit === null) return true
     return f.remaining !== null && f.remaining > 0
   }
 
   function remaining(feature: string): number | null {
     if (!usage.value) return null
-    return usage.value.features[feature]?.remaining ?? null
+    return usage.value.features?.[feature]?.remaining ?? null
   }
 
   function isLimited(feature: string): boolean {
     if (!usage.value) return false
-    const f = usage.value.features[feature]
+    const f = usage.value.features?.[feature]
     return f?.limit !== null && f?.limit !== undefined
   }
 

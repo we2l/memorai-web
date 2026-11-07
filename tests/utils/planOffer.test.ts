@@ -68,6 +68,12 @@ describe('planComparison', () => {
     expect(rows[3]!.cells[0]).toEqual({ plan: 'free', text: 'Não incluído', detail: null, included: false })
   })
 
+  it('com a prévia grátis no catálogo, o Grátis diz "na prévia" e não "por mês" (prd-uso-justo §9)', () => {
+    const preview = { ...catalog, preview: { lifetime: true, requires_verified_email: true, limits: {}, pdf_pages: 50, quiz_max_questions: 10, quiz_short_answer: false, podcast_seconds: 30, text: '' } }
+    expect(planComparison(preview)[0]!.cells.map(c => c.text)).toEqual(['10 na prévia', '1.500 por mês'])
+    expect(planBenefitLines(preview, 'free')[0]).toBe('Gerações de cards com IA: 10 na prévia')
+  })
+
   it('muda quando o catálogo muda', () => {
     const changed = structuredClone(catalog)
     changed.plans[1]!.limits.podcast = 7

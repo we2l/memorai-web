@@ -210,23 +210,22 @@ export const AREAS = [
 export type LandingArea = typeof AREAS[number]['key']
 
 /**
- * The real sample of the podcast (public/landing/podcast-amostra.mp3, 29 s), its transcript and its waveform. The
+ * The real sample of the podcast (public/landing/podcast-amostra.mp3, 25 s), its transcript and its waveform. The
  * question, a pause with a tick while you answer in your head, then the answer. The times of the lines match the
  * silences of the file (ffmpeg silencedetect, 07/11).
  */
 export const SAMPLE = {
   src: '/landing/podcast-amostra.mp3',
-  duration: 29.0,
-  title: 'Manda a apostila. O Baigi faz os cards.',
+  duration: 25.2,
+  title: 'Seus erros de Direito do Trabalho',
   lines: [
-    { t: 0.4, text: 'Você sabe como é composta a Federação brasileira? Quais são os entes que a formam?' },
-    { t: 5.7, text: 'Pensa um pouco antes de eu responder.' },
-    { t: 6.9, text: '(pausa pra você responder de cabeça)' },
-    { t: 11.5, text: 'A Federação brasileira é formada pela união indissolúvel dos Estados, dos Municípios e do Distrito Federal, conforme o artigo primeiro da Constituição.' },
-    { t: 20.8, text: 'Essa união indissolúvel significa que não existe o direito de secessão, ou seja, os entes federativos não podem se separar.' },
+    { t: 0.7, text: 'Você sabe quanto tempo os trabalhadores têm para reivindicar seus créditos trabalhistas? Qual é o prazo prescricional dos créditos trabalhistas?' },
+    { t: 9.1, text: 'Pensa um pouco antes de eu responder.' },
+    { t: 10.1, text: '(pausa pra você responder de cabeça)' },
+    { t: 14.7, text: 'Cinco anos para trabalhadores urbanos e rurais, até o limite de dois anos após a extinção do contrato de trabalho, conforme o artigo sétimo, inciso vigésimo nono da Constituição Federal.' },
   ],
   /** RMS of the file in 120 slices */
-  peaks: [0.04, 0.53, 0.59, 0.81, 0.63, 0.57, 1.0, 0.47, 0.68, 0.58, 0.56, 0.79, 0.05, 0.04, 0.46, 0.8, 0.68, 0.58, 0.49, 0.59, 0.04, 0.04, 0.04, 0.27, 0.53, 0.94, 0.5, 0.55, 0.24, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.55, 0.96, 0.83, 0.82, 0.93, 0.33, 0.68, 0.59, 0.78, 0.7, 0.26, 0.98, 0.51, 0.54, 0.42, 0.41, 0.63, 0.4, 0.42, 0.59, 0.44, 0.33, 0.43, 0.4, 0.36, 0.48, 0.81, 0.04, 0.68, 0.8, 0.7, 0.59, 0.32, 0.88, 0.57, 0.38, 0.42, 0.43, 0.04, 0.06, 0.04, 0.97, 0.82, 0.68, 0.65, 0.79, 0.39, 0.43, 0.45, 0.47, 0.83, 0.44, 0.36, 0.41, 0.73, 0.37, 0.43, 0.68, 0.15, 0.51, 0.98, 0.11, 0.25, 0.47, 0.6, 0.59, 0.45, 0.7, 0.57, 0.74, 0.33, 0.72, 0.11],
+  peaks: [0.04, 0.04, 0.04, 0.32, 0.37, 0.62, 0.31, 0.68, 0.26, 0.41, 0.45, 0.6, 0.49, 0.31, 0.36, 0.54, 0.33, 0.48, 0.3, 0.51, 0.19, 0.44, 0.51, 0.17, 0.07, 0.04, 0.04, 1.0, 0.69, 0.75, 0.39, 0.57, 0.35, 0.68, 0.34, 0.63, 0.2, 0.56, 0.34, 0.06, 0.04, 0.04, 0.04, 0.54, 0.89, 0.5, 0.55, 0.3, 0.05, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.61, 0.69, 0.37, 0.55, 0.63, 0.52, 0.43, 0.59, 0.73, 0.59, 0.65, 0.26, 0.04, 0.32, 0.55, 0.32, 0.35, 0.74, 0.46, 0.5, 0.6, 0.48, 0.4, 0.55, 0.39, 0.38, 0.4, 0.61, 0.41, 0.04, 0.04, 0.42, 0.66, 0.45, 0.28, 0.5, 0.48, 0.48, 0.4, 0.41, 0.46, 0.43, 0.5, 0.38, 0.29, 0.31, 0.42, 0.67, 0.1, 0.04],
 }
 
 // ── The plans, only from the catalog ──

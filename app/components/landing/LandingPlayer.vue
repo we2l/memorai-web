@@ -15,7 +15,7 @@
       </button>
       <div>
         <b>{{ SAMPLE.title }}</b>
-        <small>Concurso TRF · <span class="num" data-testid="landing-player-time">{{ loading ? 'carregando…' : `${fmt(time)} / ${fmt(duration)}` }}</span> · voz sintética</small>
+        <small>Concurso · <span class="num" data-testid="landing-player-time">{{ loading ? 'carregando…' : `${fmt(time)} / ${fmt(duration)}` }}</span> · voz sintética</small>
       </div>
     </div>
     <!-- The waveform of the file: a click jumps there (the transcript below is the accessible version) -->

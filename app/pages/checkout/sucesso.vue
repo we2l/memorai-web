@@ -55,7 +55,8 @@
         <Clock class="mx-auto mb-4 size-8 text-warning" aria-hidden="true" />
         <h1 class="mb-2 text-section text-fg-strong">O código Pix expirou</h1>
         <p class="mb-6 text-meta text-fg-muted">Nada foi cobrado. Gere um novo código para concluir.</p>
-        <UiButton variant="primary" block :loading="restart.pending.value" @click="newPix">Gerar novo Pix</UiButton>
+        <UiButton v-if="restart.available.value" variant="primary" block :loading="restart.pending.value" @click="newPix">Gerar novo Pix</UiButton>
+        <PlansCheckoutSoon v-else />
       </template>
 
       <!-- Not found / error -->
@@ -90,7 +91,8 @@ const sessionId = typeof route.query.session_id === 'string' ? route.query.sessi
 const session = ref<CheckoutSessionInfo | null>(null)
 const failed = ref(false)
 const now = ref(Date.now())
-const restart = useApiAction()
+// The checkout may have closed since ("Assinatura em breve"): the notice in place of a new Pix
+const restart = useCheckout()
 const startedAt = Date.now()
 
 let pollTimer: ReturnType<typeof setTimeout> | null = null
@@ -181,6 +183,7 @@ function newPix() {
 }
 
 onMounted(() => {
+  void usePlans().fetchPlans()
   poll()
   clockTimer = setInterval(() => { now.value = Date.now() }, 1000)
   document.addEventListener('visibilitychange', onVisibilityChange)

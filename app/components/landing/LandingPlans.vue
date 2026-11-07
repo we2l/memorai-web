@@ -31,7 +31,9 @@
             </li>
           </ul>
           <div class="spacer" />
-          <LandingCta to="/planos" position="plans_pro" section>Ver o {{ paid.name }} em detalhe</LandingCta>
+          <!-- "Assinatura em breve" (checkout.available false): start free; the prices stay above -->
+          <LandingCta v-if="checkoutAvailable(catalog)" to="/planos" position="plans_pro" section>Ver o {{ paid.name }} em detalhe</LandingCta>
+          <LandingCta v-else to="/criar-conta" position="plans_pro" section>Começar grátis</LandingCta>
         </div>
       </div>
       <div v-else-if="failed" class="lp-plans-state" role="status">
@@ -62,6 +64,7 @@
 // trial, the name of the paid plan); the long comparison lives in /planos. The paid card is the section's purple.
 import type { PlanCatalog } from '~/types'
 import { landingFaqs, landingPlanLines, landingPlansLead, landingTrialTerms } from '~/utils/landing'
+import { checkoutAvailable } from '~/utils/checkout'
 
 const props = defineProps<{ catalog: PlanCatalog | null, failed: boolean }>()
 const emit = defineEmits<{ retry: [] }>()

@@ -41,6 +41,8 @@
                 {{ formatPrice(annual ? annual.amount_cents : pro.prices.monthly.amount_cents) }}<span class="text-meta font-normal tracking-normal text-fg-muted">{{ annual ? '/ano' : '/mês' }}</span>
               </p>
               <p class="mt-1 text-meta text-fg-muted" data-testid="plan-pro-note">{{ annualCopy || 'Cancele quando quiser, pelo portal de assinatura' }}</p>
+              <!-- "Assinatura em breve": the prices stay, with when paying opens -->
+              <p v-if="!checkoutOpen" class="mt-1 mb-4 text-meta font-semibold text-fg-strong" data-testid="plan-checkout-soon-note">{{ CHECKOUT_SOON_NOTE }}</p>
             </template>
             <UiSkeleton v-else variant="text" :lines="2" />
           </div>
@@ -62,6 +64,7 @@
 // comes back to the agenda, only sends to /criar-conta). `period` is the page's, for the checkout to follow it.
 import { Check } from 'lucide-vue-next'
 import type { BillingPeriod } from '~/components/plans/BillingToggle.vue'
+import { CHECKOUT_SOON_NOTE, checkoutAvailable } from '~/utils/checkout'
 
 const period = defineModel<BillingPeriod>('period', { required: true })
 const emit = defineEmits<{ toggle: [period: BillingPeriod] }>()
@@ -69,6 +72,7 @@ const emit = defineEmits<{ toggle: [period: BillingPeriod] }>()
 const { plans: catalog, failed, fetchPlans, limitOf, formatPrice } = usePlans()
 const free = computed(() => limitOf('free'))
 const pro = computed(() => limitOf('pro'))
+const checkoutOpen = computed(() => checkoutAvailable(catalog.value))
 // The Free has no AI quota since the planos de lançamento: its phrases only (RF-F4); the lines of the limits
 // are the fallback of a catalog without highlights
 const freeLines = computed(() => (free.value?.highlights?.length ? free.value.highlights : planBenefitLines(catalog.value, 'free')))

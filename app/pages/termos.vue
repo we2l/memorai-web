@@ -23,6 +23,8 @@
     <h2 id="planos">3. Planos, cobrança, renovação e cancelamento</h2>
     <ul>
       <li>O plano Grátis tem limites mensais de uso de IA. O Intensivo amplia esses limites, conforme a página <NuxtLink to="/planos">Planos</NuxtLink>.</li>
+      <!-- "Assinatura em breve" (CHECKOUT_ENABLED=false na produção): sai quando o pagamento abrir -->
+      <li>A assinatura do Intensivo ainda não está à venda, e nada é cobrado. Quando o pagamento abrir, valem as regras abaixo.</li>
       <li><strong>Mensal:</strong> cobrado no cartão e renovado automaticamente a cada mês até você cancelar.</li>
       <li><strong>Anual (Pix ou cartão):</strong> pagamento único que vale por 12 meses, sem renovação automática. Avisamos por e-mail antes do vencimento.</li>
       <li>O cancelamento do mensal pode ser feito a qualquer momento no portal de assinatura e vale até o fim do período já pago.</li>

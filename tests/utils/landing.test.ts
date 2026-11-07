@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { AREAS, HERO_VARIANTS, LANDING_MESSAGES, LANDING_MESSAGE_SCRIPT, SCREENS, catalogTrial, landingAiLine, landingFaqs, landingMessageOf, landingPlanLines, landingPlansLead, landingPodcastLine, landingTrialTerms, paidPlanName, titleParts } from '~/utils/landing'
+import { AREAS, HERO_VARIANTS, LANDING_MESSAGES, LANDING_MESSAGE_SCRIPT, SCREENS, catalogTrial, landingAiLine, landingFaqs, landingMessageOf, landingPlanLines, landingPlansLead, landingPodcastLine, landingSampleLine, landingTrialTerms, paidPlanName, titleParts } from '~/utils/landing'
 import type { PlanCatalog } from '~/types'
 
 const catalog = (over: Partial<PlanCatalog> = {}, proTrial?: object, proName = 'Pro'): PlanCatalog => ({
@@ -48,6 +48,13 @@ describe('landing: promessas com a condição à vista (landing-promessas 2026-1
     expect(landingPlanLines(c, 'pro')).toContain('20 PDFs por mês, até 500 páginas cada (4.000 páginas no mês)')
     c.plans[1]!.extras = { pdf_pages_per_note: 100, pdf_pages_monthly_cap: 4000 } as never
     expect(landingPlanLines(c, 'pro')).toContain('20 PDFs por mês, até 500 páginas cada')
+  })
+
+  it('o player diz que é uma amostra, com o teto do episódio e o nome do plano do catálogo', () => {
+    const c = launch('Pro')
+    c.plans[1]!.extras = { podcast_max_minutes: 8 } as never
+    expect(landingSampleLine(c, 29.4)).toBe('Amostra de 29 s de um episódio de até 8 min do Pro.')
+    expect(landingSampleLine(null, 30)).toBe('Amostra de 30 s de um episódio do Intensivo.')
   })
 
   it('a landing não promete o que o produto não faz', () => {

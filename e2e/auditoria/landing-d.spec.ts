@@ -113,6 +113,7 @@ test.describe('landing D', () => {
       await expect(plans.getByTestId('landing-plan-paid-annual')).toContainText('R$ 239,90 por ano (R$ 19,99 por mês, cobrado uma vez por ano)')
       await expect(plans.getByText('Teste de 7 dias da IA no primeiro material, sem cartão')).toBeVisible()
       // The trial's conditions, from the catalog: e-mail, quotas and no podcast (landing-promessas)
+      await expect(page.getByTestId('landing-player-sample')).toContainText(`de um episódio de até 8 min do ${name}.`)
       await expect(plans.getByTestId('landing-plans-trial')).toHaveText(`O teste de 7 dias começa no primeiro material, pede o e-mail confirmado e vale uma vez por conta. Inclui 20 gerações de cards com IA, 30 perguntas ao tira-dúvidas, 3 PDFs transformados em nota (100 páginas no total) e 3 simulados com IA. O podcast fica só no ${name}.`)
       await expect(plans.getByText('20 PDFs por mês, até 500 páginas cada (4.000 páginas no mês)')).toBeVisible()
       // The AI says its plan next to the calls that sell it

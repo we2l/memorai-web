@@ -217,12 +217,12 @@ export type LandingArea = typeof AREAS[number]['key']
 export const SAMPLE = {
   src: '/landing/podcast-amostra.mp3',
   duration: 29.0,
-  title: 'Seus erros de Constitucional',
+  title: 'Manda a apostila. O Baigi faz os cards.',
   lines: [
     { t: 0.4, text: 'Você sabe como é composta a Federação brasileira? Quais são os entes que a formam?' },
     { t: 5.7, text: 'Pensa um pouco antes de eu responder.' },
     { t: 6.9, text: '(pausa pra você responder de cabeça)' },
-    { t: 11.3, text: 'A Federação brasileira é formada pela união indissolúvel dos Estados, dos Municípios e do Distrito Federal, conforme o artigo primeiro da Constituição.' },
+    { t: 11.5, text: 'A Federação brasileira é formada pela união indissolúvel dos Estados, dos Municípios e do Distrito Federal, conforme o artigo primeiro da Constituição.' },
     { t: 20.8, text: 'Essa união indissolúvel significa que não existe o direito de secessão, ou seja, os entes federativos não podem se separar.' },
   ],
   /** RMS of the file in 120 slices */
@@ -329,6 +329,16 @@ export function landingPodcastLine(catalog: PlanCatalog | null): string {
   const trial = catalogTrial(catalog)
   const own = feature?.pro_benefit ? `No ${name}: ${feature.pro_benefit.charAt(0).toLowerCase()}${feature.pro_benefit.slice(1)} ${feature.unit}.` : `Os episódios fazem parte do ${name}.`
   return trial?.excludes?.includes('podcast') ? `${own} O teste de ${trial.days} dias não inclui o podcast.` : own
+}
+
+/**
+ * Under the player: the sample is a cut of an episode. Its length comes from SAMPLE, the episode's cap and the plan's
+ * name from the catalog: "Amostra de 29 s de um episódio de até 8 min do Intensivo."
+ */
+export function landingSampleLine(catalog: PlanCatalog | null, seconds: number = SAMPLE.duration): string {
+  const cut = `Amostra de ${Math.round(seconds)} s de um episódio`
+  const minutes = catalog?.plans?.find(p => p.key === 'pro')?.extras?.podcast_max_minutes
+  return minutes ? `${cut} de até ${minutes} min do ${paidPlanName(catalog)}.` : `${cut} do ${paidPlanName(catalog)}.`
 }
 
 export function landingFaqs(catalog: PlanCatalog | null): { q: string, a: string }[] {

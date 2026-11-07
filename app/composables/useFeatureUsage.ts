@@ -48,8 +48,8 @@ export function useFeatureUsage() {
     return f?.limit !== null && f?.limit !== undefined
   }
 
-  /** The period of the counts: the trial's 7 days or the calendar month. */
-  const periodLabel = computed(() => (usage.value?.tier === 'trial' ? 'no teste' : 'este mês'))
+  /** The period of the counts: the Free's preview (never resets), the trial's 7 days or the calendar month. */
+  const periodLabel = computed(() => (usage.value?.period === 'lifetime' ? 'na prévia' : usage.value?.tier === 'trial' ? 'no teste' : 'este mês'))
 
   // The trial opened (or ended) under this screen: the quotas change with it
   watch(() => auth.user?.trial?.status, (now, before) => {

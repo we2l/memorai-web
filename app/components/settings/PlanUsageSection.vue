@@ -5,7 +5,7 @@
         <!-- The badge is a padded link: -ml-3 puts its pill on the edge of the section text -->
         <UiPlanBadge class="-ml-3" :plan="auth.user?.plan" />
         <span v-if="planSummary" class="text-body text-fg-strong" data-testid="plan-summary">{{ planSummary }}</span>
-        <span v-else-if="isFree" class="text-body text-fg-muted">{{ trialInvite ? `Sem cobrança. ${trialInvite}.` : `Sem cobrança. A IA é do ${proName}.` }}</span>
+        <span v-else-if="isFree" class="text-body text-fg-muted">{{ trialInvite ? `Sem cobrança. ${trialInvite}.` : freeLine }}</span>
       </div>
       <p
         v-if="subscription.inGracePeriod && !subscription.info?.monthly_scheduled"
@@ -25,7 +25,7 @@
 
     <div class="border-t border-line pt-5" data-testid="usage">
       <div class="mb-3 flex flex-wrap items-baseline justify-between gap-x-4">
-        <h3 class="text-body font-semibold text-fg-strong">Uso de IA {{ featureUsage.periodLabel.value }}</h3>
+        <h3 class="text-body font-semibold text-fg-strong">{{ onPreview ? 'Prévia grátis da IA, uma vez por conta' : `Uso de IA ${featureUsage.periodLabel.value}` }}</h3>
         <!-- In the trial the counts are of its 7 days: its end is the plan's line above (prd-planos-lancamento RF-F6) -->
         <p v-if="renews && !auth.onTrial" class="text-meta text-fg-muted" data-testid="usage-renews">a contagem recomeça em {{ renews }}</p>
       </div>
@@ -62,6 +62,8 @@ const hasLoaded = ref(false)
 const isFree = computed(() => (auth.user?.plan ?? 'free') === 'free')
 const proName = useProName()
 const trialInvite = useTrialInvite()
+const onPreview = computed(() => featureUsage.usage.value?.period === 'lifetime')
+const freeLine = computed(() => (catalogPreview(plans.value) ? 'Sem cobrança, com uma prévia grátis da IA.' : `Sem cobrança. A IA é do ${proName.value}.`))
 
 // Annual validity, scheduled monthly; the portal is only for the monthly (monetização RN-12)
 const planSummary = computed(() => {
@@ -96,15 +98,17 @@ const rows = computed(() => {
   const features = plans.value?.features
   if (!usage || !features) return []
   const trial = featureUsage.usage.value?.tier === 'trial'
+  // The preview never resets (period lifetime, prd-uso-justo §9): its counts are "na prévia", with no reset date
+  const unit = onPreview.value ? 'na prévia' : trial ? 'no teste' : null
   const out = Object.entries(features).flatMap(([key, f]) => {
     const data = usage[key]
     if (!data) return []
     const label = f.label.charAt(0).toUpperCase() + f.label.slice(1)
-    return [{ key, label, unit: trial ? 'no teste' : f.unit, used: data.used, limit: data.limit }]
+    return [{ key, label, unit: unit ?? f.unit, used: data.used, limit: data.limit }]
   })
-  // The trial's pages of PDF (100 for the whole trial): "Páginas de PDF lidas pela IA · 30 de 100"
+  // The pages of PDF of the trial (100) or of the preview (50): "Páginas de PDF lidas pela IA · 30 de 100"
   const pages = featureUsage.usage.value?.pdf_pages
-  if (trial && pages?.limit) out.push({ key: 'pdf_pages', label: 'Páginas de PDF lidas pela IA', unit: 'no teste', used: pages.used, limit: pages.limit })
+  if (unit && pages?.limit) out.push({ key: 'pdf_pages', label: 'Páginas de PDF lidas pela IA', unit, used: pages.used, limit: pages.limit })
   return out
 })
 

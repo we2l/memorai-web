@@ -30,6 +30,7 @@
       :limit="upgradeDetail.limit"
       :plan-required="upgradeDetail.planRequired"
       :resets-at="upgradeDetail.resetsAt"
+      :lifetime="upgradeDetail.lifetime"
     />
   </div>
 </template>
@@ -118,6 +119,7 @@ onMounted(() => {
       limit: detail.limit ?? null,
       planRequired: detail.planRequired === undefined ? 'pro' : detail.planRequired,
       resetsAt: detail.resetsAt ?? null,
+      lifetime: detail.lifetime === true,
     }
     showUpgrade.value = true
     useAnalytics().track('paywall_viewed', {

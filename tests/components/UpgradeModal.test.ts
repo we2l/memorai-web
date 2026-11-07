@@ -37,6 +37,14 @@ describe('UpgradeModal', () => {
     document.body.innerHTML = ''
   })
 
+  it('prévia grátis esgotada (lifetime): "Você usou a prévia grátis de X" e o convite ao Intensivo, sem data', async () => {
+    await mountModal({ feature: 'quiz_ai', used: 1, limit: 1, planRequired: 'pro', resetsAt: null, lifetime: true })
+    expect(document.body.textContent).toContain('Você usou a prévia grátis de simulados do catálogo')
+    expect(document.body.textContent).toContain('A prévia vale uma vez por conta. No Intensivo, a IA tem cota todo mês: 40 simulados por mês.')
+    expect(document.body.textContent).toContain('Ver planos')
+    expect(document.body.textContent).not.toContain('recomeça')
+  })
+
   it('uses the catalog label for the feature key', async () => {
     await mountModal({ feature: 'quiz_ai', used: 1, limit: 1, planRequired: 'pro' })
 

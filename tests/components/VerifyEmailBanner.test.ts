@@ -95,7 +95,8 @@ describe('VerifyEmailBanner', () => {
     vi.advanceTimersByTime(60_000)
     await wrapper.vm.$nextTick()
     expect(button.attributes('disabled')).toBeUndefined()
-    expect(apiMock).toHaveBeenCalledTimes(1)
+    // only one resend (the catalog GET /plans, for the preview's sentence, is apart)
+    expect(apiMock.mock.calls.filter(c => c[0] === '/email/verification-notification')).toHaveLength(1)
   })
 
   it('teste disponível: diz que o teste do Intensivo pede o e-mail confirmado, com os dias do catálogo (prd-planos-lancamento RF-F2)', async () => {

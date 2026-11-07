@@ -118,8 +118,10 @@ const showNodeAction = ref(false)
 const selectedNode = ref<MindMapNode | null>(null)
 
 // The AI map: the paid plan, the trial (RN-03) and a Free account whose trial opens on the click (RF-F7b)
-const isPro = computed(() => auth.hasProAccess || auth.opensTrialOnUse)
-const proName = useProName(() => !isPro.value)
+// and the Free's preview, which has one AI map (prd-uso-justo §9; the server says when it is spent)
+const { plans } = usePlans()
+const isPro = computed(() => auth.hasProAccess || auth.opensTrialOnUse || (hasPreview(plans.value, auth.user) && previewIncludes(plans.value, 'mindmap_ai')))
+const proName = useProName(() => !auth.hasProAccess)
 // The paid plan's month of maps (prd-uso-justo RF-F3): /usage once per opening, only for the paid plan
 const usage = usePaidQuota()
 
@@ -215,5 +217,5 @@ async function createCardFromNode() {
 watch(() => props.topicId, () => {
   if (props.topicId) fetchData()
 }, { immediate: true })
-onMounted(() => { void usage.fetchUsageIfPaid() })
+onMounted(() => { void usage.fetchUsageForNotice() })
 </script>

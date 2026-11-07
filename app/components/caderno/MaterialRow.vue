@@ -125,9 +125,13 @@ const paid = computed(() => auth.user?.plan === 'pro' && !auth.onTrial)
 const blockedText = computed(() => {
   if (reason.value === 'pages_cap') {
     const cap = auth.onTrial ? offeredTrial(plans.value)?.pdf_pages_cap : null
-    return cap ? `Teto de ${cap} páginas do teste atingido` : 'Limite de leitura da IA atingido este mês'
+    if (cap) return `Teto de ${cap} páginas do teste atingido`
+    if (!paid.value && catalogPreview(plans.value)) return `Teto de ${catalogPreview(plans.value)!.pdf_pages} páginas da prévia atingido`
+    return 'Limite de leitura da IA atingido este mês'
   }
   if (auth.onTrial) return 'Limite do teste atingido'
+  // The Free's preview (prd-uso-justo §9): once per account
+  if (!paid.value && catalogPreview(plans.value)) return 'Prévia grátis da IA usada'
   return paid.value ? `Limite do mês atingido. A contagem recomeça em ${nextMonthStartLabel()}` : 'O resumo com IA não entra no plano Grátis'
 })
 

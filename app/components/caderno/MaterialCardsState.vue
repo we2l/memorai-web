@@ -26,7 +26,8 @@ const problem = computed<{ text: string; action?: string } | null>(() => {
     const auth = useAuthStore()
     // The paid plan at its monthly limit: the day it starts again, never "Ver planos" (prd-uso-justo RN-3)
     if (auth.user?.plan === 'pro' && !auth.onTrial) return { text: `Sem gerações de cards este mês. A contagem recomeça em ${nextMonthStartLabel()}` }
-    return { text: `Sem gerações de cards ${auth.onTrial ? 'no teste' : 'este mês'}`, action: 'Ver planos' }
+    const preview = auth.user?.plan !== 'pro' && !auth.onTrial && !!usePlans().plans.value?.preview
+    return { text: preview ? 'Prévia grátis de cards usada' : `Sem gerações de cards ${auth.onTrial ? 'no teste' : 'este mês'}`, action: 'Ver planos' }
   }
   if (props.row.auto_cards_status === 'skipped_empty') return { text: 'Texto curto demais para gerar cards' }
   if (props.row.auto_cards_status === 'failed') return { text: 'Não conseguimos criar os cards', action: 'Tentar de novo' }

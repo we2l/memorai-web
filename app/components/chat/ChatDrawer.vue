@@ -181,7 +181,7 @@ watch(() => chat.isOpen, async (open) => {
     chat.draft = ''
   }
   if (!chat.conversations.length) void chat.fetchConversations()
-  void usage.fetchUsageIfPaid()
+  void usage.fetchUsageForNotice()
   await nextTick()
   // rAF: the sheet focuses its first control; the input wins
   requestAnimationFrame(() => inputRef.value?.focus())

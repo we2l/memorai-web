@@ -22,12 +22,15 @@ const props = withDefaults(defineProps<{
   limit?: number | null
   planRequired?: PlanKey | null
   resetsAt?: string | null
+  /** The Free's preview is spent (prd-uso-justo §9): it never resets */
+  lifetime?: boolean
 }>(), {
   feature: '',
   used: null,
   limit: null,
   planRequired: 'pro',
   resetsAt: null,
+  lifetime: false,
 })
 
 const open = defineModel<boolean>({ required: true })
@@ -49,6 +52,7 @@ const canUpgrade = computed(() => props.planRequired === 'pro')
 const trialOver = computed(() => props.limit === 0 && props.feature !== 'podcast' && auth.trialEnded)
 
 const title = computed(() => {
+  if (props.lifetime) return `Você usou a prévia grátis de ${label.value}`
   if (trialOver.value) return `Seu teste do ${proName.value} acabou`
   if (props.limit === 0) return `${capitalize(label.value)} fazem parte do ${proName.value}`
   if (props.used != null && props.limit != null) {
@@ -64,6 +68,7 @@ const body = computed(() => {
   }
   const benefit = catalogFeature.value?.pro_benefit
   const offer = benefit ? `No ${proName.value}: ${benefit}.` : `O ${proName.value} libera mais IA. Sem compromisso.`
+  if (props.lifetime) return `A prévia vale uma vez por conta. No ${proName.value}, a IA tem cota todo mês${benefit ? `: ${benefit.charAt(0).toLowerCase()}${benefit.slice(1)}` : ''}.`
   if (trialOver.value) return `Seus cadernos, notas e cards continuam com você. ${offer}`
   if (auth.onTrial && props.feature === 'podcast') return `O podcast não entra no teste grátis. ${offer}`
   return offer

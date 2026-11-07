@@ -46,10 +46,12 @@ export function documentTitle(name: string): string {
   return name.replace(/\.pdf$/i, '')
 }
 
-/** Short origin of a library row: "Apostila · parte 2", the note title, or "Questão 7 · Simulado". */
+/** Short origin of a library row: "Apostila · parte 2", the note title, "Questão 7 · Simulado" or
+ * "Questão colada · FGV · 2023". */
 export function originShort(origin: CardOrigin | null | undefined): string {
   if (!origin) return ''
   if (origin.kind === 'quiz') return origin.question_number ? `Questão ${origin.question_number} · ${origin.title}` : origin.title
+  if (origin.kind === 'question') return `Questão colada · ${origin.source || origin.title}`
   if (origin.kind === 'document') {
     const name = documentTitle(origin.document_name)
     return origin.part && origin.part.total > 1 ? `${name} · parte ${origin.part.index}` : name

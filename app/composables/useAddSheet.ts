@@ -10,7 +10,7 @@
  */
 import type { AddOpenOrigin } from '~/types/analytics'
 
-export type AddKind = 'pdf' | 'text' | 'photo' | 'note' | 'anki'
+export type AddKind = 'pdf' | 'text' | 'question' | 'photo' | 'note' | 'anki'
 /** Where the sheet was opened (analytics: add_opened.origin) */
 export type AddOrigin = AddOpenOrigin
 

@@ -89,7 +89,7 @@
 // with "Carregar mais" (a button: the focus goes to the first new line), search with a 300 ms debounce, order
 // and matéria on the server. After the list, "Erros das questões" and "Cards avulsos" with their own
 // "Revisar N" (origin scopes, F2). The hub never loads note content (§6 rule 6).
-import { CircleAlert, Layers, Plus } from 'lucide-vue-next'
+import { CircleAlert, CircleX, Layers, Plus } from 'lucide-vue-next'
 import type { MaterialRow, ScopeSummary } from '~/types'
 import { reviewPath } from '~/utils/reviewScope'
 import type { MaterialSort } from '~/stores/scope'
@@ -136,14 +136,15 @@ const subjectOptions = computed(() => {
 const specials = computed(() => {
   const sp = props.summary?.special
   if (!sp) return []
-  const out = []
-  if (sp.quiz_errors.cards > 0) {
-    out.push({ key: 'quiz', title: 'Erros das questões', meta: `${sp.quiz_errors.cards.toLocaleString('pt-BR')} ${sp.quiz_errors.cards === 1 ? 'card' : 'cards'} dos simulados`, session: sp.quiz_errors.session_count, to: reviewPath({ type: 'topic', id: props.scopeId }, { origin: 'quiz' }), icon: CircleAlert })
-  }
-  if (sp.loose.cards > 0) {
-    out.push({ key: 'loose', title: 'Cards avulsos', meta: `${sp.loose.cards.toLocaleString('pt-BR')} ${sp.loose.cards === 1 ? 'card' : 'cards'} sem material (à mão, foto, Anki)`, session: sp.loose.session_count, to: reviewPath({ type: 'topic', id: props.scopeId }, { origin: 'loose' }), icon: Layers })
-  }
-  return out
+  const cards = (n: number) => `${n.toLocaleString('pt-BR')} ${n === 1 ? 'card' : 'cards'}`
+  const line = (key: 'quiz' | 'question' | 'loose', title: string, meta: string, c: { cards: number, session_count: number } | undefined, icon: typeof Layers) =>
+    c && c.cards > 0 ? [{ key, title, meta: `${cards(c.cards)} ${meta}`, session: c.session_count, to: reviewPath({ type: 'topic', id: props.scopeId }, { origin: key }), icon }] : []
+  return [
+    ...line('quiz', 'Erros das questões', 'dos simulados', sp.quiz_errors, CircleAlert),
+    // "Colar questão errada" (prd-questao-errada RF-F4)
+    ...line('question', 'Questões coladas', '· questões que você errou', sp.questions, CircleX),
+    ...line('loose', 'Cards avulsos', 'sem material (à mão, foto, Anki)', sp.loose, Layers),
+  ]
 })
 
 // Search: debounced; 1 character waits (the API asks ≥ 2)

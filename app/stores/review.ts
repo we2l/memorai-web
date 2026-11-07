@@ -39,7 +39,7 @@ export interface SessionOptions {
   topicId?: string
   /** Any slice: document, note, quiz, podcast or a list of card ids */
   scope?: ReviewScope
-  origin?: 'quiz' | 'loose'
+  origin?: 'quiz' | 'question' | 'loose'
   ahead?: boolean
   errorsOnly?: boolean
   backlog?: boolean

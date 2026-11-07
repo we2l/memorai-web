@@ -20,6 +20,7 @@
     <LazyPodcastExpandedPlayer v-if="expandedPlayerLoaded" />
     <LazyShellCommandPalette v-if="paletteLoaded" />
     <LazyShellAddSheet v-if="addLoaded" />
+    <LazyQuestionPasteSheet v-if="pasteLoaded" />
 
     <LazyUiUpgradeModal
       v-if="upgradeLoaded"
@@ -41,6 +42,7 @@
 import type { FeatureLimitDetail } from '~/types'
 
 const route = useRoute()
+const router = useRouter()
 const auth = useAuthStore()
 const player = usePlayerStore()
 
@@ -78,6 +80,16 @@ const chatLoaded = useLoadedOnce(() => chat.isOpen)
 const expandedPlayerLoaded = useLoadedOnce(() => player.expanded)
 const paletteLoaded = useLoadedOnce(() => paletteOpen.value)
 const addLoaded = useLoadedOnce(() => addSheet.open.value)
+const pasteQuestion = usePasteQuestion()
+const pasteLoaded = useLoadedOnce(() => pasteQuestion.open.value)
+
+// ?add=question opens "Questão que errei" (the PWA shortcut, prd-questao-errada RF-F3); the query goes away
+watch(() => route.query.add, (add) => {
+  if (add !== 'question') return
+  const { add: _add, ...rest } = route.query
+  void router.replace({ query: rest })
+  pasteQuestion.show('shortcut')
+}, { immediate: true })
 const upgradeLoaded = useLoadedOnce(() => showUpgrade.value)
 
 const subscription = useSubscriptionStore()

@@ -54,13 +54,13 @@
 </template>
 
 <script setup lang="ts">
-// "+ Adicionar" of the shell (prd-navegacao-v3 RF-5, tasks 4.1/4.2; scope of /cadernos/{id}, prd-4b-caderno-v3 RF-F10): PDF, Colar texto, Foto, Nota em branco
-// and Importar do Anki, each one the flow that already exists. It writes into the open scope (the caderno
+// "+ Adicionar" of the shell (prd-navegacao-v3 RF-5, tasks 4.1/4.2; scope of /cadernos/{id}, prd-4b-caderno-v3 RF-F10): PDF, Colar texto, Questão que errei
+// (prd-questao-errada), Foto, Nota em branco and Importar do Anki, each one the flow that already exists. It writes into the open scope (the caderno
 // or matéria of the route), else the last one used, else the first caderno. Replaces the FAB "Anotar" and
 // the QuickCapture modal: the pasted text is the old quick note, the blank note opens the editor (Alt+N).
 // PDF, photo and blank note run on the caderno screen (useAddIntent); the text is saved here.
 import type { Component } from 'vue'
-import { Camera, ClipboardPaste, Download, FileUp, PenLine } from 'lucide-vue-next'
+import { Camera, ClipboardPaste, ClipboardX, Download, FileUp, PenLine } from 'lucide-vue-next'
 import type { AddIntent, AddKind } from '~/composables/useAddSheet'
 import { readAutoCardsPref, writeAutoCardsPref } from '~/utils/autoCardsPref'
 
@@ -71,10 +71,12 @@ const topicStore = useTopicStore()
 const route = useRoute()
 const { $api } = useNuxtApp()
 const toast = useToast()
+const pasteQuestion = usePasteQuestion()
 
 const OPTIONS: { kind: AddKind, label: string, meta: string, icon: Component, kbd?: string }[] = [
   { kind: 'pdf', label: 'PDF', meta: 'A IA resume e organiza em partes', icon: FileUp },
   { kind: 'text', label: 'Colar texto', meta: 'Um resumo ou trecho vira uma nota', icon: ClipboardPaste },
+  { kind: 'question', label: 'Questão que errei', meta: 'Cole do Qconcursos, do TEC ou de uma prova: vira card', icon: ClipboardX },
   { kind: 'photo', label: 'Foto', meta: 'De uma página: a IA sugere os cards', icon: Camera },
   { kind: 'note', label: 'Nota em branco', meta: 'Abre o editor', icon: PenLine, kbd: 'Alt N' },
   { kind: 'anki', label: 'Importar do Anki', meta: 'Arquivo .apkg, com os cards e o histórico', icon: Download },
@@ -96,17 +98,7 @@ const wide = ref(false)
 onMounted(() => { wide.value = window.matchMedia('(min-width: 768px)').matches })
 
 /** Cadernos and their matérias/assuntos, indented by depth (a native <select>). */
-const topicOptions = computed(() => {
-  const out: { value: string, label: string }[] = []
-  const walk = (topics: typeof topicStore.tree, depth: number) => {
-    for (const t of topics) {
-      out.push({ value: t.id, label: `${'— '.repeat(depth)}${t.name}` })
-      if (t.children?.length) walk(t.children, depth + 1)
-    }
-  }
-  walk(topicStore.tree, 0)
-  return out
-})
+const topicOptions = computed(() => topicTreeOptions(topicStore.tree))
 
 const topicName = computed(() => topicStore.findById(topicId.value)?.name ?? '')
 const description = computed(() => (topicName.value ? `Grava em ${topicName.value}` : undefined))
@@ -128,7 +120,7 @@ watch(open, async (isOpen) => {
   if (preset.value) {
     const kind = preset.value
     preset.value = null
-    if (kind === 'note' || kind === 'text') choose(kind)
+    if (kind === 'note' || kind === 'text' || kind === 'question') choose(kind)
   }
 }, { immediate: true })
 // The tree may arrive after the sheet opened
@@ -148,6 +140,12 @@ function choose(kind: AddKind) {
   if (kind === 'pdf') pdfInput.value?.click()
   else if (kind === 'photo') photoInput.value?.click()
   else if (kind === 'note') handOff({ kind: 'note', topicId: topicId.value })
+  else if (kind === 'question') {
+    // The sheet of the question takes over, in the place chosen here
+    rememberAddTopic(topicId.value)
+    open.value = false
+    pasteQuestion.show('add', topicId.value)
+  }
   else if (kind === 'anki') {
     open.value = false
     void navigateTo(topicId.value ? `/importar?topic_id=${topicId.value}` : '/importar')

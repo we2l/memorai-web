@@ -58,6 +58,8 @@ export interface Flashcard {
   deck_id: string
   topic_id?: string | null
   source_note_id?: string | null
+  /** The pasted question the card was made from (prd-questao-errada) */
+  source_question_id?: string | null
   tags: string[]
   type: string
   cloze_index?: number | null
@@ -927,7 +929,7 @@ export interface ScopeSummary {
   next_step: ScopeNextStep | null
   listen: { id: string; title: string; duration_seconds: number | null } | null
   subjects: ScopeSubject[]
-  special: { quiz_errors: { cards: number; session_count: number }; loose: { cards: number; session_count: number } }
+  special: { quiz_errors: { cards: number; session_count: number }; questions?: { cards: number; session_count: number }; loose: { cards: number; session_count: number } }
 }
 
 export type MaterialStatus = 'ready' | 'processing' | 'generating' | 'failed' | 'blocked'
@@ -982,6 +984,7 @@ export type CardOrigin =
   | { kind: 'quiz'; quiz_id: string; title: string; question_number: number | null }
   | { kind: 'document'; note_id: string; title: string; document_id: string; document_name: string; part: { index: number; total: number } | null; page: number | null }
   | { kind: 'note'; note_id: string; title: string; topic_id: string | null }
+  | { kind: 'question'; question_id: string; title: string; source: string | null }
 
 /** A card of the library (GET /topics/{id}/flashcards, cursor mode). */
 export interface LibraryCard extends Flashcard {

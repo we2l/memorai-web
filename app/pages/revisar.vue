@@ -149,6 +149,7 @@
               :topic-id="shownCard?.topic_id"
               :back-to="route.fullPath"
               @open="(kind) => track('review_origin_open', { kind })"
+              @view-question="openQuestion"
             />
           </template>
         </ReviewCard>
@@ -220,6 +221,7 @@
         </template>
       </dl>
     </UiDialog>
+    <LazyQuestionViewDialog v-if="questionLoaded" v-model="questionOpen" :question-id="questionId" />
   </div>
 </template>
 
@@ -516,6 +518,15 @@ function openEdit() {
 }
 function onCardUpdated(card?: { id: string; front: string; back: string }) {
   if (card) review.updateCurrentContent(card)
+}
+
+// "Ver a questão" of a pasted question (prd-questao-errada RF-F5): a dialog over the session
+const questionOpen = ref(false)
+const questionId = ref<string | null>(null)
+const questionLoaded = useLoadedOnce(() => questionOpen.value)
+function openQuestion(id: string) {
+  questionId.value = id
+  questionOpen.value = true
 }
 
 function openOrigin() {

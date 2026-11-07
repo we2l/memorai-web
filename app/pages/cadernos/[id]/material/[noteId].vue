@@ -305,8 +305,11 @@ const noteId = computed(() => String(route.params.noteId))
 const material = useMaterial(noteId)
 const m = useMaterialEditor(id, noteId, () => material.reload())
 // The paid plan's month of AI (prd-uso-justo RF-F3): /usage once per opening, only for whom the line is
-const aiUsage = useFeatureUsage()
+const aiUsage = usePaidQuota()
 onMounted(() => { void aiUsage.fetchUsageIfPaid() })
+const improveMeta = computed(() => (aiUsage.paid.value
+  ? usageNoticeShort(aiUsage.usage.value?.features?.note_improve, aiUsage.usage.value?.resets_at ?? null) ?? undefined
+  : undefined))
 
 const desktop = useMediaQuery('(min-width: 1024px)')
 const wide = useMediaQuery('(min-width: 1280px)')
@@ -531,7 +534,7 @@ const trashOpen = ref(false)
 const trashLoaded = useLoadedOnce(() => trashOpen.value)
 const trashItem = ref<TrashItem | null>(null)
 const menuItems = computed<MenuItem[]>(() => [
-  { label: 'Melhorar com IA', icon: Sparkles, onSelect: () => m.improveNote(), disabled: !canEdit.value || aiUsage.atLimit('note_improve'), meta: aiUsage.noticeShort('note_improve') ?? undefined },
+  { label: 'Melhorar com IA', icon: Sparkles, onSelect: () => m.improveNote(), disabled: !canEdit.value || aiUsage.atLimit('note_improve'), meta: improveMeta.value },
   { label: 'Mapa da nota', onSelect: () => { showMindMap.value = true } },
   { label: 'Perguntar sobre este material', onSelect: askAboutMaterial },
   ...(isPdf.value ? [{ label: 'Ver o PDF', onSelect: () => { void openPdf(null) } }] : []),

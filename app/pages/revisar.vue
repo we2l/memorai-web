@@ -251,7 +251,7 @@ const addSheet = useAddSheet()
 const route = useRoute()
 const { $api } = useNuxtApp()
 const { track } = useAnalytics()
-const featureUsage = useFeatureUsage()
+const featureUsage = usePaidQuota()
 const lastErrorCard = ref<any>(null)
 
 // === Session modes ===

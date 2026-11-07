@@ -18,7 +18,7 @@
       <Brain class="size-7 text-action-fg" aria-hidden="true" />
       <p class="text-body text-fg">Extraia conceitos, definições e exemplos desta nota em um mapa mental</p>
       <UiButton variant="primary" :disabled="usage.atLimit('mindmap_ai')" @click="generate">Gerar mapa mental</UiButton>
-      <PlansUsageNotice feature="mindmap_ai" :usage="usage" />
+      <LazyPlansUsageNotice feature="mindmap_ai" :usage="usage" />
     </div>
 
     <!-- Generating -->
@@ -37,7 +37,7 @@
           </span>
         </div>
         <span class="flex flex-wrap items-center justify-end gap-2">
-          <PlansUsageNotice feature="mindmap_ai" :usage="usage" />
+          <LazyPlansUsageNotice feature="mindmap_ai" :usage="usage" />
           <UiButton size="sm" :disabled="usage.atLimit('mindmap_ai')" @click="regenerate">Gerar de novo</UiButton>
         </span>
       </div>
@@ -86,7 +86,7 @@ const canGenerate = computed(() => serverCanGenerate.value ?? (auth.hasProAccess
 const proName = useProName()
 // The paid plan's month of maps (prd-uso-justo RF-F3): /usage once per opening; at the limit the paid plan sees
 // the day it starts again, never "Conhecer o Intensivo" (RN-3)
-const usage = useFeatureUsage()
+const usage = usePaidQuota()
 
 const showCardCreate = ref(false)
 const formId = useId()

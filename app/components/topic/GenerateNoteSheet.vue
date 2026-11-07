@@ -28,7 +28,7 @@
       </p>
 
       <p v-if="quotaText" class="text-label text-fg-muted">{{ quotaText }}</p>
-      <PlansUsageNotice v-else feature="pdf_to_note" :usage="featureUsage" />
+      <LazyPlansUsageNotice v-else feature="pdf_to_note" :usage="featureUsage" />
     </div>
 
     <template #footer>
@@ -50,7 +50,7 @@ const { $api } = useNuxtApp()
 const toast = useToast()
 const auth = useAuthStore()
 const generating = ref(false)
-const featureUsage = useFeatureUsage()
+const featureUsage = usePaidQuota()
 const proName = useProName()
 
 const isFree = computed(() => auth.user?.plan !== 'pro')

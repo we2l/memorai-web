@@ -34,7 +34,7 @@
       </div>
 
       <UiRadioGroup v-model="contentMode" label="Conteúdo" :options="modes" variant="cards" :columns="3" @update:model-value="selectMode" />
-      <PlansUsageNotice feature="podcast" :usage="usage" />
+      <LazyPlansUsageNotice feature="podcast" :usage="usage" />
     </div>
 
     <template #footer>
@@ -72,7 +72,7 @@ const toast = useToast()
 const topicStore = useTopicStore()
 
 const plans = usePlans()
-const usage = useFeatureUsage()
+const usage = usePaidQuota()
 
 // A known account outside the paid plan (the trial included): the paywall with the demo
 const paywall = computed(() => !!auth.user && auth.user.plan !== 'pro')

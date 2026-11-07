@@ -9,7 +9,7 @@
       </template>
     </UiPageHeader>
     <!-- Foto → cards uses the paid plan's month of generations (prd-uso-justo RF-F3) -->
-    <PlansUsageNotice feature="cards_ai" :usage="aiUsage" class="-mt-3" />
+    <LazyPlansUsageNotice feature="cards_ai" :usage="aiUsage" class="-mt-3" />
 
     <!-- The AI's suggestions from a photo -->
     <LazyTopicAiGeneratedCards
@@ -295,7 +295,7 @@ function onMoved() {
 // === Photo (OCR) ===
 const photoInput = ref<HTMLInputElement | null>(null)
 // The paid plan's month of generations (prd-uso-justo RF-F3): /usage once per opening, only for the paid plan
-const aiUsage = useFeatureUsage()
+const aiUsage = usePaidQuota()
 function readPhoto(file: File) {
   if (aiUsage.atLimit('cards_ai')) {
     window.dispatchEvent(new CustomEvent('feature-limit-reached', { detail: aiUsage.limitDetail('cards_ai') }))

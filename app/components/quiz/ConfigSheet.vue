@@ -64,7 +64,7 @@
 
     <template #footer="{ close }">
       <p v-if="quotaText" class="mr-auto text-label text-fg-muted" data-testid="quiz-quota">{{ quotaText }}</p>
-      <PlansUsageNotice v-else feature="quiz_ai" :usage="usage" class="mr-auto" />
+      <LazyPlansUsageNotice v-else feature="quiz_ai" :usage="usage" class="mr-auto" />
       <UiButton variant="ghost" @click="close">Cancelar</UiButton>
       <UiButton variant="primary" type="submit" form="quiz-config" :loading="generating" :disabled="!canSubmit" data-testid="quiz-submit">
         {{ submitLabel }}
@@ -205,7 +205,7 @@ const { gate, blocked, fromError } = useTopicGate(() => (props.modelValue ? topi
 
 // The quota before the action: "1 de 3 gerações no teste" (the Pro has no cap on questions). A Free account
 // whose trial is available goes to the server, which opens the trial (RF-F7b): no "0 de 0" and no block.
-const usage = useFeatureUsage()
+const usage = usePaidQuota()
 const quota = computed(() => usage.usage.value?.features?.quiz_ai ?? null)
 const quotaText = computed(() => {
   const q = quota.value

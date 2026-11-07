@@ -43,7 +43,7 @@
           <template #action>
             <div class="flex flex-col items-center gap-2">
               <UiButton variant="primary" :disabled="usage.atLimit('mindmap_ai')" @click="generateAiMap">Gerar mapa detalhado</UiButton>
-              <PlansUsageNotice feature="mindmap_ai" :usage="usage" class="text-center" />
+              <LazyPlansUsageNotice feature="mindmap_ai" :usage="usage" class="text-center" />
             </div>
           </template>
         </UiEmptyState>
@@ -63,7 +63,7 @@
               </span>
             </div>
             <span class="flex flex-wrap items-center justify-end gap-2">
-              <PlansUsageNotice feature="mindmap_ai" :usage="usage" />
+              <LazyPlansUsageNotice feature="mindmap_ai" :usage="usage" />
               <UiButton size="sm" :disabled="usage.atLimit('mindmap_ai')" @click="confirmRegenerate = true">Gerar de novo</UiButton>
             </span>
           </div>
@@ -121,7 +121,7 @@ const selectedNode = ref<MindMapNode | null>(null)
 const isPro = computed(() => auth.hasProAccess || auth.opensTrialOnUse)
 const proName = useProName(() => !isPro.value)
 // The paid plan's month of maps (prd-uso-justo RF-F3): /usage once per opening, only for the paid plan
-const usage = useFeatureUsage()
+const usage = usePaidQuota()
 
 const LEVELS = [{ key: 'auto', label: 'Automático' }, { key: 'ai', label: 'Detalhado (IA)' }]
 // The same tokens of the branches (useMindMap)

@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { isAtLimit, isNearLimit, limitReachedRoute, limitReachedText, nextMonthStartLabel, usageNotice, usageNoticeShort } from '~/utils/usageNotice'
+import { isAtLimit, isNearLimit, limitReachedRoute } from '~/utils/usageLimit'
+import { limitReachedText, usageNotice, usageNoticeShort } from '~/utils/usageNotice'
+import { nextMonthStartLabel } from '~/utils/billing'
 
 const RESETS = '2026-12-01T00:00:00-03:00'
 const label = 'gerações de cards com IA'

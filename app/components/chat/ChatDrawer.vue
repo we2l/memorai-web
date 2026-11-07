@@ -56,7 +56,7 @@
 
     <template #footer>
       <div class="flex w-full flex-col gap-2">
-        <PlansUsageNotice feature="agent_chat" :usage="usage" />
+        <LazyPlansUsageNotice feature="agent_chat" :usage="usage" />
         <form class="flex w-full items-end gap-2" @submit.prevent="handleSend">
           <UiInput
             ref="inputRef"
@@ -94,7 +94,7 @@ const inputRef = ref<{ focus: () => void } | null>(null)
 const endRef = ref<HTMLElement | null>(null)
 
 // The paid plan's month of questions (prd-uso-justo RF-F3): /usage once per opening, counted here per answer
-const usage = useFeatureUsage()
+const usage = usePaidQuota()
 const spent = computed(() => usage.atLimit('agent_chat'))
 
 // right side from 768 px (same breakpoint as the TopNav)

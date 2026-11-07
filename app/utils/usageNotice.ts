@@ -1,33 +1,12 @@
-import type { FeatureData, FeatureLimitDetail } from '~/types'
-import { formatBillingDayMonth } from '~/utils/billing'
+import type { FeatureData } from '~/types'
+import { formatBillingDayMonth, nextMonthStartLabel } from '~/utils/billing'
+import { isAtLimit, isNearLimit } from '~/utils/usageLimit'
 
-/**
- * Uso justo do Intensivo (prd-uso-justo RF-F3, RN-2): the monthly AI quotas of the paid plan, near and at the
- * limit. Pure, so the line under each AI action and the toast of the 402 say the same sentence.
+/*
+ * Uso justo do Intensivo (prd-uso-justo RF-F3): the texts of the paid plan's monthly AI quotas, near and at the
+ * limit. Pure, so the line under each AI action and the toast of the 402 say the same sentence. The checks
+ * themselves are in utils/usageLimit (no import), for the screens that only disable an action.
  */
-export const NEAR_LIMIT_RATIO = 0.8
-
-/** `near_limit` of /usage; an older API without it: limit > 0 and used >= ceil(limit × 0,8). */
-export function isNearLimit(f: FeatureData | null | undefined): boolean {
-  if (!f || !f.limit || f.limit <= 0) return false
-  if (typeof f.near_limit === 'boolean') return f.near_limit
-  return f.used >= Math.ceil(f.limit * NEAR_LIMIT_RATIO)
-}
-
-/** At the limit: a numeric quota with nothing left. */
-export function isAtLimit(f: FeatureData | null | undefined): boolean {
-  if (!f || !f.limit || f.limit <= 0) return false
-  return (f.remaining ?? Math.max(0, f.limit - f.used)) <= 0
-}
-
-const monthFormatter = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit' })
-
-/** "01/12": the 1st of next month in Brasília, the day the monthly count starts again (when /usage is not at hand). */
-export function nextMonthStartLabel(now: Date = new Date()): string {
-  const [, month] = monthFormatter.format(now).split('-').map(Number)
-  const next = month === 12 ? 1 : (month ?? 0) + 1
-  return `01/${String(next).padStart(2, '0')}`
-}
 
 /** "Você usou 400 de 400 gerações de cards com IA deste mês. A contagem recomeça em 01/12." */
 export function limitReachedText(used: number | null | undefined, limit: number | null | undefined, label: string, resetsAt: string | null | undefined): string {
@@ -63,12 +42,4 @@ export function usageNoticeShort(f: FeatureData | null | undefined, resetsAt: st
   if (!isNearLimit(f)) return null
   const left = f.remaining ?? Math.max(0, f.limit - f.used)
   return `${left === 1 ? 'resta' : 'restam'} ${left} este mês`
-}
-
-/**
- * The 402 of a paid account (plan_required null) is a toast, never the upgrade modal (RF-F4, RN-3). Free and
- * trial (plan_required "pro", or absent: the old payload) keep the modal.
- */
-export function limitReachedRoute(detail: Partial<FeatureLimitDetail>): 'toast' | 'modal' {
-  return detail.planRequired === null ? 'toast' : 'modal'
 }

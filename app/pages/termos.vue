@@ -22,7 +22,7 @@
 
     <h2 id="planos">3. Planos, cobrança, renovação e cancelamento</h2>
     <ul>
-      <li>O plano Grátis tem limites mensais de uso de IA. O Intensivo amplia esses limites, conforme a página <NuxtLink to="/planos">Planos</NuxtLink>.</li>
+      <li>O plano Grátis inclui uma prévia da IA, uma vez por conta e sem prazo, que pede o e-mail confirmado. O Intensivo tem cotas mensais de IA, conforme a página <NuxtLink to="/planos">Planos</NuxtLink>.</li>
       <!-- "Assinatura em breve" (CHECKOUT_ENABLED=false na produção): sai quando o pagamento abrir -->
       <li>A assinatura do Intensivo ainda não está à venda, e nada é cobrado. Quando o pagamento abrir, valem as regras abaixo.</li>
       <li><strong>Mensal:</strong> cobrado no cartão e renovado automaticamente a cada mês até você cancelar.</li>
@@ -47,7 +47,8 @@
 
     <h2 id="uso-justo">6. Uso justo</h2>
     <ul>
-      <li>As cotas de IA de cada plano são mensais e aparecem em <NuxtLink to="/planos">Planos</NuxtLink> e em Configurações, com o quanto você já usou no mês.</li>
+      <li>As cotas de IA do Intensivo são mensais; as da prévia do Grátis valem uma vez por conta. Elas aparecem em <NuxtLink to="/planos">Planos</NuxtLink> e em Configurações, com o quanto você já usou.</li>
+      <li>Criar várias contas para repetir a prévia grátis também é uso indevido.</li>
       <li>É proibido o uso automatizado (robôs, scripts), a revenda do acesso e o compartilhamento da conta com outras pessoas.</li>
       <li>Em caso de abuso, o BAIGI pode suspender a IA ou a conta, avisando por e-mail.</li>
     </ul>

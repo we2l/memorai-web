@@ -126,8 +126,13 @@ const emptyText = computed(() => (isPart.value
 
 // The trial counts its own 7 days, also when this click opens it (prd-planos-lancamento RF-F7b)
 const auth = useAuthStore()
-const period = computed(() => (auth.onTrial || auth.opensTrialOnUse ? 'teste' : 'mês'))
+// The Free's preview (prd-uso-justo §9) never resets: its own words
+const onPreview = computed(() => !!props.usage?.preview.value)
+const period = computed(() => (onPreview.value ? 'prévia' : auth.onTrial || auth.opensTrialOnUse ? 'teste' : 'mês'))
+const periodOf = computed(() => (onPreview.value ? 'da prévia' : `do ${period.value}`))
+const periodIn = computed(() => (onPreview.value ? 'na prévia' : `no ${period.value}`))
 const spentText = computed(() => {
+  if (onPreview.value) return 'Você usou as gerações de cards da prévia grátis.'
   if (auth.onTrial) return 'Você usou as gerações de cards do teste.'
   return auth.user?.plan === 'pro' ? 'Você usou as gerações de cards do mês.' : 'Os cards com IA não entram no plano Grátis.'
 })
@@ -137,11 +142,11 @@ const spent = computed(() => !!props.usage?.atLimit('cards_ai'))
 const paidSpentText = computed(() => `Você usou as gerações de cards deste mês. A contagem recomeça em ${nextMonthStartLabel()}.`)
 const quotaShort = computed(() => {
   const left = canGenerate.value.remaining
-  return left == null ? 'usa 1 geração' : `${left} ${left === 1 ? 'geração restante' : 'gerações restantes'} no ${period.value}`
+  return left == null ? 'usa 1 geração' : `${left} ${left === 1 ? 'geração restante' : 'gerações restantes'} ${periodIn.value}`
 })
 const quotaText = computed(() => {
   const left = canGenerate.value.remaining
-  const uses = left == null ? 'Usa 1 geração' : `Usa 1 das suas ${left} ${left === 1 ? 'geração' : 'gerações'} do ${period.value}`
+  const uses = left == null ? 'Usa 1 geração' : `Usa 1 das suas ${left} ${left === 1 ? 'geração' : 'gerações'} ${periodOf.value}`
   return `${uses} · cerca de 15 cards · você revisa antes de salvar`
 })
 

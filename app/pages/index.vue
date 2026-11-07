@@ -38,7 +38,7 @@ definePageMeta({ layout: 'landing' })
 const TITLE = 'Baigi: chega de memória de peixe'
 const { plans: catalog, failed, fetchPlans } = usePlans()
 // The AI (cards from the PDF) is not in the Free plan: the description says where it is, with the catalog's name
-const description = computed(() => `Mande seu PDF ou suas anotações e a IA cria os cards, no teste grátis e no ${paidPlanName(catalog.value)}. Revisar é grátis: cada card volta perto da hora de esquecer, e você vê quanto vai lembrar no dia da prova. Para concurso, OAB, ENEM, faculdade, medicina e idiomas.`)
+const description = computed(() => `Mande seu PDF ou suas anotações e a IA cria os cards, na prévia grátis e no ${paidPlanName(catalog.value)}. Revisar é grátis: cada card volta perto da hora de esquecer, e você vê quanto vai lembrar no dia da prova. Para concurso, OAB, ENEM, faculdade, medicina e idiomas.`)
 
 useHead({
   title: TITLE,

@@ -38,14 +38,17 @@ const CATALOG = {
   currency: 'BRL',
   period: 'calendar_month',
   period_timezone: 'America/Sao_Paulo',
+  // The Free's preview of the AI in place of the trial (prd-uso-justo §9)
+  trial: null,
+  preview: { lifetime: true, requires_verified_email: true, limits: { cards_ai: 10, agent_chat: 10, podcast: 1, pdf_to_note: 1, quiz_ai: 1, note_improve: 1, mindmap_ai: 1 }, pdf_pages: 50, quiz_max_questions: 10, quiz_short_answer: false, podcast_seconds: 30, text: 'Prévia grátis da IA, uma vez por conta: 1 PDF de até 50 páginas, 10 gerações de cards, 10 perguntas ao tira-dúvidas, 1 simulado de 10 questões, 1 melhoria de nota, 1 mapa mental e 1 podcast de 30 s.' },
   plans: [
     {
       key: 'free',
       name: 'Grátis',
       prices: { monthly: null, annual: null },
-      highlights: ['Cadernos, notas e cards sem limite', 'Revisão com FSRS-6', 'Importar do Anki com o histórico', 'Modo recuperação e revisão relâmpago'],
-      limits: { cards_ai: 10, pdf_upload: null, agent_chat: 5, podcast: 1, pdf_to_note: 1, quiz_ai: 1, note_improve: 1, mindmap_ai: 0 },
-      extras: { pdf_pages_per_note: 100, rag_max_pages: 300, upload_max_mb: 50, pdf_pages_monthly_cap: 4000, quiz_max_questions: 10, quiz_short_answer: false, podcast_format: 'teaser', podcast_max_minutes: 0.5 },
+      highlights: ['Cadernos, notas e cards sem limite', 'Revisão com FSRS-6', 'Importar do Anki com o histórico', 'Modo recuperação e revisão relâmpago', 'Prévia da IA, uma vez por conta e sem prazo'],
+      limits: { cards_ai: 10, pdf_upload: null, agent_chat: 10, podcast: 1, pdf_to_note: 1, quiz_ai: 1, note_improve: 1, mindmap_ai: 1 },
+      extras: { pdf_pages_per_note: 50, rag_max_pages: 300, upload_max_mb: 50, pdf_pages_monthly_cap: 4000, quiz_max_questions: 10, quiz_short_answer: false, podcast_format: 'teaser', podcast_max_minutes: 0.5 },
     },
     {
       key: 'pro',

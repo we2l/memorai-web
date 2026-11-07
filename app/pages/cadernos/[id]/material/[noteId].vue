@@ -306,7 +306,7 @@ const material = useMaterial(noteId)
 const m = useMaterialEditor(id, noteId, () => material.reload())
 // The paid plan's month of AI (prd-uso-justo RF-F3): /usage once per opening, only for whom the line is
 const aiUsage = usePaidQuota()
-onMounted(() => { void aiUsage.fetchUsageIfPaid() })
+onMounted(() => { void aiUsage.fetchUsageForNotice() })
 const improveMeta = computed(() => (aiUsage.paid.value
   ? usageNoticeShort(aiUsage.usage.value?.features?.note_improve, aiUsage.usage.value?.resets_at ?? null) ?? undefined
   : undefined))

@@ -7,6 +7,11 @@ function formatCount(n: number): string {
   return countFormatter.format(n)
 }
 
+/** The Free's quotas are the preview's, once per account (prd-uso-justo §9): "10 na prévia", never "por mês". */
+function unitOf(catalog: PlanCatalog, plan: CatalogPlan, unit: string): string {
+  return plan.key === 'free' && catalog.preview ? 'na prévia' : unit
+}
+
 function capitalize(text: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1)
 }
@@ -43,7 +48,7 @@ export function planBenefitLines(catalog: PlanCatalog | null, planKey: PlanKey):
     if (limit === null) return [`${capitalize(f.label)}: sem limite`]
 
     const detail = limitDetail(plan, key)
-    return [`${capitalize(f.label)}: ${formatCount(limit)} ${f.unit}${detail ? ` (${detail})` : ''}`]
+    return [`${capitalize(f.label)}: ${formatCount(limit)} ${unitOf(catalog, plan, f.unit)}${detail ? ` (${detail})` : ''}`]
   })
 }
 
@@ -56,7 +61,7 @@ export function planComparison(catalog: PlanCatalog | null): PlanComparisonRow[]
     cells: catalog.plans.map((plan) => {
       const limit = plan.limits[key]
       if (limit === 0 || limit === undefined) return { plan: plan.key, text: 'Não incluído', detail: null, included: false }
-      return { plan: plan.key, text: limit === null ? 'Sem limite' : `${formatCount(limit)} ${f.unit}`, detail: limitDetail(plan, key), included: true }
+      return { plan: plan.key, text: limit === null ? 'Sem limite' : `${formatCount(limit)} ${unitOf(catalog, plan, f.unit)}`, detail: limitDetail(plan, key), included: true }
     }),
   }))
 }

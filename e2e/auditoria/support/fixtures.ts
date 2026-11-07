@@ -21,7 +21,7 @@ export const API = `${API_ORIGIN}/api`
 export const AUDIT_PASSWORD = 'Senha-Audit-2026'
 const CONTAINER = process.env.E2E_API_CONTAINER || 'baigi-app'
 
-export type UserKey = 'visual' | 'pro' | 'free' | 'quota' | 'unverified' | 'onboarding' | 'onboardingUnverified' | 'empty' | 'session' | 'logout' | 'account' | 'mobile' | 'legacy' | 'scope' | 'nav' | 'hoje' | 'hojeNew' | 'hojeGoal' | 'recorte' | 'hub' | 'material' | 'library' | 'revisao' | 'revisaoEmpty' | 'praticar' | 'praticarFree' | 'progresso' | 'progressoNew' | 'onbText' | 'onbExit' | 'onbExam' | 'onbAnki' | 'onbSample' | 'onbKeyboard' | 'conta' | 'contaPro' | 'parts' | 'organizacao' | 'landingShots' | 'trialInvite' | 'trialUnverified' | 'trialActive' | 'trialTomorrow' | 'trialToday' | 'trialUsed' | 'questao'
+export type UserKey = 'visual' | 'pro' | 'free' | 'quota' | 'unverified' | 'onboarding' | 'onboardingUnverified' | 'empty' | 'session' | 'logout' | 'account' | 'mobile' | 'legacy' | 'scope' | 'nav' | 'hoje' | 'hojeNew' | 'hojeGoal' | 'recorte' | 'hub' | 'material' | 'library' | 'revisao' | 'revisaoEmpty' | 'praticar' | 'praticarFree' | 'progresso' | 'progressoNew' | 'onbText' | 'onbExit' | 'onbExam' | 'onbAnki' | 'onbSample' | 'onbKeyboard' | 'conta' | 'contaPro' | 'parts' | 'organizacao' | 'landingShots' | 'trialInvite' | 'trialUnverified' | 'trialActive' | 'trialTomorrow' | 'trialToday' | 'trialUsed' | 'questao' | 'preview'
 
 type UserSpec = { email: string; plan: 'free' | 'pro'; verified: boolean; onboarded: boolean; reset: true; quota_exhausted?: Record<string, number>; name?: string; trial?: 'used' | 'active' | 'tomorrow' | 'today' }
 
@@ -29,7 +29,10 @@ export const USERS: Record<UserKey, UserSpec> = {
   pro: { email: 'e2e-pro@audit.test', plan: 'pro', verified: true, onboarded: true, reset: true },
   free: { email: 'e2e-free@audit.test', plan: 'free', verified: true, onboarded: true, reset: true },
   // Free after the trial (the AI of the Free is 0 since the planos de lançamento): the API answers 402 before any AI call
-  quota: { email: 'e2e-quota@audit.test', plan: 'free', verified: true, onboarded: true, reset: true, trial: 'used' },
+  // and the preview of the AI spent (prd-uso-justo §9: 10 gerações de cards, 1 mapa…)
+  quota: { email: 'e2e-quota@audit.test', plan: 'free', verified: true, onboarded: true, reset: true, trial: 'used', quota_exhausted: { cards_ai: 10, agent_chat: 10, quiz_ai: 1, mindmap_ai: 1, note_improve: 1, pdf_to_note: 1, podcast: 1 } },
+  // A Free account on the preview of the AI (planos-previa.spec.ts): 1 of 10 card generations and the map spent
+  preview: { email: 'e2e-preview@audit.test', plan: 'free', verified: true, onboarded: true, reset: true, quota_exhausted: { cards_ai: 1, mindmap_ai: 1 } },
   unverified: { email: 'e2e-unverified@audit.test', plan: 'pro', verified: false, onboarded: true, reset: true },
   onboarding: { email: 'e2e-onboarding@audit.test', plan: 'free', verified: true, onboarded: false, reset: true },
   // Fresh e-mail sign-up: onboarding pending and e-mail not confirmed yet (verified mid-test)

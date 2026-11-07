@@ -165,6 +165,6 @@ async function createCard() {
 watch(modelValue, (open) => {
   if (!open) return
   fetchMap()
-  void usage.fetchUsageIfPaid()
+  void usage.fetchUsageForNotice()
 })
 </script>

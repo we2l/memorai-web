@@ -116,7 +116,7 @@ export function useDocumentUpload() {
         }
         if (xhr.status === 402) {
           window.dispatchEvent(new CustomEvent('feature-limit-reached', {
-            detail: { feature: body?.feature, used: body?.used ?? null, limit: body?.limit ?? null, planRequired: body?.plan_required ?? null, resetsAt: body?.resets_at ?? null },
+            detail: { feature: body?.feature, used: body?.used ?? null, limit: body?.limit ?? null, planRequired: body?.plan_required ?? null, resetsAt: body?.resets_at ?? null, lifetime: body?.lifetime === true },
           }))
           return null
         }

@@ -164,6 +164,15 @@ describe('QuizConfigSheet (prd-4e-praticar-v3 RF-F2)', () => {
     expect(submit().textContent).not.toContain('Ver o')
   })
 
+  it('Grátis na prévia (prd-uso-justo §9): "Prévia grátis: 0 de 1 …" no lugar da contagem do mês', async () => {
+    plan.value = 'free'
+    api({ can_quiz: { ok: true } }, { usage: { tier: 'free', period: 'lifetime', resets_at: null, period_start: null, period_end: null, features: { quiz_ai: { used: 0, limit: 1, remaining: 1 } } } })
+    await mountSheet({ topicId: 'pt' }, { email_verified: true, trial: { status: 'used', started_at: null, ends_at: null } })
+    expect(document.querySelector('[data-testid="quiz-quota"]')).toBeNull()
+    expect(document.querySelector('[data-testid="usage-notice"]')?.textContent?.trim()).toBe('Prévia grátis: 0 de 1 usos com IA.')
+    expect(submit().disabled).toBe(false)
+  })
+
   it('Intensivo abaixo de 80%: nenhuma linha de cota', async () => {
     api({ can_quiz: { ok: true } }, { usage: { tier: 'pro', features: { quiz_ai: { used: 3, limit: 40, remaining: 37 } } } })
     await mountSheet({ topicId: 'pt' })

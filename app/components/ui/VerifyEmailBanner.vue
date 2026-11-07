@@ -12,7 +12,7 @@
       :class="inline ? 'rounded-control border' : 'border-b sm:flex-row sm:items-center sm:gap-3'"
     >
       <p id="verify-email-notice" class="text-label text-fg-strong font-medium flex-1" :class="{ 'pr-8 sm:pr-0': !inline }">
-        Confirme seu e-mail para usar a IA<template v-if="trialDays"> e ganhar {{ trialDays }} dias do {{ proName }} no primeiro material</template>: enviamos um link para <span class="break-all">{{ auth.user?.email }}</span>.
+        Confirme seu e-mail para usar <template v-if="hasPreviewOffer">a prévia grátis da IA</template><template v-else>a IA</template><template v-if="trialDays"> e ganhar {{ trialDays }} dias do {{ proName }} no primeiro material</template>: enviamos um link para <span class="break-all">{{ auth.user?.email }}</span>.
       </p>
       <div class="flex gap-2 shrink-0">
         <UiButton size="sm" class="flex-1 sm:flex-none" :loading="sending" :disabled="cooldown > 0" @click="resend">
@@ -34,7 +34,7 @@
 
     <UiDialog v-model="showModal" size="sm" title="Confirme seu e-mail">
       <p class="text-meta text-fg-muted">
-        Os recursos de IA<template v-if="trialDays"> e o teste de {{ trialDays }} dias do {{ proName }}</template> ficam disponíveis depois que você confirmar <span class="break-all">{{ auth.user?.email }}</span>.
+        <template v-if="hasPreviewOffer">A prévia grátis da IA fica disponível</template><template v-else>Os recursos de IA<template v-if="trialDays"> e o teste de {{ trialDays }} dias do {{ proName }}</template> ficam disponíveis</template> depois que você confirmar <span class="break-all">{{ auth.user?.email }}</span>.
         Confira sua caixa de entrada e o spam.
       </p>
       <template #footer>
@@ -61,7 +61,9 @@ const { $api } = useNuxtApp()
 
 // The trial asks for a verified e-mail (prd-planos-lancamento RF-F2): said while it is available
 const { plans } = usePlans()
-const proName = useProName(() => auth.user?.trial?.status === 'available')
+// The catalog is read while the e-mail is not confirmed: the preview of the AI asks for it (prd-uso-justo §9)
+const proName = useProName(() => auth.user?.trial?.status === 'available' || auth.user?.email_verified === false)
+const hasPreviewOffer = computed(() => !trialDays.value && !!plans.value?.preview && auth.user?.plan !== 'pro')
 const trialDays = computed(() => (auth.user?.trial?.status === 'available' ? offeredTrial(plans.value)?.days ?? null : null))
 
 const dismissed = ref(false)

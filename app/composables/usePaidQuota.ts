@@ -1,5 +1,6 @@
 import type { FeatureLimitDetail } from '~/types'
 import { isAtLimit, isNearLimit } from '~/utils/usageLimit'
+import { hasPreview } from '~/utils/preview'
 
 /**
  * useFeatureUsage plus the paid plan's month (prd-uso-justo RF-F3, RN-3): the Intensivo has numeric monthly AI
@@ -10,14 +11,25 @@ import { isAtLimit, isNearLimit } from '~/utils/usageLimit'
 export function usePaidQuota() {
   const base = useFeatureUsage()
   const auth = useAuthStore()
+  const { fetchPlans } = usePlans()
   const { usage } = base
 
   /** The paid plan (Intensivo, not the trial): /usage says the tier; before it loads, the account's plan. */
   const paid = computed(() => (usage.value?.tier ? usage.value.tier === 'pro' : auth.user?.plan === 'pro'))
 
-  /** /usage only for the paid plan: the screens that did not read it ask once, only for whom the line is. */
-  async function fetchUsageIfPaid() {
-    if (auth.user?.plan === 'pro') await base.fetchUsage()
+  /** The Free's preview of the AI (prd-uso-justo §9): its quotas never reset (period lifetime). */
+  const preview = computed(() => usage.value?.period === 'lifetime')
+
+  /**
+   * /usage only for whom the line is (the paid plan, and the Free with a verified e-mail while the catalog has the
+   * preview): the screens that did not read it ask once.
+   */
+  async function fetchUsageForNotice() {
+    const user = auth.user
+    if (user?.plan === 'pro') return base.fetchUsage()
+    if (!user?.email_verified) return
+    // The Free: only when the catalog (one GET per session) has the preview
+    if (hasPreview(await fetchPlans(), user)) await base.fetchUsage()
   }
 
   function nearLimit(feature: string): boolean {
@@ -46,8 +58,9 @@ export function usePaidQuota() {
       limit: f?.limit ?? null,
       planRequired: paid.value ? null : 'pro',
       resetsAt: usage.value?.resets_at ?? null,
+      lifetime: preview.value,
     }
   }
 
-  return { ...base, paid, fetchUsageIfPaid, nearLimit, atLimit, countUse, limitDetail }
+  return { ...base, paid, preview, fetchUsageForNotice, nearLimit, atLimit, countUse, limitDetail }
 }

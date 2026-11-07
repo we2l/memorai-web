@@ -211,7 +211,7 @@ const quota = computed(() => usage.usage.value?.features?.quiz_ai ?? null)
 const quotaText = computed(() => {
   const q = quota.value
   // The paid plan: only the 80% line and the limit (PlansUsageNotice, prd-uso-justo RF-F3)
-  if (!q || !q.limit || usage.opensTrial('quiz_ai') || usage.paid.value) return null
+  if (!q || !q.limit || usage.opensTrial('quiz_ai') || usage.paid.value || usage.preview.value) return null
   return `${q.used} de ${q.limit} ${q.limit === 1 ? 'geração' : 'gerações'} ${usage.periodLabel.value}`
 })
 const quotaSpent = computed(() => !usage.canUse('quiz_ai'))

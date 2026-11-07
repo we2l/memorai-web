@@ -14,11 +14,14 @@ import { test, expect } from './support/fixtures'
  */
 
 /** The launch catalog of the API (#136), with the name of the paid plan as a parameter. */
-function launchCatalog(name: string, { trial = true } = {}) {
+const PREVIEW_TEXT = 'Prévia grátis da IA, uma vez por conta: 1 PDF de até 50 páginas, 10 gerações de cards, 10 perguntas ao tira-dúvidas, 1 simulado de 10 questões, 1 melhoria de nota, 1 mapa mental e 1 podcast de 30 s.'
+
+function launchCatalog(name: string, { trial = true, preview = false } = {}) {
   return {
     currency: 'BRL',
     period: 'calendar_month',
     period_timezone: 'America/Sao_Paulo',
+    preview: preview ? { lifetime: true, requires_verified_email: true, limits: { cards_ai: 10, agent_chat: 10, podcast: 1, pdf_to_note: 1, quiz_ai: 1, note_improve: 1, mindmap_ai: 1 }, pdf_pages: 50, quiz_max_questions: 10, quiz_short_answer: false, podcast_seconds: 30, text: PREVIEW_TEXT } : null,
     trial: trial ? { days: 7, card_required: false, starts_on: 'first_material', excludes: ['podcast'], pdf_pages_cap: 100, limits: { cards_ai: 20, agent_chat: 30, podcast: 0, pdf_to_note: 3, quiz_ai: 3 } } : null,
     plans: [
       {
@@ -120,10 +123,10 @@ test.describe('landing D', () => {
       await expect(page.getByTestId('landing-ai-story')).toHaveText(`A IA está no teste grátis, com até 100 páginas de PDF, e no ${name}.`)
       await expect(page.getByTestId('landing-ai-quiz')).toHaveText(`A IA está no teste grátis e no ${name}.`)
       await expect(page.locator('#areas [data-testid="landing-ai-areas"]:visible')).toHaveText(`A IA está no teste grátis e no ${name}.`)
-      await expect(plans.getByText('5 episódios de até 8 min')).toBeVisible()
+      await expect(plans.getByText('8 episódios por mês, de até 8 min')).toBeVisible()
       await expect(page.getByTestId('landing-cta-plans_pro')).toHaveText(`Ver o ${name} em detalhe`)
       await expect(page.getByTestId('landing-plans-lead')).toContainText(`No ${name}, ela acompanha você até a prova`)
-      await expect(page.getByTestId('landing-podcast-plan')).toHaveText(`No ${name}: 5 episódios de até 8 min por mês. O teste de 7 dias não inclui o podcast.`)
+      await expect(page.getByTestId('landing-podcast-plan')).toHaveText(`No ${name}: 8 episódios por mês, de até 8 min. O teste de 7 dias não inclui o podcast.`)
       await expect(plans.locator('summary', { hasText: `Como cancelo o ${name}?` })).toHaveCount(1)
       // Two cards of 5 lines each (prd-landing-d §5.2)
       await expect(plans.getByTestId('landing-plans').locator('li')).toHaveCount(10)
@@ -139,6 +142,13 @@ test.describe('landing D', () => {
     await expect(page.locator('main').getByText(/dias do Intensivo|teste de \d+ dias|teste grátis/i)).toHaveCount(0)
     await expect(page.getByTestId('landing-ai-quiz')).toHaveText('A IA faz parte do Intensivo.')
     await expect(page.getByTestId('landing-plans').locator('li')).toHaveCount(10)
+  })
+
+  test('prévia grátis no catálogo (prd-uso-justo §9): a frase da API nas condições, nada do teste', async ({ page }) => {
+    await open(page, '/#planos', launchCatalog('Intensivo', { trial: false, preview: true }))
+    await expect(page.getByTestId('landing-plans-trial')).toHaveText(`${PREVIEW_TEXT} Pede o e-mail confirmado.`)
+    await expect(page.getByTestId('landing-ai-quiz')).toHaveText('Experimente na prévia grátis. A IA fica no Intensivo.')
+    await expect(page.locator('main').getByText(/teste de \d+ dias|dias do Intensivo/i)).toHaveCount(0)
   })
 
   test('sem catálogo: nenhum R$, o erro e "Tentar de novo" que recarrega', async ({ page }) => {

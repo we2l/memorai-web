@@ -288,6 +288,8 @@ function pdfBenefit(catalog: PlanCatalog, plan: PlanCatalog['plans'][number]): s
 export function landingAiLine(catalog: PlanCatalog | null, opts: { pdf?: boolean } = {}): string {
   const name = paidPlanName(catalog)
   const trial = catalogTrial(catalog)
+  // The Free's preview of the AI in place of the trial (prd-uso-justo §9)
+  if (!trial && catalog?.preview) return `Experimente na prévia grátis. A IA fica no ${name}.`
   if (!trial) return `A IA faz parte do ${name}.`
   return opts.pdf && trial.pdf_pages_cap
     ? `A IA está no teste grátis, com até ${trial.pdf_pages_cap} páginas de PDF, e no ${name}.`
@@ -305,6 +307,8 @@ function trialExcludesText(catalog: PlanCatalog | null, trial: CatalogTrial): st
  */
 export function landingTrialTerms(catalog: PlanCatalog | null): string {
   const trial = catalogTrial(catalog)
+  // The preview's sentence comes whole from the API (prd-uso-justo §9)
+  if (!trial && catalog?.preview) return `${catalog.preview.text} Pede o e-mail confirmado.`
   if (!trial) return ''
   const limits = trialLimitsText(catalog)
   return `O teste de ${trial.days} dias começa no primeiro material, pede o e-mail confirmado e vale uma vez por conta.`
@@ -316,6 +320,7 @@ export function landingTrialTerms(catalog: PlanCatalog | null): string {
 export function landingPlansLead(catalog: PlanCatalog | null): string {
   const name = paidPlanName(catalog)
   const trial = catalogTrial(catalog)
+  if (!trial && catalog?.preview) return `A IA você experimenta na prévia grátis, uma vez por conta. No ${name}, ela acompanha você até a prova.`
   return trial
     ? `A IA você testa por ${trial.days} dias, sem cartão, a partir do primeiro material. No ${name}, ela acompanha você até a prova.`
     : `A IA faz parte do ${name}, que acompanha você até a prova.`
@@ -330,6 +335,8 @@ export function landingPodcastLine(catalog: PlanCatalog | null): string {
   const benefit = feature?.pro_benefit
   const unit = benefit && feature?.unit && !benefit.includes(feature.unit) ? ` ${feature.unit}` : ''
   const own = benefit ? `No ${name}: ${benefit.charAt(0).toLowerCase()}${benefit.slice(1)}${unit}.` : `Os episódios fazem parte do ${name}.`
+  const previewSeconds = !trial && (catalog?.preview?.limits?.podcast ?? 0) > 0 ? catalog?.preview?.podcast_seconds : null
+  if (previewSeconds) return `${own} No Grátis, uma prévia de ${previewSeconds} s.`
   return trial?.excludes?.includes('podcast') ? `${own} O teste de ${trial.days} dias não inclui o podcast.` : own
 }
 
@@ -352,7 +359,9 @@ export function landingFaqs(catalog: PlanCatalog | null): { q: string, a: string
       q: 'É grátis mesmo?',
       a: trial
         ? `${free} Ao mandar o primeiro material, com o e-mail confirmado, você ganha ${trial.days} dias para testar a IA${trialLimitsText(catalog) ? `: ${trialLimitsText(catalog)}` : ''}.${trialExcludesText(catalog, trial)} Depois, a conta volta ao Grátis, sem cobrança.`
-        : `${free} A IA faz parte do ${name}.`,
+        : catalog?.preview
+          ? `${free} ${catalog.preview.text} Depois, a IA fica no ${name}.`
+          : `${free} A IA faz parte do ${name}.`,
     },
     {
       q: 'Como vocês sabem quanto eu vou lembrar?',

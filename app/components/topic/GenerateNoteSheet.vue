@@ -65,7 +65,7 @@ const pageLimit = computed(() => (auth.onTrial
 const quotaText = computed(() => {
   const f = featureUsage.usage.value?.features?.pdf_to_note
   // The paid plan: only the 80% line and the limit (PlansUsageNotice, prd-uso-justo RF-F3)
-  if (!f || featureUsage.opensTrial('pdf_to_note') || featureUsage.paid.value) return ''
+  if (!f || featureUsage.opensTrial('pdf_to_note') || featureUsage.paid.value || featureUsage.preview.value) return ''
   const label = feature('pdf_to_note')?.label ?? 'PDFs transformados em nota'
   const count = f.limit === null ? `${f.used}` : `${f.used} de ${f.limit}`
   return `${label.charAt(0).toUpperCase()}${label.slice(1)}: ${count} ${featureUsage.periodLabel.value}`

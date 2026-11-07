@@ -34,7 +34,7 @@
         <PlansCheckoutSoon v-else-if="!checkoutOpen" />
         <UiButton v-else variant="primary" block :loading="loading" @click="subscribe">{{ isYearly ? 'Assinar anual' : `Assinar ${proName}` }}</UiButton>
         <!-- The trial of the catalog (prd-planos-lancamento RF-F4): offered, running, or nothing once used -->
-        <p v-if="trialLine" class="mt-2 text-meta text-fg-muted" data-testid="plan-trial">{{ trialLine }}</p>
+        <p v-if="planLine" class="mt-2 text-meta text-fg-muted" data-testid="plan-trial">{{ planLine }}</p>
       </template>
     </PlansPlanCards>
 
@@ -116,15 +116,25 @@ const trialLine = computed(() => {
   return ''
 })
 
+// The Free's preview of the AI in place of the trial (prd-uso-justo §9): the API's sentence, never by hand
+const preview = computed(() => catalogPreview(plans.value))
+const planLine = computed(() => {
+  if (trialLine.value) return trialLine.value
+  const u = user.value
+  return preview.value && u && u.plan !== 'pro' ? 'No Grátis, a IA tem uma prévia, uma vez por conta e sem prazo.' : ''
+})
+
 const FAQS = computed(() => [
   ...(checkoutOpen.value ? [] : [{ q: 'Já dá para assinar?', a: `Ainda não: o pagamento abre em breve. Até lá, nada é cobrado, e cadernos, notas e revisão seguem grátis.` }]),
   ...(trial.value
     ? [{ q: 'Como funciona o teste grátis?', a: `Ao mandar o primeiro material (um PDF ou uma nota), com o e-mail confirmado, você ganha ${trial.value.days} dias do ${proName.value}, sem cartão.${trialQuotas.value ? ` No teste: ${trialQuotas.value}.` : ''} Depois, a conta volta sozinha ao Grátis, sem cobrança.` }]
-    : []),
+    : preview.value
+      ? [{ q: 'Como funciona a prévia grátis?', a: `${preview.value.text} Não pede cartão e não expira${preview.value.requires_verified_email ? '; pede o e-mail confirmado' : ''}. Depois, a IA fica no ${proName.value}, com cota todo mês.` }]
+      : []),
   { q: 'Posso cancelar quando quiser?', a: `Sim. Cancele quando quiser, pelo portal de assinatura. O ${proName.value} continua até o fim do período já pago.` },
   { q: 'Como funciona o plano anual?', a: 'É um pagamento único, no Pix ou no cartão, que vale por um ano. Não renova sozinho: avisamos por e-mail antes de vencer.' },
   { q: 'Como funciona o plano mensal?', a: 'É cobrado no cartão e renova sozinho a cada mês, até você cancelar.' },
-  { q: 'O que acontece se eu voltar para o Grátis?', a: `Seus cadernos, notas e cards continuam com você, e a revisão segue grátis. A IA fica no ${proName.value}.` },
+  { q: 'O que acontece se eu voltar para o Grátis?', a: `Seus cadernos, notas e cards continuam com você, e a revisão segue grátis. A IA fica no ${proName.value}${preview.value ? ', e o que sobrar da prévia continua seu' : ''}.` },
 ])
 
 function onToggle(value: BillingPeriod) {

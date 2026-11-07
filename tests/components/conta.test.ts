@@ -148,7 +148,9 @@ describe('SettingsPlanUsageSection (RF-F1, RN 5)', () => {
     const rows = w.findAll('[data-testid="usage-row"]')
     expect(rows.map(r => r.findAll('span')[0]!.text())).toEqual(['Gerações de cards com IA', 'Podcasts', 'Mapas mentais com IA'])
     expect(rows[0]!.text()).toContain('3 de 10')
-    expect(rows[1]!.text()).toContain('ilimitado')
+    // null only for what costs no AI (prd-uso-justo RN-1): the count, never "ilimitado"
+    expect(rows[1]!.text()).toContain('1 usado')
+    expect(rows[1]!.text()).not.toMatch(/ilimitad/i)
     // Without the plan in the catalog, the name of the decision (PRO_NAME_FALLBACK)
     expect(rows[2]!.text()).toContain('no Intensivo')
     expect(w.get('[data-testid="usage-renews"]').text()).toBe('a contagem recomeça em 01/12')

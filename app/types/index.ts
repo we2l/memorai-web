@@ -384,6 +384,8 @@ export interface FeatureData {
   used: number
   limit: number | null
   remaining: number | null
+  /** used >= ceil(limit × 0,8) with a numeric limit (prd-uso-justo RF-B3); absent on an older API */
+  near_limit?: boolean
 }
 
 export interface FeatureUsageData {

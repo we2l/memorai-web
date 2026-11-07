@@ -173,7 +173,7 @@ describe('CadernoMaterialRow (RF-F6)', () => {
     expect(w.get('[data-testid="material-review"]').attributes('href')).toBe('/revisar?scope=note:n2')
   })
 
-  it('estados: escrevendo (por parte), falhou com "Tentar de novo", limite do mês com "Ver planos"', async () => {
+  it('estados: escrevendo (por parte), falhou com "Tentar de novo", limite do mês sem "Ver planos" no Intensivo', async () => {
     apiMock.mockResolvedValue({ data: { id: 'd1', status: 'completed', note_generation_status: 'generating', note_generation_progress: 3, note_total_batches: 12 } })
     const reading = await mountSuspended(MaterialRow, { props: { row: row({ status: 'generating', progress: { done: 3, total: 12 }, cards: 0, session_count: 0 }), scopeId: 'root' } })
     expect(reading.text()).toContain('Escrevendo a parte 2 de 4 · lote 4 de 12')
@@ -183,8 +183,9 @@ describe('CadernoMaterialRow (RF-F6)', () => {
     expect(failed.emitted('retry')).toHaveLength(1)
     useAuthStore().user = { plan: 'pro' } as any
     const blocked = await mountSuspended(MaterialRow, { props: { row: row({ status: 'blocked', note_id: null }), scopeId: 'root', blockedReason: 'feature_limit' } })
-    expect(blocked.text()).toContain('Limite do mês atingido')
-    expect(blocked.text()).toContain('Ver planos')
+    expect(blocked.text()).toContain('Limite do mês atingido. A contagem recomeça em 01/')
+    // Uso justo (prd-uso-justo RN-3): quem já é Intensivo nunca vê "Ver planos"
+    expect(blocked.text()).not.toContain('Ver planos')
     expect(blocked.find('a[data-testid="material-title"]').exists()).toBe(false)
     // Free has no AI since the planos de lançamento; the trial counts its own 7 days
     useAuthStore().user = { plan: 'free' } as any
@@ -254,6 +255,12 @@ describe('CadernoMaterialRow: cards automáticos e bloqueio (prd-4c-material-v3 
     const quota = await mountRow(pdf({ auto_cards_status: 'skipped_quota' }))
     expect(quota.get('[data-testid="material-cards-state"]').text()).toContain('Sem gerações de cards este mês')
     expect(quota.get('[data-testid="material-cards-state"] button').text()).toBe('Ver planos')
+    // The Intensivo out of its month: the day it starts again, no "Ver planos" (prd-uso-justo RN-3)
+    useAuthStore().user = { plan: 'pro' } as any
+    const paidQuota = await mountRow(pdf({ auto_cards_status: 'skipped_quota' }))
+    expect(paidQuota.get('[data-testid="material-cards-state"]').text()).toContain('A contagem recomeça em 01/')
+    expect(paidQuota.find('[data-testid="material-cards-state"] button').exists()).toBe(false)
+    useAuthStore().user = null
     const short = await mountRow(pdf({ auto_cards_status: 'skipped_empty' }))
     expect(short.get('[data-testid="material-cards-state"]').text()).toBe('Texto curto demais para gerar cards')
     expect(short.find('[data-testid="material-cards-state"] button').exists()).toBe(false)

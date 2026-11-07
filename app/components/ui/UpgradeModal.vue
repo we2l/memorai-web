@@ -60,7 +60,7 @@ const title = computed(() => {
 const body = computed(() => {
   if (!canUpgrade.value) {
     const date = formatResetDate(props.resetsAt)
-    return date ? `Renova em ${date}.` : 'Seu limite renova no início do próximo mês.'
+    return date ? `A contagem recomeça em ${date}.` : 'A contagem recomeça no início do próximo mês.'
   }
   const benefit = catalogFeature.value?.pro_benefit
   const offer = benefit ? `No ${proName.value}: ${benefit}.` : `O ${proName.value} libera mais IA. Sem compromisso.`

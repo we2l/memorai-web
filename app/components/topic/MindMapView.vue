@@ -41,7 +41,10 @@
         <!-- Pro, the trial or a trial that opens on this click: no map yet -->
         <UiEmptyState v-else-if="!aiMap && !generating" title="Mapa detalhado com IA" description="Gere um mapa mental com conceitos, definições e exemplos extraídos por IA.">
           <template #action>
-            <UiButton variant="primary" @click="generateAiMap">Gerar mapa detalhado</UiButton>
+            <div class="flex flex-col items-center gap-2">
+              <UiButton variant="primary" :disabled="usage.atLimit('mindmap_ai')" @click="generateAiMap">Gerar mapa detalhado</UiButton>
+              <PlansUsageNotice feature="mindmap_ai" :usage="usage" class="text-center" />
+            </div>
           </template>
         </UiEmptyState>
 
@@ -59,7 +62,10 @@
                 {{ item.type }}
               </span>
             </div>
-            <UiButton size="sm" @click="confirmRegenerate = true">Gerar de novo</UiButton>
+            <span class="flex flex-wrap items-center justify-end gap-2">
+              <PlansUsageNotice feature="mindmap_ai" :usage="usage" />
+              <UiButton size="sm" :disabled="usage.atLimit('mindmap_ai')" @click="confirmRegenerate = true">Gerar de novo</UiButton>
+            </span>
           </div>
           <div class="relative flex-1 overflow-hidden rounded-card border border-line-strong bg-subtle">
             <TopicMindMapRenderer :data="aiMap" :color-by-type="true" @node-click="handleNodeClick" />
@@ -114,6 +120,8 @@ const selectedNode = ref<MindMapNode | null>(null)
 // The AI map: the paid plan, the trial (RN-03) and a Free account whose trial opens on the click (RF-F7b)
 const isPro = computed(() => auth.hasProAccess || auth.opensTrialOnUse)
 const proName = useProName(() => !isPro.value)
+// The paid plan's month of maps (prd-uso-justo RF-F3): /usage once per opening, only for the paid plan
+const usage = useFeatureUsage()
 
 const LEVELS = [{ key: 'auto', label: 'Automático' }, { key: 'ai', label: 'Detalhado (IA)' }]
 // The same tokens of the branches (useMindMap)
@@ -153,6 +161,7 @@ async function fetchData() {
 }
 
 async function generateAiMap() {
+  if (usage.atLimit('mindmap_ai')) return
   generating.value = true
   try {
     // 202 + job polled until done (RF-30)
@@ -206,4 +215,5 @@ async function createCardFromNode() {
 watch(() => props.topicId, () => {
   if (props.topicId) fetchData()
 }, { immediate: true })
+onMounted(() => { void usage.fetchUsageIfPaid() })
 </script>

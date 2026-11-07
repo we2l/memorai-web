@@ -1,5 +1,12 @@
 import type { CatalogPlan, PlanCatalog, PlanKey } from '~/types'
 
+const countFormatter = new Intl.NumberFormat('pt-BR')
+
+/** "1.500": the catalog's numbers with the thousands separator. */
+function formatCount(n: number): string {
+  return countFormatter.format(n)
+}
+
 function capitalize(text: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1)
 }
@@ -32,14 +39,15 @@ export function planBenefitLines(catalog: PlanCatalog | null, planKey: PlanKey):
   return Object.entries(catalog.features).flatMap(([key, f]) => {
     const limit = plan.limits[key]
     if (limit === 0 || limit === undefined) return []
-    if (limit === null) return [planKey === 'free' ? `${capitalize(f.label)}: ilimitado` : f.pro_benefit]
+    // null is only for what costs no AI (RN-1, prd-uso-justo): never "ilimitado" for the AI of the paid plan
+    if (limit === null) return [`${capitalize(f.label)}: sem limite`]
 
     const detail = limitDetail(plan, key)
-    return [`${capitalize(f.label)}: ${limit} ${f.unit}${detail ? ` (${detail})` : ''}`]
+    return [`${capitalize(f.label)}: ${formatCount(limit)} ${f.unit}${detail ? ` (${detail})` : ''}`]
   })
 }
 
-/** Comparison table of /planos: features x plans of the catalog, with "Ilimitado" and the unit ("por mês"). */
+/** Comparison table of /planos: features x plans of the catalog, with the number and the unit ("400 por mês"). */
 export function planComparison(catalog: PlanCatalog | null): PlanComparisonRow[] {
   if (!catalog) return []
   return Object.entries(catalog.features).map(([key, f]) => ({
@@ -48,7 +56,7 @@ export function planComparison(catalog: PlanCatalog | null): PlanComparisonRow[]
     cells: catalog.plans.map((plan) => {
       const limit = plan.limits[key]
       if (limit === 0 || limit === undefined) return { plan: plan.key, text: 'Não incluído', detail: null, included: false }
-      return { plan: plan.key, text: limit === null ? 'Ilimitado' : `${limit} ${f.unit}`, detail: limitDetail(plan, key), included: true }
+      return { plan: plan.key, text: limit === null ? 'Sem limite' : `${formatCount(limit)} ${f.unit}`, detail: limitDetail(plan, key), included: true }
     }),
   }))
 }

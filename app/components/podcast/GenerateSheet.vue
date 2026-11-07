@@ -34,6 +34,7 @@
       </div>
 
       <UiRadioGroup v-model="contentMode" label="Conteúdo" :options="modes" variant="cards" :columns="3" @update:model-value="selectMode" />
+      <PlansUsageNotice feature="podcast" :usage="usage" />
     </div>
 
     <template #footer>

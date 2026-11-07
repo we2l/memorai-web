@@ -16,14 +16,18 @@
           :icon-left="Sparkles"
           :icon-tone="primary === 'generate' ? undefined : 'action'"
           block
-          :disabled="busy"
+          :disabled="busy || spent"
           data-testid="panel-generate"
           @click="$emit('generate')"
         >
           Gerar cards {{ partWord }} com IA
         </UiButton>
-        <p class="text-label text-fg-muted">{{ quotaText }}</p>
+        <!-- The paid plan from 80% of the month (prd-uso-justo RF-F3): the line of the quota instead -->
+        <PlansUsageNotice v-if="usage?.notice('cards_ai')" feature="cards_ai" :usage="usage" />
+        <p v-else class="text-label text-fg-muted">{{ quotaText }}</p>
       </template>
+      <!-- The paid plan at the limit: the day it starts again, never "Ver planos" (RN-3) -->
+      <p v-else-if="paid" class="text-meta text-fg" role="status" data-testid="usage-notice" data-kind="limit">{{ paidSpentText }}</p>
       <p v-else class="text-meta text-fg">
         {{ spentText }} <UiLink to="/planos">Ver planos</UiLink>
       </p>
@@ -62,7 +66,7 @@
           <UiLink :to="libraryTo" standalone data-testid="panel-library">Ver {{ total === 1 ? 'o card' : `os ${total} cards` }}</UiLink>
           <span class="flex gap-1">
             <UiIconButton :icon="Plus" label="Criar card" size="sm" @click="$emit('create-card')" />
-            <UiIconButton v-if="canGenerate.ok" :icon="Sparkles" :label="`Gerar mais cards com IA (${quotaShort})`" size="sm" :disabled="busy" @click="$emit('generate')" />
+            <UiIconButton v-if="canGenerate.ok" :icon="Sparkles" :label="`Gerar mais cards com IA (${quotaShort})`" size="sm" :disabled="busy || spent" @click="$emit('generate')" />
           </span>
         </div>
       </div>
@@ -96,6 +100,8 @@ const props = defineProps<{
   primary?: 'review' | 'generate' | null
   /** Inside the phone's sheet (the sheet already says the title) */
   inSheet?: boolean
+  /** The screen's /usage (the paid plan's 80% line and limit, prd-uso-justo RF-F3) */
+  usage?: ReturnType<typeof useFeatureUsage>
 }>()
 
 defineEmits<{
@@ -124,13 +130,17 @@ const spentText = computed(() => {
   if (auth.onTrial) return 'Você usou as gerações de cards do teste.'
   return auth.user?.plan === 'pro' ? 'Você usou as gerações de cards do mês.' : 'Os cards com IA não entram no plano Grátis.'
 })
+// The paid plan has a monthly quota too (prd-uso-justo RF-F1): never "sem limite" for the AI
+const paid = computed(() => auth.user?.plan === 'pro' && !auth.onTrial)
+const spent = computed(() => !!props.usage?.atLimit('cards_ai'))
+const paidSpentText = computed(() => props.usage?.notice('cards_ai')?.text ?? `Você usou as gerações de cards deste mês. A contagem recomeça em ${nextMonthStartLabel()}.`)
 const quotaShort = computed(() => {
   const left = canGenerate.value.remaining
-  return left == null ? 'sem limite no seu plano' : `${left} ${left === 1 ? 'geração restante' : 'gerações restantes'} no ${period.value}`
+  return left == null ? 'usa 1 geração' : `${left} ${left === 1 ? 'geração restante' : 'gerações restantes'} no ${period.value}`
 })
 const quotaText = computed(() => {
   const left = canGenerate.value.remaining
-  const uses = left == null ? 'Usa 1 geração (sem limite no seu plano)' : `Usa 1 das suas ${left} ${left === 1 ? 'geração' : 'gerações'} do ${period.value}`
+  const uses = left == null ? 'Usa 1 geração' : `Usa 1 das suas ${left} ${left === 1 ? 'geração' : 'gerações'} do ${period.value}`
   return `${uses} · cerca de 15 cards · você revisa antes de salvar`
 })
 

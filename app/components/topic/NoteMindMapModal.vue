@@ -7,17 +7,18 @@
     </div>
 
     <!-- No map, Free after the trial -->
-    <div v-else-if="!mapData && !canGenerate" class="flex h-64 flex-col items-center justify-center gap-3 text-center">
+    <div v-else-if="!mapData && !canGenerate && !usage.paid.value" class="flex h-64 flex-col items-center justify-center gap-3 text-center">
       <Lock class="size-7 text-fg-muted" aria-hidden="true" />
       <p class="text-body text-fg">Gere um mapa mental com os conceitos desta nota</p>
       <UiButton variant="primary" to="/planos" @click="modelValue = false">Conhecer o {{ proName }}</UiButton>
     </div>
 
     <!-- No map, the paid plan, the trial or a trial that opens on this click -->
-    <div v-else-if="!mapData && canGenerate && !generating" class="flex h-64 flex-col items-center justify-center gap-3 text-center">
+    <div v-else-if="!mapData && !generating" class="flex h-64 flex-col items-center justify-center gap-3 text-center">
       <Brain class="size-7 text-action-fg" aria-hidden="true" />
       <p class="text-body text-fg">Extraia conceitos, definições e exemplos desta nota em um mapa mental</p>
-      <UiButton variant="primary" @click="generate">Gerar mapa mental</UiButton>
+      <UiButton variant="primary" :disabled="usage.atLimit('mindmap_ai')" @click="generate">Gerar mapa mental</UiButton>
+      <PlansUsageNotice feature="mindmap_ai" :usage="usage" />
     </div>
 
     <!-- Generating -->
@@ -35,7 +36,10 @@
             {{ type }}
           </span>
         </div>
-        <UiButton size="sm" @click="regenerate">Gerar de novo</UiButton>
+        <span class="flex flex-wrap items-center justify-end gap-2">
+          <PlansUsageNotice feature="mindmap_ai" :usage="usage" />
+          <UiButton size="sm" :disabled="usage.atLimit('mindmap_ai')" @click="regenerate">Gerar de novo</UiButton>
+        </span>
       </div>
       <div class="relative h-80 overflow-hidden rounded-row border border-line-strong bg-subtle sm:h-96">
         <TopicMindMapRenderer :data="mapData" :color-by-type="true" @node-click="handleNodeClick" />
@@ -80,6 +84,9 @@ const mapId = ref<string | null>(null)
 const serverCanGenerate = ref<boolean | null>(null)
 const canGenerate = computed(() => serverCanGenerate.value ?? (auth.hasProAccess || auth.opensTrialOnUse))
 const proName = useProName()
+// The paid plan's month of maps (prd-uso-justo RF-F3): /usage once per opening; at the limit the paid plan sees
+// the day it starts again, never "Conhecer o Intensivo" (RN-3)
+const usage = useFeatureUsage()
 
 const showCardCreate = ref(false)
 const formId = useId()
@@ -112,6 +119,7 @@ async function fetchMap() {
 }
 
 async function generate() {
+  if (usage.atLimit('mindmap_ai')) return
   generating.value = true
   try {
     // 202 + job polled until done (RF-30)
@@ -155,6 +163,8 @@ async function createCard() {
 }
 
 watch(modelValue, (open) => {
-  if (open) fetchMap()
+  if (!open) return
+  fetchMap()
+  void usage.fetchUsageIfPaid()
 })
 </script>

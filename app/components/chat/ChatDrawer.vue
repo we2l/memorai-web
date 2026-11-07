@@ -55,18 +55,21 @@
     </div>
 
     <template #footer>
-      <form class="flex w-full items-end gap-2" @submit.prevent="handleSend">
-        <UiInput
-          ref="inputRef"
-          v-model="message"
-          label="Sua dúvida"
-          hide-label
-          class="flex-1"
-          placeholder="Digite sua dúvida..."
-          :disabled="chat.sending"
-        />
-        <UiButton type="submit" variant="primary" :icon-left="Send" :disabled="!message.trim() || chat.sending" aria-label="Enviar mensagem" />
-      </form>
+      <div class="flex w-full flex-col gap-2">
+        <PlansUsageNotice feature="agent_chat" :usage="usage" />
+        <form class="flex w-full items-end gap-2" @submit.prevent="handleSend">
+          <UiInput
+            ref="inputRef"
+            v-model="message"
+            label="Sua dúvida"
+            hide-label
+            class="flex-1"
+            placeholder="Digite sua dúvida..."
+            :disabled="chat.sending || spent"
+          />
+          <UiButton type="submit" variant="primary" :icon-left="Send" :disabled="!message.trim() || chat.sending || spent" aria-label="Enviar mensagem" />
+        </form>
+      </div>
     </template>
   </UiSheet>
 </template>
@@ -89,6 +92,10 @@ const message = ref('')
 const showHistory = ref(false)
 const inputRef = ref<{ focus: () => void } | null>(null)
 const endRef = ref<HTMLElement | null>(null)
+
+// The paid plan's month of questions (prd-uso-justo RF-F3): /usage once per opening, counted here per answer
+const usage = useFeatureUsage()
+const spent = computed(() => usage.atLimit('agent_chat'))
 
 // right side from 768 px (same breakpoint as the TopNav)
 const wide = ref(false)
@@ -135,11 +142,12 @@ function sendChip(text: string) {
 }
 
 async function handleSend() {
-  if (!message.value.trim() || chat.sending) return
+  if (!message.value.trim() || chat.sending || spent.value) return
   const msg = message.value
   message.value = ''
   try {
     await chat.sendMessage(msg)
+    usage.countUse('agent_chat')
   } catch (e) {
     message.value = msg
     reportApiError(e, { error: 'Erro ao enviar mensagem.' })
@@ -173,6 +181,7 @@ watch(() => chat.isOpen, async (open) => {
     chat.draft = ''
   }
   if (!chat.conversations.length) void chat.fetchConversations()
+  void usage.fetchUsageIfPaid()
   await nextTick()
   // rAF: the sheet focuses its first control; the input wins
   requestAnimationFrame(() => inputRef.value?.focus())

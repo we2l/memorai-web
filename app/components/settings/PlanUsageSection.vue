@@ -37,7 +37,8 @@
           <span class="min-w-0 flex-1 basis-56 text-body text-fg-strong">{{ row.label }}</span>
           <UiProgressBar v-if="row.limit" class="w-32" :value="row.used" :max="row.limit" :label="`${row.label}: ${row.used} de ${row.limit} ${row.unit}`" />
           <span class="ml-auto w-28 text-right text-meta text-fg-muted tabular-nums">
-            <template v-if="row.limit === null"><span class="font-semibold text-fg-strong">{{ row.used }}</span> · ilimitado</template>
+            <!-- null only for what costs no AI (prd-uso-justo RN-1): just the count -->
+            <template v-if="row.limit === null"><span class="font-semibold text-fg-strong">{{ row.used }}</span> {{ row.used === 1 ? 'usado' : 'usados' }}</template>
             <template v-else-if="row.limit === 0">no {{ proName }}</template>
             <template v-else><span class="font-semibold text-fg-strong">{{ row.used }}</span> de {{ row.limit }}</template>
           </span>

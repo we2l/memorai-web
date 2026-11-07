@@ -28,11 +28,11 @@ function catalog(installments = 1) {
           annual: { amount_cents: 23990, label: 'R$ 239,90/ano', monthly_equivalent_cents: 1999, installments_max: installments, savings_cents: 11890 },
         },
         highlights: ['Tudo do Grátis'],
-        limits: { cards_ai: null },
+        limits: { cards_ai: 400 },
         extras: { ...extras, podcast_format: 'full', podcast_max_minutes: 15 },
       },
     ],
-    features: { cards_ai: { label: 'gerações de cards com IA', unit: 'por mês', pro_benefit: 'Gerações ilimitadas' } },
+    features: { cards_ai: { label: 'gerações de cards com IA', unit: 'por mês', pro_benefit: '400 gerações por mês' } },
   }
 }
 
@@ -65,7 +65,8 @@ describe('PlanCards', () => {
     expect(wrapper.find('[data-testid="plan-pro-price"]').text().replace(/\s/g, ' ')).toBe('R$ 239,90/ano')
     expect(wrapper.find('[data-testid="plan-pro-note"]').text().replace(/\s/g, ' ')).toBe('R$ 19,99 por mês, cobrado uma vez por ano. No Pix ou à vista no cartão')
     expect(pro.text()).toContain('Tudo do Grátis')
-    expect(pro.text()).toContain('Gerações ilimitadas')
+    expect(pro.text()).toContain('Gerações de cards com IA: 400 por mês')
+    expect(pro.text()).not.toMatch(/ilimitad/i)
     expect(pro.text()).toContain('AÇÃO DO PRO')
     expect(wrapper.find('[data-testid="billing-savings"]').text().replace(/\s/g, ' ')).toContain('R$ 118,90')
   })
@@ -129,7 +130,7 @@ describe('PlanCompareTable', () => {
     expect(wrapper.findAll('th[scope="col"]').map(th => th.text())).toEqual(['Recurso', 'Grátis', 'Pro'])
     const row = wrapper.find('[data-testid="compare-cards_ai"]')
     expect(row.find('th[scope="row"]').text()).toBe('Gerações de cards com IA')
-    expect(row.findAll('td').map(td => td.text())).toEqual(['10 por mês', 'Ilimitado'])
+    expect(row.findAll('td').map(td => td.text())).toEqual(['10 por mês', '400 por mês'])
   })
 })
 

@@ -17,7 +17,7 @@ const catalog = {
   period_timezone: 'America/Sao_Paulo',
   plans: [{ key: 'pro', name: 'Intensivo' }],
   features: {
-    quiz_ai: { label: 'simulados do catálogo', unit: 'por mês', pro_benefit: 'Simulados ilimitados' },
+    quiz_ai: { label: 'simulados do catálogo', unit: 'por mês', pro_benefit: '40 simulados por mês' },
     podcast: { label: 'podcasts', unit: 'por mês', pro_benefit: '5 podcasts completos' },
   },
 }
@@ -42,7 +42,7 @@ describe('UpgradeModal', () => {
 
     expect(apiMock).toHaveBeenCalledWith('/plans')
     expect(document.body.textContent).toContain('Você usou 1 de 1 simulados do catálogo deste mês')
-    expect(document.body.textContent).toContain('No Intensivo: Simulados ilimitados.')
+    expect(document.body.textContent).toContain('No Intensivo: 40 simulados por mês.')
     expect(document.body.textContent).toContain('Ver planos')
   })
 
@@ -50,7 +50,7 @@ describe('UpgradeModal', () => {
     await mountModal({ feature: 'podcast', used: 5, limit: 5, planRequired: null, resetsAt: '2026-10-01T00:00:00-03:00' })
 
     expect(document.body.textContent).not.toContain('Ver planos')
-    expect(document.body.textContent).toContain('Renova em 01/10.')
+    expect(document.body.textContent).toContain('A contagem recomeça em 01/10.')
     expect(document.body.textContent).toContain('Entendi')
   })
 
@@ -67,7 +67,7 @@ describe('UpgradeModal', () => {
     useAuthStore().user = { plan: 'free', trial: { status: 'used', started_at: '2026-10-01T12:00:00Z', ends_at: '2026-10-08T12:00:00Z' } } as never
     await mountModal({ feature: 'quiz_ai', used: 0, limit: 0, planRequired: 'pro' })
     expect(document.body.textContent).toContain('Seu teste do Intensivo acabou')
-    expect(document.body.textContent).toContain('Seus cadernos, notas e cards continuam com você. No Intensivo: Simulados ilimitados.')
+    expect(document.body.textContent).toContain('Seus cadernos, notas e cards continuam com você. No Intensivo: 40 simulados por mês.')
   })
 
   it('"used" sem teste (ex-assinante): o título de sempre, sem falar de teste', async () => {

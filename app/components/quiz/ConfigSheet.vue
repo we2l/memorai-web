@@ -64,6 +64,7 @@
 
     <template #footer="{ close }">
       <p v-if="quotaText" class="mr-auto text-label text-fg-muted" data-testid="quiz-quota">{{ quotaText }}</p>
+      <PlansUsageNotice v-else feature="quiz_ai" :usage="usage" class="mr-auto" />
       <UiButton variant="ghost" @click="close">Cancelar</UiButton>
       <UiButton variant="primary" type="submit" form="quiz-config" :loading="generating" :disabled="!canSubmit" data-testid="quiz-submit">
         {{ submitLabel }}
@@ -208,7 +209,8 @@ const usage = useFeatureUsage()
 const quota = computed(() => usage.usage.value?.features?.quiz_ai ?? null)
 const quotaText = computed(() => {
   const q = quota.value
-  if (!q || !q.limit || usage.opensTrial('quiz_ai')) return null
+  // The paid plan: only the 80% line and the limit (PlansUsageNotice, prd-uso-justo RF-F3)
+  if (!q || !q.limit || usage.opensTrial('quiz_ai') || usage.paid.value) return null
   return `${q.used} de ${q.limit} ${q.limit === 1 ? 'geração' : 'gerações'} ${usage.periodLabel.value}`
 })
 const quotaSpent = computed(() => !usage.canUse('quiz_ai'))
@@ -216,18 +218,18 @@ const quotaSpent = computed(() => !usage.canUse('quiz_ai'))
 const selectedTypes = computed(() => (Object.keys(types) as (keyof typeof types)[]).filter(t => types[t]))
 const quantity = computed(() => Number(tab.value === 'exam' ? examCount.value : count.value))
 const canSubmit = computed(() => {
-  if (!topicId.value || blocked.value || generating.value) return false
+  if (!topicId.value || blocked.value || generating.value || usage.atLimit('quiz_ai')) return false
   if (tab.value === 'exam') return !isFree.value
   return selectedTypes.value.length > 0
 })
 const submitLabel = computed(() => {
   if (generating.value) return 'Gerando...'
-  if (quotaSpent.value) return `Ver o ${proName.value}`
+  if (quotaSpent.value && !usage.paid.value) return `Ver o ${proName.value}`
   return tab.value === 'exam' ? `Gerar simulado de ${quantity.value}` : `Gerar ${quantity.value} questões`
 })
 
 function openUpgrade() {
-  window.dispatchEvent(new CustomEvent('feature-limit-reached', { detail: { feature: 'quiz_ai', planRequired: 'pro' } }))
+  window.dispatchEvent(new CustomEvent('feature-limit-reached', { detail: usage.limitDetail('quiz_ai') }))
 }
 
 const generating = ref(false)

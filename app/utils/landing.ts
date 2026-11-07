@@ -326,7 +326,10 @@ export function landingPodcastLine(catalog: PlanCatalog | null): string {
   const name = paidPlanName(catalog)
   const feature = catalog?.features?.podcast
   const trial = catalogTrial(catalog)
-  const own = feature?.pro_benefit ? `No ${name}: ${feature.pro_benefit.charAt(0).toLowerCase()}${feature.pro_benefit.slice(1)} ${feature.unit}.` : `Os episódios fazem parte do ${name}.`
+  // The benefit may already say the period ("8 episódios por mês, de até 8 min", prd-uso-justo RF-B2)
+  const benefit = feature?.pro_benefit
+  const unit = benefit && feature?.unit && !benefit.includes(feature.unit) ? ` ${feature.unit}` : ''
+  const own = benefit ? `No ${name}: ${benefit.charAt(0).toLowerCase()}${benefit.slice(1)}${unit}.` : `Os episódios fazem parte do ${name}.`
   return trial?.excludes?.includes('podcast') ? `${own} O teste de ${trial.days} dias não inclui o podcast.` : own
 }
 

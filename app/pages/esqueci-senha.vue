@@ -11,7 +11,10 @@
     </p>
 
     <form v-else class="flex flex-col gap-4" novalidate @submit.prevent="submit">
-      <UiInput id="email" v-model="email" label="E-mail" type="email" autocomplete="email" inputmode="email" :error="error || undefined" />
+      <UiInput id="email" v-model="email" label="E-mail" type="email" autocomplete="email" inputmode="email" :error="emailError || undefined" />
+      <!-- Turnstile (M4): invisible unless Cloudflare asks for a click -->
+      <div ref="captchaEl" data-testid="forgot-captcha" />
+      <p v-if="captchaError" role="alert" class="text-meta font-medium text-danger" data-testid="forgot-captcha-error">{{ captchaError }}</p>
       <UiButton variant="primary" type="submit" block :loading="loading">Enviar link</UiButton>
     </form>
 
@@ -25,6 +28,7 @@
 // "Esqueci a senha" v4 (prd-4g-conta-onboarding-v3 RF-F14). Prerendered.
 import { fieldErrors, retryAfterSeconds, waitLabel } from '~/utils/authMessages'
 import { getErrorStatus } from '~/utils/apiErrors'
+import { CAPTCHA_MESSAGES } from '~/utils/turnstile'
 
 definePageMeta({ layout: 'auth' })
 useHead({ title: 'Esqueci a senha · Baigi' })
@@ -33,30 +37,49 @@ const { $api } = useNuxtApp()
 
 const email = ref('')
 const sentTo = ref('')
-const error = ref('')
+const emailError = ref('')
+const captchaError = ref('')
 const loading = ref(false)
 const sent = ref(false)
+const captcha = useTurnstile()
+const captchaEl = ref<HTMLElement | null>(null)
+
+onMounted(() => captcha.render(captchaEl.value))
 
 async function submit() {
-  error.value = ''
+  emailError.value = ''
+  captchaError.value = ''
   const address = email.value.trim()
   if (!address) {
-    error.value = 'Informe seu e-mail.'
+    emailError.value = 'Informe seu e-mail.'
     return
   }
 
   loading.value = true
+  let captchaToken: string | undefined
   try {
-    await $api('/forgot-password', { method: 'POST', body: { email: address } })
+    captchaToken = await captcha.getToken()
+  } catch {
+    captchaError.value = captcha.error.value || CAPTCHA_MESSAGES.load
+    loading.value = false
+    return
+  }
+  try {
+    await $api('/forgot-password', { method: 'POST', body: { email: address, ...(captchaToken ? { captcha_token: captchaToken } : {}) } })
     sentTo.value = address
     sent.value = true
   } catch (e) {
     const status = getErrorStatus(e)
-    if (status === 429) error.value = `Muitos pedidos. Tente de novo em ${waitLabel(retryAfterSeconds(e))}.`
-    else if (status === 422) error.value = fieldErrors(e).email || 'Confira o e-mail.'
-    else error.value = 'Não foi possível enviar o link. Tente de novo.'
+    if (status === 429) emailError.value = `Muitos pedidos. Tente de novo em ${waitLabel(retryAfterSeconds(e))}.`
+    else if (status === 422) {
+      const fields = fieldErrors(e)
+      if (fields.captcha_token) captchaError.value = fields.captcha_token
+      else emailError.value = fields.email || 'Confira o e-mail.'
+    } else emailError.value = 'Não foi possível enviar o link. Tente de novo.'
   } finally {
     loading.value = false
+    // Single-use token: a new check for the next try (the form is gone once sent)
+    if (!sent.value) captcha.reset()
   }
 }
 </script>

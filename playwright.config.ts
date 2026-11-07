@@ -7,7 +7,8 @@ export default defineConfig({
   retries: 0,
   workers: 1,
   use: {
-    baseURL: 'http://localhost:3000',
+    // E2E_WEB_ORIGIN: another build on a free port when the 3000 is taken (a worktree)
+    baseURL: process.env.E2E_WEB_ORIGIN || 'http://localhost:3000',
     headless: true,
     screenshot: 'only-on-failure',
     trace: 'on-first-retry',

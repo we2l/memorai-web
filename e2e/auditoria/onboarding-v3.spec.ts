@@ -116,7 +116,7 @@ test.describe('Sem confirmar o e-mail', () => {
     await expect(page.getByRole('radio', { name: 'Usar um material de exemplo' })).toBeChecked()
     await page.getByRole('radio', { name: 'Colar um texto' }).check()
     const notice = page.locator('#verify-email-notice')
-    await expect(notice).toContainText('Confirme seu e-mail para usar a IA')
+    await expect(notice).toContainText(/Confirme seu e-mail para usar (a prévia grátis d)?a IA/)
     await expect(page.getByRole('button', { name: 'Reenviar e-mail' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Já confirmei' })).toBeVisible()
     await expect(page.getByTestId('content-primary')).toBeDisabled()

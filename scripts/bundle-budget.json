@@ -68,12 +68,12 @@
     "/comecar": {
       "file": "pages/comecar.vue",
       "gzKb": 6.5,
-      "closureGzKb": 31
+      "closureGzKb": 32.5
     },
     "/configuracoes": {
       "file": "pages/configuracoes.vue",
       "gzKb": 9.5,
-      "closureGzKb": 34.5
+      "closureGzKb": 36
     },
     "/entrar": {
       "file": "pages/entrar.vue",
@@ -83,7 +83,7 @@
     "/criar-conta": {
       "file": "pages/criar-conta.vue",
       "gzKb": 2,
-      "closureGzKb": 13
+      "closureGzKb": 14.5
     }
   },
   "entryLayoutForbidden": {

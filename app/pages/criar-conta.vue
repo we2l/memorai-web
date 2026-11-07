@@ -15,7 +15,7 @@
       <span class="h-px flex-1 bg-line" />
     </div>
 
-    <form class="flex flex-col gap-4" novalidate @submit.prevent="submit">
+    <form class="flex flex-col gap-4" novalidate @focusin.once="captcha.render(captchaEl)" @submit.prevent="submit">
       <UiInput id="name" v-model="form.name" label="Nome" autocomplete="name" :error="errors.name" />
       <UiInput id="email" v-model="form.email" label="E-mail" type="email" autocomplete="email" inputmode="email" :error="errors.email" />
       <AuthPasswordInput id="password" v-model="form.password" label="Senha" autocomplete="new-password" :hint="hint" :error="errors.password" />
@@ -33,6 +33,9 @@
         <p v-if="errors.accept_terms" id="accept-terms-error" role="alert" class="text-meta font-medium text-danger">{{ errors.accept_terms }}</p>
       </div>
 
+      <!-- Turnstile (M3): invisible unless Cloudflare asks for a click; the Google button above has no captcha -->
+      <div ref="captchaEl" class="contents" data-testid="signup-captcha" />
+
       <p v-if="errors.general" role="alert" class="text-meta font-medium text-danger" data-testid="signup-error">{{ errors.general }}</p>
 
       <UiButton variant="primary" type="submit" block :loading="loading">Criar conta</UiButton>
@@ -49,6 +52,7 @@
 // strength in text, the acceptance of the Terms unchanged. The API takes the sign-up without the confirmation.
 import { MIN_PASSWORD, fieldErrors, passwordHint } from '~/utils/authMessages'
 import { getErrorStatus } from '~/utils/apiErrors'
+import { CAPTCHA_MESSAGES } from '~/utils/turnstile'
 
 definePageMeta({ layout: 'auth' })
 useHead({ title: 'Criar conta · Baigi' })
@@ -60,6 +64,10 @@ const form = reactive({ name: '', email: '', password: '', accept_terms: false }
 const errors = reactive<Record<string, string>>({})
 const loading = ref(false)
 const hint = computed(() => (errors.password ? undefined : passwordHint(form.password)))
+const captcha = useTurnstile()
+const captchaEl = ref<HTMLElement | null>(null)
+
+// The check starts when the person starts filling the form (the script is not fetched for a visit that only looks)
 
 async function submit() {
   for (const k of Object.keys(errors)) delete errors[k]
@@ -70,21 +78,39 @@ async function submit() {
   if (Object.keys(errors).length) return
 
   loading.value = true
+  let captchaToken: string | undefined
+  try {
+    captchaToken = await captcha.getToken(captchaEl.value)
+  } catch {
+    errors.general = captcha.error.value || CAPTCHA_MESSAGES.load
+    loading.value = false
+    return
+  }
   try {
     // Banner choice made before the account existed (prd-analytics-posthog RF-B04)
-    await auth.register({ ...form, name: form.name.trim(), email: form.email.trim(), ...useConsent().signupPayload() })
+    await auth.register({
+      ...form,
+      name: form.name.trim(),
+      email: form.email.trim(),
+      ...useConsent().signupPayload(),
+      ...(captchaToken ? { captcha_token: captchaToken } : {}),
+    })
     await navigateTo(postAuthRedirect(auth.user, router.currentRoute.value.query.redirect))
   } catch (e) {
     const status = getErrorStatus(e)
     if (status === 429) {
       errors.general = 'Muitas contas criadas daqui. Tente de novo mais tarde.'
     } else if (status === 422) {
-      Object.assign(errors, fieldErrors(e))
+      const { captcha_token: captchaError, ...fields } = fieldErrors(e)
+      Object.assign(errors, fields)
+      if (captchaError) errors.general = captchaError
     } else {
       errors.general = 'Não foi possível criar a conta agora. Tente de novo.'
     }
   } finally {
     loading.value = false
+    // The token is single use: a new check for the next try
+    captcha.reset()
   }
 }
 </script>

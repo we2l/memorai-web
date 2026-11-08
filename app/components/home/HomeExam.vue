@@ -1,5 +1,5 @@
 <template>
-  <UiSection v-if="exam" aria-label="Próxima prova" data-testid="home-exam">
+  <UiSection v-if="exam" aria-label="Próxima prova" data-testid="home-exam" class="flex flex-col gap-3">
     <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
       <div class="min-w-0">
         <p class="flex flex-wrap items-center gap-2 font-semibold text-fg-strong">
@@ -11,6 +11,15 @@
       </div>
       <UiLink to="/progresso#provas" standalone @click="track">Ver provas →</UiLink>
     </div>
+    <!-- The onboarding's exam stuck on the sample (prd-revisao-v5-fase-b RF-F12) -->
+    <LazyExamMoveOffer
+      v-if="offer?.move_offer"
+      :exam-id="offer.id"
+      :exam-title="offer.title"
+      :target="offer.move_offer"
+      origin="home"
+      @moved="examStore.fetchUpcoming()"
+    />
   </UiSection>
 </template>
 
@@ -24,6 +33,9 @@ const props = defineProps<{ exams: ExamUpcoming[] }>()
 const exam = computed(() => [...props.exams]
   .filter(e => e.days_remaining >= 0)
   .sort((a, b) => a.days_remaining - b.days_remaining)[0] ?? null)
+
+const offer = computed(() => props.exams.find(e => e.move_offer) ?? null)
+const examStore = useExamStore()
 
 const when = computed(() => {
   const d = exam.value?.days_remaining ?? 0

@@ -55,6 +55,15 @@ export interface FrontEventProps {
   settings_batch_size: { size: number }
   /** prd-revisao-v5-fase-a RF-F6 */
   settings_review_buttons: { mode: 'two' | 'four' }
+  /** prd-revisao-v5-fase-b */
+  settings_review_option: { field: 'review_swipe' | 'light_day' | 'pause_new_on_backlog', value: string }
+  backlog_plan_opened: { origin: 'home' | 'caderno' | 'review_end' | 'practice', overdue: number, has_plan: boolean }
+  backlog_plan_created: { days: number, cards: number }
+  backlog_plan_cancelled: Record<string, never>
+  backlog_new_resumed: { origin: 'home' | 'caderno' | 'review_end' | 'practice' }
+  review_card_paused: { lapses: number }
+  library_card_resumed: Record<string, never>
+  exam_move_offer: { action: 'moved' | 'dismissed', origin: 'home' | 'caderno' }
   /** prd-revisao-v5-fase-a RF-F9: the commitment before the sign-up */
   guest_commitment: { area: GuestAreaProp, goal_batches: number, has_exam: boolean }
   settings_section_open: { section: string }
@@ -93,7 +102,7 @@ export interface FrontEventProps {
   panel_review: { count: number }
   /** Material em partes (prd-4c-material-v3 4c-2) */
   part_nav: { direction: 'previous' | 'next', via: 'link' | 'key' }
-  library_filter: { filter: 'q' | 'state' | 'origin' | 'errors' | 'tag' | 'sort' | 'clear' }
+  library_filter: { filter: 'q' | 'state' | 'origin' | 'errors' | 'leech' | 'tag' | 'sort' | 'clear' }
   /** "Colar questão errada" (prd-questao-errada) */
   question_paste_opened: { origin: 'add' | 'library' | 'shortcut' }
   question_pasted: { count: number, edited: boolean, with_reason: boolean }

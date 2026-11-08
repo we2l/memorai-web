@@ -52,6 +52,29 @@
         <p v-else class="rounded-row bg-subtle px-4 py-6 text-center text-meta text-fg-muted">O verso é gerado automaticamente pelas lacunas.</p>
         <p v-if="hasOpenCloze" class="text-meta text-danger" role="alert">Falta fechar a lacuna com }} para salvar.</p>
 
+        <!-- How the review checks this card (prd-revisao-v5-fase-b RF-F8): editing a card that is not a cloze -->
+        <template v-if="isEdit && !hasCloze">
+          <UiRadioGroup v-model="form.answer_check" label="Como conferir na revisão" :options="checkOptions" data-testid="card-check" />
+          <UiRadioGroup
+            v-if="form.answer_check === 'true_false'"
+            v-model="form.tf_answer"
+            label="Gabarito"
+            :columns="2"
+            variant="cards"
+            :options="[{ value: 'certo', label: 'Certo' }, { value: 'errado', label: 'Errado' }]"
+            data-testid="card-check-key"
+          />
+          <UiInput
+            v-else-if="form.answer_check === 'typed'"
+            v-model="form.typed_answer"
+            label="Resposta esperada"
+            optional
+            hint="Vazio usa o verso. Acento, maiúscula e pontuação não contam."
+            maxlength="500"
+            data-testid="card-check-answer"
+          />
+        </template>
+
         <div class="flex flex-col gap-1.5">
           <span class="text-label font-medium text-fg">Etiquetas</span>
           <UiTagInput v-model="form.tags" placeholder="#difícil, #pegadinha, #prova2024..." />
@@ -106,7 +129,7 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{
   (e: 'created'): void
-  (e: 'updated', card?: { id: string; front: string; back: string }): void
+  (e: 'updated', card?: { id: string; front: string; back: string } & Partial<Pick<Flashcard, 'check' | 'answer_check' | 'check_answer'>>): void
   (e: 'local-save', card: { front: string; back: string; tags: string[]; frontAudioBlob: Blob | null; backAudioBlob: Blob | null }): void
 }>()
 const open = defineModel<boolean>({ required: true })
@@ -150,7 +173,16 @@ const form = reactive({
   backAudioBlob: null as Blob | null,
   existingFrontAudioUrl: null as string | null,
   existingBackAudioUrl: null as string | null,
+  /** '' = lembrar (self-rating) · true_false · typed */
+  answer_check: '' as '' | 'true_false' | 'typed',
+  tf_answer: 'certo' as 'certo' | 'errado',
+  typed_answer: '',
 })
+const checkOptions = [
+  { value: '', label: 'Lembrar', description: 'Você vê a resposta e diz se lembrou (padrão).' },
+  { value: 'true_false', label: 'Certo ou errado', description: 'Para afirmações, como no Cebraspe: responda antes de ver.' },
+  { value: 'typed', label: 'Digitar a resposta', description: 'Para respostas curtas: palavra, sigla, número.' },
+]
 
 function populateForm() {
   if (props.card) {
@@ -160,6 +192,9 @@ function populateForm() {
     form.tags = props.card.tags ?? []
     form.existingFrontAudioUrl = props.card.front_audio_url ?? null
     form.existingBackAudioUrl = props.card.back_audio_url ?? null
+    form.answer_check = props.card.answer_check ?? ''
+    form.tf_answer = props.card.check_answer === 'certo' ? 'certo' : 'errado'
+    form.typed_answer = props.card.answer_check === 'typed' ? props.card.check_answer ?? '' : ''
   } else {
     form.front = props.initialFront ?? ''
     form.back = props.initialBack ?? ''
@@ -226,6 +261,15 @@ const backPreview = computed(() => {
   return isEmpty(form.back) ? 'Sua resposta aqui…' : form.back
 })
 
+/** The check of the card (RF-B9): sent only when it changed, so an edit never wipes what the API resolved */
+function checkFields(): { answer_check?: 'true_false' | 'typed' | null; check_answer?: string | null } {
+  if (hasCloze.value) return {}
+  const check = form.answer_check || null
+  const answer = check === 'true_false' ? form.tf_answer : check === 'typed' ? form.typed_answer.trim() || null : null
+  if (check === (props.card?.answer_check ?? null) && answer === (props.card?.check_answer ?? null)) return {}
+  return { answer_check: check, check_answer: answer }
+}
+
 async function loadTopics() {
   try {
     const res = await $api<any>('/topics')
@@ -271,16 +315,18 @@ async function doSubmit(closeAfter: boolean) {
     if (form.backAudioBlob) back_audio_url = await uploadAudio(form.backAudioBlob)
 
     if (isEdit.value && props.card) {
-      await flashcardStore.update(props.card.id, {
+      const saved = await flashcardStore.update(props.card.id, {
         front: form.front,
         back: form.back,
         topic_id: form.topic_id,
         tags: form.tags.length ? form.tags : undefined,
         front_audio_url,
         back_audio_url,
+        ...checkFields(),
       })
       toast.show('Card atualizado!', 'success')
-      emit('updated', { id: props.card.id, front: form.front, back: form.back })
+      const fresh = (Array.isArray(saved) ? saved[0] : saved) as Flashcard | undefined
+      emit('updated', { id: props.card.id, front: form.front, back: form.back, check: fresh?.check ?? null, answer_check: fresh?.answer_check ?? null, check_answer: fresh?.check_answer ?? null })
       open.value = false
     } else {
       await $api('/flashcards', {

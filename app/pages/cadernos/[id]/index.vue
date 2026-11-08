@@ -40,6 +40,15 @@
           @exam="examOpen = true"
         />
 
+        <!-- The onboarding's exam, offered to this caderno of the person's own (prd-revisao-v5-fase-b RF-F12) -->
+        <LazyExamMoveOffer
+          v-if="summary.exam_offer"
+          :exam-id="summary.exam_offer.exam_id"
+          :exam-title="summary.exam_offer.title"
+          :target="{ topic_id: summary.topic.id, name: summary.topic.name }"
+          origin="caderno"
+          @moved="store.fetchSummary()"
+        />
         <CadernoNextStep v-if="showNextStep" :step="summary.next_step!" @go="kind => track('next_step_click', { kind })" />
 
         <template v-for="block in blocks" :key="block">
@@ -179,6 +188,8 @@ async function load(topicId: string) {
   if (s.session.count === 0 && consumeScopeCleared(topicId)) celebrating.value = true
 }
 
+// The backlog plan or the new cards changed the numbers (prd-revisao-v5-fase-b RF-F3)
+watch(useBacklogPlan().changed, () => { void store.fetchSummary() })
 watch(id, (v) => {
   // The tree (caderno switch, edit, delete) comes after the summary: it never competes with the first paint
   void load(v).then(() => { if (!topicStore.tree.length && !topicStore.loading) void topicStore.fetchTree() })
@@ -389,6 +400,7 @@ function openEdit() {
     id: s.topic.id, name: s.topic.name, depth: s.topic.depth, color: s.topic.color,
     learning_mode: s.topic.depth === 0 ? s.topic.learning_mode : null,
     target_language: t?.target_language ?? null, language_level: t?.language_level ?? null,
+    typed_answers: s.topic.depth === 0 ? !!s.topic.typed_answers : undefined,
   }
   dialogOpen.value = true
 }

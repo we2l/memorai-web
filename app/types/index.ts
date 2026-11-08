@@ -17,6 +17,10 @@ export interface User {
   review_batch_size?: number
   /** "Não lembrei / Lembrei" (two) or the 4 Anki buttons (prd-revisao-v5-fase-a RF-B1); absent = two */
   review_buttons?: 'two' | 'four'
+  /** Revisão v5, Fase B: new cards pause with a backlog, swipe to rate (off by default), the light weekday (0 = Sunday) */
+  pause_new_on_backlog?: boolean
+  review_swipe?: boolean
+  light_day?: number | null
   /** False for Google sign-ups that never defined a password (RF-B3). */
   has_password?: boolean
   /** The account has a Google identity (api #133; the id itself never comes) */
@@ -78,6 +82,13 @@ export interface Flashcard {
   difficulty: number
   reps: number
   lapses: number
+  /** "Esse card não está colando" (prd-revisao-v5-fase-b RF-B12) and the pause (RF-B13) */
+  is_leech?: boolean
+  suspended_at?: string | null
+  /** Certo/Errado or typed answer in the review (RF-B10); answer_check/check_answer are what the editor sets */
+  check?: CardCheck | null
+  answer_check?: 'true_false' | 'typed' | null
+  check_answer?: string | null
   learning_step_index: number | null
   is_learning: boolean
   created_at: string
@@ -104,6 +115,8 @@ export interface Stats {
   streak_extended_today?: boolean
   /** The weekly rest would cover a day missed now (prd-revisao-v5-fase-a RF-B3); absent on older API builds */
   streak_rest_available?: boolean
+  /** "Hoje" apart from "Atraso" (prd-revisao-v5-fase-b RF-B7) */
+  backlog?: BacklogState
   /** The study day the rest last covered (YYYY-MM-DD) */
   streak_rest_on?: string | null
   ratings_today: {
@@ -277,6 +290,9 @@ export interface UserSettings {
   review_batch_size?: number
   /** "Não lembrei / Lembrei" (two, the default) or the 4 Anki buttons */
   review_buttons?: 'two' | 'four'
+  pause_new_on_backlog?: boolean
+  review_swipe?: boolean
+  light_day?: number | null
 }
 
 /** GET /review/tomorrow (prd-retencao-lembretes §4.3). Dates in America/Sao_Paulo. */
@@ -290,6 +306,34 @@ export interface TomorrowForecast {
   reminder: { enabled: boolean; hour: number; suppressed: boolean }
 }
 
+export type CardCheck = { mode: 'true_false'; answer: 'certo' | 'errado' } | { mode: 'typed'; answer: string }
+
+/** The backlog of the person (prd-revisao-v5-fase-b RF-B7): the same in /stats, /review/backlog-stats and the session */
+export interface BacklogState {
+  /** Review cards due before today's study day */
+  overdue: number
+  /** Overdue + what is left of the plan */
+  pending: number
+  /** 2 lotes of the person's size */
+  threshold: number
+  /** The overdue cards are out of "Revisar hoje" */
+  active: boolean
+  new_paused: boolean
+  pause_new: boolean
+  plan: BacklogPlan | null
+}
+
+export interface BacklogPlan {
+  days: number
+  started_on: string
+  /** 1..days */
+  day: number
+  total: number
+  remaining: number
+  /** Cards of the plan due today */
+  today: number
+}
+
 export interface BacklogStats {
   overdue_count: number
   due_today_count: number
@@ -298,6 +342,7 @@ export interface BacklogStats {
   reviews_done_today: number
   new_cards_done_today: number
   suggest_survival_mode: boolean
+  backlog?: BacklogState
 }
 
 export interface ErrorPatterns {
@@ -777,6 +822,8 @@ export interface ExamUpcoming {
   topics: { id: string; name: string }[]
   podcast_suggestion: boolean
   projection?: ExamProjection | null
+  /** Covered only by the sample caderno: "Mover para {name}" (prd-revisao-v5-fase-b RF-B19) */
+  move_offer?: { topic_id: string; name: string } | null
 }
 
 export interface ExamCalendarDay {
@@ -950,17 +997,21 @@ export interface ScopeNextStep {
 
 /** GET /topics/{id}/summary (prd-4b-caderno-v3 RF-B1): everything the hub shows above the materials, aggregated. */
 export interface ScopeSummary {
-  topic: { id: string; name: string; color: string | null; depth: number; learning_mode: string | null; parent_id: string | null; is_sample?: boolean }
+  topic: { id: string; name: string; color: string | null; depth: number; learning_mode: string | null; parent_id: string | null; is_sample?: boolean; typed_answers?: boolean }
   /** Ancestors, from the root to the parent */
   path: { id: string; name: string }[]
   counts: { cards: number; materials: number; subjects: number }
   mastery: { percent: number | null; in_day: number; cards: number }
   questions: ScopeQuestions | null
   /** `count` = the "Revisar hoje · N" (the same as the list, Hoje and the session) */
-  session: { count: number; overdue: number; errors: number }
+  session: { count: number; overdue: number; errors: number; backlog?: number }
   can_quiz?: StudyGate
   can_podcast?: StudyGate
   exam: { id: string; title: string; days_remaining: number; cards_per_day: number | null; reta_final_active: boolean; projection?: ExamProjection | null } | null
+  /** The person's backlog (prd-revisao-v5-fase-b RF-B7) */
+  backlog?: BacklogState | null
+  /** The onboarding's exam stuck on the sample, offered to this caderno (prd-revisao-v5-fase-b RF-B19) */
+  exam_offer?: { exam_id: string; title: string; exam_date: string } | null
   next_step: ScopeNextStep | null
   listen: { id: string; title: string; duration_seconds: number | null } | null
   subjects: ScopeSubject[]

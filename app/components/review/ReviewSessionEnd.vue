@@ -21,6 +21,8 @@
 
     <div class="flex w-full flex-col gap-3">
       <slot name="tomorrow" />
+      <!-- The backlog left out of today (prd-revisao-v5-fase-b RF-F4) -->
+      <LazyBacklogLine v-if="backlog" :backlog="backlog" origin="review_end" class="items-center" />
       <LazyReviewRetentionHint v-if="retention" />
     </div>
 
@@ -35,6 +37,7 @@
 // End of the session (prd-4d-revisao-v3 RF-F6): the layout of the batch end with the numbers of the whole
 // session, tomorrow's forecast and the reminder, the retention suggestion when it applies, "Voltar a
 // {escopo}" (the primary) and "Reforçar erros (N)" in the same slice.
+import type { BacklogState } from '~/types'
 import type { BatchSummary } from '~/composables/useReviewBatches'
 import type { GoalInfo, StreakInfo } from '~/components/review/ReviewBatchEnd.vue'
 
@@ -51,6 +54,8 @@ const props = defineProps<{
   errorsCount?: number | null
   /** Ask the retention suggestion (not in blitz, not in an errors-only session) */
   retention?: boolean
+  /** /stats.backlog after the session (prd-revisao-v5-fase-b RF-F4) */
+  backlog?: BacklogState | null
 }>()
 
 const title = computed(() => (props.scopeLabel ? `${props.scopeLabel} em dia` : 'Revisão de hoje concluída'))

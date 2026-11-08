@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col items-center gap-3 text-center" aria-live="polite">
-    <UiBaigiMascot :size="72" :state="status === 'loading' ? 'thinking' : 'idle'" />
+    <UiBaigiMascot :size="72" priority :state="status === 'loading' ? 'thinking' : 'idle'" />
 
     <template v-if="status === 'loading'">
       <h1 class="text-page-title-sm text-fg-strong">Desativando…</h1>

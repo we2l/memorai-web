@@ -7,7 +7,7 @@
   >
     <div class="flex items-center gap-3 py-2 pr-1.5 pl-2.5">
       <span class="flex size-10 shrink-0 items-center justify-center rounded-control bg-subtle text-listen" aria-hidden="true">
-        <UiBaigiMascot v-if="player.isPlaying" state="subtle" :visible="true" :size="34" />
+        <UiBaigiMascot v-if="player.isPlaying" state="subtle" pose="podcast" :visible="true" :size="34" />
         <Headphones v-else class="size-5" />
       </span>
       <button type="button" class="hit-touch min-w-0 flex-1 rounded-row text-left" aria-label="Abrir o player" @click="expand">

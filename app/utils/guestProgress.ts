@@ -4,6 +4,10 @@
  * try/catch around localStorage: a blocked storage still lets the lote run, it just is not carried.
  */
 
+import { returnText } from '~/utils/intervalLabel'
+
+export { returnText }
+
 export const GUEST_AREAS = [
   { key: 'concurso', name: 'Concurso', hint: 'INSS, tribunais, polícia' },
   { key: 'enem', name: 'ENEM e vestibular', hint: 'Linguagens, exatas, humanas' },
@@ -27,10 +31,27 @@ export interface GuestDeck {
   note_title: string
   cards: GuestCard[]
   intervals: Record<IntervalKey, string>
+  /** "Lembrei" after a "Não lembrei" in the same lote (the card that came back): the FSRS's label, "1d" */
+  relearned_interval?: string
   growth_days: number[]
+  /** The result's curve (prd-revisao-v5-fase-a RF-F8): R from 0 to 1, without reviews and with "Lembrei" on each due day */
+  forgetting_curve?: ForgettingCurve
 }
+export interface ForgettingCurve { days: number, without: [number, number][], with: [number, number][], reviews: number[] }
 export interface GuestReview { index: number, rating: GuestRating, reviewed_at: string }
-export interface GuestProgress { v: 1, area: GuestArea, version: string, reviews: GuestReview[], done: boolean }
+export interface GuestProgress {
+  v: 1
+  area: GuestArea
+  version: string
+  reviews: GuestReview[]
+  done: boolean
+  /** The commitment before the sign-up (prd-revisao-v5-fase-a RF-F9): lotes per day, 1–3 */
+  goal_batches?: GuestGoal
+  /** The exam date (YYYY-MM-DD), null = "ainda não"; absent = not answered */
+  exam_date?: string | null
+}
+export type GuestGoal = 1 | 2 | 3
+export const GUEST_GOALS: GuestGoal[] = [1, 2, 3]
 
 export const GUEST_STORAGE_KEY = 'baigi-guest-progress'
 /** "De novo" or "Difícil" brings a card back at the end of the lote, at most this many times in all. */
@@ -118,49 +139,42 @@ export interface GuestSummary {
   returns: Record<number, string>
 }
 
-export function guestSummary(reviews: Pick<GuestReview, 'index' | 'rating'>[], intervals: Record<IntervalKey, string>): GuestSummary {
+export function guestSummary(reviews: Pick<GuestReview, 'index' | 'rating'>[], intervals: Record<IntervalKey, string>, relearned?: string): GuestSummary {
   const first = new Map<number, GuestRating>()
   const last = new Map<number, GuestRating>()
   const shows = new Map<number, number>()
+  const forgot = new Set<number>()
   for (const r of reviews) {
     if (!first.has(r.index)) first.set(r.index, r.rating)
     last.set(r.index, r.rating)
     shows.set(r.index, (shows.get(r.index) ?? 0) + 1)
+    if (r.rating === 1) forgot.add(r.index)
   }
   const repeatedIdx = [...shows].filter(([, n]) => n > 1).map(([i]) => i)
   const returns: Record<number, string> = {}
-  const byLabel = new Map<string, { rank: number, count: number }>()
+  const byLabel = new Map<string, number>()
   for (const [index, rating] of last) {
-    const label = intervals[RATING_KEY[rating]]
+    // Remembered after a "Não lembrei" in the same lote: the FSRS keeps it short (relearned_interval)
+    const label = rating >= 2 && forgot.has(index) && relearned ? relearned : intervals[RATING_KEY[rating]]
     returns[index] = label
-    const entry = byLabel.get(label) ?? { rank: rating, count: 0 }
-    entry.rank = Math.min(entry.rank, rating)
-    entry.count++
-    byLabel.set(label, entry)
+    byLabel.set(label, (byLabel.get(label) ?? 0) + 1)
   }
   return {
     total: first.size,
     remembered: [...first.values()].filter(r => r >= 2).length,
     repeated: repeatedIdx.length,
     rememberedOnRepeat: repeatedIdx.filter(i => last.get(i)! >= 2).length,
-    agenda: [...byLabel].sort((a, b) => a[1].rank - b[1].rank).map(([label, e]) => ({ label, count: e.count })),
+    agenda: [...byLabel].sort((a, b) => labelMinutes(a[0]) - labelMinutes(b[0])).map(([label, count]) => ({ label, count })),
     returns,
   }
 }
 
-/** "10min" → "em 10 min", "8d" → "em 8 dias", "1d" → "amanhã", "1.5m" → "em 1,5 mês" (the API's labels). */
-export function returnText(label: string): string {
+/** Minutes of an API label, to order the agenda ("10min" < "1d" < "2d" < "1.5m"). */
+function labelMinutes(label: string): number {
   const m = /^([\d.]+)(min|h|d|m|a)$/.exec(label.trim())
-  if (!m) return label
-  const n = Number(m[1])
-  const num = String(n).replace('.', ',')
-  switch (m[2]) {
-    case 'min': return `em ${num} min`
-    case 'h': return `em ${num} h`
-    case 'd': return n === 1 ? 'amanhã' : `em ${num} dias`
-    case 'm': return n === 1 ? 'em 1 mês' : `em ${num} meses`
-    default: return n === 1 ? 'em 1 ano' : `em ${num} anos`
-  }
+  if (!m) return 0
+  const unit = { min: 1, h: 60, d: 1440, m: 43_200, a: 525_600 }[m[2] as 'min' | 'h' | 'd' | 'm' | 'a']
+  return Number(m[1]) * unit
 }
 
 /** The growth estimate: "10 min, 2 dias, 11 dias, 46 dias e 5 meses" (the 1st step plus "Bom" every time). */

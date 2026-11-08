@@ -7,6 +7,7 @@
       :can-undo="false"
       :can-edit="false"
       onboarding
+      exit-label="Sair do exemplo"
       :step-label="deck ? `Exemplo de ${deck.name}` : 'Exemplo'"
     />
     <p class="sr-only" aria-live="polite" data-testid="guest-announce">{{ announcement }}</p>
@@ -25,7 +26,7 @@
 
       <!-- The mini-lote: the review's own card, ratings and origin -->
       <div v-else-if="phase === 'review' && current !== null" class="mx-auto flex w-full max-w-3xl flex-col gap-4 px-gutter py-6">
-        <p v-if="isRepeat" class="text-center text-meta text-fg-muted" data-testid="guest-repeat">Voltou no fim do lote: na primeira vez você marcou {{ lastLabel }}.</p>
+        <p v-if="isRepeat" class="text-center text-meta text-fg-muted" data-testid="guest-repeat">Voltou no fim do lote: tente lembrar de novo.</p>
         <ReviewCard :card="currentCard" :flipped="flipped" :label="deck!.topic_name.replace(/^Exemplo · /, '')" @flip="flip">
           <template #origin>
             <ReviewOrigin :origin="currentOrigin" back-to="" />
@@ -33,20 +34,12 @@
         </ReviewCard>
       </div>
 
-      <!-- Result (RF-F3): what happened, when each card comes back, and the reason to save -->
-      <div v-else-if="phase === 'result' && summary" class="mx-auto flex w-full max-w-xl flex-col gap-6 px-gutter py-8" data-testid="guest-result">
-        <div class="flex items-center gap-4">
-          <!-- Calm pose: the "celebrating" bounce (40 px up, 1.2x) left the gutter and hit the top bar on the phone -->
-          <UiBaigiMascot class="shrink-0" :size="64" state="idle" visible />
-          <div class="min-w-0">
-            <h1 ref="resultTitle" class="text-page-title-sm text-fg-strong outline-none" tabindex="-1" data-testid="guest-remembered">
-              Você lembrou {{ summary.remembered }} de {{ summary.total }}
-            </h1>
-            <p v-if="summary.repeated" class="mt-1 text-body text-fg-muted" data-testid="guest-repeated">
-              {{ summary.repeated === 1 ? '1 card voltou' : `${summary.repeated} cards voltaram` }} no fim do lote. Na segunda vez, você lembrou {{ summary.rememberedOnRepeat }}.
-            </p>
-          </div>
-        </div>
+      <!-- Result (RF-F8): a victory with memory, the agenda and the curve -->
+      <div v-else-if="phase === 'result' && summary" class="mx-auto flex w-full max-w-xl flex-col gap-6 px-gutter pt-14 pb-8" data-testid="guest-result">
+        <UiCelebration kind="streak" :title="`Você lembrou ${summary.remembered} de ${summary.total}`" subtitle="Dia 1 da sequência" :level="1" data-testid="guest-remembered" />
+        <p v-if="summary.repeated" class="-mt-3 text-center text-body text-fg-muted" data-testid="guest-repeated">
+          {{ summary.repeated === 1 ? '1 card voltou' : `${summary.repeated} cards voltaram` }} no fim do lote. Na segunda vez, você lembrou {{ summary.rememberedOnRepeat }}.
+        </p>
 
         <section aria-labelledby="agenda-title" class="flex flex-col gap-2">
           <h2 id="agenda-title" class="text-label font-semibold text-fg-muted">Quando cada um volta</h2>
@@ -58,21 +51,44 @@
           </ul>
         </section>
 
-        <UiSection variant="tinted" label="Estimativa" data-testid="guest-growth">
-          <p class="text-body text-fg-strong">Lembrando sempre, um card volta em {{ growthText(deck!.intervals.good, deck!.growth_days) }}.</p>
-          <p class="mt-1 text-meta text-fg-muted">Calculado pelo FSRS, o algoritmo do Baigi, com os parâmetros padrão. Muda com as suas respostas.</p>
-        </UiSection>
+        <OnboardingForgettingCurve v-if="deck?.forgetting_curve" :curve="deck.forgetting_curve" />
+
+        <UiButton variant="primary" block data-testid="guest-continue" @click="openCommit">Continuar</UiButton>
+      </div>
+
+      <!-- Commitment before the account (RF-F9): one screen, two questions, then the save -->
+      <div v-else-if="phase === 'commit'" class="mx-auto flex w-full max-w-xl flex-col gap-6 px-gutter py-8" data-testid="guest-commit">
+        <div>
+          <h1 ref="commitTitle" class="text-page-title-sm text-fg-strong outline-none" tabindex="-1">Seu ritmo de estudo</h1>
+          <p class="mt-1 text-body text-fg-muted">Duas respostas e o seu Hoje já começa montado. Dá para mudar depois.</p>
+        </div>
+
+        <div class="flex flex-col gap-3">
+          <UiRadioGroup v-model="examChoice" label="Tem data de prova?" name="guest-exam" variant="cards" :columns="2" :options="EXAM_OPTIONS" />
+          <UiInput
+            v-if="examChoice === 'date'"
+            id="guest-exam-date"
+            v-model="examDate"
+            type="date"
+            label="Data da prova"
+            :min="tomorrow"
+            :error="examError"
+            data-testid="guest-exam-date"
+          />
+        </div>
+
+        <UiRadioGroup v-model="goalChoice" label="Quantos lotes por dia?" :hint="`Um lote tem ${REVIEW_BATCH} cards, uns ${cardsMinutes(REVIEW_BATCH)} minutos.`" name="guest-goal" variant="cards" :columns="3" :options="goalOptions" />
 
         <div class="flex flex-col gap-3" data-testid="guest-save">
           <p class="text-body text-fg">{{ auth.user ? 'Salve no seu caderno para eles voltarem na hora certa.' : 'Crie a conta para salvar. Eu te aviso às 19h quando eles voltarem.' }}</p>
           <template v-if="auth.user">
-            <UiButton variant="primary" to="/comecar/pronto" block data-testid="guest-save-account">Salvar no meu caderno</UiButton>
+            <UiButton variant="primary" block data-testid="guest-save-account" @click="commitAndGo('/comecar/pronto')">Salvar no meu caderno</UiButton>
           </template>
           <template v-else>
-            <UiButton variant="primary" to="/criar-conta?salvar=1" block data-testid="guest-signup">Criar conta e salvar</UiButton>
+            <UiButton variant="primary" block data-testid="guest-signup" @click="commitAndGo('/criar-conta?salvar=1')">Criar conta e salvar</UiButton>
             <div class="flex flex-wrap justify-center gap-2">
-              <UiButton variant="ghost" to="/entrar?redirect=/comecar/pronto" data-testid="guest-login">Já tenho conta</UiButton>
-              <UiButton variant="ghost" to="/" data-testid="guest-later">Agora não</UiButton>
+              <UiButton variant="ghost" data-testid="guest-login" @click="commitAndGo('/entrar?redirect=/comecar/pronto')">Já tenho conta</UiButton>
+              <UiButton variant="ghost" data-testid="guest-later" @click="commitAndGo('/')">Agora não</UiButton>
             </div>
             <p class="text-center text-label text-fg-muted">Seu lote fica guardado neste aparelho.</p>
           </template>
@@ -80,29 +96,34 @@
       </div>
     </main>
 
-    <!-- The review's bottom bar: "Mostrar resposta", then the 4 ratings with the real intervals -->
+    <!-- The review's bottom bar: "Mostrar resposta", then "Não lembrei / Lembrei" with the real intervals -->
     <footer v-if="phase === 'review' && current !== null" class="shrink-0 border-t border-line bg-raised px-gutter pt-3 pb-safe-bottom" data-testid="review-footer">
       <div class="mx-auto w-full max-w-3xl pb-3">
-        <ReviewRatings v-if="flipped" :intervals="deck!.intervals" @rate="rate" />
+        <ReviewFeedback :feedback="feedback" class="mb-2" />
+        <ReviewRatings v-if="flipped" :intervals="deck!.intervals" mode="two" again-text="no fim do lote" @rate="rate" />
         <UiButton v-else variant="primary" block aria-keyshortcuts="Space" data-testid="review-show" @click="flip">Mostrar resposta</UiButton>
-        <p class="mt-2 hidden text-center text-label text-fg-muted pointer-fine:block">
-          <kbd class="font-sans">1</kbd> <kbd class="font-sans">2</kbd> <kbd class="font-sans">3</kbd> <kbd class="font-sans">4</kbd> · Espaço mostrar
-        </p>
+        <p class="mt-2 hidden text-center text-label text-fg-muted pointer-fine:block" data-testid="review-keys">{{ reviewKeysHint('two') }}</p>
       </div>
     </footer>
   </div>
 </template>
 
 <script setup lang="ts">
-// The visitor's mini-lote (prd-onboarding-v4 RF-F2, RF-F3; ADR-032): 6 hand-written cards of the area in the review's
-// own components, before any account. The labels under the ratings come from the API (the session's code); "De novo"
-// and "Difícil" come back at the end of the lote like the 1 min learning step. Each rating is kept on this device
-// and goes to the account at sign-up (/comecar/pronto). No AI, nothing written on the server.
+// The visitor's mini-lote (prd-onboarding-v4 RF-F2, RF-F3; ADR-032; round 2: prd-revisao-v5-fase-a RF-F7..F9): 6
+// hand-written cards of the area in the review's own components, before any account, rated "Não lembrei / Lembrei"
+// (Again and Good). The sample deck has no learning steps, so "Lembrei" says "volta em 2 dias"; "Não lembrei" comes
+// back at the end of the lote. Then a victory (remembered, Dia 1, the agenda and the forgetting curve) and one screen
+// of commitment (exam date and lotes per day) before the sign-up. Everything stays on this device until the account
+// exists (/comecar/pronto). No AI, nothing written on the server.
 import type { CardOrigin, Flashcard } from '~/types'
+import type { RatingFeedback } from '~/components/review/ReviewFeedback.vue'
 import {
-  growthText, guestSummary, isGuestArea, loadGuestProgress, nextGuestCard, returnText, saveGuestProgress,
-  type GuestArea, type GuestDeck, type GuestProgress, type GuestRating,
+  GUEST_GOALS, guestSummary, isGuestArea, loadGuestProgress, nextGuestCard, returnText, saveGuestProgress,
+  type GuestArea, type GuestDeck, type GuestGoal, type GuestProgress, type GuestRating,
 } from '~/utils/guestProgress'
+import { feedbackText } from '~/utils/intervalLabel'
+import { binaryRatingOfKey, reviewKeysHint } from '~/utils/reviewButtons'
+import { REVIEW_BATCH, cardsMinutes } from '~/utils/reviewBatch'
 
 definePageMeta({ layout: false, chrome: 'focus' })
 
@@ -117,32 +138,48 @@ const area: GuestArea = param
 
 const deck = ref<GuestDeck | null>(null)
 const progress = ref<GuestProgress | null>(null)
-const phase = ref<'loading' | 'error' | 'review' | 'result'>('loading')
+const phase = ref<'loading' | 'error' | 'review' | 'result' | 'commit'>('loading')
 const current = ref<number | null>(null)
 const flipped = ref(false)
 const announcement = ref('')
-const resultTitle = ref<HTMLElement | null>(null)
+const feedback = ref<RatingFeedback | null>(null)
+let feedbackId = 0
+const commitTitle = ref<HTMLElement | null>(null)
 
 useHead(() => ({ title: deck.value ? `Exemplo de ${deck.value.name} · Baigi` : 'Começar · Baigi' }))
 
-const RATING_LABEL: Record<GuestRating, string> = { 1: 'De novo', 2: 'Difícil', 3: 'Bom', 4: 'Fácil' }
 const indices = computed(() => deck.value?.cards.map(c => c.index) ?? [])
 const card = computed(() => deck.value?.cards.find(c => c.index === current.value) ?? null)
 const currentCard = computed(() => ({ id: `guest-${current.value}`, type: 'basic', front: card.value?.front ?? '', back: card.value?.back ?? '' }) as unknown as Flashcard)
 const currentOrigin = computed<CardOrigin>(() => ({ kind: 'note', note_id: '', topic_id: null, title: `${deck.value?.note_title ?? ''}${card.value?.source ? ` · ${card.value.source}` : ''}` }))
 const reviews = computed(() => progress.value?.reviews ?? [])
 const isRepeat = computed(() => current.value !== null && reviews.value.some(r => r.index === current.value))
-const lastLabel = computed(() => {
-  const last = [...reviews.value].reverse().find(r => r.index === current.value)
-  return last ? `"${RATING_LABEL[last.rating]}"` : ''
-})
 const seen = computed(() => new Set(reviews.value.map(r => r.index)).size)
 const batch = computed(() => {
   const size = indices.value.length
   const position = Math.min(isRepeat.value ? size : seen.value + 1, size)
   return { index: 1, total: 1, card: position, size, done: size ? seen.value / size : 0 }
 })
-const summary = computed(() => (deck.value && progress.value ? guestSummary(progress.value.reviews, deck.value.intervals) : null))
+const summary = computed(() => (deck.value && progress.value ? guestSummary(progress.value.reviews, deck.value.intervals, deck.value.relearned_interval) : null))
+
+// === The commitment (RF-F9) ===
+const EXAM_OPTIONS = [
+  { value: 'date', label: 'Tenho data', description: 'O Hoje conta os dias até ela.' },
+  { value: 'none', label: 'Ainda não', description: 'Dá para marcar depois, em Progresso.' },
+]
+const goalOptions = GUEST_GOALS.map(n => ({
+  value: String(n),
+  label: n === 1 ? '1 lote' : `${n} lotes`,
+  description: `uns ${cardsMinutes(n * REVIEW_BATCH)} min por dia${n === 1 ? ' · para começar' : ''}`,
+}))
+const examChoice = ref<'date' | 'none'>('none')
+const examDate = ref('')
+const examError = ref('')
+const goalChoice = ref('1')
+const tomorrow = computed(() => {
+  const [y, m, d] = studyDay().split('-').map(Number)
+  return new Date(Date.UTC(y!, m! - 1, d! + 1)).toISOString().slice(0, 10)
+})
 
 async function load() {
   phase.value = 'loading'
@@ -158,7 +195,12 @@ async function load() {
   progress.value = saved && saved.area === area && saved.version === deck.value.version
     ? saved
     : { v: 1, area, version: deck.value.version, reviews: [], done: false }
-  if (progress.value?.done) return showResult()
+  if (progress.value.goal_batches) goalChoice.value = String(progress.value.goal_batches)
+  if (progress.value.exam_date) {
+    examChoice.value = 'date'
+    examDate.value = progress.value.exam_date
+  }
+  if (progress.value.done) return showResult()
   advance()
 }
 
@@ -173,16 +215,22 @@ function advance() {
 function flip() {
   if (phase.value !== 'review' || flipped.value) return
   flipped.value = true
-  announcement.value = 'Resposta à mostra. Avalie de 1 a 4.'
+  announcement.value = 'Resposta à mostra. 1 não lembrei, 2 lembrei.'
 }
 
 function rate(rating: GuestRating) {
-  if (!flipped.value || current.value === null || !progress.value) return
+  if (!flipped.value || current.value === null || !progress.value || !deck.value) return
   const pass = reviews.value.filter(r => r.index === current.value).length + 1
+  const forgotBefore = reviews.value.some(r => r.index === current.value && r.rating === 1)
   progress.value.reviews.push({ index: current.value, rating, reviewed_at: new Date().toISOString() })
   saveGuestProgress(progress.value)
   track('guest_card_rated', { area, index: current.value, rating, pass })
-  announcement.value = `${RATING_LABEL[rating]}.`
+  // The answer to the rating (RF-F4): "Lembrei · volta em 2 dias" or "Não lembrei · volta no fim do lote"
+  const text = rating === 1
+    ? 'Não lembrei · volta no fim do lote'
+    : feedbackText('Lembrei', forgotBefore && deck.value.relearned_interval ? deck.value.relearned_interval : deck.value.intervals.good)
+  feedback.value = { id: ++feedbackId, remembered: rating >= 2, text }
+  announcement.value = `${text}.`
   advance()
 }
 
@@ -190,32 +238,60 @@ function finish() {
   if (!progress.value || !deck.value) return
   progress.value.done = true
   saveGuestProgress(progress.value)
-  const s = guestSummary(progress.value.reviews, deck.value.intervals)
+  const s = guestSummary(progress.value.reviews, deck.value.intervals, deck.value.relearned_interval)
   track('guest_batch_done', { area, remembered: s.remembered, total: s.total, repeats: s.repeated })
   showResult()
 }
 
 function showResult() {
+  feedback.value = null
   phase.value = 'result'
-  void nextTick(() => resultTitle.value?.focus())
+  void nextTick(() => document.querySelector<HTMLElement>('[data-testid=guest-result] [data-celebration-title]')?.focus())
+}
+
+function openCommit() {
+  phase.value = 'commit'
+  void nextTick(() => commitTitle.value?.focus())
+}
+
+/** Keeps the answers with the lote (the account applies them at /comecar/pronto), then goes on. */
+function commitAndGo(to: string) {
+  if (!progress.value) return
+  examError.value = ''
+  if (examChoice.value === 'date') {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(examDate.value) || examDate.value < tomorrow.value) {
+      examError.value = 'Escolha uma data a partir de amanhã, ou marque "Ainda não".'
+      return
+    }
+  }
+  progress.value.goal_batches = Number(goalChoice.value) as GuestGoal
+  progress.value.exam_date = examChoice.value === 'date' ? examDate.value : null
+  saveGuestProgress(progress.value)
+  track('guest_commitment', { area, goal_batches: progress.value.goal_batches, has_exam: examChoice.value === 'date' })
+  void navigateTo(to)
 }
 
 function capitalize(s: string) {
   return s.charAt(0).toUpperCase() + s.slice(1)
 }
 
-// Space/Enter turns the card, 1–4 rates (the session's keys); never while typing or with a modifier
+// Space/Enter turns the card; with the answer, 1 / ← "Não lembrei" and 2 / → / Space "Lembrei" (the session's binary keys)
 function onKeydown(e: KeyboardEvent) {
   if (phase.value !== 'review' || e.ctrlKey || e.metaKey || e.altKey) return
   const target = e.target as HTMLElement | null
   if (target?.closest('input, textarea, select, [contenteditable="true"]')) return
-  if (!flipped.value && (e.key === ' ' || e.key === 'Enter')) {
-    if (target?.closest('a, button:not([data-review-card])')) return
+  if ((e.key === ' ' || e.key === 'Enter') && target?.closest('a, button:not([data-review-card])')) return
+  if (!flipped.value) {
+    if (e.key === ' ' || e.key === 'Enter') {
+      e.preventDefault()
+      flip()
+    }
+    return
+  }
+  const rating = binaryRatingOfKey(e.key)
+  if (rating !== null) {
     e.preventDefault()
-    flip()
-  } else if (flipped.value && ['1', '2', '3', '4'].includes(e.key)) {
-    e.preventDefault()
-    rate(Number(e.key) as GuestRating)
+    rate(rating)
   }
 }
 

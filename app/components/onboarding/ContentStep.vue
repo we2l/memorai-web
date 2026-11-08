@@ -8,8 +8,9 @@
 
       <UiRadioGroup v-model="path" label="De onde vem o conteúdo" hide-label name="content-path" variant="cards" :options="options" />
 
-      <!-- AI needs a confirmed e-mail (RF-F6): never blocks the sample or Anki -->
-      <UiVerifyEmailBanner v-if="needsAi && !verified" inline />
+      <!-- The AI of the Free preview no longer waits for the e-mail (prd-revisao-v5-fase-a RF-F11); a paid account without
+           it (or the preview switched off on the server) still asks first -->
+      <UiVerifyEmailBanner v-if="needsAi && !aiReady" inline />
 
       <div v-if="path === 'text'" class="flex flex-col gap-3" data-testid="text-fields">
         <UiInput
@@ -39,11 +40,11 @@
       <input ref="fileInput" type="file" accept=".pdf,application/pdf" class="sr-only" tabindex="-1" aria-hidden="true" data-testid="pdf-input" @change="onFile">
 
       <div class="flex flex-wrap items-center gap-2">
-        <UiButton variant="primary" type="submit" :disabled="primaryDisabled" :loading="busy" :aria-describedby="needsAi && !verified ? 'verify-email-notice' : undefined" data-testid="content-primary">{{ primaryLabel }}</UiButton>
+        <UiButton variant="primary" type="submit" :disabled="primaryDisabled" :loading="busy" :aria-describedby="needsAi && !aiReady ? 'verify-email-notice' : undefined" data-testid="content-primary">{{ primaryLabel }}</UiButton>
         <UiButton variant="ghost" :disabled="busy" @click="$emit('back')">Agora não</UiButton>
       </div>
 
-      <UiVerifyEmailBanner v-if="!verified && !needsAi" compact />
+      <UiVerifyEmailBanner v-if="!verified && (aiReady || !needsAi)" compact />
     </form>
 
   </div>
@@ -51,11 +52,19 @@
 
 <script setup lang="ts">
 // "Agora com o seu material" (prd-onboarding-v4 RF-F5), after the visitor's lote is saved: the old step 2 of the v3
-// without the sample. The primary changes with the option. Text and PDF use AI, so the e-mail confirmation shows
-// up only when they are chosen; the discreet line stays for the rest.
+// without the sample. The primary changes with the option. Text and PDF use AI: the Free preview runs before the
+// e-mail is confirmed (prd-revisao-v5-fase-a RF-F11, `aiReady`), so only the discreet reminder line shows.
 export type ContentPath = 'pdf' | 'text' | 'question' | 'anki'
 
-const props = defineProps<{ verified: boolean; busy?: boolean; error?: string; nameError?: string }>()
+const props = withDefaults(defineProps<{
+  verified: boolean
+  /** The AI can run now: a confirmed e-mail, or the Free preview (the server lets it through without one) */
+  aiReady?: boolean
+  busy?: boolean
+  error?: string
+  nameError?: string
+}>(), { aiReady: undefined, busy: false, error: undefined, nameError: undefined })
+const aiReady = computed(() => props.aiReady ?? props.verified)
 const path = defineModel<ContentPath>('path', { required: true })
 const text = defineModel<string>('text', { required: true })
 const name = defineModel<string>('name', { required: true })
@@ -70,7 +79,7 @@ const options = computed(() => [
   { value: 'pdf', label: 'Enviar meu PDF ou apostila', description: 'Vira nota e cards em segundo plano; você acompanha no caderno.' },
   { value: 'text', label: 'Colar um texto', description: 'Resumo, lei seca, anotação de aula.' },
   { value: 'question', label: 'Colar uma questão que errei', description: 'A questão vira card com o comentário no verso.' },
-  { value: 'anki', label: 'Trazer do Anki', description: 'Seus baralhos e o histórico de revisão vêm junto.' },
+  { value: 'anki', label: 'Trazer do Anki', description: 'Seus baralhos vêm com o intervalo e os erros de cada card.' },
 ])
 
 const PRIMARY: Record<ContentPath, string> = {
@@ -81,7 +90,7 @@ const PRIMARY: Record<ContentPath, string> = {
 }
 const primaryLabel = computed(() => PRIMARY[path.value])
 const needsAi = computed(() => path.value === 'pdf' || path.value === 'text')
-const primaryDisabled = computed(() => (needsAi.value && !props.verified) || (path.value === 'text' && !text.value.trim()))
+const primaryDisabled = computed(() => (needsAi.value && !aiReady.value) || (path.value === 'text' && !text.value.trim()))
 
 const fileInput = ref<HTMLInputElement | null>(null)
 

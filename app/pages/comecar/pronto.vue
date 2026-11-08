@@ -36,6 +36,7 @@
           v-model:name="notebookName"
           v-model:name-touched="nameTouched"
           :verified="auth.isVerified"
+          :ai-ready="aiReady"
           :busy="busy"
           :error="error"
           :name-error="nameError"
@@ -67,7 +68,7 @@
 </template>
 
 <script lang="ts">
-interface GuestImport { data: { card_ids: string[], reviews_applied: number, created: boolean } }
+interface GuestImport { data: { card_ids: string[], reviews_applied: number, created: boolean, exam_id?: string | null } }
 /** Module scope: one POST per lote even when the page mounts twice on the way in (a 2nd would apply nothing). */
 let inflight: Promise<GuestImport> | null = null
 let lastSaved: { cards: number, reviews: number, topicName: string } | null = null
@@ -117,6 +118,8 @@ const processingTitle = ref('')
 const processingState = ref('')
 const retryFinish = ref<(() => void) | null>(null)
 
+// The Free preview runs before the e-mail is confirmed (prd-revisao-v5-fase-a RF-F11); a paid tier still asks for it
+const aiReady = computed(() => auth.isVerified || !auth.hasProAccess)
 watch(text, (t) => { if (!nameTouched.value) notebookName.value = smartTitle(t, 40) })
 
 async function save() {
@@ -135,7 +138,14 @@ async function save() {
     // One request per lote, even if the page mounts twice on the way in (a 2nd POST would answer "nothing applied")
     inflight ??= $api<GuestImport>('/onboarding/guest', {
       method: 'POST',
-      body: { area: lote.area, version: lote.version, reviews: lote.reviews },
+      // The commitment of the visitor (prd-revisao-v5-fase-a RF-F9): lotes per day and the exam on the sample
+      body: {
+        area: lote.area,
+        version: lote.version,
+        reviews: lote.reviews,
+        ...(lote.goal_batches ? { daily_goal_batches: lote.goal_batches } : {}),
+        ...(lote.exam_date ? { exam_date: lote.exam_date } : {}),
+      },
     })
     const res = await inflight
     clearGuestProgress()

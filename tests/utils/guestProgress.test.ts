@@ -33,6 +33,16 @@ describe('guestProgress: the result', () => {
     expect(s.returns).toEqual({ 0: '10min', 1: '10min', 2: '8d' })
   })
 
+  it('binary lote of the sample (no learning steps): "Lembrei" in 2 days, the relearned card tomorrow (prd-revisao-v5-fase-a)', () => {
+    const SAMPLE = { again: '1d', hard: '1d', good: '2d', easy: '8d' }
+    const s = guestSummary([
+      { index: 0, rating: 3 }, { index: 1, rating: 1 }, { index: 2, rating: 3 }, { index: 1, rating: 3 },
+    ], SAMPLE, '1d')
+    expect(s).toMatchObject({ total: 3, remembered: 2, repeated: 1, rememberedOnRepeat: 1 })
+    expect(s.agenda).toEqual([{ label: '1d', count: 1 }, { label: '2d', count: 2 }])
+    expect(s.returns).toEqual({ 0: '2d', 1: '1d', 2: '2d' })
+  })
+
   it('writes the API labels in Portuguese', () => {
     expect(returnText('10min')).toBe('em 10 min')
     expect(returnText('1d')).toBe('amanhã')

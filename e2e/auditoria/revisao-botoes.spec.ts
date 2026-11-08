@@ -17,7 +17,7 @@ const cardFace = (page: Page) => page.getByTestId('review-card')
 async function dueTopic(page: Page, n: number) {
   const t = (await apiCall(page, 'POST', '/topics', { name: `Botões ${uid()}` })).data
   await apiCall(page, 'POST', '/ai/accept-cards', { topic_id: t.id, cards: Array.from({ length: n }, (_, i) => ({ front: `Pergunta ${i + 1}`, back: `Resposta ${i + 1}` })) })
-  php(`Illuminate\\Support\\Facades\\DB::table('flashcards')->where('topic_id', '${t.id}')->update(['state' => 'review', 'due' => now()->subDay(), 'last_review' => now()->subDays(12), 'reps' => 3, 'stability' => 12, 'difficulty' => 5, 'scheduled_days' => 11]); echo 'ok';`)
+  php(`Illuminate\\Support\\Facades\\DB::table('flashcards')->where('topic_id', '${t.id}')->update(['state' => 'review', 'due' => now(), 'last_review' => now()->subDays(12), 'reps' => 3, 'stability' => 12, 'difficulty' => 5, 'scheduled_days' => 11]); echo 'ok';`)
   return t.id as string
 }
 

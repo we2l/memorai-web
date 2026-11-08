@@ -15,9 +15,9 @@ async function loginViaForm(page: Page, email: string) {
   await page.locator('button[type="submit"]').click()
 }
 
-/** A caderno with a name no other account has, created by that account's own session. */
-async function seedNotebook(browser: Browser, key: 'trocaA' | 'trocaB', prefix: string) {
-  const context = await browser.newContext({ storageState: await loginState(browser, key) })
+/** A caderno with a name no other account has, created by that account's own session (5 logins/min per e-mail). */
+async function seedNotebook(browser: Browser, storageState: string, prefix: string) {
+  const context = await browser.newContext({ storageState })
   const page = await context.newPage()
   try {
     const name = `${prefix} ${uid()}`
@@ -70,9 +70,10 @@ async function expireSession(context: BrowserContext) {
 
 test.describe('Troca de conta na mesma aba', () => {
   test('"Sair" da conta A e entrar com a B: nada da A em Hoje, Cadernos e na busca', async ({ browser }) => {
-    const nameA = await seedNotebook(browser, 'trocaA', 'Arquitetura A')
-    const nameB = await seedNotebook(browser, 'trocaB', 'Caderno B')
-    const context = await browser.newContext({ storageState: await loginState(browser, 'trocaA', { fresh: true }) })
+    const stateA = await loginState(browser, 'trocaA', { fresh: true })
+    const nameA = await seedNotebook(browser, stateA, 'Arquitetura A')
+    const nameB = await seedNotebook(browser, await loginState(browser, 'trocaB'), 'Caderno B')
+    const context = await browser.newContext({ storageState: stateA })
     const page = await context.newPage()
     try {
       await useAsA(page, nameA)
@@ -92,9 +93,10 @@ test.describe('Troca de conta na mesma aba', () => {
   })
 
   test('sessão da A expira (401) e a B entra: nada da A em Hoje, Cadernos e na busca', async ({ browser }) => {
-    const nameA = await seedNotebook(browser, 'trocaA', 'Arquitetura A')
-    const nameB = await seedNotebook(browser, 'trocaB', 'Caderno B')
-    const context = await browser.newContext({ storageState: await loginState(browser, 'trocaA', { fresh: true }) })
+    const stateA = await loginState(browser, 'trocaA', { fresh: true })
+    const nameA = await seedNotebook(browser, stateA, 'Arquitetura A')
+    const nameB = await seedNotebook(browser, await loginState(browser, 'trocaB'), 'Caderno B')
+    const context = await browser.newContext({ storageState: stateA })
     const page = await context.newPage()
     try {
       await useAsA(page, nameA)

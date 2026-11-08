@@ -12,15 +12,13 @@
         class="rounded-control bg-warning-subtle px-3 py-2 text-meta text-warning"
         role="status"
       >
-        Seu anual venceu em {{ formatBillingDayMonth(subscription.info?.plan_expires_at) }}.
+        {{ subscription.info?.billing === 'monthly_pix' ? 'Seus 30 dias venceram' : 'Seu anual venceu' }} em {{ formatBillingDayMonth(subscription.info?.plan_expires_at) }}.
         Renove até {{ formatBillingDayMonth(subscription.info?.grace_ends_at) }} para não perder o {{ proName }}.
       </p>
-      <div v-if="isFree || showRenew || showPortal" class="flex flex-wrap gap-2">
-        <!-- The one primary of the page, only for Free (RF-F3) -->
-        <UiButton v-if="isFree" variant="primary" to="/planos" data-testid="plan-upgrade">Conhecer o {{ proName }}</UiButton>
-        <UiButton v-if="showRenew" :to="ANNUAL_RENEWAL_PATH">Renovar</UiButton>
-        <UiButton v-if="showPortal" data-testid="plan-portal" :loading="portal.pending.value" @click="openPortal">Gerenciar assinatura</UiButton>
-      </div>
+      <!-- The one primary of the page, only for Free (RF-F3) -->
+      <UiButton v-if="isFree && !subscription.info?.refundable" variant="primary" to="/planos" data-testid="plan-upgrade">Conhecer o {{ proName }}</UiButton>
+      <!-- Paying actions (change card, cancel, refund, renew): the gateway's form only loads when a sheet opens -->
+      <LazySettingsBillingManage v-if="showManage" class="w-full" />
     </div>
 
     <div class="border-t border-line pt-5" data-testid="usage">
@@ -78,20 +76,19 @@ const planSummary = computed(() => {
   if (info.subscription_ends_at) return `${name} · termina em ${formatBillingDayMonth(info.subscription_ends_at)}`
   if (info.billing === 'monthly') return `${name} mensal`
   const until = formatBillingDate(info.plan_expires_at)
+  if (info.billing === 'monthly_pix') return `${name} por 30 dias · válido até ${until}`
   if (info.monthly_scheduled) {
     const monthly = limitOf('pro')?.prices.monthly
     return `${name} anual até ${until}` + (monthly ? ` · depois, mensal ${formatPrice(monthly.amount_cents)}` : ' · depois, mensal')
   }
   return `${name} anual · válido até ${until}`
 })
-// The portal and the renewal are paying actions: hidden while the checkout is closed ("Assinatura em breve")
+// Paying actions: hidden while the checkout is closed ("Assinatura em breve")
 const checkoutOpen = computed(() => checkoutAvailable(plans.value))
-const showRenew = computed(() => checkoutOpen.value && subscription.isAnnual && !!subscription.info?.can_renew_annual && !subscription.info?.monthly_scheduled)
-const showPortal = computed(() => checkoutOpen.value && !!subscription.info?.has_subscription)
-const portal = useApiAction()
-function openPortal() {
-  return portal.run(() => subscription.openPortal(), { error: 'Não foi possível abrir o portal de assinatura. Tente de novo.' })
-}
+const showManage = computed(() => {
+  const info = subscription.info
+  return checkoutOpen.value && !!info && (subscription.isPrepaid || !!info.can_change_card || !!info.can_cancel || !!info.refundable)
+})
 
 const rows = computed(() => {
   const usage = featureUsage.usage.value?.features

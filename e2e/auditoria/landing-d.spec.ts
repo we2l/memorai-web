@@ -113,7 +113,7 @@ test.describe('landing D', () => {
       const plans = page.locator('#planos')
       await expect(plans.getByTestId('landing-plan-paid-name')).toHaveText(name)
       await expect(plans.getByTestId('landing-plan-paid-price')).toContainText('R$ 29,90')
-      await expect(plans.getByTestId('landing-plan-paid-annual')).toContainText('R$ 239,90 por ano (R$ 19,99 por mês, cobrado uma vez por ano)')
+      await expect(plans.getByTestId('landing-plan-paid-annual')).toContainText('R$ 239,90 por ano (equivale a R$ 19,99 por mês) · até 3× sem juros · ou 12× com juros · Pix R$ 227,90')
       await expect(plans.getByText('Teste de 7 dias da IA no primeiro material, sem cartão')).toBeVisible()
       // The trial's conditions, from the catalog: e-mail, quotas and no podcast (landing-promessas)
       await expect(page.getByTestId('landing-player-sample')).toContainText(`de um episódio de até 8 min do ${name}.`)

@@ -21,8 +21,9 @@ export function formatBillingDayMonth(iso: string | null | undefined): string {
   return iso ? shortDateFormatter.format(new Date(iso)) : ''
 }
 
-/** Link used by the renewal CTAs and the expiry e-mails. */
-export const ANNUAL_RENEWAL_PATH = '/planos?ciclo=anual&renovar=1'
+/** Links of the renewal CTAs, the same of the expiry e-mails (prd-pagamento-mercado-pago RF-B11). */
+export const ANNUAL_RENEWAL_PATH = '/checkout?plano=anual'
+export const PIX_RENEWAL_PATH = '/checkout?plano=mensal&metodo=pix'
 
 const monthFormatter = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit' })
 

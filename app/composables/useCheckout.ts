@@ -12,7 +12,7 @@ export function useCheckout() {
   const available = computed(() => checkoutAvailable(plans.value))
 
   function markUnavailable() {
-    if (plans.value) plans.value = { ...plans.value, checkout: { available: false } }
+    if (plans.value) plans.value = { ...plans.value, checkout: { ...plans.value.checkout, available: false } }
   }
 
   function run<T>(fn: () => Promise<T>, opts: ApiActionOptions & { serverMessage?: boolean } = {}): Promise<T | undefined> {

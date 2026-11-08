@@ -383,7 +383,7 @@ export function landingFaqs(catalog: PlanCatalog | null): { q: string, a: string
     },
     {
       q: `Como cancelo o ${name}?`,
-      a: 'O mensal você cancela quando quiser, pelo portal de assinatura. O anual é pago uma vez e não renova sozinho. Seus cadernos e cards continuam no Grátis.',
+      a: 'O mensal você cancela quando quiser, em dois cliques. O anual é pago uma vez e não renova sozinho. Seus cadernos e cards continuam no Grátis.',
     },
     { q: 'A IA pode errar?', a: 'Pode. Por isso cada card mostra de onde saiu, e você edita na hora.' },
   ]

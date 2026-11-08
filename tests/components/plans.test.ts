@@ -57,13 +57,13 @@ describe('PlanCards', () => {
     expect(wrapper.text()).not.toContain('AÇÃO DO PRO')
   })
 
-  it('anual: o total do ano, "R$ 19,99 por mês, cobrado uma vez por ano", destaques + linhas do catálogo e "Recomendado" escrito', async () => {
+  it('anual: o total do ano, "Equivale a R$ 19,99 por mês" (nunca como cobrança), destaques + linhas do catálogo e "Recomendado" escrito', async () => {
     useState('plans').value = catalog()
     const wrapper = await mountCards()
     const pro = wrapper.find('[data-testid="plan-pro"]')
     expect(pro.text()).toContain('Recomendado')
     expect(wrapper.find('[data-testid="plan-pro-price"]').text().replace(/\s/g, ' ')).toBe('R$ 239,90/ano')
-    expect(wrapper.find('[data-testid="plan-pro-note"]').text().replace(/\s/g, ' ')).toBe('R$ 19,99 por mês, cobrado uma vez por ano. No Pix ou à vista no cartão')
+    expect(wrapper.find('[data-testid="plan-pro-note"]').text().replace(/\s/g, ' ')).toBe('Equivale a R$ 19,99 por mês · à vista no cartão')
     expect(pro.text()).toContain('Tudo do Grátis')
     expect(pro.text()).toContain('Gerações de cards com IA: 400 por mês')
     expect(pro.text()).not.toMatch(/ilimitad/i)
@@ -92,17 +92,37 @@ describe('PlanCards', () => {
     expect(wrapper.find('[data-testid="plan-pro"] h2').text()).toBe('Intensivo')
   })
 
-  it('parcelamento só com installments_max > 1', async () => {
+  it('parcelamento só com installments_max > 1, com os juros de quem compra', async () => {
     useState('plans').value = catalog(12)
     const wrapper = await mountCards()
-    expect(wrapper.find('[data-testid="plan-pro-note"]').text().replace(/\s/g, ' ')).toContain('No Pix ou em 12x de R$ 19,99 sem juros no cartão')
+    const note = wrapper.find('[data-testid="plan-pro-note"]').text().replace(/\s/g, ' ')
+    expect(note).toBe('Equivale a R$ 19,99 por mês · 12× com juros')
+    expect(note).not.toContain('cobrado')
   })
 
-  it('mensal: preço do mês e cancelamento pelo portal, sem o total do ano', async () => {
-    useState('plans').value = catalog()
+  it('anual: o desconto do Pix aparece como desconto (Lei 13.455/2017)', async () => {
+    const c = catalog(12)
+    c.plans[1]!.prices.annual!.pix = { amount_cents: 22790, label: 'R$ 227,90/ano', discount_percent: 5, savings_cents: 1200 }
+    useState('plans').value = c
+    const wrapper = await mountCards()
+    expect(wrapper.find('[data-testid="plan-pro-pix"]').text().replace(/\s/g, ' ')).toBe('Pix R$ 227,90 (5% de desconto)')
+  })
+
+  it('anual: até 3× sem juros e 12× com juros, do catálogo', async () => {
+    const c = catalog(12)
+    c.plans[1]!.prices.annual!.installments_interest_free = 3
+    useState('plans').value = c
+    const wrapper = await mountCards()
+    expect(wrapper.find('[data-testid="plan-pro-note"]').text().replace(/\s/g, ' ')).toBe('Equivale a R$ 19,99 por mês · até 3× sem juros · ou 12× com juros')
+  })
+
+  it('mensal: preço do mês e cancelamento em dois cliques, sem o total do ano', async () => {
+    const c = catalog()
+    c.plans[1]!.prices.monthly!.pix_days = 30
+    useState('plans').value = c
     const wrapper = await mountCards('monthly')
     expect(wrapper.find('[data-testid="plan-pro-price"]').text().replace(/\s/g, ' ')).toBe('R$ 29,90/mês')
-    expect(wrapper.find('[data-testid="plan-pro-note"]').text()).toBe('Cancele quando quiser, pelo portal de assinatura')
+    expect(wrapper.find('[data-testid="plan-pro-note"]').text()).toBe('No cartão, renova todo mês e cancela em dois cliques. Ou 30 dias no Pix, sem renovação')
   })
 
   it('erro do catálogo: "Tentar de novo" busca de novo e mostra os planos', async () => {

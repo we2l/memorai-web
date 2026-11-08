@@ -16,13 +16,15 @@
       <span><span class="mr-1 inline-block h-0.5 w-5 bg-action align-middle" aria-hidden="true" />{{ legend }}</span>
       <span v-if="compare"><span class="mr-1 inline-block h-0.5 w-5 border-t-2 border-dashed border-fg-muted align-middle" aria-hidden="true" />{{ compareLegend }}</span>
     </figcaption>
-    <table class="sr-only">
+    <div class="sr-only">
+    <table>
       <caption>{{ label }}</caption>
       <thead><tr><th>Dia</th><th>{{ legend }}</th><th v-if="compare">{{ compareLegend }}</th></tr></thead>
       <tbody>
         <tr v-for="p in tablePoints" :key="p.day"><td>{{ p.day }}</td><td>{{ p.percent }}%</td><td v-if="compare">{{ compareAt(p.day) ? `${compareAt(p.day)!.percent}%` : '—' }}</td></tr>
       </tbody>
     </table>
+    </div>
   </figure>
 </template>
 

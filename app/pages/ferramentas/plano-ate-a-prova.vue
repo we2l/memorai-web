@@ -31,17 +31,13 @@
 
 <script setup lang="ts">
 // /ferramentas/plano-ate-a-prova (prd-blog-seo RF-T2); ?area= as in the calculator
-import { BLOG_AREAS, type BlogArea } from '~~/modules/blog/types'
 import { breadcrumbJsonLd, toolJsonLd } from '~/utils/blog'
 import '~/assets/css/blog-prose.css'
 
-definePageMeta({ layout: 'public' })
+// The page has its own primary call: the header's "Criar conta grátis" goes quiet (one highlight per screen, ADR-027 §6)
+definePageMeta({ layout: 'public', quietHeaderCta: true })
 
-const area = ref<BlogArea | null>(null)
-onMounted(() => {
-  const q = new URLSearchParams(window.location.search).get('area')
-  if (q && (BLOG_AREAS as readonly string[]).includes(q)) area.value = q as BlogArea
-})
+const area = useAreaQuery()
 
 const DESCRIPTION = 'Coloque a data da prova e o volume: veja quantos cards novos e quantas revisões por dia você precisa, e quanto deve lembrar no dia. Grátis.'
 useBlogSeo({

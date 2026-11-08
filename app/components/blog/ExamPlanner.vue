@@ -1,7 +1,8 @@
 <template>
   <section class="rounded-card border border-line bg-raised p-5 shadow-card sm:p-6" :aria-labelledby="titleId" data-testid="tool-plan">
-    <h2 :id="titleId" class="mb-1 text-section text-fg-strong">Plano até a prova</h2>
-    <p class="mb-5 text-meta text-fg-muted">Quanto revisar por dia para chegar à prova lembrando do que estudou.</p>
+    <!-- On its own page the H1 already names the tool: the heading stays for screen readers only -->
+    <h2 :id="titleId" class="mb-1 text-section text-fg-strong" :class="!embedded && 'sr-only'">Plano até a prova</h2>
+    <p v-if="embedded" class="mb-5 text-meta text-fg-muted">Quanto revisar por dia para chegar à prova lembrando do que estudou.</p>
 
     <div class="grid gap-4 sm:grid-cols-3">
       <UiInput

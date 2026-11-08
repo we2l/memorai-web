@@ -1,7 +1,8 @@
 <template>
   <section class="rounded-card border border-line bg-raised p-5 shadow-card sm:p-6" :aria-labelledby="titleId" data-testid="tool-forgetting">
-    <h2 :id="titleId" class="mb-1 text-section text-fg-strong">Calculadora do esquecimento</h2>
-    <p class="mb-5 text-meta text-fg-muted">Quanto você ainda deve lembrar de algo que estudou, e quando revisar.</p>
+    <!-- On its own page the H1 already names the tool: the heading stays for screen readers only -->
+    <h2 :id="titleId" class="mb-1 text-section text-fg-strong" :class="!embedded && 'sr-only'">Calculadora do esquecimento</h2>
+    <p v-if="embedded" class="mb-5 text-meta text-fg-muted">Quanto você ainda deve lembrar de algo que estudou, e quando revisar.</p>
 
     <div class="grid gap-4 sm:grid-cols-2">
       <UiInput

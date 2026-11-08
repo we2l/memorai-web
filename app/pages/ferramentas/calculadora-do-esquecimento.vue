@@ -32,17 +32,13 @@
 <script setup lang="ts">
 // /ferramentas/calculadora-do-esquecimento (prd-blog-seo RF-T1). ?area= (from an article or a video) picks the
 // mini-lote of the call; it is read after hydration (the prerendered page has no query).
-import { BLOG_AREAS, type BlogArea } from '~~/modules/blog/types'
 import { breadcrumbJsonLd, toolJsonLd } from '~/utils/blog'
 import '~/assets/css/blog-prose.css'
 
-definePageMeta({ layout: 'public' })
+// The page has its own primary call: the header's "Criar conta grátis" goes quiet (one highlight per screen, ADR-027 §6)
+definePageMeta({ layout: 'public', quietHeaderCta: true })
 
-const area = ref<BlogArea | null>(null)
-onMounted(() => {
-  const q = new URLSearchParams(window.location.search).get('area')
-  if (q && (BLOG_AREAS as readonly string[]).includes(q)) area.value = q as BlogArea
-})
+const area = useAreaQuery()
 
 const TITLE = 'Calculadora do esquecimento: quanto você ainda lembra'
 const DESCRIPTION = 'Estudou há alguns dias? Veja quanto ainda deve lembrar e quando revisar, pelo modelo FSRS de repetição espaçada. Grátis e sem cadastro.'

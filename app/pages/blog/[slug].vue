@@ -52,7 +52,8 @@ import { articles, authors } from '#blog/index'
 import loaders from '#blog/articles'
 import { articleJsonLd, breadcrumbJsonLd, categoryLabel, faqJsonLd, formatBlogDate, relatedArticles } from '~/utils/blog'
 
-definePageMeta({ layout: 'public' })
+// The page has its own primary call: the header's "Criar conta grátis" goes quiet (one highlight per screen, ADR-027 §6)
+definePageMeta({ layout: 'public', quietHeaderCta: true })
 
 const route = useRoute()
 const slug = String(route.params.slug)

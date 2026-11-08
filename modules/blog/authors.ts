@@ -8,7 +8,7 @@ export interface BlogAuthor {
   role: string
   /** One paragraph, first person, shown on the article and on the author page */
   bio: string
-  /** What the person did that backs the texts (E-E-A-T "experience"), listed on the author page */
+  /** What the person did that backs the texts (E-E-A-T "experience"), listed on the author page, in the first person */
   experience: string[]
   sameAs: string[]
   /** The author page ("Quem faz o Baigi" for the founder; the Mercado Pago checkout links to /quem-faz) */
@@ -24,9 +24,9 @@ export const BLOG_AUTHORS: Record<string, BlogAuthor> = {
     role: 'Desenvolvedor e criador do Baigi',
     bio: 'Sou desenvolvedor e criei o Baigi porque esquecia quase tudo o que estudava poucas semanas depois. Escrevo aqui o que aprendi lendo as pesquisas sobre memória e construindo o algoritmo de revisão do app. Não sou professor nem cursinho: cada artigo cita as fontes para você conferir.',
     experience: [
-      'Implementou no Baigi o FSRS-6, o algoritmo de repetição espaçada de código aberto usado também pelo Anki.',
-      'Leu e resumiu as pesquisas citadas nos artigos (prática de recuperação, espaçamento, autoavaliação).',
-      'Monta os cadernos de exemplo do app a partir do texto da lei e de livros-texto, com a fonte no verso de cada card.',
+      'Implementei no Baigi o FSRS-6, o algoritmo de repetição espaçada de código aberto usado também pelo Anki.',
+      'Li e resumi as pesquisas citadas nos artigos (prática de recuperação, espaçamento, autoavaliação).',
+      'Montei os cadernos de exemplo do app a partir do texto da lei e de livros-texto, com a fonte no verso de cada card.',
     ],
     sameAs: [],
     page: '/quem-faz',

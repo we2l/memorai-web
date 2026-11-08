@@ -81,7 +81,8 @@ import { articles, authors } from '#blog/index'
 import { SITE_URL, absoluteUrl, breadcrumbJsonLd, personJsonLd } from '~/utils/blog'
 import '~/assets/css/blog-prose.css'
 
-definePageMeta({ layout: 'public' })
+// The page has its own primary call: the header's "Criar conta grátis" goes quiet (one highlight per screen, ADR-027 §6)
+definePageMeta({ layout: 'public', quietHeaderCta: true })
 
 const author = authors.weslley!
 const firstName = author.name.split(' ')[0]

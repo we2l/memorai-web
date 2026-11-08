@@ -72,7 +72,7 @@ const ONE_SHOT_PAGE_CHUNK = /\/(pages\/(index|comecar|entrar|criar-conta|esqueci
 const ONE_SHOT_SHARED = /\/(components\/auth\/|components\/onboarding\/|utils\/(authMessages|organization|moveTargets|ankiMapping)|composables\/useTrashBatch)/
 // Blog and free tools (prd-blog-seo RF-B9): marketing read online, like the landing. Pages, their components, the
 // articles (one chunk per content/blog/*.md) and the tools' math go to once-* chunks, out of the install download.
-const BLOG_CHUNK = /\/(pages\/(blog|ferramentas)\/|pages\/quem-faz\.vue|components\/blog\/|content\/blog\/|utils\/(blog|forgetting|examPlan)\.ts|composables\/useBlogSeo\.ts|modules\/blog\/)|^\0#blog\//
+const BLOG_CHUNK = /\/(pages\/(blog|ferramentas)\/|pages\/quem-faz\.vue|components\/blog\/|content\/blog\/|utils\/(blog|forgetting|examPlan)\.ts|composables\/(useBlogSeo|useAreaQuery)\.ts|modules\/blog\/)|^\0#blog\//
 // Reference page of the design system (prd-ds-v3-fundacao RF-2.5): only in `nuxt dev`. NUXT_DS_PAGE=1 keeps it
 // in a production build for screenshots; even then its chunk is `dev-*`, out of the precache.
 const DS_PAGE_FLAG = process.env.NUXT_DS_PAGE === '1'

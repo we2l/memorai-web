@@ -19,13 +19,13 @@ Porque ela é feita de detalhe. Carência de 12 ou de 180 contribuições, 120 d
 
 Ler o artigo cinco vezes dá a sensação de que ele entrou. Mas a sensação vem da familiaridade com o texto, não da capacidade de lembrar o número quando a banca pergunta. Uma semana depois, o "eu já vi isso" continua, e o número sumiu.
 
-O que segura detalhe é o contrário de reler: **tentar lembrar sem olhar** e conferir logo depois. Esse é o efeito do teste, um dos resultados mais firmes da pesquisa sobre memória (explico a curva e os estudos no [guia da curva do esquecimento](/blog/curva-do-esquecimento)).
+O que segura detalhe é o contrário de reler: **tentar lembrar sem olhar** e conferir logo depois. Esse é o efeito do teste: num experimento clássico, quem se testou lembrava de 61% de um texto uma semana depois, contra 40% de quem só releu (explico a curva e os estudos no [guia da curva do esquecimento](/blog/curva-do-esquecimento)).
 
 ## O concurso do INSS já tem edital?
 
-Até 8 de novembro de 2026, não. O que existe é um pedido de 8.500 a 10 mil vagas feito ao Ministério da Gestão, ligado ao orçamento de 2027, sem autorização publicada. Não dá para cravar data de prova.
+Até 8 de novembro de 2026, não há edital novo. Circulam notícias sobre pedidos de vagas do INSS ao governo, mas nenhuma autorização foi publicada, e não dá para cravar data de prova. Confira a situação no site da banca e do INSS antes de planejar.
 
-Isso não é motivo para esperar. A lei não muda por causa do edital, e o último concurso, de 2022, cobrou Seguridade Social ao lado de Português, Direito Constitucional e Direito Administrativo, entre outras matérias. Quem começa a revisar agora chega ao edital com a lei já em revisão espaçada, e não começando do zero.
+Isso não é motivo para esperar. A lei não muda por causa do edital. O último concurso, de 2022, foi para Técnico do Seguro Social, com 1.000 vagas e banca Cebraspe. A prova de conhecimentos básicos teve Língua Portuguesa, Ética no Serviço Público, Noções de Direito Constitucional, Noções de Direito Administrativo, Noções de Informática e Raciocínio Lógico-Matemático. A de conhecimentos específicos foi Seguridade Social, com a Lei 8.213/1991 no programa. Quem começa a revisar agora chega ao edital com a lei já em revisão espaçada, e não começando do zero.
 
 ## Qual parte da Lei 8.213/1991 revisar primeiro?
 
@@ -35,9 +35,9 @@ A Lei 8.213/1991 trata dos benefícios da Previdência. Para revisão, vale come
 2. **Qualidade de segurado** (art. 15): por quanto tempo a pessoa continua segurada depois de parar de contribuir.
 3. **Benefícios com prazo ou percentual**: salário-maternidade (art. 71), auxílio-acidente (art. 86) e outros.
 
-Uma observação importante sobre os nomes: a lei ainda escreve "auxílio-doença" e "aposentadoria por invalidez". Desde a Emenda Constitucional 103/2019, a Constituição fala em incapacidade temporária e permanente, e é comum a prova e os materiais usarem "auxílio por incapacidade temporária" e "aposentadoria por incapacidade permanente". Faça cards que liguem os dois nomes.
+Uma observação importante sobre os nomes: a lei ainda escreve "auxílio-doença" e "aposentadoria por invalidez" (por exemplo, no art. 25, I). Desde a Emenda Constitucional 103/2019, o art. 201, I, da Constituição fala em "incapacidade temporária ou permanente para o trabalho", e a própria emenda usa "aposentadoria por incapacidade permanente". É comum a prova e os materiais usarem "auxílio por incapacidade temporária" e "aposentadoria por incapacidade permanente". Faça cards que liguem os dois nomes.
 
-Cuidado também com o que o STF já mudou. A lei ainda traz uma carência de 10 contribuições para o salário-maternidade de algumas seguradas (art. 25, III), mas o Supremo a derrubou em 2024 (ADI 2110). Em lei seca, conferir o texto compilado e as decisões que o alteram faz parte do estudo.
+Cuidado também com o que o STF já mudou. A lei ainda traz uma carência de 10 contribuições para o salário-maternidade da contribuinte individual, da segurada especial e da facultativa (art. 25, III), mas o Supremo declarou essa exigência inconstitucional em 21 de março de 2024 (ADI 2110 e ADI 2111). Em lei seca, conferir o texto compilado e as decisões que o alteram faz parte do estudo.
 
 ## Como transformar um artigo em cards?
 
@@ -54,7 +54,7 @@ Alguns modelos de pergunta que funcionam bem para lei seca:
 - **Número direto:** "Qual é a carência da aposentadoria por idade?" (180 contribuições mensais, art. 25, II).
 - **Exceção:** "Em caso de acidente de qualquer natureza, o auxílio-doença exige carência?" (não, art. 26, II).
 - **Prazo com começo:** "O salário-maternidade dura quantos dias e pode começar quando?" (120 dias, com início até 28 dias antes do parto, art. 71).
-- **Troca que a banca faz:** "Período de graça de quem deixa de contribuir: 6, 12 ou 24 meses?" (até 12 meses, art. 15, II, prorrogável para até 24 meses nos casos do § 1º).
+- **Troca que a banca faz:** "Período de graça de quem deixa de contribuir: 6, 12 ou 24 meses?" (até 12 meses, art. 15, II; até 24 meses com mais de 120 contribuições sem perder a qualidade de segurado, § 1º; mais 12 meses para o desempregado que comprova a situação, § 2º. Os 6 meses são do segurado facultativo, inciso VI).
 
 Coloque sempre o artigo no verso. Quando a dúvida vier, você confere no texto compilado em vez de confiar na memória do card.
 
@@ -84,12 +84,12 @@ Na prática, uma rotina simples:
 5. **Limite os cards novos por dia**, para a revisão de amanhã continuar cabendo.
 
 ```cta
-{"area": "concurso", "text": "Quer testar com cards prontos de Seguridade Social? Revise 6 agora, sem criar conta, e veja quando cada um volta."}
+{"area": "concurso", "text": "Quer testar o método antes de montar os seus? Revise 6 cards prontos de Direito Constitucional agora, sem criar conta, e veja quando cada um volta."}
 ```
 
 ## Quanto revisar por dia até a prova?
 
-Depende do volume e do tempo até a prova. Uma conta grosseira ajuda a decidir: se você quer chegar com 1.500 cards de lei seca em 90 dias, são cerca de 17 a 18 cards novos por dia, mais as revisões que crescem com o tempo.
+Depende do volume e do tempo até a prova. Uma conta grosseira ajuda a decidir: se você quer chegar com 1.500 cards de lei seca em 90 dias, são cerca de 17 cards novos por dia (18, se você deixar os 3 últimos dias só para revisão, como a ferramenta abaixo faz), mais as revisões que crescem com o tempo.
 
 A ferramenta abaixo faz essa conta com o mesmo modelo de revisão. Como ainda não há edital, use uma data de referência e ajuste quando ela sair.
 
@@ -113,9 +113,9 @@ Se você já tem baralhos no Anki, dá para importar o arquivo .apkg. Escrevi so
 {"area": "concurso", "title": "Teste: você lembra da Lei 8.213?", "cards": [
   {"q": "Quanto vale o auxílio-acidente mensal?", "a": "50% do salário de benefício.", "source": "Lei 8.213/1991, art. 86, § 1º"},
   {"q": "Qual é a carência da aposentadoria por idade?", "a": "180 contribuições mensais.", "source": "Lei 8.213/1991, art. 25, II"},
-  {"q": "Qual é a carência do auxílio-doença e da aposentadoria por invalidez, fora os casos de acidente?", "a": "12 contribuições mensais.", "source": "Lei 8.213/1991, art. 25, I"},
+  {"q": "Qual é a carência do auxílio-doença e da aposentadoria por invalidez, fora as exceções do art. 26, II (acidente, doença do trabalho e doenças graves da lista)?", "a": "12 contribuições mensais.", "source": "Lei 8.213/1991, art. 25, I"},
   {"q": "O salário-maternidade dura quantos dias?", "a": "120 dias, com início até 28 dias antes do parto.", "source": "Lei 8.213/1991, art. 71"},
-  {"q": "Por quanto tempo, em regra, mantém a qualidade de segurado quem para de contribuir?", "a": "Até 12 meses (art. 15, II), prorrogáveis para até 24 meses nos casos do § 1º.", "source": "Lei 8.213/1991, art. 15"}
+  {"q": "Por quanto tempo, em regra, mantém a qualidade de segurado quem para de exercer atividade e de contribuir?", "a": "Até 12 meses (art. 15, II). Vai a até 24 meses com mais de 120 contribuições sem interrupção (§ 1º), e o desempregado ganha mais 12 meses (§ 2º).", "source": "Lei 8.213/1991, art. 15"}
 ]}
 ```
 
@@ -135,14 +135,13 @@ Os dois, em papéis diferentes. A questão mostra como a banca pergunta e onde v
 
 ### Os nomes "auxílio-doença" e "auxílio por incapacidade temporária" são a mesma coisa?
 
-Na prática, sim: a Lei 8.213/1991 ainda usa o nome antigo, e a Constituição, desde a EC 103/2019, fala em incapacidade temporária. Faça um card ligando os dois nomes para não ser pego pela troca.
+Na prática, sim: a Lei 8.213/1991 ainda usa o nome antigo, e a Constituição, desde a EC 103/2019, fala em incapacidade temporária (art. 201, I). Faça um card ligando os dois nomes para não ser pego pela troca.
 
 ## Fontes
 
-1. Lei nº 8.213, de 24 de julho de 1991, texto compilado (arts. 15, 24, 25, 26, 71 e 86). [https://www.planalto.gov.br/ccivil_03/leis/l8213cons.htm](https://www.planalto.gov.br/ccivil_03/leis/l8213cons.htm)
-2. Emenda Constitucional nº 103, de 2019 (reforma da Previdência). [https://www.planalto.gov.br/ccivil_03/constituicao/emendas/emc/emc103.htm](https://www.planalto.gov.br/ccivil_03/constituicao/emendas/emc/emc103.htm)
-3. STF, ADI 2110 (carência do salário-maternidade), julgada em 2024. [https://portal.stf.jus.br/processos/listarProcessos.asp?classe=ADI&numeroProcesso=2110](https://portal.stf.jus.br/processos/listarProcessos.asp?classe=ADI&numeroProcesso=2110)
-4. Folha Dirigida/Qconcursos, pedido de vagas do INSS ligado ao PLOA 2027. [https://folha.qconcursos.com/n/concurso-inss-ploa-2027](https://folha.qconcursos.com/n/concurso-inss-ploa-2027)
-5. Concursos no Brasil, conteúdo programático do concurso INSS de 2022. [https://concursosnobrasil.com/noticia/2022/09/17/o-que-vai-cair-na-prova-do-concurso-inss-veja-conteudo-programatico/](https://concursosnobrasil.com/noticia/2022/09/17/o-que-vai-cair-na-prova-do-concurso-inss-veja-conteudo-programatico/)
-6. Roediger, H. L. e Karpicke, J. D. (2006). Test-Enhanced Learning. Psychological Science 17(3). [Resumo da Universidade de Washington em St. Louis](https://source.washu.edu/2006/03/repeated-testtaking-better-for-retention-than-repeated-studying-research-shows/)
-7. FSRS, algoritmo de repetição espaçada de código aberto. [https://github.com/open-spaced-repetition/fsrs4anki](https://github.com/open-spaced-repetition/fsrs4anki)
+1. Lei nº 8.213, de 24 de julho de 1991, texto compilado (arts. 15, 24, 25, 26, 44, 71 e 86). [https://www.planalto.gov.br/ccivil_03/leis/l8213cons.htm](https://www.planalto.gov.br/ccivil_03/leis/l8213cons.htm)
+2. Emenda Constitucional nº 103, de 12 de novembro de 2019 (reforma da Previdência; nova redação do art. 201, I, da Constituição). [https://www.planalto.gov.br/ccivil_03/constituicao/emendas/emc/emc103.htm](https://www.planalto.gov.br/ccivil_03/constituicao/emendas/emc/emc103.htm)
+3. STF, ADI 2110 e ADI 2111, julgadas em 21 de março de 2024 (carência do salário-maternidade). Andamento: [https://portal.stf.jus.br/processos/listarProcessos.asp?classe=ADI&numeroProcesso=2110](https://portal.stf.jus.br/processos/listarProcessos.asp?classe=ADI&numeroProcesso=2110). Notícia do STF: [https://noticias.stf.jus.br/?p=75093](https://noticias.stf.jus.br/?p=75093)
+4. INSS, Edital nº 1 – INSS, de 12 de setembro de 2022 (Técnico do Seguro Social, Cebraspe): disciplinas no item 14.2 e 1.000 vagas no Anexo I. [https://cdn.cebraspe.org.br/concursos/INSS_22/arquivos/ED_1_INSS_22_ABERTURA.PDF](https://cdn.cebraspe.org.br/concursos/INSS_22/arquivos/ED_1_INSS_22_ABERTURA.PDF)
+5. Roediger, H. L. e Karpicke, J. D. (2006). Test-Enhanced Learning. Psychological Science 17(3), 249-255 (experimento 2). [https://doi.org/10.1111/j.1467-9280.2006.01693.x](https://doi.org/10.1111/j.1467-9280.2006.01693.x)
+6. FSRS, algoritmo de repetição espaçada de código aberto: fórmulas da versão 6 ([https://github.com/open-spaced-repetition/awesome-fsrs/wiki/The-Algorithm](https://github.com/open-spaced-repetition/awesome-fsrs/wiki/The-Algorithm)) e parâmetros padrão ([https://github.com/open-spaced-repetition/py-fsrs](https://github.com/open-spaced-repetition/py-fsrs)). Os intervalos de 2, 12, 50 e 170 dias são contas nossas com esses parâmetros.

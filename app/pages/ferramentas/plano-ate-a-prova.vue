@@ -18,8 +18,8 @@
         quando a chance de lembrar dele chega a 90%, pela conta do FSRS-6 com os parâmetros padrão.
       </p>
       <p>
-        Como ninguém acerta tudo, o plano soma 10% de revisões para os cards esquecidos. Os minutos contam 8 segundos por card, um ritmo
-        comum em flashcards curtos; cards longos levam mais.
+        Como ninguém acerta tudo, o plano soma 10% de revisões para os cards esquecidos. Os minutos contam 8 segundos por card, uma premissa
+        nossa para flashcards curtos; cards longos levam mais.
       </p>
       <p>
         A lembrança no dia da prova é a média da chance de lembrar de cada card naquele dia. Para entender a curva por trás da conta,

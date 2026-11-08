@@ -70,6 +70,9 @@ const CONSENT_CHUNK = /\/components\/ui\/Consent(Banner|Modal)\.vue/
 const ONE_SHOT_PAGE_CHUNK = /\/(pages\/(index|comecar|entrar|criar-conta|esqueci-senha|checkout\/sucesso|auth\/google\/callback|redefinir-senha|termos|privacidade|planos|importar|cadernos\/lixeira)|layouts\/(auth|landing)|components\/review\/ReviewOnboardingEnd|components\/caderno\/(MaterialCardsState|MoveDialog|TrashDialog))\.vue/
 // Pieces shared only by those pages: a shared chunk has no facade module, so it goes by what is inside it.
 const ONE_SHOT_SHARED = /\/(components\/auth\/|components\/onboarding\/|utils\/(authMessages|organization|moveTargets|ankiMapping)|composables\/useTrashBatch)/
+// Blog and free tools (prd-blog-seo RF-B9): marketing read online, like the landing. Pages, their components, the
+// articles (one chunk per content/blog/*.md) and the tools' math go to once-* chunks, out of the install download.
+const BLOG_CHUNK = /\/(pages\/(blog|ferramentas)\/|pages\/quem-faz\.vue|components\/blog\/|content\/blog\/|utils\/(blog|forgetting|examPlan)\.ts|composables\/useBlogSeo\.ts|modules\/blog\/)|^\0#blog\//
 // Reference page of the design system (prd-ds-v3-fundacao RF-2.5): only in `nuxt dev`. NUXT_DS_PAGE=1 keeps it
 // in a production build for screenshots; even then its chunk is `dev-*`, out of the precache.
 const DS_PAGE_FLAG = process.env.NUXT_DS_PAGE === '1'
@@ -91,6 +94,8 @@ export default defineNuxtConfig({
     '@pinia/nuxt',
     '@vite-pwa/nuxt',
     '@nuxt/fonts',
+    // Blog in Markdown, prerendered (prd-blog-seo, ADR-033): modules/blog
+    '~~/modules/blog',
     // /_ds exists in dev (or with NUXT_DS_PAGE=1): without the route its page and components never get bundled
     (_options, nuxt) => {
       nuxt.hook('pages:extend', (pages) => {
@@ -142,6 +147,7 @@ export default defineNuxtConfig({
               if (ANALYTICS_CHUNK.test(id)) return '_nuxt/analytics-[hash].js'
               if (CONSENT_CHUNK.test(id)) return '_nuxt/consent-[hash].js'
               if (ONE_SHOT_PAGE_CHUNK.test(id)) return '_nuxt/once-[hash].js'
+              if (BLOG_CHUNK.test(id) || (chunk.moduleIds?.length && chunk.moduleIds.every(m => BLOG_CHUNK.test(m)))) return '_nuxt/once-[hash].js'
               if (DS_PAGE_CHUNK.test(id)) return '_nuxt/dev-[hash].js'
               return '_nuxt/[hash].js'
             },
@@ -194,7 +200,7 @@ export default defineNuxtConfig({
       // index.html + _nuxt/index.*.css + landing/** (title font, clips, screens, sample: prd-landing-d RF-D14/D15): the
       // landing (prd-landing-v4 RF-L14), online like the rest of the marketing; the
       // installed app starts at /hoje and navigateFallback is null, so nothing offline ever served it
-      globIgnores: ['index.html', 'landing/**', 'termos/**', 'privacidade/**', 'planos/**', 'ajuda/**', 'entrar/**', 'criar-conta/**', 'esqueci-senha/**', '_nuxt/email-*.js', '_nuxt/analytics-*.js', '_nuxt/consent-*.js', '_nuxt/once-*.js', '_nuxt/dev-*.js', '_nuxt/index.*.css'],
+      globIgnores: ['index.html', 'landing/**', 'termos/**', 'privacidade/**', 'planos/**', 'ajuda/**', 'entrar/**', 'criar-conta/**', 'esqueci-senha/**', '_nuxt/email-*.js', '_nuxt/analytics-*.js', '_nuxt/consent-*.js', '_nuxt/once-*.js', '_nuxt/dev-*.js', '_nuxt/index.*.css', 'blog/**', 'ferramentas/**', 'quem-faz/**', 'sitemap.xml', '_nuxt/blog-*.css'],
       // Heavy on-demand chunks (pdf.js ~330 KB) stay out of the install download;
       // maximumFileSizeToCacheInBytes would fail the build instead of skipping.
       manifestTransforms: [
@@ -229,6 +235,13 @@ export default defineNuxtConfig({
     '/privacidade': { ssr: true, prerender: true },
     '/planos': { ssr: true, prerender: true },
     '/ajuda': { ssr: true, prerender: true },
+    // Blog and free tools (prd-blog-seo): prerendered HTML with the full text; the routes come from modules/blog
+    '/blog': { ssr: true, prerender: true },
+    '/blog/**': { ssr: true, prerender: true },
+    '/ferramentas': { ssr: true, prerender: true },
+    // "Quem faz o Baigi": the author of the articles and the seller identification the checkout links to
+    '/quem-faz': { ssr: true, prerender: true },
+    '/ferramentas/**': { ssr: true, prerender: true },
     '/redefinir-senha': { ssr: false },
     // PostHog reverse proxy (RF-F10, anti-adblock). EU region (ADR-024, Questão 1).
     '/ingest/static/**': { proxy: 'https://eu-assets.i.posthog.com/static/**' },

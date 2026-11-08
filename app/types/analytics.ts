@@ -38,6 +38,11 @@ export interface FrontEventProps {
   landing_cta_clicked: { position: LandingCtaPosition, message: LandingMessageProp, area?: LandingAreaProp }
   /** First play of the real podcast sample (prd-landing-d RF-D18) */
   landing_sample_played: { message: LandingMessageProp }
+  /** Blog and free tools (prd-blog-seo RF-A1): `input` is a bucket, never the exact number (RN-6) */
+  blog_viewed: { slug: string, category: string }
+  blog_cta_clicked: { slug: string, position: 'inline' | 'quiz' | 'end' | 'tool', area: string | null }
+  blog_quiz_answered: { slug: string, remembered: number, total: number }
+  tool_used: { tool: 'calculadora-do-esquecimento' | 'plano-ate-a-prova', input: string }
   /** Conta e onboarding v3 (prd-4g-conta-onboarding-v3 RF-F16) */
   onboarding_step: { step: 1 | 2 | 3, mode: string | null }
   onboarding_path: { path: OnboardingPath }

@@ -13,21 +13,13 @@
     </div>
     <UiSkeleton v-else-if="statsLoading" variant="text" :lines="1" class="w-full max-w-sm" />
 
+    <!-- Memory, not points (prd-revisao-v5-fase-a RF-F5): what changed in the memory of these cards -->
     <div class="flex flex-wrap justify-center gap-6" data-testid="batch-stats">
-      <UiStat :value="`${summary.percent}%`" label="lembrou" />
+      <UiStat :value="summary.far" :label="summary.far === 1 ? 'só volta daqui a 1 semana ou mais' : 'só voltam daqui a 1 semana ou mais'" data-testid="batch-far" />
       <UiStat :value="`${summary.minutes} min`" label="de foco" />
-      <UiStat :value="`+${summary.inDay}`" :label="summary.inDay === 1 ? 'card em dia' : 'cards em dia'" />
     </div>
 
-    <p
-      v-if="streak && streak.current > 0"
-      class="flex items-center gap-2 text-body font-semibold text-streak-fg"
-      :class="streak.extendedNow && 'motion-safe:animate-celebrate-pop'"
-      data-testid="batch-streak"
-    >
-      <Flame class="size-5 fill-current text-streak" aria-hidden="true" />
-      {{ streak.current }} {{ streak.current === 1 ? 'dia seguido' : 'dias seguidos' }}<template v-if="streak.record"> · recorde pessoal</template>
-    </p>
+    <ReviewStreakLine v-if="streak && streak.current > 0" :streak="streak" data-testid="batch-streak" />
 
     <div class="flex w-full max-w-xs flex-col gap-2">
       <UiButton variant="primary" block :aria-keyshortcuts="'Enter'" data-testid="batch-next" @click="$emit('next')">
@@ -44,15 +36,16 @@
 </template>
 
 <script setup lang="ts">
-// End of a batch (prd-4d-revisao-v3 RF-F5): the achievement moment (UiCelebration with the mascot, ≤ 700 ms,
-// still with prefers-reduced-motion), "Você lembrou 17 de 20", the goal of the day from the server, the
-// streak (record when current = longest ≥ 3), one primary "Próximo lote (N)" and the way out. The weak
+// End of a batch (prd-4d-revisao-v3 RF-F5; prd-revisao-v5-fase-a RF-F5): the achievement moment (UiCelebration with
+// the official mascot, ≤ 700 ms, still with prefers-reduced-motion), "Você lembrou 17 de 20", how many only come back
+// in a week or more (memory, not a percentage), the goal of the day from the server, the streak as "Dia N" with the
+// weekly rest (record when current = longest ≥ 3), one primary "Próximo lote (N)" and the way out. The weak
 // subject (≥ 3 "De novo" in the batch) points to 10 questions, or to these errors in the language mode.
-import { Flame } from 'lucide-vue-next'
 import type { BatchSummary } from '~/composables/useReviewBatches'
 
 export interface GoalInfo { batch_size: number; target_batches: number; done_batches: number; met: boolean }
-export interface StreakInfo { current: number; record: boolean; extendedNow: boolean }
+/** `rest`: the weekly rest of the streak (/stats.streak_rest_available; null on older API builds) */
+export interface StreakInfo { current: number; record: boolean; extendedNow: boolean; rest?: boolean | null }
 
 const props = defineProps<{
   index: number

@@ -281,7 +281,7 @@ function cancel() {
   confirmError.value = null
 }
 
-// === The end: "3.000 cards e o histórico vieram · 45 para hoje" ===
+// === The end: "3.000 cards e os intervalos vieram · 45 para hoje" (the revlog is not imported) ===
 const rootId = computed(() => store.status?.root_topic_id ?? null)
 const manyRoots = computed(() => (store.status?.root_topic_ids?.length ?? 0) > 1)
 const todayCount = ref(0)
@@ -299,7 +299,7 @@ watch(rootId, async (id) => {
 const doneText = computed(() => {
   const cards = countOf(store.status?.stats?.cards_created ?? 0, 'card', 'cards')
   const today = todayCount.value ? ` · ${fmt(todayCount.value)} para hoje` : ''
-  return `${cards} e o histórico vieram${today}`
+  return `${cards} e os intervalos vieram${today}`
 })
 const doneDetail = computed(() => {
   const s = store.status?.stats

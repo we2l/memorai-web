@@ -5,7 +5,7 @@
 
     <div class="flex flex-wrap justify-center gap-6" data-testid="session-stats">
       <UiStat :value="summary.size" :label="summary.size === 1 ? 'card revisado' : 'cards revisados'" />
-      <UiStat :value="`${summary.percent}%`" label="lembrou" />
+      <UiStat :value="summary.far" :label="summary.far === 1 ? 'só volta daqui a 1 semana ou mais' : 'só voltam daqui a 1 semana ou mais'" data-testid="session-far" />
       <UiStat :value="`${summary.minutes} min`" label="de foco" />
     </div>
 
@@ -17,10 +17,7 @@
       <UiProgressBar :value="Math.min(goal.done_batches, goal.target_batches)" :max="goal.target_batches" :segments="goal.target_batches" tone="celebrate" size="md" :label="`Meta de hoje: ${goal.done_batches} de ${goal.target_batches} lotes`" />
     </div>
 
-    <p v-if="streak && streak.current > 1" class="flex items-center gap-2 text-body font-semibold text-streak-fg" data-testid="session-streak">
-      <Flame class="size-5 fill-current text-streak" aria-hidden="true" />
-      {{ streak.current }} dias seguidos<template v-if="streak.record"> · recorde pessoal</template>
-    </p>
+    <ReviewStreakLine v-if="streak && streak.current > 0" :streak="streak" data-testid="session-streak" />
 
     <div class="flex w-full flex-col gap-3">
       <slot name="tomorrow" />
@@ -38,7 +35,6 @@
 // End of the session (prd-4d-revisao-v3 RF-F6): the layout of the batch end with the numbers of the whole
 // session, tomorrow's forecast and the reminder, the retention suggestion when it applies, "Voltar a
 // {escopo}" (the primary) and "Reforçar erros (N)" in the same slice.
-import { Flame } from 'lucide-vue-next'
 import type { BatchSummary } from '~/composables/useReviewBatches'
 import type { GoalInfo, StreakInfo } from '~/components/review/ReviewBatchEnd.vue'
 

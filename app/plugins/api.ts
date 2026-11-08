@@ -19,6 +19,11 @@ export default defineNuxtPlugin(() => {
       if (import.meta.client && response.ok && opensTrialRequest(options.method, typeof request === 'string' ? request : request.url)) {
         void useAuthStore().refreshTrialAfterUse()
       }
+      // The first own material after the visitor's lote (prd-onboarding-v4 RF-F8)
+      if (import.meta.client && response.ok) {
+        const kind = takeFirstMaterial(options.method, typeof request === 'string' ? request : request.url, useAuthStore().user?.id)
+        if (kind) useAnalytics().track('first_own_material', { kind })
+      }
     },
     async onResponseError({ response }) {
       if (response.status === 401 && import.meta.client) {

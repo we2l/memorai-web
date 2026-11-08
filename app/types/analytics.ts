@@ -9,7 +9,10 @@ export type ReviewScope = 'topic' | 'deck' | 'none'
 export type ReviewScopeType = 'topic' | 'document' | 'note' | 'quiz' | 'podcast' | 'cards'
 /** `annual` = annual chosen before Stripe decides between Pix and card. */
 export type AnalyticsBilling = 'monthly' | 'annual' | 'annual_pix' | 'annual_card'
-export type OnboardingPath = 'sample' | 'pdf' | 'text' | 'anki' | 'skip'
+export type OnboardingPath = 'sample' | 'pdf' | 'text' | 'anki' | 'skip' | 'question'
+/** Onboarding v4 (prd-onboarding-v4 RF-F8) */
+export type GuestAreaProp = 'concurso' | 'enem' | 'medicina' | 'oab' | 'ingles' | 'faculdade'
+export type OwnMaterialKind = 'pdf' | 'note' | 'anki' | 'question'
 export type UploadSource = 'onboarding' | 'caderno' | 'other'
 export type ReminderSource = 'settings' | 'session_end' | 'onboarding'
 /** Navegação v3 (prd-navegacao-v3 RF-12) */
@@ -42,7 +45,18 @@ export interface FrontEventProps {
   onboarding_step: { step: 1 | 2 | 3, mode: string | null }
   onboarding_path: { path: OnboardingPath }
   onboarding_sample_created: { mode: string }
+  /** Onboarding v4 (prd-onboarding-v4 RF-F8): the funnel of the visitor's mini-lote */
+  onboarding_area_chosen: { area: GuestAreaProp, source: 'comecar' | 'landing' }
+  guest_card_rated: { area: GuestAreaProp, index: number, rating: 1 | 2 | 3 | 4, pass: number }
+  guest_batch_done: { area: GuestAreaProp, remembered: number, total: number, repeats: number }
+  signup_from_guest: { area: GuestAreaProp, reviews_applied: number, created: boolean }
+  first_own_material: { kind: OwnMaterialKind }
   settings_goal: { batches: number }
+  settings_batch_size: { size: number }
+  /** prd-revisao-v5-fase-a RF-F6 */
+  settings_review_buttons: { mode: 'two' | 'four' }
+  /** prd-revisao-v5-fase-a RF-F9: the commitment before the sign-up */
+  guest_commitment: { area: GuestAreaProp, goal_batches: number, has_exam: boolean }
   settings_section_open: { section: string }
   error_page: { status: number }
   auth_password_toggle: { visible: boolean }

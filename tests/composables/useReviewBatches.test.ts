@@ -8,6 +8,20 @@ const log = (i: number, extra: Partial<RatingLog> = {}): RatingLog => ({
   client_id: `c${i}`, card_id: `k${i}`, rating: 3, duration_ms: 30_000, topic_id: 't1', topic_name: 'Controle', first: true, batch: 1, due: null, ...extra,
 })
 
+describe('fim do lote com memória (prd-revisao-v5-fase-a RF-F5)', () => {
+  it('conta os que só voltam daqui a 1 semana ou mais pelo due novo de cada card', () => {
+    const dayEnd = Date.parse('2026-11-08T23:59:59.999-03:00')
+    // The API writes due = midnight UTC of today + N days
+    const due = (days: number) => new Date(Date.UTC(2026, 10, 8 + days)).toISOString()
+    const s = batchSummary([
+      log(1, { due: due(7) }), log(2, { due: due(30) }), log(3, { due: due(6) }), log(4, { due: due(1) }),
+      log(5, { rating: 1, due: null }), log(5, { first: false, due: due(9) }),
+    ], null, dayEnd)
+    expect(s.far).toBe(3)
+    expect(s.remembered).toBe(4)
+  })
+})
+
 describe('lotes da revisão (prd-4d-revisao-v3 RF-F1)', () => {
   it('total de lotes pelo session_count do botão (45 → 3; 20 → 1; 0 → 1)', () => {
     expect(batchesTotal(45)).toBe(3)

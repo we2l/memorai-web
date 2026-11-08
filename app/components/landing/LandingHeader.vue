@@ -13,7 +13,7 @@
       </nav>
       <NuxtLink to="/entrar" class="lp-enter">Entrar</NuxtLink>
       <!-- Desktop only, always there, like the prototype D (owner, 06/11) -->
-      <LandingCta to="/criar-conta" position="header" small class="lp-header-cta">
+      <LandingCta to="/comecar" position="header" small class="lp-header-cta">
         Criar conta grátis
       </LandingCta>
     </div>

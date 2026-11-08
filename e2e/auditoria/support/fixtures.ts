@@ -21,7 +21,7 @@ export const API = `${API_ORIGIN}/api`
 export const AUDIT_PASSWORD = 'Senha-Audit-2026'
 const CONTAINER = process.env.E2E_API_CONTAINER || 'baigi-app'
 
-export type UserKey = 'visual' | 'pro' | 'free' | 'quota' | 'unverified' | 'onboarding' | 'onboardingUnverified' | 'empty' | 'session' | 'logout' | 'account' | 'mobile' | 'legacy' | 'scope' | 'nav' | 'hoje' | 'hojeNew' | 'hojeGoal' | 'recorte' | 'hub' | 'material' | 'library' | 'revisao' | 'revisaoEmpty' | 'praticar' | 'praticarFree' | 'progresso' | 'progressoNew' | 'onbText' | 'onbExit' | 'onbExam' | 'onbAnki' | 'onbSample' | 'onbKeyboard' | 'conta' | 'contaPro' | 'parts' | 'organizacao' | 'landingShots' | 'trialInvite' | 'trialUnverified' | 'trialActive' | 'trialTomorrow' | 'trialToday' | 'trialUsed' | 'questao' | 'preview' | 'binario'
+export type UserKey = 'visual' | 'pro' | 'free' | 'quota' | 'unverified' | 'onboarding' | 'onboardingUnverified' | 'empty' | 'session' | 'logout' | 'account' | 'mobile' | 'legacy' | 'scope' | 'nav' | 'hoje' | 'hojeNew' | 'hojeGoal' | 'recorte' | 'hub' | 'material' | 'library' | 'revisao' | 'revisaoEmpty' | 'praticar' | 'praticarFree' | 'progresso' | 'progressoNew' | 'onbText' | 'onbExit' | 'onbExam' | 'onbAnki' | 'onbSample' | 'onbKeyboard' | 'conta' | 'contaPro' | 'parts' | 'organizacao' | 'landingShots' | 'trialInvite' | 'trialUnverified' | 'trialActive' | 'trialTomorrow' | 'trialToday' | 'trialUsed' | 'questao' | 'preview' | 'binario' | 'faseB'
 
 type UserSpec = { email: string; plan: 'free' | 'pro'; verified: boolean; onboarded: boolean; reset: true; quota_exhausted?: Record<string, number>; name?: string; trial?: 'used' | 'active' | 'tomorrow' | 'today'; buttons?: 'two' | 'four' }
 
@@ -35,6 +35,7 @@ export const USERS: Record<UserKey, UserSpec> = {
   preview: { email: 'e2e-preview@audit.test', plan: 'free', verified: true, onboarded: true, reset: true, quota_exhausted: { cards_ai: 1, mindmap_ai: 1 } },
   // Revisão v5 (revisao-botoes.spec.ts): the 2 buttons of a real account (the other audit users keep the 4 of the Anki)
   binario: { email: 'e2e-binario@audit.test', plan: 'free', verified: true, onboarded: true, reset: true, buttons: 'two' },
+  faseB: { email: 'e2e-fase-b@audit.test', plan: 'free', verified: true, onboarded: true, reset: true, buttons: 'two' },
   unverified: { email: 'e2e-unverified@audit.test', plan: 'pro', verified: false, onboarded: true, reset: true },
   onboarding: { email: 'e2e-onboarding@audit.test', plan: 'free', verified: true, onboarded: false, reset: true },
   // Fresh e-mail sign-up: onboarding pending and e-mail not confirmed yet (verified mid-test)

@@ -17,7 +17,7 @@ const cardFace = (page: Page) => page.getByTestId('review-card')
 async function dueTopic(page: Page, n: number) {
   const t = (await apiCall(page, 'POST', '/topics', { name: `Botões ${uid()}` })).data
   await apiCall(page, 'POST', '/ai/accept-cards', { topic_id: t.id, cards: Array.from({ length: n }, (_, i) => ({ front: `Pergunta ${i + 1}`, back: `Resposta ${i + 1}` })) })
-  php(`Illuminate\\Support\\Facades\\DB::table('flashcards')->where('topic_id', '${t.id}')->update(['state' => 'review', 'due' => now()->subDay(), 'last_review' => now()->subDays(12), 'reps' => 3, 'stability' => 12, 'difficulty' => 5, 'scheduled_days' => 11]); echo 'ok';`)
+  php(`Illuminate\\Support\\Facades\\DB::table('flashcards')->where('topic_id', '${t.id}')->update(['state' => 'review', 'due' => now(), 'last_review' => now()->subDays(12), 'reps' => 3, 'stability' => 12, 'difficulty' => 5, 'scheduled_days' => 11]); echo 'ok';`)
   return t.id as string
 }
 
@@ -61,6 +61,8 @@ test('dois botões: verso antes de avaliar, teclas 1/2/←/→/Espaço, a pílul
     await expect(page.getByTestId('review-show')).toBeVisible()
     await page.keyboard.press('Space')
     await expect(ratings).toBeVisible()
+    // The pill of the previous card leaves when this one turns (never next to its answer)
+    await expect(page.getByTestId('review-feedback')).toHaveCount(0)
     await page.keyboard.press(key)
   }
   await expect(page.getByTestId('review-feedback')).toContainText('Lembrei')
@@ -105,6 +107,10 @@ test('os 4 botões como opção: Configurações → Estudo grava, e a revisão 
   await page.keyboard.press('2')
   await expect(page.getByTestId('review-feedback')).toHaveText(/Difícil · volta em/)
   await expect.poll(() => sent).toEqual([2])
+  // Next card turned: the pill of the previous one is gone (prd-revisao-v5-fase-b)
+  await page.keyboard.press('Space')
+  await expect(page.getByTestId('review-ratings')).toBeVisible()
+  await expect(page.getByTestId('review-feedback')).toHaveCount(0)
 })
 
 test.describe('celular', () => {

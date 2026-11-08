@@ -17,6 +17,10 @@ export interface ReviewShortcutHandlers {
   batchEnd?: () => { next: () => void; stop: () => void } | null
   /** Two buttons (default when absent: four): 1 / ← "Não lembrei", 2 / → / Space / Enter "Lembrei" (prd-revisao-v5-fase-a D2) */
   mode?: () => ReviewButtonsMode
+  /** A checked card (prd-revisao-v5-fase-b RF-F5, RF-F6): its own component answers Enter; no flip or rating keys here */
+  checkMode?: () => 'true_false' | 'typed' | null
+  /** C = Certo, E = Errado, B = Em branco before the turn of a Certo/Errado card */
+  answerTrueFalse?: (choice: 'certo' | 'errado' | 'blank') => void
 }
 
 export function isTypingTarget(el: EventTarget | null): boolean {
@@ -64,6 +68,17 @@ export function createReviewShortcutHandler(h: ReviewShortcutHandlers) {
       return
     }
     if (e.ctrlKey) return
+
+    const check = h.checkMode?.() ?? null
+    if (check) {
+      const lower = key.toLowerCase()
+      if (check === 'true_false' && !h.isFlipped() && ['c', 'e', 'b'].includes(lower)) {
+        e.preventDefault()
+        h.answerTrueFalse?.(lower === 'c' ? 'certo' : lower === 'e' ? 'errado' : 'blank')
+        return
+      }
+      if ([' ', 'Enter', '1', '2', '3', '4', 'ArrowLeft', 'ArrowRight'].includes(key)) return
+    }
 
     if (key === ' ' || key === 'Enter') {
       // Let Enter/Space activate a focused button (other than the card itself)

@@ -27,7 +27,7 @@ export const useFlashcardStore = defineStore('flashcard', {
       return res.data
     },
 
-    async update(id: string, data: { front?: string; back?: string; topic_id?: string; tags?: string[]; front_audio_url?: string | null; back_audio_url?: string | null }) {
+    async update(id: string, data: { front?: string; back?: string; topic_id?: string; tags?: string[]; front_audio_url?: string | null; back_audio_url?: string | null; answer_check?: 'true_false' | 'typed' | null; check_answer?: string | null }) {
       const { $api } = useNuxtApp()
       const res = await $api<any>(`/flashcards/${id}`, { method: 'PUT', body: data })
       const cards = Array.isArray(res.data) ? res.data as Flashcard[] : [res.data as Flashcard]

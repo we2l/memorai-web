@@ -32,6 +32,14 @@
           <UiSelect v-model="targetLanguage" :options="languageOptions" label="Idioma" placeholder="Escolha" />
           <UiSelect v-model="languageLevel" :options="levelOptions" label="Nível" placeholder="Escolha" />
         </div>
+        <!-- Typed answers of the caderno (prd-revisao-v5-fase-b RF-F9): only when editing a caderno -->
+        <UiSwitch
+          v-if="props.mode === 'edit'"
+          v-model="typedAnswers"
+          label="Digitar as respostas curtas na revisão"
+          description="Cards com resposta de até 60 letras pedem para digitar; você confere e decide se acertou."
+          data-testid="topic-dialog-typed"
+        />
       </template>
 
       <div class="flex flex-wrap justify-end gap-2">
@@ -62,6 +70,8 @@ export interface TopicDialogTarget {
   learning_mode?: string | null
   target_language?: string | null
   language_level?: string | null
+  /** The caderno's typed answers (edit of a caderno only) */
+  typed_answers?: boolean
 }
 
 const props = defineProps<{
@@ -83,6 +93,7 @@ const color = ref<string>('')
 const mode = ref<string>('general')
 const targetLanguage = ref('')
 const languageLevel = ref('')
+const typedAnswers = ref(false)
 const nameError = ref<string | undefined>(undefined)
 const nameRef = ref<{ focus: () => void } | null>(null)
 
@@ -119,6 +130,7 @@ watch(open, (isOpen) => {
     mode.value = props.target.learning_mode ?? 'general'
     targetLanguage.value = props.target.target_language ?? ''
     languageLevel.value = props.target.language_level ?? ''
+    typedAnswers.value = !!props.target.typed_answers
   } else {
     name.value = ''
     color.value = ''
@@ -140,6 +152,7 @@ function body(): Record<string, unknown> {
       out.target_language = targetLanguage.value || null
       out.language_level = languageLevel.value || null
     }
+    if (props.mode === 'edit' && typedAnswers.value !== !!props.target?.typed_answers) out.typed_answers = typedAnswers.value
   }
   return out
 }

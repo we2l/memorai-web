@@ -50,7 +50,7 @@ test('PDF: "Revisar N" abre só os cards daquele material, com o caminho do reco
   expect(body.scope).toMatchObject({ type: 'document', id: seed.docId, label: F2.pdf, topic: { id: seed.subjectId } })
   expect(body.data.map((c: any) => c.id).sort()).toEqual([...seed.docCardIds].sort())
   await expect(page.getByTestId('review-scope')).toHaveText(`Revisando ${F2.subject} › ${F2.pdf}`)
-  await expect(page.getByTestId('review-batch')).toContainText('Lote 1 de 1 · card 1 de 3')
+  await expect(page.getByTestId('review-batch')).toContainText('card 1 de 3')
 
   // The end of the session goes back to the material
   await finishSession(page, 3)

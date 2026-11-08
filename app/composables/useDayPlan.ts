@@ -4,7 +4,7 @@
  * API answers, so the rules are tested without the screen. The first visible step carries the only
  * primary button of the screen.
  */
-import type { BacklogStats, PendingAction, Podcast, RecentNote, Stats, TopicPerformance, TopicProgress } from '~/types'
+import type { BacklogState, BacklogStats, PendingAction, Podcast, RecentNote, Stats, TopicPerformance, TopicProgress } from '~/types'
 import { cadernoPath } from '~/utils/scope'
 import { REVIEW_BATCH, SECONDS_PER_CARD } from '~/utils/reviewBatch'
 import { openedLabel, plural } from '~/utils/greeting'
@@ -23,6 +23,8 @@ export interface DayPlanStep {
   overdue?: number
   /** Revisar: survival mode is on ("Modo recuperação ligado · Desligar") */
   survival?: boolean
+  /** Revisar: the backlog apart from today (prd-revisao-v5-fase-b RF-F1): the line "Atraso · Recuperar em dias" */
+  backlog?: BacklogState
   /** Minutes this step adds to the day (sentence of the greeting) */
   minutes: number
 }
@@ -61,14 +63,30 @@ const ageDays = (iso: string | null | undefined, now: Date) => {
 
 function reviewStep(input: DayPlanInput): DayPlanStep | null {
   const due = input.stats?.due_today ?? 0
-  if (due <= 0) return null
+  // The backlog is not in due_today when active (prd-revisao-v5-fase-b): a line of its own, never a big number
+  const state = input.stats?.backlog ?? input.backlog?.backlog ?? null
+  const backlogShown = !!state && (!!state.plan || (state.active && state.overdue > 0) || state.new_paused)
+  if (due <= 0) {
+    if (!state || !state.active || state.overdue <= 0) return null
+    return {
+      key: 'review',
+      mode: 'review',
+      title: 'Recuperar o atraso',
+      detail: 'Nada novo para hoje: só os cards de dias que passaram',
+      action: { label: 'Revisar o atraso', to: '/revisar?backlog=1' },
+      primary: false,
+      backlog: state,
+      minutes: Math.ceil((Math.min(state.overdue, input.stats?.goal?.batch_size || BATCH_SIZE) * SECONDS_PER_CARD) / 60),
+    }
+  }
   const roots = input.progress.filter(t => !t.parent_id && (t.session_count ?? 0) > 0)
   const where = roots.length === 1 ? ` de ${roots[0]!.name}` : ''
   // The person's batch (10, 20 or 30) comes with the goal; older API builds omit it
   const size = input.stats?.goal?.batch_size || BATCH_SIZE
   const lots = Math.ceil(due / size)
   const minutes = input.stats?.goal?.minutes_left ?? Math.ceil((due * SECONDS_PER_CARD) / 60)
-  const overdue = input.backlog?.overdue_count ?? 0
+  // Older API builds: the overdue count still in the line (the link to "Recuperar atraso")
+  const overdue = state ? 0 : input.backlog?.overdue_count ?? 0
   const parts = [due > size ? `${plural(lots, 'lote', 'lotes')} de ~${size}` : '1 lote', `≈ ${minutes} min`]
   if (overdue > due) parts.push(`${overdue} atrasados`)
   return {
@@ -80,6 +98,7 @@ function reviewStep(input: DayPlanInput): DayPlanStep | null {
     primary: false,
     overdue: overdue > due ? overdue : undefined,
     survival: input.survivalMode || undefined,
+    backlog: backlogShown ? state! : undefined,
     minutes,
   }
 }

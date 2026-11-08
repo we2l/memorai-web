@@ -73,15 +73,17 @@ test('biblioteca: cola, confere, cria o card e revisa com "Ver a questão"', asy
   await expect(page).toHaveURL(/\/revisar\?scope=cards&card_ids=/)
   await expect(page.getByTestId('review-front')).toContainText('O STF é o guardião da Constituição.')
   await expect(page.getByTestId('review-front')).toContainText('Certo ou errado?')
-  await page.getByRole('button', { name: 'Mostrar resposta' }).click()
+  // A Certo/Errado question answers before the turn (prd-revisao-v5-fase-b RF-F5)
+  await page.getByTestId('check-certo').click()
+  await expect(page.getByTestId('check-result')).toHaveText('Você marcou Certo · Gabarito: Certo')
   await expect(page.getByTestId('review-origin')).toContainText('Origem: questão colada')
   await page.keyboard.press('o')
   const view = page.getByRole('dialog', { name: 'A questão que você errou' })
   await expect(view.getByTestId('question-view-answer')).toHaveText('Gabarito: Certo')
   await page.keyboard.press('Escape')
   await expect(view).toBeHidden()
-  // The session is where it was: the answer still shown, ready to rate
-  await expect(page.getByTestId('rate-3')).toBeVisible()
+  // The session is where it was: the answer still shown, ready to go on
+  await expect(page.getByTestId('check-continue')).toBeVisible()
 
   expect(aiGuard).toEqual([])
 })

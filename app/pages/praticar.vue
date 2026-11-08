@@ -240,8 +240,9 @@ const reviewCount = computed(() => {
 })
 const reviewHint = computed(() => (reviewCount.value ? undefined : 'tudo em dia'))
 const backlogMeta = computed(() => {
-  const n = backlog.value?.overdue_count ?? 0
-  return !scope.value && n ? `${n} atrasados, espalhados nos próximos dias` : 'Os atrasados, espalhados nos próximos dias'
+  // "Só o atraso" (prd-revisao-v5-fase-b RF-B3): the overdue cards, the closest to being forgotten first
+  const n = backlog.value?.backlog?.overdue ?? backlog.value?.overdue_count ?? 0
+  return !scope.value && n ? `${n} atrasados, os mais perto de esquecer primeiro` : 'Os atrasados, os mais perto de esquecer primeiro'
 })
 
 // Questões: the accuracy of the scope (all cadernos = the sum of the roots), only with ≥ 10 answered

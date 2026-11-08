@@ -23,7 +23,7 @@ async function dueTopic(page: Page, n: number, prefix = 'Pergunta') {
     const size = Math.min(100, n - done)
     await apiCall(page, 'POST', '/ai/accept-cards', { topic_id: t.id, cards: Array.from({ length: size }, (_, i) => ({ front: `${prefix} ${done + i + 1}`, back: `Resposta ${done + i + 1}` })) })
   }
-  php(`Illuminate\\Support\\Facades\\DB::table('flashcards')->where('topic_id', '${t.id}')->update(['state' => 'review', 'due' => now()->subDay(), 'last_review' => now()->subDays(4), 'reps' => 2, 'stability' => 4, 'difficulty' => 5, 'scheduled_days' => 3]); echo 'ok';`)
+  php(`Illuminate\\Support\\Facades\\DB::table('flashcards')->where('topic_id', '${t.id}')->update(['state' => 'review', 'due' => now(), 'last_review' => now()->subDays(4), 'reps' => 2, 'stability' => 4, 'difficulty' => 5, 'scheduled_days' => 3]); echo 'ok';`)
   return t.id as string
 }
 
@@ -143,7 +143,7 @@ test('origem nos 3 tipos (PDF com parte, nota, questão) e nada no card avulso',
     $c = App\\Domain\\Flashcard\\Models\\Flashcard::where('topic_id', '${topic.id}')->where('front', 'Origem questão?')->firstOrFail();
     $q = App\\Domain\\Quiz\\Models\\Quiz::create(['user_id' => $u->id, 'topic_id' => '${topic.id}', 'title' => 'Simulado O', 'status' => 'completed', 'mode' => 'learning', 'config' => ['quantity' => 7, 'types' => ['true_false'], 'difficulty' => 'mixed'], 'total_questions' => 7, 'correct_count' => 6, 'score_percent' => 85, 'time_spent_seconds' => 60, 'started_at' => now()->subMinute(), 'completed_at' => now()]);
     foreach (range(1, 7) as $pos) { App\\Domain\\Quiz\\Models\\QuizQuestion::create(['quiz_id' => $q->id, 'position' => $pos, 'type' => 'true_false', 'difficulty' => 'easy', 'stem' => "Afirmação $pos", 'explanation' => 'x', 'correct_answer' => 'true', 'user_answer' => $pos === 7 ? 'false' : 'true', 'is_correct' => $pos !== 7, 'answered_at' => now(), 'flashcard_id' => $pos === 7 ? $c->id : null]); }
-    Illuminate\\Support\\Facades\\DB::table('flashcards')->where('topic_id', '${topic.id}')->update(['state' => 'review', 'due' => now()->subDay(), 'last_review' => now()->subDays(4), 'reps' => 3, 'lapses' => 2, 'stability' => 4, 'difficulty' => 5, 'scheduled_days' => 3]);
+    Illuminate\\Support\\Facades\\DB::table('flashcards')->where('topic_id', '${topic.id}')->update(['state' => 'review', 'due' => now(), 'last_review' => now()->subDays(4), 'reps' => 3, 'lapses' => 2, 'stability' => 4, 'difficulty' => 5, 'scheduled_days' => 3]);
     echo 'ok';
   `)
   await gotoApp(page, `/revisar?topic_id=${topic.id}`)
@@ -170,7 +170,7 @@ test('"Abrir o trecho" (tecla O) leva ao material e "Voltar à revisão" retoma 
   const topic = (await apiCall(page, 'POST', '/topics', { name: `Trecho ${uid()}` })).data
   const note = (await apiCall(page, 'POST', `/topics/${topic.id}/notes`, { title: 'Nota do trecho' })).data
   await apiCall(page, 'POST', '/ai/accept-cards', { topic_id: topic.id, note_id: note.id, cards: [{ front: 'Trecho A?', back: 'R' }, { front: 'Trecho B?', back: 'R' }, { front: 'Trecho C?', back: 'R' }] })
-  php(`Illuminate\\Support\\Facades\\DB::table('flashcards')->where('topic_id', '${topic.id}')->update(['state' => 'review', 'due' => now()->subDay(), 'last_review' => now()->subDays(4), 'reps' => 2, 'stability' => 4, 'difficulty' => 5, 'scheduled_days' => 3]); echo 'ok';`)
+  php(`Illuminate\\Support\\Facades\\DB::table('flashcards')->where('topic_id', '${topic.id}')->update(['state' => 'review', 'due' => now(), 'last_review' => now()->subDays(4), 'reps' => 2, 'stability' => 4, 'difficulty' => 5, 'scheduled_days' => 3]); echo 'ok';`)
   await gotoApp(page, `/revisar?topic_id=${topic.id}`)
   const rated = (await cardFace(page).getByTestId('review-front').innerText()).trim()
   await rate(page, '4')

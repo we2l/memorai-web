@@ -2,7 +2,8 @@
   <UiDialog v-model="open" title="Card" size="lg">
     <template v-if="card">
       <div class="flex flex-wrap items-center gap-2 text-label text-fg-muted">
-        <UiTag :tone="state.tone">{{ state.label }}</UiTag>
+        <UiTag v-if="card.suspended_at" data-testid="card-paused">Pausado</UiTag>
+        <UiTag v-else :tone="state.tone">{{ state.label }}</UiTag>
         <span v-if="due">{{ due }}</span>
         <span v-if="card.lapses > 0">· errou {{ card.lapses }} {{ card.lapses === 1 ? 'vez' : 'vezes' }}</span>
         <span v-if="card.topic_name">· {{ card.topic_name }}</span>
@@ -21,6 +22,8 @@
     </template>
     <template #footer>
       <UiButton variant="ghost" class="mr-auto" @click="$emit('delete', card!)">Excluir</UiButton>
+      <!-- A card paused in the review (prd-revisao-v5-fase-b RF-F8): back to the sessions -->
+      <UiButton v-if="card?.suspended_at" :loading="resuming" data-testid="card-resume" @click="resume">Retomar</UiButton>
       <UiButton variant="primary" @click="$emit('edit', card!)">Editar</UiButton>
     </template>
   </UiDialog>
@@ -33,8 +36,22 @@ import type { LibraryCard } from '~/types'
 import { cardState, dueLabel, originShort } from '~/utils/cardState'
 
 const props = defineProps<{ card: LibraryCard | null; topicId: string }>()
-defineEmits<{ (e: 'edit', card: LibraryCard): void; (e: 'delete', card: LibraryCard): void }>()
+const emit = defineEmits<{ (e: 'edit', card: LibraryCard): void; (e: 'delete', card: LibraryCard): void; (e: 'resumed', card: LibraryCard): void }>()
 const open = defineModel<boolean>({ required: true })
+
+const { $api } = useNuxtApp()
+const { run, pending: resuming } = useApiAction()
+async function resume() {
+  const card = props.card
+  if (!card) return
+  const res = await run(() => $api<{ data: LibraryCard }>(`/flashcards/${card.id}/suspend`, { method: 'DELETE' }), {
+    success: 'Card retomado: ele volta às revisões.',
+    error: 'Não foi possível retomar o card.',
+  })
+  if (!res) return
+  useAnalytics().track('library_card_resumed', {})
+  emit('resumed', { ...card, suspended_at: null })
+}
 
 const { sanitize } = useSanitize()
 const frontHtml = computed(() => sanitize(props.card?.front ?? ''))

@@ -21,7 +21,9 @@
       <span class="line-clamp-2 block text-body text-fg-strong">{{ front }}</span>
       <span class="block truncate text-meta text-fg-muted">{{ back }}</span>
       <span class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-label text-fg-muted">
-        <UiTag :tone="state.tone">{{ state.label }}</UiTag>
+        <UiTag v-if="card.suspended_at" tone="neutral" data-testid="card-row-paused">Pausado</UiTag>
+        <UiTag v-else :tone="state.tone">{{ state.label }}</UiTag>
+        <span v-if="card.is_leech" data-testid="card-row-leech">não está colando ({{ card.lapses }} erros)</span>
         <span v-if="origin" class="truncate">{{ origin }}</span>
         <span v-if="due">{{ due }}</span>
       </span>

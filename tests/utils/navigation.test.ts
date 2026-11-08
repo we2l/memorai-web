@@ -55,6 +55,13 @@ const EXPECTED: Record<string, string | null> = {
   '/privacidade': null,
   '/redefinir-senha': null,
   '/termos': null,
+  // Blog, free tools and "Quem faz" (prd-blog-seo): public pages, no place
+  '/blog': null,
+  '/blog/:slug': null,
+  '/ferramentas': null,
+  '/ferramentas/calculadora-do-esquecimento': null,
+  '/ferramentas/plano-ate-a-prova': null,
+  '/quem-faz': null,
 }
 
 describe('navigation: 4 lugares e o item ativo', () => {

@@ -240,5 +240,7 @@ export const useScopeStore = defineStore('scope', () => {
     topicId, summary, summaryLoading, summaryError, notFound,
     materials, nextCursor, total, query, materialsLoading, loadingMore, materialsError, materialsLoaded, hasMore,
     open, fetchSummary, fetchMaterials, setQuery, loadMore, patchRow, applyDocument, refreshRow, prependRow, removeRow, refresh, reset,
+    // Setup stores have no built-in $reset (utils/accountState.ts resetUserScopedState)
+    $reset: reset,
   }
 })

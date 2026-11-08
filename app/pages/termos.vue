@@ -39,8 +39,9 @@
     <p>
       Nas contratações pela internet, você pode desistir em até 7 dias corridos a contar do pagamento (art. 49 do Código de
       Defesa do Consumidor) e receber de volta o valor total, sem precisar explicar o motivo. Vale para a primeira cobrança do
-      mensal, para o Pix de 30 dias e para o anual. Peça em Configurações, em "Pedir reembolso", ou pelo suporte em
-      <a :href="`mailto:${sellerEmail}`">{{ sellerEmail }}</a>. O acesso daquela compra termina na hora do pedido; o valor
+      mensal, para o Pix de 30 dias e para o anual. Na primeira compra da conta, peça em Configurações, em "Pedir
+      reembolso" (perguntamos o motivo só para melhorar o Baigi, e qualquer resposta vale). Nas compras seguintes, ou se
+      preferir, peça pelo suporte em <a :href="`mailto:${sellerEmail}`">{{ sellerEmail }}</a>. O acesso daquela compra termina na hora do pedido; o valor
       volta na fatura do cartão (o prazo depende do banco) ou na conta de onde saiu o Pix. Depois dos 7 dias, e nas renovações
       automáticas do mensal, o reembolso é avaliado pelo suporte, caso a caso. Uma contestação no cartão (chargeback)
       encerra o Intensivo daquela compra.

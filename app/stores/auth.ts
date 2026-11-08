@@ -57,6 +57,10 @@ export const useAuthStore = defineStore('auth', {
 
     async logout(): Promise<void> {
       const { $api } = useNuxtApp()
+      // Cleared first: a 401 of /logout itself (session already over) then finds no user to send to /entrar?redirect.
+      // An explicit logout: the next person on this browser finds no ids nor drafts of this account either.
+      clearAccountStorage()
+      this.clearAuth()
       try {
         await $api('/logout', { method: 'POST' })
       } catch (e) {
@@ -64,7 +68,6 @@ export const useAuthStore = defineStore('auth', {
         // opens this browser next must not get the account back, so the logout is finished on the next boot.
         if (getErrorStatus(e) === undefined) markPendingLogout()
       }
-      this.clearAuth()
     },
 
     async updateProfile(name: string): Promise<User> {
@@ -97,6 +100,8 @@ export const useAuthStore = defineStore('auth', {
 
     clearAuth() {
       this.user = null
+      // No data of this account stays on screen even if someone navigates without the full page load (accountState.ts)
+      resetUserScopedState()
       if (import.meta.client) {
         // Next person on this browser starts a fresh anonymous id (RF-F07)
         useAnalytics().reset()

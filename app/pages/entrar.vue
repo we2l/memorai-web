@@ -62,10 +62,10 @@ async function submit() {
   loading.value = true
   try {
     await auth.login(form.email.trim(), form.password)
-    await navigateTo(postAuthRedirect(auth.user, query.value.redirect))
+    // Full page load: no memory of a previous account on this tab (utils/accountState.ts); the button stays busy
+    reloadTo(postAuthRedirect(auth.user, query.value.redirect))
   } catch (e) {
     errors.general = loginErrorMessage(e)
-  } finally {
     loading.value = false
   }
 }

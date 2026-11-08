@@ -42,9 +42,9 @@ test.describe('Logout', () => {
       await page.waitForURL('**/entrar**')
       expect((await me(context)).status()).toBe(401)
 
-      // Voltar no histórico não mostra a tela privada
+      // Voltar no histórico não mostra a tela privada: o logout recarrega no lugar dela (utils/accountState.ts)
       await page.goBack()
-      await page.waitForURL('**/entrar**')
+      expect(page.url()).not.toContain('/progresso')
       await page.goto('/hoje')
       await page.waitForURL('**/entrar?redirect=**')
       expect(new URL(page.url()).searchParams.get('redirect')).toBe('/hoje')

@@ -16,7 +16,8 @@
 
       <div v-if="batch" class="ml-auto flex items-center gap-3 sm:ml-0" data-testid="review-batch">
         <span class="text-meta font-medium whitespace-nowrap text-fg-strong tabular-nums">
-          Lote {{ batch.index }} de {{ batch.total }}<span class="max-sm:hidden"> · card {{ batch.card }} de {{ batch.size }}</span><span class="sm:hidden"> · {{ batch.card }}/{{ batch.size }}</span>
+          <!-- A single batch (the visitor's mini-lote) has no "Lote 1 de 1" -->
+          <template v-if="batch.total > 1">Lote {{ batch.index }} de {{ batch.total }} · </template><span class="max-sm:hidden">card {{ batch.card }} de {{ batch.size }}</span><span class="sm:hidden">{{ batch.total > 1 ? '' : 'card ' }}{{ batch.card }}/{{ batch.size }}</span>
         </span>
         <UiProgressBar v-if="batch.total <= MAX_SEGMENTS" class="hidden w-48 sm:flex" v-bind="barProps" />
       </div>

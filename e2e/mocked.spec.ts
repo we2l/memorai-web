@@ -388,7 +388,7 @@ test.describe('Revisão rápida (RF-F2.1–F2.4)', () => {
     })
     await page.goto('/revisar')
     await expect(page.getByText('Pergunta 1')).toBeVisible()
-    await expect(page.getByTestId('review-batch')).toContainText('Lote 1 de 1 · card 1 de 4')
+    await expect(page.getByTestId('review-batch')).toContainText('card 1 de 4')
     for (const next of [2, 3, 4]) {
       await page.keyboard.press('Space')
       await page.keyboard.press('3')

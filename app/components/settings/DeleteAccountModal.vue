@@ -74,10 +74,11 @@ async function submit() {
   try {
     await run(() => $api('/user', { method: 'DELETE', body: { confirmation: confirmation.value } }), { error: false, rethrow: true })
     open.value = false
-    // The API already ended every session: just clear the local state
+    // The API already ended every session: clear the local state and reload (utils/accountState.ts)
+    clearAccountStorage()
     auth.clearAuth()
-    useToast().show('Sua conta está sendo excluída.', 'success')
-    await navigateTo('/')
+    flashToast('Sua conta está sendo excluída.', 'success')
+    reloadTo('/', { replace: true })
   } catch (e: any) {
     const status = getErrorStatus(e)
     if (status === 422) error.value = e?.data?.errors?.confirmation?.[0] ?? 'Confirmação inválida.'

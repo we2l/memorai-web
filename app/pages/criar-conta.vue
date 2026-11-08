@@ -92,7 +92,8 @@ async function submit() {
       ...useConsent().signupPayload(),
       ...(captchaToken ? { captcha_token: captchaToken } : {}),
     })
-    await navigateTo(postAuthRedirect(auth.user, router.currentRoute.value.query.redirect))
+    // Full page load: no memory of a previous account on this tab (utils/accountState.ts)
+    reloadTo(postAuthRedirect(auth.user, router.currentRoute.value.query.redirect))
   } catch (e) {
     const status = getErrorStatus(e)
     if (status === 429) {

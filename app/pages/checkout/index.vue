@@ -25,7 +25,7 @@
             {{ annualPix.discount_percent }}% de desconto no Pix: {{ formatBrl(annualCard ?? 0) }} no cartão.
           </p>
           <p v-else-if="annualPix" class="text-meta font-semibold text-fg-strong" data-testid="checkout-pix-discount">
-            ou {{ formatBrl(annualPix.amount_cents) }} no Pix, {{ annualPix.discount_percent }}% de desconto.
+            ou Pix {{ formatBrl(annualPix.amount_cents) }} ({{ annualPix.discount_percent }}% de desconto).
           </p>
           <p class="mt-1 text-meta text-fg-muted">{{ productTerms(product, plans) }}</p>
         </template>

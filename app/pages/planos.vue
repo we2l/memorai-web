@@ -62,6 +62,7 @@
 // (RN-01). Prerendered: while hydrating, Nuxt takes the query out of the route and gives it back right after, so
 // the links (?ciclo=, ?success=, ?renovar=) follow router.currentRoute, like /entrar.
 import { ChevronDown } from 'lucide-vue-next'
+import { annualCardLine } from '~/utils/checkoutState'
 import type { BillingPeriod } from '~/components/plans/BillingToggle.vue'
 
 definePageMeta({ layout: 'public', quietHeaderCta: true })
@@ -135,7 +136,7 @@ const refundDays = computed(() => plans.value?.checkout?.refund_window_days ?? 7
 const annualPayLine = computed(() => {
   const annual = pro.value?.prices.annual
   if (!annual) return 'no Pix ou no cartão'
-  const card = (annual.installments_max ?? 1) > 1 ? `${formatPrice(annual.amount_cents)} em até ${annual.installments_max}x no cartão (os juros do parcelamento aparecem antes de confirmar)` : `${formatPrice(annual.amount_cents)} no cartão`
+  const card = `${formatPrice(annual.amount_cents)} no cartão, ${annualCardLine(annual)} (cada opção mostra a parcela e o total antes de confirmar)`
   return annual.pix ? `${card}, ou ${formatPrice(annual.pix.amount_cents)} no Pix, com ${annual.pix.discount_percent}% de desconto` : card
 })
 

@@ -832,8 +832,15 @@ export interface PlanPrice {
   label: string
   monthly_equivalent_cents?: number
   installments_max?: number
-  /** payer = the buyer pays the installment interest (shown with the total by the card form) */
+  /** payer = above the interest-free ones, the buyer pays the interest (shown with the total by the card form) */
   installments_interest?: 'payer' | 'seller'
+  /** Up to this many installments without interest (the seller pays) */
+  installments_interest_free?: number
+  interest_free_installment_cents?: number
+  /** "R$ 239,90 por ano (equivale a R$ 19,99 por mês) · até 3× sem juros · ou 12× com juros · Pix R$ 227,90" */
+  offer_line?: string
+  /** "até 3× sem juros · ou 12× com juros" */
+  card_line?: string
   savings_cents?: number
   methods?: Array<'card' | 'pix'>
   /** Monthly on Pix: days paid once, no renewal */

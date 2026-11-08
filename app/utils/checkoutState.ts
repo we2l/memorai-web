@@ -1,4 +1,4 @@
-import type { BillingProduct, CheckoutPayment, PlanCatalog } from '~/types'
+import type { BillingProduct, CheckoutPayment, PlanCatalog, PlanPrice } from '~/types'
 
 const brl = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
 
@@ -37,6 +37,21 @@ export function priceOf(catalog: PlanCatalog | null | undefined, product: Billin
   return prices.monthly?.amount_cents ?? null
 }
 
+/**
+ * "até 3× sem juros · ou 12× com juros" (the catalog's, or the same rule when an older API has only the numbers).
+ * The monthly share of the annual is never written as a charge or an installment.
+ */
+export function annualCardLine(annual: PlanPrice | null | undefined): string {
+  if (!annual) return ''
+  if (annual.card_line) return annual.card_line
+  const max = annual.installments_max ?? 1
+  const free = Math.min(max, Math.max(1, annual.installments_interest_free ?? 1))
+  if (max === 1) return 'à vista no cartão'
+  const parts = free > 1 ? [`até ${free}× sem juros`] : []
+  if (max > free) parts.push(`${parts.length ? 'ou ' : ''}${max}× com juros`)
+  return parts.join(' · ')
+}
+
 /** The line under the price: what the person gets and how it renews. */
 export function productTerms(product: BillingProduct, catalog: PlanCatalog | null | undefined): string {
   const prices = catalog?.plans.find(p => p.key === 'pro')?.prices
@@ -48,7 +63,7 @@ export function productTerms(product: BillingProduct, catalog: PlanCatalog | nul
       return `${prices?.monthly?.pix_days ?? 30} dias de acesso, pagos uma vez. Não renova sozinho: avisamos antes de acabar.`
     case 'annual_card':
       return max > 1
-        ? `Um ano de acesso, em até ${max}x no cartão. Os juros do parcelamento aparecem antes de você confirmar.`
+        ? `Um ano de acesso: ${annualCardLine(prices?.annual)}. Cada opção mostra o valor da parcela e o total antes de você confirmar. Não renova sozinho.`
         : 'Um ano de acesso, pago uma vez no cartão. Não renova sozinho.'
     case 'annual_pix': {
       const pix = prices?.annual?.pix

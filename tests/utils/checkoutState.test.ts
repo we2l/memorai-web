@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { CheckoutPayment, PlanCatalog } from '~/types'
-import { isSettled, methodFromQuery, paymentView, planFromQuery, priceOf, productOf, productTerms, remainingLabel, sellerLine } from '~/utils/checkoutState'
+import { annualCardLine, isSettled, methodFromQuery, paymentView, planFromQuery, priceOf, productOf, productTerms, remainingLabel, sellerLine } from '~/utils/checkoutState'
 
 const catalog = {
   checkout: { available: true, seller: { name: 'Fulano de Tal', document: '123.456.789-09', email: null } },
@@ -34,9 +34,18 @@ describe('checkoutState', () => {
     expect(priceOf(null, 'monthly')).toBeNull()
   })
 
+  it('parcelas do anual: até N sem juros e o resto com juros', () => {
+    expect(annualCardLine({ amount_cents: 23990, label: '', installments_max: 12, installments_interest_free: 3 })).toBe('até 3× sem juros · ou 12× com juros')
+    expect(annualCardLine({ amount_cents: 23990, label: '', installments_max: 12 })).toBe('12× com juros')
+    expect(annualCardLine({ amount_cents: 23990, label: '', installments_max: 3, installments_interest_free: 6 })).toBe('até 3× sem juros')
+    expect(annualCardLine({ amount_cents: 23990, label: '', installments_max: 1 })).toBe('à vista no cartão')
+    expect(annualCardLine({ amount_cents: 23990, label: '', card_line: 'do catálogo' })).toBe('do catálogo')
+    expect(annualCardLine(null)).toBe('')
+  })
+
   it('explica cada produto', () => {
     expect(productTerms('annual_pix', catalog)).toContain('5% mais barato no Pix')
-    expect(productTerms('annual_card', catalog)).toContain('até 12x')
+    expect(productTerms('annual_card', catalog)).toContain('12× com juros')
     expect(productTerms('monthly_pix', catalog)).toContain('Não renova sozinho')
     expect(productTerms('monthly', catalog)).toContain('dois cliques')
   })

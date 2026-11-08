@@ -29,9 +29,9 @@ test.describe('/planos anônimo', () => {
     await expect(page.locator('.bg-tinted').filter({ visible: true })).toHaveCount(1)
 
     await expect(page.getByRole('radio', { name: 'Anual' })).toBeChecked()
-    // The annual by its total, and its monthly share "cobrado uma vez por ano" (prd-planos-lancamento RF-F4)
+    // The annual by its total, and its monthly share only as an equivalence (decisão do dono, 08/11)
     await expect(page.getByTestId('plan-pro-price')).toContainText(brl(pro.prices.annual.amount_cents))
-    await expect(page.getByTestId('plan-pro-note')).toContainText(`${brl(pro.prices.annual.monthly_equivalent_cents)} por mês, cobrado uma vez por ano`)
+    await expect(page.getByTestId('plan-pro-note')).toContainText(`Equivale a ${brl(pro.prices.annual.monthly_equivalent_cents)} por mês`)
     await expect(page.getByTestId('billing-savings')).toContainText(brl(pro.prices.annual.savings_cents))
 
     await page.getByRole('radio', { name: 'Mensal' }).check()

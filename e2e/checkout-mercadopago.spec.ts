@@ -32,7 +32,7 @@ async function withCatalog(page: Page) {
     const body = await res.json()
     const pro = body.data.plans.find((p: any) => p.key === 'pro')
     pro.prices.monthly = { amount_cents: 3490, label: 'R$ 34,90/mês', methods: ['card', 'pix'], pix_days: 30 }
-    pro.prices.annual = { amount_cents: 23990, label: 'R$ 239,90/ano', monthly_equivalent_cents: 1999, installments_max: 12, installments_interest: 'payer', savings_cents: 17890, methods: ['card', 'pix'], pix: { amount_cents: 22790, label: 'R$ 227,90/ano', discount_percent: 5, savings_cents: 1200 } }
+    pro.prices.annual = { amount_cents: 23990, label: 'R$ 239,90/ano', monthly_equivalent_cents: 1999, installments_max: 12, installments_interest_free: 3, installments_interest: 'payer', savings_cents: 17890, methods: ['card', 'pix'], pix: { amount_cents: 22790, label: 'R$ 227,90/ano', discount_percent: 5, savings_cents: 1200 } }
     body.data.checkout = { available: true, gateway: 'mercadopago', public_key: process.env.MP_PUBLIC_KEY || null, seller: { name: 'Fulano de Tal', document: '123.456.789-09', email: 'contato@baigi.com.br' }, statement_descriptor: 'BAIGI', refund_window_days: 7 }
     await route.fulfill({ response: res, json: body })
   })
@@ -62,12 +62,12 @@ test.describe('Checkout do Mercado Pago', () => {
 
   test('/planos leva ao checkout do anual, com o Pix de desconto à vista', async ({ page }) => {
     await page.goto('/planos')
-    await expect(page.getByTestId('plan-pro-pix')).toHaveText(/ou R\$\s227,90 no Pix, 5% de desconto/)
+    await expect(page.getByTestId('plan-pro-pix')).toHaveText(/Pix R\$\s227,90 \(5% de desconto\)/)
     await page.getByRole('link', { name: 'Assinar anual' }).click()
     await page.waitForURL('**/checkout?plano=anual')
     await expect(page.getByTestId('checkout-price')).toHaveText(/R\$\s239,90/)
     await expect(page.getByRole('tab', { name: 'Cartão' })).toBeVisible()
-    await expect(page.getByTestId('checkout-pix-discount')).toHaveText(/ou R\$\s227,90 no Pix, 5% de desconto/)
+    await expect(page.getByTestId('checkout-pix-discount')).toHaveText(/Pix R\$\s227,90 \(5% de desconto\)/)
     await expect(page.getByTestId('checkout-seller')).toContainText('Vendido por Fulano de Tal, CPF 123.456.789-09')
     await expect(page.getByTestId('checkout-seller')).toContainText('BAIGI')
   })
@@ -115,6 +115,45 @@ test.describe('Checkout do Mercado Pago', () => {
     await page.goto('/checkout?plano=anual')
     await expect(page.getByTestId('card-brick').locator('iframe').first()).toBeVisible({ timeout: 20_000 })
   })
+
+  // Parcelamento (decisão do dono, 08/11): the Brick's select lists each option with the installment and the total;
+  // the chosen count reaches our API. Real Brick and sandbox tokenization; our checkout route is mocked.
+  for (const installments of [3, 12]) {
+    test(`cartão anual em ${installments}×: parcela e total na opção, e o número de parcelas chega à API`, async ({ page }) => {
+      test.skip(!process.env.MP_PUBLIC_KEY, 'sem MP_PUBLIC_KEY (chave pública do sandbox)')
+      let sent: any = null
+      await page.route('**/api/checkout/card', async (route) => {
+        sent = route.request().postDataJSON()
+        await route.fulfill({ status: 201, json: { data: payment({ product: 'annual_card', method: 'card', status: 'approved', status_detail: 'accredited', pix: null, installments: sent.installments, amount_cents: 23990, plan_active: true, paid_at: '2026-11-08T10:00:00-03:00', plan_expires_at: '2027-11-08T10:00:00-03:00' }) } })
+      })
+      await page.route(`**/api/checkout/payments/${CHECKOUT_ID}`, route => route.fulfill({ json: { data: payment({ product: 'annual_card', method: 'card', status: 'approved', pix: null, plan_active: true, plan_expires_at: '2027-11-08T10:00:00-03:00' }) } }))
+
+      await page.goto('/checkout?plano=anual')
+      await expect(page.getByTestId('checkout-summary')).toContainText('até 3× sem juros · ou 12× com juros')
+      const brick = page.getByTestId('card-brick')
+      await expect(brick.locator('iframe').first()).toBeVisible({ timeout: 20_000 })
+      await page.frame({ name: 'cardNumber' })!.locator('input:not(.hide)').pressSequentially('5480832801033311')
+      await page.frame({ name: 'expirationDate' })!.locator('input:not(.hide)').pressSequentially('1130')
+      await page.frame({ name: 'securityCode' })!.locator('input:not(.hide)').pressSequentially('123')
+      await brick.locator('input[name="HOLDER_NAME"]').fill('APRO')
+      await brick.locator('input[name="DOCUMENT"]').fill('12345678909')
+
+      const select = brick.locator('select').last()
+      await expect(select.locator('option', { hasText: /^12x / })).toHaveCount(1, { timeout: 15_000 })
+      const options = await select.locator('option').allInnerTexts()
+      const option = options.find(o => o.startsWith(`${installments}x `))!
+      // Every option says the installment and the total ("12x R$ 24,41 (R$ 292,94)") or that it has no interest
+      expect(option).toMatch(/^\d+x R\$\s?[\d.,]+ \((R\$\s?[\d.,]+|[^)]*juros[^)]*)\)$/i)
+      await select.selectOption({ label: option })
+      await brick.getByRole('button', { name: /Pagar/ }).click()
+
+      await page.waitForURL(`**/checkout/sucesso?checkout=${CHECKOUT_ID}`, { timeout: 20_000 })
+      expect(sent.installments).toBe(installments)
+      expect(sent.product).toBe('annual')
+      expect(sent.token).toBeTruthy()
+      expect(sent).not.toHaveProperty('card_number')
+    })
+  }
 
   for (const width of [390, 1440]) {
     test(`checkout sem rolagem lateral em ${width}px`, async ({ page }) => {

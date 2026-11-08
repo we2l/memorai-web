@@ -45,7 +45,7 @@ export const useAuthStore = defineStore('auth', {
       return res.data.user
     },
 
-    async register(payload: { name: string, email: string, password: string, accept_terms: boolean, analytics_consent?: boolean, captcha_token?: string }): Promise<User> {
+    async register(payload: { name?: string, email: string, password: string, accept_terms: boolean, analytics_consent?: boolean, captcha_token?: string }): Promise<User> {
       const { $api } = useNuxtApp()
       const res = await $api<{ data: { user: User } }>('/register', {
         method: 'POST',

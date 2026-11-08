@@ -6,6 +6,7 @@ import { reactive } from 'vue'
 import PasswordInput from '~/components/auth/PasswordInput.vue'
 import DailyGoalPicker from '~/components/settings/DailyGoalPicker.vue'
 import BatchSizePicker from '~/components/settings/BatchSizePicker.vue'
+import ReviewButtonsPicker from '~/components/settings/ReviewButtonsPicker.vue'
 import PlanUsageSection from '~/components/settings/PlanUsageSection.vue'
 import SettingsAccountSection from '~/components/settings/AccountSection.vue'
 import NotebookRow from '~/components/caderno/NotebookRow.vue'
@@ -21,7 +22,7 @@ mockNuxtImport('useNuxtApp', original => () => new Proxy(original(), {
   get: (target, key) => (key === '$api' ? apiMock : Reflect.get(target, key)),
 }))
 
-const SUMMARY = { size: 8, remembered: 6, percent: 75, minutes: 2, inDay: 6, weak: null, errorIds: [] }
+const SUMMARY = { size: 8, remembered: 6, percent: 75, minutes: 2, inDay: 6, far: 0, weak: null, errorIds: [] }
 
 function stubApi(routes: Record<string, unknown>) {
   const calls: { url: string; opts: any }[] = []
@@ -80,6 +81,24 @@ describe('SettingsDailyGoalPicker (RF-F2)', () => {
     await w.findAll('input[type="radio"]')[0]!.setValue(true)
     await flushPromises()
     expect(settings.daily_goal_batches).toBe(3)
+  })
+})
+
+describe('SettingsReviewButtonsPicker (prd-revisao-v5-fase-a RF-F6)', () => {
+  it('2 botões por padrão; escolher os 4 grava review_buttons, diz "Salvo" e atualiza o /me', async () => {
+    useAuthStore().user = { name: 'Ana' } as never
+    const calls = stubApi({ '/settings': { data: { review_buttons: 'four' } } })
+    const settings = reactive<UserSettings>({ daily_new_cards_limit: null, daily_review_limit: null, session_time_limit: null, survival_mode: false })
+    const w = await mountSuspended(ReviewButtonsPicker, { props: { settings } })
+    const radios = w.findAll('input[type="radio"]')
+    expect(radios).toHaveLength(2)
+    expect((radios[0]!.element as HTMLInputElement).checked).toBe(true)
+    expect(w.text()).toContain('Lembrei / Não lembrei')
+    await radios[1]!.setValue(true)
+    await flushPromises()
+    expect(calls.at(-1)).toMatchObject({ url: '/settings', opts: { method: 'PUT', body: { review_buttons: 'four' } } })
+    expect(useAuthStore().user!.review_buttons).toBe('four')
+    expect(w.get('[data-testid="review-buttons-saved"]').text()).toBe('Salvo')
   })
 })
 
@@ -286,6 +305,13 @@ describe('OnboardingContentStep (prd-onboarding-v4 RF-F5)', () => {
     expect(primary.text()).toBe('Gerar cards do texto')
     expect(primary.attributes('disabled')).toBeDefined()
     expect(w.find('[data-testid="verify-email-line"]').exists()).toBe(false)
+  })
+
+  it('prévia do Grátis sem verificar (prd-revisao-v5-fase-a RF-F11): texto liberado, só a linha discreta', async () => {
+    const w = await mountSuspended(ContentStep, { props: props({ path: 'text', text: 'um texto', aiReady: true }) })
+    expect(w.find('#verify-email-notice').exists()).toBe(false)
+    expect(w.get('[data-testid="content-primary"]').attributes('disabled')).toBeUndefined()
+    expect(w.find('[data-testid="verify-email-line"]').exists()).toBe(true)
   })
 
   it('Anki sem verificar segue liberado; o caminho "tema" não existe', async () => {

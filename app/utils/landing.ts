@@ -379,7 +379,7 @@ export function landingFaqs(catalog: PlanCatalog | null): { q: string, a: string
     },
     {
       q: 'Já uso o Anki. Começo do zero?',
-      a: 'Não. O Baigi traz os cards com o intervalo e o número de erros de cada um; o histórico de revisões fica no Anki. Ao exportar no Anki, marque a opção de suporte a versões antigas.',
+      a: 'Não. O Baigi traz os cards com o intervalo e o número de erros de cada um; o histórico de revisões fica no Anki. No Anki, use Arquivo → Exportar → Pacote de baralho (.apkg).',
     },
     {
       q: `Como cancelo o ${name}?`,

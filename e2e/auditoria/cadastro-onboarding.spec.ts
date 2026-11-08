@@ -1,4 +1,4 @@
-import { test, expect, gotoApp, uid, sql, loginState, verifyEmail, USERS, AUDIT_PASSWORD } from './support/fixtures'
+import { test, expect, gotoApp, uid, sql, loginState, USERS, AUDIT_PASSWORD } from './support/fixtures'
 import type { Page } from '@playwright/test'
 
 /**
@@ -19,10 +19,8 @@ async function isolateRegisterThrottle(page: Page) {
 async function fillSignup(page: Page, data: { name: string; email: string; password: string; terms?: boolean }) {
   await page.goto('/criar-conta')
   await page.waitForLoadState('networkidle')
-  await page.locator('#name').fill(data.name)
   await page.locator('#email').fill(data.email)
   await page.locator('#password').fill(data.password)
-  if (data.terms !== false) await page.locator('#accept_terms').check()
 }
 
 const fakeCards = [
@@ -130,7 +128,8 @@ test.describe('Cadastro', () => {
     await page.getByTestId('review-card').click()
     await expect(page.getByTestId('review-answer')).toContainText('Cloroplasto')
     const rated = page.waitForResponse(r => r.url().endsWith('/api/review') && r.request().method() === 'POST')
-    await page.getByRole('button', { name: /^Bom/ }).click()
+    // A new account rates with "Não lembrei / Lembrei" (prd-revisao-v5-fase-a RF-F1)
+    await page.getByRole('button', { name: /^Lembrei/ }).click()
     expect((await rated).status()).toBeLessThan(300)
     expect(Number(sql(`select count(*) from reviews r join users u on u.id=r.user_id where u.email='${email}'`))).toBe(1)
   })
@@ -195,38 +194,17 @@ test.describe('Onboarding com IA (mockada)', () => {
 test.describe('Onboarding de quem não confirmou o e-mail', () => {
   test.use({ auditUser: 'onboardingUnverified' })
 
-  test('aviso com Reenviar e Já confirmei → verificação → gera (IA mockada) → accept real → revisão → fim do 1º lote', async ({ page }) => {
+  test('a prévia do Grátis não espera o e-mail: gera (IA mockada) → accept real → revisão → fim do 1º lote', async ({ page }) => {
     test.setTimeout(90_000)
-    // O reenvio real só registraria log (MAIL_MAILER=log), mas gasta o throttle de verificação compartilhado
-    const resends: string[] = []
-    await page.route('**/api/email/verification-notification', (r) => { resends.push(r.request().method()); return r.fulfill({ status: 202, json: { message: 'ok' } }) })
     const calls = await mockGenerate(page)
     await toTextPath(page)
-    const notice = page.getByRole('status').filter({ hasText: /Confirme seu e-mail para usar (a prévia grátis d)?a IA/ })
-    await expect(notice).toContainText(USERS.onboardingUnverified.email)
+    // prd-revisao-v5-fase-a RF-F11: no blocking notice, only the discreet line with the address
+    await expect(page.locator('#verify-email-notice')).toHaveCount(0)
+    await expect(page.getByTestId('verify-email-line')).toContainText(USERS.onboardingUnverified.email)
 
     await page.locator('#material').fill('Fotossíntese ocorre nos cloroplastos.')
     await page.locator('#notebook-name').fill('Bio Verificação')
     const transform = page.getByRole('button', { name: 'Gerar cards do texto' })
-    // Ações de IA bloqueadas com o motivo (o aviso), nunca o 403 cru
-    await expect(transform).toBeDisabled()
-    await expect(transform).toHaveAttribute('aria-describedby', 'verify-email-notice')
-
-    // Reenviar: fica em espera (throttle) depois de enviar
-    await notice.getByRole('button', { name: 'Reenviar e-mail' }).click()
-    await expect(notice.getByRole('button', { name: /^Reenviar em \d+s$/ })).toBeDisabled()
-    expect(resends).toEqual(['POST'])
-
-    // "Já confirmei" antes de confirmar: continua bloqueado
-    await notice.getByRole('button', { name: 'Já confirmei' }).click()
-    await expect(page.getByText('Ainda não recebemos a confirmação. Abra o link do e-mail e tente de novo.')).toBeVisible()
-    await expect(transform).toBeDisabled()
-
-    // Confirma (no lugar do link do e-mail) e "Já confirmei" relê o /me sem recarregar a página
-    // The onboarding ended at "Pular o exemplo" (v4): the verification keeps it ended
-    verifyEmail({ ...USERS.onboardingUnverified, onboarded: true })
-    await notice.getByRole('button', { name: 'Já confirmei' }).click()
-    await expect(notice).toBeHidden()
     await expect(transform).toBeEnabled()
 
     const accepted = page.waitForResponse(r => r.url().endsWith('/api/ai/accept-cards'))
@@ -239,7 +217,7 @@ test.describe('Onboarding de quem não confirmou o e-mail', () => {
     // Primeira revisão até o fim da sessão
     await page.waitForURL('**/revisar?scope=note:**')
     for (let i = 0; i < 3; i++) {
-      await expect(page.getByRole('button', { name: 'Card: toque ou Espaço para ver a resposta' })).toBeVisible()
+      await expect(page.getByRole('button', { name: 'Card: Espaço para ver a resposta' })).toBeVisible()
       await page.keyboard.press('Space')
       await expect(page.getByTestId('review-answer')).toBeVisible()
       await page.keyboard.press('4')

@@ -479,10 +479,8 @@ test.describe('Onboarding sem armadilhas (RF-F4)', () => {
   async function register(page: import('@playwright/test').Page) {
     await page.goto('/criar-conta')
     await page.waitForLoadState('networkidle')
-    await page.fill('#name', newUser.name)
     await page.fill('#email', newUser.email)
     await page.fill('#password', 'password123')
-    await page.check('#accept_terms')
     await page.click('button[type="submit"]')
   }
 

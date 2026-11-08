@@ -28,11 +28,9 @@ test.describe('Captcha', () => {
     await page.goto('/criar-conta')
     const email = `e2e-captcha-${uid()}@audit.test`
     // The script comes when the form gets focus
-    await page.locator('#name').fill('Captcha')
     test.skip(!(await loaded), 'build sem NUXT_PUBLIC_TURNSTILE_SITE_KEY')
     await page.locator('#email').fill(email)
     await page.locator('#password').fill(AUDIT_PASSWORD)
-    await page.locator('#accept_terms').check()
     const req = page.waitForRequest(r => r.url().endsWith('/api/register') && r.method() === 'POST')
     const res = page.waitForResponse(r => r.url().endsWith('/api/register'))
     await page.getByRole('button', { name: 'Criar conta' }).click()
@@ -75,10 +73,8 @@ test.describe('Captcha', () => {
     await page.route('**/api/register', (route) => { calls++; return route.abort() })
     await page.goto('/criar-conta')
     await page.waitForLoadState('networkidle')
-    await page.locator('#name').fill('Sem script')
     await page.locator('#email').fill(`e2e-semscript-${uid()}@audit.test`)
     await page.locator('#password').fill(AUDIT_PASSWORD)
-    await page.locator('#accept_terms').check()
     await page.getByRole('button', { name: 'Criar conta' }).click()
 
     // Without the site key the form posts right away (the aborted request also ends in an error): skip on the call
@@ -96,11 +92,9 @@ test.describe('Captcha', () => {
     }))
     const loaded = captchaOn(page)
     await page.goto('/criar-conta')
-    await page.locator('#name').fill('Recusa')
     test.skip(!(await loaded), 'build sem NUXT_PUBLIC_TURNSTILE_SITE_KEY')
     await page.locator('#email').fill(`e2e-recusa-${uid()}@audit.test`)
     await page.locator('#password').fill(AUDIT_PASSWORD)
-    await page.locator('#accept_terms').check()
     await page.getByRole('button', { name: 'Criar conta' }).click()
     await expect(page.getByTestId('signup-error')).toHaveText('Não conseguimos confirmar que você não é um robô. Tente a verificação de novo.')
   })

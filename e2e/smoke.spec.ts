@@ -31,16 +31,19 @@ test.describe('Páginas públicas (RF-F11)', () => {
     await expect(page.locator('h2#direitos')).toBeVisible()
   })
 
-  test('cadastro sem aceitar os Termos fica bloqueado no cliente', async ({ page }) => {
-    let registerCalls = 0
-    await page.route('**/api/register', r => { registerCalls++; return r.continue() })
+  test('cadastro enxuto: sem nome nem checkbox, a linha dos Termos fica à vista e o clique aceita', async ({ page }) => {
+    // prd-revisao-v5-fase-a RF-F10, D8: one line of the Terms; the click sends accept_terms (the API still requires it)
+    let body: Record<string, unknown> | null = null
+    await page.route('**/api/register', (r) => { body = r.request().postDataJSON(); return r.fulfill({ status: 422, json: { message: 'x', errors: { email: ['Este e-mail já está em uso.'] } } }) })
     await page.goto('/criar-conta')
     await page.waitForLoadState('networkidle')
-    await page.fill('#name', 'Sem Aceite')
-    await page.fill('#email', `sem-aceite-${Date.now()}@e2e.test`)
+    await expect(page.locator('#name')).toHaveCount(0)
+    await expect(page.locator('#accept_terms')).toHaveCount(0)
+    await expect(page.getByTestId('signup-terms')).toContainText('Termos de Uso')
+    await page.fill('#email', `sem-nome-${Date.now()}@e2e.test`)
     await page.fill('#password', 'password123')
     await page.click('button[type="submit"]')
-    await expect(page.getByText(/aceite os Termos/)).toBeVisible()
-    expect(registerCalls).toBe(0)
+    await expect.poll(() => body).toMatchObject({ accept_terms: true })
+    expect(body).not.toHaveProperty('name')
   })
 })

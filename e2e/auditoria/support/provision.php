@@ -1,6 +1,6 @@
 <?php
 // Audit users for e2e/auditoria (run through `php artisan tinker` by support/users.ts).
-// Input: env E2E_AUDIT_USERS = JSON [{email, plan, verified, onboarded, reset, quota_exhausted?, trial?}]
+// Input: env E2E_AUDIT_USERS = JSON [{email, plan, verified, onboarded, reset, quota_exhausted?, trial?, buttons?}]
 // quota_exhausted of a Free account goes to the preview's lifetime row when the API has it (prd-uso-justo §9).
 // trial (prd-planos-lancamento): used = ran and ended | active = 7 days from now | tomorrow / today = ends on that
 // study day of Brasília. Absent = untouched (a Free verified account is "available": its first material opens it).
@@ -35,6 +35,10 @@ foreach ($specs as $s) {
         'onboarding_completed_at' => ! empty($s['onboarded']) ? ($user->onboarding_completed_at ?? now()) : null,
         'analytics_consent' => false,
     ])->save();
+    // The specs before prd-revisao-v5-fase-a rate with the 4 Anki buttons; `buttons: two` is the new default of a real account
+    if (\Illuminate\Support\Facades\Schema::hasColumn('users', 'review_buttons')) {
+        $user->forceFill(['review_buttons' => $s['buttons'] ?? 'four'])->save();
+    }
 
     if (! empty($s['trial'])) {
         $sp = now('America/Sao_Paulo');

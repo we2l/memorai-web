@@ -3,7 +3,8 @@ import { test, expect, sql, uid, AUDIT_PASSWORD, API } from './support/fixtures'
 import type { Page } from '@playwright/test'
 
 /**
- * Onboarding v4 (prd-onboarding-v4 §9): visitante → área → mini-lote real → resultado → cadastro (Turnstile de teste) →
+ * Onboarding v4 (prd-onboarding-v4 §9; rodada 2: prd-revisao-v5-fase-a): visitante → área → mini-lote binário → resultado
+ * com a curva → compromisso (prova e meta) → cadastro enxuto (Turnstile de teste) →
  * progresso na conta → material. Nenhuma rota é mockada: o lote vem de GET /onboarding/areas/{area} e vai para a conta
  * por POST /onboarding/guest. Rode com o web buildado com NUXT_PUBLIC_TURNSTILE_SITE_KEY=1x00000000000000000000AA e a API
  * com TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA (sem a site key, o cadastro vai sem token e passa igual).
@@ -17,17 +18,29 @@ async function isolateThrottle(page: Page) {
   }
 }
 
-/** The 6 cards by keyboard: the 1st with "De novo", the rest "Bom"; the 1st comes back at the end and gets "Bom". */
+/**
+ * The 6 cards by keyboard, in the binary of the round 2 (prd-revisao-v5-fase-a RF-F7): the 1st "Não lembrei" (1), the
+ * rest "Lembrei" (2); the 1st comes back at the end and gets "Lembrei". No learning steps in the sample: "Lembrei" says
+ * 2 days, never "10 min", and each rating answers with the pill.
+ */
 async function reviewLote(page: Page) {
   for (let i = 0; i < 7; i++) {
     await expect(page.getByTestId('review-card')).toBeVisible()
     if (i < 6) await expect(page.getByTestId('review-batch')).toContainText(`card ${i + 1} de 6`)
-    else await expect(page.getByTestId('guest-repeat')).toContainText('"De novo"')
+    else await expect(page.getByTestId('guest-repeat')).toContainText('Voltou no fim do lote')
+    await expect(page.getByTestId('review-ratings')).toHaveCount(0)
     await page.keyboard.press('Space')
     await expect(page.getByTestId('review-answer')).toBeVisible()
     await expect(page.getByTestId('review-origin')).toContainText('Lei 8.906/1994')
-    await expect(page.getByTestId('rate-3')).toContainText('10min')
-    await page.keyboard.press(i === 0 ? '1' : '3')
+    await expect(page.getByTestId('review-ratings')).toHaveAttribute('data-mode', 'two')
+    // The card that came back: "Lembrei" after "Não lembrei" returns tomorrow (relearned_interval)
+    await expect(page.getByTestId('rate-3')).toContainText(i === 6 ? '1d' : '2d')
+    await expect(page.getByTestId('rate-1')).toContainText('no fim do lote')
+    await expect(page.getByTestId('rate-2')).toHaveCount(0)
+    await page.keyboard.press(i === 0 ? '1' : '2')
+    await expect(page.getByTestId('review-feedback').or(page.getByTestId('guest-result'))).toBeVisible()
+    if (i === 0) await expect(page.getByTestId('review-feedback')).toHaveText('Não lembrei · volta no fim do lote')
+    if (i === 1) await expect(page.getByTestId('review-feedback')).toHaveText('Lembrei · volta em 2 dias')
   }
 }
 
@@ -50,33 +63,57 @@ test.describe('Visitante até a conta', () => {
     await reviewLote(page)
 
     const result = page.getByTestId('guest-result')
-    await expect(result.getByTestId('guest-remembered')).toHaveText('Você lembrou 5 de 6')
+    await expect(result.getByTestId('guest-remembered')).toContainText('Você lembrou 5 de 6')
+    await expect(result.getByTestId('guest-remembered')).toContainText('Dia 1 da sequência')
     await expect(result.getByTestId('guest-repeated')).toContainText('Na segunda vez, você lembrou 1')
-    await expect(result.getByTestId('guest-agenda')).toContainText('Em 10 min')
-    await expect(result.getByTestId('guest-agenda')).toContainText('6 cards')
-    await expect(result.getByTestId('guest-growth')).toContainText('Estimativa')
-    await expect(result.getByTestId('guest-growth')).toContainText('10 min, 2 dias, 11 dias, 46 dias e 5 meses')
-    await expect(result).toContainText('Eu te aviso às 19h')
+    // The agenda in days (no learning steps): 5 in 2 days, the relearned one tomorrow
+    await expect(result.getByTestId('guest-agenda')).toContainText('Amanhã')
+    await expect(result.getByTestId('guest-agenda')).toContainText('Em 2 dias')
+    await expect(result.getByTestId('guest-agenda')).toContainText('5 cards')
+    await expect(result.getByTestId('guest-agenda')).not.toContainText('min')
+    // The curve in place of the list of intervals
+    await expect(result.getByTestId('guest-curve-estimate')).toHaveText('Estimativa')
+    await expect(result.getByTestId('guest-curve-svg')).toHaveAttribute('aria-label', /uns 67% em 30 dias/)
+    await expect(result).not.toContainText('46 dias')
 
     // Nothing reached the server before the account: the lote lives on this device
     const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('baigi-guest-progress') || 'null'))
     expect(stored).toMatchObject({ area: 'oab', done: true })
     expect(stored.reviews).toHaveLength(7)
 
-    await result.getByTestId('guest-signup').click()
+    // The commitment (RF-F9): an exam date and 2 lotes a day, one screen
+    await result.getByTestId('guest-continue').click()
+    const commit = page.getByTestId('guest-commit')
+    await expect(commit.getByRole('heading', { level: 1 })).toBeFocused()
+    await expect(commit).toContainText('Eu te aviso às 19h')
+    await commit.getByRole('radio', { name: /Tenho data/ }).check()
+    await commit.getByTestId('guest-signup').click()
+    await expect(page.getByTestId('guest-exam-date')).toBeVisible()
+    await expect(commit).toContainText('Escolha uma data a partir de amanhã')
+    const examDate = new Date(Date.now() + 120 * 86_400_000).toISOString().slice(0, 10)
+    await page.locator('#guest-exam-date').fill(examDate)
+    await commit.getByRole('radio', { name: /^2 lotes/ }).check()
+    const result2 = commit
+    await result2.getByTestId('guest-signup').click()
     await page.waitForURL('**/criar-conta?salvar=1')
+    expect(await page.evaluate(() => JSON.parse(localStorage.getItem('baigi-guest-progress') || 'null'))).toMatchObject({ goal_batches: 2, exam_date: examDate })
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Salve seu progresso')
     await expect(page.getByTestId('signup-guest')).toContainText('OAB')
 
     const email = `e2e-v4-${uid()}@audit.test`
-    await page.locator('#name').fill('Visitante Novo')
+    // Lean sign-up (RF-F10): no name, no checkbox, one line of the Terms
+    await expect(page.locator('#name')).toHaveCount(0)
+    await expect(page.locator('#accept_terms')).toHaveCount(0)
+    await expect(page.getByTestId('signup-terms')).toContainText('você aceita os Termos de Uso')
     await page.locator('#email').fill(email)
     await page.locator('#password').fill(AUDIT_PASSWORD)
-    await page.locator('#accept_terms').check()
     const req = page.waitForRequest(r => r.url().endsWith('/api/register') && r.method() === 'POST')
     const res = page.waitForResponse(r => r.url().endsWith('/api/register'))
     await page.getByRole('button', { name: 'Criar conta' }).click()
-    const token = (await req).postDataJSON().captcha_token
+    const body = (await req).postDataJSON()
+    expect(body.accept_terms).toBe(true)
+    expect(body.name).toBeUndefined()
+    const token = body.captcha_token
     test.info().annotations.push({ type: 'captcha', description: token ? `token ${token}` : 'build sem site key' })
     const r = await res
     test.skip(r.status() === 429, 'ambiente: throttle de cadastro esgotado')
@@ -91,7 +128,10 @@ test.describe('Visitante até a conta', () => {
 
     expect(reviewsOf(email)).toBe('7')
     expect(sql(`select t.name || '|' || t.is_sample || '|' || t.learning_mode from topics t join users u on u.id=t.user_id where u.email='${email}'`)).toBe('Exemplo · Ética da OAB|true|exam')
-    expect(sql(`select count(*) from flashcards f join users u on u.id=f.user_id where u.email='${email}' and f.state='learning'`)).toBe('6')
+    // No learning steps in the sample (D10): the 6 rated cards are in review, in days; the commitment is in the account
+    expect(sql(`select count(*) from flashcards f join users u on u.id=f.user_id where u.email='${email}' and f.state='review'`)).toBe('6')
+    expect(sql(`select (length(name) > 0) || '|' || daily_goal_batches || '|' || (review_buttons is null) from users where email='${email}'`)).toBe('true|2|true')
+    expect(sql(`select e.title || '|' || e.exam_date::date from exams e join users u on u.id=e.user_id where u.email='${email}'`)).toBe(`Minha prova|${examDate}`)
     expect(sql(`select (onboarding_completed_at is not null) || '|' || (first_batch_at is not null) || '|' || default_learning_mode from users where email='${email}'`)).toBe('true|true|exam')
 
     // "Agora com o seu material": the content step without the sample; Anki opens the import
@@ -127,10 +167,12 @@ test.describe('Quem já tem conta', () => {
     await page.goto('/comecar/ingles')
     for (let i = 0; i < 6; i++) {
       await page.getByTestId('review-show').click()
-      await page.getByTestId('rate-4').click()
+      await page.getByTestId('rate-3').click()
     }
-    await expect(page.getByTestId('guest-remembered')).toHaveText('Você lembrou 6 de 6')
-    await expect(page.getByTestId('guest-agenda')).toContainText('Em 8 dias')
+    await expect(page.getByTestId('guest-remembered')).toContainText('Você lembrou 6 de 6')
+    await expect(page.getByTestId('guest-agenda')).toContainText('Em 2 dias')
+    await page.getByTestId('guest-continue').click()
+    // "Ainda não" and 1 lote, the defaults: nothing to fill
     await page.getByTestId('guest-login').click()
     await page.waitForURL('**/entrar?redirect=/comecar/pronto')
     await page.locator('#email').fill(email)
@@ -159,9 +201,9 @@ test.describe('Teclado e axe', () => {
     for (let i = 0; i < 6; i++) {
       await expect(page.getByTestId('review-card')).toBeFocused()
       await page.keyboard.press('Enter')
-      await page.keyboard.press('3')
+      await page.keyboard.press(i % 2 ? 'ArrowRight' : '2')
     }
-    await expect(page.getByTestId('guest-remembered')).toBeFocused()
+    await expect(page.locator('[data-testid=guest-result] [data-celebration-title]')).toBeFocused()
     await expect(page.locator('h1')).toHaveCount(1)
     expect((await new AxeBuilder({ page }).analyze()).violations.filter(v => ['serious', 'critical'].includes(v.impact ?? ''))).toEqual([])
   })

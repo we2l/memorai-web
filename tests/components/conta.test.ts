@@ -263,22 +263,19 @@ describe('UiConsentBanner inline (RF-F11)', () => {
   })
 })
 
-describe('OnboardingContentStep (RF-F5, F6)', () => {
-  const props = (over: Record<string, unknown> = {}) => ({ mode: 'exam', verified: false, path: 'sample' as const, text: '', name: '', nameTouched: false, ...over })
+describe('OnboardingContentStep (prd-onboarding-v4 RF-F5)', () => {
+  const props = (over: Record<string, unknown> = {}) => ({ verified: false, path: 'pdf' as const, text: '', name: '', nameTouched: false, ...over })
 
   beforeEach(() => {
     useAuthStore().user = { email: 'a@b.c', email_verified: false } as never
   })
 
-  it('exemplo é o padrão, com o título do modo, e não pede o e-mail para seguir', async () => {
+  it('sem o exemplo: PDF é o padrão, com 4 caminhos e a questão colada', async () => {
     const w = await mountSuspended(ContentStep, { props: props() })
-    expect((w.get('input[value="sample"]').element as HTMLInputElement).checked).toBe(true)
-    expect(w.text()).toContain('Princípios fundamentais da Constituição · 3 páginas')
-    const primary = w.get('[data-testid="content-primary"]')
-    expect(primary.text()).toBe('Criar 8 cards e revisar')
-    expect(primary.attributes('disabled')).toBeUndefined()
-    expect(w.get('[data-testid="verify-email-line"]').text()).toContain('Confirme seu e-mail quando puder')
-    expect(w.find('#verify-email-notice').exists()).toBe(false)
+    expect(w.find('input[value="sample"]').exists()).toBe(false)
+    expect((w.get('input[value="pdf"]').element as HTMLInputElement).checked).toBe(true)
+    expect(w.text()).toContain('Colar uma questão que errei')
+    expect(w.get('[data-testid="content-title"]').text()).toBe('Agora com o seu material')
   })
 
   it('texto sem verificar: mostra o aviso com Reenviar e Já confirmei e bloqueia só esse caminho', async () => {

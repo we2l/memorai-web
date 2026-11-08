@@ -15,7 +15,7 @@ export function markFirstMaterialPending(userId: string): void {
   try {
     localStorage.setItem(FIRST_MATERIAL_KEY, userId)
   } catch {
-    // no storage: the event is simply not sent
+    // intencional: no storage, the event is simply not sent
   }
 }
 

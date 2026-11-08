@@ -61,7 +61,7 @@ export function saveGuestProgress(p: GuestProgress): void {
   try {
     localStorage.setItem(GUEST_STORAGE_KEY, JSON.stringify(p))
   } catch {
-    // Private window or blocked storage: the lote runs anyway
+    // intencional: private window or blocked storage, the lote runs anyway
   }
 }
 
@@ -69,7 +69,7 @@ export function clearGuestProgress(): void {
   try {
     localStorage.removeItem(GUEST_STORAGE_KEY)
   } catch {
-    // nothing to clear
+    // intencional: nothing to clear
   }
 }
 

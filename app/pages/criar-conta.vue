@@ -14,7 +14,7 @@
     </div>
 
     <form class="flex flex-col gap-4" novalidate @focusin.once="captcha.render(captchaEl)" @submit.prevent="submit">
-      <UiInput id="email" v-model="form.email" label="E-mail" type="email" autocomplete="email" inputmode="email" :error="errors.email" />
+      <UiInput id="email" v-model="form.email" label="E-mail" type="email" autocomplete="email" inputmode="email" spellcheck="false" :error="errors.email" />
       <AuthPasswordInput id="password" v-model="form.password" label="Senha" autocomplete="new-password" :hint="hint" :error="errors.password" />
 
       <!-- Turnstile (M3): invisible unless Cloudflare asks for a click; the Google button above has no captcha -->

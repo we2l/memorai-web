@@ -192,7 +192,8 @@
       data-testid="review-footer"
     >
       <div class="mx-auto w-full max-w-3xl pb-3">
-        <ReviewFeedback :feedback="feedback" class="mb-2" />
+        <!-- The answer to the last rating (RF-F4); its own chunk, loaded on the 1st rating -->
+        <div class="mb-2 flex min-h-8 justify-center"><LazyReviewFeedback v-if="feedback" :feedback="feedback" /></div>
         <ReviewRatings v-if="review.flipped" :intervals="review.currentIntervals" :mode="buttonsMode" @rate="handleRate" />
         <UiButton v-else variant="primary" block aria-keyshortcuts="Space" data-testid="review-show" @click="review.flip()">Mostrar resposta</UiButton>
         <!-- Only with a mouse or trackpad (pointer: fine), where a keyboard is likely: never on a phone -->

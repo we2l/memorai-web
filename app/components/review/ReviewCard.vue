@@ -2,7 +2,7 @@
   <section
     class="flex w-full flex-col gap-4 rounded-card bg-raised p-6 shadow-card sm:min-h-72 sm:p-8"
     :class="!flipped && 'select-none pointer-fine:cursor-pointer'"
-    :aria-label="flipped ? 'Card com a resposta' : 'Card: Espaço ou Mostrar resposta para ver a resposta'"
+    :aria-label="flipped ? 'Card com a resposta' : 'Card: Espaço para ver a resposta'"
     :role="flipped ? 'region' : 'button'"
     :tabindex="flipped ? -1 : 0"
     data-review-card
@@ -44,9 +44,10 @@ const emit = defineEmits<{ (e: 'flip'): void }>()
 
 // On a touch screen the card never turns by a tap (prd-revisao-v5-fase-a RF-F3): scrolling or resting a finger on it
 // revealed the answer by accident. Only the "Mostrar resposta" button there; a mouse click still turns it.
-function onClick() {
+function onClick(e: MouseEvent) {
   if (props.flipped) return
-  if (typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches) return
+  // detail 0 = keyboard or screen reader activation (VoiceOver/TalkBack double tap): the "button" keeps working there
+  if (e.detail !== 0 && typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches) return
   emit('flip')
 }
 

@@ -36,7 +36,7 @@
 
       <!-- Result (RF-F8): a victory with memory, the agenda and the curve -->
       <div v-else-if="phase === 'result' && summary" class="mx-auto flex w-full max-w-xl flex-col gap-6 px-gutter pt-14 pb-8" data-testid="guest-result">
-        <UiCelebration kind="streak" :title="`Você lembrou ${summary.remembered} de ${summary.total}`" subtitle="Dia 1 da sequência" :level="1" data-testid="guest-remembered" />
+        <LazyUiCelebration kind="streak" :title="`Você lembrou ${summary.remembered} de ${summary.total}`" subtitle="Dia 1 da sequência" :level="1" data-testid="guest-remembered" />
         <p v-if="summary.repeated" class="-mt-3 text-center text-body text-fg-muted" data-testid="guest-repeated">
           {{ summary.repeated === 1 ? '1 card voltou' : `${summary.repeated} cards voltaram` }} no fim do lote. Na segunda vez, você lembrou {{ summary.rememberedOnRepeat }}.
         </p>
@@ -51,9 +51,9 @@
           </ul>
         </section>
 
-        <OnboardingForgettingCurve v-if="deck?.forgetting_curve" :curve="deck.forgetting_curve" />
+        <LazyOnboardingForgettingCurve v-if="deck?.forgetting_curve" :curve="deck.forgetting_curve" />
 
-        <UiButton variant="primary" block data-testid="guest-continue" @click="openCommit">Continuar</UiButton>
+        <UiButton variant="primary" block data-testid="guest-continue" @click="openCommit">Escolher meu ritmo</UiButton>
       </div>
 
       <!-- Commitment before the account (RF-F9): one screen, two questions, then the save -->
@@ -64,8 +64,8 @@
         </div>
 
         <div class="flex flex-col gap-3">
-          <UiRadioGroup v-model="examChoice" label="Tem data de prova?" name="guest-exam" variant="cards" :columns="2" :options="EXAM_OPTIONS" />
-          <UiInput
+          <LazyUiRadioGroup v-model="examChoice" label="Tem data de prova?" name="guest-exam" variant="cards" :columns="2" :options="EXAM_OPTIONS" />
+          <LazyUiInput
             v-if="examChoice === 'date'"
             id="guest-exam-date"
             v-model="examDate"
@@ -77,7 +77,7 @@
           />
         </div>
 
-        <UiRadioGroup v-model="goalChoice" label="Quantos lotes por dia?" :hint="`Um lote tem ${REVIEW_BATCH} cards, uns ${cardsMinutes(REVIEW_BATCH)} minutos.`" name="guest-goal" variant="cards" :columns="3" :options="goalOptions" />
+        <LazyUiRadioGroup v-model="goalChoice" label="Quantos lotes por dia?" :hint="`Um lote tem ${REVIEW_BATCH} cards, uns ${cardsMinutes(REVIEW_BATCH)} minutos.`" name="guest-goal" variant="cards" :columns="3" :options="goalOptions" />
 
         <div class="flex flex-col gap-3" data-testid="guest-save">
           <p class="text-body text-fg">{{ auth.user ? 'Salve no seu caderno para eles voltarem na hora certa.' : 'Crie a conta para salvar. Eu te aviso às 19h quando eles voltarem.' }}</p>
@@ -99,8 +99,8 @@
     <!-- The review's bottom bar: "Mostrar resposta", then "Não lembrei / Lembrei" with the real intervals -->
     <footer v-if="phase === 'review' && current !== null" class="shrink-0 border-t border-line bg-raised px-gutter pt-3 pb-safe-bottom" data-testid="review-footer">
       <div class="mx-auto w-full max-w-3xl pb-3">
-        <ReviewFeedback :feedback="feedback" class="mb-2" />
-        <ReviewRatings v-if="flipped" :intervals="deck!.intervals" mode="two" again-text="no fim do lote" @rate="rate" />
+        <div class="mb-2 flex min-h-8 justify-center"><LazyReviewFeedback v-if="feedback" :feedback="feedback" /></div>
+        <ReviewRatings v-if="flipped" :intervals="ratingIntervals" mode="two" again-text="no fim do lote" @rate="rate" />
         <UiButton v-else variant="primary" block aria-keyshortcuts="Space" data-testid="review-show" @click="flip">Mostrar resposta</UiButton>
         <p class="mt-2 hidden text-center text-label text-fg-muted pointer-fine:block" data-testid="review-keys">{{ reviewKeysHint('two') }}</p>
       </div>
@@ -160,6 +160,8 @@ const batch = computed(() => {
   const position = Math.min(isRepeat.value ? size : seen.value + 1, size)
   return { index: 1, total: 1, card: position, size, done: size ? seen.value / size : 0 }
 })
+/** A card that came back after "Não lembrei": "Lembrei" now returns sooner (the FSRS's relearned interval) */
+const ratingIntervals = computed(() => (isRepeat.value && deck.value?.relearned_interval ? { ...deck.value.intervals, good: deck.value.relearned_interval } : deck.value!.intervals))
 const summary = computed(() => (deck.value && progress.value ? guestSummary(progress.value.reviews, deck.value.intervals, deck.value.relearned_interval) : null))
 
 // === The commitment (RF-F9) ===
@@ -246,7 +248,14 @@ function finish() {
 function showResult() {
   feedback.value = null
   phase.value = 'result'
-  void nextTick(() => document.querySelector<HTMLElement>('[data-testid=guest-result] [data-celebration-title]')?.focus())
+  focusWhenReady('[data-testid=guest-result] [data-celebration-title]')
+}
+
+/** The result's title comes in a lazy chunk: focus it as soon as it is on the page (a few frames, at most ~2 s). */
+function focusWhenReady(selector: string, tries = 120) {
+  const el = document.querySelector<HTMLElement>(selector)
+  if (el) return el.focus()
+  if (tries > 0) requestAnimationFrame(() => focusWhenReady(selector, tries - 1))
 }
 
 function openCommit() {
@@ -260,7 +269,7 @@ function commitAndGo(to: string) {
   examError.value = ''
   if (examChoice.value === 'date') {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(examDate.value) || examDate.value < tomorrow.value) {
-      examError.value = 'Escolha uma data a partir de amanhã, ou marque "Ainda não".'
+      examError.value = 'Escolha uma data a partir de amanhã, ou marque “Ainda não”.'
       return
     }
   }

@@ -12,7 +12,7 @@
           <line :x1="X0" :x2="X1" :y1="y(t)" :y2="y(t)" class="stroke-line" stroke-width="1" />
           <text :x="X0 - 6" :y="y(t) + 4" text-anchor="end" class="fill-fg-muted" font-size="11">{{ Math.round(t * 100) }}%</text>
         </template>
-        <text v-for="d in dayTicks" :key="`d${d}`" :x="x(d)" :y="H - 6" text-anchor="middle" class="fill-fg-muted" font-size="11">{{ d === 0 ? 'hoje' : `${d} d` }}</text>
+        <text v-for="d in dayTicks" :key="`d${d}`" :x="x(d)" :y="H - 6" :text-anchor="d === 0 ? 'start' : d === curve.days ? 'end' : 'middle'" class="fill-fg-muted" font-size="11">{{ d === 0 ? 'hoje' : `${d} d` }}</text>
       </g>
       <!-- Without reviews: the forgetting of a card remembered once -->
       <polyline :points="points(curve.without)" fill="none" class="stroke-fg-muted" stroke-width="2" stroke-dasharray="5 4" stroke-linejoin="round" data-testid="guest-curve-without" />

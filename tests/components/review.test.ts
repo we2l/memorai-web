@@ -51,9 +51,7 @@ describe('dois botões (prd-revisao-v5-fase-a RF-F1)', () => {
 })
 
 describe('retorno a cada avaliação (prd-revisao-v5-fase-a RF-F4)', () => {
-  it('pílula com texto e ícone, verde só para "Lembrei", nada sem avaliação', async () => {
-    const empty = await mountSuspended(ReviewFeedback, { props: { feedback: null } })
-    expect(empty.find('[data-testid=review-feedback]').exists()).toBe(false)
+  it('pílula com texto e ícone, verde só para "Lembrei"', async () => {
     const ok = await mountSuspended(ReviewFeedback, { props: { feedback: { id: 1, remembered: true, text: 'Lembrei · volta em 2 dias' } } })
     expect(ok.get('[data-testid=review-feedback]').text()).toBe('Lembrei · volta em 2 dias')
     expect(ok.get('[data-testid=review-feedback]').classes()).toContain('bg-success-subtle')
@@ -71,11 +69,14 @@ describe('virar o card (prd-revisao-v5-fase-a RF-F3)', () => {
     const original = window.matchMedia
     window.matchMedia = ((q: string) => ({ matches: q === '(pointer: coarse)', media: q, addEventListener() {}, removeEventListener() {} })) as never
     const touch = await mountSuspended(ReviewCard, { props: { card, flipped: false } })
-    await touch.get('[data-testid=review-card]').trigger('click')
+    await touch.get('[data-testid=review-card]').trigger('click', { detail: 1 })
     expect(touch.emitted('flip')).toBeUndefined()
+    // A screen reader activation (detail 0) still turns it
+    await touch.get('[data-testid=review-card]').trigger('click', { detail: 0 })
+    expect(touch.emitted('flip')).toHaveLength(1)
     window.matchMedia = ((q: string) => ({ matches: false, media: q, addEventListener() {}, removeEventListener() {} })) as never
     const mouse = await mountSuspended(ReviewCard, { props: { card, flipped: false } })
-    await mouse.get('[data-testid=review-card]').trigger('click')
+    await mouse.get('[data-testid=review-card]').trigger('click', { detail: 1 })
     expect(mouse.emitted('flip')).toHaveLength(1)
     window.matchMedia = original
   })

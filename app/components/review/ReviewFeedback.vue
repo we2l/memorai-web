@@ -1,17 +1,14 @@
 <template>
-  <div class="flex min-h-8 justify-center" data-testid="review-feedback-slot">
-    <p
-      v-if="feedback"
-      :key="feedback.id"
-      class="feedback-in inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-meta font-semibold"
-      :class="feedback.remembered ? 'bg-success-subtle text-success' : 'bg-subtle text-fg'"
-      :data-remembered="feedback.remembered"
-      data-testid="review-feedback"
-    >
-      <component :is="feedback.remembered ? Check : RotateCcw" class="size-4 shrink-0" aria-hidden="true" />
-      {{ feedback.text }}
-    </p>
-  </div>
+  <p
+    :key="feedback.id"
+    class="feedback-in inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-meta font-semibold"
+    :class="feedback.remembered ? 'bg-success-subtle text-success' : 'bg-subtle text-fg'"
+    :data-remembered="feedback.remembered"
+    data-testid="review-feedback"
+  >
+    <component :is="feedback.remembered ? Check : RotateCcw" class="size-4 shrink-0" aria-hidden="true" />
+    {{ feedback.text }}
+  </p>
 </template>
 
 <script setup lang="ts">
@@ -24,7 +21,7 @@ import { Check, RotateCcw } from 'lucide-vue-next'
 
 export interface RatingFeedback { id: number; remembered: boolean; text: string }
 
-defineProps<{ feedback: RatingFeedback | null }>()
+defineProps<{ feedback: RatingFeedback }>()
 </script>
 
 <style scoped>

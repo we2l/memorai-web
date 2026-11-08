@@ -38,7 +38,7 @@
     "/revisar": {
       "file": "pages/revisar.vue",
       "gzKb": 16.6,
-      "closureGzKb": 49
+      "closureGzKb": 50.5
     },
     "/praticar": {
       "file": "pages/praticar.vue",
@@ -72,8 +72,8 @@
     },
     "/comecar/:area": {
       "file": "pages/comecar/[area].vue",
-      "gzKb": 4,
-      "closureGzKb": 43
+      "gzKb": 5.5,
+      "closureGzKb": 41
     },
     "/comecar/pronto": {
       "file": "pages/comecar/pronto.vue",
@@ -82,8 +82,8 @@
     },
     "/configuracoes": {
       "file": "pages/configuracoes.vue",
-      "gzKb": 9.7,
-      "closureGzKb": 36.3
+      "gzKb": 10,
+      "closureGzKb": 37
     },
     "/entrar": {
       "file": "pages/entrar.vue",

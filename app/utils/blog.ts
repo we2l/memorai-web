@@ -132,3 +132,18 @@ export function relatedArticles(article: Pick<BlogMeta, 'slug' | 'pillar' | 'rel
   for (const a of all) push(a)
   return picked
 }
+
+export const BLOG_TOOL_PAGES: { tool: BlogTool, path: string, title: string, description: string }[] = [
+  {
+    tool: 'calculadora-do-esquecimento',
+    path: '/ferramentas/calculadora-do-esquecimento',
+    title: 'Calculadora do esquecimento',
+    description: 'Estudou há alguns dias? Veja quanto ainda deve lembrar e quando revisar.',
+  },
+  {
+    tool: 'plano-ate-a-prova',
+    path: '/ferramentas/plano-ate-a-prova',
+    title: 'Plano até a prova',
+    description: 'Com a data e o volume, quantos cards novos e quantas revisões por dia você precisa.',
+  },
+]

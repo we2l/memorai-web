@@ -7,8 +7,8 @@
 import { FIRST_STABILITY, difficultyAfterGood, initDifficulty, intervalFor, retrievability, stabilityAfterGood } from './forgetting'
 
 /** Seconds per card review used for the minutes (a premise shown on the page) */
-export const SECONDS_PER_CARD = 8
-export const BATCH_SIZE = 20
+export const PLAN_SECONDS_PER_CARD = 8
+export const PLAN_BATCH_SIZE = 20
 export const REVIEW_ONLY_DAYS = 3
 export const LAPSE_EXTRA = 0.1
 export const TARGET_RETENTION = 0.9
@@ -41,7 +41,7 @@ export interface ExamPlan {
   daily: number[]
 }
 
-export function daysUntil(examDate: string, today = new Date()): number {
+export function daysUntilExam(examDate: string, today = new Date()): number {
   const [y, m, d] = examDate.split('-').map(Number)
   if (!y || !m || !d) return 0
   const exam = Date.UTC(y, m - 1, d)
@@ -92,7 +92,7 @@ export function buildExamPlan({ days, cards, studied = 0 }: ExamPlanInput): Exam
   const reviewsAvg = reviews.reduce((a, b) => a + b, 0) / studyDays
   const workAvg = work.reduce((a, b) => a + b, 0) / studyDays
   const workPeak = Math.max(...work)
-  const minutesAvg = Math.round(workAvg * SECONDS_PER_CARD / 60)
+  const minutesAvg = Math.round(workAvg * PLAN_SECONDS_PER_CARD / 60)
 
   return {
     days: studyDays,
@@ -101,8 +101,8 @@ export function buildExamPlan({ days, cards, studied = 0 }: ExamPlanInput): Exam
     reviewsAvg: Math.round(reviewsAvg),
     reviewsPeak: Math.round(Math.max(...reviews)),
     minutesAvg,
-    minutesPeak: Math.round(workPeak * SECONDS_PER_CARD / 60),
-    batchesAvg: Math.max(1, Math.ceil(workAvg / BATCH_SIZE)),
+    minutesPeak: Math.round(workPeak * PLAN_SECONDS_PER_CARD / 60),
+    batchesAvg: Math.max(1, Math.ceil(workAvg / PLAN_BATCH_SIZE)),
     recallOnExam: total ? recallSum / total : 0,
     heavy: minutesAvg > 60,
     daily: work.map(n => Math.round(n)),

@@ -3,7 +3,8 @@ import type { Page } from '@playwright/test'
 
 /**
  * Cadastro (validações) → onboarding → primeiro caderno → primeiro card → primeira revisão, pelos 3 passos do
- * prd-4g-conta-onboarding-v3. O caminho do exemplo está em onboarding-v3.spec.ts.
+ * prd-4g-conta-onboarding-v3, com o v4 (prd-onboarding-v4): quem cria a conta direto escolhe a área ou pula o exemplo, e
+ * o material próprio fica em /comecar/pronto. O caminho do visitante está em onboarding-v4.spec.ts.
  *
  * Throttle de cadastro: 3/h por IP, compartilhado com quem mais usa a API local. Cada chamada a
  * /api/register deste spec sai com um X-Forwarded-For próprio da execução (a API confia em qualquer
@@ -40,11 +41,17 @@ async function mockGenerate(page: Page, cards = fakeCards, status: 'done' | 'fai
   return calls
 }
 
-/** /comecar até a opção "Colar um texto" do passo 2. */
-async function toTextPath(page: Page, mode = 'Outro') {
+/** /comecar → "Pular o exemplo" → "Agora com o seu material" → "Colar um texto" (v4). */
+async function toTextPath(page: Page) {
   await gotoApp(page, '/comecar')
-  await page.getByRole('radio', { name: mode }).check()
-  await page.getByRole('button', { name: 'Continuar' }).click()
+  // Still on /comecar: the onboarding is pending (the link shows after hydration); else it is over and /hoje opened
+  if (new URL(page.url()).pathname === '/comecar') {
+    await page.getByTestId('area-skip').click()
+    await page.waitForURL('**/comecar/pronto')
+  } else {
+    await gotoApp(page, '/comecar/pronto')
+  }
+  await page.getByTestId('saved-material').click()
   await page.getByRole('radio', { name: 'Colar um texto' }).check()
 }
 
@@ -88,12 +95,10 @@ test.describe('Cadastro', () => {
 
     // Onboarding pendente → /comecar, com o aviso de verificação do e-mail recém-cadastrado
     await page.waitForURL('**/comecar')
-    await expect(page.getByRole('heading', { name: 'Como você vai estudar?' })).toBeVisible()
-    await page.getByRole('radio', { name: 'Outro' }).check()
-    await page.getByRole('button', { name: 'Continuar' }).click()
-    await expect(page.getByRole('heading', { name: 'Vamos criar seus primeiros cards' })).toBeVisible()
-    await expect(page.getByTestId('verify-email-line')).toContainText(email)
-    await page.getByTestId('content-skip').click()
+    await expect(page.getByRole('heading', { name: 'Para o que você estuda?' })).toBeVisible()
+    await page.getByTestId('area-skip').click()
+    await page.waitForURL('**/comecar/pronto')
+    await page.getByTestId('saved-home').click()
     await page.waitForURL('**/hoje')
     expect(sql(`select onboarding_completed_at is not null from users where email='${email}'`)).toBe('t')
 
@@ -165,7 +170,7 @@ test.describe('Onboarding com IA (mockada)', () => {
 
   test('caminho feliz: material → cards prontos → começar revisão → primeira avaliação', async ({ page }) => {
     const calls = await mockGenerate(page)
-    await toTextPath(page, 'Faculdade')
+    await toTextPath(page)
     await page.locator('#material').fill('Fotossíntese ocorre nos cloroplastos.')
     await page.locator('#notebook-name').fill('Bio Onboarding')
     const accepted = page.waitForResponse(r => r.url().endsWith('/api/ai/accept-cards'))
@@ -176,8 +181,8 @@ test.describe('Onboarding com IA (mockada)', () => {
     expect(res.request().postDataJSON()).toMatchObject({ topic_id: expect.any(String), note_id: expect.any(String), cards: expect.any(Array) })
     expect(calls[calls.length - 1]).toMatchObject({ source: 'notes', topic_id: expect.any(String), note_id: expect.any(String) })
 
-    // Os cards existem: o onboarding está concluído e a primeira revisão é o passo 3
-    await page.waitForURL('**/revisar?scope=note:**&onboarding=1')
+    // Os cards existem: a primeira revisão é o recorte da nota (o onboarding acabou ao pular o exemplo)
+    await page.waitForURL('**/revisar?scope=note:**')
     expect(sql(`select onboarding_completed_at is not null from users where email='${USERS.onboarding.email}'`)).toBe('t')
     await expect(page.getByTestId('review-card')).toContainText(/fotossíntese|Pigmento/i)
     await page.keyboard.press('Space')
@@ -218,7 +223,8 @@ test.describe('Onboarding de quem não confirmou o e-mail', () => {
     await expect(transform).toBeDisabled()
 
     // Confirma (no lugar do link do e-mail) e "Já confirmei" relê o /me sem recarregar a página
-    verifyEmail(USERS.onboardingUnverified)
+    // The onboarding ended at "Pular o exemplo" (v4): the verification keeps it ended
+    verifyEmail({ ...USERS.onboardingUnverified, onboarded: true })
     await notice.getByRole('button', { name: 'Já confirmei' }).click()
     await expect(notice).toBeHidden()
     await expect(transform).toBeEnabled()
@@ -230,16 +236,15 @@ test.describe('Onboarding de quem não confirmou o e-mail', () => {
     expect(res.request().postDataJSON()).toMatchObject({ topic_id: expect.any(String) })
     expect(calls).toHaveLength(1)
 
-    // Primeira revisão até o fim do lote
-    await page.waitForURL('**/revisar?scope=note:**&onboarding=1')
+    // Primeira revisão até o fim da sessão
+    await page.waitForURL('**/revisar?scope=note:**')
     for (let i = 0; i < 3; i++) {
       await expect(page.getByRole('button', { name: 'Card: toque ou Espaço para ver a resposta' })).toBeVisible()
       await page.keyboard.press('Space')
       await expect(page.getByTestId('review-answer')).toBeVisible()
       await page.keyboard.press('4')
     }
-    await expect(page.getByTestId('onboarding-end')).toBeVisible({ timeout: 10_000 })
-    await expect(page.getByTestId('onboarding-tomorrow')).toContainText('Amanhã')
+    await expect(page.getByTestId('session-tomorrow')).toBeVisible({ timeout: 10_000 })
     expect(Number(sql(`select count(*) from reviews r join users u on u.id=r.user_id where u.email='${USERS.onboardingUnverified.email}'`))).toBe(3)
   })
 })

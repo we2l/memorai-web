@@ -23,7 +23,11 @@
       </li>
     </ul>
 
-    <p class="text-meta text-fg-muted">
+    <p v-if="loggedIn" class="text-meta text-fg-muted">
+      Prefere começar pelo seu material?
+      <button type="button" class="hit-touch font-semibold text-action-fg underline" :disabled="skipping" data-testid="area-skip" @click="skip">Pular o exemplo</button>
+    </p>
+    <p v-else class="text-meta text-fg-muted">
       Já tem conta? <UiLink :to="loginTo" class="underline">Entrar</UiLink>
     </p>
   </div>
@@ -40,10 +44,24 @@ useHead({ title: 'Começar · Baigi' })
 
 const saved = ref<GuestProgress | null>(null)
 const loginTo = ref('/entrar')
+// Read after hydration: the page is prerendered for the visitor
+const loggedIn = ref(false)
 onMounted(() => {
+  loggedIn.value = !!useAuthStore().user
   saved.value = loadGuestProgress()
   if (pendingGuestProgress()) loginTo.value = '/entrar?redirect=/comecar/pronto'
 })
+
+/** An account made straight on /criar-conta can go to its own material without the sample (no lote, no cards). */
+const { run, pending: skipping } = useApiAction()
+async function skip() {
+  const ok = await run(() => useNuxtApp().$api('/onboarding/complete', { method: 'POST' }), { error: 'Não conseguimos seguir agora. Tente de novo.' })
+  if (ok === undefined) return
+  const auth = useAuthStore()
+  if (auth.user) auth.user.onboarding_completed = true
+  useAnalytics().track('onboarding_path', { path: 'skip' })
+  await navigateTo('/comecar/pronto', { replace: true })
+}
 
 function choose(area: GuestArea) {
   useAnalytics().track('onboarding_area_chosen', { area, source: 'comecar' })

@@ -41,10 +41,12 @@ test.describe('Captcha', () => {
     test.skip(r.status() === 429, 'ambiente: throttle de cadastro esgotado')
     expect(r.status()).toBe(201)
 
-    // Passo 2 do /comecar: a linha discreta tem "reenviar", que só agora carrega o Turnstile
+    // "Agora com o seu material" (onboarding v4): no Anki a linha discreta tem "reenviar", que só agora carrega o Turnstile
     await page.waitForURL('**/comecar')
-    await page.getByRole('radio', { name: 'Outro' }).check()
-    await page.getByRole('button', { name: 'Continuar' }).click()
+    await page.getByTestId('area-skip').click()
+    await page.waitForURL('**/comecar/pronto')
+    await page.getByTestId('saved-material').click()
+    await page.getByRole('radio', { name: 'Trazer do Anki' }).check()
     const line = page.getByTestId('verify-email-line')
     await expect(line).toContainText(email)
     const resend = page.waitForRequest(r => r.url().endsWith('/api/email/verification-notification'))

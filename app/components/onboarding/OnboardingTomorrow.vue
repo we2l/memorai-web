@@ -7,7 +7,7 @@
       </template>
       <template v-else>Amanhã: nada pendente. Aproveite para criar cards novos.</template>
     </li>
-    <li v-if="forecast?.reminder.enabled && !forecast.reminder.suppressed" class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-3 py-3" data-testid="onboarding-reminder">
+    <li v-if="forecast?.reminder?.enabled && !forecast.reminder.suppressed" class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-3 py-3" data-testid="onboarding-reminder">
       <p class="text-meta text-fg">Lembrete diário por e-mail às <strong class="text-fg-strong">{{ formatReminderHour(hour ?? forecast.reminder.hour) }}</strong></p>
       <UiSelect
         v-if="changing"

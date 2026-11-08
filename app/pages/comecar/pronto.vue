@@ -20,7 +20,7 @@
         <div class="flex items-center gap-4" data-testid="saved">
           <UiBaigiMascot :size="64" :state="saved ? 'celebrating' : 'idle'" visible />
           <div class="min-w-0">
-            <h1 ref="title" class="text-page-title-sm text-fg-strong outline-none" tabindex="-1">{{ saved ? 'Seu progresso está salvo' : 'Seu caderno de exemplo já está na conta' }}</h1>
+            <h1 ref="title" class="text-page-title-sm text-fg-strong outline-none" tabindex="-1">{{ saved ? 'Seu progresso está salvo' : 'Comece pelo seu material' }}</h1>
             <p v-if="saved" class="mt-1 text-body text-fg-muted" data-testid="saved-line">
               {{ saved.cards }} cards de {{ saved.topicName }}{{ saved.reviews ? `, com as ${saved.reviews} avaliações do lote` : '' }}.
             </p>

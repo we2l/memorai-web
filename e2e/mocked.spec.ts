@@ -473,6 +473,7 @@ test.describe('Onboarding sem armadilhas (RF-F4)', () => {
     await page.route('**/api/register', r => r.fulfill(json({ data: { user: newUser } }, 201)))
     await page.route('**/api/onboarding/complete', r => r.fulfill(json({ data: { onboarding_completed: true } })))
     await page.route('**/api/onboarding/learning-mode', r => r.fulfill(json({ data: {} })))
+    await page.route('**/api/review/tomorrow', r => r.fulfill(json({ data: { date: '2026-11-08', due_count: 0, review_count: 0, new_count: 0, estimated_minutes: 0, streak: { current: 0, reviewed_today: false, at_risk: false, next_milestone: 3 }, reminder: { enabled: true, hour: 19, suppressed: false } } })))
   }
 
   async function register(page: import('@playwright/test').Page) {
@@ -485,11 +486,12 @@ test.describe('Onboarding sem armadilhas (RF-F4)', () => {
     await page.click('button[type="submit"]')
   }
 
-  /** Passo 1 sem data, até o passo 2 (prd-4g RF-F5). */
+  /** Onboarding v4 (prd-onboarding-v4): "Pular o exemplo" → /comecar/pronto → "Agora com o seu material". */
   async function toContent(page: import('@playwright/test').Page) {
-    await page.getByRole('radio', { name: 'Outro' }).check()
-    await page.getByRole('button', { name: 'Continuar' }).click()
-    await expect(page.getByRole('heading', { name: 'Vamos criar seus primeiros cards' })).toBeVisible()
+    await page.getByTestId('area-skip').click()
+    await page.waitForURL('**/comecar/pronto')
+    await page.getByTestId('saved-material').click()
+    await expect(page.getByRole('heading', { name: 'Agora com o seu material' })).toBeVisible()
   }
 
   test('cadastro vai direto para /comecar (sem passar por /hoje)', async ({ page }) => {
@@ -501,7 +503,7 @@ test.describe('Onboarding sem armadilhas (RF-F4)', () => {
     expect(visited).not.toContain('/hoje')
   })
 
-  test('"Importar Anki" conclui o onboarding antes e permanece em /importar', async ({ page }) => {
+  test('"Importar do Anki" depois de pular o exemplo permanece em /importar', async ({ page }) => {
     await mockNewUserApi(page)
     await register(page)
     await page.waitForURL('**/comecar')
@@ -513,10 +515,10 @@ test.describe('Onboarding sem armadilhas (RF-F4)', () => {
     expect(new URL(page.url()).pathname).toBe('/importar')
   })
 
-  test('0 cards gerados mostra erro inline e não conclui o onboarding', async ({ page }) => {
+  test('0 cards gerados mostra erro inline e não grava cards', async ({ page }) => {
     await mockNewUserApi(page)
-    let completed = false
-    await page.route('**/api/onboarding/complete', r => { completed = true; return r.fulfill(json({ data: {} })) })
+    let accepted = false
+    await page.route('**/api/ai/accept-cards', r => { accepted = true; return r.fulfill(json({ data: [] }, 201)) })
     await page.route(/\/api\/topics$/, r => r.fulfill(json({ data: { id: 't-new', name: 'x' } }, 201)))
     await page.route('**/api/topics/t-new/notes', r => r.fulfill(json({ data: { id: 'n1' } }, 201)))
     await page.route('**/api/ai/generate-cards', r => r.fulfill(json({ data: { id: 'job-1', status: 'done', result: { cards: [] } } }, 202)))
@@ -528,7 +530,7 @@ test.describe('Onboarding sem armadilhas (RF-F4)', () => {
     await expect(page.locator('#notebook-name')).toHaveValue('Texto curto demais')
     await page.getByRole('button', { name: 'Gerar cards do texto' }).click()
     await expect(page.getByText(/Não conseguimos criar cards com esse texto/)).toBeVisible()
-    expect(completed).toBe(false)
+    expect(accepted).toBe(false)
   })
 
   test('PDF acima do limite do plano é recusado sem request', async ({ page }) => {
@@ -553,26 +555,6 @@ test.describe('Onboarding sem armadilhas (RF-F4)', () => {
     expect(uploads).toBe(0)
   })
 
-  test('modo prova com data cria o Exam depois do caderno; sem data não cria', async ({ page }) => {
-    await mockNewUserApi(page)
-    const calls: string[] = []
-    await page.route(/\/api\/topics$/, (r) => { if (r.request().method() === 'POST') calls.push('topics'); return r.fulfill(json({ data: { id: 't-new' } }, 201)) })
-    await page.route('**/api/topics/t-new/notes', r => r.fulfill(json({ data: { id: 'n1' } }, 201)))
-    await page.route(/\/api\/exams$/, r => { calls.push('exams'); return r.fulfill(json({ data: { id: 'e1' } }, 201)) })
-    // The exam is only created once the cards are accepted: a failed attempt deletes its notebook (B2)
-    await page.route('**/api/ai/generate-cards', r => r.fulfill(json({ data: { id: 'job-1', status: 'done', result: { cards: [{ front: 'Q', back: 'A' }] } } }, 202)))
-    await page.route('**/api/ai/accept-cards', r => r.fulfill(json({ data: [{ id: 'c1' }] }, 201)))
-    await register(page)
-    await page.waitForURL('**/comecar')
-    await page.getByRole('radio', { name: 'Concurso ou OAB' }).check()
-    const d = new Date(Date.now() + 30 * 86400_000)
-    await page.fill('#exam-date', d.toISOString().slice(0, 10))
-    await page.getByRole('button', { name: /Continuar/ }).click()
-    await page.getByRole('radio', { name: 'Colar um texto' }).check()
-    await page.fill('#material', 'Direito constitucional e seus princípios fundamentais')
-    await page.getByRole('button', { name: 'Gerar cards do texto' }).click()
-    await expect.poll(() => calls).toEqual(['topics', 'exams'])
-  })
 })
 
 test.describe('PDF → cards automático (RF-F5.2)', () => {

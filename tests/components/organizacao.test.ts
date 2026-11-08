@@ -496,14 +496,14 @@ describe('/importar (RF-F17)', () => {
     expect(q('[data-testid="import-error"] a')?.getAttribute('href')).toBe('/cadernos/lixeira')
   })
 
-  it('fim: "N cards e o histórico vieram · M para hoje", Revisar e Abrir o caderno pelo root_topic_id', async () => {
+  it('fim: "N cards e os intervalos vieram · M para hoje", Revisar e Abrir o caderno pelo root_topic_id', async () => {
     route({ 'GET /review/session-count?scope=topic%3Ar1': { data: { session_count: 45 } }, 'GET /review/session-count?scope=topic:r1': { data: { session_count: 45 } }, 'GET /topics': { data: [] } })
     await mountSuspended(Importar, { attachTo: document.body, route: '/importar' })
     const store = useImportStore()
     store.importId = 'imp1'
     store.status = { status: 'completed', root_topic_id: 'r1', root_topic_ids: ['r1'], stats: { decks_created: 1, cards_created: 3000, topics_created: 4, media_extracted: 0 } }
     await flushPromises()
-    expect(q('[data-testid="import-done-summary"]')?.textContent).toBe('3.000 cards e o histórico vieram · 45 para hoje')
+    expect(q('[data-testid="import-done-summary"]')?.textContent).toBe('3.000 cards e os intervalos vieram · 45 para hoje')
     expect(q('[data-testid="import-open"]')?.getAttribute('href')).toBe('/cadernos/r1')
     expect(q('[data-testid="import-review"]')?.getAttribute('href')).toContain('r1')
   })

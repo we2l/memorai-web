@@ -17,7 +17,7 @@
           <span v-for="v in HERO_VARIANTS" :key="v.key" :data-m-variant="v.key">{{ v.lead }}</span>
         </p>
         <div class="lp-hero-cta fade" style="--d: 760ms">
-          <LandingCta to="/criar-conta" position="hero" section>Criar conta grátis</LandingCta>
+          <LandingCta to="/comecar" position="hero" section>Começar grátis</LandingCta>
           <span class="lp-fine">
             <span v-for="v in HERO_VARIANTS" :key="v.key" :data-m-variant="v.key">{{ v.ai ? `Sem cartão. Revisar é grátis pra sempre. ${landingAiLine(catalog)}` : 'Sem cartão. A revisão é grátis pra sempre.' }}</span>
           </span>

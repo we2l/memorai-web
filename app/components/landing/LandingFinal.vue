@@ -4,7 +4,7 @@
       <LandingMascot pose="celebrating" class="lp-float" data-reveal="scale" />
       <h2 id="landing-final" data-reveal>Peixe esquece. Você revisa.</h2>
       <p class="lp-lead" data-reveal>Amanhã cedo o Baigi já sabe o que você precisa revisar.</p>
-      <LandingCta to="/criar-conta" position="final" tone="band" section>Criar conta grátis</LandingCta>
+      <LandingCta to="/comecar" position="final" tone="band" section>Começar grátis</LandingCta>
     </div>
   </section>
 </template>

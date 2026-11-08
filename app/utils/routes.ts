@@ -4,8 +4,14 @@ export const PUBLIC_ROUTES = ['/', '/entrar', '/criar-conta', '/esqueci-senha', 
 const PUBLIC_PREFIXES = ['/blog', '/ferramentas']
 
 export function isPublicRoute(path: string): boolean {
-  return PUBLIC_ROUTES.includes(path) || path.startsWith('/auth/') || path === '/_ds'
+  return PUBLIC_ROUTES.includes(path) || path.startsWith('/auth/') || path === '/_ds' || isGuestOnboardingRoute(path)
     || PUBLIC_PREFIXES.some(p => path === p || path.startsWith(`${p}/`))
+}
+
+/** The visitor's onboarding (prd-onboarding-v4 RF-F6): /comecar and /comecar/{area}; /comecar/pronto needs the account. */
+export function isGuestOnboardingRoute(path: string): boolean {
+  const p = path.replace(/\/+$/, '') || '/'
+  return p === '/comecar' || (p.startsWith('/comecar/') && p !== '/comecar/pronto')
 }
 
 /** Only same-app paths: avoids open redirects via ?redirect=//evil.com */

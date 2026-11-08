@@ -17,8 +17,8 @@ describe('BlogQuiz (prd-blog-seo RF-B9)', () => {
     for (const ok of [true, false, true]) {
       await w.get('[data-testid="blog-quiz-reveal"]').trigger('click')
       expect(w.get('[data-testid="blog-quiz-answer"]').text()).toContain('Fonte:')
-      await w.get(`[data-testid="blog-quiz-${ok ? 'remembered' : 'forgot'}"]`).trigger('click')
-      if (!ok) expect(w.get('[data-testid="blog-quiz-feedback"]').text()).toContain('Não lembrei · volta ainda hoje')
+      await w.get(`[data-testid="rate-${ok ? 3 : 1}"]`).trigger('click')
+      if (!ok) expect(w.get('[data-testid="review-feedback"]').text()).toContain('Não lembrei · volta ainda hoje')
     }
     const result = w.get('[data-testid="blog-quiz-result"]').text()
     expect(result).toContain('Você lembrou 2 de 3')
@@ -37,7 +37,7 @@ describe('BlogQuiz (prd-blog-seo RF-B9)', () => {
     await quiz.trigger('keydown', { key: ' ' })
     expect(w.find('[data-testid="blog-quiz-answer"]').exists()).toBe(true)
     await quiz.trigger('keydown', { key: '1' })
-    expect(w.get('[data-testid="blog-quiz-feedback"]').text()).toContain('Não lembrei')
+    expect(w.get('[data-testid="review-feedback"]').text()).toContain('Não lembrei')
     expect(w.get('[data-testid="blog-quiz-count"]').text()).toBe('2 de 3')
   })
 })

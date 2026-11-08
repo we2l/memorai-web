@@ -15,7 +15,7 @@
             <LandingPhone><LandingClip :clip="s.clip" /></LandingPhone>
           </div>
           <div class="lp-act">
-            <LandingCta to="/criar-conta" :position="s.position" section>{{ s.cta }}</LandingCta>
+            <LandingCta to="/comecar" :position="s.position" section>{{ s.cta }}</LandingCta>
             <span v-if="s.ai" class="lp-fine" data-testid="landing-ai-story">{{ landingAiLine(catalog, { pdf: true }) }}</span>
           </div>
         </article>

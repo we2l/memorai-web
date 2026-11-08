@@ -32,8 +32,8 @@ test.describe('blog e ferramentas', () => {
     // The first card by mouse, the others by keyboard (Espaço shows, 2 = Lembrei, 1 = Não lembrei)
     await quiz.getByTestId('blog-quiz-reveal').click()
     await expect(quiz.getByTestId('blog-quiz-answer')).toBeVisible()
-    await quiz.getByTestId('blog-quiz-remembered').click()
-    await expect(quiz.getByTestId('blog-quiz-feedback')).toContainText('Lembrei · volta em 2 dias')
+    await quiz.getByTestId('rate-3').click()
+    await expect(quiz.getByTestId('review-feedback')).toContainText('Lembrei · volta em 2 dias')
     while (await quiz.getByTestId('blog-quiz-reveal').isVisible()) {
       await quiz.getByTestId('blog-quiz-card').focus()
       await page.keyboard.press('Space')

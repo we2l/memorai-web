@@ -17,16 +17,7 @@
 
       <div v-if="!done">
         <div class="mb-3 flex min-h-7 items-center" aria-live="polite">
-          <p
-            v-if="feedback"
-            :key="feedback.id"
-            class="feedback-in inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-meta font-semibold"
-            :class="feedback.remembered ? 'bg-success-subtle text-success' : 'bg-raised text-fg'"
-            data-testid="blog-quiz-feedback"
-          >
-            <component :is="feedback.remembered ? Check : RotateCcw" class="size-4 shrink-0" aria-hidden="true" />
-            {{ feedback.text }}
-          </p>
+          <ReviewFeedback v-if="feedback" :feedback="feedback" />
           <p v-else class="text-meta text-fg-muted">Tente responder de cabeça antes de ver a resposta.</p>
         </div>
 
@@ -48,26 +39,8 @@
             Mostrar resposta
             <kbd class="ml-2 hidden rounded-tag border border-on-action/40 px-1 font-sans text-label pointer-fine:inline" aria-hidden="true">Espaço</kbd>
           </UiButton>
-          <!-- The two ratings of the review v5 (ReviewRatings mode "two" of the Fase A): same look and tokens -->
-          <div v-else role="group" aria-label="Como foi" class="grid grid-cols-2 gap-2">
-            <button
-              v-for="r in RATINGS"
-              :key="r.key"
-              type="button"
-              class="flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-control px-1 py-2 text-body font-semibold transition-colors duration-nav"
-              :class="r.primary ? 'bg-action text-on-action shadow-press hover:bg-action-hover active:translate-y-0.5 active:shadow-press-active' : 'border border-line-strong bg-raised text-fg-strong hover:bg-subtle'"
-              :aria-keyshortcuts="r.key"
-              :aria-label="`${r.label}, ${r.returns} (${r.key})`"
-              :data-testid="r.testid"
-              @click="rate(r.remembered)"
-            >
-              <span class="flex items-center gap-1.5">
-                <kbd class="hidden rounded-tag border px-1 font-sans text-label pointer-fine:inline" :class="r.primary ? 'border-on-action/40' : 'border-line-strong text-fg-muted'" aria-hidden="true">{{ r.key }}</kbd>
-                {{ r.label }}
-              </span>
-              <span class="text-label font-normal" :class="r.primary ? 'text-on-action' : 'text-fg-muted'" aria-hidden="true">{{ r.returns }}</span>
-            </button>
-          </div>
+          <!-- The two ratings of the review v5 (the app's own component, mode "two"): Não lembrei · Lembrei -->
+          <ReviewRatings v-else mode="two" :intervals="INTERVALS" :again-text="AGAIN_TEXT" @rate="r => rate(r !== 1)" />
         </div>
       </div>
 
@@ -99,24 +72,21 @@
 
 <script setup lang="ts">
 // Quiz inside an article (prd-blog-seo RF-B9, owner's review of 08/11): looks and works like the app's review v5 —
-// big front, "Mostrar resposta" as the primary, then "Não lembrei / Lembrei" with where the card would go, a feedback
-// pill after each rating and the segmented progress. Keys (focus inside the quiz only): Espaço shows, 1 = Não lembrei,
+// big front, "Mostrar resposta" as the primary, then the review's own ReviewRatings (mode "two") and ReviewFeedback
+// after each rating, and the segmented progress. Keys (focus inside the quiz only): Espaço shows, 1 = Não lembrei,
 // 2 = Lembrei. The end leads to the visitor's mini-lote of the area. Nothing is saved.
-import { Check, RotateCcw } from 'lucide-vue-next'
 import type { BlogArea, QuizCard } from '~~/modules/blog/types'
 import { AREA_LABEL, blogStartPath } from '~/utils/blog'
 import { FIRST_STABILITY, intervalFor } from '~/utils/forgetting'
+import { feedbackText } from '~/utils/intervalLabel'
 
 const props = defineProps<{ slug: string, area: BlogArea, title?: string, cards: QuizCard[] }>()
 
 /** Where a new card goes in the FSRS-6 defaults: "Lembrei" (Good) → R reaches 90% in ~2 days; "Não lembrei" → today */
 const GOOD_DAYS = Math.round(intervalFor(FIRST_STABILITY, 0.9))
-const GOOD_TEXT = `volta em ${GOOD_DAYS} ${GOOD_DAYS === 1 ? 'dia' : 'dias'}`
-const AGAIN_TEXT = 'volta ainda hoje'
-const RATINGS = [
-  { key: '1', label: 'Não lembrei', returns: AGAIN_TEXT, remembered: false, primary: false, testid: 'blog-quiz-forgot' },
-  { key: '2', label: 'Lembrei', returns: GOOD_TEXT, remembered: true, primary: true, testid: 'blog-quiz-remembered' },
-] as const
+/** The labels in the API's format, read by ReviewRatings/feedbackText like in the review ("2d" -> "em 2 dias") */
+const INTERVALS = { again: '', hard: '', good: `${GOOD_DAYS}d`, easy: '' }
+const AGAIN_TEXT = 'ainda hoje'
 
 const titleId = useId()
 const root = ref<HTMLElement | null>(null)
@@ -152,7 +122,7 @@ async function reveal() {
 async function rate(ok: boolean) {
   if (!revealed.value || done.value) return
   results.value = [...results.value, ok]
-  feedback.value = { id: results.value.length, remembered: ok, text: ok ? `Lembrei · ${GOOD_TEXT}` : `Não lembrei · ${AGAIN_TEXT}` }
+  feedback.value = { id: results.value.length, remembered: ok, text: ok ? feedbackText('Lembrei', INTERVALS.good) : `Não lembrei · volta ${AGAIN_TEXT}` }
   revealed.value = false
   if (done.value) track('blog_quiz_done', { slug: props.slug, remembered: remembered.value, total: props.cards.length })
   else index.value++
@@ -185,10 +155,9 @@ function onCta() {
 </script>
 
 <style scoped>
-/* The answer and the feedback arrive in --motion-respond, like the review; prefers-reduced-motion: they just appear */
+/* The answer arrives in --motion-respond, like the review; prefers-reduced-motion: they just appear */
 @media (prefers-reduced-motion: no-preference) {
   .answer-in { animation: quiz-in var(--motion-respond) var(--ease-calm) both; }
-  .feedback-in { animation: quiz-in var(--motion-respond) var(--ease-calm) both; }
 }
 @keyframes quiz-in {
   from { opacity: 0; transform: translateY(4px); }

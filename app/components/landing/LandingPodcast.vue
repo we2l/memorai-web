@@ -8,7 +8,7 @@
         <p class="lp-chips" data-reveal><span>Errou no simulado</span><b class="step">›<span>virou card</span></b><b class="step">›<span>virou episódio</span></b></p>
         <div class="lp-act">
           <button type="button" class="lp-btn lp-btn-band" data-cta data-testid="landing-cta-podcast" @click="listen">Ouvir um exemplo</button>
-          <NuxtLink to="/criar-conta" class="lp-link" data-testid="landing-cta-podcast-signup" @click="track?.('podcast')">ou criar conta grátis</NuxtLink>
+          <NuxtLink to="/comecar" class="lp-link" data-testid="landing-cta-podcast-signup" @click="track?.('podcast')">ou começar grátis</NuxtLink>
         </div>
         <p class="lp-pod-plan" data-testid="landing-podcast-plan">{{ landingPodcastLine(catalog) }}</p>
       </div>

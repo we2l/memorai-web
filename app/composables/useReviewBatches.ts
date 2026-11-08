@@ -63,11 +63,19 @@ export interface BatchSummary {
   minutes: number
   /** Cards of the batch whose new due date falls after the end of the study day */
   inDay: number
+  /** Cards of the batch that only come back in a week or more (prd-revisao-v5-fase-a RF-F5): memory, not points */
+  far: number
   /** The subject with ≥ 3 "De novo" in the batch, the most first */
   weak: { id: string; name: string; errors: number } | null
   /** Ids of the cards marked "De novo" in the batch (language mode: "Reforçar estes erros") */
   errorIds: string[]
 }
+
+/**
+ * A due date at least this far after the end of the study day is "in a week or more": the API writes due = midnight
+ * (UTC) of today + N days, so N = 7 lands about 6 days after the end of today in Brasília, and N = 6 about 5.
+ */
+const FAR_AFTER_DAY_END_MS = 5.5 * 86_400_000
 
 /** Numbers of a batch (or of a whole session: `batch` null). `dayEnd`: end of the study day (ms). */
 export function batchSummary(log: RatingLog[], batch: number | null, dayEnd: number): BatchSummary {
@@ -81,6 +89,10 @@ export function batchSummary(log: RatingLog[], batch: number | null, dayEnd: num
   const inDay = firsts.filter(l => {
     const due = lastDue.get(l.card_id)
     return !!due && Date.parse(due) > dayEnd
+  }).length
+  const far = firsts.filter(l => {
+    const due = lastDue.get(l.card_id)
+    return !!due && Date.parse(due) >= dayEnd + FAR_AFTER_DAY_END_MS
   }).length
   const errors = new Map<string, { id: string; name: string; errors: number }>()
   for (const l of entries) {
@@ -96,6 +108,7 @@ export function batchSummary(log: RatingLog[], batch: number | null, dayEnd: num
     percent: firsts.length ? Math.round((remembered / firsts.length) * 100) : 0,
     minutes: Math.max(1, Math.round(ms / 60_000)),
     inDay,
+    far,
     weak,
     errorIds: [...new Set(entries.filter(l => l.rating === 1).map(l => l.card_id))],
   }

@@ -1,13 +1,11 @@
 <template>
   <div class="flex flex-col gap-5">
-    <h1 class="text-page-title-sm text-fg-strong">Criar sua conta</h1>
-
-    <div class="flex flex-col gap-2">
-      <AuthGoogleButton />
-      <p class="text-label text-fg-muted">
-        Ao continuar você aceita os <UiLink to="/termos" class="underline">Termos</UiLink> e a <UiLink to="/privacidade" class="underline">Privacidade</UiLink>.
-      </p>
+    <div>
+      <h1 class="text-page-title-sm text-fg-strong">{{ guest ? 'Salve seu progresso' : 'Criar sua conta' }}</h1>
+      <p v-if="guest" class="mt-1 text-body text-fg-muted" data-testid="signup-guest">Seus cards de {{ guest }} e as avaliações vão para a sua conta.</p>
     </div>
+
+    <AuthGoogleButton />
 
     <div class="flex items-center gap-3" aria-hidden="true">
       <span class="h-px flex-1 bg-line" />
@@ -16,22 +14,8 @@
     </div>
 
     <form class="flex flex-col gap-4" novalidate @focusin.once="captcha.render(captchaEl)" @submit.prevent="submit">
-      <UiInput id="name" v-model="form.name" label="Nome" autocomplete="name" :error="errors.name" />
-      <UiInput id="email" v-model="form.email" label="E-mail" type="email" autocomplete="email" inputmode="email" :error="errors.email" />
+      <UiInput id="email" v-model="form.email" label="E-mail" type="email" autocomplete="email" inputmode="email" spellcheck="false" :error="errors.email" />
       <AuthPasswordInput id="password" v-model="form.password" label="Senha" autocomplete="new-password" :hint="hint" :error="errors.password" />
-
-      <div class="flex flex-col gap-1">
-        <UiCheckbox
-          id="accept_terms"
-          v-model="form.accept_terms"
-          :aria-invalid="errors.accept_terms ? 'true' : undefined"
-          :aria-describedby="errors.accept_terms ? 'accept-terms-error' : undefined"
-        >
-          Li e aceito os <UiLink to="/termos" target="_blank" class="underline">Termos de Uso</UiLink>
-          e a <UiLink to="/privacidade" target="_blank" class="underline">Política de Privacidade</UiLink>.
-        </UiCheckbox>
-        <p v-if="errors.accept_terms" id="accept-terms-error" role="alert" class="text-meta font-medium text-danger">{{ errors.accept_terms }}</p>
-      </div>
 
       <!-- Turnstile (M3): invisible unless Cloudflare asks for a click; the Google button above has no captcha -->
       <div ref="captchaEl" class="contents" data-testid="signup-captcha" />
@@ -39,6 +23,11 @@
       <p v-if="errors.general" role="alert" class="text-meta font-medium text-danger" data-testid="signup-error">{{ errors.general }}</p>
 
       <UiButton variant="primary" type="submit" block :loading="loading">Criar conta</UiButton>
+      <!-- One line for both ways in (prd-revisao-v5-fase-a RF-F10, D8): the click accepts, the links stay in sight -->
+      <p class="text-label text-fg-muted" data-testid="signup-terms">
+        Ao criar a conta, com o Google ou com o e-mail, você aceita os <UiLink to="/termos" target="_blank" class="underline">Termos de Uso</UiLink>
+        e a <UiLink to="/privacidade" target="_blank" class="underline">Política de Privacidade</UiLink>.
+      </p>
     </form>
 
     <p class="text-meta text-fg-muted">
@@ -48,11 +37,14 @@
 </template>
 
 <script setup lang="ts">
-// Sign-up v4 (prd-4g-conta-onboarding-v3 RF-F13): no "confirm password" (show/hide in its place), the hint of
-// strength in text, the acceptance of the Terms unchanged. The API takes the sign-up without the confirmation.
+// Sign-up v4 (prd-4g-conta-onboarding-v3 RF-F13; lean since prd-revisao-v5-fase-a RF-F10): Google first, then e-mail
+// and password only. No name (the API takes it from the e-mail; Configurações changes it) and no checkbox: one line
+// says that creating the account accepts the Terms and the Privacy Policy, and the click sends accept_terms (the API
+// still requires it and records terms_accepted_at). No "confirm password" (show/hide in its place).
 import { MIN_PASSWORD, fieldErrors, passwordHint } from '~/utils/authMessages'
 import { getErrorStatus } from '~/utils/apiErrors'
 import { CAPTCHA_MESSAGES } from '~/utils/turnstile'
+import { areaName, pendingGuestProgress } from '~/utils/guestProgress'
 
 definePageMeta({ layout: 'auth' })
 useHead({ title: 'Criar conta · Baigi' })
@@ -60,21 +52,25 @@ useHead({ title: 'Criar conta · Baigi' })
 const auth = useAuthStore()
 const router = useRouter()
 
-const form = reactive({ name: '', email: '', password: '', accept_terms: false })
+const form = reactive({ email: '', password: '' })
 const errors = reactive<Record<string, string>>({})
 const loading = ref(false)
 const hint = computed(() => (errors.password ? undefined : passwordHint(form.password)))
 const captcha = useTurnstile()
 const captchaEl = ref<HTMLElement | null>(null)
+/** The visitor's lote waiting on this device (prd-onboarding-v4 RF-F4): read after hydration, the page is prerendered */
+const guest = ref('')
+onMounted(() => {
+  const p = pendingGuestProgress()
+  if (p) guest.value = areaName(p.area)
+})
 
 // The check starts when the person starts filling the form (the script is not fetched for a visit that only looks)
 
 async function submit() {
   for (const k of Object.keys(errors)) delete errors[k]
-  if (!form.name.trim()) errors.name = 'Informe seu nome.'
   if (!form.email.trim()) errors.email = 'Informe seu e-mail.'
   if (form.password.length < MIN_PASSWORD) errors.password = `A senha precisa ter pelo menos ${MIN_PASSWORD} caracteres.`
-  if (!form.accept_terms) errors.accept_terms = 'Para criar a conta, aceite os Termos e a Política de Privacidade.'
   if (Object.keys(errors).length) return
 
   loading.value = true
@@ -89,9 +85,10 @@ async function submit() {
   try {
     // Banner choice made before the account existed (prd-analytics-posthog RF-B04)
     await auth.register({
-      ...form,
-      name: form.name.trim(),
       email: form.email.trim(),
+      password: form.password,
+      // The click on "Criar conta" under the line of the Terms is the acceptance (D8)
+      accept_terms: true,
       ...useConsent().signupPayload(),
       ...(captchaToken ? { captcha_token: captchaToken } : {}),
     })

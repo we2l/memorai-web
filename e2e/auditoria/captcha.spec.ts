@@ -28,11 +28,9 @@ test.describe('Captcha', () => {
     await page.goto('/criar-conta')
     const email = `e2e-captcha-${uid()}@audit.test`
     // The script comes when the form gets focus
-    await page.locator('#name').fill('Captcha')
     test.skip(!(await loaded), 'build sem NUXT_PUBLIC_TURNSTILE_SITE_KEY')
     await page.locator('#email').fill(email)
     await page.locator('#password').fill(AUDIT_PASSWORD)
-    await page.locator('#accept_terms').check()
     const req = page.waitForRequest(r => r.url().endsWith('/api/register') && r.method() === 'POST')
     const res = page.waitForResponse(r => r.url().endsWith('/api/register'))
     await page.getByRole('button', { name: 'Criar conta' }).click()
@@ -41,10 +39,12 @@ test.describe('Captcha', () => {
     test.skip(r.status() === 429, 'ambiente: throttle de cadastro esgotado')
     expect(r.status()).toBe(201)
 
-    // Passo 2 do /comecar: a linha discreta tem "reenviar", que só agora carrega o Turnstile
+    // "Agora com o seu material" (onboarding v4): no Anki a linha discreta tem "reenviar", que só agora carrega o Turnstile
     await page.waitForURL('**/comecar')
-    await page.getByRole('radio', { name: 'Outro' }).check()
-    await page.getByRole('button', { name: 'Continuar' }).click()
+    await page.getByTestId('area-skip').click()
+    await page.waitForURL('**/comecar/pronto')
+    await page.getByTestId('saved-material').click()
+    await page.getByRole('radio', { name: 'Trazer do Anki' }).check()
     const line = page.getByTestId('verify-email-line')
     await expect(line).toContainText(email)
     const resend = page.waitForRequest(r => r.url().endsWith('/api/email/verification-notification'))
@@ -73,10 +73,8 @@ test.describe('Captcha', () => {
     await page.route('**/api/register', (route) => { calls++; return route.abort() })
     await page.goto('/criar-conta')
     await page.waitForLoadState('networkidle')
-    await page.locator('#name').fill('Sem script')
     await page.locator('#email').fill(`e2e-semscript-${uid()}@audit.test`)
     await page.locator('#password').fill(AUDIT_PASSWORD)
-    await page.locator('#accept_terms').check()
     await page.getByRole('button', { name: 'Criar conta' }).click()
 
     // Without the site key the form posts right away (the aborted request also ends in an error): skip on the call
@@ -94,11 +92,9 @@ test.describe('Captcha', () => {
     }))
     const loaded = captchaOn(page)
     await page.goto('/criar-conta')
-    await page.locator('#name').fill('Recusa')
     test.skip(!(await loaded), 'build sem NUXT_PUBLIC_TURNSTILE_SITE_KEY')
     await page.locator('#email').fill(`e2e-recusa-${uid()}@audit.test`)
     await page.locator('#password').fill(AUDIT_PASSWORD)
-    await page.locator('#accept_terms').check()
     await page.getByRole('button', { name: 'Criar conta' }).click()
     await expect(page.getByTestId('signup-error')).toHaveText('Não conseguimos confirmar que você não é um robô. Tente a verificação de novo.')
   })

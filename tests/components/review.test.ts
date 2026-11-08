@@ -21,9 +21,10 @@ const summary = (extra: Partial<BatchSummary> = {}): BatchSummary => ({ size: 20
 
 describe('botões (prd-4d-revisao-v3 RF-F4)', () => {
   it('De novo · Difícil · Bom · Fácil, com o intervalo, e só "Bom" é o primário', async () => {
-    const w = await mountSuspended(ReviewRatings, { attachTo: document.body, props: { intervals: { again: '< 1 min', hard: '2 d', good: '6 d', easy: '14 d' } } })
+    const w = await mountSuspended(ReviewRatings, { attachTo: document.body, props: { intervals: { again: '1min', hard: '2d', good: '6d', easy: '1.3m' } } })
     const buttons = w.findAll('button')
-    expect(buttons.map((b) => { const [label, interval] = b.findAll('span').map(s => s.text()); return `${label!.replace(/^\d\s*/, '')} | ${interval}` })).toEqual(['De novo | < 1 min', 'Difícil | 2 d', 'Bom | 6 d', 'Fácil | 14 d'])
+    expect(buttons.map((b) => { const [label, interval] = b.findAll('span').map(s => s.text()); return `${label!.replace(/^\d\s*/, '')} | ${interval}` })).toEqual(['De novo | em 1 min', 'Difícil | em 2 dias', 'Bom | em 6 dias', 'Fácil | em 40 dias'])
+    expect(buttons[3]!.attributes('aria-label')).toBe('Fácil, volta em 40 dias (4)')
     expect(buttons.filter(b => b.attributes('data-variant') === 'primary').map(b => b.attributes('data-testid'))).toEqual(['rate-3'])
     await buttons[0]!.trigger('click')
     expect(w.emitted('rate')![0]).toEqual([1])
@@ -35,7 +36,7 @@ describe('dois botões (prd-revisao-v5-fase-a RF-F1)', () => {
   it('"Não lembrei" neutro e "Lembrei" primário, com o intervalo, mandando 1 e 3', async () => {
     const w = await mountSuspended(ReviewRatings, { attachTo: document.body, props: { mode: 'two', intervals: { again: '10min', hard: '1d', good: '2d', easy: '8d' } } })
     const buttons = w.findAll('button')
-    expect(buttons.map(b => b.text().replace(/^\d\s*/, ''))).toEqual(['Não lembrei10min', 'Lembrei2d'])
+    expect(buttons.map(b => b.text().replace(/^\d\s*/, ''))).toEqual(['Não lembreiem 10 min', 'Lembreiem 2 dias'])
     expect(buttons.map(b => b.attributes('data-variant'))).toEqual(['secondary', 'primary'])
     expect(buttons.map(b => b.attributes('data-testid'))).toEqual(['rate-1', 'rate-3'])
     await buttons[1]!.trigger('click')

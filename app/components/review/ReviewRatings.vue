@@ -7,7 +7,7 @@
       class="flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-control px-1 py-2 font-semibold transition-colors duration-nav"
       :class="[r.primary ? 'bg-action text-on-action shadow-press hover:bg-action-hover active:translate-y-0.5 active:shadow-press-active' : 'border border-line-strong bg-raised text-fg-strong hover:bg-subtle', mode === 'two' ? 'text-body' : 'text-meta']"
       :aria-keyshortcuts="r.keys"
-      :aria-label="`${r.label}${intervals[r.key] ? `, volta em ${intervals[r.key]}` : ''} (${r.key_label})`"
+      :aria-label="`${r.label}${intervals[r.key] ? `, volta ${intervalText(r.key)}` : ''} (${r.key_label})`"
       :data-variant="r.primary ? 'primary' : 'secondary'"
       :data-testid="`rate-${r.value}`"
       @click="$emit('rate', r.value)"
@@ -27,6 +27,7 @@
 // RF-F4, the option): 1 De novo · 2 Difícil · 3 Bom · 4 Fácil, the Anki convention, "Bom" primary. The interval under
 // each, the key on a pointer device. `again` can say where the card goes instead ("no fim do lote" in the visitor's lote).
 import type { ReviewButtonsMode } from '~/utils/reviewButtons'
+import { returnText } from '~/utils/intervalLabel'
 
 type Key = 'again' | 'hard' | 'good' | 'easy'
 
@@ -53,8 +54,9 @@ const TWO: Rating[] = [
 
 const ratings = computed(() => (props.mode === 'two' ? TWO : FOUR))
 
+// The API's labels in Portuguese ("2d" → "em 2 dias"), the same reading as the feedback and the agenda
 function intervalText(key: Key): string {
   if (key === 'again' && props.againText) return props.againText
-  return props.intervals[key] || '·'
+  return props.intervals[key] ? returnText(props.intervals[key]) : '·'
 }
 </script>

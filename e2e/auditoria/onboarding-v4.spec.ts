@@ -34,7 +34,7 @@ async function reviewLote(page: Page) {
     await expect(page.getByTestId('review-origin')).toContainText('Lei 8.906/1994')
     await expect(page.getByTestId('review-ratings')).toHaveAttribute('data-mode', 'two')
     // The card that came back: "Lembrei" after "Não lembrei" returns tomorrow (relearned_interval)
-    await expect(page.getByTestId('rate-3')).toContainText(i === 6 ? '1d' : '2d')
+    await expect(page.getByTestId('rate-3')).toContainText(i === 6 ? 'amanhã' : 'em 2 dias')
     await expect(page.getByTestId('rate-1')).toContainText('no fim do lote')
     await expect(page.getByTestId('rate-2')).toHaveCount(0)
     await page.keyboard.press(i === 0 ? '1' : '2')

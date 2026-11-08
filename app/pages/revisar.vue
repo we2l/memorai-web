@@ -155,9 +155,8 @@
         </ReviewCard>
 
         <!-- The first batch of the onboarding has no AI on the way: nothing to confirm, nothing to spend -->
-        <div v-if="review.flipped && !review.showErrorDiary && !isOnboarding" class="flex flex-wrap items-center justify-center gap-x-3">
+        <div v-if="review.flipped && !review.showErrorDiary && !isOnboarding" class="flex justify-center">
           <UiButton size="sm" variant="ghost" :icon-left="MessageCircle" data-testid="review-explain" @click="explainCard">Explicar este card</UiButton>
-          <span v-if="chatQuota" class="text-label text-fg-muted">{{ chatQuota }}</span>
         </div>
 
         <!-- Error diary (replaces the ratings after an error) -->
@@ -595,12 +594,7 @@ onMounted(() => {
 })
 
 // === Tira-dúvidas in context: the card goes to the server (flashcard_id, RF-B4) ===
-const chatQuota = computed(() => {
-  // A Free account whose trial opens on this click: no "0 de 0", the server opens the trial (RF-F7b)
-  if (!featureUsage.isLimited('agent_chat') || featureUsage.opensTrial('agent_chat')) return ''
-  const f = featureUsage.usage.value?.features.agent_chat
-  return f && f.limit ? `${f.remaining ?? 0} de ${f.limit} ${featureUsage.periodLabel.value}` : ''
-})
+// No quota next to the button (the owner, 08/11): it shows only when the AI is used (the click, the sheet, the limit)
 function askAbout(card: { id: string; front: string; back: string; topic_id?: string | null }, source: 'review_card' | 'review_error', draft: string) {
   if (!featureUsage.canUse('agent_chat')) {
     // The paid plan at the limit gets the toast with the reset day, not the upgrade (prd-uso-justo RN-3)

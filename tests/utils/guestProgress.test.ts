@@ -47,7 +47,7 @@ describe('guestProgress: the result', () => {
     expect(returnText('10min')).toBe('em 10 min')
     expect(returnText('1d')).toBe('amanhã')
     expect(returnText('8d')).toBe('em 8 dias')
-    expect(returnText('1.5m')).toBe('em 1,5 meses')
+    expect(returnText('1.5m')).toBe('em 45 dias')
     expect(growthText('10min', [2, 11, 46, 163])).toBe('10 min, 2 dias, 11 dias, 46 dias e 5 meses')
   })
 

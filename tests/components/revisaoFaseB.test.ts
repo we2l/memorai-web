@@ -104,13 +104,14 @@ describe('deslizar (RF-F10, B-D10)', () => {
 describe('atraso como plano (RF-F1, RF-F2)', () => {
   it('a linha do atraso nunca é o número do dia', async () => {
     const w = await mountSuspended(BacklogLine, { props: { backlog: backlog(), origin: 'home' } })
-    expect(w.get('[data-testid=backlog-line-overdue]').text()).toContain('Atraso: 340 cards · Recuperar em dias')
-    expect(w.find('[data-testid=backlog-line-paused]').exists()).toBe(true)
+    expect(w.get('[data-testid=backlog-line-overdue]').text()).toBe('340 atrasados · Recuperar em 7 dias')
+    // The paused note and its action on one line, no dangling punctuation
+    expect(w.get('[data-testid=backlog-line-paused]').text()).toBe('Novos pausados enquanto houver atraso Retomar')
   })
 
   it('com plano: o dia e o que falta', async () => {
     const w = await mountSuspended(BacklogLine, { props: { backlog: backlog({ overdue: 0, active: false, plan: { days: 7, started_on: '2026-11-08', day: 2, total: 340, remaining: 291, today: 49 } }), origin: 'caderno', scope: 'caderno', count: 0 } })
-    expect(w.get('[data-testid=backlog-line-plan]').text()).toContain('Recuperando o atraso de todos os cadernos · dia 2 de 7 · faltam 291')
+    expect(w.get('[data-testid=backlog-line-plan]').text().replace(/\s+/g, ' ')).toBe('Recuperando o atraso · dia 2 de 7 de todos os cadernos')
   })
 
   it('divide por dia como a API (ceil)', () => {

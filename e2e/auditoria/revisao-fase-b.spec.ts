@@ -31,7 +31,7 @@ test('atraso: fora do "Revisar hoje", plano de 7 dias e os mesmos números no Ho
   await gotoApp(page, '/hoje')
   const step = page.getByTestId('plan-step-review')
   await expect(step).toContainText('Revisar 3 cards')
-  await expect(step.getByTestId('backlog-line-overdue')).toContainText('Atraso: 60 cards · Recuperar em dias')
+  await expect(step.getByTestId('backlog-line-overdue')).toHaveText('60 atrasados · Recuperar em 7 dias')
   await expect(step.getByTestId('backlog-line-paused')).toBeVisible()
 
   await step.getByTestId('backlog-line-open').click()
@@ -39,7 +39,7 @@ test('atraso: fora do "Revisar hoje", plano de 7 dias e os mesmos números no Ho
   await expect(sheet.getByRole('radio', { name: /7 dias/ })).toBeChecked()
   await expect(sheet).toContainText('~9 por dia, além dos de hoje')
   await page.getByTestId('backlog-start').click()
-  await expect(step.getByTestId('backlog-line-plan')).toContainText('Recuperando o atraso · dia 1 de 7 · faltam 60')
+  await expect(step.getByTestId('backlog-line-plan')).toHaveText('Recuperando o atraso · dia 1 de 7')
   await expect(step).toContainText('Revisar 12 cards')
 
   const stats = (await apiCall(page, 'GET', '/stats')).data
@@ -53,7 +53,7 @@ test('atraso: fora do "Revisar hoje", plano de 7 dias e os mesmos números no Ho
   // "Cancelar o plano": the cards get their day back and the backlog line returns
   await page.getByTestId('backlog-line-open').click()
   await page.getByTestId('backlog-cancel').click()
-  await expect(page.getByTestId('backlog-line-overdue')).toContainText('Atraso neste caderno: 60 cards')
+  await expect(page.getByTestId('backlog-line-overdue')).toHaveText('60 atrasados neste caderno · Recuperar em 7 dias')
 })
 
 test('Certo/Errado com C/E/B, digitar com diff e "Contar como certo", leech com "Pausar o card"', async ({ page }) => {
@@ -74,12 +74,17 @@ test('Certo/Errado com C/E/B, digitar com diff e "Contar como certo", leech com 
   await page.keyboard.press('Enter')
 
   await expect(page.locator('[data-mode=typed]')).toBeVisible()
+  await expect(page.getByTestId('review-feedback')).toContainText('Em branco · volta')
   await page.getByTestId('check-input').fill('borrow')
+  // The pill of the previous card leaves as soon as the person types, never next to the check
+  await expect(page.getByTestId('review-feedback')).toHaveCount(0)
   await page.keyboard.press('Enter')
   await expect(page.getByTestId('check-diff')).toContainText('faltou: to')
+  await expect(page.getByTestId('review-feedback')).toHaveCount(0)
   await page.getByTestId('check-count-right').click()
 
   await page.getByTestId('review-show').click()
+  await expect(page.getByTestId('review-feedback')).toHaveCount(0)
   await expect(page.getByTestId('review-leech')).toContainText('Esse card não está colando (5 erros)')
   await page.getByTestId('leech-pause').click()
   await expect(page.getByText('Card pausado.')).toBeVisible()

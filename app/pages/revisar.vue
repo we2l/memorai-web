@@ -219,6 +219,7 @@
           @flip="review.flip()"
           @rate="handleRate"
           @skip="skipCheck"
+          @typing="feedback = null"
         />
         <template v-else>
           <ReviewRatings v-if="review.flipped" :intervals="review.currentIntervals" :mode="buttonsMode" @rate="handleRate" />
@@ -585,6 +586,8 @@ async function pauseCard() {
   }
 }
 watch(batchEndIndex, (index) => { if (index) feedback.value = null })
+// The pill speaks of the previous card: it leaves when the next one turns, never next to its answer or its check
+watch(() => review.flipped, (flipped) => { if (flipped) feedback.value = null })
 
 async function handleUndo() {
   await review.undo()

@@ -83,6 +83,8 @@ const emit = defineEmits<{
   (e: 'flip'): void
   (e: 'rate', rating: 1 | 3, answer: ReviewAnswer): void
   (e: 'skip'): void
+  /** The first key typed: the pill of the previous card leaves */
+  (e: 'typing'): void
 }>()
 
 const choice = ref<'certo' | 'errado' | 'blank' | null>(null)
@@ -91,6 +93,7 @@ const inputRef = ref<{ focus?: () => void } | null>(null)
 const primaryRef = ref<{ $el?: HTMLElement } | null>(null)
 
 const gabarito = computed(() => (props.check.mode === 'true_false' && props.check.answer === 'certo' ? 'Certo' : 'Errado'))
+watch(typed, (v, old) => { if (v && !old) emit('typing') })
 const matched = computed(() => props.check.mode === 'typed' && answersMatch(typed.value, props.check.answer))
 const diff = computed(() => (props.check.mode === 'typed' ? answerDiff(typed.value, props.check.answer) : []))
 

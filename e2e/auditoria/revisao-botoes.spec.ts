@@ -61,6 +61,8 @@ test('dois botões: verso antes de avaliar, teclas 1/2/←/→/Espaço, a pílul
     await expect(page.getByTestId('review-show')).toBeVisible()
     await page.keyboard.press('Space')
     await expect(ratings).toBeVisible()
+    // The pill of the previous card leaves when this one turns (never next to its answer)
+    await expect(page.getByTestId('review-feedback')).toHaveCount(0)
     await page.keyboard.press(key)
   }
   await expect(page.getByTestId('review-feedback')).toContainText('Lembrei')
@@ -105,6 +107,10 @@ test('os 4 botões como opção: Configurações → Estudo grava, e a revisão 
   await page.keyboard.press('2')
   await expect(page.getByTestId('review-feedback')).toHaveText(/Difícil · volta em/)
   await expect.poll(() => sent).toEqual([2])
+  // Next card turned: the pill of the previous one is gone (prd-revisao-v5-fase-b)
+  await page.keyboard.press('Space')
+  await expect(page.getByTestId('review-ratings')).toBeVisible()
+  await expect(page.getByTestId('review-feedback')).toHaveCount(0)
 })
 
 test.describe('celular', () => {

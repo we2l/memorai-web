@@ -1,25 +1,25 @@
 <template>
-  <div v-if="show" class="flex flex-col gap-1 text-meta text-fg-muted" data-testid="backlog-line">
+  <div v-if="show" class="flex flex-col gap-0.5 text-meta text-fg-muted" data-testid="backlog-line">
+    <!-- Inline text (no flex): the spaces between the words and the action are real text -->
     <p v-if="backlog.plan" data-testid="backlog-line-plan">
-      Recuperando o atraso{{ scopeLabel }} · dia {{ backlog.plan.day }} de {{ backlog.plan.days }} · faltam {{ fmt(backlog.plan.remaining) }} ·
-      <button type="button" class="hit-touch rounded-tag font-semibold text-action-fg underline-offset-2 transition-colors duration-nav hover:text-action-hover hover:underline" data-testid="backlog-line-open" @click="openSheet">Mudar</button>
+      <button type="button" :class="LINK" data-testid="backlog-line-open" @click="openSheet">Recuperando o atraso · dia {{ backlog.plan.day }} de {{ backlog.plan.days }}</button><template v-if="scope === 'caderno'"> de todos os cadernos</template>
     </p>
     <p v-else-if="count > 0" data-testid="backlog-line-overdue">
-      Atraso{{ scopeLabel }}: {{ fmt(count) }} {{ count === 1 ? 'card' : 'cards' }} ·
-      <button type="button" class="hit-touch rounded-tag font-semibold text-action-fg underline-offset-2 transition-colors duration-nav hover:text-action-hover hover:underline" data-testid="backlog-line-open" @click="openSheet">Recuperar em dias</button>
+      {{ fmt(count) }} {{ count === 1 ? 'atrasado' : 'atrasados' }}{{ scope === 'caderno' ? ' neste caderno' : '' }} · <button type="button" :class="LINK" data-testid="backlog-line-open" @click="openSheet">Recuperar em 7 dias</button>
     </p>
-    <p v-if="backlog.new_paused && showPaused" class="flex flex-wrap items-center gap-1" data-testid="backlog-line-paused">
-      Novos pausados enquanto houver atraso ·
-      <UiButton variant="ghost" size="sm" :loading="pending" data-testid="backlog-resume-new" @click="resumeNew">Retomar novos</UiButton>
+    <p v-if="backlog.new_paused && showPaused" data-testid="backlog-line-paused">
+      Novos pausados enquanto houver atraso <button type="button" :class="LINK" class="ml-1" :disabled="pending" data-testid="backlog-resume-new" @click="resumeNew">{{ pending ? 'Retomando…' : 'Retomar' }}</button>
     </p>
   </div>
 </template>
 
 <script setup lang="ts">
 // The backlog in one line (prd-revisao-v5-fase-b RF-F1, RF-F3, RF-F4): never a big number next to "Revisar hoje", but
-// "Atraso: 340 cards · Recuperar em dias" (opens the plan sheet), or the plan on its way, and the paused new cards with
-// "Retomar novos" (PUT /settings pause_new_on_backlog false). `count` is the scope's part (the caderno) or the overdue.
+// "120 atrasados · Recuperar em 7 dias" (opens the plan sheet: 3, 7 or 14), or "Recuperando o atraso · dia 1 de 7" with a
+// plan, and a quiet note on the paused new cards with "Retomar" on the same line (PUT /settings pause_new_on_backlog false).
+// `count` is the scope's part (the caderno) or the person's overdue cards.
 import type { BacklogState } from '~/types'
+import type { BacklogOrigin } from '~/composables/useBacklogPlan'
 
 const props = withDefaults(defineProps<{
   backlog: BacklogState
@@ -32,10 +32,9 @@ const props = withDefaults(defineProps<{
 }>(), { count: undefined, scope: null, showPaused: true })
 const emit = defineEmits<{ (e: 'changed'): void }>()
 
-type BacklogOrigin = import('~/composables/useBacklogPlan').BacklogOrigin
+const LINK = 'hit-touch rounded-tag font-semibold text-action-fg underline-offset-2 transition-colors duration-nav hover:text-action-hover hover:underline disabled:opacity-60'
 
 const count = computed(() => props.count ?? (props.backlog.active ? props.backlog.overdue : 0))
-const scopeLabel = computed(() => (props.scope === 'caderno' ? (props.backlog.plan ? ' de todos os cadernos' : ' neste caderno') : ''))
 const show = computed(() => !!props.backlog.plan || count.value > 0 || (props.backlog.new_paused && props.showPaused))
 
 const sheet = useBacklogPlan()

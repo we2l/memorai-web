@@ -11,15 +11,6 @@
       "prazo": "permanente"
     },
     {
-      "path": "app/components/ui/BaigiMascot.vue",
-      "rules": [
-        "hex",
-        "color-fn"
-      ],
-      "motivo": "Mascote: ilustração com a paleta própria da marca.",
-      "prazo": "permanente"
-    },
-    {
       "path": "app/components/auth/GoogleButton.vue",
       "rules": [
         "hex"

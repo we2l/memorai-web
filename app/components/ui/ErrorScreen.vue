@@ -5,7 +5,7 @@
     </NuxtLink>
 
     <main class="flex w-full max-w-prose flex-1 flex-col items-center justify-center gap-3 py-8 text-center">
-      <UiBaigiMascot :size="96" state="thinking" />
+      <UiBaigiMascot :size="96" state="thinking" priority />
       <h1 class="text-page-title-sm text-fg-strong sm:text-page-title">{{ notFound ? 'Página não encontrada' : 'Algo deu errado' }}</h1>
       <p class="max-w-md text-body break-words text-fg-muted" data-testid="error-lead">
         <template v-if="notFound">O endereço <span class="font-semibold text-fg-strong">{{ path }}</span> não existe ou mudou de lugar.</template>

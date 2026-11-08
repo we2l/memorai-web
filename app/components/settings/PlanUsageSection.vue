@@ -87,7 +87,7 @@ const planSummary = computed(() => {
 const checkoutOpen = computed(() => checkoutAvailable(plans.value))
 const showManage = computed(() => {
   const info = subscription.info
-  return checkoutOpen.value && !!info && (subscription.isPrepaid || !!info.can_change_card || !!info.can_cancel || !!info.refundable)
+  return checkoutOpen.value && !!info && (subscription.isPrepaid || !!info.can_change_card || !!info.can_cancel || !!info.refundable || !!info.refund_via_support)
 })
 
 const rows = computed(() => {

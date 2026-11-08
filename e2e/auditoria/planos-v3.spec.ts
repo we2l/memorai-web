@@ -5,7 +5,7 @@ import { mockSubscription, expectNoHydrationMismatch } from './support/public-pa
 
 /**
  * /planos, /checkout/sucesso, /termos, /privacidade e /ajuda v4 (prd-4h-landing-v3 RF-F11 a RF-F15): um layout só,
- * logado ou não, números só do catálogo e um destaque por tela. Nenhum checkout real: a sessão e a Stripe são mockadas.
+ * logado ou não, números só do catálogo e um destaque por tela. Nenhum checkout real: as rotas de checkout do Mercado Pago são mockadas.
  */
 const primaries = (page: Page) => page.locator('.shadow-press').filter({ visible: true })
 
@@ -36,7 +36,7 @@ test.describe('/planos anônimo', () => {
 
     await page.getByRole('radio', { name: 'Mensal' }).check()
     await expect(page.getByTestId('plan-pro-price')).toContainText(brl(pro.prices.monthly.amount_cents))
-    await expect(page.getByTestId('plan-pro-note')).toHaveText('Cancele quando quiser, pelo portal de assinatura')
+    await expect(page.getByTestId('plan-pro-note')).toHaveText(/^No cartão, renova todo mês e cancela em dois cliques/)
 
     for (const highlight of [...data.plans[0].highlights.map((h: string) => ['plan-free', h]), ...pro.highlights.map((h: string) => ['plan-pro', h])]) {
       await expect(page.getByTestId(highlight[0]).getByText(highlight[1], { exact: true })).toBeVisible()
@@ -107,7 +107,7 @@ test.describe('/planos anônimo', () => {
     const summary = page.getByTestId('plan-faq').locator('summary').filter({ hasText: 'Posso cancelar quando quiser?' })
     await summary.focus()
     await page.keyboard.press('Enter')
-    await expect(page.getByText(`Cancele quando quiser, pelo portal de assinatura. O ${await catalogProName()} continua`)).toBeVisible()
+    await expect(page.getByText(`Sim, em Configurações, em dois cliques. O cartão não é mais cobrado, e o ${await catalogProName()} continua`)).toBeVisible()
   })
 
   for (const width of [360, 390, 768, 1440]) {
@@ -143,40 +143,21 @@ test.describe('/planos logado: o mesmo layout', () => {
       await page.waitForURL('**/hoje')
     })
 
-    test('retorno da Stripe: o toast do ?success=1 aparece depois da hidratação', async ({ page }) => {
-      await page.goto('/planos?success=1')
-      await expect(page.getByText(`Assinatura ativada! Bem-vindo ao ${await catalogProName()}.`)).toBeVisible()
-    })
-
-    test('link de renovação abre o checkout anual sozinho', async ({ page }) => {
-      await page.route('https://checkout.stripe.com/**', route => route.fulfill({ contentType: 'text/html', body: '<h1>Stripe stub</h1>' }))
-      let annual = 0
-      await page.route('**/api/checkout/annual', (route) => {
-        annual++
-        return route.fulfill({ json: { checkout_url: 'https://checkout.stripe.com/c/pay/x', session_id: 'x' } })
-      })
+    test('link de renovação antigo (?renovar=1) abre o checkout do Mercado Pago', async ({ page }) => {
       await page.goto('/planos?ciclo=anual&renovar=1')
-      await page.waitForURL('https://checkout.stripe.com/**')
-      expect(annual).toBe(1)
+      await page.waitForURL('**/checkout?plano=anual')
     })
   })
 
   test.describe('Pro mensal', () => {
     test.use({ auditUser: 'pro' })
 
-    test('"Seu plano", "Gerenciar assinatura" e a troca para o anual', async ({ page }) => {
-      await mockSubscription(page, { plan: 'pro', billing: 'monthly', subscription_status: 'active', has_subscription: true })
-      let portal = 0
-      await page.route('**/api/checkout/portal', (route) => {
-        portal++
-        return route.fulfill({ status: 500, json: { message: 'x' } })
-      })
+    test('"Seu plano" e "Gerenciar" levam a Configurações (sem portal)', async ({ page }) => {
+      await mockSubscription(page, { plan: 'pro', billing: 'monthly', subscription_status: 'active', has_subscription: true, can_cancel: true, can_change_card: true })
       await gotoApp(page, '/planos')
       await expect(page.getByTestId('plan-pro').getByText('Seu plano')).toBeVisible()
-      await expect(page.getByTestId('plan-manage').getByRole('button', { name: /Mudar para anual e economizar/ })).toBeVisible()
-      await page.getByTestId('plan-manage').getByRole('button', { name: 'Gerenciar assinatura' }).click()
-      await expect(page.getByRole('alert').getByText('Não foi possível abrir o portal de assinatura. Tente de novo.')).toBeVisible()
-      expect(portal).toBe(1)
+      await page.getByTestId('plan-manage').getByRole('link', { name: 'Gerenciar' }).click()
+      await page.waitForURL('**/configuracoes#plano')
     })
   })
 
@@ -290,17 +271,17 @@ test.describe('axe', () => {
 
       test.describe('logado', () => {
         test.use({ auditUser: 'free' })
-        const session = (over: object) => ({ session_id: 's', status: 'complete', payment_status: 'unpaid', payment_method: 'pix', pix_qr: { data: 'x', image_url_png: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=', expires_at: new Date(Date.now() + 1_800_000).toISOString() }, plan_active: false, plan_expires_at: null, ...over })
+        const session = (over: object) => ({ id: 'c', product: 'annual_pix', method: 'pix', status: 'action_required', status_detail: null, message: null, amount_cents: 22790, installments: null, challenge_url: null, pix: { qr_code: 'x', qr_code_base64: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=', ticket_url: null, expires_at: new Date(Date.now() + 1_800_000).toISOString() }, paid_at: null, refundable_until: null, plan_active: false, plan_expires_at: null, renews_at: null, created_at: null, ...over })
 
         test(`${theme}, ${width} px: /planos e os estados do checkout`, async ({ page }) => {
           await page.setViewportSize({ width, height: 900 })
           await page.addInitScript((t) => { try { localStorage.setItem('color-mode', t) } catch {} }, theme)
           await gotoApp(page, '/planos')
           await scan(page, '/planos')
-          for (const [name, data, status] of [['pix', session({}), 200], ['ativo', session({ payment_status: 'paid', pix_qr: null, plan_active: true, plan_expires_at: '2027-09-28T15:05:00-03:00' }), 200], ['expirado', session({ status: 'expired', pix_qr: null }), 200], ['não encontrado', {}, 404]] as const) {
-            await page.unroute('**/api/checkout/sessions/**')
-            await page.route('**/api/checkout/sessions/**', route => route.fulfill({ status, json: { data } }))
-            await gotoApp(page, '/checkout/sucesso?session_id=s')
+          for (const [name, data, status] of [['pix', session({}), 200], ['ativo', session({ status: 'approved', pix: null, plan_active: true, plan_expires_at: '2027-09-28T15:05:00-03:00' }), 200], ['expirado', session({ status: 'expired', pix: null }), 200], ['não encontrado', {}, 404]] as const) {
+            await page.unroute('**/api/checkout/payments/**')
+            await page.route('**/api/checkout/payments/**', route => route.fulfill({ status, json: { data } }))
+            await gotoApp(page, '/checkout/sucesso?checkout=c')
             await page.waitForTimeout(800) // the milestone settles (<= 700 ms)
             await scan(page, `checkout ${name}`)
           }
@@ -314,8 +295,8 @@ test.describe('/checkout/sucesso', () => {
   test.use({ auditUser: 'free' })
 
   test('Pro ativo: marco com o mascote, data do catálogo e um primário; sem confete', async ({ page }) => {
-    await page.route('**/api/checkout/sessions/**', route => route.fulfill({ json: { data: { session_id: 's', status: 'complete', payment_status: 'paid', payment_method: 'pix', pix_qr: null, plan_active: true, plan_expires_at: '2027-09-28T15:05:00-03:00' } } }))
-    await gotoApp(page, '/checkout/sucesso?session_id=s')
+    await page.route('**/api/checkout/payments/**', route => route.fulfill({ json: { data: { id: 'c', product: 'annual_pix', method: 'pix', status: 'approved', status_detail: 'accredited', message: null, amount_cents: 22790, installments: null, challenge_url: null, pix: null, paid_at: null, refundable_until: null, plan_active: true, plan_expires_at: '2027-09-28T15:05:00-03:00', renews_at: null, created_at: null } } }))
+    await gotoApp(page, '/checkout/sucesso?checkout=c')
     const name = await catalogProName()
     await expect(page.getByRole('heading', { name: `Bem-vindo ao ${name}!`, level: 1 })).toBeVisible()
     await expect(page.getByText(`${name} ativo até 28/09/2027`)).toBeVisible()

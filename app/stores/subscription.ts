@@ -1,4 +1,15 @@
-import type { CheckoutSessionInfo, SubscriptionInfo } from '~/types'
+import type { CheckoutPayment, SubscriptionInfo } from '~/types'
+
+/** Card data from the Mercado Pago Brick: a single-use token, never the number (SAQ A, ADR-034). */
+export interface CardPayload {
+  token: string
+  payment_method_id: string
+  issuer_id?: string | null
+  installments: number
+  device_id?: string | null
+  card_last_four?: string | null
+  identification?: { type: string; number: string } | null
+}
 
 export const useSubscriptionStore = defineStore('subscription', {
   state: () => ({
@@ -7,7 +18,9 @@ export const useSubscriptionStore = defineStore('subscription', {
 
   getters: {
     isPastDue: state => state.info?.subscription_status === 'past_due',
+    /** Prepaid access: the annual or the 30-day Pix (both live on plan_expires_at) */
     isAnnual: state => state.info?.billing === 'annual',
+    isPrepaid: state => state.info?.billing === 'annual' || state.info?.billing === 'monthly_pix',
     inGracePeriod: state => state.info?.in_grace_period === true,
   },
 
@@ -18,36 +31,41 @@ export const useSubscriptionStore = defineStore('subscription', {
       this.info = res.data
     },
 
-    async checkoutSubscription(plan: string, period: string = 'monthly') {
+    async payWithCard(product: 'monthly' | 'annual', card: CardPayload): Promise<CheckoutPayment> {
       const { $api } = useNuxtApp()
-      const res = await $api<{ checkout_url: string }>('/checkout/subscription', {
-        method: 'POST',
-        body: { plan, period },
-      })
-      window.location.href = res.checkout_url
-    },
-
-    /** One-off annual payment (Pix or card; installments only when /api/plans has installments_max > 1) — ADR-025 */
-    async checkoutAnnual() {
-      const { $api } = useNuxtApp()
-      const res = await $api<{ checkout_url: string; session_id: string }>('/checkout/annual', {
-        method: 'POST',
-      })
-      window.location.href = res.checkout_url
-    },
-
-    async fetchCheckoutSession(id: string): Promise<CheckoutSessionInfo> {
-      const { $api } = useNuxtApp()
-      const res = await $api<{ data: CheckoutSessionInfo }>(`/checkout/sessions/${encodeURIComponent(id)}`)
+      const res = await $api<{ data: CheckoutPayment }>('/checkout/card', { method: 'POST', body: { product, ...card } })
       return res.data
     },
 
-    async openPortal() {
+    async createPix(product: 'monthly' | 'annual'): Promise<CheckoutPayment> {
       const { $api } = useNuxtApp()
-      const res = await $api<{ portal_url: string }>('/checkout/portal', {
-        method: 'POST',
-      })
-      window.location.href = res.portal_url
+      const res = await $api<{ data: CheckoutPayment }>('/checkout/pix', { method: 'POST', body: { product } })
+      return res.data
+    },
+
+    async fetchPayment(id: string): Promise<CheckoutPayment> {
+      const { $api } = useNuxtApp()
+      const res = await $api<{ data: CheckoutPayment }>(`/checkout/payments/${encodeURIComponent(id)}`)
+      return res.data
+    },
+
+    async refund(id: string): Promise<CheckoutPayment> {
+      const { $api } = useNuxtApp()
+      const res = await $api<{ data: CheckoutPayment }>(`/checkout/payments/${encodeURIComponent(id)}/refund`, { method: 'POST' })
+      await this.fetchStatus()
+      return res.data
+    },
+
+    async changeCard(card: Pick<CardPayload, 'token' | 'payment_method_id' | 'card_last_four'>) {
+      const { $api } = useNuxtApp()
+      const res = await $api<{ data: SubscriptionInfo }>('/subscription/card', { method: 'POST', body: card })
+      this.info = res.data
+    },
+
+    async cancel() {
+      const { $api } = useNuxtApp()
+      const res = await $api<{ data: SubscriptionInfo }>('/subscription/cancel', { method: 'POST' })
+      this.info = res.data
     },
   },
 })

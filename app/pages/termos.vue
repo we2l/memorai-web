@@ -1,10 +1,12 @@
 <template>
   <LegalLayout title="Termos de Uso" :effective-date="EFFECTIVE_DATE" :updated-at="UPDATED_AT" :sections="sections">
     <!-- TEXTO JURÍDICO PENDENTE: revisão de advogado obrigatória antes de produção (PRD ux-critica §8.1) -->
-    <!-- TODO(jurídico): substituir [[CNPJ]] e confirmar a política de reembolso (PRD ux-critica §8.2) -->
-    <p>
+    <!-- TODO(jurídico): confirmar a política de reembolso com o advogado/contador (prd-pagamento-mercado-pago §8) -->
+    <!-- Vendedor (Decreto 7.962/2013 art. 2): nome e CPF do catálogo (BILLING_SELLER_* da API); aqui e no checkout, nunca na landing -->
+    <p data-testid="terms-seller">
       Estes termos regem o uso do BAIGI, serviço de estudo com repetição espaçada e inteligência artificial,
-      oferecido por BAIGI, CNPJ <span class="placeholder">[[CNPJ]]</span>.
+      oferecido por <template v-if="seller">{{ seller }}</template><span v-else class="placeholder">[[nome e CPF do responsável]]</span>,
+      pessoa física responsável pelo BAIGI. Contato: <a :href="`mailto:${sellerEmail}`">{{ sellerEmail }}</a>.
     </p>
 
     <h2 id="aceitacao">1. Aceitação</h2>
@@ -23,19 +25,25 @@
     <h2 id="planos">3. Planos, cobrança, renovação e cancelamento</h2>
     <ul>
       <li>O plano Grátis inclui uma prévia da IA, uma vez por conta e sem prazo, que pede o e-mail confirmado. O Intensivo tem cotas mensais de IA, conforme a página <NuxtLink to="/planos">Planos</NuxtLink>.</li>
-      <!-- "Assinatura em breve" (CHECKOUT_ENABLED=false na produção): sai quando o pagamento abrir -->
-      <li>A assinatura do Intensivo ainda não está à venda, e nada é cobrado. Quando o pagamento abrir, valem as regras abaixo.</li>
-      <li><strong>Mensal:</strong> cobrado no cartão e renovado automaticamente a cada mês até você cancelar.</li>
-      <li><strong>Anual (Pix ou cartão):</strong> pagamento único que vale por 12 meses, sem renovação automática. Avisamos por e-mail antes do vencimento.</li>
-      <li>O cancelamento do mensal pode ser feito a qualquer momento no portal de assinatura e vale até o fim do período já pago.</li>
+      <!-- "Assinatura em breve" (checkout.available false): some quando o pagamento abrir -->
+      <li v-if="!checkoutOpen">A assinatura do Intensivo ainda não está à venda, e nada é cobrado. Quando o pagamento abrir, valem as regras abaixo.</li>
+      <li>Os pagamentos são processados pelo <strong>Mercado Pago</strong>. O BAIGI não recebe nem guarda o número do cartão. Na fatura, a compra aparece como <strong>{{ descriptor }}</strong>; no Pix, o app do banco mostra o nome do responsável pelo BAIGI.</li>
+      <li><strong>Mensal no cartão:</strong> cobrado no cartão e renovado automaticamente a cada mês até você cancelar. Se uma cobrança não passar, o Mercado Pago tenta de novo por alguns dias; o Intensivo continua por até 3 dias depois da data da cobrança.</li>
+      <li><strong>Mensal no Pix:</strong> pagamento único que vale por 30 dias, sem renovação automática. Avisamos por e-mail 3 dias antes e no dia do vencimento.</li>
+      <li><strong>Anual:</strong> pagamento único que vale por 12 meses, sem renovação automática, no Pix (com desconto) ou no cartão em até 12 parcelas, com os juros do parcelamento pagos por quem compra e mostrados antes da confirmação. Avisamos por e-mail antes do vencimento.</li>
+      <li>O cancelamento do mensal é feito a qualquer momento em Configurações, em dois cliques: o cartão deixa de ser cobrado na hora e o Intensivo vale até o fim do mês já pago, sem reembolso proporcional.</li>
       <li>Preços podem mudar; mudanças valem para a próxima renovação e são comunicadas com antecedência.</li>
     </ul>
 
     <h2 id="arrependimento">4. Direito de arrependimento</h2>
     <p>
-      Nas contratações pela internet, você pode desistir em até 7 dias a contar da compra (art. 49 do Código de Defesa do
-      Consumidor) e receber o valor pago de volta. Para exercer, fale com o suporte em
-      <a href="mailto:contato@baigi.com.br">contato@baigi.com.br</a>.
+      Nas contratações pela internet, você pode desistir em até 7 dias corridos a contar do pagamento (art. 49 do Código de
+      Defesa do Consumidor) e receber de volta o valor total, sem precisar explicar o motivo. Vale para a primeira cobrança do
+      mensal, para o Pix de 30 dias e para o anual. Peça em Configurações, em "Pedir reembolso", ou pelo suporte em
+      <a :href="`mailto:${sellerEmail}`">{{ sellerEmail }}</a>. O acesso daquela compra termina na hora do pedido; o valor
+      volta na fatura do cartão (o prazo depende do banco) ou na conta de onde saiu o Pix. Depois dos 7 dias, e nas renovações
+      automáticas do mensal, o reembolso é avaliado pelo suporte, caso a caso. Uma contestação no cartão (chargeback)
+      encerra o Intensivo daquela compra.
     </p>
 
     <h2 id="uso">5. Uso aceitável e conteúdo do usuário</h2>
@@ -87,11 +95,21 @@
 </template>
 
 <script setup lang="ts">
+import { sellerLine } from '~/utils/checkoutState'
+
 definePageMeta({ layout: 'public' })
+
+// Seller and checkout state from the catalog, read after hydration (the page is prerendered)
+const { plans, fetchPlans } = usePlans()
+const seller = computed(() => sellerLine(plans.value))
+const sellerEmail = computed(() => plans.value?.checkout?.seller?.email || 'contato@baigi.com.br')
+const descriptor = computed(() => plans.value?.checkout?.statement_descriptor || 'BAIGI')
+const checkoutOpen = computed(() => checkoutAvailable(plans.value))
+onMounted(() => { void fetchPlans() })
 
 // TODO(jurídico): datas definitivas na publicação do texto revisado
 const EFFECTIVE_DATE = '1º de outubro de 2026'
-const UPDATED_AT = '7 de novembro de 2026'
+const UPDATED_AT = '8 de novembro de 2026'
 
 const sections = [
   { id: 'aceitacao', title: 'Aceitação' },

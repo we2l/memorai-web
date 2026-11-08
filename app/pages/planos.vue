@@ -13,39 +13,32 @@
         <UiButton v-if="!user && !checkoutOpen" variant="primary" block to="/criar-conta?redirect=/planos" data-testid="plan-start-free">Começar grátis</UiButton>
         <UiButton v-else-if="!user" variant="primary" block to="/criar-conta?redirect=/planos">Criar conta para assinar</UiButton>
 
-        <!-- Annual running: validity + renewal (RN-09) or monthly scheduling at D-7 (RN-08) -->
-        <div v-else-if="isAnnual" class="flex flex-col gap-2">
+        <!-- Prepaid running (annual or 30-day Pix): validity + what may be bought on top (RN-05) -->
+        <div v-else-if="isPrepaid" class="flex flex-col gap-2">
           <p class="text-meta font-semibold text-fg-strong" data-testid="annual-valid-until">
-            Seu anual vale até {{ formatBillingDate(subscription.info?.plan_expires_at) }}
+            {{ subscription.info?.billing === 'monthly_pix' ? 'Seus 30 dias valem' : 'Seu anual vale' }} até {{ formatBillingDate(subscription.info?.plan_expires_at) }}
           </p>
           <PlansCheckoutSoon v-if="!checkoutOpen" />
+          <UiButton v-else-if="canBuyCurrent" variant="primary" block :to="checkoutPath">{{ isYearly ? 'Renovar anual' : 'Mais 30 dias no Pix' }}</UiButton>
           <template v-else-if="isYearly">
-            <UiButton v-if="subscription.info?.can_renew_annual" variant="primary" block :loading="loading" @click="subscribe">Renovar anual</UiButton>
-            <template v-else>
-              <UiButton block disabled>Renovar</UiButton>
-              <p class="text-meta text-fg-muted">A renovação abre {{ ANNUAL_RENEWAL_WINDOW_DAYS }} dias antes do fim.</p>
-            </template>
+            <UiButton block disabled>Renovar</UiButton>
+            <p class="text-meta text-fg-muted">A renovação abre {{ ANNUAL_RENEWAL_WINDOW_DAYS }} dias antes do fim.</p>
           </template>
-          <UiButton v-else-if="canScheduleMonthly" block :loading="loading" @click="subscribe">Agendar mensal para depois do anual</UiButton>
           <PlansCurrentPlan v-else />
         </div>
 
-        <PlansCurrentPlan v-else-if="currentPlan === 'pro'" />
+        <PlansCurrentPlan v-else-if="currentPlan === 'pro' && !(isYearly && canBuy?.annual)" />
         <PlansCheckoutSoon v-else-if="!checkoutOpen" />
-        <UiButton v-else variant="primary" block :loading="loading" @click="subscribe">{{ isYearly ? 'Assinar anual' : `Assinar ${proName}` }}</UiButton>
+        <UiButton v-else variant="primary" block :to="checkoutPath" data-testid="plan-subscribe" @click="subscribe">{{ isYearly ? 'Assinar anual' : `Assinar ${proName}` }}</UiButton>
         <!-- The trial of the catalog (prd-planos-lancamento RF-F4): offered, running, or nothing once used -->
         <p v-if="planLine" class="mt-2 text-meta text-fg-muted" data-testid="plan-trial">{{ planLine }}</p>
       </template>
     </PlansPlanCards>
 
-    <UiSection v-if="subscription.info?.has_subscription" title="Sua assinatura" description="Cancelar, trocar cartão ou ver faturas" data-testid="plan-manage">
+    <UiSection v-if="subscription.info?.has_subscription" title="Sua assinatura" description="Trocar cartão, cancelar ou pedir reembolso" data-testid="plan-manage">
       <template #action>
-        <UiButton v-if="checkoutOpen" :loading="loading" @click="openPortal">Gerenciar assinatura</UiButton>
+        <UiButton to="/configuracoes#plano">Gerenciar</UiButton>
       </template>
-      <!-- Monthly → annual: the annual starts when the paid month ends (RN-07) -->
-      <UiButton v-if="checkoutOpen && subscription.info?.billing === 'monthly' && pro?.prices.annual" variant="ghost" size="sm" :loading="loading" @click="switchToAnnual">
-        Mudar para anual e economizar {{ formatPrice(pro.prices.annual.savings_cents ?? 0) }}
-      </UiButton>
     </UiSection>
 
     <PlansPlanCompareTable />
@@ -76,14 +69,11 @@ definePageMeta({ layout: 'public', quietHeaderCta: true })
 useHead({ title: 'Planos · Baigi' })
 
 const router = useRouter()
-const toast = useToast()
 const auth = useAuthStore()
 const subscription = useSubscriptionStore()
 const user = useHydratedUser()
 const { track } = useAnalytics()
-const checkout = useCheckout()
-const checkoutOpen = checkout.available
-const loading = checkout.pending
+const checkoutOpen = useCheckout().available
 const query = computed(() => router.currentRoute.value.query)
 // Annual is the default offer (RF-20); ?ciclo=mensal forces the monthly
 const period = ref<BillingPeriod>('annual')
@@ -93,11 +83,13 @@ const { fetchPlans, limitOf, formatPrice } = usePlans()
 const pro = computed(() => limitOf('pro'))
 const isYearly = computed(() => period.value === 'annual' && !!pro.value?.prices.annual)
 const currentPlan = computed(() => user.value?.plan || 'free')
-const isAnnual = computed(() => subscription.isAnnual)
-const canScheduleMonthly = computed(() => {
-  const info = subscription.info
-  return !!info && !info.has_subscription && daysUntil(info.plan_expires_at) <= MONTHLY_SWITCH_WINDOW_DAYS
-})
+const isPrepaid = computed(() => subscription.isPrepaid)
+const canBuy = computed(() => subscription.info?.can_buy)
+/** The prepaid may stack: a new annual inside its renewal window, or 30 more days on Pix */
+const canBuyCurrent = computed(() => (isYearly.value ? !!canBuy.value?.annual : !!canBuy.value?.monthly_pix))
+const checkoutPath = computed(() => (isYearly.value
+  ? '/checkout?plano=anual'
+  : isPrepaid.value ? '/checkout?plano=mensal&metodo=pix' : '/checkout?plano=mensal'))
 
 const proName = useProName()
 const { plans } = usePlans()
@@ -131,11 +123,21 @@ const FAQS = computed(() => [
     : preview.value
       ? [{ q: 'Como funciona a prévia grátis?', a: `${preview.value.text} Não pede cartão e não expira${preview.value.requires_verified_email ? '; pede o e-mail confirmado' : ''}. Depois, a IA fica no ${proName.value}, com cota todo mês.` }]
       : []),
-  { q: 'Posso cancelar quando quiser?', a: `Sim. Cancele quando quiser, pelo portal de assinatura. O ${proName.value} continua até o fim do período já pago.` },
-  { q: 'Como funciona o plano anual?', a: 'É um pagamento único, no Pix ou no cartão, que vale por um ano. Não renova sozinho: avisamos por e-mail antes de vencer.' },
-  { q: 'Como funciona o plano mensal?', a: 'É cobrado no cartão e renova sozinho a cada mês, até você cancelar.' },
+  { q: 'Posso cancelar quando quiser?', a: `Sim, em Configurações, em dois cliques. O cartão não é mais cobrado, e o ${proName.value} continua até o fim do mês já pago.` },
+  { q: 'Como funciona o plano anual?', a: `É um pagamento único que vale por um ano: ${annualPayLine.value}. Não renova sozinho: avisamos por e-mail antes de vencer.` },
+  { q: 'Como funciona o plano mensal?', a: `No cartão, é cobrado todo mês até você cancelar. No Pix, você paga ${pixDays.value} dias de uma vez, sem renovação automática, e avisamos 3 dias antes de acabar.` },
+  { q: 'E se eu me arrepender?', a: `Você tem ${refundDays.value} dias, a contar do pagamento, para pedir o reembolso total em Configurações, sem precisar explicar. O valor volta para o cartão ou para a conta do Pix.` },
   { q: 'O que acontece se eu voltar para o Grátis?', a: `Seus cadernos, notas e cards continuam com você, e a revisão segue grátis. A IA fica no ${proName.value}${preview.value ? ', e o que sobrar da prévia continua seu' : ''}.` },
 ])
+
+const pixDays = computed(() => pro.value?.prices.monthly?.pix_days ?? 30)
+const refundDays = computed(() => plans.value?.checkout?.refund_window_days ?? 7)
+const annualPayLine = computed(() => {
+  const annual = pro.value?.prices.annual
+  if (!annual) return 'no Pix ou no cartão'
+  const card = (annual.installments_max ?? 1) > 1 ? `${formatPrice(annual.amount_cents)} em até ${annual.installments_max}x no cartão (os juros do parcelamento aparecem antes de confirmar)` : `${formatPrice(annual.amount_cents)} no cartão`
+  return annual.pix ? `${card}, ou ${formatPrice(annual.pix.amount_cents)} no Pix, com ${annual.pix.discount_percent}% de desconto` : card
+})
 
 function onToggle(value: BillingPeriod) {
   track('plans_toggle', { period: value })
@@ -143,41 +145,20 @@ function onToggle(value: BillingPeriod) {
   void router.replace({ query: { ...query.value, ciclo: value === 'monthly' ? 'mensal' : 'anual' } })
 }
 
-function startCheckout(annual: boolean) {
-  return checkout.run(
-    () => (annual ? subscription.checkoutAnnual() : subscription.checkoutSubscription('pro', 'monthly')),
-    { error: 'Não foi possível abrir o checkout. Tente de novo.', serverMessage: true },
-  )
-}
-
 function subscribe() {
   const billing = isYearly.value ? 'annual' : 'monthly'
   track('upgrade_clicked', { feature: null, billing, source: 'planos_page' })
   track('plans_checkout_click', { period: billing })
-  return startCheckout(isYearly.value)
 }
 
-function switchToAnnual() {
-  track('upgrade_clicked', { feature: null, billing: 'annual', source: 'planos_page' })
-  track('plans_checkout_click', { period: 'annual' })
-  return startCheckout(true)
-}
-
-function openPortal() {
-  return checkout.run(() => subscription.openPortal(), { error: 'Não foi possível abrir o portal de assinatura. Tente de novo.' })
-}
-
-// The links of the Stripe return and of the expiry e-mails: once, with the session known and the query back
+// Old renewal links (e-mails sent before the Mercado Pago): ?renovar=1 opens the checkout of that plan
 const statusLoaded = ref(false)
 let linkHandled = false
 watch([statusLoaded, () => router.currentRoute.value.fullPath], () => {
   const q = query.value
   if (!statusLoaded.value || linkHandled || !Object.keys(q).length) return
   linkHandled = true
-  if (q.success === '1') toast.show(`Assinatura ativada! Bem-vindo ao ${proName.value}.`, 'success')
-  if (q.canceled === '1') toast.show('Pagamento cancelado.', 'info')
-  // Renewal link from the expiry e-mails: open the annual checkout right away
-  if (q.ciclo === 'anual' && q.renovar === '1' && checkoutOpen.value && (subscription.info?.can_renew_annual ?? true)) startCheckout(true)
+  if (q.renovar === '1' && checkoutOpen.value) void router.replace(q.ciclo === 'mensal' ? '/checkout?plano=mensal&metodo=pix' : '/checkout?plano=anual')
 })
 
 onMounted(async () => {

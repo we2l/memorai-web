@@ -1,17 +1,16 @@
 <template>
   <div class="mx-auto max-w-md px-gutter py-8">
     <UiSection as="div" class="text-center" aria-live="polite" aria-atomic="true">
-      <!-- Loading -->
       <p v-if="state === 'loading'" class="flex items-center justify-center gap-2 py-6 text-meta text-fg-muted">
         <UiSpinner size="sm" /> Carregando pagamento…
       </p>
 
-      <!-- Pro active: the milestone of the page -->
+      <!-- Paid: the milestone of the page -->
       <UiCelebration
         v-else-if="state === 'active'"
         kind="milestone"
         :title="`Bem-vindo ao ${proName}!`"
-        :subtitle="`${proName} ativo até ${formatBillingDate(session?.plan_expires_at)}`"
+        :subtitle="activeLine"
         :level="1"
       >
         <div class="flex w-full flex-col items-center gap-4">
@@ -20,46 +19,21 @@
         </div>
       </UiCelebration>
 
-      <!-- Paid, webhook not processed yet -->
-      <template v-else-if="state === 'confirming'">
+      <template v-else-if="state === 'waiting'">
         <UiSpinner class="mx-auto mb-4 text-fg-muted" />
         <h1 class="mb-2 text-section text-fg-strong">Confirmando pagamento…</h1>
-        <p class="text-meta text-fg-muted">Isso leva poucos segundos.</p>
+        <p class="mb-5 text-meta text-fg-muted">Isso costuma levar poucos segundos. Pode fechar esta página: avisamos por e-mail quando o pagamento cair.</p>
+        <UiButton v-if="payment?.method === 'pix'" block :to="checkoutPath">Ver o QR Code do Pix</UiButton>
       </template>
 
-      <!-- Waiting for Pix -->
-      <template v-else-if="state === 'waiting'">
-        <h1 class="mb-2 text-section text-fg-strong">Aguardando o Pix</h1>
-        <p class="mb-5 text-meta text-fg-muted">Abra o app do seu banco e pague com o QR Code ou o código copia e cola.</p>
-
-        <template v-if="session?.pix_qr">
-          <img
-            v-if="session.pix_qr.image_url_png"
-            :src="session.pix_qr.image_url_png"
-            :alt="`QR Code do Pix para pagar o Baigi ${proName} anual`"
-            class="mx-auto mb-4 size-56 rounded-row bg-qr p-2"
-            width="224"
-            height="224"
-          >
-          <UiButton v-if="session.pix_qr.data" block class="mb-3" :icon-left="Copy" @click="copyPixCode">Copiar código Pix</UiButton>
-          <p v-if="remainingLabel" class="mb-4 text-meta text-fg-muted">
-            O código expira em <span class="font-semibold text-fg-strong tabular-nums">{{ remainingLabel }}</span>
-          </p>
-        </template>
-
-        <p class="text-meta text-fg-muted">Pode fechar esta página: avisaremos por e-mail quando o pagamento cair.</p>
-      </template>
-
-      <!-- Pix expired -->
-      <template v-else-if="state === 'expired'">
-        <Clock class="mx-auto mb-4 size-8 text-warning" aria-hidden="true" />
-        <h1 class="mb-2 text-section text-fg-strong">O código Pix expirou</h1>
-        <p class="mb-6 text-meta text-fg-muted">Nada foi cobrado. Gere um novo código para concluir.</p>
-        <UiButton v-if="restart.available.value" variant="primary" block :loading="restart.pending.value" @click="newPix">Gerar novo Pix</UiButton>
+      <template v-else-if="state === 'ended'">
+        <Clock class="mx-auto mb-4 size-8 text-fg-muted" aria-hidden="true" />
+        <h1 class="mb-2 text-section text-fg-strong">{{ payment?.method === 'pix' ? 'O código Pix expirou' : 'O pagamento não foi aprovado' }}</h1>
+        <p class="mb-6 text-meta text-fg-muted">Nada foi cobrado. Tente de novo quando quiser.</p>
+        <UiButton v-if="checkoutOpen" variant="primary" block :to="checkoutPath">Tentar de novo</UiButton>
         <PlansCheckoutSoon v-else />
       </template>
 
-      <!-- Not found / error -->
       <template v-else>
         <AlertCircle class="mx-auto mb-4 size-8 text-danger" aria-hidden="true" />
         <h1 class="mb-2 text-section text-fg-strong">Não encontramos este pagamento</h1>
@@ -71,91 +45,53 @@
 </template>
 
 <script setup lang="ts">
-// Return of the annual checkout (prd-4h-landing-v3 RF-F13): the states of the payment polling, and UiCelebration
-// when the Pro is active. Stays in the app shell: only a signed-in person gets here.
-import { AlertCircle, Clock, Copy } from 'lucide-vue-next'
-import type { CheckoutSessionInfo } from '~/types'
-
-type ViewState = 'loading' | 'active' | 'confirming' | 'waiting' | 'expired' | 'error'
-
-const POLL_MS = 3000
-const MAX_POLL_MS = 30 * 60 * 1000
+// After the checkout (prd-pagamento-mercado-pago RF-F3): reads our endpoint (never the gateway) until the payment
+// settles, and UiCelebration once the Intensivo is active. Stays in the app shell: only a signed-in person gets here.
+import { AlertCircle, Clock } from 'lucide-vue-next'
+import type { CheckoutPayment } from '~/types'
+import { isSettled } from '~/utils/checkoutState'
 
 const route = useRoute()
-const toast = useToast()
 const proName = useProName()
 const auth = useAuthStore()
 const subscription = useSubscriptionStore()
+const checkoutOpen = useCheckout().available
 
-const sessionId = typeof route.query.session_id === 'string' ? route.query.session_id : ''
-const session = ref<CheckoutSessionInfo | null>(null)
+const checkoutId = typeof route.query.checkout === 'string' ? route.query.checkout : ''
+const payment = ref<CheckoutPayment | null>(null)
 const failed = ref(false)
-const now = ref(Date.now())
-// The checkout may have closed since ("Assinatura em breve"): the notice in place of a new Pix
-const restart = useCheckout()
-const startedAt = Date.now()
 
-let pollTimer: ReturnType<typeof setTimeout> | null = null
-let clockTimer: ReturnType<typeof setInterval> | null = null
-
-const pixExpiresAt = computed(() => session.value?.pix_qr?.expires_at ? new Date(session.value.pix_qr.expires_at).getTime() : null)
-
-const state = computed<ViewState>(() => {
-  if (failed.value) return 'error'
-  const s = session.value
-  if (!s) return 'loading'
-  if (s.payment_status === 'paid') return s.plan_active ? 'active' : 'confirming'
-  if (s.status === 'expired' || (pixExpiresAt.value !== null && now.value >= pixExpiresAt.value)) return 'expired'
-  return 'waiting'
+const state = computed<'loading' | 'active' | 'waiting' | 'ended' | 'error'>(() => {
+  if (failed.value || !checkoutId) return 'error'
+  const p = payment.value
+  if (!p) return 'loading'
+  if (p.status === 'approved') return 'active'
+  return isSettled(p) ? 'ended' : 'waiting'
 })
 
-const isFinal = computed(() => ['active', 'expired', 'error'].includes(state.value))
-
-const remainingLabel = computed(() => {
-  if (pixExpiresAt.value === null) return ''
-  const seconds = Math.max(0, Math.floor((pixExpiresAt.value - now.value) / 1000))
-  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`
+const activeLine = computed(() => {
+  const p = payment.value
+  if (p?.plan_expires_at) return `${proName.value} ativo até ${formatBillingDate(p.plan_expires_at)}`
+  if (p?.renews_at) return `Próxima cobrança em ${formatBillingDate(p.renews_at)}`
+  return `${proName.value} ativo`
 })
 
-async function poll() {
-  pollTimer = null
-  if (!sessionId) {
-    failed.value = true
-    return
-  }
+const checkoutPath = computed(() => {
+  const p = payment.value
+  const plano = p?.product.startsWith('annual') ? 'anual' : 'mensal'
+  return `/checkout?plano=${plano}&metodo=${p?.method === 'pix' ? 'pix' : 'cartao'}`
+})
 
-  try {
-    session.value = await subscription.fetchCheckoutSession(sessionId)
-  } catch {
-    failed.value = true
-  }
-
-  if (state.value === 'active') {
-    refreshUser()
-    return
-  }
-  schedule()
-}
-
-function schedule() {
-  if (isFinal.value || document.hidden || pollTimer) return
-  if (Date.now() - startedAt > MAX_POLL_MS) return
-  pollTimer = setTimeout(poll, POLL_MS)
-}
-
-function stopPolling() {
-  if (pollTimer) clearTimeout(pollTimer)
-  pollTimer = null
-}
-
-function onVisibilityChange() {
-  if (document.hidden) {
-    stopPolling()
-  } else if (!isFinal.value) {
-    stopPolling()
-    poll()
-  }
-}
+const poller = usePoll(() => subscription.fetchPayment(checkoutId), {
+  interval: 3000,
+  timeout: 30 * 60 * 1000,
+  until: (p: CheckoutPayment) => {
+    payment.value = p
+    if (p.status === 'approved') void refreshUser()
+    return isSettled(p)
+  },
+  onError: () => { if (!payment.value) failed.value = true },
+})
 
 async function refreshUser() {
   try {
@@ -167,31 +103,8 @@ async function refreshUser() {
   }
 }
 
-async function copyPixCode() {
-  const code = session.value?.pix_qr?.data
-  if (!code) return
-  try {
-    await navigator.clipboard.writeText(code)
-    toast.show('Código Pix copiado.', 'success')
-  } catch {
-    toast.show('Não foi possível copiar. Selecione e copie manualmente.', 'error')
-  }
-}
-
-function newPix() {
-  return restart.run(() => subscription.checkoutAnnual(), { error: 'Não foi possível abrir o checkout. Tente de novo.' })
-}
-
 onMounted(() => {
   void usePlans().fetchPlans()
-  poll()
-  clockTimer = setInterval(() => { now.value = Date.now() }, 1000)
-  document.addEventListener('visibilitychange', onVisibilityChange)
-})
-
-onScopeDispose(() => {
-  stopPolling()
-  if (clockTimer) clearInterval(clockTimer)
-  if (import.meta.client) document.removeEventListener('visibilitychange', onVisibilityChange)
+  if (checkoutId) poller.start()
 })
 </script>

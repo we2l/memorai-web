@@ -630,7 +630,7 @@ test.describe('Configurações de conta e LGPD (RF-F11.3–F11.5)', () => {
     await expect(page.getByText(/Enviaremos o link para v\*\*\*@e2e.test/)).toBeVisible()
   })
 
-  test('excluir conta com 502 da Stripe: mensagem e nada muda', async () => {
+  test('excluir conta com 502 do gateway: mensagem e nada muda', async () => {
     await page.route('**/api/user', r => r.request().method() === 'DELETE'
       ? r.fulfill(json({ message: 'Não foi possível cancelar a assinatura. Nada foi excluído.' }, 502))
       : r.continue())

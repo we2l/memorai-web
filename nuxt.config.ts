@@ -21,17 +21,21 @@ const posthogOrigins = 'https://*.posthog.com'
 const turnstileOrigin = 'https://challenges.cloudflare.com'
 // Sentry (errors only, after consent): events go to the ingest host of the DSN (*.ingest.sentry.io, EU or US)
 const sentryOrigins = 'https://*.ingest.sentry.io https://*.ingest.us.sentry.io https://*.ingest.de.sentry.io'
+// Mercado Pago checkout transparente (ADR-034): MercadoPago.js, the card fields and the 3DS challenge in iframes. The MP
+// publishes no domain list: start wide, read the Report-Only violations in the sandbox, then narrow.
+const mercadoPagoOrigins = 'https://sdk.mercadopago.com https://*.mercadopago.com https://*.mercadolibre.com https://*.mercadolivre.com'
+const mercadoPagoImages = 'https://*.mlstatic.com'
 
 const CSP = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com ${posthogOrigins} ${turnstileOrigin}`,
+  `script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com ${posthogOrigins} ${turnstileOrigin} ${mercadoPagoOrigins}`,
   "style-src 'self' 'unsafe-inline'",
   "font-src 'self'",
-  `img-src 'self' data: blob: ${s3Origin} ${apiOrigin} https://lh3.googleusercontent.com`,
+  `img-src 'self' data: blob: ${s3Origin} ${apiOrigin} https://lh3.googleusercontent.com ${mercadoPagoImages} ${mercadoPagoOrigins}`,
   `media-src 'self' blob: ${s3Origin} ${apiOrigin}`,
-  `connect-src 'self' ${apiOrigin} ${s3Origin} ${posthogOrigins} ${turnstileOrigin} ${sentryOrigins}`,
+  `connect-src 'self' ${apiOrigin} ${s3Origin} ${posthogOrigins} ${turnstileOrigin} ${sentryOrigins} ${mercadoPagoOrigins}`,
   "worker-src 'self' blob: https://cdnjs.cloudflare.com",
-  `frame-src 'self' blob: ${apiOrigin} ${s3Origin} ${turnstileOrigin}`,
+  `frame-src 'self' blob: ${apiOrigin} ${s3Origin} ${turnstileOrigin} ${mercadoPagoOrigins}`,
   "frame-ancestors 'none'",
   "object-src 'none'",
   "base-uri 'self'",
@@ -67,9 +71,9 @@ const CONSENT_CHUNK = /\/components\/ui\/Consent(Banner|Modal)\.vue/
 // instead of in every install download (precache budget, prd-correcoes-experiencia Q2, prd-4g-conta-onboarding-v3,
 // prd-4b-caderno-v3 §10.2), and the landing (prd-landing-v4 RF-L14: marketing, online only). /ajuda stays: "?" opens
 // the shortcuts offline too.
-const ONE_SHOT_PAGE_CHUNK = /\/(pages\/(index|comecar(\/(index|pronto|\[area\]))?|entrar|criar-conta|esqueci-senha|checkout\/sucesso|auth\/google\/callback|redefinir-senha|termos|privacidade|planos|importar|cadernos\/lixeira)|layouts\/(auth|landing)|components\/review\/ReviewOnboardingEnd|components\/caderno\/(MaterialCardsState|MoveDialog|TrashDialog))\.vue/
+const ONE_SHOT_PAGE_CHUNK = /\/(pages\/(index|comecar(\/(index|pronto|\[area\]))?|entrar|criar-conta|esqueci-senha|checkout\/(sucesso|index)|auth\/google\/callback|redefinir-senha|termos|privacidade|planos|importar|cadernos\/lixeira)|layouts\/(auth|landing)|components\/review\/ReviewOnboardingEnd|components\/caderno\/(MaterialCardsState|MoveDialog|TrashDialog))\.vue/
 // Pieces shared only by those pages: a shared chunk has no facade module, so it goes by what is inside it.
-const ONE_SHOT_SHARED = /\/(components\/auth\/|components\/onboarding\/|utils\/(authMessages|organization|moveTargets|ankiMapping|guestProgress|postAuthRedirect)|composables\/useTrashBatch)/
+const ONE_SHOT_SHARED = /\/(components\/auth\/|components\/onboarding\/|components\/checkout\/|utils\/(mercadoPago|checkoutState|authMessages|organization|moveTargets|ankiMapping|guestProgress|postAuthRedirect)|composables\/useTrashBatch)/
 // Reference page of the design system (prd-ds-v3-fundacao RF-2.5): only in `nuxt dev`. NUXT_DS_PAGE=1 keeps it
 // in a production build for screenshots; even then its chunk is `dev-*`, out of the precache.
 const DS_PAGE_FLAG = process.env.NUXT_DS_PAGE === '1'

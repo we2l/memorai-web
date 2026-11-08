@@ -92,17 +92,29 @@ describe('PlanCards', () => {
     expect(wrapper.find('[data-testid="plan-pro"] h2').text()).toBe('Intensivo')
   })
 
-  it('parcelamento só com installments_max > 1', async () => {
+  it('parcelamento só com installments_max > 1, com os juros de quem compra', async () => {
     useState('plans').value = catalog(12)
     const wrapper = await mountCards()
-    expect(wrapper.find('[data-testid="plan-pro-note"]').text().replace(/\s/g, ' ')).toContain('No Pix ou em 12x de R$ 19,99 sem juros no cartão')
+    const note = wrapper.find('[data-testid="plan-pro-note"]').text().replace(/\s/g, ' ')
+    expect(note).toContain('No cartão em até 12x, com os juros do parcelamento')
+    expect(note).not.toContain('sem juros')
   })
 
-  it('mensal: preço do mês e cancelamento pelo portal, sem o total do ano', async () => {
-    useState('plans').value = catalog()
+  it('anual: o desconto do Pix aparece como desconto (Lei 13.455/2017)', async () => {
+    const c = catalog(12)
+    c.plans[1]!.prices.annual!.pix = { amount_cents: 22790, label: 'R$ 227,90/ano', discount_percent: 5, savings_cents: 1200 }
+    useState('plans').value = c
+    const wrapper = await mountCards()
+    expect(wrapper.find('[data-testid="plan-pro-pix"]').text().replace(/\s/g, ' ')).toBe('ou R$ 227,90 no Pix, 5% de desconto')
+  })
+
+  it('mensal: preço do mês e cancelamento em dois cliques, sem o total do ano', async () => {
+    const c = catalog()
+    c.plans[1]!.prices.monthly!.pix_days = 30
+    useState('plans').value = c
     const wrapper = await mountCards('monthly')
     expect(wrapper.find('[data-testid="plan-pro-price"]').text().replace(/\s/g, ' ')).toBe('R$ 29,90/mês')
-    expect(wrapper.find('[data-testid="plan-pro-note"]').text()).toBe('Cancele quando quiser, pelo portal de assinatura')
+    expect(wrapper.find('[data-testid="plan-pro-note"]').text()).toBe('No cartão, renova todo mês e cancela em dois cliques. Ou 30 dias no Pix, sem renovação')
   })
 
   it('erro do catálogo: "Tentar de novo" busca de novo e mostra os planos', async () => {

@@ -1,4 +1,5 @@
 import { onMounted, onUnmounted } from 'vue'
+import { binaryRatingOfKey, type ReviewButtonsMode } from '~/utils/reviewButtons'
 
 export interface ReviewShortcutHandlers {
   flip: () => void
@@ -14,6 +15,8 @@ export interface ReviewShortcutHandlers {
   isSuspended?: () => boolean
   /** End of a batch on screen: Enter = next batch, Esc = back to the scope; the rest is off */
   batchEnd?: () => { next: () => void; stop: () => void } | null
+  /** Two buttons (default when absent: four): 1 / ← "Não lembrei", 2 / → / Space / Enter "Lembrei" (prd-revisao-v5-fase-a D2) */
+  mode?: () => ReviewButtonsMode
 }
 
 export function isTypingTarget(el: EventTarget | null): boolean {
@@ -70,6 +73,18 @@ export function createReviewShortcutHandler(h: ReviewShortcutHandlers) {
       if (h.isFlipped()) h.rate(3)
       else h.flip()
       return
+    }
+    // The rating only with the answer on screen (prd-revisao-v5-fase-a RF-F3)
+    if (h.mode?.() === 'two') {
+      const rating = binaryRatingOfKey(key)
+      if (rating === null || !h.isFlipped()) {
+        if (['3', '4'].includes(key)) e.preventDefault()
+      } else {
+        e.preventDefault()
+        h.rate(rating)
+        return
+      }
+      if (['1', '2', '3', '4', 'ArrowLeft', 'ArrowRight'].includes(key)) return
     }
     if (['1', '2', '3', '4'].includes(key)) {
       if (!h.isFlipped()) return

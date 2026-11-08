@@ -260,7 +260,7 @@ test.describe('Anki', () => {
     await expect(page.getByTestId('import-progress')).toBeVisible()
     runImportQueue()
     await expect(page.getByRole('heading', { name: 'Importação concluída!' })).toBeVisible({ timeout: 15_000 })
-    await expect(page.getByTestId('import-done-summary')).toContainText('8 cards e o histórico vieram · 8 para hoje')
+    await expect(page.getByTestId('import-done-summary')).toContainText('8 cards e os intervalos vieram · 8 para hoje')
 
     const created = sql(`select id from topics where user_id=${USER} and parent_id is null and name='Inglês' and deleted_at is null order by created_at desc limit 1`)
     expect(sql(`select count(*) from topics where user_id=${USER} and name like 'tag%'`)).toBe('0')

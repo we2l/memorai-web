@@ -3,12 +3,12 @@
   <div class="flex min-h-dvh items-center justify-center bg-page px-gutter py-8">
     <div class="w-full" :class="state === 'passed' ? 'max-w-page' : 'max-w-md'" aria-live="polite">
       <UiSection v-if="state === 'loading'" class="flex flex-col items-center gap-4 text-center" role="status">
-        <UiBaigiMascot :size="72" state="thinking" />
+        <UiBaigiMascot :size="72" priority state="thinking" />
         <p class="text-body text-fg">Registrando sua resposta…</p>
       </UiSection>
 
       <UiSection v-else-if="state === 'expired'" class="flex flex-col items-center gap-3 text-center" data-testid="result-expired">
-        <UiBaigiMascot :size="72" />
+        <UiBaigiMascot :size="72" priority />
         <h1 class="text-section text-fg-strong">Link expirado</h1>
         <p class="text-body text-fg-muted">Link expirado. Entre no Baigi para registrar o resultado.</p>
         <UiButton variant="primary" block :to="authed('/progresso#provas')">Entrar</UiButton>
@@ -41,7 +41,7 @@
 
       <template v-else-if="state === 'failed'">
         <div class="mb-6 flex flex-col items-center gap-3 text-center">
-          <UiBaigiMascot :size="72" />
+          <UiBaigiMascot :size="72" priority />
           <h1 class="text-page-title-sm text-fg-strong">Não foi dessa vez, e tudo bem.</h1>
           <p class="text-body text-fg">
             Uma prova é uma fotografia de um dia, não do quanto você sabe. O que você revisou continua na sua memória e nos seus cadernos.

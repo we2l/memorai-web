@@ -15,10 +15,11 @@ export default defineNuxtRouteMiddleware((to) => {
     return navigateTo('/hoje')
   }
 
-  // Finished: "Voltar" never reopens the assistant (it would charge again). The legal pages stay open during it.
-  if (to.path === '/comecar' && auth.user?.onboarding_completed) return navigateTo('/hoje', { replace: true })
+  // Finished: "Voltar" never reopens the visitor's lote. /comecar/pronto stays: it is where the lote just arrived.
+  if (isGuestOnboardingRoute(to.path) && auth.user?.onboarding_completed) return navigateTo('/hoje', { replace: true })
 
-  if (auth.user && to.path !== '/comecar' && !isPublicRoute(to.path) && !auth.user.onboarding_completed) {
+  // An account without the onboarding starts it; the legal pages and the whole /comecar/** stay open during it
+  if (auth.user && !to.path.startsWith('/comecar') && !isPublicRoute(to.path) && !auth.user.onboarding_completed) {
     return navigateTo('/comecar')
   }
 })

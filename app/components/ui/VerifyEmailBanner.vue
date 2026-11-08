@@ -13,7 +13,8 @@
       :class="inline ? 'rounded-control border' : 'border-b sm:flex-row sm:items-center sm:gap-3'"
     >
       <p id="verify-email-notice" class="text-label text-fg-strong font-medium flex-1" :class="{ 'pr-8 sm:pr-0': !inline }">
-        Confirme seu e-mail para usar <template v-if="hasPreviewOffer">a prévia grátis da IA</template><template v-else>a IA</template><template v-if="trialDays"> e ganhar {{ trialDays }} dias do {{ proName }} no primeiro material</template>: enviamos um link para <span class="break-all">{{ auth.user?.email }}</span>.
+        <!-- The Free preview runs without it (prd-revisao-v5-fase-a RF-F11): the reminders and the plan still ask for it -->
+        <template v-if="hasPreviewOffer">Confirme seu e-mail para receber os lembretes e assinar o {{ proName }}</template><template v-else>Confirme seu e-mail para usar a IA<template v-if="trialDays"> e ganhar {{ trialDays }} dias do {{ proName }} no primeiro material</template></template>: enviamos um link para <span class="break-all">{{ auth.user?.email }}</span>.
       </p>
       <div class="flex gap-2 shrink-0">
         <UiButton size="sm" class="flex-1 sm:flex-none" :loading="sending" :disabled="cooldown > 0" @click="resend">
@@ -37,7 +38,7 @@
 
     <UiDialog v-model="showModal" size="sm" title="Confirme seu e-mail">
       <p class="text-meta text-fg-muted">
-        <template v-if="hasPreviewOffer">A prévia grátis da IA fica disponível</template><template v-else>Os recursos de IA<template v-if="trialDays"> e o teste de {{ trialDays }} dias do {{ proName }}</template> ficam disponíveis</template> depois que você confirmar <span class="break-all">{{ auth.user?.email }}</span>.
+        <template v-if="hasPreviewOffer">Os lembretes e a assinatura do {{ proName }} ficam disponíveis</template><template v-else>Os recursos de IA<template v-if="trialDays"> e o teste de {{ trialDays }} dias do {{ proName }}</template> ficam disponíveis</template> depois que você confirmar <span class="break-all">{{ auth.user?.email }}</span>.
         Confira sua caixa de entrada e o spam.
       </p>
       <div ref="modalCaptchaEl" class="contents" />

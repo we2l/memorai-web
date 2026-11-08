@@ -15,6 +15,8 @@ export interface User {
   first_batch_at?: string | null
   /** Cards per batch, 10 | 20 | 30 (Configurações → Estudo); older API builds omit it (20) */
   review_batch_size?: number
+  /** "Não lembrei / Lembrei" (two) or the 4 Anki buttons (prd-revisao-v5-fase-a RF-B1); absent = two */
+  review_buttons?: 'two' | 'four'
   /** False for Google sign-ups that never defined a password (RF-B3). */
   has_password?: boolean
   /** The account has a Google identity (api #133; the id itself never comes) */
@@ -100,6 +102,10 @@ export interface Stats {
   streak_longest?: number
   /** Studied today already (the streak counts today) */
   streak_extended_today?: boolean
+  /** The weekly rest would cover a day missed now (prd-revisao-v5-fase-a RF-B3); absent on older API builds */
+  streak_rest_available?: boolean
+  /** The study day the rest last covered (YYYY-MM-DD) */
+  streak_rest_on?: string | null
   ratings_today: {
     again: number
     hard: number
@@ -269,6 +275,8 @@ export interface UserSettings {
   daily_goal_batches?: number
   /** Cards per batch: 10, 20 (default) or 30 */
   review_batch_size?: number
+  /** "Não lembrei / Lembrei" (two, the default) or the 4 Anki buttons */
+  review_buttons?: 'two' | 'four'
 }
 
 /** GET /review/tomorrow (prd-retencao-lembretes §4.3). Dates in America/Sao_Paulo. */

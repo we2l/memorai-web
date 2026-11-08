@@ -4,6 +4,10 @@ import { enableAutoUnmount } from '@vue/test-utils'
 import ReviewRatings from '~/components/review/ReviewRatings.vue'
 import ReviewOrigin from '~/components/review/ReviewOrigin.vue'
 import ReviewBatchEnd from '~/components/review/ReviewBatchEnd.vue'
+import ReviewFeedback from '~/components/review/ReviewFeedback.vue'
+import ReviewCard from '~/components/review/ReviewCard.vue'
+import { createReviewShortcutHandler } from '~/composables/useReviewShortcuts'
+import { feedbackText } from '~/utils/intervalLabel'
 import type { BatchSummary } from '~/composables/useReviewBatches'
 import { axeViolations } from './ui/axe'
 
@@ -13,17 +17,94 @@ afterEach(() => {
   document.body.innerHTML = ''
 })
 
-const summary = (extra: Partial<BatchSummary> = {}): BatchSummary => ({ size: 20, remembered: 17, percent: 85, minutes: 9, inDay: 12, weak: null, errorIds: [], ...extra })
+const summary = (extra: Partial<BatchSummary> = {}): BatchSummary => ({ size: 20, remembered: 17, percent: 85, minutes: 9, inDay: 12, far: 9, weak: null, errorIds: [], ...extra })
 
 describe('botões (prd-4d-revisao-v3 RF-F4)', () => {
   it('De novo · Difícil · Bom · Fácil, com o intervalo, e só "Bom" é o primário', async () => {
-    const w = await mountSuspended(ReviewRatings, { attachTo: document.body, props: { intervals: { again: '< 1 min', hard: '2 d', good: '6 d', easy: '14 d' } } })
+    const w = await mountSuspended(ReviewRatings, { attachTo: document.body, props: { intervals: { again: '1min', hard: '2d', good: '6d', easy: '1.3m' } } })
     const buttons = w.findAll('button')
-    expect(buttons.map((b) => { const [label, interval] = b.findAll('span').map(s => s.text()); return `${label!.replace(/^\d\s*/, '')} | ${interval}` })).toEqual(['De novo | < 1 min', 'Difícil | 2 d', 'Bom | 6 d', 'Fácil | 14 d'])
+    expect(buttons.map((b) => { const [label, interval] = b.findAll('span').map(s => s.text()); return `${label!.replace(/^\d\s*/, '')} | ${interval}` })).toEqual(['De novo | em 1 min', 'Difícil | em 2 dias', 'Bom | em 6 dias', 'Fácil | em 40 dias'])
+    expect(buttons[3]!.attributes('aria-label')).toBe('Fácil, volta em 40 dias (4)')
     expect(buttons.filter(b => b.attributes('data-variant') === 'primary').map(b => b.attributes('data-testid'))).toEqual(['rate-3'])
     await buttons[0]!.trigger('click')
     expect(w.emitted('rate')![0]).toEqual([1])
     expect(await axeViolations(document.body)).toEqual([])
+  })
+})
+
+describe('dois botões (prd-revisao-v5-fase-a RF-F1)', () => {
+  it('"Não lembrei" neutro e "Lembrei" primário, com o intervalo, mandando 1 e 3', async () => {
+    const w = await mountSuspended(ReviewRatings, { attachTo: document.body, props: { mode: 'two', intervals: { again: '10min', hard: '1d', good: '2d', easy: '8d' } } })
+    const buttons = w.findAll('button')
+    expect(buttons.map(b => b.text().replace(/^\d\s*/, ''))).toEqual(['Não lembreiem 10 min', 'Lembreiem 2 dias'])
+    expect(buttons.map(b => b.attributes('data-variant'))).toEqual(['secondary', 'primary'])
+    expect(buttons.map(b => b.attributes('data-testid'))).toEqual(['rate-1', 'rate-3'])
+    await buttons[1]!.trigger('click')
+    await buttons[0]!.trigger('click')
+    expect(w.emitted('rate')).toEqual([[3], [1]])
+    expect(await axeViolations(document.body)).toEqual([])
+  })
+
+  it('o visitante vê "no fim do lote" sob o "Não lembrei"', async () => {
+    const w = await mountSuspended(ReviewRatings, { props: { mode: 'two', againText: 'no fim do lote', intervals: { again: '1d', hard: '1d', good: '2d', easy: '8d' } } })
+    expect(w.get('[data-testid=rate-1]').text()).toContain('no fim do lote')
+  })
+})
+
+describe('retorno a cada avaliação (prd-revisao-v5-fase-a RF-F4)', () => {
+  it('pílula com texto e ícone, verde só para "Lembrei"', async () => {
+    const ok = await mountSuspended(ReviewFeedback, { props: { feedback: { id: 1, remembered: true, text: 'Lembrei · volta em 2 dias' } } })
+    expect(ok.get('[data-testid=review-feedback]').text()).toBe('Lembrei · volta em 2 dias')
+    expect(ok.get('[data-testid=review-feedback]').classes()).toContain('bg-success-subtle')
+    const no = await mountSuspended(ReviewFeedback, { props: { feedback: { id: 2, remembered: false, text: 'Não lembrei · volta em 10 min' } } })
+    expect(no.get('[data-testid=review-feedback]').classes()).not.toContain('text-danger')
+    expect(feedbackText('Lembrei', '2d')).toBe('Lembrei · volta em 2 dias')
+    expect(feedbackText('Não lembrei', '1d')).toBe('Não lembrei · volta amanhã')
+    expect(feedbackText('Bom', '< 1d')).toBe('Bom · volta hoje')
+  })
+})
+
+describe('virar o card (prd-revisao-v5-fase-a RF-F3)', () => {
+  const card = { id: 'c', type: 'basic', front: 'Frente', back: 'Verso' } as never
+  it('no celular (pointer: coarse) o toque não vira; com mouse, o clique vira', async () => {
+    const original = window.matchMedia
+    window.matchMedia = ((q: string) => ({ matches: q === '(pointer: coarse)', media: q, addEventListener() {}, removeEventListener() {} })) as never
+    const touch = await mountSuspended(ReviewCard, { props: { card, flipped: false } })
+    await touch.get('[data-testid=review-card]').trigger('click', { detail: 1 })
+    expect(touch.emitted('flip')).toBeUndefined()
+    // A screen reader activation (detail 0) still turns it
+    await touch.get('[data-testid=review-card]').trigger('click', { detail: 0 })
+    expect(touch.emitted('flip')).toHaveLength(1)
+    window.matchMedia = ((q: string) => ({ matches: false, media: q, addEventListener() {}, removeEventListener() {} })) as never
+    const mouse = await mountSuspended(ReviewCard, { props: { card, flipped: false } })
+    await mouse.get('[data-testid=review-card]').trigger('click', { detail: 1 })
+    expect(mouse.emitted('flip')).toHaveLength(1)
+    window.matchMedia = original
+  })
+})
+
+describe('teclas do binário (prd-revisao-v5-fase-a D2)', () => {
+  function press(mode: 'two' | 'four', key: string, flipped = true) {
+    const rated: number[] = []
+    let flips = 0
+    const handler = createReviewShortcutHandler({ flip: () => flips++, rate: r => rated.push(r), undo() {}, toggleHelp() {}, escape() {}, isFlipped: () => flipped, mode: () => mode })
+    handler(new KeyboardEvent('keydown', { key, cancelable: true }))
+    return { rated, flips }
+  }
+  it('1 e ← = Não lembrei; 2, → e Espaço = Lembrei; 3 e 4 não fazem nada', () => {
+    expect(press('two', '1').rated).toEqual([1])
+    expect(press('two', 'ArrowLeft').rated).toEqual([1])
+    expect(press('two', '2').rated).toEqual([3])
+    expect(press('two', 'ArrowRight').rated).toEqual([3])
+    expect(press('two', ' ').rated).toEqual([3])
+    expect(press('two', '3').rated).toEqual([])
+    expect(press('two', '4').rated).toEqual([])
+  })
+  it('só avalia com o verso na tela; com 4 botões nada muda', () => {
+    expect(press('two', '2', false).rated).toEqual([])
+    expect(press('two', ' ', false).flips).toBe(1)
+    expect(press('four', '2').rated).toEqual([2])
+    expect(press('four', 'ArrowRight').rated).toEqual([])
   })
 })
 
@@ -73,7 +154,10 @@ describe('fim do lote (RF-F5)', () => {
     expect(w.find('h1').text()).toBe('Lote concluído!')
     expect(w.text()).toContain('Você lembrou 17 de 20')
     expect(w.find('[data-testid=batch-goal]').text()).toContain('1 de 3 lotes')
-    expect(w.find('[data-testid=batch-streak]').text()).toContain('7 dias seguidos · recorde pessoal')
+    expect(w.find('[data-testid=batch-streak]').text()).toContain('Dia 7 da sequência · recorde pessoal')
+    // Memory, not points (prd-revisao-v5-fase-a RF-F5)
+    expect(w.get('[data-testid=batch-far]').text()).toContain('9só voltam daqui a 1 semana ou mais')
+    expect(w.text()).not.toContain('%')
     expect(w.find('[data-testid=batch-next]').text()).toBe('Próximo lote (20)')
     expect(w.find('[data-testid=batch-weak]').exists()).toBe(false)
     expect(document.activeElement?.tagName).toBe('H1')

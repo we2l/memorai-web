@@ -14,7 +14,7 @@
     <UiRadioGroup
       :model-value="settings.error_diary_mode ?? 'sometimes'"
       label="Diário de erros"
-      hint="Quando você marca &quot;De novo&quot;, podemos perguntar o motivo."
+      hint="Quando você marca &quot;Não lembrei&quot; (ou &quot;De novo&quot;), podemos perguntar o motivo."
       name="diary"
       variant="cards"
       :columns="3"
@@ -40,7 +40,7 @@ const retentionOptions = [
   { value: '0.95', label: 'Mais revisões', description: 'Lembrar 95% · mais cards por dia' },
 ]
 const diaryOptions = [
-  { value: 'always', label: 'Sempre', description: 'A cada "De novo"' },
+  { value: 'always', label: 'Sempre', description: 'A cada card que você não lembrou' },
   { value: 'sometimes', label: 'Às vezes', description: 'No 1º erro e a cada 3 · recomendado' },
   { value: 'never', label: 'Nunca', description: 'Não perguntar' },
 ]

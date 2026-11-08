@@ -210,6 +210,15 @@ export const AREAS = [
 export type LandingArea = typeof AREAS[number]['key']
 
 /**
+ * Where the call of an area starts the visitor's mini-lote (prd-onboarding-v4 RF-F7): straight to the area's cards;
+ * "Medicina e faculdade" covers two of them, so it opens the choice.
+ */
+export function areaStartPath(key: LandingArea): string {
+  const area = { concurso: 'concurso', oab: 'oab', enem: 'enem', idiomas: 'ingles', faculdade: null }[key]
+  return area ? `/comecar/${area}?from=landing` : '/comecar'
+}
+
+/**
  * The real sample of the podcast (public/landing/podcast-amostra.mp3, 22 s), its transcript and its waveform. The
  * question, a pause with a tick while you answer in your head, then the answer. The times of the lines match the
  * silences of the file (ffmpeg silencedetect, 07/11). The card is the one of the hero's clip (auxílio-acidente), from
@@ -370,7 +379,7 @@ export function landingFaqs(catalog: PlanCatalog | null): { q: string, a: string
     },
     {
       q: 'Já uso o Anki. Começo do zero?',
-      a: 'Não. O Baigi traz os cards com o intervalo e o número de erros de cada um; o histórico de revisões fica no Anki. Ao exportar no Anki, marque a opção de suporte a versões antigas.',
+      a: 'Não. O Baigi traz os cards com o intervalo e o número de erros de cada um; o histórico de revisões fica no Anki. No Anki, use Arquivo → Exportar → Pacote de baralho (.apkg).',
     },
     {
       q: `Como cancelo o ${name}?`,

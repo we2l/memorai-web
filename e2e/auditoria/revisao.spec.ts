@@ -38,7 +38,7 @@ test.describe('Revisão — caminho feliz', () => {
 
     // Cards 2–4: Espaço vira, 4 avalia (Fácil tira o card da sessão de hoje)
     for (let i = 0; i < 3; i++) {
-      await expect(page.getByRole('button', { name: 'Card: toque ou Espaço para ver a resposta' })).toBeVisible()
+      await expect(page.getByRole('button', { name: 'Card: Espaço para ver a resposta' })).toBeVisible()
       await page.keyboard.press('Space')
       await expect(answer(page)).toBeVisible()
       await page.keyboard.press('4')
@@ -115,7 +115,7 @@ test.describe('Revisão — caminho feliz', () => {
     await page.keyboard.press('3')
     await page.waitForTimeout(500)
     expect(posts).toBe(0)
-    await expect(page.getByRole('button', { name: 'Card: toque ou Espaço para ver a resposta' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Card: Espaço para ver a resposta' })).toBeVisible()
 
     await page.keyboard.press('e')
     await expect(page.getByRole('dialog', { name: 'Editar card' })).toBeVisible()

@@ -19,7 +19,7 @@
       <li><strong>Cadastro:</strong> nome, e-mail, senha (armazenada apenas como hash) ou identificador da conta Google.</li>
       <li><strong>Conteúdo de estudo:</strong> cadernos, notas, flashcards, PDFs, áudios, imagens, provas e simulados que você cria ou envia.</li>
       <li><strong>Uso:</strong> revisões realizadas, avaliações, sequência de dias, preferências e registros técnicos (IP, navegador, data e hora).</li>
-      <li><strong>Pagamento:</strong> processado pela Stripe. O BAIGI não armazena número de cartão; guardamos apenas o status da assinatura e o histórico de cobranças.</li>
+      <li><strong>Pagamento:</strong> processado pelo Mercado Pago. O número do cartão é digitado num formulário do próprio Mercado Pago e nunca chega ao BAIGI; guardamos apenas o status da assinatura, os 4 últimos dígitos e a bandeira do cartão, e o histórico de cobranças. O CPF informado no pagamento vai direto ao Mercado Pago.</li>
       <li><strong>E-mail transacional:</strong> enviado pela Resend (verificação de conta, redefinição de senha, avisos da assinatura e exportação de dados).</li>
       <li><strong>Analytics:</strong> eventos de uso do produto via PostHog, somente com o seu consentimento. Os eventos usam um identificador interno da conta, sem nome, e-mail ou conteúdo de estudo, e o IP não é armazenado. Eventos de cobrança (início, cancelamento e fim da assinatura) são registrados mesmo sem consentimento, de forma pseudonimizada e sem perfil, para contabilidade.</li>
     </ul>
@@ -37,7 +37,7 @@
     <ul>
       <li><strong>OpenAI</strong> e <strong>Google (Gemini)</strong>: processamento por IA do conteúdo que você pede para transformar (cards, notas, podcasts, simulados).</li>
       <li><strong>AWS</strong>: armazenamento de arquivos (PDFs, áudios, imagens).</li>
-      <li><strong>Stripe</strong>: pagamentos. <strong>Resend</strong>: e-mails. <strong>PostHog</strong> (PostHog Inc., nuvem na União Europeia): operador de analytics de produto, com consentimento.</li>
+      <li><strong>Mercado Pago</strong> (Mercado Pago Instituição de Pagamento Ltda.): pagamentos. <strong>Resend</strong>: e-mails. <strong>PostHog</strong> (PostHog Inc., nuvem na União Europeia): operador de analytics de produto, com consentimento.</li>
       <li><strong>Vercel</strong> e <strong>Contabo</strong>: hospedagem do site e da API.</li>
       <li><strong>Cloudflare (Turnstile)</strong>: verificação anti-robô no cadastro, em "esqueci a senha" e no reenvio do e-mail de verificação, para prevenir abuso (legítimo interesse). Recebe dados técnicos do navegador e o IP, sem cookies de rastreamento.</li>
       <li><strong>Sentry</strong> (Functional Software Inc.): registro de erros técnicos do serviço, para corrigir falhas. Recebe a mensagem do erro e onde ele ocorreu, sem nome, e-mail, senha nem conteúdo de estudo. Na API, por legítimo interesse; no navegador, só com o seu consentimento de analytics.</li>
@@ -50,7 +50,7 @@
     <h2 id="retencao">5. Retenção e exclusão</h2>
     <p>
       Mantemos seus dados enquanto a conta estiver ativa. Ao excluir a conta, apagamos conteúdo, arquivos e histórico de
-      estudo. Registros de acesso são guardados por 6 meses (Marco Civil) e dados fiscais de cobrança permanecem na Stripe
+      estudo. Registros de acesso são guardados por 6 meses (Marco Civil) e dados fiscais de cobrança permanecem no Mercado Pago
       pelo prazo exigido em lei. Arquivos de exportação expiram em 7 dias.
     </p>
 

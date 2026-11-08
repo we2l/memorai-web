@@ -550,13 +550,27 @@ export type SubscriptionStatus =
   | 'active' | 'past_due' | 'unpaid' | 'canceled'
   | 'incomplete' | 'incomplete_expired' | 'trialing' | 'paused'
 
+export type BillingProduct = 'monthly' | 'monthly_pix' | 'annual_card' | 'annual_pix'
+
 export interface SubscriptionInfo {
   plan: string
-  /** annual wins when both exist (monthly scheduled after the annual) */
-  billing: 'annual' | 'monthly' | null
+  gateway?: 'mercadopago' | 'stripe'
+  /** monthly = card subscription; monthly_pix = 30 days paid once; annual (card or Pix). The prepaid wins */
+  billing: 'annual' | 'monthly' | 'monthly_pix' | null
   subscription_status: SubscriptionStatus | null
   subscription_ends_at: string | null
+  subscription_renews_at?: string | null
   has_subscription: boolean
+  /** The card of the monthly subscription (last four only; the number never reaches the API) */
+  card?: { brand: string | null; last_four: string | null } | null
+  can_change_card?: boolean
+  can_cancel?: boolean
+  /** What may be bought now (prd-pagamento-mercado-pago RN-05) */
+  can_buy?: { monthly_card: boolean; monthly_pix: boolean; annual: boolean }
+  /** The purchase still inside the 7-day withdrawal right (CDC art. 49) */
+  refundable?: { checkout_id: string; product: BillingProduct; amount_cents: number; until: string } | null
+  /** A Pix waiting for the transfer: the screen reopens its QR */
+  open_pix?: { checkout_id: string; product: BillingProduct } | null
   plan_expires_at: string | null
   in_grace_period: boolean
   grace_ends_at: string | null
@@ -564,15 +578,26 @@ export interface SubscriptionInfo {
   monthly_scheduled: boolean
 }
 
-/** GET /api/checkout/sessions/{id} — annual checkout status (Pix waiting page) */
-export interface CheckoutSessionInfo {
-  session_id: string
-  status: 'open' | 'complete' | 'expired'
-  payment_status: 'paid' | 'unpaid' | 'no_payment_required' | null
-  payment_method: 'pix' | 'card' | null
-  pix_qr: { data: string | null; image_url_png: string | null; expires_at: string | null } | null
+export type CheckoutStatus = 'pending' | 'action_required' | 'processing' | 'approved' | 'rejected' | 'expired' | 'canceled' | 'refunded' | 'charged_back'
+
+/** GET /api/checkout/payments/{id} (prd-pagamento-mercado-pago §4): our state, never a raw gateway object */
+export interface CheckoutPayment {
+  id: string
+  product: BillingProduct
+  method: 'card' | 'pix'
+  status: CheckoutStatus
+  status_detail: string | null
+  message: string | null
+  amount_cents: number
+  installments: number | null
+  challenge_url: string | null
+  pix: { qr_code: string; qr_code_base64: string | null; ticket_url: string | null; expires_at: string | null } | null
+  paid_at: string | null
+  refundable_until: string | null
   plan_active: boolean
   plan_expires_at: string | null
+  renews_at: string | null
+  created_at: string | null
 }
 
 // Quiz / Simulados
@@ -807,7 +832,21 @@ export interface PlanPrice {
   label: string
   monthly_equivalent_cents?: number
   installments_max?: number
+  /** payer = above the interest-free ones, the buyer pays the interest (shown with the total by the card form) */
+  installments_interest?: 'payer' | 'seller'
+  /** Up to this many installments without interest (the seller pays) */
+  installments_interest_free?: number
+  interest_free_installment_cents?: number
+  /** "R$ 239,90 por ano (equivale a R$ 19,99 por mês) · até 3× sem juros · ou 12× com juros · Pix R$ 227,90" */
+  offer_line?: string
+  /** "até 3× sem juros · ou 12× com juros" */
+  card_line?: string
   savings_cents?: number
+  methods?: Array<'card' | 'pix'>
+  /** Monthly on Pix: days paid once, no renewal */
+  pix_days?: number
+  /** Annual on Pix: discount shown as such (Lei 13.455/2017) */
+  pix?: { amount_cents: number; label: string; discount_percent: number; savings_cents: number } | null
 }
 
 export interface CatalogPlan {
@@ -871,8 +910,20 @@ export interface PlanCatalog {
   features: Record<string, CatalogFeature>
   trial?: CatalogTrial | null
   /** false = "Assinatura em breve": POST /checkout/* answer 503 checkout_unavailable (absent on an older API) */
-  checkout?: { available: boolean }
+  checkout?: CatalogCheckout
+  payment_methods?: Array<'card' | 'pix'>
   preview?: CatalogPreview | null
+}
+
+/** What the checkout screen needs (prd-pagamento-mercado-pago RF-B2). The seller appears in the checkout and the Termos only */
+export interface CatalogCheckout {
+  available: boolean
+  gateway?: string
+  /** Public by design: the browser tokenizes the card with it */
+  public_key?: string | null
+  seller?: { name: string | null; document: string | null; email: string | null }
+  statement_descriptor?: string
+  refund_window_days?: number
 }
 
 /** Detail of the `feature-limit-reached` event (402 payload, PRD §4.1). */

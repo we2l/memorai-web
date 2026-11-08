@@ -3,6 +3,7 @@ import { mountSuspended, mockNuxtImport } from '@nuxt/test-utils/runtime'
 import { flushPromises } from '@vue/test-utils'
 import PlanCards from '~/components/plans/PlanCards.vue'
 import PlanosPage from '~/pages/planos.vue'
+import CheckoutPage from '~/pages/checkout/index.vue'
 import { checkoutAvailable, isCheckoutUnavailable } from '~/utils/checkout'
 
 // "Assinatura em breve": GET /plans checkout.available false and the 503 checkout_unavailable of POST /checkout/*
@@ -120,13 +121,15 @@ describe('assinatura em breve', () => {
       if (url === '/me') return { data: freeUser }
       return { data: { plan: 'free', has_subscription: false, billing: null } }
     })
-    const wrapper = await mountSuspended(PlanosPage)
+    const wrapper = await mountSuspended(CheckoutPage, { route: '/checkout?plano=anual&metodo=pix' })
     await flushPromises()
-    await wrapper.findAll('button').find(b => b.text() === 'Assinar anual')!.trigger('click')
+    await wrapper.findAll('[role="tab"]').find(t => t.text().startsWith('Pix'))!.trigger('click')
+    await flushPromises()
+    await wrapper.find('[data-testid="checkout-pix-start"]').trigger('click')
     await flushPromises()
 
-    expect(apiMock).toHaveBeenCalledWith('/checkout/annual', expect.objectContaining({ method: 'POST' }))
-    expect(wrapper.find('[data-testid="plan-checkout-soon"]').exists()).toBe(true)
+    expect(apiMock).toHaveBeenCalledWith('/checkout/pix', expect.objectContaining({ method: 'POST', body: { product: 'annual' } }))
+    expect(wrapper.find('[data-testid="checkout-closed"]').exists()).toBe(true)
     const toast = useToast().state.items.at(-1)
     expect(toast?.type).toBe('info')
     expect(toast?.message).toBe('A assinatura do Intensivo abre em breve. Nada foi cobrado.')

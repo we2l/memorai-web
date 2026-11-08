@@ -118,12 +118,12 @@ test.describe('Teste disponível sem e-mail confirmado', () => {
     await expect(page.locator('#verify-email-notice')).toContainText(`Confirme seu e-mail para usar a IA e ganhar ${days} dias do ${await proName(page)} no primeiro material`)
   })
 
-  test('/planos: o anual do catálogo, "cobrado uma vez por ano" e a linha do teste', async ({ page }) => {
+  test('/planos: o anual do catálogo, "equivale a" e a linha do teste', async ({ page }) => {
     await gotoApp(page, '/planos')
     const pro = (await catalog(page)).plans.find((p: any) => p.key === 'pro')
     const brl = (cents: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(cents / 100)
     await expect(page.getByTestId('plan-pro-price')).toContainText(brl(pro.prices.annual.amount_cents))
-    await expect(page.getByTestId('plan-pro-note')).toContainText(`${brl(pro.prices.annual.monthly_equivalent_cents)} por mês, cobrado uma vez por ano`)
+    await expect(page.getByTestId('plan-pro-note')).toContainText(`Equivale a ${brl(pro.prices.annual.monthly_equivalent_cents)} por mês`)
     const { days } = (await catalog(page)).trial
     await expect(page.getByTestId('plan-trial')).toHaveText(`Ou teste ${days} dias grátis, sem cartão: começa quando você mandar o primeiro material.`)
     await expect(page.getByTestId('plan-free')).not.toContainText('Não incluído')

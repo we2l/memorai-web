@@ -73,6 +73,10 @@
 
   --container-page: 70rem;
   --container-prose: 42rem;
+  /* Blog (prd-blog-seo, ajustes do dono): coluna de leitura de ~700 px (60–75 caracteres a 18 px) e blocos
+     embutidos (quiz, ferramenta, print) um pouco mais largos */
+  --container-article: 44rem;
+  --container-article-wide: 50rem;
   /* Material: sumário 240 + leitor ~720 + painel 340 (prd-4c-material-v3 RF-F1) */
   --container-reading: 88rem;
 

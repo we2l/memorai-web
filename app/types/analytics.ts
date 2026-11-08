@@ -40,8 +40,11 @@ export interface FrontEventProps {
   landing_sample_played: { message: LandingMessageProp }
   /** Blog and free tools (prd-blog-seo RF-A1): `input` is a bucket, never the exact number (RN-6) */
   blog_viewed: { slug: string, category: string }
-  blog_cta_clicked: { slug: string, position: 'inline' | 'quiz' | 'end' | 'tool', area: string | null }
-  blog_quiz_answered: { slug: string, remembered: number, total: number }
+  blog_cta_clicked: { slug: string, position: 'inline' | 'end' | 'tool', area: string | null }
+  /** The quiz of an article: first "Mostrar resposta", the end, and its call to the mini-lote */
+  blog_quiz_started: { slug: string, area: string }
+  blog_quiz_done: { slug: string, remembered: number, total: number }
+  blog_quiz_cta_clicked: { slug: string, area: string }
   tool_used: { tool: 'calculadora-do-esquecimento' | 'plano-ate-a-prova', input: string }
   /** Conta e onboarding v3 (prd-4g-conta-onboarding-v3 RF-F16) */
   onboarding_step: { step: 1 | 2 | 3, mode: string | null }

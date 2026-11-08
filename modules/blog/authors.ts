@@ -11,6 +11,8 @@ export interface BlogAuthor {
   /** What the person did that backs the texts (E-E-A-T "experience"), listed on the author page, in the first person */
   experience: string[]
   sameAs: string[]
+  /** Topics of the person's real experience (schema.org knowsAbout) */
+  knowsAbout: string[]
   /** The author page ("Quem faz o Baigi" for the founder; the Mercado Pago checkout links to /quem-faz) */
   page: string
   /** Real photo sent by the person (no EXIF), without extension: .avif and .webp, 320x320 */
@@ -21,14 +23,17 @@ export const BLOG_AUTHORS: Record<string, BlogAuthor> = {
   weslley: {
     id: 'weslley',
     name: 'Weslley Araujo',
-    role: 'Desenvolvedor e criador do Baigi',
-    bio: 'Sou desenvolvedor e criei o Baigi porque esquecia quase tudo o que estudava poucas semanas depois. Escrevo aqui o que aprendi lendo as pesquisas sobre memória e construindo o algoritmo de revisão do app. Não sou professor nem cursinho: cada artigo cita as fontes para você conferir.',
+    role: 'Desenvolvedor de software e criador do Baigi',
+    bio: 'Sou desenvolvedor de software há mais de 5 anos. Estudava inglês com o Anki e fazia resumos, e mesmo assim esquecia. Criei o Baigi para o meu inglês e para ajudar minha namorada a passar no concurso.',
     experience: [
-      'Implementei no Baigi o FSRS-6, o algoritmo de repetição espaçada de código aberto usado também pelo Anki.',
+      'Desenvolvo software há mais de 5 anos.',
+      'Usei o Anki por muito tempo para estudar inglês, e é dessa experiência que vem boa parte do Baigi.',
+      'Implementei no Baigi o FSRS-6, o algoritmo de repetição espaçada de código aberto que o Anki também usa.',
       'Li e resumi as pesquisas citadas nos artigos (prática de recuperação, espaçamento, autoavaliação).',
       'Montei os cadernos de exemplo do app a partir do texto da lei e de livros-texto, com a fonte no verso de cada card.',
     ],
     sameAs: [],
+    knowsAbout: ['Desenvolvimento de software', 'Repetição espaçada', 'FSRS', 'Anki', 'Estudo de inglês'],
     page: '/quem-faz',
     photo: '/quem-faz/weslley',
   },

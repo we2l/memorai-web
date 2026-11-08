@@ -1,17 +1,17 @@
 <template>
-  <div class="mx-auto max-w-prose px-gutter pt-8 lg:pt-12">
-    <nav aria-label="Caminho" class="mb-4 text-meta text-fg-muted">
+  <div class="mx-auto max-w-article-wide px-gutter pt-8 lg:pt-12">
+    <nav aria-label="Caminho" class="mx-auto mb-4 max-w-article text-meta text-fg-muted">
       <UiLink to="/ferramentas" variant="muted">Ferramentas</UiLink>
     </nav>
-    <h1 class="mb-3 text-page-title-sm text-fg-strong sm:text-page-title">Calculadora do esquecimento</h1>
-    <p class="mb-8 text-body text-fg">
+    <h1 class="mx-auto mb-3 max-w-article text-page-title-sm text-fg-strong sm:text-page-title">Calculadora do esquecimento</h1>
+    <p class="blog-lead mx-auto mb-8 max-w-article text-fg">
       Diga há quantos dias você estudou e quantas vezes já se testou. A calculadora estima quanto você ainda deve lembrar
       e em que dia vale revisar, pela mesma conta que o Baigi usa para agendar as revisões.
     </p>
 
     <BlogForgettingCalculator :area="area" />
 
-    <section class="blog-prose mt-10" aria-labelledby="h-como">
+    <section class="blog-prose mx-auto mt-10 max-w-article" aria-labelledby="h-como">
       <h2 id="h-como">Como a conta funciona</h2>
       <p>
         A estimativa usa o FSRS-6, um algoritmo de repetição espaçada de código aberto, também usado pelo Anki. Ele prevê a chance de

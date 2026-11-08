@@ -279,6 +279,8 @@ export default defineNuxtConfig({
       sentryDsn: process.env.NUXT_PUBLIC_SENTRY_DSN || '',
       sentryEnvironment: process.env.NUXT_PUBLIC_SENTRY_ENVIRONMENT || process.env.VERCEL_ENV || 'production',
       appVersion: APP_VERSION,
+      // Contact shown on /quem-faz and the blog (prd-blog-seo). The mailbox/redirect must exist before publishing.
+      contactEmail: process.env.NUXT_PUBLIC_CONTACT_EMAIL || 'contato@baigi.com.br',
     },
   },
 

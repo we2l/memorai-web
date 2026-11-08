@@ -11,18 +11,34 @@ const cards = [
 ]
 
 describe('BlogQuiz (prd-blog-seo RF-B9)', () => {
-  it('mostra a resposta antes da avaliação e termina no mini-lote da área com UTM', async () => {
+  it('como a revisão do app: resposta, Lembrei/Não lembrei com retorno, e o fim leva ao mini-lote com UTM', async () => {
     const w = await mountSuspended(BlogQuiz, { props: { slug: 'lei-seca', area: 'concurso', cards } })
     expect(w.find('[data-testid="blog-quiz-answer"]').exists()).toBe(false)
     for (const ok of [true, false, true]) {
       await w.get('[data-testid="blog-quiz-reveal"]').trigger('click')
       expect(w.get('[data-testid="blog-quiz-answer"]').text()).toContain('Fonte:')
       await w.get(`[data-testid="blog-quiz-${ok ? 'remembered' : 'forgot'}"]`).trigger('click')
+      if (!ok) expect(w.get('[data-testid="blog-quiz-feedback"]').text()).toContain('Não lembrei · volta ainda hoje')
     }
-    expect(w.get('[data-testid="blog-quiz-result"]').text()).toContain('2 de 3')
+    const result = w.get('[data-testid="blog-quiz-result"]').text()
+    expect(result).toContain('Você lembrou 2 de 3')
+    expect(result).toContain('voltariam em 2 dias')
+    expect(w.get('[data-testid="blog-quiz-cta"]').text()).toContain('Revisar 6 cards de concurso sem criar conta')
     expect(w.get('[data-testid="blog-quiz-cta"]').attributes('href')).toBe('/comecar/concurso?utm_source=blog&utm_medium=organic&utm_campaign=blog&utm_content=lei-seca-quiz')
-    // Every question stays in the HTML for readers without JS
-    expect(w.text()).toContain('Duração do salário-maternidade?')
+    // The full list stays in the HTML, outside the exercise
+    expect(w.get('details').text()).toContain('Duração do salário-maternidade?')
+  })
+
+  it('teclado: Espaço mostra, 1 = Não lembrei, 2 = Lembrei', async () => {
+    const w = await mountSuspended(BlogQuiz, { props: { slug: 'x', area: 'enem', cards } })
+    const quiz = w.get('[data-testid="blog-quiz"]')
+    await quiz.trigger('keydown', { key: '2' })
+    expect(w.get('[data-testid="blog-quiz-count"]').text()).toBe('1 de 3')
+    await quiz.trigger('keydown', { key: ' ' })
+    expect(w.find('[data-testid="blog-quiz-answer"]').exists()).toBe(true)
+    await quiz.trigger('keydown', { key: '1' })
+    expect(w.get('[data-testid="blog-quiz-feedback"]').text()).toContain('Não lembrei')
+    expect(w.get('[data-testid="blog-quiz-count"]').text()).toBe('2 de 3')
   })
 })
 

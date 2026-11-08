@@ -29,12 +29,18 @@ test.describe('blog e ferramentas', () => {
     await page.goto('/blog/como-revisar-lei-seca-inss')
     const quiz = page.getByTestId('blog-quiz')
     await quiz.scrollIntoViewIfNeeded()
+    // The first card by mouse, the others by keyboard (Espaço shows, 2 = Lembrei, 1 = Não lembrei)
+    await quiz.getByTestId('blog-quiz-reveal').click()
+    await expect(quiz.getByTestId('blog-quiz-answer')).toBeVisible()
+    await quiz.getByTestId('blog-quiz-remembered').click()
+    await expect(quiz.getByTestId('blog-quiz-feedback')).toContainText('Lembrei · volta em 2 dias')
     while (await quiz.getByTestId('blog-quiz-reveal').isVisible()) {
-      await quiz.getByTestId('blog-quiz-reveal').click()
+      await quiz.getByTestId('blog-quiz-card').focus()
+      await page.keyboard.press('Space')
       await expect(quiz.getByTestId('blog-quiz-answer')).toBeVisible()
-      await quiz.getByTestId('blog-quiz-remembered').click()
+      await page.keyboard.press('1')
     }
-    await expect(quiz.getByTestId('blog-quiz-result')).toContainText('Você lembrou de')
+    await expect(quiz.getByTestId('blog-quiz-result')).toContainText('Você lembrou 1 de')
     await expect(quiz.getByTestId('blog-quiz-cta')).toHaveAttribute('href', /^\/comecar\/concurso\?.*utm_content=como-revisar-lei-seca-inss-quiz/)
   })
 
@@ -43,7 +49,7 @@ test.describe('blog e ferramentas', () => {
     test.skip(!SHOTS, 'BLOG_SHOTS=pasta para gravar')
     test.setTimeout(120_000)
     for (const path of ['/blog', '/blog/curva-do-esquecimento', '/blog/como-revisar-lei-seca-inss', '/blog/alternativa-ao-anki', '/ferramentas/calculadora-do-esquecimento', '/ferramentas/plano-ate-a-prova', '/quem-faz']) {
-      for (const width of [390, 1440]) {
+      for (const width of [390, 768, 1024, 1280, 1440]) {
         for (const theme of ['light', 'dark']) {
           await page.setViewportSize({ width, height: 900 })
           await page.addInitScript(t => localStorage.setItem('color-mode', t), theme)

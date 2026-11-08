@@ -1,15 +1,34 @@
 /* Reading typography of the blog (prd-blog-seo RF-B7), imported only by BlogArticleBody: the article HTML comes from
-   the Markdown built by modules/blog (h2, h3, p, ul, ol, blockquote, table, code, a). Tokens only (ADR-027). No @layer,
+   the Markdown built by modules/blog (h2, h3, p, ul, ol, blockquote, table, code, a). Tokens only (ADR-027). The class goes on the article's HTML segments only, so the quiz and the tools keep their own type. No @layer,
    like legal-prose.css: on a prerendered page this file may arrive before entry.css. */
 .blog-prose {
   font-size: 1.0625rem;
-  line-height: 1.75;
+  line-height: 1.7;
   color: var(--fg);
+}
+/* Reading size of the owner's review: 17 px on the phone, 18 px from the tablet up, line-height ~1.7 */
+@media (min-width: 48rem) {
+  .blog-prose {
+    font-size: 1.125rem;
+  }
+  .blog-prose h2 {
+    font-size: 1.5rem;
+  }
+}
+/* The short answer under the H1 (the summary): a step above the body */
+.blog-lead {
+  font-size: 1.125rem;
+  line-height: 1.6;
+}
+@media (min-width: 48rem) {
+  .blog-lead {
+    font-size: 1.25rem;
+  }
 }
 .blog-prose h2 {
   margin: 2.75rem 0 0.75rem;
-  font-size: var(--text-section);
-  line-height: var(--text-section--line-height);
+  font-size: 1.375rem;
+  line-height: 1.3;
   letter-spacing: var(--text-section--letter-spacing);
   font-weight: var(--text-section--font-weight);
   color: var(--fg-strong);
@@ -17,7 +36,7 @@
 }
 .blog-prose h3 {
   margin: 1.75rem 0 0.5rem;
-  font-size: 1.0625rem;
+  font-size: 1.125em;
   font-weight: 600;
   color: var(--fg-strong);
   scroll-margin-top: 1.5rem;

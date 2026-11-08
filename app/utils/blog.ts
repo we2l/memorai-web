@@ -65,7 +65,8 @@ export function personJsonLd(author: BlogAuthor) {
   return {
     '@type': 'Person',
     'name': author.name,
-    'jobTitle': author.role,
+    'jobTitle': 'Desenvolvedor de software',
+    'knowsAbout': author.knowsAbout,
     'url': absoluteUrl(author.page),
     ...(author.photo ? { image: absoluteUrl(`${author.photo}.webp`) } : {}),
     ...(author.sameAs.length ? { sameAs: author.sameAs } : {}),

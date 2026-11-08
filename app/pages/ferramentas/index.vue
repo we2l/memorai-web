@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto max-w-prose px-gutter pt-8 lg:pt-12">
+  <div class="mx-auto max-w-article px-gutter pt-8 lg:pt-12">
     <h1 class="mb-3 text-page-title-sm text-fg-strong sm:text-page-title">Ferramentas grátis para estudar</h1>
     <p class="mb-8 text-body text-fg">Contas que ajudam a decidir quando revisar. Rodam no seu navegador, sem cadastro.</p>
     <div class="grid gap-4">

@@ -1,8 +1,8 @@
 <template>
   <div class="mx-auto max-w-page px-gutter pt-8 lg:pt-12">
-    <header class="max-w-prose">
+    <header class="max-w-article">
       <h1 class="mb-3 text-page-title-sm text-fg-strong sm:text-page-title">Blog do Baigi</h1>
-      <p class="text-body text-fg">
+      <p class="blog-lead text-fg">
         Como estudar e lembrar na prova: repetição espaçada, revisão e métodos, sempre com a fonte para você conferir.
       </p>
     </header>
@@ -32,6 +32,7 @@
 <script setup lang="ts">
 // /blog (prd-blog-seo RF-B6): prerendered list by category + the tools
 import { articles } from '#blog/index'
+import '~/assets/css/blog-prose.css'
 import type { BlogCategory } from '~~/modules/blog/types'
 import { BLOG_TOOL_PAGES as TOOLS, breadcrumbJsonLd, categoryLabel } from '~/utils/blog'
 

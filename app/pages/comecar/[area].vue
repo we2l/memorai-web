@@ -100,7 +100,7 @@
 import type { CardOrigin, Flashcard } from '~/types'
 import {
   growthText, guestSummary, isGuestArea, loadGuestProgress, nextGuestCard, returnText, saveGuestProgress,
-  type GuestDeck, type GuestProgress, type GuestRating,
+  type GuestArea, type GuestDeck, type GuestProgress, type GuestRating,
 } from '~/utils/guestProgress'
 
 definePageMeta({ layout: false, chrome: 'focus' })
@@ -110,8 +110,9 @@ const auth = useAuthStore()
 const { $api } = useNuxtApp()
 const { track } = useAnalytics()
 
-const area = String(route.params.area)
-if (!isGuestArea(area)) throw createError({ statusCode: 404, statusMessage: 'Página não encontrada', fatal: true })
+const param = String(route.params.area)
+if (!isGuestArea(param)) throw createError({ statusCode: 404, statusMessage: 'Página não encontrada', fatal: true })
+const area: GuestArea = param
 
 const deck = ref<GuestDeck | null>(null)
 const progress = ref<GuestProgress | null>(null)
@@ -156,7 +157,7 @@ async function load() {
   progress.value = saved && saved.area === area && saved.version === deck.value.version
     ? saved
     : { v: 1, area, version: deck.value.version, reviews: [], done: false }
-  if (progress.value.done) return showResult()
+  if (progress.value?.done) return showResult()
   advance()
 }
 

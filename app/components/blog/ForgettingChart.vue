@@ -10,7 +10,7 @@
       </g>
       <polyline v-if="compare" :points="line(compare)" fill="none" class="text-fg-muted" stroke="currentColor" stroke-width="2" stroke-dasharray="5 4" />
       <polyline :points="line(points)" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" />
-      <circle v-if="marker !== null" :cx="x(marker.day)" :cy="y(marker.percent)" r="5" class="fill-fg-strong" />
+      <circle v-if="marker" :cx="x(marker.day)" :cy="y(marker.percent)" r="5" class="fill-fg-strong" />
     </svg>
     <figcaption class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-meta text-fg-muted">
       <span><span class="mr-1 inline-block h-0.5 w-5 bg-action align-middle" aria-hidden="true" />{{ legend }}</span>

@@ -1,5 +1,5 @@
 <template>
-  <section class="rounded-card border border-line bg-raised p-5 shadow-card sm:p-6" :aria-labelledby="titleId" data-testid="blog-quiz">
+  <section ref="root" class="rounded-card border border-line bg-raised p-5 shadow-card sm:p-6" :aria-labelledby="titleId" data-testid="blog-quiz">
     <h2 :id="titleId" class="mb-1 text-section text-fg-strong">{{ title || 'Teste rápido: você lembra?' }}</h2>
     <p class="mb-5 text-meta text-fg-muted">
       Tente responder de cabeça antes de ver a resposta. É assim que a revisão funciona.
@@ -13,7 +13,7 @@
         <p v-if="current.source" class="mt-1 text-meta text-fg-muted">Fonte: {{ current.source }}</p>
       </div>
       <div class="flex flex-wrap gap-3">
-        <UiButton v-if="!revealed" data-testid="blog-quiz-reveal" @click="revealed = true">Mostrar resposta</UiButton>
+        <UiButton v-if="!revealed" data-testid="blog-quiz-reveal" @click="reveal">Mostrar resposta</UiButton>
         <template v-else>
           <UiButton data-testid="blog-quiz-forgot" @click="rate(false)">Não lembrei</UiButton>
           <UiButton data-testid="blog-quiz-remembered" @click="rate(true)">Lembrei</UiButton>
@@ -70,12 +70,22 @@ const remembered = computed(() => results.value.filter(Boolean).length)
 const ctaHref = computed(() => blogStartPath(props.area, props.slug, 'quiz'))
 
 const { track } = useAnalytics()
+const root = ref<HTMLElement | null>(null)
 
-function rate(ok: boolean) {
+/** The button that had the focus disappears: keyboard users go on from the first rating */
+async function reveal() {
+  revealed.value = true
+  await nextTick()
+  root.value?.querySelector<HTMLElement>('[data-testid="blog-quiz-forgot"]')?.focus()
+}
+
+async function rate(ok: boolean) {
   results.value = [...results.value, ok]
   revealed.value = false
   if (done.value) track('blog_quiz_answered', { slug: props.slug, remembered: remembered.value, total: props.cards.length })
   else index.value++
+  await nextTick()
+  root.value?.querySelector<HTMLElement>(done.value ? '[data-testid="blog-quiz-cta"]' : '[data-testid="blog-quiz-reveal"]')?.focus()
 }
 
 function restart() {

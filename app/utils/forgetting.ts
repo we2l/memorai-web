@@ -12,7 +12,7 @@ const W = [
 export const DECAY = -W[20]
 export const FACTOR = 0.9 ** (1 / DECAY) - 1
 /** Stability (days) of a new card whose first answer was "Bom" (Good) */
-export const FIRST_STABILITY = W[2]
+export const FIRST_STABILITY: number = W[2]
 
 const clampD = (d: number) => Math.min(10, Math.max(1, d))
 /** Initial difficulty for rating g (1..4) */

@@ -36,7 +36,8 @@
       <!-- Result (RF-F3): what happened, when each card comes back, and the reason to save -->
       <div v-else-if="phase === 'result' && summary" class="mx-auto flex w-full max-w-xl flex-col gap-6 px-gutter py-8" data-testid="guest-result">
         <div class="flex items-center gap-4">
-          <UiBaigiMascot :size="72" state="celebrating" visible />
+          <!-- Calm pose: the "celebrating" bounce (40 px up, 1.2x) left the gutter and hit the top bar on the phone -->
+          <UiBaigiMascot class="shrink-0" :size="64" state="idle" visible />
           <div class="min-w-0">
             <h1 ref="resultTitle" class="text-page-title-sm text-fg-strong outline-none" tabindex="-1" data-testid="guest-remembered">
               Você lembrou {{ summary.remembered }} de {{ summary.total }}

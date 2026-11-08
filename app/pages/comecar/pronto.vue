@@ -18,7 +18,7 @@
     <template v-else-if="state === 'ready'">
       <template v-if="step !== 'processing'">
         <div class="flex items-center gap-4" data-testid="saved">
-          <UiBaigiMascot :size="64" :state="saved ? 'celebrating' : 'idle'" visible />
+          <UiBaigiMascot class="shrink-0" :size="64" state="idle" visible />
           <div class="min-w-0">
             <h1 ref="title" class="text-page-title-sm text-fg-strong outline-none" tabindex="-1">{{ saved ? 'Seu progresso está salvo' : 'Comece pelo seu material' }}</h1>
             <p v-if="saved" class="mt-1 text-body text-fg-muted" data-testid="saved-line">

@@ -1,4 +1,5 @@
 import type { CheckoutPayment, SubscriptionInfo } from '~/types'
+import type { RefundRequest } from '~/utils/refund'
 
 /** Card data from the Mercado Pago Brick: a single-use token, never the number (SAQ A, ADR-034). */
 export interface CardPayload {
@@ -49,9 +50,9 @@ export const useSubscriptionStore = defineStore('subscription', {
       return res.data
     },
 
-    async refund(id: string): Promise<CheckoutPayment> {
+    async refund(id: string, body: RefundRequest): Promise<CheckoutPayment> {
       const { $api } = useNuxtApp()
-      const res = await $api<{ data: CheckoutPayment }>(`/checkout/payments/${encodeURIComponent(id)}/refund`, { method: 'POST' })
+      const res = await $api<{ data: CheckoutPayment }>(`/checkout/payments/${encodeURIComponent(id)}/refund`, { method: 'POST', body })
       await this.fetchStatus()
       return res.data
     },

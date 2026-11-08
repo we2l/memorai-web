@@ -127,7 +127,7 @@ const FAQS = computed(() => [
   { q: 'Posso cancelar quando quiser?', a: `Sim, em Configurações, em dois cliques. O cartão não é mais cobrado, e o ${proName.value} continua até o fim do mês já pago.` },
   { q: 'Como funciona o plano anual?', a: `É um pagamento único que vale por um ano: ${annualPayLine.value}. Não renova sozinho: avisamos por e-mail antes de vencer.` },
   { q: 'Como funciona o plano mensal?', a: `No cartão, é cobrado todo mês até você cancelar. No Pix, você paga ${pixDays.value} dias de uma vez, sem renovação automática, e avisamos 3 dias antes de acabar.` },
-  { q: 'E se eu me arrepender?', a: `Você tem ${refundDays.value} dias, a contar do pagamento, para pedir o reembolso total em Configurações, sem precisar explicar. O valor volta para o cartão ou para a conta do Pix.` },
+  { q: 'E se eu me arrepender?', a: `Você tem ${refundDays.value} dias, a contar do pagamento, para pedir o reembolso total. Na primeira compra da conta, é em Configurações; nas seguintes, pelo e-mail do suporte. O valor volta para o cartão ou para a conta do Pix.` },
   { q: 'O que acontece se eu voltar para o Grátis?', a: `Seus cadernos, notas e cards continuam com você, e a revisão segue grátis. A IA fica no ${proName.value}${preview.value ? ', e o que sobrar da prévia continua seu' : ''}.` },
 ])
 

@@ -4,7 +4,7 @@
     <p v-else>Pagamento processado pelo Mercado Pago.</p>
     <p v-if="method === 'card' && descriptor">Na fatura do cartão, a compra aparece como <span class="font-semibold text-fg">{{ descriptor }}</span>.</p>
     <p>
-      Mudou de ideia? Você tem {{ refundDays }} dias para pedir o reembolso total, em Configurações.
+      Mudou de ideia? Você tem {{ refundDays }} dias para pedir o reembolso total: na primeira compra, em Configurações; nas seguintes, pelo suporte.
       <NuxtLink to="/termos" class="underline underline-offset-2 hover:text-fg-strong">Termos de uso</NuxtLink>
     </p>
   </div>

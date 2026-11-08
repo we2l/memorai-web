@@ -569,6 +569,8 @@ export interface SubscriptionInfo {
   can_buy?: { monthly_card: boolean; monthly_pix: boolean; annual: boolean }
   /** The purchase still inside the 7-day withdrawal right (CDC art. 49) */
   refundable?: { checkout_id: string; product: BillingProduct; amount_cents: number; until: string } | null
+  /** Inside the 7 days but not the account's first purchase: refunded only by support, at this e-mail */
+  refund_via_support?: { checkout_id: string; product: BillingProduct; amount_cents: number; until: string; email: string } | null
   /** A Pix waiting for the transfer: the screen reopens its QR */
   open_pix?: { checkout_id: string; product: BillingProduct } | null
   plan_expires_at: string | null

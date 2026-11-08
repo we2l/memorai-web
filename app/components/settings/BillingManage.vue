@@ -14,7 +14,12 @@
       <UiButton v-if="info?.can_cancel" variant="ghost" data-testid="billing-cancel" @click="cancelOpen = true">Cancelar assinatura</UiButton>
       <UiButton v-if="info?.refundable" variant="ghost" data-testid="billing-refund" @click="refundOpen = true">Pedir reembolso</UiButton>
     </div>
-    <p v-if="info?.refundable" class="text-meta text-fg-muted">Reembolso total até {{ formatBillingDate(info.refundable.until) }}, sem precisar explicar.</p>
+    <p v-if="info?.refundable" class="text-meta text-fg-muted">Reembolso total até {{ formatBillingDate(info.refundable.until) }}.</p>
+    <p v-else-if="info?.refund_via_support" class="text-meta text-fg-muted" data-testid="billing-refund-support">
+      Para pedir reembolso desta compra, escreva para
+      <UiLink :href="`mailto:${info.refund_via_support.email}`">{{ info.refund_via_support.email }}</UiLink>
+      em até 7 dias (até {{ formatBillingDate(info.refund_via_support.until) }}).
+    </p>
 
     <UiSheet v-model="cardOpen" title="Trocar cartão" description="O próximo mês já é cobrado no cartão novo.">
       <p v-if="cardError" class="mb-3 rounded-control bg-danger-subtle px-3 py-2 text-meta text-danger" role="alert">{{ cardError }}</p>
@@ -39,14 +44,11 @@
       :loading="action.pending.value"
       @confirm="cancel"
     />
-    <UiConfirmModal
+    <SettingsRefundDialog
       v-model="refundOpen"
-      title="Pedir o reembolso?"
       :message="refundMessage"
-      confirm-label="Pedir reembolso"
-      cancel-label="Voltar"
-      variant="danger"
-      :loading="action.pending.value"
+      :loading="refundAction.pending.value"
+      :error="refundError"
       @confirm="refund"
     />
   </div>
@@ -58,12 +60,14 @@
 import type { CardPayload } from '~/stores/subscription'
 import { formatBrl } from '~/utils/checkoutState'
 import { extractApiMessage } from '~/utils/apiErrors'
+import { isRefundViaSupport, type RefundRequest } from '~/utils/refund'
 
 const auth = useAuthStore()
 const subscription = useSubscriptionStore()
 const { plans } = usePlans()
 const proName = useProName()
 const action = useApiAction()
+const refundAction = useApiAction()
 
 const info = computed(() => subscription.info)
 const publicKey = computed(() => plans.value?.checkout?.public_key ?? null)
@@ -79,6 +83,9 @@ const cardOpen = ref(false)
 const cancelOpen = ref(false)
 const refundOpen = ref(false)
 const cardError = ref('')
+const refundError = ref('')
+
+watch(refundOpen, (v) => { if (v) refundError.value = '' })
 
 const cancelMessage = computed(() => {
   const renews = info.value?.subscription_renews_at
@@ -113,15 +120,27 @@ function cancel() {
   }, { success: 'Assinatura cancelada. Nada mais será cobrado.', error: 'Não foi possível cancelar agora. Tente de novo em instantes.' })
 }
 
-function refund() {
+async function refund(body: RefundRequest) {
   const id = info.value?.refundable?.checkout_id
   if (!id) return
-  return action.run(async () => {
-    await subscription.refund(id)
+  refundError.value = ''
+  const done = await refundAction.run(async () => {
+    await subscription.refund(id, body)
     refundOpen.value = false
     const { $api } = useNuxtApp()
     const res = await $api<{ data: any }>('/me')
     if (res.data) auth.setUser(res.data)
-  }, { success: 'Reembolso pedido. Enviamos a confirmação por e-mail.', error: 'Não foi possível pedir o reembolso agora. Fale com o suporte.' })
+    return true
+  }, { success: 'Reembolso pedido. Enviamos a confirmação por e-mail.', error: false })
+  if (done) return
+  const e = refundAction.error.value
+  if (isRefundViaSupport(e)) {
+    // Not the account's first purchase: the screen now shows the support line instead of the button.
+    refundOpen.value = false
+    useToast().show(extractApiMessage(e), 'error')
+    await subscription.fetchStatus().catch(err => reportApiError(err, { silent: true }))
+    return
+  }
+  refundError.value = extractApiMessage(e, 'Não foi possível pedir o reembolso agora. Fale com o suporte.')
 }
 </script>

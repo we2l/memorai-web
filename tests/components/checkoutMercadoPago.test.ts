@@ -109,4 +109,58 @@ describe('checkout do Mercado Pago', () => {
     expect(text(document.body.textContent)).toContain('Devolvemos R$ 227,90 para a conta de onde saiu o Pix')
     wrapper.unmount()
   })
+
+  it('gestão: o reembolso pede o motivo num passo só e manda o motivo e o texto', async () => {
+    apiMock.mockReset()
+    apiMock.mockImplementation(async (url: string) => {
+      if (url === '/me') return { data: null }
+      if (url.endsWith('/refund')) return { data: { id: 'chk-9', status: 'refunded' } }
+      return { data: subscription({ plan: 'free' }) }
+    })
+    useState('plans').value = catalog
+    useSubscriptionStore().info = subscription({ plan: 'pro', billing: 'annual', refundable: { checkout_id: 'chk-9', product: 'annual_pix', amount_cents: 22790, until: '2026-11-15T10:00:00-03:00' } }) as never
+    const wrapper = await mountSuspended(BillingManage)
+    await wrapper.find('[data-testid="billing-refund"]').trigger('click')
+    await flushPromises()
+
+    expect(document.body.textContent).toContain('Por que você está pedindo o reembolso?')
+    const radios = [...document.querySelectorAll<HTMLInputElement>('input[name="refund-reason"]')]
+    expect(radios).toHaveLength(5)
+
+    // Without a reason: an inline error, no call and no second dialog.
+    const confirm = document.querySelector<HTMLButtonElement>('[data-testid="refund-confirm"]')!
+    expect(confirm.getAttribute('form')).toBe(document.querySelector('form')!.id)
+    document.querySelector<HTMLFormElement>('form')!.dispatchEvent(new Event('submit', { cancelable: true }))
+    await flushPromises()
+    expect(document.querySelector('[data-testid="refund-reason-error"]')?.textContent).toContain('Escolha um motivo')
+    expect(apiMock).not.toHaveBeenCalledWith(expect.stringContaining('/refund'), expect.anything())
+
+    radios[2]!.click()
+    const detail = document.querySelector<HTMLTextAreaElement>('[data-testid="refund-detail"] textarea, textarea')!
+    detail.value = '  Faltou importar do Quizlet.  '
+    detail.dispatchEvent(new Event('input'))
+    await flushPromises()
+    document.querySelector<HTMLFormElement>('form')!.dispatchEvent(new Event('submit', { cancelable: true }))
+    await flushPromises()
+
+    expect(apiMock).toHaveBeenCalledWith('/checkout/payments/chk-9/refund', expect.objectContaining({
+      method: 'POST', body: { reason: 'missing_feature', reason_detail: 'Faltou importar do Quizlet.' },
+    }))
+    wrapper.unmount()
+  })
+
+  it('gestão: na segunda compra, sem botão e com o e-mail do suporte', async () => {
+    useState('plans').value = catalog
+    useSubscriptionStore().info = subscription({
+      plan: 'pro', billing: 'monthly_pix', refundable: null,
+      refund_via_support: { checkout_id: 'chk-2', product: 'monthly_pix', amount_cents: 3490, until: '2026-11-15T10:00:00-03:00', email: 'contato@baigi.com.br' },
+    }) as never
+    const wrapper = await mountSuspended(BillingManage)
+
+    expect(wrapper.find('[data-testid="billing-refund"]').exists()).toBe(false)
+    const line = wrapper.find('[data-testid="billing-refund-support"]')
+    expect(text(line.text())).toContain('Para pedir reembolso desta compra, escreva para contato@baigi.com.br em até 7 dias (até 15/11/2026).')
+    expect(line.find('a').attributes('href')).toBe('mailto:contato@baigi.com.br')
+    wrapper.unmount()
+  })
 })

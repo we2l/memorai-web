@@ -22,7 +22,8 @@
           <h3 data-testid="landing-plan-paid-name">{{ paid.name }}</h3>
           <p v-if="paid.prices.monthly" class="price num" data-testid="landing-plan-paid-price">{{ formatPrice(paid.prices.monthly.amount_cents) }} <small>por mês</small></p>
           <p v-if="annual" class="alt" data-testid="landing-plan-paid-annual">
-            ou {{ formatPrice(annual.amount_cents) }} por ano<template v-if="annual.monthly_equivalent_cents"> ({{ formatPrice(annual.monthly_equivalent_cents) }} por mês, cobrado uma vez por ano)</template>
+            <!-- The annual offer of the catalog: the monthly share is an equivalence, never a charge (decisão do dono, 08/11) -->
+            ou {{ annual.offer_line || `${formatPrice(annual.amount_cents)} por ano` }}
           </p>
           <ul>
             <li v-for="line in paidLines" :key="line">

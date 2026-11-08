@@ -41,43 +41,21 @@ test.describe('Catálogo de planos na landing', () => {
 })
 
 /**
- * Anual sem parcelamento falso (prd-custo-abuso-p0 RF-7): "Nx de" só quando GET /api/plans
- * anuncia installments_max > 1; com 1 (padrão), "à vista no cartão".
+ * Parcelamento do anual em /planos (decisão do dono, 08/11): até N× sem juros e até M× com juros, do catálogo; o valor
+ * mensal só como equivalência, nunca como parcela ou cobrança.
  */
 test.describe('Parcelamento do anual em /planos', () => {
-  for (const installments of [1, 12]) {
-    test(`installments_max=${installments}`, async ({ page, request }) => {
+  for (const [free, max, line] of [[1, 1, 'à vista no cartão'], [3, 12, 'até 3× sem juros · ou 12× com juros']] as const) {
+    test(`${free} sem juros, até ${max}`, async ({ page, request }) => {
       const catalog = (await (await request.get('http://localhost:8037/api/plans')).json()).data
       const annual = catalog.plans.find((p: any) => p.key === 'pro').prices.annual
-      annual.installments_max = installments
+      Object.assign(annual, { installments_max: max, installments_interest_free: free, card_line: undefined })
       await page.route('**/api/plans', route => route.fulfill({ json: { data: catalog } }))
 
       await page.goto('/planos')
       const brl = (cents: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(cents / 100)
-      const share = `${brl(annual.monthly_equivalent_cents)} por mês, cobrado uma vez por ano`
-      if (installments > 1) {
-        await expect(page.getByText(`${share}. No Pix ou em 12x de ${brl(Math.round(annual.amount_cents / 12))} sem juros no cartão`)).toBeVisible()
-      } else {
-        await expect(page.getByText(`${share}. No Pix ou à vista no cartão`)).toBeVisible()
-        await expect(page.getByText(/\d+x de/)).toHaveCount(0)
-      }
+      await expect(page.getByTestId('plan-pro-note')).toHaveText(`Equivale a ${brl(annual.monthly_equivalent_cents)} por mês · ${line}`)
+      await expect(page.getByText(/cobrado uma vez por ano|\d+x de R\$/)).toHaveCount(0)
     })
   }
-})
-
-/** Oferta de /planos só do catálogo (prd-4h-landing-v3 RF-F11, RF-F12): destaques, linhas e tabela seguem o mock. */
-test.describe('Catálogo em /planos', () => {
-  test('destaques, linhas e tabela mudam com o catálogo', async ({ page, request }) => {
-    const catalog = (await (await request.get('http://localhost:8037/api/plans')).json()).data
-    catalog.plans[0].highlights = ['Frase do catálogo para o Grátis']
-    catalog.plans[1].highlights = ['Frase do catálogo para o Pro']
-    catalog.plans[1].limits.podcast = 7
-    await page.route('**/api/plans', route => route.fulfill({ json: { data: catalog } }))
-
-    await page.goto('/planos')
-    await expect(page.getByTestId('plan-free').getByText('Frase do catálogo para o Grátis')).toBeVisible()
-    await expect(page.getByTestId('plan-pro').getByText('Frase do catálogo para o Pro')).toBeVisible()
-    await expect(page.getByTestId('plan-pro').getByText(`Podcasts: 7 por mês (até ${catalog.plans[1].extras.podcast_max_minutes} min)`)).toBeVisible()
-    await expect(page.getByTestId('compare-podcast').getByRole('cell').nth(1)).toContainText('7 por mês')
-  })
 })

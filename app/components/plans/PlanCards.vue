@@ -40,7 +40,9 @@
               <p class="text-page-title text-fg-strong tabular-nums" data-testid="plan-pro-price">
                 {{ formatPrice(annual ? annual.amount_cents : pro.prices.monthly.amount_cents) }}<span class="text-meta font-normal tracking-normal text-fg-muted">{{ annual ? '/ano' : '/mês' }}</span>
               </p>
-              <p class="mt-1 text-meta text-fg-muted" data-testid="plan-pro-note">{{ annualCopy || 'Cancele quando quiser, pelo portal de assinatura' }}</p>
+              <p class="mt-1 text-meta text-fg-muted" data-testid="plan-pro-note">{{ annualCopy || monthlyCopy }}</p>
+              <!-- The Pix discount, visible as such (Lei 13.455/2017) -->
+              <p v-if="annual?.pix" class="mt-1 mb-4 text-meta font-semibold text-fg-strong" data-testid="plan-pro-pix">Pix {{ formatPrice(annual.pix.amount_cents) }} ({{ annual.pix.discount_percent }}% de desconto)</p>
               <!-- "Assinatura em breve": the prices stay, with when paying opens -->
               <p v-if="!checkoutOpen" class="mt-1 mb-4 text-meta font-semibold text-fg-strong" data-testid="plan-checkout-soon-note">{{ CHECKOUT_SOON_NOTE }}</p>
             </template>
@@ -65,10 +67,11 @@
 import { Check } from 'lucide-vue-next'
 import type { BillingPeriod } from '~/components/plans/BillingToggle.vue'
 import { CHECKOUT_SOON_NOTE, checkoutAvailable } from '~/utils/checkout'
+import { annualCardLine } from '~/utils/checkoutState'
 
 // One skeleton row per line of the loaded list, in the li's rhythm (20 px + gap 10): the cards keep their final height
 // and nothing below them jumps (e2e planos-v3 "o esqueleto segura o layout"). Counts of the current catalog
-// (config/stripe.php highlights + planBenefitLines); a new line in the catalog means updating them here.
+// (config/billing.php highlights + planBenefitLines); a new line in the catalog means updating them here.
 const SKELETON_LINES = { free: 6, pro: 11 }
 
 const period = defineModel<BillingPeriod>('period', { required: true })
@@ -89,17 +92,18 @@ const savings = computed(() => {
 })
 
 /**
- * "R$ 19,99 por mês, cobrado uma vez por ano" (prd-planos-lancamento RF-F4), then how it is paid: "12x de R$ 19,99
- * sem juros no cartão" only when the Stripe account offers installments (installments_max > 1); otherwise "no Pix
- * ou à vista no cartão" (prd-custo-abuso-p0 RF-7).
+ * "Equivale a R$ 19,99 por mês · até 3× sem juros · ou 12× com juros" (decisão do dono, 08/11): the monthly share is an
+ * equivalence, never a charge or an installment; the card line is the catalog's (prd-pagamento-mercado-pago RF-F1).
  */
 const annualCopy = computed(() => {
   if (!annual.value) return ''
   const monthly = annual.value.monthly_equivalent_cents ?? Math.round(annual.value.amount_cents / 12)
-  const share = `${formatPrice(monthly)} por mês, cobrado uma vez por ano`
-  const installments = annual.value.installments_max ?? 1
-  return installments > 1
-    ? `${share}. No Pix ou em ${installments}x de ${formatPrice(Math.round(annual.value.amount_cents / installments))} sem juros no cartão`
-    : `${share}. No Pix ou à vista no cartão`
+  return `Equivale a ${formatPrice(monthly)} por mês · ${annualCardLine(annual.value)}`
+})
+
+/** Card renews by itself; the Pix pays 30 days once. */
+const monthlyCopy = computed(() => {
+  const days = pro.value?.prices.monthly?.pix_days
+  return days ? `No cartão, renova todo mês e cancela em dois cliques. Ou ${days} dias no Pix, sem renovação` : 'No cartão, renova todo mês e cancela em dois cliques'
 })
 </script>

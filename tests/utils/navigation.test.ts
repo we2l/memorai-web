@@ -41,6 +41,7 @@ const EXPECTED: Record<string, string | null> = {
   '/_ds': null,
   '/ajuda': null,
   '/auth/google/callback': null,
+  '/checkout': null,
   '/checkout/sucesso': null,
   '/comecar': null,
   '/comecar/:area': null,

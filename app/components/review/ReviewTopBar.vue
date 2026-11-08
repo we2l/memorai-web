@@ -1,7 +1,7 @@
 <template>
   <header class="border-b border-line bg-raised" data-testid="review-top">
     <div class="mx-auto flex max-w-page flex-wrap items-center gap-x-3 px-gutter py-2 max-sm:pb-1">
-      <UiLink :to="backTo" variant="muted" class="inline-flex min-h-touch shrink-0 items-center gap-1 font-medium" data-testid="review-exit">
+      <UiLink v-if="!onboarding" :to="backTo" variant="muted" class="inline-flex min-h-touch shrink-0 items-center gap-1 font-medium" data-testid="review-exit">
         <ChevronLeft class="size-4" aria-hidden="true" />Sair
       </UiLink>
       <!-- First review of the onboarding: the logo and the step, no scope (prd-4g RF-F5) -->
@@ -28,6 +28,8 @@
         <UiIconButton v-if="canUndo" :icon="Undo2" label="Desfazer (U)" size="sm" aria-keyshortcuts="U Control+Z" @click="$emit('undo')" />
         <UiIconButton v-if="canEdit" :icon="Pencil" label="Editar card (E)" size="sm" aria-keyshortcuts="E" @click="$emit('edit')" />
         <UiMenu v-if="!onboarding" :items="menu" label="Mais opções da revisão" />
+        <!-- The onboarding leaves by a quiet X at the end, not a "Sair" competing with the card (prd-revisao-v5-fase-a RF-F7) -->
+        <UiIconButton v-else :icon="X" :to="backTo" :label="exitLabel" size="sm" data-testid="review-exit" />
       </span>
     </div>
     <!-- Phone: the path of the slice goes to a 2nd line (above) and the bar to a 3rd -->
@@ -42,7 +44,7 @@
 // Região (todas as matérias)" or the path of the slice, "Lote 1 de 3 · card 14 de 20" with one bar per
 // batch (≤ 6 drawn), Desfazer, Editar and ⋯ (Modo foco, Atalhos, Relâmpago). On the phone the path goes
 // to a 2nd line and the count shortens.
-import { ChevronLeft, Pencil, Undo2 } from 'lucide-vue-next'
+import { ChevronLeft, Pencil, Undo2, X } from 'lucide-vue-next'
 import type { MenuItem } from '~/components/ui/Menu.vue'
 import { MAX_SEGMENTS, type BatchPosition } from '~/composables/useReviewBatches'
 
@@ -58,7 +60,9 @@ const props = withDefaults(defineProps<{
   onboarding?: boolean
   /** Next to the logo of the onboarding: "Passo 3 de 3" (v3) or "Exemplo de OAB" (the visitor's mini-lote, v4) */
   stepLabel?: string
-}>(), { scopeNote: undefined, blitzTo: undefined, stepLabel: 'Passo 3 de 3' })
+  /** The name of the onboarding's X */
+  exitLabel?: string
+}>(), { scopeNote: undefined, blitzTo: undefined, stepLabel: 'Passo 3 de 3', exitLabel: 'Sair' })
 const emit = defineEmits<{ (e: 'undo'): void; (e: 'edit'): void; (e: 'focus-mode'): void; (e: 'shortcuts'): void }>()
 
 const barProps = computed(() => {

@@ -192,10 +192,12 @@
       data-testid="review-footer"
     >
       <div class="mx-auto w-full max-w-3xl pb-3">
-        <ReviewRatings v-if="review.flipped" :intervals="review.currentIntervals" @rate="handleRate" />
+        <ReviewFeedback :feedback="feedback" class="mb-2" />
+        <ReviewRatings v-if="review.flipped" :intervals="review.currentIntervals" :mode="buttonsMode" @rate="handleRate" />
         <UiButton v-else variant="primary" block aria-keyshortcuts="Space" data-testid="review-show" @click="review.flip()">Mostrar resposta</UiButton>
+        <!-- Only with a mouse or trackpad (pointer: fine), where a keyboard is likely: never on a phone -->
         <p class="mt-2 hidden text-center text-label text-fg-muted pointer-fine:block" data-testid="review-keys">
-          <kbd class="font-sans">1</kbd> <kbd class="font-sans">2</kbd> <kbd class="font-sans">3</kbd> <kbd class="font-sans">4</kbd> · Espaço mostrar · U desfazer<template v-if="showShortcutTip"> · ? atalhos</template>
+          {{ reviewKeysHint(buttonsMode) }} · U desfazer<template v-if="showShortcutTip"> · ? atalhos</template>
         </p>
       </div>
     </footer>
@@ -238,6 +240,9 @@ import { reviewPath, scopeBackPath, scopeOf, scopeQuery, sessionScopeFromQuery }
 import { batchSummary, studyDayEnd } from '~/composables/useReviewBatches'
 import type { StreakInfo } from '~/components/review/ReviewBatchEnd.vue'
 import { MessageCircle } from 'lucide-vue-next'
+import { reviewButtonsOf, reviewKeysHint } from '~/utils/reviewButtons'
+import { feedbackText } from '~/utils/intervalLabel'
+import type { RatingFeedback } from '~/components/review/ReviewFeedback.vue'
 
 definePageMeta({ chrome: 'focus' })
 
@@ -352,7 +357,7 @@ const streakInfo = computed<StreakInfo | null>(() => {
   const s = statsNow.value
   if (!s) return null
   const extendedNow = !!s.streak_extended_today && !statsBefore.value?.streak_extended_today && !streakAnimated.value
-  return { current: s.streak, record: s.streak >= 3 && s.streak === (s.streak_longest ?? 0), extendedNow }
+  return { current: s.streak, record: s.streak >= 3 && s.streak === (s.streak_longest ?? 0), extendedNow, rest: s.streak_rest_available ?? null }
 })
 
 const announcement = ref('')
@@ -463,12 +468,25 @@ watch(() => review.finished && !review.saving, (done) => {
 })
 
 // === Rating ===
+// Two buttons by default, the 4 Anki ones as an option (prd-revisao-v5-fase-a RF-F1); read when the page opens
+const buttonsMode = computed(() => reviewButtonsOf(auth.user?.review_buttons))
+const RATING_KEY = { 1: 'again', 2: 'hard', 3: 'good', 4: 'easy' } as const
+const RATING_LABEL = { two: { 1: 'Não lembrei', 3: 'Lembrei' }, four: { 1: 'De novo', 2: 'Difícil', 3: 'Bom', 4: 'Fácil' } } as const
+/** The answer to the last rating (RF-F4): where the card goes, until the next one */
+const feedback = ref<RatingFeedback | null>(null)
+let feedbackId = 0
 function handleRate(rating: number) {
   const card = review.currentCard
-  if (!card || review.showErrorDiary || batchEndIndex.value) return
+  if (!card || review.showErrorDiary || batchEndIndex.value || !review.flipped) return
   if (rating <= 2) lastErrorCard.value = { ...card }
-  review.rate(rating as 1 | 2 | 3 | 4)
+  const r = rating as 1 | 2 | 3 | 4
+  const labels: Record<number, string> = RATING_LABEL[buttonsMode.value]
+  const text = feedbackText(labels[r] ?? RATING_LABEL.four[r], review.currentIntervals[RATING_KEY[r]] ?? '')
+  feedback.value = { id: ++feedbackId, remembered: r >= 2, text }
+  announcement.value = `${text}.`
+  review.rate(r)
 }
+watch(batchEndIndex, (index) => { if (index) feedback.value = null })
 
 async function handleUndo() {
   await review.undo()
@@ -496,16 +514,24 @@ onBeforeUnmount(() => document.removeEventListener('fullscreenchange', onFullscr
 
 // === Shortcuts (RF-F8) ===
 const showShortcuts = ref(false)
-const shortcutList = [
-  { keys: 'Espaço / Enter', label: 'Mostrar a resposta; com ela na tela, "Bom"' },
-  { keys: '1 2 3 4', label: 'De novo · Difícil · Bom · Fácil' },
+const shortcutList = computed(() => [
+  ...(buttonsMode.value === 'two'
+    ? [
+        { keys: 'Espaço / Enter', label: 'Mostrar a resposta; com ela na tela, "Lembrei"' },
+        { keys: '1 / ←', label: 'Não lembrei' },
+        { keys: '2 / →', label: 'Lembrei' },
+      ]
+    : [
+        { keys: 'Espaço / Enter', label: 'Mostrar a resposta; com ela na tela, "Bom"' },
+        { keys: '1 2 3 4', label: 'De novo · Difícil · Bom · Fácil' },
+      ]),
   { keys: 'O', label: 'Abrir a origem do card' },
   { keys: 'U / Ctrl+Z', label: 'Desfazer a última avaliação' },
   { keys: 'E', label: 'Editar o card atual' },
   { keys: 'Enter / Esc', label: 'No fim do lote: próximo lote / voltar' },
   { keys: '?', label: 'Mostrar ou esconder os atalhos' },
   { keys: 'Esc', label: 'Sair do modo foco; fechar o diário; senão, sair' },
-]
+])
 
 const showEditCard = ref(false)
 const editLoaded = useLoadedOnce(() => showEditCard.value)
@@ -546,6 +572,7 @@ useReviewShortcuts({
     else void navigateTo(backTo.value)
   },
   isFlipped: () => review.flipped,
+  mode: () => buttonsMode.value,
   isSuspended: () => showTimerModal.value || showEditCard.value || onboardingEnd.value,
   batchEnd: () => (batchEndIndex.value && !review.showErrorDiary
     ? { next: nextBatch, stop: () => { stopAtBatch(); void navigateTo(backTo.value) } }

@@ -52,6 +52,11 @@ export interface FrontEventProps {
   signup_from_guest: { area: GuestAreaProp, reviews_applied: number, created: boolean }
   first_own_material: { kind: OwnMaterialKind }
   settings_goal: { batches: number }
+  settings_batch_size: { size: number }
+  /** prd-revisao-v5-fase-a RF-F6 */
+  settings_review_buttons: { mode: 'two' | 'four' }
+  /** prd-revisao-v5-fase-a RF-F9: the commitment before the sign-up */
+  guest_commitment: { area: GuestAreaProp, goal_batches: number, has_exam: boolean }
   settings_section_open: { section: string }
   error_page: { status: number }
   auth_password_toggle: { visible: boolean }

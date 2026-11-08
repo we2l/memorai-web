@@ -1,13 +1,13 @@
 <template>
   <section
     class="flex w-full flex-col gap-4 rounded-card bg-raised p-6 shadow-card sm:min-h-72 sm:p-8"
-    :class="!flipped && 'cursor-pointer select-none'"
-    :aria-label="flipped ? 'Card com a resposta' : 'Card: toque ou Espaço para ver a resposta'"
+    :class="!flipped && 'select-none pointer-fine:cursor-pointer'"
+    :aria-label="flipped ? 'Card com a resposta' : 'Card: Espaço ou Mostrar resposta para ver a resposta'"
     :role="flipped ? 'region' : 'button'"
     :tabindex="flipped ? -1 : 0"
     data-review-card
     data-testid="review-card"
-    @click="!flipped && $emit('flip')"
+    @click="onClick"
   >
     <p v-if="label" class="text-label font-semibold text-fg-muted">{{ label }}</p>
     <div class="card-html break-words text-section text-fg-strong" data-testid="review-front" v-html="front" />
@@ -30,7 +30,7 @@
 
 <script setup lang="ts">
 // The card of the session (prd-4d-revisao-v3 RF-F3): the subject as a label, the question, and after the
-// turn (Espaço/Enter or a tap) the answer under a divider, with the origin. The answer fades in within
+// turn (Espaço/Enter, a click, or the button on a phone) the answer under a divider, with the origin. The answer fades in within
 // --motion-respond; with prefers-reduced-motion it just appears. Cloze and media as before.
 import type { Flashcard } from '~/types'
 
@@ -40,7 +40,15 @@ const props = defineProps<{
   /** Path of the subject ("Direito Constitucional › Controle") */
   label?: string
 }>()
-defineEmits<{ (e: 'flip'): void }>()
+const emit = defineEmits<{ (e: 'flip'): void }>()
+
+// On a touch screen the card never turns by a tap (prd-revisao-v5-fase-a RF-F3): scrolling or resting a finger on it
+// revealed the answer by accident. Only the "Mostrar resposta" button there; a mouse click still turns it.
+function onClick() {
+  if (props.flipped) return
+  if (typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches) return
+  emit('flip')
+}
 
 const { renderQuestion, renderAnswer } = useCloze()
 const { sanitize } = useSanitize()

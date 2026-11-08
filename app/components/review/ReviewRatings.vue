@@ -1,40 +1,60 @@
 <template>
-  <div role="group" aria-label="Como foi" class="grid grid-cols-4 gap-2" data-testid="review-ratings">
+  <div role="group" aria-label="Como foi" class="grid gap-2" :class="mode === 'two' ? 'grid-cols-2' : 'grid-cols-4'" data-testid="review-ratings" :data-mode="mode">
     <button
-      v-for="r in RATINGS"
+      v-for="r in ratings"
       :key="r.value"
       type="button"
-      class="flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-control px-1 py-2 text-meta font-semibold transition-colors duration-nav"
-      :class="r.value === 3 ? 'bg-action text-on-action shadow-press hover:bg-action-hover active:translate-y-0.5 active:shadow-press-active' : 'border border-line-strong bg-raised text-fg-strong hover:bg-subtle'"
-      :aria-keyshortcuts="String(r.value)"
-      :aria-label="`${r.label}${intervals[r.key] ? `, volta em ${intervals[r.key]}` : ''} (${r.value})`"
-      :data-variant="r.value === 3 ? 'primary' : 'secondary'"
+      class="flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-control px-1 py-2 font-semibold transition-colors duration-nav"
+      :class="[r.primary ? 'bg-action text-on-action shadow-press hover:bg-action-hover active:translate-y-0.5 active:shadow-press-active' : 'border border-line-strong bg-raised text-fg-strong hover:bg-subtle', mode === 'two' ? 'text-body' : 'text-meta']"
+      :aria-keyshortcuts="r.keys"
+      :aria-label="`${r.label}${intervals[r.key] ? `, volta em ${intervals[r.key]}` : ''} (${r.key_label})`"
+      :data-variant="r.primary ? 'primary' : 'secondary'"
       :data-testid="`rate-${r.value}`"
       @click="$emit('rate', r.value)"
     >
       <span class="flex items-center gap-1.5">
-        <kbd class="hidden rounded-tag border px-1 font-sans text-label pointer-fine:inline" :class="r.value === 3 ? 'border-on-action/40' : 'border-line-strong text-fg-muted'" aria-hidden="true">{{ r.value }}</kbd>
+        <kbd class="hidden rounded-tag border px-1 font-sans text-label pointer-fine:inline" :class="r.primary ? 'border-on-action/40' : 'border-line-strong text-fg-muted'" aria-hidden="true">{{ r.key_label }}</kbd>
         {{ r.label }}
       </span>
-      <span class="text-label font-normal" :class="r.value === 3 ? 'text-on-action' : 'text-fg-muted'" aria-hidden="true">{{ intervals[r.key] || '·' }}</span>
+      <span class="text-label font-normal" :class="r.primary ? 'text-on-action' : 'text-fg-muted'" aria-hidden="true">{{ intervalText(r.key) }}</span>
     </button>
   </div>
 </template>
 
 <script setup lang="ts">
-// The 4 ratings of the review (prd-4d-revisao-v3 RF-F4): the same order in every size of screen
-// (1 De novo · 2 Difícil · 3 Bom · 4 Fácil, the Anki convention), the interval under each and the key on
-// a pointer device. "Bom" is the screen's single primary while the answer shows. 4 in a row on a 390 px
-// phone (≈ 82 px each, 56 px tall).
+// The ratings of the review. Two (prd-revisao-v5-fase-a RF-F1, the default): "Não lembrei" (neutral, never red) and
+// "Lembrei" (the screen's single primary), Again = 1 and Good = 3 in the FSRS, keys 1 and 2. Four (prd-4d-revisao-v3
+// RF-F4, the option): 1 De novo · 2 Difícil · 3 Bom · 4 Fácil, the Anki convention, "Bom" primary. The interval under
+// each, the key on a pointer device. `again` can say where the card goes instead ("no fim do lote" in the visitor's lote).
+import type { ReviewButtonsMode } from '~/utils/reviewButtons'
+
 type Key = 'again' | 'hard' | 'good' | 'easy'
 
-defineProps<{ intervals: Record<Key, string> }>()
+const props = withDefaults(defineProps<{
+  intervals: Record<Key, string>
+  mode?: ReviewButtonsMode
+  /** Replaces the interval under "Não lembrei" (the visitor: "no fim do lote") */
+  againText?: string
+}>(), { mode: 'four', againText: undefined })
 defineEmits<{ (e: 'rate', rating: 1 | 2 | 3 | 4): void }>()
 
-const RATINGS: { value: 1 | 2 | 3 | 4; key: Key; label: string }[] = [
-  { value: 1, key: 'again', label: 'De novo' },
-  { value: 2, key: 'hard', label: 'Difícil' },
-  { value: 3, key: 'good', label: 'Bom' },
-  { value: 4, key: 'easy', label: 'Fácil' },
+interface Rating { value: 1 | 2 | 3 | 4; key: Key; label: string; primary: boolean; keys: string; key_label: string }
+
+const FOUR: Rating[] = [
+  { value: 1, key: 'again', label: 'De novo', primary: false, keys: '1', key_label: '1' },
+  { value: 2, key: 'hard', label: 'Difícil', primary: false, keys: '2', key_label: '2' },
+  { value: 3, key: 'good', label: 'Bom', primary: true, keys: '3', key_label: '3' },
+  { value: 4, key: 'easy', label: 'Fácil', primary: false, keys: '4', key_label: '4' },
 ]
+const TWO: Rating[] = [
+  { value: 1, key: 'again', label: 'Não lembrei', primary: false, keys: '1 ArrowLeft', key_label: '1' },
+  { value: 3, key: 'good', label: 'Lembrei', primary: true, keys: '2 ArrowRight Space', key_label: '2' },
+]
+
+const ratings = computed(() => (props.mode === 'two' ? TWO : FOUR))
+
+function intervalText(key: Key): string {
+  if (key === 'again' && props.againText) return props.againText
+  return props.intervals[key] || '·'
+}
 </script>

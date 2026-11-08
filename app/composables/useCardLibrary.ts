@@ -8,13 +8,15 @@ export const REVIEW_SELECTION_MAX = 100
 export const MOVE_SELECTION_MAX = 500
 
 export type LibrarySort = 'due' | 'created' | 'lapses'
-export type LibraryState = 'new' | 'learning' | 'due' | 'in_day'
+export type LibraryState = 'new' | 'learning' | 'due' | 'in_day' | 'suspended'
 
 export const LIBRARY_STATES: { value: LibraryState; label: string }[] = [
   { value: 'new', label: 'Novos' },
   { value: 'learning', label: 'Aprendendo' },
   { value: 'due', label: 'Vencidos' },
   { value: 'in_day', label: 'Em dia' },
+  // Paused in the review (prd-revisao-v5-fase-b RF-F8); the other states leave them out
+  { value: 'suspended', label: 'Pausados' },
 ]
 
 export const LIBRARY_SORTS: { value: LibrarySort; label: string }[] = [
@@ -23,13 +25,15 @@ export const LIBRARY_SORTS: { value: LibrarySort; label: string }[] = [
   { value: 'lapses', label: 'Mais errados' },
 ]
 
-/** Filters of the library, mirrored in the URL (?q=&state=&origin=&errors=1&tag=&sort=). */
+/** Filters of the library, mirrored in the URL (?q=&state=&origin=&errors=1&leech=1&tag=&sort=). */
 export interface LibraryFilters {
   q: string
   state: LibraryState[]
   /** '' (all) · note:<id> · document:<id> · quiz · loose */
   origin: string
   errors: boolean
+  /** "Não estão colando": the leech mark of the API (prd-revisao-v5-fase-b RF-F8) */
+  leech: boolean
   tag: string
   sort: LibrarySort
 }
@@ -49,6 +53,7 @@ export function filtersFromQuery(query: Record<string, unknown>): LibraryFilters
     state: [...new Set(states)],
     origin: ORIGIN_RE.test(origin) ? origin : '',
     errors: str(query.errors) === '1',
+    leech: str(query.leech) === '1',
     tag: str(query.tag).trim(),
     sort: LIBRARY_SORTS.some(o => o.value === sort) ? sort as LibrarySort : 'due',
   }
@@ -61,6 +66,7 @@ export function filtersToQuery(f: LibraryFilters): Record<string, string> {
   if (f.state.length) out.state = f.state.join(',')
   if (f.origin) out.origin = f.origin
   if (f.errors) out.errors = '1'
+  if (f.leech) out.leech = '1'
   if (f.tag) out.tag = f.tag
   if (f.sort !== 'due') out.sort = f.sort
   return out
@@ -74,12 +80,13 @@ export function libraryParams(f: LibraryFilters, cursor?: string | null, limit =
   if (f.state.length) out.state = f.state.join(',')
   if (f.origin) out.origin = f.origin
   if (f.errors) out.errors = 1
+  if (f.leech) out.leech = 1
   if (f.tag) out.tag = f.tag
   return out
 }
 
 export function hasFilters(f: LibraryFilters): boolean {
-  return !!(f.q || f.state.length || f.origin || f.errors || f.tag)
+  return !!(f.q || f.state.length || f.origin || f.errors || f.leech || f.tag)
 }
 
 /**
@@ -151,14 +158,14 @@ export function useCardLibrary(topicId: Ref<string>) {
   function setFilters(patch: Partial<LibraryFilters>) {
     const base = pendingQuery ?? route.query
     const next = { ...filtersFromQuery(base), ...patch }
-    const { q: _q, state: _s, origin: _o, errors: _e, tag: _t, sort: _so, source_note_id: _legacy, ...rest } = base
+    const { q: _q, state: _s, origin: _o, errors: _e, leech: _l, tag: _t, sort: _so, source_note_id: _legacy, ...rest } = base
     const query = { ...rest, ...filtersToQuery(next) }
     pendingQuery = query
     void router.replace({ query: query as Record<string, string> }).finally(() => { if (pendingQuery === query) pendingQuery = null })
   }
 
   function clearFilters() {
-    setFilters({ q: '', state: [], origin: '', errors: false, tag: '' })
+    setFilters({ q: '', state: [], origin: '', errors: false, leech: false, tag: '' })
   }
 
   // === Selection ===

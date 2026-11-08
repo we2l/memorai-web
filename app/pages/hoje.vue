@@ -138,4 +138,6 @@ onMounted(async () => {
 watch(() => route.fullPath, () => {
   if (route.path === '/hoje') loadData()
 })
+// A plan made, cancelled or the new cards back (prd-revisao-v5-fase-b RF-F2): the numbers of the day change
+watch(useBacklogPlan().changed, () => loadData())
 </script>

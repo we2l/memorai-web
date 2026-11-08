@@ -62,6 +62,12 @@
         data-testid="card-errors"
         @update:model-value="(v: boolean) => emitSet({ errors: v }, 'errors')"
       />
+      <UiCheckbox
+        :model-value="filters.leech"
+        label="Não estão colando"
+        data-testid="card-leech"
+        @update:model-value="(v: boolean) => emitSet({ leech: v }, 'leech')"
+      />
       <UiButton v-if="active" size="sm" variant="ghost" data-testid="card-clear" @click="clear">Limpar filtros</UiButton>
     </div>
   </div>
@@ -81,7 +87,7 @@ const props = defineProps<{
   tags: string[]
 }>()
 const emit = defineEmits<{
-  (e: 'change', patch: Partial<LibraryFilters>, filter: 'q' | 'state' | 'origin' | 'errors' | 'tag' | 'sort'): void
+  (e: 'change', patch: Partial<LibraryFilters>, filter: 'q' | 'state' | 'origin' | 'errors' | 'leech' | 'tag' | 'sort'): void
   (e: 'clear'): void
 }>()
 
@@ -105,7 +111,7 @@ const tagOptions = computed<SelectOption[]>(() => {
   return [{ value: '', label: 'Todas as etiquetas' }, ...all.map(t => ({ value: t, label: t }))]
 })
 
-function emitSet(patch: Partial<LibraryFilters>, filter: 'q' | 'state' | 'origin' | 'errors' | 'tag' | 'sort') {
+function emitSet(patch: Partial<LibraryFilters>, filter: 'q' | 'state' | 'origin' | 'errors' | 'leech' | 'tag' | 'sort') {
   emit('change', patch, filter)
 }
 

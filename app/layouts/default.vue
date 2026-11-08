@@ -21,6 +21,7 @@
     <LazyShellCommandPalette v-if="paletteLoaded" />
     <LazyShellAddSheet v-if="addLoaded" />
     <LazyQuestionPasteSheet v-if="pasteLoaded" />
+    <LazyBacklogPlanSheet v-if="backlogLoaded" />
 
     <LazyUiUpgradeModal
       v-if="upgradeLoaded"
@@ -83,6 +84,8 @@ const paletteLoaded = useLoadedOnce(() => paletteOpen.value)
 const addLoaded = useLoadedOnce(() => addSheet.open.value)
 const pasteQuestion = usePasteQuestion()
 const pasteLoaded = useLoadedOnce(() => pasteQuestion.open.value)
+const backlogPlan = useBacklogPlan()
+const backlogLoaded = useLoadedOnce(() => backlogPlan.open.value)
 
 // ?add=question opens "Questão que errei" (the PWA shortcut, prd-questao-errada RF-F3); the query goes away
 watch(() => route.query.add, (add) => {

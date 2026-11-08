@@ -81,7 +81,7 @@
 
     <LazyCadernoMoveDialog v-if="moveLoaded" v-model="moveOpen" :item="moveItem" @moved="onMoved" />
 
-    <LazyCardsCardDialog v-if="dialogLoaded" v-model="dialogOpen" :card="openedCard" :topic-id="id" @edit="openEditCard" @delete="askDelete" />
+    <LazyCardsCardDialog v-if="dialogLoaded" v-model="dialogOpen" :card="openedCard" :topic-id="id" @edit="openEditCard" @delete="askDelete" @resumed="onResumed" />
 
     <LazyFlashcardCardFormModal
       v-if="cardFormLoaded"
@@ -165,7 +165,7 @@ const countText = computed(() => {
 })
 
 // === Filters ===
-function onFilter(patch: Partial<LibraryFilters>, filter: 'q' | 'state' | 'origin' | 'errors' | 'tag' | 'sort') {
+function onFilter(patch: Partial<LibraryFilters>, filter: 'q' | 'state' | 'origin' | 'errors' | 'leech' | 'tag' | 'sort') {
   lib.setFilters(patch)
   track('library_filter', { filter })
 }
@@ -238,6 +238,12 @@ async function onCreated() {
 }
 function onUpdated(card?: { id: string; front: string; back: string }) {
   if (card) lib.replaceCard(card)
+}
+/** "Retomar" a paused card (prd-revisao-v5-fase-b RF-F8): the row loses the mark; with the "Pausados" filter it leaves */
+function onResumed(card: LibraryCard) {
+  dialogOpen.value = false
+  if (lib.filters.value.state.includes('suspended')) lib.removeCard(card.id)
+  else lib.replaceCard(card)
 }
 
 const showDeleteCard = ref(false)

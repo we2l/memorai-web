@@ -8,6 +8,8 @@
   >
     <component :is="feedback.remembered ? Check : RotateCcw" class="size-4 shrink-0" aria-hidden="true" />
     {{ feedback.text }}
+    <!-- After a swipe: undo for 5 s (prd-revisao-v5-fase-b RF-F10) -->
+    <button v-if="feedback.undo" type="button" class="hit-touch ml-1 underline underline-offset-2 hover:text-fg-strong" data-testid="review-feedback-undo" @click="$emit('undo')">Desfazer</button>
   </p>
 </template>
 
@@ -19,9 +21,10 @@
 // no sound (D4), and the mascot only at the end of the lote.
 import { Check, RotateCcw } from 'lucide-vue-next'
 
-export interface RatingFeedback { id: number; remembered: boolean; text: string }
+export interface RatingFeedback { id: number; remembered: boolean; text: string; undo?: boolean }
 
 defineProps<{ feedback: RatingFeedback }>()
+defineEmits<{ (e: 'undo'): void }>()
 </script>
 
 <style scoped>

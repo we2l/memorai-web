@@ -96,6 +96,7 @@
           :errors-to="errorsScope ? reviewPath(errorsScope, { errorsOnly: true, origin: scopeOrigin }) : null"
           :errors-count="errorsCount"
           :retention="!isBlitz && !isErrorsOnly"
+          :backlog="statsNow?.backlog ?? null"
         >
           <template v-if="!tomorrowFailed" #tomorrow>
             <LazyReviewSessionTomorrow :forecast="tomorrow" :loading="tomorrowLoading" :enabling="enablingReminder" @enable-reminder="enableReminder" />
@@ -140,7 +141,10 @@
           :card="review.showErrorDiary && review.diary ? review.diary.card : review.currentCard"
           :flipped="review.flipped || review.showErrorDiary"
           :label="cardLabel"
-          @flip="review.flip()"
+          :swipe-enabled="swipeEnabled"
+          :swipe-labels="buttonsMode === 'two' ? { right: 'Lembrei', left: 'Não lembrei' } : { right: 'Bom', left: 'De novo' }"
+          @flip="onCardFlip"
+          @swipe="(r) => handleRate(r, { answer_mode: 'swipe' })"
         >
           <template #origin>
             <ReviewOrigin
@@ -154,8 +158,20 @@
           </template>
         </ReviewCard>
 
+        <!-- The card that never sticks (prd-revisao-v5-fase-b RF-F7): what helps, from the leech mark -->
+        <LazyReviewLeech
+          v-if="review.flipped && !review.showErrorDiary && !isOnboarding && shownCard?.is_leech"
+          :lapses="shownCard.lapses"
+          :has-origin="!!shownCard.origin"
+          :can-explain="true"
+          @origin="openOrigin"
+          @rewrite="openEdit"
+          @explain="explainCard"
+          @pause="pauseCard"
+        />
+
         <!-- The first batch of the onboarding has no AI on the way: nothing to confirm, nothing to spend -->
-        <div v-if="review.flipped && !review.showErrorDiary && !isOnboarding" class="flex justify-center">
+        <div v-if="review.flipped && !review.showErrorDiary && !isOnboarding && !shownCard?.is_leech" class="flex justify-center">
           <UiButton size="sm" variant="ghost" :icon-left="MessageCircle" data-testid="review-explain" @click="explainCard">Explicar este card</UiButton>
         </div>
 
@@ -192,12 +208,26 @@
     >
       <div class="mx-auto w-full max-w-3xl pb-3">
         <!-- The answer to the last rating (RF-F4); its own chunk, loaded on the 1st rating -->
-        <div class="mb-2 flex min-h-8 justify-center"><LazyReviewFeedback v-if="feedback" :feedback="feedback" /></div>
-        <ReviewRatings v-if="review.flipped" :intervals="review.currentIntervals" :mode="buttonsMode" @rate="handleRate" />
-        <UiButton v-else variant="primary" block aria-keyshortcuts="Space" data-testid="review-show" @click="review.flip()">Mostrar resposta</UiButton>
+        <div class="mb-2 flex min-h-8 justify-center"><LazyReviewFeedback v-if="feedback" :feedback="feedback" @undo="undoFromFeedback" /></div>
+        <!-- Certo/Errado or typed answer where the card allows it (prd-revisao-v5-fase-b RF-F5, RF-F6) -->
+        <LazyReviewCheck
+          v-if="currentCheck"
+          :key="review.currentCard.id"
+          ref="checkRef"
+          :check="currentCheck"
+          :flipped="review.flipped"
+          @flip="review.flip()"
+          @rate="handleRate"
+          @skip="skipCheck"
+          @typing="feedback = null"
+        />
+        <template v-else>
+          <ReviewRatings v-if="review.flipped" :intervals="review.currentIntervals" :mode="buttonsMode" @rate="handleRate" />
+          <UiButton v-else variant="primary" block aria-keyshortcuts="Space" data-testid="review-show" @click="review.flip()">Mostrar resposta</UiButton>
+        </template>
         <!-- Only with a mouse or trackpad (pointer: fine), where a keyboard is likely: never on a phone -->
         <p class="mt-2 hidden text-center text-label text-fg-muted pointer-fine:block" data-testid="review-keys">
-          {{ reviewKeysHint(buttonsMode) }} · U desfazer<template v-if="showShortcutTip"> · ? atalhos</template>
+          {{ keysHint }} · U desfazer<template v-if="showShortcutTip"> · ? atalhos</template>
         </p>
       </div>
     </footer>
@@ -234,7 +264,8 @@
 // reward moved from each rating (the old toasts) to the end of the batch; the 3 banners became one line; the
 // "Mergulhar" became the focus mode. Slices of the F2 (scope=, card_ids, origin, ahead, errors_only), the
 // blitz (5 min, no batches), the session timer, undo, the error diary and the unsent ratings stay as they were.
-import type { Stats, TomorrowForecast } from '~/types'
+import type { CardCheck, Stats, TomorrowForecast } from '~/types'
+import type { ReviewAnswer, SessionCard } from '~/stores/review'
 import { cadernoPath, markScopeCleared } from '~/utils/scope'
 import { reviewPath, scopeBackPath, scopeOf, scopeQuery, sessionScopeFromQuery } from '~/utils/reviewScope'
 import { batchSummary, studyDayEnd } from '~/composables/useReviewBatches'
@@ -264,6 +295,7 @@ const showTimerModal = ref(false)
 const isSurvivalMode = ref(false)
 const isBlitz = ref(false)
 const isErrorsOnly = computed(() => route.query.errors_only === '1')
+const isBacklogSession = computed(() => route.query.backlog === '1')
 const querySlice = computed(() => sessionScopeFromQuery(route.query))
 const scopeTopicId = computed(() => querySlice.value.topicId ?? (querySlice.value.scope?.type === 'topic' ? querySlice.value.scope.id : null))
 const isAhead = computed(() => !!querySlice.value.ahead)
@@ -312,6 +344,11 @@ const contextText = computed(() => {
   }
   if (isSurvivalMode.value) return 'Modo recuperação ligado: só os 20 mais urgentes'
   if (isAhead.value) return 'Praticando adiantado: o agendamento continua sendo atualizado'
+  // The backlog (prd-revisao-v5-fase-b RF-F4)
+  if (isBacklogSession.value) return 'Só o atraso: os que você está mais perto de esquecer vêm primeiro'
+  const plan = review.backlog?.plan
+  if (plan) return `Recuperando o atraso · dia ${plan.day} de ${plan.days}${review.backlog?.new_paused ? ' · novos pausados' : ''}`
+  if (review.backlog?.active) return review.backlog.new_paused ? 'O atraso ficou de fora deste lote · novos pausados' : 'O atraso ficou de fora deste lote'
   return ''
 })
 
@@ -470,23 +507,87 @@ watch(() => review.finished && !review.saving, (done) => {
 // === Rating ===
 // Two buttons by default, the 4 Anki ones as an option (prd-revisao-v5-fase-a RF-F1); read when the page opens
 const buttonsMode = computed(() => reviewButtonsOf(auth.user?.review_buttons))
+
+// Verification (prd-revisao-v5-fase-b RF-F5, RF-F6): the card's check, unless the person chose to rate it by memory
+const checkSkipped = ref<string | null>(null)
+const currentCheck = computed<CardCheck | null>(() => {
+  const card = review.currentCard
+  if (!card?.check || review.showErrorDiary || isOnboarding.value) return null
+  return checkSkipped.value === card.id ? null : card.check
+})
+const checkRef = ref<{ choose: (c: 'certo' | 'errado' | 'blank') => void } | null>(null)
+function skipCheck() {
+  checkSkipped.value = review.currentCard?.id ?? null
+  review.flip()
+}
+const keysHint = computed(() => {
+  if (currentCheck.value?.mode === 'true_false') return review.flipped ? 'Enter continuar' : 'C Certo · E Errado · B em branco'
+  if (currentCheck.value?.mode === 'typed') return review.flipped ? 'Enter confirmar' : 'Enter conferir'
+  return reviewKeysHint(buttonsMode.value)
+})
+/** Swipe to rate (RF-F10): the person's choice, never on a checked card */
+const swipeEnabled = computed(() => !!auth.user?.review_swipe && !currentCheck.value && !review.showErrorDiary)
+/** On a checked card the click on the card does not turn it: the answer comes first */
+function onCardFlip() {
+  if (!currentCheck.value) review.flip()
+}
 const RATING_KEY = { 1: 'again', 2: 'hard', 3: 'good', 4: 'easy' } as const
 const RATING_LABEL = { two: { 1: 'Não lembrei', 3: 'Lembrei' }, four: { 1: 'De novo', 2: 'Difícil', 3: 'Bom', 4: 'Fácil' } } as const
 /** The answer to the last rating (RF-F4): where the card goes, until the next one */
 const feedback = ref<RatingFeedback | null>(null)
 let feedbackId = 0
-function handleRate(rating: number) {
+function handleRate(rating: number, answer?: ReviewAnswer) {
   const card = review.currentCard
   if (!card || review.showErrorDiary || batchEndIndex.value || !review.flipped) return
   if (rating <= 2) lastErrorCard.value = { ...card }
   const r = rating as 1 | 2 | 3 | 4
   const labels: Record<number, string> = RATING_LABEL[buttonsMode.value]
-  const text = feedbackText(labels[r] ?? RATING_LABEL.four[r], review.currentIntervals[RATING_KEY[r]] ?? '')
-  feedback.value = { id: ++feedbackId, remembered: r >= 2, text }
+  const label = answer?.answer_mode === 'true_false' || answer?.answer_mode === 'typed'
+    ? CHECK_LABEL[answer.answer_outcome ?? 'wrong']
+    : labels[r] ?? RATING_LABEL.four[r]
+  const text = feedbackText(label, review.currentIntervals[RATING_KEY[r]] ?? '')
+  const swiped = answer?.answer_mode === 'swipe'
+  feedback.value = { id: ++feedbackId, remembered: r >= 2, text, undo: swiped }
+  if (swiped) {
+    // "Desfazer" on the pill for 5 s after a gesture (RF-F10)
+    const id = feedbackId
+    setTimeout(() => { if (feedback.value?.id === id) feedback.value = { ...feedback.value, undo: false } }, 5000)
+  }
   announcement.value = `${text}.`
-  review.rate(r)
+  review.rate(r, answer ?? { answer_mode: buttonsMode.value === 'two' ? 'self_binary' : 'self_four' })
+}
+const CHECK_LABEL = { correct: 'Acertou', wrong: 'Errou', blank: 'Em branco' } as const
+function undoFromFeedback() {
+  feedback.value = null
+  void handleUndo()
+}
+
+// "Pausar o card" (RF-F7): it leaves the session now; "Desfazer" brings it back here
+async function pauseCard() {
+  const removed = review.removeCurrent()
+  if (!removed) return
+  track('review_card_paused', { lapses: removed.card.lapses })
+  try {
+    await $api(`/flashcards/${removed.card.id}/suspend`, { method: 'POST' })
+    useToast().show('Card pausado. Ele não volta às revisões até você retomar na biblioteca.', 'success', {
+      duration: 8000,
+      action: {
+        label: 'Desfazer',
+        onClick: () => {
+          $api(`/flashcards/${removed.card.id}/suspend`, { method: 'DELETE' })
+            .then(() => review.restoreRemoved(removed))
+            .catch((e: unknown) => reportApiError(e, { error: 'Não foi possível retomar o card.' }))
+        },
+      },
+    })
+  } catch (e) {
+    review.restoreRemoved(removed)
+    reportApiError(e, { error: 'Não foi possível pausar o card.' })
+  }
 }
 watch(batchEndIndex, (index) => { if (index) feedback.value = null })
+// The pill speaks of the previous card: it leaves when the next one turns, never next to its answer or its check
+watch(() => review.flipped, (flipped) => { if (flipped) feedback.value = null })
 
 async function handleUndo() {
   await review.undo()
@@ -541,7 +642,7 @@ function openEdit() {
   editingCard.value = { ...review.currentCard }
   showEditCard.value = true
 }
-function onCardUpdated(card?: { id: string; front: string; back: string }) {
+function onCardUpdated(card?: { id: string; front: string; back: string } & Partial<Pick<SessionCard, 'check' | 'answer_check' | 'check_answer'>>) {
   if (card) review.updateCurrentContent(card)
 }
 
@@ -564,6 +665,8 @@ useReviewShortcuts({
   openOrigin,
   flip: () => { if (review.currentCard && !review.showErrorDiary) review.flip() },
   rate: (r) => { if (review.flipped && !review.showErrorDiary) handleRate(r) },
+  checkMode: () => currentCheck.value?.mode ?? null,
+  answerTrueFalse: (c) => checkRef.value?.choose(c),
   undo: () => { if (review.canUndo) void handleUndo() },
   toggleHelp: () => { showShortcuts.value = !showShortcuts.value },
   escape: () => {

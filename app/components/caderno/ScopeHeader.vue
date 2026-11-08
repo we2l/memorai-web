@@ -54,7 +54,15 @@
       </div>
 
       <p v-if="quizInHeader && quizBlocked" class="text-meta text-fg-muted">Questões: {{ quizBlocked }}</p>
-      <p v-if="overdue > sessionCount" class="text-meta text-fg-muted" data-testid="scope-overdue">
+      <!-- The backlog apart from "Revisar hoje" (prd-revisao-v5-fase-b RF-F3); older API builds: the old line -->
+      <LazyBacklogLine
+        v-if="summary.backlog"
+        :backlog="summary.backlog"
+        :count="summary.session.backlog ?? 0"
+        scope="caderno"
+        origin="caderno"
+      />
+      <p v-else-if="overdue > sessionCount" class="text-meta text-fg-muted" data-testid="scope-overdue">
         {{ fmt(overdue) }} atrasados ·
         <UiLink :to="`/revisar?topic_id=${summary.topic.id}&backlog=1`">Recuperar atraso</UiLink>
       </p>

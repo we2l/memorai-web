@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { CardOrigin, Flashcard, WeakConnection } from '~/types'
+import type { BacklogState, CardOrigin, Flashcard, WeakConnection } from '~/types'
 import { getErrorStatus } from '~/utils/apiErrors'
 import { scopeQuery, type ReviewScope, type SessionScopeInfo } from '~/utils/reviewScope'
 import { REVIEW_BATCH, reviewBatchSizeOf } from '~/utils/reviewBatch'
@@ -49,10 +49,18 @@ export interface SessionOptions {
 }
 export type ErrorDiaryMode = 'always' | 'sometimes' | 'never'
 
+/** How the person answered (prd-revisao-v5-fase-b RF-B11): sent with the rating, recorded in reviews */
+export interface ReviewAnswer {
+  answer_mode: 'self_binary' | 'self_four' | 'true_false' | 'typed' | 'swipe'
+  answer_outcome?: 'correct' | 'wrong' | 'blank'
+  typed_match?: boolean
+}
+
 export interface QueueItem {
   client_id: string
   flashcard_id: string
   rating: Rating
+  answer?: ReviewAnswer
   attempts: number
   status: 'pending' | 'sending'
   /** Undone while in flight: the server review is undone as soon as it answers. */
@@ -115,6 +123,10 @@ export const useReviewStore = defineStore('review', {
     hints: [] as { type: string; text: string }[],
     hintsLoading: false,
     retaFinal: null as { active: boolean; exam_titles: string[]; extra_count: number } | null,
+    /** The backlog state the session was built with (prd-revisao-v5-fase-b RF-B7) */
+    backlog: null as BacklogState | null,
+    /** "Esse card não está colando" from this many errors (RF-B12) */
+    leechLapses: 4,
     // GET /review/session pages (≤ 100 cards, prd-performance-caderno RF-F7): one continuous session
     sessionQuery: '',
     /** The slice the API reports for this session (null = the global one; prd-caderno-f2-recorte RF-B5) */
@@ -217,6 +229,7 @@ export const useReviewStore = defineStore('review', {
       this.diary = null
       this._pendingAdvance = null
       this.retaFinal = null
+      this.backlog = null
       this.undoStack = []
       this.ratingsCount = { 1: 0, 2: 0, 3: 0, 4: 0 }
       this.errorsThisSession = 0
@@ -243,6 +256,8 @@ export const useReviewStore = defineStore('review', {
         this.sessionQuery = query
         this.scope = res.scope ?? null
         this.retaFinal = res.reta_final ?? null
+        this.backlog = res.backlog ?? null
+        this.leechLapses = res.leech_lapses ?? 4
         this.addPage(res)
 
         this.initialTotal = this.cards.length
@@ -327,14 +342,14 @@ export const useReviewStore = defineStore('review', {
     },
 
     /** Rate the current card: advances immediately and queues the submit (RF-F2.3). */
-    rate(rating: Rating) {
+    rate(rating: Rating, answer?: ReviewAnswer) {
       const card = this.currentCard
       if (!card || this.showErrorDiary) return
 
       const clientId = uuid()
       const wasFromLearningQueue = this.learningQueue.some(q => q.card.id === card.id)
 
-      this.reviewQueue.push({ client_id: clientId, flashcard_id: card.id, rating, attempts: 0, status: 'pending' })
+      this.reviewQueue.push({ client_id: clientId, flashcard_id: card.id, rating, answer, attempts: 0, status: 'pending' })
       this.undoStack.push({ client_id: clientId, rating, cardSnapshot: { ...card }, index: this.currentIndex, wasFromLearningQueue })
       if (this.undoStack.length > UNDO_MAX) this.undoStack.shift()
 
@@ -381,6 +396,38 @@ export const useReviewStore = defineStore('review', {
       void this.processQueue()
     },
 
+    /**
+     * "Pausar o card" (prd-revisao-v5-fase-b RF-F7): the card on screen leaves the session without a rating. Returns
+     * what restoreRemoved() needs to bring it back ("Desfazer").
+     */
+    removeCurrent(): { card: SessionCard; index: number; learning: boolean } | null {
+      const card = this.currentCard
+      if (!card) return null
+      const learning = this.learningQueue.some(q => q.card.id === card.id)
+      let index = this.currentIndex
+      if (learning) this.learningQueue = this.learningQueue.filter(q => q.card.id !== card.id)
+      else {
+        index = this.cards.findIndex(c => c.id === card.id)
+        if (index !== -1) this.cards.splice(index, 1)
+      }
+      this.sessionCount = Math.max(0, this.sessionCount - 1)
+      this.flipped = false
+      this.cardShownAt = Date.now()
+      this._tick++
+      this.checkFinished()
+      this.prefetchPage()
+      return { card, index, learning }
+    },
+
+    restoreRemoved(removed: { card: SessionCard; index: number; learning: boolean }) {
+      if (removed.learning) this.learningQueue.unshift({ card: removed.card, dueAt: Date.now() })
+      else this.cards.splice(Math.min(Math.max(removed.index, this.currentIndex), this.cards.length), 0, removed.card)
+      this.sessionCount++
+      this.finished = false
+      this.flipped = false
+      this._tick++
+    },
+
     /** Legacy entry point kept for callers; the answer is no longer awaited. */
     async submitReview(rating: Rating) {
       this.rate(rating)
@@ -406,7 +453,7 @@ export const useReviewStore = defineStore('review', {
           try {
             const res = await $api<any>('/review', {
               method: 'POST',
-              body: { flashcard_id: item.flashcard_id, rating: item.rating, client_id: item.client_id },
+              body: { flashcard_id: item.flashcard_id, rating: item.rating, client_id: item.client_id, ...item.answer },
             })
             this.reviewQueue.shift()
             if (item.cancelled) {
@@ -586,8 +633,10 @@ export const useReviewStore = defineStore('review', {
     },
 
     /** Edit (E) during review: content only, scheduling untouched (RF-F2.11). */
-    updateCurrentContent(card: Pick<Flashcard, 'id' | 'front' | 'back'>) {
-      const patch = (c: SessionCard) => (c.id === card.id ? { ...c, front: card.front, back: card.back } : c)
+    updateCurrentContent(card: Pick<Flashcard, 'id' | 'front' | 'back'> & Partial<Pick<Flashcard, 'check' | 'answer_check' | 'check_answer'>>) {
+      // + how the review checks it (prd-revisao-v5-fase-b RF-F7 "Reescrever"), when the editor sent it
+      const checked = 'check' in card ? { check: card.check, answer_check: card.answer_check, check_answer: card.check_answer } : {}
+      const patch = (c: SessionCard) => (c.id === card.id ? { ...c, front: card.front, back: card.back, ...checked } : c)
       this.cards = this.cards.map(patch)
       this.learningQueue = this.learningQueue.map(q => ({ ...q, card: patch(q.card) }))
     },

@@ -12,6 +12,7 @@
         <p class="text-meta text-fg-muted">
           {{ step.detail }}<template v-if="step.overdue && !step.survival"> · <UiLink to="/praticar">Recuperar atraso</UiLink></template>
         </p>
+        <LazyBacklogLine v-if="step.backlog && !step.survival" :backlog="step.backlog" origin="home" class="mt-1" />
         <p v-if="step.survival" class="flex flex-wrap items-center gap-1 text-meta text-fg-muted">
           Modo recuperação ligado ·
           <UiButton variant="ghost" size="sm" :loading="busy" @click="$emit('survival-off')">Desligar</UiButton>

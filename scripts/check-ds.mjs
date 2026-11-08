@@ -28,6 +28,8 @@
 //   dark-style       .dark inside a <style> (dark mode comes from the tokens)
 //   z-index          z-<n> / z-[n] outside ui/ and shell/ (z-sticky ... z-toast)
 //   deprecated       v2 names of scripts/ds-v3-map.json: classes and var(--v2) (the codemod swaps them)
+//   text-min         a font size below 13 px (ADR-035 §2, RN-4): text-[Npx|Nrem] in a class, font-size/font in a
+//                    <style> or app CSS; the landing keeps its own scale (ADR-028) and is out
 // And a warning (no ratchet): a page with more than one variant="primary" (ADR-027 §6).
 // Same allowlist and ratchet as check-tokens (scripts/ds-allowlist.json, scripts/ds-baseline.json).
 // Usage: node scripts/check-ds.mjs [--update] [--root <repo>] [--baseline <file>] [--allowlist <file>]
@@ -37,7 +39,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 import { allowedBy, blank, blankComments, cliOptions, lineLocator, listFiles, loadAllowlist, runRatchet } from './lib/ds-guard.mjs'
 
 export const GHOST_RULES = ['ghost-var', 'ghost-class', 'token-name']
-export const COMPONENT_RULES = ['component-class', 'overlay', 'spin', 'switch-role', 'arbitrary', 'important', 'inline-style', 'dark-style', 'z-index', 'deprecated']
+export const COMPONENT_RULES = ['component-class', 'overlay', 'spin', 'switch-role', 'arbitrary', 'important', 'inline-style', 'dark-style', 'z-index', 'deprecated', 'text-min']
 export const RULES = [...GHOST_RULES, ...COMPONENT_RULES]
 
 // Theme variable namespaces of Tailwind 4 (tailwindcss/theme.css)
@@ -257,6 +259,26 @@ export function isForbiddenArbitrary(base) {
   return true
 }
 
+/** The floor of the type scale (ADR-035 §2): 13 px (0.8125rem). */
+export const MIN_FONT_PX = 13
+const LANDING = /^app\/(?:components\/landing\/|pages\/index\.vue$)/
+
+/** A px or rem size below the floor (em and % are relative: not judged). */
+export function belowMinFont(value) {
+  const m = /^(\d*\.?\d+)(px|rem)$/.exec(value)
+  if (!m) return false
+  const px = m[2] === 'rem' ? Number(m[1]) * 16 : Number(m[1])
+  return px < MIN_FONT_PX
+}
+
+/** Font sizes in CSS: font-size: X and the size of the font shorthand (font: 600 12px/1.2 ...). */
+export function cssFontSizes(css) {
+  const out = []
+  for (const m of css.matchAll(/(?<![\w-])font-size\s*:\s*([\d.]+(?:px|rem))/g)) out.push({ value: m[1], index: m.index })
+  for (const m of css.matchAll(/(?<![\w-])font\s*:[^;{}]*?(?<![\w.])([\d.]+(?:px|rem))(?=[\s/])/g)) out.push({ value: m[1], index: m.index })
+  return out
+}
+
 /** <style> blocks of a .vue (offsets kept). */
 function styleOf(file, source) {
   return file.endsWith('.vue') ? cssOf(file, source) : ''
@@ -273,6 +295,15 @@ export function componentFindings(sources, map, allowlist) {
   const findings = []
   for (const [file, source] of Object.entries(sources)) {
     const isVue = file.endsWith('.vue')
+    if (file.endsWith('.css') && !LANDING.test(file)) {
+      const locateCss = lineLocator(source)
+      for (const f of cssFontSizes(blankComments(source))) {
+        if (!belowMinFont(f.value)) continue
+        const { line, text } = locateCss(f.index)
+        const finding = { rule: 'text-min', file, line, text, match: `font-size ${f.value}` }
+        if (!allowedBy(allowlist, finding)) findings.push(finding)
+      }
+    }
     if (!isVue && !file.endsWith('.ts')) continue
     const inUi = file.startsWith('app/components/ui/')
     const inShell = file.startsWith('app/components/shell/')
@@ -296,6 +327,8 @@ export function componentFindings(sources, map, allowlist) {
       if (important) add('important', ref.name, ref.index)
       if (/^-?z-(?:\d+|\[.+\])$/.test(base) && !inUi && !inShell) add('z-index', ref.name, ref.index)
       if (deprecated.classes.has(base)) add('deprecated', ref.name, ref.index)
+      const size = /^text-\[([\d.]+(?:px|rem))\]$/.exec(base)?.[1]
+      if (size && belowMinFont(size) && !LANDING.test(file)) add('text-min', ref.name, ref.index)
     }
     for (const [index, bases] of byAttribute) {
       if (bases.includes('fixed') && bases.includes('inset-0') && !OVERLAY_FILES.includes(file)) add('overlay', 'fixed inset-0', index)
@@ -311,6 +344,7 @@ export function componentFindings(sources, map, allowlist) {
         if (STYLE_SIZE_OR_COLOR.test(m[1])) add('inline-style', `style="${m[1].slice(0, 40)}"`, m.index)
       }
       const css = blankComments(styleOf(file, source))
+      if (!LANDING.test(file)) for (const f of cssFontSizes(css)) if (belowMinFont(f.value)) add('text-min', `font-size ${f.value}`, f.index)
       for (const m of css.matchAll(/!important/g)) add('important', '!important', m.index)
       for (const m of css.matchAll(/(?<![\w-])\.dark\b/g)) add('dark-style', '.dark', m.index)
     }

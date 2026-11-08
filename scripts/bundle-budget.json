@@ -3,7 +3,7 @@
   "largestChunkGzKb": 150,
   "precacheKb": 1536,
   "entryCssGzKb": 13,
-  "precacheFontsKb": 50,
+  "precacheFontsKb": 54,
   "routes": {
     "/cadernos": {
       "file": "pages/cadernos/index.vue",

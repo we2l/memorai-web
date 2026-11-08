@@ -16,5 +16,6 @@
   "inline-style": {},
   "dark-style": {},
   "z-index": {},
-  "deprecated": {}
+  "deprecated": {},
+  "text-min": {}
 }

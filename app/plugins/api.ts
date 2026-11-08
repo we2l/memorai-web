@@ -27,10 +27,16 @@ export default defineNuxtPlugin(() => {
     },
     async onResponseError({ response }) {
       if (response.status === 401 && import.meta.client) {
-        useAuthStore().clearAuth()
+        const auth = useAuthStore()
+        // A session that was here and ended: the next login may be another account, so the page reloads
+        // (utils/accountState.ts). An anonymous 401 (the /me of a visitor) has nothing of anyone to drop.
+        const hadUser = !!auth.user
+        auth.clearAuth()
         const route = useRouter().currentRoute.value
         if (!isPublicRoute(route.path)) {
-          await navigateTo({ path: '/entrar', query: { redirect: route.fullPath } })
+          const to = { path: '/entrar', query: { redirect: route.fullPath } }
+          if (hadUser) reloadTo(useRouter().resolve(to).href, { replace: true })
+          else await navigateTo(to)
         }
       }
       if (response.status === 402 && import.meta.client) {

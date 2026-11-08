@@ -36,7 +36,8 @@ onMounted(async () => {
       body: { code, state, ...useConsent().signupPayload() },
     })
     auth.setUser(res.data.user)
-    await navigateTo(postAuthRedirect(res.data.user))
+    // Full page load (utils/accountState.ts), replacing the callback: Voltar does not reuse the spent code
+    reloadTo(postAuthRedirect(res.data.user), { replace: true })
   } catch (e: any) {
     const errors = e?.data?.errors
     error.value = errors?.state?.[0] || errors?.email?.[0] || e?.data?.message || 'Erro ao conectar com Google. Tente novamente.'

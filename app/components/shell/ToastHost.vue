@@ -39,6 +39,12 @@ const REGIONS = [
   { role: 'alert', live: 'assertive', types: ['error', 'warning'] as ToastType[] },
 ] as const
 
+// The notice of a logout or account deletion, written before the full page load (utils/flashToast.ts)
+onMounted(() => {
+  const flash = takeFlashToast()
+  if (flash) toast.show(flash.message, flash.type)
+})
+
 function itemsOf(types: readonly ToastType[]) {
   return toast.state.items.filter(i => types.includes(i.type))
 }

@@ -93,5 +93,7 @@ export const useDocumentStore = defineStore('document', () => {
     startPolling,
     stopPolling,
     reset,
+    // Setup stores have no built-in $reset (utils/accountState.ts resetUserScopedState)
+    $reset: reset,
   }
 })

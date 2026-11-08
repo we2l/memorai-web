@@ -134,6 +134,14 @@ export const usePlayerStore = defineStore('player', {
     expand() { this.expanded = true },
     collapse() { this.expanded = false },
 
+    /** The account changed: silence the audio without sending its position (the session is gone). */
+    release() {
+      if (!this.currentPodcast) return
+      const audio = this.getAudio()
+      audio.pause()
+      audio.removeAttribute('src')
+    },
+
     stop() {
       if (this.currentPodcast && this.currentTime > 0) void this.syncProgress()
       const audio = this.getAudio()

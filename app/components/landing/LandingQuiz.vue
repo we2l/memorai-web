@@ -14,7 +14,7 @@
         </div>
         <p class="lp-fine lp-demo-note" data-testid="landing-demo-quiz">Números e tela da conta de demonstração, com conteúdo de exemplo.</p>
         <div class="lp-act">
-          <LandingCta to="/criar-conta" position="quiz" section>Fazer um simulado com meu material</LandingCta>
+          <LandingCta to="/comecar" position="quiz" section>Fazer um simulado com meu material</LandingCta>
           <span class="lp-fine" data-testid="landing-ai-quiz">{{ landingAiLine(catalog) }}</span>
         </div>
       </div>

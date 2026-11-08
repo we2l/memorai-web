@@ -6,7 +6,7 @@
         <p class="lp-lead" data-reveal>Marque a data. A cada revisão o Baigi refaz a conta com os seus cards: um número se você mantiver o ritmo, outro se parar hoje.</p>
         <p class="lp-how" data-reveal><b>Como calculamos:</b> cada card tem uma força que sobe quando você acerta e cai com o tempo; a conta soma todas no dia da prova.</p>
         <div class="lp-act">
-          <LandingCta to="/criar-conta" position="projection" section>Marcar a data da minha prova</LandingCta>
+          <LandingCta to="/comecar" position="projection" section>Marcar a data da minha prova</LandingCta>
         </div>
       </div>
       <div>

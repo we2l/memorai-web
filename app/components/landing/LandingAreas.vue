@@ -40,7 +40,7 @@
             </li>
           </ul>
           <div class="lp-act">
-            <LandingCta to="/criar-conta" position="areas" :area="a.key" section>{{ a.cta }}</LandingCta>
+            <LandingCta :to="areaStartPath(a.key)" position="areas" :area="a.key" section>{{ a.cta }}</LandingCta>
             <span class="lp-fine" data-testid="landing-ai-areas">{{ landingAiLine(catalog) }}</span>
           </div>
         </div>
@@ -58,7 +58,7 @@
 // and its own call. Tabs by the WAI-ARIA pattern: roving tabindex, arrows, Home and End. Every panel is in the HTML.
 // Every area sells some AI (questões, PDF, photo): the line under the call says where it is.
 import type { PlanCatalog } from '~/types'
-import { AREAS, landingAiLine, type LandingArea } from '~/utils/landing'
+import { AREAS, areaStartPath, landingAiLine, type LandingArea } from '~/utils/landing'
 
 defineProps<{ catalog: PlanCatalog | null }>()
 

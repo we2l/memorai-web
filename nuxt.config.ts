@@ -67,9 +67,9 @@ const CONSENT_CHUNK = /\/components\/ui\/Consent(Banner|Modal)\.vue/
 // instead of in every install download (precache budget, prd-correcoes-experiencia Q2, prd-4g-conta-onboarding-v3,
 // prd-4b-caderno-v3 §10.2), and the landing (prd-landing-v4 RF-L14: marketing, online only). /ajuda stays: "?" opens
 // the shortcuts offline too.
-const ONE_SHOT_PAGE_CHUNK = /\/(pages\/(index|comecar|entrar|criar-conta|esqueci-senha|checkout\/sucesso|auth\/google\/callback|redefinir-senha|termos|privacidade|planos|importar|cadernos\/lixeira)|layouts\/(auth|landing)|components\/review\/ReviewOnboardingEnd|components\/caderno\/(MaterialCardsState|MoveDialog|TrashDialog))\.vue/
+const ONE_SHOT_PAGE_CHUNK = /\/(pages\/(index|comecar(\/(index|pronto|\[area\]))?|entrar|criar-conta|esqueci-senha|checkout\/sucesso|auth\/google\/callback|redefinir-senha|termos|privacidade|planos|importar|cadernos\/lixeira)|layouts\/(auth|landing)|components\/review\/ReviewOnboardingEnd|components\/caderno\/(MaterialCardsState|MoveDialog|TrashDialog))\.vue/
 // Pieces shared only by those pages: a shared chunk has no facade module, so it goes by what is inside it.
-const ONE_SHOT_SHARED = /\/(components\/auth\/|components\/onboarding\/|utils\/(authMessages|organization|moveTargets|ankiMapping)|composables\/useTrashBatch)/
+const ONE_SHOT_SHARED = /\/(components\/auth\/|components\/onboarding\/|utils\/(authMessages|organization|moveTargets|ankiMapping|guestProgress|postAuthRedirect)|composables\/useTrashBatch)/
 // Reference page of the design system (prd-ds-v3-fundacao RF-2.5): only in `nuxt dev`. NUXT_DS_PAGE=1 keeps it
 // in a production build for screenshots; even then its chunk is `dev-*`, out of the precache.
 const DS_PAGE_FLAG = process.env.NUXT_DS_PAGE === '1'
@@ -222,6 +222,8 @@ export default defineNuxtConfig({
     '/entrar': { ssr: true, prerender: true },
     '/criar-conta': { ssr: true, prerender: true },
     '/esqueci-senha': { ssr: true, prerender: true },
+    // Onboarding v4 (prd-onboarding-v4 RF-F1): the first screen of the visitor's flow opens without the app
+    '/comecar': { ssr: true, prerender: true },
     // Public pages (prd-ux-critica RF-F11): legal texts + offer/help for visitors.
     // /planos fetches /api/plans on the client; logged-in users are hidden by the
     // session-hint script until the app layout takes over.

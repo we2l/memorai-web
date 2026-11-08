@@ -21,7 +21,7 @@
         </div>
       </div>
       <div class="lp-act">
-        <LandingCta to="/criar-conta" position="curve" tone="band" section>Começar a revisar grátis</LandingCta>
+        <LandingCta to="/comecar" position="curve" tone="band" section>Começar a revisar grátis</LandingCta>
       </div>
     </div>
   </section>

@@ -16,7 +16,7 @@
             </li>
           </ul>
           <div class="spacer" />
-          <LandingCta to="/criar-conta" position="plans_free" tone="ghost" section>Criar conta grátis</LandingCta>
+          <LandingCta to="/comecar" position="plans_free" tone="ghost" section>Começar grátis</LandingCta>
         </div>
         <div class="lp-plan" data-paid="true">
           <h3 data-testid="landing-plan-paid-name">{{ paid.name }}</h3>
@@ -33,7 +33,7 @@
           <div class="spacer" />
           <!-- "Assinatura em breve" (checkout.available false): start free; the prices stay above -->
           <LandingCta v-if="checkoutAvailable(catalog)" to="/planos" position="plans_pro" section>Ver o {{ paid.name }} em detalhe</LandingCta>
-          <LandingCta v-else to="/criar-conta" position="plans_pro" section>Começar grátis</LandingCta>
+          <LandingCta v-else to="/comecar" position="plans_pro" section>Começar grátis</LandingCta>
         </div>
       </div>
       <div v-else-if="failed" class="lp-plans-state" role="status">

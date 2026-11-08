@@ -1,6 +1,9 @@
 <template>
   <div class="flex flex-col gap-5">
-    <h1 class="text-page-title-sm text-fg-strong">Criar sua conta</h1>
+    <div>
+      <h1 class="text-page-title-sm text-fg-strong">{{ guest ? 'Salve seu progresso' : 'Criar sua conta' }}</h1>
+      <p v-if="guest" class="mt-1 text-body text-fg-muted" data-testid="signup-guest">Seus cards de {{ guest }} e as avaliações vão para a sua conta.</p>
+    </div>
 
     <div class="flex flex-col gap-2">
       <AuthGoogleButton />
@@ -53,6 +56,7 @@
 import { MIN_PASSWORD, fieldErrors, passwordHint } from '~/utils/authMessages'
 import { getErrorStatus } from '~/utils/apiErrors'
 import { CAPTCHA_MESSAGES } from '~/utils/turnstile'
+import { areaName, pendingGuestProgress } from '~/utils/guestProgress'
 
 definePageMeta({ layout: 'auth' })
 useHead({ title: 'Criar conta · Baigi' })
@@ -66,6 +70,12 @@ const loading = ref(false)
 const hint = computed(() => (errors.password ? undefined : passwordHint(form.password)))
 const captcha = useTurnstile()
 const captchaEl = ref<HTMLElement | null>(null)
+/** The visitor's lote waiting on this device (prd-onboarding-v4 RF-F4): read after hydration, the page is prerendered */
+const guest = ref('')
+onMounted(() => {
+  const p = pendingGuestProgress()
+  if (p) guest.value = areaName(p.area)
+})
 
 // The check starts when the person starts filling the form (the script is not fetched for a visit that only looks)
 

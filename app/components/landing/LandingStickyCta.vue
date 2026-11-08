@@ -1,6 +1,6 @@
 <template>
   <div class="lp-sticky" :data-show="String(visible)" :aria-hidden="!visible" data-testid="landing-sticky-cta">
-    <LandingCta to="/criar-conta" position="sticky" :tabindex="visible ? undefined : -1">Criar conta grátis</LandingCta>
+    <LandingCta to="/comecar" position="sticky" :tabindex="visible ? undefined : -1">Começar grátis</LandingCta>
   </div>
 </template>
 

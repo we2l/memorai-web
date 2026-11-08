@@ -92,13 +92,13 @@ export default defineNuxtModule({
     nuxt.options.nitro.prerender ??= {}
     nuxt.options.nitro.prerender.routes = [...(nuxt.options.nitro.prerender.routes ?? []), ...blogRoutes(articles)]
 
-    // sitemap.xml and /blog/rss.xml as public assets (served as files, also by `nuxt dev`)
-    const publicDir = join(nuxt.options.buildDir, 'blog-public')
-    mkdirSync(join(publicDir, 'blog'), { recursive: true })
-    writeFileSync(join(publicDir, 'sitemap.xml'), sitemapXml(articles))
-    writeFileSync(join(publicDir, 'blog/rss.xml'), rssXml(articles))
-    nuxt.options.nitro.publicAssets ??= []
-    nuxt.options.nitro.publicAssets.push({ dir: publicDir, baseURL: '/', maxAge: 60 * 60 })
+    // sitemap.xml and /blog/rss.xml written into the public output of the build (served as static files)
+    nuxt.hook('nitro:build:public-assets', (nitro) => {
+      const dir = nitro.options.output.publicDir
+      mkdirSync(join(dir, 'blog'), { recursive: true })
+      writeFileSync(join(dir, 'sitemap.xml'), sitemapXml(articles))
+      writeFileSync(join(dir, 'blog/rss.xml'), rssXml(articles))
+    })
 
     const here = fileURLToPath(new URL('.', import.meta.url))
     const INDEX = '#blog/index'

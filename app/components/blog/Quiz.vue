@@ -2,7 +2,7 @@
   <div>
     <section
       ref="root"
-      class="rounded-card border border-line bg-subtle p-4 outline-none sm:p-6"
+      class="rounded-card bg-soft p-4 outline-none sm:p-6"
       tabindex="-1"
       :aria-labelledby="titleId"
       aria-keyshortcuts="Space 1 2"
@@ -16,26 +16,25 @@
       <UiProgressBar :value="results.length" :max="cards.length" :segments="cards.length" label="Progresso do teste" :value-text="`${results.length} de ${cards.length}`" class="mb-4" />
 
       <div v-if="!done">
-        <div class="mb-3 flex min-h-7 items-center" aria-live="polite">
-          <ReviewFeedbackPill v-if="feedback" :feedback="feedback" />
-          <p v-else class="text-meta text-fg-muted">Tente responder de cabeça antes de ver a resposta.</p>
-        </div>
+        <p class="mb-3 text-meta text-fg-muted">Tente responder de cabeça antes de ver a resposta.</p>
 
         <div
           ref="card"
-          class="flex min-h-48 flex-col gap-4 rounded-card bg-raised p-6 shadow-card outline-none sm:min-h-60 sm:p-8"
+          class="flex min-h-48 flex-col gap-4 rounded-hero bg-raised p-6 shadow-2 outline-none sm:min-h-60 sm:p-8"
           tabindex="-1"
           data-testid="blog-quiz-card"
         >
           <p class="break-words text-section text-fg-strong" data-testid="blog-quiz-question">{{ current.q }}</p>
-          <div v-if="revealed" class="answer-in flex flex-col gap-2 border-t border-line pt-4" data-testid="blog-quiz-answer">
+          <div v-if="revealed" class="answer-in flex flex-col gap-2 pt-4" data-testid="blog-quiz-answer">
             <p class="break-words text-body text-fg">{{ current.a }}</p>
             <p v-if="current.source" class="text-meta text-fg-muted">Fonte: {{ current.source }}</p>
           </div>
         </div>
 
         <div class="mt-4">
-          <UiButton v-if="!revealed" variant="primary" block data-testid="blog-quiz-reveal" aria-keyshortcuts="Space" @click="reveal">
+          <!-- The answer band of the review (ReviewFeedback, compact in the article): a hit goes on in 1.2 s -->
+          <ReviewFeedback v-if="feedback" ref="band" compact :feedback="feedback" @continue="next" />
+          <UiButton v-else-if="!revealed" variant="primary" block data-testid="blog-quiz-reveal" aria-keyshortcuts="Space" @click="reveal">
             Mostrar resposta
             <kbd class="ml-2 hidden rounded-tag border border-on-action/40 px-1 font-sans text-label pointer-fine:inline" aria-hidden="true">Espaço</kbd>
           </UiButton>
@@ -44,14 +43,17 @@
         </div>
       </div>
 
-      <div v-else aria-live="polite" data-testid="blog-quiz-result">
-        <p class="mb-1 text-label text-fg-muted">Resultado</p>
-        <p class="mb-3 text-page-title-sm text-fg-strong">Você lembrou {{ remembered }} de {{ cards.length }}</p>
+      <div v-else aria-live="polite" class="flex flex-col items-center text-center" data-testid="blog-quiz-result">
+        <p class="text-label text-fg-muted">Resultado</p>
+        <UiArc :got="remembered" :of="cards.length" animate>
+          <UiNumber :value="remembered" :unit="`de ${cards.length}`" size="xl" aria-hidden="true" />
+        </UiArc>
+        <p class="mt-1 mb-2 text-section text-fg-strong">Você lembrou {{ remembered }} de {{ cards.length }}</p>
         <p class="mb-5 text-body text-fg">{{ endSentence }}</p>
         <UiButton variant="primary" block :href="ctaHref" data-testid="blog-quiz-cta" @click="onCta">
           Revisar 6 cards de {{ AREA_LABEL[area] }} sem criar conta
         </UiButton>
-        <div class="mt-3 flex flex-wrap items-center justify-between gap-2">
+        <div class="mt-3 flex w-full flex-wrap items-center justify-between gap-2 text-left">
           <p class="text-meta text-fg-muted">Sem cartão. Você só cria a conta se quiser guardar.</p>
           <UiButton variant="ghost" size="sm" @click="restart">Refazer o teste</UiButton>
         </div>
@@ -71,14 +73,16 @@
 </template>
 
 <script setup lang="ts">
-// Quiz inside an article (prd-blog-seo RF-B9, owner's review of 08/11): looks and works like the app's review v5 —
-// big front, "Mostrar resposta" as the primary, then the review's own ReviewRatings (mode "two") and ReviewFeedback
-// after each rating, and the segmented progress. Keys (focus inside the quiz only): Espaço shows, 1 = Não lembrei,
+// Quiz inside an article (prd-blog-seo RF-B9; E2 skin, prd-visual-e2 Fase 2b): looks and works like the app's review —
+// big front, "Mostrar resposta" as the primary, then the review's own ReviewRatings (mode "two") and its answer band
+// (ReviewFeedback compact: smaller dolphin, "Lembrei" goes on in 1.2 s, "Não lembrei" waits; no "Por quê?", there is
+// no account), the segmented progress and the end with the arc in Fraunces. Keys (focus inside the quiz only): Espaço shows, 1 = Não lembrei,
 // 2 = Lembrei. The end leads to the visitor's mini-lote of the area. Nothing is saved.
 import type { BlogArea, QuizCard } from '~~/modules/blog/types'
 import { AREA_LABEL, blogStartPath } from '~/utils/blog'
 import { FIRST_STABILITY, intervalFor } from '~/utils/forgetting'
-import { feedbackText } from '~/utils/intervalLabel'
+import { feedbackTitle, feedbackWhen } from '~/utils/reviewFeedback'
+import type { RatingFeedback } from '~/components/review/ReviewFeedback.vue'
 
 const props = defineProps<{ slug: string, area: BlogArea, title?: string, cards: QuizCard[] }>()
 
@@ -94,8 +98,10 @@ const card = ref<HTMLElement | null>(null)
 const index = ref(0)
 const revealed = ref(false)
 const results = ref<boolean[]>([])
-const feedback = ref<{ id: number, remembered: boolean, text: string } | null>(null)
-const done = computed(() => results.value.length === props.cards.length)
+const feedback = ref<RatingFeedback | null>(null)
+const band = ref<{ cancel: (via: 'tap' | 'key' | 'why') => void } | null>(null)
+/** The result shows after the last band, not under it */
+const done = computed(() => results.value.length === props.cards.length && !feedback.value)
 const current = computed(() => props.cards[index.value]!)
 const remembered = computed(() => results.value.filter(Boolean).length)
 const ctaHref = computed(() => blogStartPath(props.area, props.slug, 'quiz'))
@@ -119,13 +125,29 @@ async function reveal() {
   card.value?.focus()
 }
 
-async function rate(ok: boolean) {
-  if (!revealed.value || done.value) return
+function rate(ok: boolean) {
+  if (!revealed.value || done.value || feedback.value) return
+  const kind = ok ? 'ok' : 'again'
+  const id = `${props.slug}-${index.value}`
+  // The card stays with its answer under the band until "Continuar" (or the 1.2 s of a hit)
+  feedback.value = {
+    id: results.value.length + 1,
+    kind,
+    title: feedbackTitle(kind, id),
+    when: ok ? feedbackWhen('ok', INTERVALS.good) : `Ele volta ${AGAIN_TEXT}.`,
+    autoAdvance: ok,
+    canWhy: false,
+  }
   results.value = [...results.value, ok]
-  feedback.value = { id: results.value.length, remembered: ok, text: ok ? feedbackText('Lembrei', INTERVALS.good) : `Não lembrei · volta ${AGAIN_TEXT}` }
+  if (results.value.length === props.cards.length) track('blog_quiz_done', { slug: props.slug, remembered: remembered.value, total: props.cards.length })
+}
+
+/** After the band: the next card (or the result, which waited for the last band). */
+async function next() {
+  if (!feedback.value) return
+  feedback.value = null
   revealed.value = false
-  if (done.value) track('blog_quiz_done', { slug: props.slug, remembered: remembered.value, total: props.cards.length })
-  else index.value++
+  if (!done.value) index.value++
   await nextTick()
   root.value?.querySelector<HTMLElement>(done.value ? '[data-testid="blog-quiz-cta"]' : '[data-testid="blog-quiz-reveal"]')?.focus()
 }
@@ -133,6 +155,17 @@ async function rate(ok: boolean) {
 function onKey(e: KeyboardEvent) {
   if (e.altKey || e.ctrlKey || e.metaKey) return
   const onControl = e.target instanceof HTMLElement && !!e.target.closest('button, a, summary')
+  if (feedback.value) {
+    // The band: Enter/Space go on, any other key only stops the 1.2 s
+    if ((e.key === 'Enter' || e.key === ' ') && !onControl) {
+      e.preventDefault()
+      void next()
+    } else if (!['Shift', 'Tab', 'Enter', ' '].includes(e.key)) {
+      if (e.key === '1' || e.key === '2') e.preventDefault()
+      band.value?.cancel('key')
+    }
+    return
+  }
   if (e.key === ' ' && !revealed.value && !done.value && !onControl) {
     e.preventDefault()
     reveal()

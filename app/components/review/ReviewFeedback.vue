@@ -4,6 +4,7 @@
     class="fb"
     :data-kind="ok ? 'ok' : 'again'"
     :data-auto="auto ? 'true' : undefined"
+    :data-compact="compact || undefined"
     role="status"
     data-testid="review-feedback"
     :data-remembered="ok"
@@ -74,7 +75,11 @@ export interface RatingFeedback {
   undo?: boolean
 }
 
-const props = defineProps<{ feedback: RatingFeedback }>()
+const props = defineProps<{
+  feedback: RatingFeedback
+  /** Inside an article (the blog quiz): a smaller dolphin, no rise from the bottom and no lifted shadow */
+  compact?: boolean
+}>()
 const emit = defineEmits<{
   (e: 'continue'): void
   (e: 'why'): void
@@ -131,6 +136,8 @@ defineExpose({ cancel })
   .fb[data-kind='ok'] .fb-mascot img { animation: fb-react-ok 420ms var(--ease-out) 60ms both; }
   .fb[data-kind='again'] .fb-mascot img { animation: fb-react-again 320ms var(--ease-out) 60ms both; }
   .fb-auto span { animation: fb-countdown 1200ms linear both; }
+  /* In an article the dolphin only comes in, without the jump of the review */
+  .fb[data-compact][data-kind='ok'] .fb-mascot img { animation-name: fb-react-again; }
 }
 @media (prefers-reduced-motion: reduce) {
   .fb { animation: fb-fade 160ms linear both; }
@@ -142,6 +149,14 @@ defineExpose({ cancel })
 }
 @media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
   .fb { animation-name: fb-up; }
+}
+
+/* Compact (blog): calmer, it lives in the text */
+.fb[data-compact] { box-shadow: none; border-radius: var(--radius-card); padding: 14px 16px; animation-name: fb-up; }
+.fb[data-compact] .fb-mascot img { width: 44px; height: 44px; }
+.fb[data-compact] .fb-title { font-size: 1.0625rem; }
+@media (prefers-reduced-motion: reduce) {
+  .fb[data-compact] { animation-name: fb-fade; }
 }
 
 @keyframes fb-rise { from { transform: translateY(100%); } to { transform: none; } }

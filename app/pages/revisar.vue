@@ -73,7 +73,7 @@
         :index="batchEndIndex"
         :name="firstName"
         :summary="batchEndSummary!"
-        :goal="statsNow?.goal ?? null"
+        :goal="batchGoal"
         :goal-met="goalCelebrated"
         :streak="streakInfo"
         :stats-loading="statsLoading"
@@ -299,7 +299,7 @@ import type { CardCheck, Stats, TomorrowForecast } from '~/types'
 import type { ReviewAnswer, SessionCard } from '~/stores/review'
 import { cadernoPath, markScopeCleared } from '~/utils/scope'
 import { reviewPath, scopeBackPath, scopeOf, scopeQuery, sessionScopeFromQuery } from '~/utils/reviewScope'
-import { batchSummary, studyDayEnd } from '~/composables/useReviewBatches'
+import { batchSummary, goalAfterBatch, studyDayEnd } from '~/composables/useReviewBatches'
 import type { StreakInfo } from '~/components/review/ReviewBatchEnd.vue'
 import { MessageCircle } from 'lucide-vue-next'
 import { reviewButtonsOf, reviewKeysHint } from '~/utils/reviewButtons'
@@ -427,6 +427,9 @@ const streakInfo = computed<StreakInfo | null>(() => {
   const extendedNow = !!s.streak_extended_today && !statsBefore.value?.streak_extended_today && !streakAnimated.value
   return { current: s.streak, record: s.streak >= 3 && s.streak === (s.streak_longest ?? 0), extendedNow, rest: s.streak_rest_available ?? null }
 })
+
+/** The goal on the end of a lote: the lote just finished counts even before (or despite) GET /stats (Fase 2b) */
+const batchGoal = computed(() => goalAfterBatch(statsBefore.value?.goal, statsNow.value?.goal))
 
 const announcement = ref('')
 watch(batchEndIndex, async (index, prev) => {

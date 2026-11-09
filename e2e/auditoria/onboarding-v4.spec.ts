@@ -38,9 +38,20 @@ async function reviewLote(page: Page) {
     await expect(page.getByTestId('rate-1')).toContainText('no fim do lote')
     await expect(page.getByTestId('rate-2')).toHaveCount(0)
     await page.keyboard.press(i === 0 ? '1' : '2')
-    await expect(page.getByTestId('review-feedback').or(page.getByTestId('guest-result'))).toBeVisible()
-    if (i === 0) await expect(page.getByTestId('review-feedback')).toHaveText('Não lembrei · volta no fim do lote')
-    if (i === 1) await expect(page.getByTestId('review-feedback')).toHaveText('Lembrei · volta em 2 dias')
+    // The E2 answer band (prd-visual-e2 Fase 2b): a miss waits, with no "Por quê?" (AI asks for an account)
+    const band = page.getByTestId('review-feedback')
+    await expect(band).toBeVisible()
+    if (i === 0) {
+      await expect(band).toHaveAttribute('data-kind', 'again')
+      await expect(band).toContainText('Ele volta no fim do lote.')
+      await expect(band.getByTestId('review-why')).toHaveCount(0)
+    }
+    if (i === 1) {
+      await expect(band).toHaveAttribute('data-kind', 'ok')
+      await expect(band).toContainText('Volta em 2 dias.')
+    }
+    await page.keyboard.press('Enter')
+    await expect(band).toHaveCount(0)
   }
 }
 

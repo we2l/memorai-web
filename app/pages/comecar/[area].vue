@@ -35,15 +35,26 @@
       </div>
 
       <!-- Result (RF-F8): a victory with memory, the agenda and the curve -->
-      <div v-else-if="phase === 'result' && summary" class="mx-auto flex w-full max-w-xl flex-col gap-6 px-gutter pt-14 pb-8" data-testid="guest-result">
-        <LazyUiCelebration kind="streak" :title="`Você lembrou ${summary.remembered} de ${summary.total}`" subtitle="Dia 1 da sequência" :level="1" data-testid="guest-remembered" />
+      <!-- E2 (prd-visual-e2 Fase 2b): the end of a lote of the review, with the dolphin, the arc and the streak chip -->
+      <div v-else-if="phase === 'result' && summary" class="mx-auto flex w-full max-w-xl flex-col gap-6 px-gutter pt-8 pb-8" data-testid="guest-result">
+        <div class="flex flex-col items-center text-center" data-testid="guest-remembered">
+          <picture class="guest-mascot" aria-hidden="true">
+            <source :srcset="celebratingAvif" type="image/avif">
+            <img :src="celebratingWebp" alt="" width="104" height="104" decoding="async">
+          </picture>
+          <h1 class="mt-2 text-display text-fg-strong outline-none" tabindex="-1" data-celebration-title>Você lembrou {{ summary.remembered }} de {{ summary.total }}</h1>
+          <UiTag class="guest-chip mt-3" tone="streak" :icon="Flame" size="lg">Dia 1 da sequência</UiTag>
+          <UiArc class="mt-4" :got="summary.remembered" :of="summary.total" animate>
+            <UiNumber :value="summary.remembered" :unit="`de ${summary.total}`" size="xl" aria-hidden="true" />
+          </UiArc>
+        </div>
         <p v-if="summary.repeated" class="-mt-3 text-center text-body text-fg-muted" data-testid="guest-repeated">
           {{ summary.repeated === 1 ? '1 card voltou' : `${summary.repeated} cards voltaram` }} no fim do lote. Na segunda vez, você lembrou {{ summary.rememberedOnRepeat }}.
         </p>
 
         <section aria-labelledby="agenda-title" class="flex flex-col gap-2">
           <h2 id="agenda-title" class="text-label font-semibold text-fg-muted">Quando cada um volta</h2>
-          <ul class="divide-y divide-line rounded-card bg-subtle px-1" data-testid="guest-agenda">
+          <ul class="divide-y divide-hairline rounded-card bg-soft px-1" data-testid="guest-agenda">
             <li v-for="a in summary.agenda" :key="a.label" class="flex items-baseline justify-between gap-3 px-3 py-3 text-body">
               <span class="text-fg">{{ capitalize(returnText(a.label)) }}</span>
               <span class="font-semibold text-fg-strong tabular-nums">{{ a.count === 1 ? '1 card' : `${a.count} cards` }}</span>
@@ -97,12 +108,13 @@
     </main>
 
     <!-- The review's bottom bar: "Mostrar resposta", then "Não lembrei / Lembrei" with the real intervals -->
-    <footer v-if="phase === 'review' && current !== null" class="shrink-0 border-t border-line bg-raised px-gutter pt-3 pb-safe-bottom" data-testid="review-footer">
+    <footer v-if="phase === 'review' && current !== null" class="shrink-0 bg-page px-gutter pt-3 pb-safe-bottom" data-testid="review-footer">
       <div class="mx-auto w-full max-w-3xl pb-3">
-        <div class="mb-2 flex min-h-8 justify-center"><LazyReviewFeedbackPill v-if="feedback" :feedback="feedback" /></div>
-        <ReviewRatings v-if="flipped" :intervals="ratingIntervals" mode="two" again-text="no fim do lote" @rate="rate" />
+        <!-- The answer band of the review (E2): "Lembrei" goes on in 1.2 s, "Não lembrei" waits; no "Por quê?" here -->
+        <LazyReviewFeedback v-if="feedback" ref="band" :feedback="feedback" @continue="continueAfterBand" />
+        <ReviewRatings v-else-if="flipped" :intervals="ratingIntervals" mode="two" again-text="no fim do lote" @rate="rate" />
         <UiButton v-else variant="primary" block aria-keyshortcuts="Space" data-testid="review-show" @click="flip">Mostrar resposta</UiButton>
-        <p class="mt-2 hidden text-center text-label text-fg-muted pointer-fine:block" data-testid="review-keys">{{ reviewKeysHint('two') }}</p>
+        <p v-if="!feedback" class="mt-2 hidden text-center text-label text-fg-muted pointer-fine:block" data-testid="review-keys">{{ reviewKeysHint('two') }}</p>
       </div>
     </footer>
   </div>
@@ -116,12 +128,15 @@
 // of commitment (exam date and lotes per day) before the sign-up. Everything stays on this device until the account
 // exists (/comecar/pronto). No AI, nothing written on the server.
 import type { CardOrigin, Flashcard } from '~/types'
-import type { PillFeedback as RatingFeedback } from '~/components/review/ReviewFeedbackPill.vue'
+import type { RatingFeedback } from '~/components/review/ReviewFeedback.vue'
+import { Flame } from 'lucide-vue-next'
+import celebratingAvif from '~/assets/mascots/mascot-baigi-celebrating.avif'
+import celebratingWebp from '~/assets/mascots/mascot-baigi-celebrating.webp'
 import {
   GUEST_GOALS, guestSummary, isGuestArea, loadGuestProgress, nextGuestCard, returnText, saveGuestProgress,
   type GuestArea, type GuestDeck, type GuestGoal, type GuestProgress, type GuestRating,
 } from '~/utils/guestProgress'
-import { feedbackText } from '~/utils/intervalLabel'
+import { feedbackTitle, feedbackWhen } from '~/utils/reviewFeedback'
 import { binaryRatingOfKey, reviewKeysHint } from '~/utils/reviewButtons'
 import { REVIEW_BATCH, cardsMinutes } from '~/utils/reviewBatch'
 
@@ -144,6 +159,7 @@ const flipped = ref(false)
 const announcement = ref('')
 const feedback = ref<RatingFeedback | null>(null)
 let feedbackId = 0
+const band = ref<{ cancel: (via: 'tap' | 'key' | 'why') => void } | null>(null)
 const commitTitle = ref<HTMLElement | null>(null)
 
 useHead(() => ({ title: deck.value ? `Exemplo de ${deck.value.name} · Baigi` : 'Começar · Baigi' }))
@@ -227,12 +243,22 @@ function rate(rating: GuestRating) {
   progress.value.reviews.push({ index: current.value, rating, reviewed_at: new Date().toISOString() })
   saveGuestProgress(progress.value)
   track('guest_card_rated', { area, index: current.value, rating, pass })
-  // The answer to the rating (RF-F4): "Lembrei · volta em 2 dias" or "Não lembrei · volta no fim do lote"
-  const text = rating === 1
-    ? 'Não lembrei · volta no fim do lote'
-    : feedbackText('Lembrei', forgotBefore && deck.value.relearned_interval ? deck.value.relearned_interval : deck.value.intervals.good)
-  feedback.value = { id: ++feedbackId, remembered: rating >= 2, text }
-  announcement.value = `${text}.`
+  // The answer band (prd-visual-e2 Fase 2b): the card stays with its answer until "Continuar" (a hit: 1.2 s by itself).
+  // No "Por quê?": the explanation is AI and asks for an account; the band of a miss says where the card goes.
+  const kind = rating === 1 ? 'again' : 'ok'
+  feedback.value = {
+    id: ++feedbackId,
+    kind,
+    title: feedbackTitle(kind, `guest-${area}-${current.value}`),
+    when: rating === 1 ? 'Ele volta no fim do lote.' : feedbackWhen('ok', forgotBefore && deck.value.relearned_interval ? deck.value.relearned_interval : deck.value.intervals.good),
+    autoAdvance: rating !== 1,
+    canWhy: false,
+  }
+}
+
+function continueAfterBand() {
+  if (!feedback.value) return
+  feedback.value = null
   advance()
 }
 
@@ -284,11 +310,22 @@ function capitalize(s: string) {
   return s.charAt(0).toUpperCase() + s.slice(1)
 }
 
-// Space/Enter turns the card; with the answer, 1 / ← "Não lembrei" and 2 / → / Space "Lembrei" (the session's binary keys)
+// Space/Enter turns the card; with the answer, 1 / ← "Não lembrei" and 2 / → / Space "Lembrei" (the session's binary keys).
+// With the band: Enter/Space go on, any other key only stops the 1.2 s (and never rates the card behind it)
 function onKeydown(e: KeyboardEvent) {
   if (phase.value !== 'review' || e.ctrlKey || e.metaKey || e.altKey) return
   const target = e.target as HTMLElement | null
   if (target?.closest('input, textarea, select, [contenteditable="true"]')) return
+  if (feedback.value) {
+    if ((e.key === ' ' || e.key === 'Enter') && !target?.closest('a, button')) {
+      e.preventDefault()
+      continueAfterBand()
+    } else if (!['Shift', 'Tab', 'Enter', ' '].includes(e.key)) {
+      if (binaryRatingOfKey(e.key) !== null) e.preventDefault()
+      band.value?.cancel('key')
+    }
+    return
+  }
   if ((e.key === ' ' || e.key === 'Enter') && target?.closest('a, button:not([data-review-card])')) return
   if (!flipped.value) {
     if (e.key === ' ' || e.key === 'Enter') {
@@ -311,3 +348,13 @@ onMounted(() => {
 })
 onUnmounted(() => document.removeEventListener('keydown', onKeydown))
 </script>
+
+<style scoped>
+.guest-mascot img { display: block; width: 104px; height: 104px; object-fit: contain; }
+@media (prefers-reduced-motion: no-preference) {
+  .guest-mascot { animation: guest-rise 520ms var(--ease-out) both; }
+  .guest-chip { animation: guest-pop 360ms var(--ease-out) 760ms both; }
+}
+@keyframes guest-rise { from { opacity: 0; transform: translateY(14px) scale(0.96); } to { opacity: 1; transform: none; } }
+@keyframes guest-pop { from { opacity: 0; transform: scale(0.88); } to { opacity: 1; transform: none; } }
+</style>

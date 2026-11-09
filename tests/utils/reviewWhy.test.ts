@@ -44,3 +44,18 @@ describe('teclas com a faixa na tela', () => {
     expect(why).toHaveBeenCalledTimes(1)
   })
 })
+
+describe('meta no fim do lote (Fase 2b)', () => {
+  const g = (done: number, target = 2) => ({ batch_size: 10, target_batches: target, done_batches: done, met: done >= target })
+
+  it('o lote que acabou conta mesmo antes do GET /stats ou com o número de antes dele', async () => {
+    const { goalAfterBatch } = await import('~/composables/useReviewBatches')
+    expect(goalAfterBatch(g(0), null)).toMatchObject({ done_batches: 1, met: false })
+    expect(goalAfterBatch(g(0), g(0))).toMatchObject({ done_batches: 1 })
+    expect(goalAfterBatch(g(1), g(1))).toMatchObject({ done_batches: 2, met: true })
+    expect(goalAfterBatch(g(0), g(2))).toMatchObject({ done_batches: 2, met: true })
+    expect(goalAfterBatch(g(2, 2), g(2, 2))).toMatchObject({ done_batches: 2 })
+    expect(goalAfterBatch(null, g(1))).toMatchObject({ done_batches: 1 })
+    expect(goalAfterBatch(null, null)).toBeNull()
+  })
+})

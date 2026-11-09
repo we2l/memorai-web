@@ -129,3 +129,18 @@ export function useReviewBatches(blitz: Ref<boolean>) {
   const enabled = computed(() => !blitz.value && review.sessionCount > 0)
   return { position, ended, enabled }
 }
+
+export interface GoalSnapshot { batch_size: number; target_batches: number; done_batches: number; met: boolean }
+
+/**
+ * The goal of the day at the end of a lote (prd-visual-e2 Fase 2b): the lote just finished always counts, even when
+ * GET /stats has not arrived yet or came back with the count from before it (it never shows "0 de 2" after a lote).
+ * `before` is the goal read when this lote started; `now` the one read after it (either may be missing).
+ */
+export function goalAfterBatch(before: GoalSnapshot | null | undefined, now: GoalSnapshot | null | undefined): GoalSnapshot | null {
+  const base = now ?? before
+  if (!base) return null
+  const floor = before ? Math.min(base.target_batches, before.done_batches + 1) : 0
+  const done = Math.max(base.done_batches, floor)
+  return { ...base, done_batches: done, met: base.target_batches > 0 && done >= base.target_batches }
+}

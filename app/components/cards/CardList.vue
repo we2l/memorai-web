@@ -1,6 +1,6 @@
 <template>
   <div>
-    <ul class="divide-y divide-line" aria-label="Cards" data-testid="card-list">
+    <ul class="divide-y divide-hairline" aria-label="Cards" data-testid="card-list">
       <CardsCardRow
         v-for="(card, i) in cards"
         :key="card.id"

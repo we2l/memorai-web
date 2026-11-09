@@ -23,7 +23,7 @@ const label = computed(() => (props.plan === 'pro' ? proName.value : 'Grátis'))
 
 const badgeClass = computed(() => {
   const classes: Record<string, string> = {
-    free: 'bg-subtle text-fg-muted',
+    free: 'bg-soft text-fg-muted',
     pro: 'bg-action-subtle text-action-fg',
   }
   return classes[props.plan] || classes.free

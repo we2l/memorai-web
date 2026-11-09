@@ -1,5 +1,5 @@
 <template>
-  <section class="rounded-card border border-line bg-raised p-5 shadow-card sm:p-6" :aria-labelledby="titleId" data-testid="tool-forgetting">
+  <section class="rounded-card border border-line bg-raised p-5 shadow-1 sm:p-6" :aria-labelledby="titleId" data-testid="tool-forgetting">
     <!-- On its own page the H1 already names the tool: the heading stays for screen readers only -->
     <h2 :id="titleId" class="mb-1 text-section text-fg-strong" :class="!embedded && 'sr-only'">Calculadora do esquecimento</h2>
     <p v-if="embedded" class="mb-5 text-meta text-fg-muted">Quanto você ainda deve lembrar de algo que estudou, e quando revisar.</p>
@@ -48,7 +48,7 @@
       <li v-if="days > 0">Se você revisar hoje e lembrar, daqui a 30 dias deve estar em <strong>{{ percentAfterReview }}%</strong>, contra {{ percentNoReview }}% sem revisar.</li>
     </ul>
 
-    <p class="mt-5 rounded-row bg-subtle px-4 py-3 text-meta text-fg-muted">
+    <p class="mt-5 rounded-row bg-soft px-4 py-3 text-meta text-fg-muted">
       Estimativa pelo modelo FSRS-6 com os parâmetros padrão, o mesmo que o Baigi usa para agendar as revisões. Vale para um card que você
       acertou; reler sem se testar costuma render menos. Não é uma medição da sua memória.
       <NuxtLink v-if="embedded" to="/ferramentas/calculadora-do-esquecimento" class="underline">Abrir a calculadora em tela cheia</NuxtLink>

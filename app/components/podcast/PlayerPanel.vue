@@ -1,7 +1,7 @@
 <template>
   <div v-if="podcast" class="flex min-h-0 flex-col gap-5" data-testid="player-panel">
     <div class="flex items-center gap-4">
-      <span class="flex size-18 shrink-0 items-center justify-center rounded-card bg-subtle" aria-hidden="true">
+      <span class="flex size-18 shrink-0 items-center justify-center rounded-card bg-soft" aria-hidden="true">
         <picture class="contents">
           <source srcset="~/assets/mascots/mascot-baigi-podcast.avif" type="image/avif">
           <img src="~/assets/mascots/mascot-baigi-podcast.webp" alt="" class="size-15 object-contain" width="60" height="60" loading="lazy" decoding="async">
@@ -36,7 +36,7 @@
       <!-- The primary of the player: play/pause (neutral beside the page's own primary, one purple per screen) -->
       <button
         type="button"
-        class="flex size-16 items-center justify-center rounded-full transition-colors duration-nav active:translate-y-0.5"
+        class="flex size-16 items-center justify-center rounded-full transition-colors duration-fast active:translate-y-0.5"
         :class="primary ? 'bg-action text-on-action shadow-action hover:bg-action-hover active:scale-97 motion-reduce:active:scale-100' : 'bg-fg-strong text-raised'"
         :aria-label="player.isPlaying ? 'Pausar' : 'Tocar'"
         data-testid="player-toggle"

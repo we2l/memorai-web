@@ -9,7 +9,7 @@
     class="flex min-h-touch w-full items-center gap-3 px-3 text-left text-body -outline-offset-2"
     :class="[
       item.tone === 'danger' ? 'text-danger' : 'text-fg-strong',
-      item.disabled ? 'cursor-not-allowed opacity-50' : 'hover:bg-subtle',
+      item.disabled ? 'cursor-not-allowed opacity-50' : 'hover:bg-soft',
     ]"
     @click="emit('choose', item, $event)"
   >

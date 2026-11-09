@@ -16,7 +16,7 @@
       <li v-for="(line, i) in lines" :key="i" :data-line="i">
         <button
           type="button"
-          class="w-full rounded-row px-2 py-1.5 text-left text-body transition-colors duration-nav hover:bg-subtle"
+          class="w-full rounded-row px-2 py-1.5 text-left text-body transition-colors duration-fast hover:bg-soft"
           :class="i === active ? 'bg-action-subtle text-fg-strong' : 'text-fg'"
           :aria-current="i === active ? 'true' : undefined"
           @click="seek(line)"
@@ -28,7 +28,7 @@
       </li>
     </ol>
     <div v-if="!follow && lines.length" class="pointer-events-none absolute inset-x-0 bottom-2 flex justify-center">
-      <UiButton size="sm" class="pointer-events-auto shadow-raised" @click="backToCurrent">Voltar ao trecho atual</UiButton>
+      <UiButton size="sm" class="pointer-events-auto shadow-2" @click="backToCurrent">Voltar ao trecho atual</UiButton>
     </div>
   </div>
 </template>

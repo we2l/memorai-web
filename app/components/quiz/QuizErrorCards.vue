@@ -14,7 +14,7 @@
         >
           <span class="font-semibold">Q{{ e.number }}</span><template v-if="e.topic_name"> · {{ e.topic_name }}</template>
         </UiCheckbox>
-        <p class="ml-8 rounded-row bg-subtle px-3 py-2 text-meta text-fg">
+        <p class="ml-8 rounded-row bg-soft px-3 py-2 text-meta text-fg">
           <span class="font-semibold text-fg-strong">Frente:</span> {{ e.front }}
           <span aria-hidden="true"> · </span>
           <span class="font-semibold text-fg-strong">Verso:</span> {{ e.back }}

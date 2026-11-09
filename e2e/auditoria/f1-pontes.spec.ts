@@ -60,7 +60,7 @@ test.describe('Um número só (seed perf@audit.test)', () => {
     const header = num(await cta.innerText(), /· (\d+)/)
     const summary = (await apiCall(page, 'GET', `/topics/${heavy.id}/summary`)).data
     // The cards of the header are of the subtree (not the direct cards of GET /topics)
-    await expect(page.getByTestId('scope-header')).toContainText(`de ${details.flashcards_count.toLocaleString('pt-BR')} em dia`)
+    await expect(page.getByTestId('scope-stats')).toContainText(`de ${details.flashcards_count.toLocaleString('pt-BR')} em dia`)
 
     // Session that the CTA opens
     const session = page.waitForResponse(r => r.url().includes('/api/review/session'))
@@ -103,7 +103,7 @@ test.describe('Caderno raiz do Anki (cards só nos assuntos)', () => {
     const { root } = await ankiShapedCaderno(page, 3)
     await gotoApp(page, `/cadernos/${root.id}`)
 
-    await expect(page.getByTestId('scope-header')).toContainText('0 de 3 em dia')
+    await expect(page.getByTestId('scope-stats')).toContainText('0 de 3 em dia')
     await expect(page.getByTestId('subject-row').filter({ hasText: 'Vocabulary' })).toHaveAttribute('aria-label', /3 para hoje/)
     const cta = reviewCta(page)
     await expect(cta).toHaveText('Revisar hoje · 3')

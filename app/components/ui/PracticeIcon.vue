@@ -1,6 +1,6 @@
 <template>
   <span
-    class="inline-flex shrink-0 items-center justify-center bg-subtle"
+    class="inline-flex shrink-0 items-center justify-center bg-soft"
     :class="[BOX[size], MODES[mode].tone]"
     :role="label ? 'img' : undefined"
     :aria-label="label"

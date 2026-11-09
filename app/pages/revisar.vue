@@ -122,7 +122,7 @@
         <!-- All done (has cards, nothing to review now): no celebration, nothing was achieved here -->
         <div v-else class="mx-auto flex w-full max-w-md flex-col items-center gap-4 px-gutter py-12 text-center" data-testid="review-all-done">
           <LazyUiBaigiMascot :size="88" state="idle" />
-          <h1 class="text-page-title-sm text-fg-strong">{{ isErrorsOnly ? 'Sem erros para revisar' : 'Tudo em dia' }}</h1>
+          <h1 class="text-page-title text-fg-strong">{{ isErrorsOnly ? 'Sem erros para revisar' : 'Tudo em dia' }}</h1>
           <p class="text-body text-fg-muted">
             {{ isErrorsOnly ? 'Os cards que você errou já foram revisados ou ainda não estão na hora de voltar.' : 'Nada para revisar agora neste recorte.' }}
           </p>

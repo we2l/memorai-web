@@ -3,7 +3,7 @@
     <div class="flex flex-col items-start gap-5 sm:flex-row sm:items-center">
       <BlogAuthorPhoto v-if="author.photo" :photo="author.photo" :alt="`${firstName}, criador do Baigi`" :size="160" eager />
       <div>
-        <h1 class="mb-2 text-page-title-sm text-fg-strong sm:text-page-title">Quem faz o Baigi</h1>
+        <h1 class="mb-2 text-page-title text-fg-strong">Quem faz o Baigi</h1>
         <p class="text-body text-fg">{{ author.name }} · {{ author.role }}</p>
       </div>
     </div>
@@ -54,7 +54,7 @@
       </ul>
     </section>
 
-    <section class="mt-8 rounded-card bg-raised p-6 shadow-card" aria-labelledby="h-contato">
+    <section class="mt-8 rounded-card bg-raised p-6 shadow-1" aria-labelledby="h-contato">
       <h2 id="h-contato" class="mb-2 text-section text-fg-strong">Contato</h2>
       <p class="mb-4 text-body text-fg">
         Dúvida, sugestão, erro num artigo ou problema com a conta: escreva para mim.

@@ -2,7 +2,7 @@
   <div role="status" class="flex flex-col items-center text-center">
     <div class="relative mb-3" aria-hidden="true">
       <UiBaigiMascot v-if="mascot" :size="96" state="celebrating" class="motion-safe:animate-celebrate-pop" />
-      <span v-else class="flex h-16 w-16 items-center justify-center rounded-full bg-subtle motion-safe:animate-celebrate-pop">
+      <span v-else class="flex h-16 w-16 items-center justify-center rounded-full bg-soft motion-safe:animate-celebrate-pop">
         <component :is="KINDS[kind].icon" class="h-8 w-8 fill-current" :class="KINDS[kind].shape" />
       </span>
       <template v-if="!reduced">
@@ -15,7 +15,7 @@
         />
       </template>
     </div>
-    <component :is="level ? `h${level}` : 'p'" class="text-fg-strong outline-none" :class="level ? 'text-page-title-sm sm:text-page-title' : 'text-section'" :tabindex="level ? -1 : undefined" data-celebration-title>{{ title }}</component>
+    <component :is="level ? `h${level}` : 'p'" class="text-fg-strong outline-none" :class="level ? 'text-page-title' : 'text-section'" :tabindex="level ? -1 : undefined" data-celebration-title>{{ title }}</component>
     <p class="mt-1 flex items-center gap-1.5 text-meta font-semibold" :class="KINDS[kind].text">
       <component :is="KINDS[kind].icon" class="size-4 fill-current" :class="KINDS[kind].shape" aria-hidden="true" />
       {{ subtitle ?? KINDS[kind].label }}

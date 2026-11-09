@@ -9,7 +9,7 @@
         class="flex cursor-pointer items-start gap-3 has-disabled:cursor-not-allowed"
         :class="[
           variant === 'cards'
-            ? 'rounded-control border border-line-strong bg-raised p-3 transition-colors duration-nav hover:bg-subtle has-checked:border-action has-checked:bg-action-subtle'
+            ? 'rounded-control border border-line-strong bg-raised p-3 transition-colors duration-fast hover:bg-soft has-checked:border-action has-checked:bg-action-subtle'
             : 'min-h-touch py-2.5',
           !opt.disabled && 'has-disabled:opacity-60',
           LEVELS[opt.level ?? 0],
@@ -23,10 +23,10 @@
           :disabled="opt.disabled"
           :aria-labelledby="`${groupName}-${i}`"
           :aria-describedby="opt.description ? `${groupName}-${i}-desc` : undefined"
-          class="mt-0.5 size-5 shrink-0 cursor-pointer appearance-none rounded-full border border-line-input bg-raised transition-colors duration-nav checked:border-6 checked:border-action disabled:cursor-not-allowed disabled:opacity-60"
+          class="mt-0.5 size-5 shrink-0 cursor-pointer appearance-none rounded-full border border-line-input bg-raised transition-colors duration-fast checked:border-6 checked:border-action disabled:cursor-not-allowed disabled:opacity-60"
           @change="emit('update:modelValue', opt.value)"
         >
-        <span v-if="opt.marker" class="flex size-6 shrink-0 items-center justify-center rounded-tag bg-subtle text-meta font-semibold text-fg-strong" aria-hidden="true">{{ opt.marker }}</span>
+        <span v-if="opt.marker" class="flex size-6 shrink-0 items-center justify-center rounded-tag bg-soft text-meta font-semibold text-fg-strong" aria-hidden="true">{{ opt.marker }}</span>
         <span class="min-w-0">
           <span :id="`${groupName}-${i}`" class="block text-body break-words" :class="opt.disabled ? 'text-fg-muted' : 'text-fg-strong'">{{ opt.label }}</span>
           <span v-if="opt.description" :id="`${groupName}-${i}-desc`" class="block text-meta text-fg-muted">{{ opt.description }}</span>

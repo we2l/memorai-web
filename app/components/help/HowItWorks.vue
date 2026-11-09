@@ -5,7 +5,7 @@
         <div v-for="column in flow" :key="column.label">
           <p class="mb-2 text-label font-semibold text-fg-muted">{{ column.label }}</p>
           <ul class="flex flex-col gap-2">
-            <li v-for="node in column.nodes" :key="node.label" class="flex items-center gap-2 rounded-control bg-subtle px-3 py-2 text-meta font-semibold text-fg-strong">
+            <li v-for="node in column.nodes" :key="node.label" class="flex items-center gap-2 rounded-control bg-soft px-3 py-2 text-meta font-semibold text-fg-strong">
               <component :is="node.icon" class="size-4 shrink-0 text-fg-muted" aria-hidden="true" />
               {{ node.label }}
             </li>
@@ -18,7 +18,7 @@
     <UiSection title="O que cada recurso faz por você">
       <ul class="grid gap-5 md:grid-cols-2">
         <li v-for="item in features" :key="item.title" class="flex items-start gap-3">
-          <span class="flex size-9 shrink-0 items-center justify-center rounded-control bg-subtle" aria-hidden="true">
+          <span class="flex size-9 shrink-0 items-center justify-center rounded-control bg-soft" aria-hidden="true">
             <component :is="item.icon" class="size-5 text-fg-muted" />
           </span>
           <div>
@@ -33,7 +33,7 @@
     <UiSection title="O ciclo de aprendizado">
       <ol class="flex flex-col gap-3">
         <li v-for="(step, i) in loop" :key="i" class="flex items-start gap-3">
-          <span class="flex size-6 shrink-0 items-center justify-center rounded-full bg-subtle text-label font-semibold text-fg-strong tabular-nums" aria-hidden="true">{{ i + 1 }}</span>
+          <span class="flex size-6 shrink-0 items-center justify-center rounded-full bg-soft text-label font-semibold text-fg-strong tabular-nums" aria-hidden="true">{{ i + 1 }}</span>
           <p class="text-body text-fg">{{ step }}</p>
         </li>
       </ol>

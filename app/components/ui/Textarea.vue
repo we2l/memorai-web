@@ -9,10 +9,10 @@
       :disabled="disabled"
       :aria-invalid="field.invalid ? 'true' : undefined"
       :aria-describedby="[field.describedby, split.rest['aria-describedby']].filter(Boolean).join(' ') || undefined"
-      class="w-full resize-y rounded-control border px-3 py-2.5 text-body text-fg-strong transition-colors duration-nav placeholder:text-fg-muted disabled:cursor-not-allowed"
+      class="w-full resize-y rounded-control border px-3 py-2.5 text-body text-fg-strong transition-colors duration-fast placeholder:text-fg-muted disabled:cursor-not-allowed"
       :class="[
         field.invalid ? 'border-danger' : 'border-line-input focus:border-focus',
-        disabled ? 'bg-subtle opacity-60' : 'bg-raised',
+        disabled ? 'bg-soft opacity-60' : 'bg-raised',
       ]"
       @input="emit('update:modelValue', ($event.target as HTMLTextAreaElement).value)"
     />

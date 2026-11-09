@@ -1,17 +1,17 @@
 <template>
   <div data-testid="skeleton" aria-hidden="true" :class="variant === 'row' ? 'flex items-center gap-3 py-3' : variant === 'text' ? 'flex flex-col gap-2' : ''">
     <template v-if="variant === 'block'">
-      <div class="w-full animate-pulse rounded-card bg-subtle" :class="BLOCK[size]" />
+      <div class="w-full animate-pulse rounded-card bg-soft" :class="BLOCK[size]" />
     </template>
     <template v-else-if="variant === 'row'">
-      <div class="size-9 shrink-0 animate-pulse rounded-control bg-subtle" />
+      <div class="size-9 shrink-0 animate-pulse rounded-control bg-soft" />
       <div class="flex flex-1 flex-col gap-2">
-        <div class="h-4 w-2/3 animate-pulse rounded-tag bg-subtle" />
-        <div class="h-3 w-1/3 animate-pulse rounded-tag bg-subtle" />
+        <div class="h-4 w-2/3 animate-pulse rounded-tag bg-soft" />
+        <div class="h-3 w-1/3 animate-pulse rounded-tag bg-soft" />
       </div>
     </template>
     <template v-else>
-      <div v-for="i in lines" :key="i" class="h-4 animate-pulse rounded-tag bg-subtle" :class="i === lines && lines > 1 ? 'w-2/3' : 'w-full'" />
+      <div v-for="i in lines" :key="i" class="h-4 animate-pulse rounded-tag bg-soft" :class="i === lines && lines > 1 ? 'w-2/3' : 'w-full'" />
     </template>
   </div>
 </template>

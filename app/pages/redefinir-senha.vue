@@ -3,14 +3,14 @@
     <!-- Invalid or used link: one way forward -->
     <template v-if="!token || !email || expired">
       <div>
-        <h1 class="text-page-title-sm text-fg-strong">Este link expirou</h1>
+        <h1 class="text-page-title text-fg-strong">Este link expirou</h1>
         <p class="mt-1 text-body text-fg-muted">O link vale por 60 minutos e só pode ser usado uma vez.</p>
       </div>
       <UiButton variant="primary" to="/esqueci-senha" block data-testid="reset-ask-again">Pedir outro</UiButton>
     </template>
 
     <template v-else>
-      <h1 class="text-page-title-sm text-fg-strong">Criar nova senha</h1>
+      <h1 class="text-page-title text-fg-strong">Criar nova senha</h1>
       <form class="flex flex-col gap-4" novalidate @submit.prevent="submit">
         <UiInput id="email" :model-value="email" label="E-mail" type="email" autocomplete="username" readonly />
         <AuthPasswordInput id="password" v-model="password" label="Nova senha" autocomplete="new-password" :hint="errors.password ? undefined : hint" :error="errors.password" />

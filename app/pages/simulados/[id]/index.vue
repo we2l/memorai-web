@@ -36,7 +36,7 @@
 
       <template v-else-if="question">
         <!-- Never in silence: what the generation could not deliver (RF-B3) -->
-        <p v-if="shortfall > 0 && quizStore.currentIndex === 0" role="status" class="rounded-row bg-subtle px-4 py-3 text-meta text-fg" data-testid="quiz-shortfall">
+        <p v-if="shortfall > 0 && quizStore.currentIndex === 0" role="status" class="rounded-row bg-soft px-4 py-3 text-meta text-fg" data-testid="quiz-shortfall">
           Saíram {{ questions.length }} de {{ requested }} questões. As que faltaram não vieram do gerador desta vez.
         </p>
 

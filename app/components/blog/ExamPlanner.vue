@@ -1,5 +1,5 @@
 <template>
-  <section class="rounded-card border border-line bg-raised p-5 shadow-card sm:p-6" :aria-labelledby="titleId" data-testid="tool-plan">
+  <section class="rounded-card border border-line bg-raised p-5 shadow-1 sm:p-6" :aria-labelledby="titleId" data-testid="tool-plan">
     <!-- On its own page the H1 already names the tool: the heading stays for screen readers only -->
     <h2 :id="titleId" class="mb-1 text-section text-fg-strong" :class="!embedded && 'sr-only'">Plano até a prova</h2>
     <p v-if="embedded" class="mb-5 text-meta text-fg-muted">Quanto revisar por dia para chegar à prova lembrando do que estudou.</p>
@@ -67,7 +67,7 @@
         <li>No dia mais cheio são cerca de <strong>{{ plan.reviewsPeak }} revisões</strong> ({{ plan.minutesPeak }} min). Num dia médio, {{ plan.batchesAvg }} {{ plan.batchesAvg === 1 ? 'lote' : 'lotes' }} de 20 cards.</li>
         <li v-if="plan.heavy" class="text-warning">Passa de 1 hora por dia. Para caber, reduza o volume aos cards que mais caem ou comece antes.</li>
       </ul>
-      <p class="mt-5 rounded-row bg-subtle px-4 py-3 text-meta text-fg-muted">
+      <p class="mt-5 rounded-row bg-soft px-4 py-3 text-meta text-fg-muted">
         Estimativa pelo modelo FSRS-6 com os parâmetros padrão: cada card volta quando a chance de lembrar chega a 90%, com 10% a mais de
         revisões pelos que você errar e {{ PLAN_SECONDS_PER_CARD }} segundos por card. Seu ritmo real muda os números.
         <NuxtLink v-if="embedded" to="/ferramentas/plano-ate-a-prova" class="underline">Abrir o plano em tela cheia</NuxtLink>

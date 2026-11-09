@@ -26,7 +26,7 @@
                   :tabindex="focus.r === r && focus.c === c ? 0 : -1"
                   :aria-label="cell.label"
                   :aria-current="cell.today ? 'date' : undefined"
-                  class="block size-full rounded-tag transition-shadow duration-nav hover:ring-2 hover:ring-line-strong"
+                  class="block size-full rounded-tag transition-shadow duration-fast hover:ring-2 hover:ring-line-strong"
                   :class="[LEVELS[cell.level], cell.today && 'ring-2 ring-fg-strong']"
                   @click="emit('open', cell.date)"
                   @focus="hover(cell, r, c)"

@@ -7,7 +7,7 @@
     </div>
 
     <div v-else-if="state === 'failed'" class="flex flex-col items-start gap-4" data-testid="saved-error">
-      <h1 class="text-page-title-sm text-fg-strong">Seu lote ainda não foi salvo</h1>
+      <h1 class="text-page-title text-fg-strong">Seu lote ainda não foi salvo</h1>
       <p role="alert" class="text-body text-fg">{{ failMessage }}</p>
       <div class="flex flex-wrap gap-2">
         <UiButton variant="primary" @click="save">Tentar de novo</UiButton>
@@ -20,7 +20,7 @@
         <div class="flex items-center gap-4" data-testid="saved">
           <UiBaigiMascot class="shrink-0" :size="64" state="idle" visible />
           <div class="min-w-0">
-            <h1 ref="title" class="text-page-title-sm text-fg-strong outline-none" tabindex="-1">{{ saved ? 'Seu progresso está salvo' : 'Comece pelo seu material' }}</h1>
+            <h1 ref="title" class="text-page-title text-fg-strong outline-none" tabindex="-1">{{ saved ? 'Seu progresso está salvo' : 'Comece pelo seu material' }}</h1>
             <p v-if="saved" class="mt-1 text-body text-fg-muted" data-testid="saved-line">
               {{ saved.cards }} cards de {{ saved.topicName }}{{ saved.reviews ? `, com as ${saved.reviews} avaliações do lote` : '' }}.
             </p>
@@ -53,7 +53,7 @@
 
       <!-- Text and PDF on their way: the cards take shape, with the state and the estimate -->
       <div v-else class="flex flex-col gap-4" data-testid="processing-step">
-        <h1 class="text-page-title-sm text-fg-strong outline-none" tabindex="-1">{{ processingTitle }}</h1>
+        <h1 class="text-page-title text-fg-strong outline-none" tabindex="-1">{{ processingTitle }}</h1>
         <p role="status" class="text-body text-fg-muted" data-testid="processing-state">{{ processingState }}</p>
         <div v-if="retryFinish">
           <UiButton variant="primary" data-testid="processing-retry" @click="retryFinish">Tentar de novo</UiButton>

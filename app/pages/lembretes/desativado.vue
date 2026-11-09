@@ -3,29 +3,29 @@
     <UiBaigiMascot :size="72" priority :state="status === 'loading' ? 'thinking' : 'idle'" />
 
     <template v-if="status === 'loading'">
-      <h1 class="text-page-title-sm text-fg-strong">Desativando…</h1>
+      <h1 class="text-page-title text-fg-strong">Desativando…</h1>
       <p class="text-body text-fg-muted">Só um instante.</p>
     </template>
 
     <template v-else-if="status === 'invalid'">
-      <h1 class="text-page-title-sm text-fg-strong">Link inválido</h1>
+      <h1 class="text-page-title text-fg-strong">Link inválido</h1>
       <p class="text-body text-fg-muted">Desative em Configurações.</p>
       <UiButton variant="primary" block to="/configuracoes#estudo">Abrir Configurações</UiButton>
     </template>
 
     <template v-else-if="status === 'error'">
-      <h1 class="text-page-title-sm text-fg-strong">Não conseguimos desativar agora</h1>
+      <h1 class="text-page-title text-fg-strong">Não conseguimos desativar agora</h1>
       <p class="text-body text-fg-muted">Verifique sua conexão e tente de novo.</p>
       <UiButton variant="primary" block @click="unsubscribe">Tentar de novo</UiButton>
     </template>
 
     <template v-else-if="status === 'resubscribed'">
-      <h1 class="text-page-title-sm text-fg-strong">Lembretes reativados</h1>
+      <h1 class="text-page-title text-fg-strong">Lembretes reativados</h1>
       <p class="text-body text-fg-muted">Pronto, lembretes reativados às {{ formatReminderHour(hour) }}.</p>
     </template>
 
     <template v-else>
-      <h1 class="text-page-title-sm text-fg-strong">Lembretes desativados</h1>
+      <h1 class="text-page-title text-fg-strong">Lembretes desativados</h1>
       <p class="text-body text-fg-muted">Você não vai mais receber e-mails de estudo.</p>
       <UiButton v-if="resubscribeUrl" block :loading="resubscribing" @click="resubscribe">Reativar lembretes</UiButton>
     </template>

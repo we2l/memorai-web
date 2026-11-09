@@ -10,9 +10,9 @@
     <!-- A new account: one block, no zeros (03 §4 e, M10) -->
     <UiSection v-if="noCards" data-testid="progress-new">
       <div class="flex flex-col items-center gap-5 px-2 py-6 text-center">
-        <div class="w-full max-w-sm rounded-card border border-line bg-raised p-4 text-left shadow-card" aria-hidden="true">
+        <div class="w-full max-w-sm rounded-card border border-line bg-raised p-4 text-left shadow-1" aria-hidden="true">
           <p class="text-label text-fg-muted">Prévia</p>
-          <div class="mt-2 flex items-baseline gap-2"><span class="text-page-title-sm text-fg-strong">62%</span><span class="text-meta text-fg-muted">de domínio · ▲ +6 em 30 dias</span></div>
+          <div class="mt-2 flex items-baseline gap-2"><span class="text-page-title text-fg-strong">62%</span><span class="text-meta text-fg-muted">de domínio · ▲ +6 em 30 dias</span></div>
           <div class="mt-3 flex flex-col gap-2 text-meta">
             <div class="flex items-center gap-2"><span class="w-28 text-fg">Português</span><span class="h-1.25 flex-1 overflow-hidden rounded-full bg-progress-track"><span class="block h-1.25 w-3/5 rounded-full bg-action" /></span></div>
             <div class="flex items-center gap-2"><span class="w-28 text-fg">Constitucional</span><span class="h-1.25 flex-1 overflow-hidden rounded-full bg-progress-track"><span class="block h-1.25 w-2/5 rounded-full bg-action" /></span></div>

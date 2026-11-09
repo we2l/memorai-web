@@ -19,8 +19,9 @@ describe.skipIf(skipWithoutBuild)('Fase 5: o que o build entrega', () => {
     }
   })
 
-  it('a lacuna do cloze continua no entry.css', () => {
-    expect(read(entryFile!)).toContain('.cloze-blank')
+  it('a lacuna do cloze vai no chunk de quem a mostra, fora do entry.css (E2, teto de 13 KB)', () => {
+    expect(read(entryFile!)).not.toContain('.cloze-blank')
+    expect(cssFiles.filter(f => f.startsWith('ReviewCard.')).map(read).join('')).toContain('.cloze-blank')
   })
 
   it('o CSS da landing só alcança o escopo dela: nenhuma utility solta', () => {

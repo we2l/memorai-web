@@ -1,5 +1,5 @@
 <template>
-  <div v-if="suggestion" class="w-full rounded-card bg-subtle px-4 py-3 text-left" data-testid="retention-hint">
+  <div v-if="suggestion" class="w-full rounded-card bg-soft px-4 py-3 text-left" data-testid="retention-hint">
     <p class="text-meta text-fg">
       Você tem {{ suggestion.overdue_count.toLocaleString('pt-BR') }} atrasados. Baixar a meta de lembrança de {{ pct(suggestion.current_retention) }} para {{ pct(suggestion.suggested_retention) }} tira cerca de {{ suggestion.cards_eliminated.toLocaleString('pt-BR') }} da fila.
     </p>

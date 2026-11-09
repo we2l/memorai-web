@@ -1,39 +1,45 @@
 <template>
   <UiSection :title="title" data-testid="scope-subjects">
     <template v-if="canAdd" #action>
-      <UiButton size="sm" :icon-left="Plus" data-testid="scope-add-subject" @click="$emit('add')">{{ addLabel }}</UiButton>
+      <UiButton size="sm" variant="outline" :icon-left="Plus" data-testid="scope-add-subject" @click="$emit('add')">{{ addLabel }}</UiButton>
     </template>
 
     <p v-if="!rows.length" class="text-body text-fg-muted">Organize por matéria, como no edital.</p>
 
     <template v-else>
       <!-- Column names (desktop); each row says its own numbers to a screen reader -->
-      <div class="hidden grid-cols-[minmax(0,1fr)_9rem_9rem_4rem] gap-4 border-b border-line pb-2 pl-3 pr-15 text-label text-fg-muted md:grid" aria-hidden="true">
+      <div class="hidden grid-cols-[minmax(0,1fr)_8.5rem_8.5rem_3rem] gap-4 pb-2 pl-2 pr-13 text-label text-fg-muted md:grid" aria-hidden="true">
         <span>{{ depthLabel }}</span>
-        <span>Domínio</span>
-        <span>Questões</span>
+        <span>Domínio dos cards</span>
+        <span>Acerto em questões</span>
         <span class="text-right">Hoje</span>
       </div>
-      <ul class="-mx-3 divide-y divide-line md:mx-0" :aria-label="title">
+      <ul class="-mx-2 divide-y divide-hairline" :aria-label="title">
         <li v-for="row in rows" :key="row.s.id" class="flex items-center gap-1">
           <NuxtLink
             :to="cadernoPath(row.s.id)"
             :aria-label="accessibleName(row.s)"
-            class="block min-h-touch min-w-0 flex-1 rounded-row px-3 py-3 transition-colors duration-nav hover:bg-subtle md:grid md:grid-cols-[minmax(0,1fr)_9rem_9rem_4rem] md:items-center md:gap-4"
+            class="block min-h-touch min-w-0 flex-1 rounded-row px-2 py-3 transition-colors duration-fast hover:bg-soft md:grid md:grid-cols-[minmax(0,1fr)_8.5rem_8.5rem_3rem] md:items-center md:gap-4"
             data-testid="subject-row"
             @click="$emit('open', row.s)"
           >
             <span class="flex min-w-0 items-center gap-2.5" :class="row.level === 2 && 'pl-5'">
               <UiSubjectMark v-if="row.level === 1" :color="row.s.color" :index="row.index" />
-              <span class="min-w-0 break-words" :class="row.level === 1 ? 'font-medium text-fg-strong' : 'text-fg'">{{ row.s.name }}</span>
+              <span class="min-w-0 truncate" :class="row.level === 1 ? 'font-semibold text-fg-strong' : 'text-fg'">{{ row.s.name }}</span>
               <UiTag v-if="row.s.weak" tone="warning" class="shrink-0">ponto fraco</UiTag>
+              <span class="ml-auto font-semibold tabular-nums text-fg-strong md:hidden" aria-hidden="true">{{ row.s.session_count }}</span>
             </span>
 
-            <!-- Phone: one line of numbers under the name -->
-            <span class="mt-1 block text-meta text-fg-muted md:hidden" :class="row.level === 2 && 'pl-5'" aria-hidden="true">{{ compactLine(row.s) }}</span>
+            <!-- Phone: the two bars under the name (no horizontal scroll) -->
+            <span class="mt-2 grid grid-cols-2 gap-4 md:hidden" :class="row.level === 2 && 'pl-5'" aria-hidden="true">
+              <UiProgressBar v-if="row.s.mastery !== null" :value="row.s.mastery" :subject="toneOf(row)" label="" show-value />
+              <span v-else class="text-meta text-fg-muted">Sem cards</span>
+              <UiProgressBar v-if="row.s.questions?.accuracy != null" :value="row.s.questions.accuracy" tone="neutral" label="" show-value />
+              <span v-else class="text-meta text-fg-muted">Questões —</span>
+            </span>
 
             <span class="hidden md:block" aria-hidden="true">
-              <UiProgressBar v-if="row.s.mastery !== null" :value="row.s.mastery" label="" show-value />
+              <UiProgressBar v-if="row.s.mastery !== null" :value="row.s.mastery" :subject="toneOf(row)" label="" show-value />
               <span v-else class="text-meta text-fg-muted">—</span>
             </span>
             <span class="hidden md:block" aria-hidden="true">
@@ -91,11 +97,10 @@ const menuOf = (s: ScopeSubject): MenuItem[] => [
 
 const questionsHint = (s: ScopeSubject) => ((s.questions?.answered ?? 0) > 0 ? `${s.questions!.answered} de 10 questões` : 'faça 10 questões')
 
-function compactLine(s: ScopeSubject): string {
-  const parts = [s.mastery !== null ? `Domínio ${s.mastery}%` : 'Sem cards']
-  parts.push(s.questions?.accuracy != null ? `Questões ${s.questions.accuracy}%` : 'Questões —')
-  parts.push(`${s.session_count} hoje`)
-  return parts.join(' · ')
+/** The bar of mastery in the color of the matéria (its dot); an assunto takes its matéria's (ADR-035 §1) */
+function toneOf(row: { s: ScopeSubject; level: 1 | 2; index: number }): number {
+  const top = row.level === 1 ? row.s : props.subjects.find(p => p.id === row.s.parent_id)
+  return subjectTone(top?.color, row.index)
 }
 
 function accessibleName(s: ScopeSubject): string {

@@ -95,7 +95,7 @@ describe('UiErrorState', () => {
     const w = await mountSuspended(ErrorState, { props: { description: 'Confira a conexão.' }, slots: { actions: () => h('a', { href: '/hoje' }, 'Voltar') }, attachTo: document.body })
     expect(w.attributes('role')).toBe('alert')
     expect(w.text()).toContain('Não foi possível carregar')
-    expect(w.classes()).toEqual(expect.arrayContaining(['bg-raised', 'shadow-card']))
+    expect(w.classes()).toEqual(expect.arrayContaining(['bg-raised', 'shadow-1']))
     const retry = w.get('button')
     expect(retry.text()).toBe('Tentar de novo')
     expect(retry.classes()).toContain('min-h-touch')
@@ -116,7 +116,7 @@ describe('UiSkeleton', () => {
     const row = await mountSuspended(Skeleton, { props: { variant: 'row' } })
     expect(row.findAll('.animate-pulse')).toHaveLength(3)
     const block = await mountSuspended(Skeleton, { props: { variant: 'block', size: 'lg' } })
-    expect(block.get('.animate-pulse').classes()).toEqual(expect.arrayContaining(['h-40', 'rounded-card', 'bg-subtle']))
+    expect(block.get('.animate-pulse').classes()).toEqual(expect.arrayContaining(['h-40', 'rounded-card', 'bg-soft']))
   })
 })
 

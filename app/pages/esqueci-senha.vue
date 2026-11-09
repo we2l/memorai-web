@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col gap-5">
     <div>
-      <h1 class="text-page-title-sm text-fg-strong">Esqueci a senha</h1>
+      <h1 class="text-page-title text-fg-strong">Esqueci a senha</h1>
       <p v-if="!sent" class="mt-1 text-body text-fg-muted">Enviamos um link para você criar uma nova.</p>
     </div>
 

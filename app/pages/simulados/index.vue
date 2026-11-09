@@ -24,7 +24,7 @@
     <UiSection v-else-if="!quizStore.quizzes.length" data-testid="quizzes-empty">
       <div class="flex flex-col items-center gap-5 px-2 py-6 text-center">
         <!-- Preview of a result (static markup: nothing to download, nothing in the precache) -->
-        <div class="w-full max-w-sm rounded-card border border-line bg-raised p-4 text-left shadow-card" aria-hidden="true">
+        <div class="w-full max-w-sm rounded-card border border-line bg-raised p-4 text-left shadow-1" aria-hidden="true">
           <p class="text-label text-fg-muted">10 questões em 12 min</p>
           <p class="font-semibold text-fg-strong">Você acertou 7 de 10</p>
           <div class="mt-3 flex flex-col gap-2 text-meta">

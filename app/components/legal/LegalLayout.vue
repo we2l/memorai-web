@@ -2,7 +2,7 @@
   <div class="mx-auto max-w-page px-gutter pt-8 lg:grid lg:grid-cols-[14rem_minmax(0,1fr)] lg:gap-10 lg:pt-12">
     <!-- Index: collapsible on the phone, sticky on the desktop -->
     <aside class="mb-6 lg:mb-0">
-      <details class="rounded-card bg-raised px-5 shadow-card lg:hidden">
+      <details class="rounded-card bg-raised px-5 shadow-1 lg:hidden">
         <summary class="flex min-h-touch cursor-pointer items-center text-meta font-semibold text-fg-strong">Índice</summary>
         <ol class="flex list-decimal flex-col gap-1 pb-4 pl-5 text-meta text-fg">
           <li v-for="s in sections" :key="s.id"><UiLink :href="`#${s.id}`" variant="muted">{{ s.title }}</UiLink></li>
@@ -17,7 +17,7 @@
     </aside>
 
     <article id="topo" class="legal-prose max-w-prose">
-      <h1 class="mb-2 text-page-title-sm text-fg-strong sm:text-page-title">{{ title }}</h1>
+      <h1 class="mb-2 text-page-title text-fg-strong">{{ title }}</h1>
       <p class="mb-8 text-meta text-fg-muted">Vigência a partir de {{ effectiveDate }} · Última atualização: {{ updatedAt }}</p>
       <slot />
       <p class="mt-12 text-meta">

@@ -51,7 +51,7 @@
       <p v-if="question.explanation" class="text-meta text-fg">{{ question.explanation }}</p>
       <UiButton v-if="!question.is_correct" size="sm" variant="ghost" :icon-left="MessageCircle" class="-ml-3 self-start" @click="emit('ask')">Por que errei?</UiButton>
     </div>
-    <p v-else-if="savedForLater" role="status" class="rounded-row bg-subtle px-4 py-3 text-meta text-fg">
+    <p v-else-if="savedForLater" role="status" class="rounded-row bg-soft px-4 py-3 text-meta text-fg">
       {{ question.type === 'short_answer' ? 'Resposta salva. A dissertativa é corrigida no fim.' : 'Resposta salva. O gabarito aparece no fim.' }}
     </p>
   </article>

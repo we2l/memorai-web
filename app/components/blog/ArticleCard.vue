@@ -1,5 +1,5 @@
 <template>
-  <article class="relative flex flex-col gap-2 rounded-card bg-raised p-5 shadow-card">
+  <article class="relative flex flex-col gap-2 rounded-card bg-raised p-5 shadow-1">
     <p class="text-label text-fg-muted">{{ categoryLabel(article.category) }}</p>
     <h3 class="text-section text-fg-strong">
       <NuxtLink :to="`/blog/${article.slug}`" class="after:absolute after:inset-0 after:rounded-card focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-focus">{{ article.title }}</NuxtLink>

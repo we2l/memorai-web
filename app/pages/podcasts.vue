@@ -17,7 +17,7 @@
     </div>
 
     <!-- ?topic_id= (Praticar or the caderno): the episodes of that scope and its subtree (GET /podcasts?topic_id=) -->
-    <div v-if="scopeTopicId" class="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-row bg-subtle px-3 py-2" role="status" data-testid="podcasts-scope">
+    <div v-if="scopeTopicId" class="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-row bg-soft px-3 py-2" role="status" data-testid="podcasts-scope">
       <p class="min-w-0 flex-1 text-meta text-fg">Episódios de <span class="font-semibold text-fg-strong">{{ scopeName || 'este caderno' }}</span></p>
       <UiButton size="sm" variant="ghost" to="/podcasts">Ver todos</UiButton>
     </div>
@@ -33,8 +33,8 @@
     <UiSection v-else-if="!store.podcasts.length" data-testid="podcasts-empty">
       <div class="flex flex-col items-center gap-5 px-2 py-6 text-center">
         <!-- Preview of the player (static, no image to download) -->
-        <div class="flex w-full max-w-sm items-center gap-3 rounded-card border border-line bg-raised p-3 text-left shadow-card" aria-hidden="true">
-          <span class="flex size-12 shrink-0 items-center justify-center rounded-control bg-subtle text-listen"><Headphones class="size-6" /></span>
+        <div class="flex w-full max-w-sm items-center gap-3 rounded-card border border-line bg-raised p-3 text-left shadow-1" aria-hidden="true">
+          <span class="flex size-12 shrink-0 items-center justify-center rounded-control bg-soft text-listen"><Headphones class="size-6" /></span>
           <span class="min-w-0 flex-1">
             <span class="block truncate text-meta font-semibold text-fg-strong">Seus erros de ontem</span>
             <span class="block text-label text-fg-muted">9 cards · 7 min</span>

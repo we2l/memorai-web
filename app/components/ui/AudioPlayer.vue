@@ -12,7 +12,7 @@
     </button>
     <div class="flex-1 flex items-center gap-2 min-w-0">
       <div
-        class="flex-1 h-1.5 rounded-full bg-subtle cursor-pointer relative overflow-hidden"
+        class="flex-1 h-1.5 rounded-full bg-soft cursor-pointer relative overflow-hidden"
         @click="seek"
       >
         <div

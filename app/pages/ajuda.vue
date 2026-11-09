@@ -23,7 +23,7 @@
                     <kbd
                       v-for="key in shortcut.keys.split('+')"
                       :key="key"
-                      class="rounded-tag border border-line-strong bg-subtle px-2 py-0.5 text-label text-fg-strong"
+                      class="rounded-tag border border-line-strong bg-soft px-2 py-0.5 text-label text-fg-strong"
                     >{{ key.trim() }}</kbd>
                   </span>
                 </td>
@@ -55,7 +55,7 @@
             </thead>
             <tbody class="divide-y divide-line">
               <tr v-for="cmd in editorCommands" :key="cmd.command">
-                <td class="py-3 pr-3"><code class="rounded-tag bg-subtle px-2 py-0.5 text-label text-fg-strong">{{ cmd.command }}</code></td>
+                <td class="py-3 pr-3"><code class="rounded-tag bg-soft px-2 py-0.5 text-label text-fg-strong">{{ cmd.command }}</code></td>
                 <td class="py-3 text-fg">{{ cmd.description }}</td>
               </tr>
             </tbody>

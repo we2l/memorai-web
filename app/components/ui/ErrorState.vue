@@ -30,8 +30,8 @@ withDefaults(defineProps<{
 const emit = defineEmits<{ (e: 'retry'): void }>()
 
 const VARIANTS = {
-  inline: 'rounded-card bg-raised p-6 shadow-card',
+  inline: 'rounded-card bg-raised p-6 shadow-1',
   page: 'min-h-96 px-6 py-12',
-  hero: 'min-h-80 rounded-card bg-raised p-8 shadow-card',
+  hero: 'min-h-80 rounded-card bg-raised p-8 shadow-1',
 }
 </script>

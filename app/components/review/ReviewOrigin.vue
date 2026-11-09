@@ -10,7 +10,7 @@
     <button
       v-else-if="origin?.kind === 'question'"
       type="button"
-      class="hit-touch rounded-tag font-semibold text-action-fg underline-offset-2 transition-colors duration-nav hover:text-action-hover hover:underline"
+      class="hit-touch rounded-tag font-semibold text-action-fg underline-offset-2 transition-colors duration-fast hover:text-action-hover hover:underline"
       data-testid="review-origin-link"
       aria-keyshortcuts="O"
       aria-haspopup="dialog"
@@ -23,7 +23,7 @@
 </template>
 
 <script setup lang="ts">
-// Where the card came from (prd-4d-revisao-v3 RF-F3), always visible after the answer, on `bg-subtle` (not
+// Where the card came from (prd-4d-revisao-v3 RF-F3), always visible after the answer, on `bg-soft` (not
 // the tinted block): the part of the PDF ("Abrir o trecho"), the note ("Abrir a nota") or the quiz
 // question ("Ver a questão"), or the pasted question (prd-questao-errada: "Ver a questão" opens a dialog). Without a recorded origin nothing is guessed. "Você errou este card N vezes"
 // from 2 lapses. The material opens with ?from=review and the way back to this session.

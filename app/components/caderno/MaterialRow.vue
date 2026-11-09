@@ -1,15 +1,12 @@
 <template>
   <div class="flex items-center gap-3 rounded-row px-3 py-3" data-testid="material-row" :data-kind="row.kind">
-    <span class="flex size-9 shrink-0 items-center justify-center rounded-control bg-subtle text-fg-muted" aria-hidden="true">
-      <FileText v-if="row.kind === 'pdf'" class="size-4.5" />
-      <NotebookText v-else class="size-4.5" />
-    </span>
+    <UiIconTile :icon="row.kind === 'pdf' ? FileText : NotebookText" :tone="row.kind === 'pdf' ? 'action' : 'neutral'" class="self-start" />
 
     <div class="min-w-0 flex-1">
-      <NuxtLink v-if="openTo" ref="titleLink" :to="openTo" class="hit-touch font-medium break-words text-fg-strong hover:text-action-fg focus-visible:text-action-fg" data-testid="material-title">
+      <NuxtLink v-if="openTo" ref="titleLink" :to="openTo" class="hit-touch font-semibold break-words text-fg-strong hover:text-action-fg focus-visible:text-action-fg" data-testid="material-title">
         {{ row.title }}
       </NuxtLink>
-      <span v-else class="font-medium break-words text-fg-strong" data-testid="material-title">{{ row.title }}</span>
+      <span v-else class="font-semibold break-words text-fg-strong" data-testid="material-title">{{ row.title }}</span>
 
       <!-- State of a PDF that is not ready (only this line updates while it reads, G4) -->
       <p v-if="row.status === 'generating' || row.status === 'processing'" class="flex flex-wrap items-center gap-x-2 text-meta text-fg-muted" aria-live="polite">

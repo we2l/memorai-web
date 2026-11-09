@@ -9,7 +9,7 @@
       <input
         ref="inputRef"
         v-model="query"
-        class="w-full rounded-row border border-line-input bg-subtle px-3 py-2 text-meta text-fg-strong placeholder:text-fg-muted"
+        class="w-full rounded-row border border-line-input bg-soft px-3 py-2 text-meta text-fg-strong placeholder:text-fg-muted"
         placeholder="Nome do tópico…"
         aria-label="Nome do tópico"
         @keydown.enter.prevent="confirmSelection"
@@ -25,7 +25,7 @@
         v-for="(child, index) in filteredChildren"
         :key="child.id"
         class="subpage-dropdown-item"
-        :class="{ 'bg-subtle': index === selectedIndex }"
+        :class="{ 'bg-soft': index === selectedIndex }"
         @mouseenter="selectedIndex = index"
         @mousedown.prevent="selectExisting(child.id)"
       >
@@ -37,7 +37,7 @@
       <button
         v-if="showCreateOption"
         class="subpage-dropdown-item border-t border-line"
-        :class="{ 'bg-subtle': selectedIndex === filteredChildren.length }"
+        :class="{ 'bg-soft': selectedIndex === filteredChildren.length }"
         @mouseenter="selectedIndex = filteredChildren.length"
         @mousedown.prevent="createNew"
       >

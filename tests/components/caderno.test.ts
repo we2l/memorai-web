@@ -3,6 +3,7 @@ import { mockNuxtImport, mountSuspended } from '@nuxt/test-utils/runtime'
 import { nextTick } from 'vue'
 import { enableAutoUnmount, flushPromises } from '@vue/test-utils'
 import ScopeHeader from '~/components/caderno/ScopeHeader.vue'
+import ScopeStats from '~/components/caderno/ScopeStats.vue'
 import NextStep from '~/components/caderno/NextStep.vue'
 import SubjectTable from '~/components/caderno/SubjectTable.vue'
 import MaterialRow from '~/components/caderno/MaterialRow.vue'
@@ -50,22 +51,23 @@ const primaries = (el: Element) => el.querySelectorAll('.bg-action.text-on-actio
 
 describe('CadernoScopeHeader (prd-4b-caderno-v3 RF-F3)', () => {
   it('um número de sessão: "Revisar hoje · 45" é o único primário; domínio e acerto são contexto', async () => {
-    const w = await mountSuspended(ScopeHeader, { props: { summary: summary(), roots: [{ id: 'root', name: 'TRF 4ª Região' }, { id: 'b', name: 'Inglês' }] } })
+    const w = await mountSuspended(ScopeStats, { props: { summary: summary() } })
     expect(w.get('[data-testid="scope-review"]').text()).toBe('Revisar hoje · 45')
     expect(w.get('[data-testid="scope-review"]').attributes('href')).toBe('/revisar?topic_id=root')
     expect(primaries(w.element)).toBe(1)
     expect(w.text()).toContain('41%')
-    expect(w.text()).toContain('de domínio · 902 de 2.200 em dia')
-    expect(w.text()).toContain('63%de acerto em 120 questões')
-    expect(w.get('[data-testid="scope-context"]').text()).toBe('Prova em 45 dias · 60 cards por dia · Concurso ou OAB')
+    expect(w.text()).toContain('domínio · 902 de 2.200 em dia')
+    expect(w.text()).toContain('acerto em 120 questões')
     expect(w.get('[data-testid="scope-overdue"]').text()).toContain('893 atrasados')
+    const head = await mountSuspended(ScopeHeader, { props: { summary: summary(), roots: [{ id: 'root', name: 'TRF 4ª Região' }, { id: 'b', name: 'Inglês' }] } })
+    expect(head.get('[data-testid="scope-context"]').text()).toMatch(/^Prova em 45 dias · 60 cards por dia · Concurso ou OAB · [\d.]+ cards$/)
   })
 
   it('modo concurso: Questões no cabeçalho, ao lado de Revisar; outro modo: só Ouvir', async () => {
-    const exam = await mountSuspended(ScopeHeader, { props: { summary: summary(), roots: [] } })
+    const exam = await mountSuspended(ScopeStats, { props: { summary: summary() } })
     expect(exam.find('[data-testid="scope-quiz"]').exists()).toBe(true)
     expect(exam.get('[data-testid="scope-listen"]').text()).toBe('Ouvir · 12 min')
-    const academic = await mountSuspended(ScopeHeader, { props: { summary: summary({}, { learning_mode: 'academic' }), roots: [] } })
+    const academic = await mountSuspended(ScopeStats, { props: { summary: summary({}, { learning_mode: 'academic' }) } })
     expect(academic.find('[data-testid="scope-quiz"]').exists()).toBe(false)
   })
 
@@ -74,7 +76,7 @@ describe('CadernoScopeHeader (prd-4b-caderno-v3 RF-F3)', () => {
       counts: { cards: 0, materials: 2, subjects: 0 }, session: { count: 0, overdue: 0, errors: 0 }, questions: null,
       next_step: { kind: 'generate_cards', title: 'Gerar cards de Apostila', detail: null, target: { type: 'note', id: 'n1', topic_id: 'root' } },
     })
-    const w = await mountSuspended(ScopeHeader, { props: { summary: s, roots: [] } })
+    const w = await mountSuspended(ScopeStats, { props: { summary: s } })
     expect(w.get('[data-testid="scope-generate"]').text()).toBe('Gerar cards de Apostila')
     expect(w.get('[data-testid="scope-generate"]').attributes('href')).toBe('/cadernos/root/material/n1?workshop=1')
     expect(primaries(w.element)).toBe(1)
@@ -85,7 +87,6 @@ describe('CadernoScopeHeader (prd-4b-caderno-v3 RF-F3)', () => {
     const w = await mountSuspended(ScopeHeader, { props: { summary: s, roots: [] } })
     expect(primaries(w.element)).toBe(0)
     expect(w.text()).toContain('Comece adicionando o que você vai estudar.')
-    expect(w.find('[data-testid="scope-review"]').exists()).toBe(false)
   })
 
   it('matéria aberta: caminho até o caderno e a nota de que o caderno já inclui estes N', async () => {
@@ -94,14 +95,18 @@ describe('CadernoScopeHeader (prd-4b-caderno-v3 RF-F3)', () => {
     const nav = w.get('nav[aria-label="Caminho"]')
     expect(nav.findAll('a').map(a => a.attributes('href'))).toEqual(['/cadernos', '/cadernos/root'])
     expect(w.get('h1').text()).toBe('Constitucional')
-    expect(w.text()).toContain('O Revisar hoje de TRF 4ª Região já inclui estes 20.')
+    const stats = await mountSuspended(ScopeStats, { props: { summary: s } })
+    expect(stats.text()).toContain('O Revisar hoje de TRF 4ª Região já inclui estes 20.')
   })
 
   it('axe sem violação, claro e escuro', async () => {
     const w = await mountSuspended(ScopeHeader, { props: { summary: summary(), roots: [{ id: 'b', name: 'Inglês' }] }, attachTo: document.body })
+    const stats = await mountSuspended(ScopeStats, { props: { summary: summary() }, attachTo: document.body })
     expect(await axeViolations(w.element)).toEqual([])
+    expect(await axeViolations(stats.element)).toEqual([])
     document.documentElement.classList.add('dark')
     expect(await axeViolations(w.element)).toEqual([])
+    expect(await axeViolations(stats.element)).toEqual([])
   })
 })
 

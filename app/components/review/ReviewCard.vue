@@ -16,7 +16,7 @@
     <p
       v-if="swipe.direction.value"
       class="pointer-events-none absolute top-3 rounded-full px-3 py-1 text-meta font-semibold"
-      :class="[swipe.direction.value === 'right' ? 'right-3 bg-success-subtle text-success' : 'left-3 bg-subtle text-fg-strong', swipe.armed.value ? 'opacity-100' : 'opacity-70']"
+      :class="[swipe.direction.value === 'right' ? 'right-3 bg-success-subtle text-success' : 'left-3 bg-soft text-fg-strong', swipe.armed.value ? 'opacity-100' : 'opacity-70']"
       aria-hidden="true"
       data-testid="review-swipe-hint"
     >
@@ -123,4 +123,8 @@ const audio = computed(() => (props.flipped ? props.card.back_audio_url : props.
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: none; }
 }
+</style>
+
+<style>
+@import "~/assets/css/cloze.css";
 </style>

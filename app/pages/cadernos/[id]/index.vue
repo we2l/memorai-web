@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto flex max-w-4xl flex-col gap-4 px-gutter pt-2 pb-6 md:pt-8" :aria-busy="loading ? 'true' : undefined">
+  <div class="mx-auto flex max-w-page flex-col gap-5 px-gutter pt-2 pb-6 md:pt-8" :aria-busy="loading ? 'true' : undefined">
     <!-- 404: the caderno does not exist (or is not the person's) -->
     <LazyUiEmptyState v-if="store.notFound" title="Caderno não encontrado" description="Se você o excluiu, ele fica na lixeira por 30 dias." mascot="subtle">
       <template #action>
@@ -13,10 +13,8 @@
     <template v-else>
       <!-- Skeleton of the header and of 4 lines (RF-F12) -->
       <template v-if="!summary && !store.summaryError">
-        <div class="rounded-card bg-raised p-6 shadow-card" aria-hidden="true">
-          <UiSkeleton variant="text" :lines="3" />
-        </div>
-        <div class="rounded-card bg-raised p-6 shadow-card" aria-hidden="true">
+        <UiSkeleton variant="text" :lines="2" class="max-w-sm" />
+        <div class="rounded-card bg-raised p-6 shadow-1" aria-hidden="true">
           <UiSkeleton v-for="i in 4" :key="i" variant="row" />
         </div>
         <span class="sr-only" role="status">Carregando o caderno…</span>
@@ -32,8 +30,6 @@
         <CadernoScopeHeader
           :summary="summary"
           :roots="roots"
-          :first-material="store.materials[0] ?? null"
-          @listen="listen"
           @edit="openEdit"
           @move="moveScope"
           @delete="trashScope"
@@ -49,45 +45,59 @@
           origin="caderno"
           @moved="store.fetchSummary()"
         />
-        <CadernoNextStep v-if="showNextStep" :step="summary.next_step!" @go="kind => track('next_step_click', { kind })" />
+        <CadernoHubGrid side-label="Resumo do caderno">
+          <template v-if="hasSide" #side>
+            <CadernoScopeStats v-if="!isEmpty" :summary="summary" :first-material="store.materials[0] ?? null" @listen="listen" />
+            <CadernoNextStep v-if="showNextStep" :step="summary.next_step!" @go="kind => track('next_step_click', { kind })" />
+            <UiSection v-if="summary.exam" aria-label="Prova" data-testid="scope-exam">
+              <div class="flex items-center gap-3.5">
+                <UiIconTile :icon="CalendarDays" tone="action" />
+                <div class="min-w-0">
+                  <p class="font-semibold text-fg-strong">{{ summary.exam.title }} · {{ summary.exam.days_remaining === 0 ? 'hoje' : `em ${summary.exam.days_remaining} ${summary.exam.days_remaining === 1 ? 'dia' : 'dias'}` }}</p>
+                  <p class="text-meta text-fg-muted">{{ summary.exam.projection ? `Mantendo o ritmo, chega lembrando ${summary.exam.projection.keep_pace}%` : 'A projeção aparece depois de 20 cards revisados' }}</p>
+                </div>
+              </div>
+            </UiSection>
+          </template>
 
-        <template v-for="block in blocks" :key="block">
-          <LazyCadernoEmptyScope
-            v-if="block === 'empty'"
-            :topic-id="id"
-            :is-root="summary.topic.depth === 0"
-            :can-add-subject="!summary.subjects.length && canAddSubtopic(summary.topic.depth)"
-            @add-subject="openAddSubject"
-            @pdf="(file, auto) => uploadPdf(file, auto)"
-            @photo="openPhoto"
-            @note="createNote"
-          />
-          <CadernoSubjectTable
-            v-else-if="block === 'subjects'"
-            :subjects="summary.subjects"
-            :scope-depth="summary.topic.depth"
-            :can-add="canAddSubtopic(summary.topic.depth)"
-            @add="openAddSubject"
-            @open="s => track('subject_open', { depth: s.depth })"
-            @move="moveSubject"
-            @delete="trashSubject"
-          />
-          <CadernoMaterialList
-            v-else-if="block === 'materials'"
-            :scope-id="id"
-            :summary="summary"
-            :blocked-reasons="blockedReasons"
-            @add="addHere"
-            @retry="retryNote"
-            @delete="trashMaterial"
-            @move="moveMaterial"
-            @view-pdf="viewPdf"
-            @ready="() => store.fetchSummary()"
-            @search="track('material_search', {})"
-            @more="rows => track('material_load_more', { rows })"
-          />
-          <CadernoPracticeRow v-else-if="block === 'practice'" :summary="summary" />
-        </template>
+          <template v-for="block in blocks" :key="block">
+            <LazyCadernoEmptyScope
+              v-if="block === 'empty'"
+              :topic-id="id"
+              :is-root="summary.topic.depth === 0"
+              :can-add-subject="!summary.subjects.length && canAddSubtopic(summary.topic.depth)"
+              @add-subject="openAddSubject"
+              @pdf="(file, auto) => uploadPdf(file, auto)"
+              @photo="openPhoto"
+              @note="createNote"
+            />
+            <CadernoSubjectTable
+              v-else-if="block === 'subjects'"
+              :subjects="summary.subjects"
+              :scope-depth="summary.topic.depth"
+              :can-add="canAddSubtopic(summary.topic.depth)"
+              @add="openAddSubject"
+              @open="s => track('subject_open', { depth: s.depth })"
+              @move="moveSubject"
+              @delete="trashSubject"
+            />
+            <CadernoMaterialList
+              v-else-if="block === 'materials'"
+              :scope-id="id"
+              :summary="summary"
+              :blocked-reasons="blockedReasons"
+              @add="addHere"
+              @retry="retryNote"
+              @delete="trashMaterial"
+              @move="moveMaterial"
+              @view-pdf="viewPdf"
+              @ready="() => store.fetchSummary()"
+              @search="track('material_search', {})"
+              @more="rows => track('material_load_more', { rows })"
+            />
+            <CadernoPracticeRow v-else-if="block === 'practice'" :summary="summary" />
+          </template>
+        </CadernoHubGrid>
       </template>
     </template>
 
@@ -117,6 +127,7 @@
 // Materiais and Praticar, in the order of the mode (D11). Opening it asks only the summary and the first
 // page of materials, in parallel (§6 rule 6: no note content, no card list). The editor, the card library
 // and the map live on their own routes. "+ Adicionar" writes here (RF-F10).
+import { CalendarDays } from 'lucide-vue-next'
 import type { Document, MaterialRow, Podcast, ScopeSubject } from '~/types'
 import type { TopicDialogMode, TopicDialogTarget } from '~/components/caderno/TopicDialog.vue'
 import type { TrashItem } from '~/components/caderno/TrashDialog.vue'
@@ -160,6 +171,8 @@ const showNextStep = computed(() => {
   if (!step) return false
   return !(step.kind === 'generate_cards' && !hasCards.value)
 })
+
+const hasSide = computed(() => !!summary.value && (!isEmpty.value || showNextStep.value || !!summary.value.exam))
 
 const showBar = computed(() => (summary.value?.session.count ?? 0) > 0)
 useStickyActionHeight(showBar)
@@ -409,3 +422,4 @@ function onTopicSaved() {
   void store.fetchSummary()
 }
 </script>
+

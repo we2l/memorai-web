@@ -1,6 +1,11 @@
 {
   "$comment": "Catraca do design system (ADR-027 §8, prd-ds-v3-fundacao RF-0.2): contagem por regra e por arquivo. O CI reprova se algum arquivo subir. Para travar uma queda: node scripts/check-tokens.mjs --update e node scripts/check-ds.mjs --update (este depois do build). Subir um número exige justificativa no PR. Desde a Fase 5 a catraca está em zero: só fica aqui o que tem dono em $donos, e o CI reprova qualquer outro arquivo fora do sistema.",
-  "$donos": {},
+  "$donos": {
+    "app/**": {
+      "dono": "E2 Fases 3 a 5 (ADR-035)",
+      "motivo": "border-surface: as bordas de superfície viram sombra (shadow-1) tela a tela; a catraca chega a zero no fim da Fase 5"
+    }
+  },
   "hex": {},
   "color-fn": {},
   "palette": {},

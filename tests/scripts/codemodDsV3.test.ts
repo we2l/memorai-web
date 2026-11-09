@@ -30,7 +30,8 @@ describe('codemod-ds-v3: classes', () => {
   it('troca nomes v2 mantendo variantes, importante e opacidade', () => {
     expect(cls('text-base-muted').to).toBe('text-fg-muted')
     expect(cls('hover:text-base-primary').to).toBe('hover:text-fg-strong')
-    expect(cls('md:text-display').to).toBe('md:text-page-title-sm md:lg:text-page-title')
+    // text-title and text-display were v2 names; the E2 scale (ADR-035) reuses them, so the map no longer swaps them
+    expect(cls('md:text-headline').to).toBe('md:text-section')
     expect(cls('font-heading').to).toBe('')
     expect(cls('min-h-[44px]').to).toBe('min-h-touch')
   })

@@ -1,7 +1,7 @@
 <template>
   <span class="inline-flex items-baseline text-fg-strong" :class="SIZES[size]" :aria-label="unit ? `${value} ${unit}` : undefined" :role="unit ? 'text' : undefined">
     <span :aria-hidden="unit ? 'true' : undefined">{{ value }}</span>
-    <span v-if="unit" class="num-unit" aria-hidden="true">{{ unit }}</span>
+    <span v-if="unit" data-unit aria-hidden="true">{{ unit }}</span>
   </span>
 </template>
 
@@ -20,7 +20,7 @@ const SIZES = { xl: 'num-xl', l: 'num-l', m: 'num-m', s: 'num-s' } as const
 </script>
 
 <style scoped>
-.num-unit {
+[data-unit] {
   font-family: var(--font-sans);
   font-size: max(0.42em, 0.875rem);
   font-weight: 600;
@@ -29,3 +29,6 @@ const SIZES = { xl: 'num-xl', l: 'num-l', m: 'num-m', s: 'num-s' } as const
   margin-left: 0.12em;
 }
 </style>
+
+<!-- The @font-face of the Fraunces live with the big numbers, not in entry.css (ADR-035 §2) -->
+<style src="~/assets/css/fraunces.css"></style>

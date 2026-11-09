@@ -79,6 +79,8 @@
   --action-hover: var(--palette-violet-600);
   --action-fg: var(--palette-violet-500);
   --elev-card: 0 1px 2px color-mix(in srgb, var(--palette-ink-900) 5%, transparent), 0 4px 16px color-mix(in srgb, var(--palette-ink-900) 4%, transparent);
+  /* O "volume" do botão v3 (o app passou à sombra roxa, --elev-action) */
+  --elev-press: 0 3px 0 var(--action-press);
 }
 
 .dark .landing-page {
@@ -92,6 +94,7 @@
   --action-hover: var(--palette-violet-550);
   --action-fg: var(--palette-violet-300);
   --focus-ring: var(--palette-violet-300);
+  --action-press: var(--palette-violet-700);
   --elev-card: 0 1px 2px color-mix(in srgb, var(--palette-black) 40%, transparent), 0 4px 16px color-mix(in srgb, var(--palette-black) 20%, transparent);
 }
 

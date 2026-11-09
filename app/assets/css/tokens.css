@@ -8,28 +8,6 @@
    Todo par de texto/fundo passa por tests/scripts/tokensContrast.test.ts.
    ============================================ */
 
-/* Fraunces (OFL 1.1; scripts/fonts/build-num-font.py), ADR-035 §2:
-   - "Baigi Num": instância 600 só com os dígitos e "% + − , . º" (2,4 KB, no precache). O unicode-range faz as letras
-     de "18 de 20" caírem na Inter sem marcação extra;
-   - "Baigi It": itálico 500, minúsculas, acentos e pontuação, só no cartão da prova (decisão do dono, 08/11).
-     Fica fora do precache (globIgnores em nuxt.config.ts) e só baixa quando a tela usa. */
-@font-face {
-  font-family: 'Baigi Num';
-  src: url('../fonts/baigi-num-600.woff2') format('woff2');
-  font-weight: 600;
-  font-style: normal;
-  font-display: swap;
-  unicode-range: U+0020, U+0025, U+002B, U+002C, U+002E, U+0030-0039, U+00BA, U+2212;
-}
-
-@font-face {
-  font-family: 'Baigi It';
-  src: url('../fonts/baigi-it-500.woff2') format('woff2');
-  font-weight: 500;
-  font-style: italic;
-  font-display: swap;
-}
-
 /* Camada 1 (primitivos) fica implícita desde a E2 (ADR-035 §7): o semântico guarda o valor direto, sem a cadeia
    var(--palette-*), porque o entry.css tem teto de 13 KB gz e a cadeia custava ~1,1 KB. Este arquivo continua o único
    do app com cor literal; a landing, congelada na v4, tem os primitivos dela em components/landing/landing.css. */
@@ -147,9 +125,6 @@
   /* Ponteiros v3: card → 1, raised (mini-player, toast) → 2 */
   --elev-card: var(--elev-1);
   --elev-raised: var(--elev-2);
-  /* "Volume" da ação principal (UiButton primary): borda inferior em --action-press; pressionado, afunda */
-  --elev-press: 0 3px 0 var(--action-press);
-  --elev-press-active: 0 1px 0 var(--action-press);
 
   /* Movimento */
   --motion-nav: 150ms;

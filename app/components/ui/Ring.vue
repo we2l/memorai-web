@@ -1,11 +1,11 @@
 <template>
   <div class="relative inline-grid shrink-0 place-items-center" :style="{ width: `${size}px`, height: `${size}px` }" data-testid="ui-ring" :data-value="clamped">
-    <svg class="ring-svg absolute inset-0 size-full" :viewBox="`0 0 ${size} ${size}`" aria-hidden="true">
-      <circle class="ring-track" :cx="c" :cy="c" :r="r" fill="none" :stroke-width="stroke" />
+    <svg data-part="svg" class="absolute inset-0 size-full" :viewBox="`0 0 ${size} ${size}`" aria-hidden="true">
+      <circle data-part="track" :cx="c" :cy="c" :r="r" fill="none" :stroke-width="stroke" />
       <circle
         v-if="clamped > 0"
-        class="ring-prog"
-        :class="{ 'ring-draw': drawing }"
+        data-part="prog"
+        :data-draw="drawing || undefined"
         :cx="c"
         :cy="c"
         :r="r"
@@ -41,11 +41,11 @@ const drawing = computed(() => props.animate)
 </script>
 
 <style scoped>
-.ring-svg { transform: rotate(-90deg); filter: var(--glow); }
-.ring-track { stroke: var(--action-subtle); }
-.ring-prog { stroke: var(--action); }
+[data-part="svg"] { transform: rotate(-90deg); filter: var(--glow); }
+[data-part="track"] { stroke: var(--action-subtle); }
+[data-part="prog"] { stroke: var(--action); }
 @media (prefers-reduced-motion: no-preference) {
-  .ring-draw { animation: ring-draw 900ms var(--ease-out) 120ms both; }
+  [data-draw] { animation: ring-draw 900ms var(--ease-out) 120ms both; }
 }
 @keyframes ring-draw {
   from { stroke-dashoffset: var(--len); }

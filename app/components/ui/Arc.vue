@@ -1,11 +1,11 @@
 <template>
-  <div class="arc relative mx-auto" data-testid="ui-arc" :data-got="got" :data-of="of">
-    <svg class="arc-svg" viewBox="0 0 260 150" aria-hidden="true">
-      <path class="arc-track" :d="PATH" fill="none" stroke-width="16" stroke-linecap="round" />
+  <div class="relative mx-auto h-37.5 w-65" data-testid="ui-arc" :data-got="got" :data-of="of">
+    <svg data-part="svg" class="h-37.5 w-65 overflow-visible" viewBox="0 0 260 150" aria-hidden="true">
+      <path data-part="track" :d="PATH" fill="none" stroke-width="16" stroke-linecap="round" />
       <path
         v-if="ratio > 0"
-        class="arc-prog"
-        :class="{ 'arc-draw': animate }"
+        data-part="prog"
+        :data-draw="animate || undefined"
         :d="PATH"
         fill="none"
         stroke-width="16"
@@ -31,14 +31,13 @@ const ratio = computed(() => (props.of > 0 ? Math.min(1, Math.max(0, props.got /
 </script>
 
 <style scoped>
-.arc { width: 260px; height: 150px; }
-.arc-svg { width: 260px; height: 150px; overflow: visible; filter: var(--glow); }
+[data-part="svg"] { filter: var(--glow); }
 /* The number inside the arc is num-xl at 62 px (ADR-035 §2) */
-.arc :slotted(.num-xl) { font-size: 3.875rem; }
-.arc-track { stroke: var(--action-subtle); }
-.arc-prog { stroke: var(--action); }
+:slotted(.num-xl) { font-size: 3.875rem; }
+[data-part="track"] { stroke: var(--action-subtle); }
+[data-part="prog"] { stroke: var(--action); }
 @media (prefers-reduced-motion: no-preference) {
-  .arc-draw { animation: arc-draw 800ms var(--ease-out) 120ms both; }
+  [data-draw] { animation: arc-draw 800ms var(--ease-out) 120ms both; }
 }
 @keyframes arc-draw {
   from { stroke-dashoffset: 351.86px; }

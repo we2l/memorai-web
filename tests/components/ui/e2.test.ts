@@ -18,30 +18,30 @@ afterEach(() => { document.body.innerHTML = '' })
 describe('UiRing', () => {
   it('preenche a fração do valor (0..1, cortado nas pontas) e só desenha com animate', async () => {
     const w = await mountSuspended(Ring, { props: { value: 0.5, size: 64, stroke: 7 } })
-    const prog = w.get('.ring-prog')
+    const prog = w.get('[data-part=prog]')
     const len = 2 * Math.PI * 28.5
     expect(Number(prog.attributes('stroke-dasharray'))).toBeCloseTo(len, 3)
     expect(Number(prog.attributes('stroke-dashoffset'))).toBeCloseTo(len / 2, 3)
-    expect(prog.classes()).not.toContain('ring-draw')
+    expect(prog.attributes('data-draw')).toBeUndefined()
     await w.setProps({ value: 3, animate: true })
-    expect(Number(w.get('.ring-prog').attributes('stroke-dashoffset'))).toBeCloseTo(0, 5)
-    expect(w.get('.ring-prog').classes()).toContain('ring-draw')
+    expect(Number(w.get('[data-part=prog]').attributes('stroke-dashoffset'))).toBeCloseTo(0, 5)
+    expect(w.get('[data-part=prog]').attributes('data-draw')).toBe('true')
     await w.setProps({ value: 0 })
-    expect(w.find('.ring-prog').exists()).toBe(false)
+    expect(w.find('[data-part=prog]').exists()).toBe(false)
   })
 })
 
 describe('UiArc', () => {
   it('desenha got de of no semicírculo e mostra o número no slot', async () => {
     const w = await mountSuspended(Arc, { props: { got: 18, of: 20 }, slots: { default: () => '18 de 20' } })
-    const prog = w.get('.arc-prog')
+    const prog = w.get('[data-part=prog]')
     const len = Math.PI * 112
     expect(Number(prog.attributes('stroke-dashoffset'))).toBeCloseTo(len * 0.1, 3)
     expect(w.text()).toContain('18 de 20')
     await w.setProps({ got: 0 })
-    expect(w.find('.arc-prog').exists()).toBe(false)
+    expect(w.find('[data-part=prog]').exists()).toBe(false)
     await w.setProps({ got: 5, of: 0 })
-    expect(w.find('.arc-prog').exists()).toBe(false)
+    expect(w.find('[data-part=prog]').exists()).toBe(false)
   })
 })
 

@@ -305,6 +305,8 @@ async function seed(page: Page): Promise<Seed> {
   await addCards(page, enem.id, enem.id, ENEM)
 
   // A study streak, as an account in use would have
+  // The default of the review (revisão v5 Fase A): "Lembrei / Não lembrei", not the 4 buttons of the Anki
+  php(`$u->forceFill(['review_buttons' => 'two'])->save(); echo 'ok';`)
   php(`$u->forceFill(['current_streak' => 12, 'longest_streak' => 12, 'last_review_date' => now('America/Sao_Paulo')->subDay()->toDateString()])->save(); echo 'ok';`)
 
   return { rootId: root.id, docId, part5: noteIds[4]!, inglesId: ingles.id, anatomiaId: anatomia.id, quizId, oabId: oab.id, enemId: enem.id, due, weak: acidente }
@@ -417,13 +419,15 @@ async function clips(page: Page, browser: Browser, s: Seed) {
   for (const theme of ['light', 'dark'] as const) {
     restore(s)
     await record(browser, state, theme, 'revisao', `/revisar?scope=document:${s.docId}`, p => expect(p.getByTestId('review-show')).toBeVisible(), async (p) => {
+      // Revisão v5 + E2: "Lembrei" holds the card under the green banner (1,2 s) and the next one slides in
       for (let i = 0; i < 4; i++) {
+        await expect(p.getByTestId('review-show')).toBeVisible()
         await p.waitForTimeout(900)
         await p.getByTestId('review-show').click()
         await p.waitForTimeout(1100)
         await p.getByTestId('rate-3').click()
+        await p.waitForTimeout(1500)
       }
-      await p.waitForTimeout(300)
     })
     await record(browser, state, theme, 'simulado', `/simulados/${s.quizId}/resultado`, p => expect(p.getByText('Você acertou 7 de 10')).toBeVisible(), async (p) => {
       await p.waitForTimeout(1200)
@@ -447,6 +451,7 @@ test.use({ auditUser: 'landingShots', viewport: { width: WIDTH, height: 844 }, d
 test('telas e vídeos reais da landing', async ({ page, browser }) => {
   await gotoApp(page, '/hoje')
   const s = await seed(page)
+  const heights: Record<string, number> = {}
 
   for (const theme of ['light', 'dark'] as const) {
     await page.addInitScript((t) => { try { localStorage.setItem('color-mode', t) } catch { /* only the capture */ } }, theme)
@@ -454,19 +459,31 @@ test('telas e vídeos reais da landing', async ({ page, browser }) => {
     await gotoApp(page, '/hoje')
     await settle(page)
     // The whole first screen of the Hoje: the phone of the projection (landing D) and of `?m=prova`
-    await save(page, 'hoje-tela', theme, { height: 844 })
+    // Visual E2: the exam with the projection (the lilac block the landing talks about) comes after the goal and the
+    // plan, so the page scrolls until it sits whole above the bottom nav
+    const hojeY = await page.evaluate(() => {
+      const exam = document.querySelector('[data-testid="home-exam"]')!.getBoundingClientRect()
+      const nav = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 64
+      return Math.max(0, Math.ceil(window.scrollY + exam.bottom - (window.innerHeight - nav - 16)))
+    })
+    await save(page, 'hoje-tela', theme, { scrollY: hojeY, height: 844 })
     if (theme === 'light') await saveDemoNumbers(page)
 
     // The short cards end higher: their capture stops under the answer
-    for (const [name, url, height] of [['revisao', `/revisar?scope=document:${s.docId}`, 472], ['ingles', `/revisar?scope=topic:${s.inglesId}`, 320], ['anatomia', `/revisar?scope=topic:${s.anatomiaId}`, 320], ['oab', `/revisar?scope=topic:${s.oabId}`, 320], ['enem', `/revisar?scope=topic:${s.enemId}`, 340]] as const) {
+    // Each capture ends 24 px under the card (the height goes to SCREENS in app/utils/landing.ts)
+    for (const [name, url] of [['revisao', `/revisar?scope=document:${s.docId}`], ['ingles', `/revisar?scope=topic:${s.inglesId}`], ['anatomia', `/revisar?scope=topic:${s.anatomiaId}`], ['oab', `/revisar?scope=topic:${s.oabId}`], ['enem', `/revisar?scope=topic:${s.enemId}`]] as const) {
       await gotoApp(page, url)
       await page.getByTestId('review-show').click()
       await expect(page.getByTestId('review-show')).toHaveCount(0)
       await settle(page)
+      const box = (await page.getByTestId('review-card').boundingBox())!
+      const height = Math.min(844, Math.ceil(box.y + box.height + 24))
+      heights[name] = Math.max(heights[name] ?? 0, height)
       await save(page, name, theme, { height })
     }
   }
 
+  console.log(`SCREENS heights: ${JSON.stringify(heights)}`)
   // The clips rate cards: after the screens and the numbers of demo.json
   await clips(page, browser, s)
 })

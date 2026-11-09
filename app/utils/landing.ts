@@ -37,12 +37,12 @@ export function landingQuery(): URLSearchParams {
 
 /** Real screens of the app (e2e/landing/shots.ts) in public/landing, 390 CSS px wide at 2x. */
 export const SCREENS = {
-  'hoje-tela': { height: 844, alt: 'Tela real do Hoje na conta de demonstração: Técnico do INSS em 45 dias, com a projeção mantendo o ritmo e o plano do dia.' },
-  'revisao': { height: 472, alt: 'Tela real da revisão na conta de demonstração: o card “Quanto vale o auxílio-acidente?” virado, com a origem dele na apostila de Seguridade Social.' },
-  'anatomia': { height: 320, alt: 'Tela real da revisão de Anatomia na conta de demonstração: o card sobre o principal músculo da inspiração, com a resposta.' },
-  'oab': { height: 320, alt: 'Tela real da revisão para a OAB na conta de demonstração: o card sobre o prazo da contestação no CPC, com a resposta.' },
-  'enem': { height: 340, alt: 'Tela real da revisão para o ENEM na conta de demonstração: o card sobre a 1ª Lei de Mendel, com a resposta.' },
-  'ingles': { height: 320, alt: 'Tela real da revisão de inglês na conta de demonstração: o card “I’m looking forward to it”, com a tradução.' },
+  'hoje-tela': { height: 844, alt: 'Tela real do Hoje na conta de demonstração: o plano do dia e a prova de Técnico do INSS em 45 dias, chegando à prova lembrando 90% mantendo o ritmo.' },
+  'revisao': { height: 538, alt: 'Tela real da revisão na conta de demonstração: o card “Quanto vale o auxílio-acidente?” virado, com a origem dele na apostila de Seguridade Social.' },
+  'anatomia': { height: 355, alt: 'Tela real da revisão de Anatomia na conta de demonstração: o card sobre o principal músculo da inspiração, com a resposta.' },
+  'oab': { height: 416, alt: 'Tela real da revisão para a OAB na conta de demonstração: o card sobre o prazo da contestação no CPC, com a resposta.' },
+  'enem': { height: 440, alt: 'Tela real da revisão para o ENEM na conta de demonstração: o card sobre a 1ª Lei de Mendel, com a resposta.' },
+  'ingles': { height: 353, alt: 'Tela real da revisão de inglês na conta de demonstração: o card “I’m looking forward to it”, com a tradução.' },
 } as const
 export type ScreenName = keyof typeof SCREENS
 
@@ -372,6 +372,18 @@ export function landingFaqs(catalog: PlanCatalog | null): { q: string, a: string
         : catalog?.preview
           ? `${free} ${catalog.preview.text} Depois, a IA fica no ${name}.`
           : `${free} A IA faz parte do ${name}.`,
+    },
+    {
+      q: 'Serve para o meu concurso?',
+      a: 'Serve para qualquer prova. Não é um banco de cards de outra pessoa: os cards saem do seu material, do seu edital, da apostila ou da lei seca que você manda. A questão que você errou também vira card.',
+    },
+    {
+      q: 'Tem cupom de desconto?',
+      a: `Não precisa de cupom: o preço é o mesmo para todo mundo, e revisar continua grátis. No ${name}, o anual sai mais barato que o mensal e tem desconto no Pix.`,
+    },
+    {
+      q: 'Abre no computador?',
+      a: 'Abre. É o mesmo Baigi no navegador do computador e do celular, com tudo sincronizado. No celular, dá para instalar na tela inicial como um app.',
     },
     {
       q: 'Como vocês sabem quanto eu vou lembrar?',

@@ -1,5 +1,5 @@
 <template>
-  <div class="batch-end mx-auto flex w-full max-w-xl flex-col items-center px-gutter pb-6 pt-2 text-center lg:pt-10" data-testid="review-batch-end" :data-kind="goalMet ? 'goal' : 'batch'">
+  <div class="mx-auto flex w-full max-w-xl flex-col items-center px-gutter pb-6 pt-2 text-center lg:pt-10" data-testid="review-batch-end" :data-kind="goalMet ? 'goal' : 'batch'">
     <picture class="be-mascot" aria-hidden="true">
       <source :srcset="celebratingAvif" type="image/avif">
       <img :src="celebratingWebp" alt="" width="128" height="128" decoding="async">

@@ -43,10 +43,10 @@
             <img :src="celebratingWebp" alt="" width="104" height="104" decoding="async">
           </picture>
           <h1 class="mt-2 text-display text-fg-strong outline-none" tabindex="-1" data-celebration-title>Você lembrou {{ summary.remembered }} de {{ summary.total }}</h1>
-          <UiTag class="guest-chip mt-3" tone="streak" :icon="Flame" size="lg">Dia 1 da sequência</UiTag>
-          <UiArc class="mt-4" :got="summary.remembered" :of="summary.total" animate>
-            <UiNumber :value="summary.remembered" :unit="`de ${summary.total}`" size="xl" aria-hidden="true" />
-          </UiArc>
+          <LazyUiTag class="guest-chip mt-3" tone="streak" :icon="Flame" size="lg">Dia 1 da sequência</LazyUiTag>
+          <LazyUiArc class="mt-4" :got="summary.remembered" :of="summary.total" animate>
+            <LazyUiNumber :value="summary.remembered" :unit="`de ${summary.total}`" size="xl" aria-hidden="true" />
+          </LazyUiArc>
         </div>
         <p v-if="summary.repeated" class="-mt-3 text-center text-body text-fg-muted" data-testid="guest-repeated">
           {{ summary.repeated === 1 ? '1 card voltou' : `${summary.repeated} cards voltaram` }} no fim do lote. Na segunda vez, você lembrou {{ summary.rememberedOnRepeat }}.

@@ -9,7 +9,8 @@
       </div>
     </div>
 
-    <h1 id="material-title" class="relative text-page-title-sm text-fg-strong sm:text-page-title">
+    <p v-if="eyebrow" class="mb-1.5 text-label font-semibold text-fg-muted" data-testid="material-eyebrow">{{ eyebrow }}</p>
+    <h1 id="material-title" class="relative text-page-title text-fg-strong">
       <template v-if="editing">
         <span v-if="!title" class="pointer-events-none absolute inset-x-0 top-0 text-fg-disabled" aria-hidden="true">Sem título</span>
         <span
@@ -87,6 +88,8 @@ const props = defineProps<{
   /** "Escrevendo a nota · lote 3 de 12" while the PDF job writes it */
   generatingText?: string
   mobile?: boolean
+  /** "Parte 3 de 6" above the title */
+  eyebrow?: string
 }>()
 
 const emit = defineEmits<{

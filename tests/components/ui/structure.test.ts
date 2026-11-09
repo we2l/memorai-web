@@ -68,7 +68,7 @@ describe('UiPageHeader', () => {
       attachTo: document.body,
     })
     expect(w.findAll('h1')).toHaveLength(1)
-    expect(w.get('h1').classes()).toEqual(expect.arrayContaining(['text-page-title-sm', 'sm:text-page-title']))
+    expect(w.get('h1').classes()).toEqual(expect.arrayContaining(['text-page-title']))
     const back = w.get('a')
     expect(back.attributes('href')).toBe('/cadernos')
     expect(back.text()).toBe('Cadernos')
@@ -87,7 +87,7 @@ describe('UiListRow', () => {
     })
     expect(w.element.tagName).toBe('A')
     expect(w.attributes('href')).toBe('/cadernos/1')
-    expect(w.classes()).toEqual(expect.arrayContaining(['min-h-touch', 'hover:bg-subtle']))
+    expect(w.classes()).toEqual(expect.arrayContaining(['min-h-touch', 'hover:bg-soft']))
     expect(w.text()).toContain('Português')
     expect(w.text()).toContain('12 hoje')
     expect(w.text()).toContain('62%')
@@ -111,7 +111,7 @@ describe('UiListRow', () => {
     expect(onClick).toHaveBeenCalled()
     const div = await mountSuspended(ListRow, { props: { title: 'Fixa' } })
     expect(div.element.tagName).toBe('DIV')
-    expect(div.classes()).not.toContain('hover:bg-subtle')
+    expect(div.classes()).not.toContain('hover:bg-soft')
   })
 })
 
@@ -181,7 +181,7 @@ describe('UiProgressBar', () => {
 
 describe('UiTag', () => {
   it.each([
-    ['neutral', 'bg-subtle', 'text-fg-muted'],
+    ['neutral', 'bg-soft', 'text-fg-muted'],
     ['action', 'bg-action-subtle', 'text-action-fg'],
     ['success', 'bg-success-subtle', 'text-success'],
     ['warning', 'bg-warning-subtle', 'text-warning'],
@@ -194,7 +194,7 @@ describe('UiTag', () => {
 
   it('prática: fundo neutro com ponto colorido (cor só pequena)', async () => {
     const w = await mountSuspended(Tag, { props: { tone: 'quiz' }, slots: { default: () => 'Questões' } })
-    expect(w.classes()).toEqual(expect.arrayContaining(['bg-subtle', 'text-fg']))
+    expect(w.classes()).toEqual(expect.arrayContaining(['bg-soft', 'text-fg']))
     expect(w.get('[aria-hidden="true"]').classes()).toContain('bg-quiz')
     const l = await mountSuspended(Tag, { props: { tone: 'listen' }, slots: { default: () => 'Ouvir' } })
     expect(l.get('[aria-hidden="true"]').classes()).toContain('bg-listen')
@@ -226,7 +226,7 @@ describe('UiPracticeIcon', () => {
     ['listen', 'text-listen'],
   ] as const)('%s: cor do modo só no ícone, quadradinho neutro', async (mode, tone) => {
     const w = await mountSuspended(PracticeIcon, { props: { mode } })
-    expect(w.classes()).toEqual(expect.arrayContaining(['bg-subtle', tone, 'size-9']))
+    expect(w.classes()).toEqual(expect.arrayContaining(['bg-soft', tone, 'size-9']))
     expect(w.attributes('aria-hidden')).toBe('true')
   })
 

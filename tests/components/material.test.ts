@@ -50,7 +50,7 @@ describe('"Cards desta parte" (prd-4c-material-v3 RF-F4, RF-F8)', () => {
       props: { context: context({ total: 14, session_count: 6, ahead_count: 14, errors_count: 2 }), cards: [card('a'), card('b', { state: 'new', due: null })], topicId: 't1', noteId: NOTE, primary: 'review' },
     })
     const rows = w.findAll('[data-testid=panel-card]')
-    expect(rows.map(r => r.text().replace(/\s+/g, ''))).toEqual(['atrasadoPerguntaa', 'novoPerguntab'])
+    expect(rows.map(r => r.text().replace(/\s+/g, ''))).toEqual(['Perguntaaatrasado', 'Perguntabnovo'])
     const review = w.find('[data-testid=panel-review]')
     expect(review.text()).toBe('Revisar estes 6 de hoje')
     expect(review.attributes('href')).toBe(`/revisar?scope=note:${NOTE}`)

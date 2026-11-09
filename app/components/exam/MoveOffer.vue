@@ -1,5 +1,5 @@
 <template>
-  <div v-if="!dismissed" class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-control bg-subtle px-3 py-2" data-testid="exam-move-offer">
+  <div v-if="!dismissed" class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-control bg-soft px-3 py-2" data-testid="exam-move-offer">
     <p class="min-w-0 text-meta text-fg">
       “{{ examTitle }}” está no caderno de exemplo. Mover para <strong class="font-semibold text-fg-strong">{{ target.name }}</strong>?
     </p>

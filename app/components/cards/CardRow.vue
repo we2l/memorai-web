@@ -1,5 +1,5 @@
 <template>
-  <li class="content-auto flex items-start gap-3 px-3 py-3" :class="selected && 'bg-action-subtle'" data-testid="card-row">
+  <li class="content-auto flex items-start gap-3 px-4 py-3.5" :class="selected && 'bg-action-subtle'" data-testid="card-row">
     <!-- The label stretches the 20 px box to a 44 px touch area without moving it (prd-responsividade RF-3) -->
     <label class="-m-3 flex shrink-0 cursor-pointer p-3">
       <input
@@ -13,19 +13,24 @@
     <button
       ref="button"
       type="button"
-      class="min-w-0 flex-1 rounded-row text-left"
+      class="lib-row min-w-0 flex-1 rounded-row text-left"
       data-testid="card-row-open"
       @click="$emit('open')"
       @keydown.space.prevent="$emit('toggle', false)"
     >
-      <span class="line-clamp-2 block text-body text-fg-strong">{{ front }}</span>
-      <span class="block truncate text-meta text-fg-muted">{{ back }}</span>
-      <span class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-label text-fg-muted">
-        <UiTag v-if="card.suspended_at" tone="neutral" data-testid="card-row-paused">Pausado</UiTag>
-        <UiTag v-else :tone="state.tone">{{ state.label }}</UiTag>
-        <span v-if="card.is_leech" data-testid="card-row-leech">não está colando ({{ card.lapses }} erros)</span>
-        <span v-if="origin" class="truncate">{{ origin }}</span>
-        <span v-if="due">{{ due }}</span>
+      <span class="min-w-0">
+        <span class="line-clamp-2 block font-medium text-fg-strong">{{ front }}</span>
+        <span class="block truncate text-meta text-fg-muted">{{ back }}</span>
+      </span>
+      <!-- Desktop: aligned columns (origin, state, next review); phone: one line under the text -->
+      <span class="lib-meta flex flex-wrap items-center gap-x-2 gap-y-1 text-meta text-fg-muted">
+        <span v-if="origin" class="lib-origin min-w-0 truncate">{{ origin }}</span>
+        <span class="lib-state">
+          <UiTag v-if="card.suspended_at" tone="neutral" data-testid="card-row-paused">Pausado</UiTag>
+          <UiTag v-else :tone="state.tone">{{ state.label }}</UiTag>
+        </span>
+        <span v-if="due" class="lib-due">{{ due }}</span>
+        <span v-if="card.is_leech" class="lib-leech" data-testid="card-row-leech">não está colando ({{ card.lapses }} erros)</span>
       </span>
     </button>
   </li>
@@ -52,3 +57,15 @@ const origin = computed(() => originShort(props.card.origin))
 const button = ref<HTMLButtonElement | null>(null)
 defineExpose({ focus: () => button.value?.focus() })
 </script>
+
+<style scoped>
+.lib-row { display: flex; flex-direction: column; gap: 0.375rem; }
+@media (min-width: 64rem) {
+  .lib-row { display: grid; grid-template-columns: minmax(0, 1fr) 30rem; align-items: center; gap: 1.5rem; }
+  .lib-meta { display: grid; grid-template-columns: minmax(0, 1fr) 7rem 8rem; flex-wrap: nowrap; }
+  .lib-origin { grid-column: 1; }
+  .lib-state { grid-column: 2; }
+  .lib-due { grid-column: 3; }
+  .lib-leech { grid-column: 1 / -1; }
+}
+</style>

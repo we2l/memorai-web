@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto flex max-w-4xl flex-col gap-6 px-gutter pt-2 pb-6 md:pt-8">
+  <div class="mx-auto flex max-w-page flex-col gap-6 px-gutter pt-2 pb-6 md:pt-8">
     <UiPageHeader title="Cadernos" :meta="meta">
       <template v-if="roots.length" #actions>
         <UiButton variant="primary" :icon-left="Plus" data-tour="create-notebook" @click="openCreate">Novo caderno</UiButton>
@@ -23,13 +23,19 @@
       </UiEmptyState>
     </UiSection>
 
-    <UiSection v-else flush class="px-3 py-2">
-      <ul class="divide-y divide-line" aria-label="Seus cadernos" data-testid="notebook-list">
-        <li v-for="t in roots" :key="t.id">
-          <CadernoNotebookRow :topic="t" />
-        </li>
-      </ul>
-    </UiSection>
+    <!-- E2 (prd-visual-e2 RF-4.1): cards in a grid, 1 column on the phone and 2–3 on the desktop, plus "Novo caderno" -->
+    <ul v-else class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-5" aria-label="Seus cadernos" data-testid="notebook-list">
+      <li v-for="t in roots" :key="t.id" class="flex">
+        <CadernoNotebookCard :topic="t" class="w-full" />
+      </li>
+      <li class="flex">
+        <button type="button" class="flex min-h-40 w-full flex-col items-center justify-center gap-1.5 rounded-card bg-soft p-5 text-center transition-colors duration-fast hover:bg-sunk" data-testid="notebook-new" @click="openCreate">
+          <Plus class="size-5 text-fg-muted" aria-hidden="true" />
+          <span class="font-semibold text-fg-strong">Novo caderno</span>
+          <span class="text-meta text-fg-muted">PDF, nota, Anki ou questões coladas</span>
+        </button>
+      </li>
+    </ul>
 
     <p v-if="roots.length" class="text-meta text-fg-muted">
       Vindo do Anki? <UiLink to="/importar">Importe seus baralhos</UiLink>.
@@ -43,8 +49,8 @@
 </template>
 
 <script setup lang="ts">
-// Cadernos (prd-4b-caderno-v3 RF-F2): the list of cadernos (roots), the same rows as Hoje (dot, name,
-// "N hoje", mastery bar) and "+ Novo caderno". Each caderno opens its hub, /cadernos/{id}. Old URLs
+// Cadernos (prd-4b-caderno-v3 RF-F2; E2 RF-4.1): the cadernos (roots) as cards in a grid (initial and dot, name, mastery
+// in the Fraunces, "N hoje") and "+ Novo caderno". Each caderno opens its hub, /cadernos/{id}. Old URLs
 // (/cadernos?topic=…&note=…&tab=…) are sent to the new routes (RF-F1): API pending actions, e-mails and
 // favorites still carry them.
 import { Download, Plus } from 'lucide-vue-next'
@@ -115,3 +121,4 @@ onMounted(() => {
   }
 })
 </script>
+

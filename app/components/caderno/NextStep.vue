@@ -1,15 +1,15 @@
 <template>
-  <UiSection variant="tinted" label="Próximo passo" class="flex flex-wrap items-center justify-between gap-x-5 gap-y-3" data-testid="scope-next-step">
-    <div class="min-w-0 flex-1 basis-64">
-      <p class="text-body font-semibold text-fg-strong">{{ step.title }}</p>
-      <p v-if="step.detail" class="text-meta text-fg-muted">{{ step.detail }}</p>
+  <UiSection variant="tinted" label="Próximo passo" class="flex flex-col items-start gap-3" data-testid="scope-next-step">
+    <div class="min-w-0">
+      <p class="text-title text-fg-strong">{{ step.title }}</p>
+      <p v-if="step.detail" class="mt-1 text-meta text-fg-muted">{{ step.detail }}</p>
     </div>
-    <UiButton :to="action.to" :icon-left="action.icon" :icon-tone="action.tone" @click="$emit('go', step.kind)">{{ action.label }}</UiButton>
+    <UiButton variant="outline" size="sm" :to="action.to" :icon-left="action.icon" :icon-tone="action.tone" @click="$emit('go', step.kind)">{{ action.label }}</UiButton>
   </UiSection>
 </template>
 
 <script setup lang="ts">
-// "Próximo passo" (prd-4b-caderno-v3 RF-F4): the only tinted block of the screen. One rule of the server
+// "Próximo passo" (prd-4b-caderno-v3 RF-F4; E2 RF-4.2): the only lilac block of the hub, in its side column. One rule of the server
 // (RF-B4): material without cards → its workshop; errors → "Só erros"; worst subject in questions → a quiz
 // of it; else continue the material opened last. The block is not rendered without a step.
 import type { Component } from 'vue'

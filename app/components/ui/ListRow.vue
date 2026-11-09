@@ -5,8 +5,8 @@
     :aria-current="active ? (isLink ? 'page' : 'true') : undefined"
     class="flex w-full min-h-touch items-center gap-3 rounded-row px-3 py-3 text-left"
     :class="[
-      active ? 'bg-action-subtle' : interactive && 'hover:bg-subtle',
-      interactive && 'transition-colors duration-nav',
+      active ? 'bg-action-subtle' : interactive && 'hover:bg-soft',
+      interactive && 'transition-colors duration-fast',
     ]"
   >
     <span v-if="$slots.leading" class="flex shrink-0 items-center">

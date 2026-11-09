@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col gap-5">
-    <h1 class="text-page-title-sm text-fg-strong">Entrar no Baigi</h1>
+    <h1 class="text-page-title text-fg-strong">Entrar no Baigi</h1>
 
     <p v-if="notice" role="status" class="rounded-control bg-warning-subtle px-3 py-2 text-meta text-fg-strong" data-testid="entrar-notice">{{ notice }}</p>
 

@@ -1,10 +1,10 @@
 <template>
   <UiField v-slot="field" :id="id" :label="label" :hint="hint" :error="error" :hide-label="hideLabel" :optional="optional" v-bind="split.root">
     <div
-      class="flex min-h-touch items-center gap-2 rounded-control border px-3 transition-colors duration-nav focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-focus"
+      class="flex min-h-touch items-center gap-2 rounded-control border px-3 transition-colors duration-fast focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-focus"
       :class="[
         field.invalid ? 'border-danger' : 'border-line-input focus-within:border-focus',
-        disabled ? 'cursor-not-allowed bg-subtle opacity-60' : 'bg-raised',
+        disabled ? 'cursor-not-allowed bg-soft opacity-60' : 'bg-raised',
       ]"
     >
       <span v-if="$slots.prefix" class="flex shrink-0 items-center text-fg-muted"><slot name="prefix" /></span>

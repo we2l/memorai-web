@@ -44,7 +44,7 @@
       </button>
     </form>
     <template v-else>
-      <div class="rounded-control bg-subtle px-3 py-2 text-body" data-testid="check-diff">
+      <div class="rounded-control bg-soft px-3 py-2 text-body" data-testid="check-diff">
         <p class="text-meta text-fg-muted">{{ matched ? 'Igual à resposta' : typed.trim() ? 'Diferente da resposta' : 'Sem resposta digitada' }}</p>
         <p v-if="typed.trim()" class="break-words">
           <template v-for="(part, i) in diff" :key="i">

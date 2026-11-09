@@ -11,7 +11,7 @@
         </ol>
       </nav>
 
-      <h1 class="mb-4 text-page-title-sm text-fg-strong sm:text-page-title">{{ article.title }}</h1>
+      <h1 class="mb-4 text-page-title text-fg-strong">{{ article.title }}</h1>
       <p v-if="article.summary" class="blog-lead mb-5 text-fg-strong" data-testid="blog-summary">{{ article.summary }}</p>
 
       <div class="mb-6 flex items-center gap-3 border-y border-line py-3">

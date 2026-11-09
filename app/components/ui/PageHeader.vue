@@ -7,7 +7,7 @@
       </UiLink>
       <div class="flex items-center gap-3">
         <slot name="leading" />
-        <h1 class="text-page-title-sm text-fg-strong sm:text-page-title">{{ title }}</h1>
+        <h1 class="text-page-title text-fg-strong">{{ title }}</h1>
       </div>
       <p v-if="meta || $slots.meta" class="mt-1 text-body text-fg-muted">
         <slot name="meta">{{ meta }}</slot>

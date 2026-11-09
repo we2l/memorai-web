@@ -98,7 +98,7 @@ test.describe('Caderno — caminho triste', () => {
     await gotoApp(page, '/cadernos')
     const t = await apiCall(page, 'POST', '/topics', { name })
     await page.reload()
-    await page.getByRole('button', { name: 'Novo caderno' }).click()
+    await page.getByRole('button', { name: 'Novo caderno', exact: true }).click()
     const dialog = page.getByRole('dialog', { name: 'Novo caderno' })
     await dialog.getByRole('textbox', { name: 'Nome do caderno' }).fill('   ')
     await expect(dialog.getByRole('button', { name: 'Criar' })).toBeDisabled()

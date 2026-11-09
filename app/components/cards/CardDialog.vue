@@ -15,7 +15,7 @@
       <p v-if="card.tags?.length" class="mt-4 flex flex-wrap gap-1.5">
         <UiTag v-for="t in card.tags" :key="t">{{ t }}</UiTag>
       </p>
-      <p v-if="originText" class="mt-4 flex flex-wrap items-center gap-x-2 rounded-row bg-subtle px-3 py-2 text-meta text-fg-muted">
+      <p v-if="originText" class="mt-4 flex flex-wrap items-center gap-x-2 rounded-row bg-soft px-3 py-2 text-meta text-fg-muted">
         <span>Origem: {{ originText }}</span>
         <UiLink v-if="originTo" :to="originTo" data-testid="card-origin-link">Abrir a origem ›</UiLink>
       </p>

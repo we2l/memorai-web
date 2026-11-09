@@ -12,7 +12,7 @@
       <UiButton size="sm" variant="ghost" class="-ml-3" :aria-expanded="open" :aria-controls="explainId" @click="toggle">
         Como calculamos
       </UiButton>
-      <p v-if="open" :id="explainId" class="mt-1 max-w-prose rounded-row bg-subtle px-3 py-2 text-meta text-fg">
+      <p v-if="open" :id="explainId" class="mt-1 max-w-prose rounded-row bg-soft px-3 py-2 text-meta text-fg">
         Para cada card dos assuntos da prova, calculamos a chance de você lembrar dele no dia, pelo histórico das suas revisões.
         "Se parar hoje" é a média sem nenhuma revisão até lá. "Mantendo o ritmo" supõe que você revise o que vencer e veja
         {{ projection.new_per_day }} cards novos por dia; é um piso, porque não conta revisões a mais nem a Reta final.

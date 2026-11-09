@@ -62,7 +62,7 @@ test.describe('Mobile 390px', () => {
     const fb = await face.boundingBox()
     expect(fb!.x).toBeGreaterThanOrEqual(0)
     expect(fb!.x + fb!.width).toBeLessThanOrEqual(390)
-    await face.tap()
+    await page.getByTestId('review-show').tap()
     const easy = page.getByRole('button', { name: /^Fácil/ })
     await expect(easy).toBeInViewport()
     const eb = await easy.boundingBox()

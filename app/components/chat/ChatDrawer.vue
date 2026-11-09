@@ -21,7 +21,7 @@
       </ul>
 
       <!-- What the question is about: the card, the wrong question or the excerpt -->
-      <div v-if="attached" class="rounded-row bg-subtle p-3 text-meta">
+      <div v-if="attached" class="rounded-row bg-soft p-3 text-meta">
         <p class="text-label font-semibold text-fg-muted">{{ attached.label }}</p>
         <p class="mt-1 line-clamp-4 text-fg-strong" v-html="sanitize(attached.html)" />
       </div>
@@ -40,7 +40,7 @@
         >
           <div
             class="max-w-5/6 rounded-card px-3.5 py-2.5 text-meta"
-            :class="msg.role === 'user' ? 'rounded-br-row bg-action text-on-action' : 'prose-chat rounded-bl-row bg-subtle text-fg-strong'"
+            :class="msg.role === 'user' ? 'rounded-br-row bg-action text-on-action' : 'prose-chat rounded-bl-row bg-soft text-fg-strong'"
             v-html="msg.role === 'assistant' ? sanitize(marked.parse(msg.content) as string) : sanitize(msg.content)"
           />
         </div>

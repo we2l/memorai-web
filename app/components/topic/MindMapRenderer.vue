@@ -2,7 +2,7 @@
   <div class="relative h-full min-h-75 w-full">
     <div ref="containerRef" class="absolute inset-0 mindmap-container" />
     <!-- Fit button -->
-    <div v-if="hasData" class="absolute bottom-3 right-3 rounded-control bg-raised shadow-card">
+    <div v-if="hasData" class="absolute bottom-3 right-3 rounded-control bg-raised shadow-1">
       <UiIconButton :icon="Maximize2" label="Centralizar" @click="handleFit" />
     </div>
   </div>

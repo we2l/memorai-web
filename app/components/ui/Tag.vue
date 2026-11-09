@@ -18,7 +18,7 @@ export type TagTone = 'neutral' | 'action' | 'brand' | 'streak' | 'goal' | 'succ
 withDefaults(defineProps<{ tone?: TagTone; icon?: Component; size?: 'md' | 'lg' }>(), { tone: 'neutral', icon: undefined, size: 'md' })
 
 const TONES: Record<TagTone, string> = {
-  neutral: 'bg-subtle text-fg-muted',
+  neutral: 'bg-soft text-fg-muted',
   action: 'bg-action-subtle text-action-fg',
   brand: 'bg-action-subtle text-action-fg',
   streak: 'bg-metric-streak-bg text-metric-streak-fg',
@@ -27,8 +27,8 @@ const TONES: Record<TagTone, string> = {
   warning: 'bg-warning-subtle text-warning',
   danger: 'bg-danger-subtle text-danger',
   info: 'bg-info-subtle text-info',
-  quiz: 'bg-subtle text-fg',
-  listen: 'bg-subtle text-fg',
+  quiz: 'bg-soft text-fg',
+  listen: 'bg-soft text-fg',
 }
 const ICON_TONES: Partial<Record<TagTone, string>> = { streak: 'text-metric-streak fill-metric-streak', goal: 'text-metric-goal' }
 </script>

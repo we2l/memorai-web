@@ -2,7 +2,7 @@
   <component
     :is="to !== undefined ? NuxtLink : 'a'"
     v-bind="bindings"
-    class="hit-touch rounded-tag underline-offset-2 transition-colors duration-nav hover:underline"
+    class="hit-touch rounded-tag underline-offset-2 transition-colors duration-fast hover:underline"
     :class="[
       variant === 'muted' ? 'text-fg-muted hover:text-fg-strong' : 'font-semibold text-action-fg hover:text-action-hover',
       standalone && 'inline-flex min-h-touch items-center gap-1',

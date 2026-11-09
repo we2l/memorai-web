@@ -1,5 +1,5 @@
 <template>
-  <figure class="overflow-hidden rounded-card border border-line bg-raised shadow-card" aria-label="Exemplo de card">
+  <figure class="overflow-hidden rounded-card border border-line bg-raised shadow-1" aria-label="Exemplo de card">
     <div class="border-b border-line px-5 py-4">
       <p class="mb-1 text-label text-fg-muted">Frente</p>
       <p class="text-body font-semibold text-fg-strong">{{ q }}</p>
@@ -8,7 +8,7 @@
       <p class="mb-1 text-label text-fg-muted">Verso</p>
       <p class="text-body text-fg">{{ a }}</p>
     </div>
-    <figcaption v-if="source" class="bg-subtle px-5 py-2 text-meta text-fg-muted">Fonte: {{ source }}</figcaption>
+    <figcaption v-if="source" class="bg-soft px-5 py-2 text-meta text-fg-muted">Fonte: {{ source }}</figcaption>
   </figure>
 </template>
 

@@ -24,7 +24,7 @@
 
       <UiSwitch v-model="retaFinal" label="Reta final nos últimos 3 dias" description="A revisão traz até 20 cards extras dos assuntos da prova." />
 
-      <p v-if="limitError" role="alert" class="flex flex-wrap items-center gap-x-2 rounded-row bg-subtle px-3 py-2 text-meta text-fg" data-testid="exam-limit-error">
+      <p v-if="limitError" role="alert" class="flex flex-wrap items-center gap-x-2 rounded-row bg-soft px-3 py-2 text-meta text-fg" data-testid="exam-limit-error">
         {{ limitError }} <UiLink to="/planos">Conhecer o {{ proName }}</UiLink>
       </p>
     </form>

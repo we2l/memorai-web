@@ -32,7 +32,7 @@ const props = withDefaults(defineProps<{
 }>(), { count: undefined, scope: null, showPaused: true })
 const emit = defineEmits<{ (e: 'changed'): void }>()
 
-const LINK = 'hit-touch rounded-tag font-semibold text-action-fg underline-offset-2 transition-colors duration-nav hover:text-action-hover hover:underline disabled:opacity-60'
+const LINK = 'hit-touch rounded-tag font-semibold text-action-fg underline-offset-2 transition-colors duration-fast hover:text-action-hover hover:underline disabled:opacity-60'
 
 const count = computed(() => props.count ?? (props.backlog.active ? props.backlog.overdue : 0))
 const show = computed(() => !!props.backlog.plan || count.value > 0 || (props.backlog.new_paused && props.showPaused))

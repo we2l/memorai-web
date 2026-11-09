@@ -1,7 +1,7 @@
 <template>
   <UiSection as="header" class="flex flex-col gap-3" data-testid="quiz-score">
     <p class="text-meta text-fg-muted">{{ summary }}</p>
-    <h1 class="text-page-title-sm text-fg-strong sm:text-page-title">Você acertou {{ correct }} de {{ total }}</h1>
+    <h1 class="text-page-title text-fg-strong">Você acertou {{ correct }} de {{ total }}</h1>
     <div class="flex flex-wrap items-baseline gap-x-5 gap-y-2">
       <span class="text-stat tabular-nums text-fg-strong">{{ percent }}%</span>
       <!-- The change against the last time, in words and with an arrow (never the color alone) -->

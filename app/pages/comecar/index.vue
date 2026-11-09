@@ -1,11 +1,11 @@
 <template>
   <div class="mx-auto flex w-full max-w-xl flex-col gap-6" data-testid="area-step">
     <div>
-      <h1 class="text-page-title-sm text-fg-strong sm:text-page-title">Para o que você estuda?</h1>
+      <h1 class="text-page-title text-fg-strong">Para o que você estuda?</h1>
       <p class="mt-1 text-body text-fg-muted">Escolha e revise 6 cards agora. Sem criar conta.</p>
     </div>
 
-    <ul class="flex flex-col divide-y divide-line rounded-card bg-raised shadow-card" aria-label="Áreas">
+    <ul class="flex flex-col divide-y divide-line rounded-card bg-raised shadow-1" aria-label="Áreas">
       <li v-for="a in GUEST_AREAS" :key="a.key">
         <UiListRow
           :to="`/comecar/${a.key}`"

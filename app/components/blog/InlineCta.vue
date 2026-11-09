@@ -1,5 +1,5 @@
 <template>
-  <aside class="rounded-row border-l-4 border-action bg-raised px-5 py-4 shadow-card" aria-label="Teste no Baigi">
+  <aside class="rounded-row border-l-4 border-action bg-raised px-5 py-4 shadow-1" aria-label="Teste no Baigi">
     <p class="mb-2 text-body text-fg-strong">{{ text }}</p>
     <UiLink :href="href" variant="action" standalone class="font-semibold" @click="onClick">
       Testar com 6 cards de {{ AREA_LABEL[area] }}, sem criar conta

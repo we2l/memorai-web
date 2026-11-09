@@ -1,11 +1,11 @@
 <template>
   <UiSection title="Praticar" :level="2" data-testid="scope-practice">
-    <ul class="-mx-3 grid gap-x-2 sm:grid-cols-2 lg:grid-cols-4">
+    <ul class="-mx-3 grid gap-x-2 sm:grid-cols-2">
       <li v-for="item in items" :key="item.key">
         <UiListRow :to="item.to" :title="item.label" :meta="item.meta" :data-testid="`practice-${item.key}`">
           <template #leading>
             <UiPracticeIcon v-if="item.mode" :mode="item.mode" size="sm" />
-            <span v-else class="flex size-7.5 items-center justify-center rounded-row bg-subtle text-fg-muted" aria-hidden="true">
+            <span v-else class="flex size-7.5 items-center justify-center rounded-row bg-soft text-fg-muted" aria-hidden="true">
               <component :is="item.icon" class="size-3.5" />
             </span>
           </template>

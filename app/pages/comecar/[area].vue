@@ -70,7 +70,7 @@
       <!-- Commitment before the account (RF-F9): one screen, two questions, then the save -->
       <div v-else-if="phase === 'commit'" class="mx-auto flex w-full max-w-xl flex-col gap-6 px-gutter py-8" data-testid="guest-commit">
         <div>
-          <h1 ref="commitTitle" class="text-page-title-sm text-fg-strong outline-none" tabindex="-1">Seu ritmo de estudo</h1>
+          <h1 ref="commitTitle" class="text-page-title text-fg-strong outline-none" tabindex="-1">Seu ritmo de estudo</h1>
           <p class="mt-1 text-body text-fg-muted">Duas respostas e o seu Hoje já começa montado. Dá para mudar depois.</p>
         </div>
 

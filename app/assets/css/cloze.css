@@ -1,0 +1,16 @@
+/* Lacuna do cloze: classes escritas em HTML por composables/useCloze.ts. Fora do entry.css (teto de 13 KB, ADR-035):
+   quem mostra um cloze (ReviewCard, CardFormModal) importa este arquivo, e o CSS vem no chunk dele. */
+.cloze-blank {
+  display: inline;
+  padding: 0.1em 0.6em;
+  border-radius: var(--radius-tag);
+  background: var(--action-subtle);
+  border-bottom: 2px solid var(--action-fg);
+  color: var(--action-fg);
+  font-style: italic;
+}
+
+.cloze-answer {
+  color: var(--action-fg);
+  font-weight: 600;
+}

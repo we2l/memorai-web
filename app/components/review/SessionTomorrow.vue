@@ -1,11 +1,11 @@
 <template>
   <div class="w-full text-left" data-testid="session-tomorrow">
     <!-- Fixed height: no layout shift when the data arrives -->
-    <div v-if="loading || !forecast" class="h-22 space-y-3 rounded-card bg-subtle p-4" aria-hidden="true">
+    <div v-if="loading || !forecast" class="h-22 space-y-3 rounded-card bg-soft p-4" aria-hidden="true">
       <UiSkeleton :lines="2" />
     </div>
 
-    <ul v-else class="divide-y divide-line rounded-card bg-subtle px-1">
+    <ul v-else class="divide-y divide-line rounded-card bg-soft px-1">
       <li class="px-3 py-3 text-body text-fg-strong" data-testid="tomorrow-load">
         <template v-if="forecast.due_count > 0">
           Amanhã: <strong>{{ pluralCards(forecast.due_count) }}</strong> · ≈{{ forecast.estimated_minutes }} min

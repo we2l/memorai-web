@@ -48,7 +48,7 @@
         <details v-for="faq in FAQS" :key="faq.q" class="group">
           <summary class="flex min-h-touch cursor-pointer list-none items-center justify-between gap-3 py-2 text-body font-semibold text-fg-strong">
             {{ faq.q }}
-            <ChevronDown class="size-4 shrink-0 text-fg-muted transition-transform duration-nav group-open:rotate-180" aria-hidden="true" />
+            <ChevronDown class="size-4 shrink-0 text-fg-muted transition-transform duration-fast group-open:rotate-180" aria-hidden="true" />
           </summary>
           <p class="pb-4 text-body text-fg">{{ faq.a }}</p>
         </details>

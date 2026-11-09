@@ -1,11 +1,11 @@
 <template>
   <div class="mx-auto w-full max-w-page px-gutter py-6">
-    <h1 class="mb-5 text-page-title-sm text-fg-strong lg:text-page-title">Configurações</h1>
+    <h1 class="mb-5 text-page-title text-fg-strong">Configurações</h1>
 
     <div class="flex flex-col gap-5 lg:grid lg:grid-cols-[14rem_minmax(0,1fr)] lg:items-start lg:gap-8">
       <!-- The side of the desktop is the list on top of the phone: the sections of the account menu -->
       <nav aria-label="Configurações" class="lg:sticky lg:top-topnav lg:pt-4">
-        <ul class="flex flex-col max-lg:divide-y max-lg:divide-line max-lg:rounded-card max-lg:bg-raised max-lg:shadow-card">
+        <ul class="flex flex-col max-lg:divide-y max-lg:divide-line max-lg:rounded-card max-lg:bg-raised max-lg:shadow-1">
           <li v-for="s in SETTINGS_SECTIONS" :key="s.id">
             <UiListRow :href="`#${s.id}`" :title="s.label" :active="isDesktop && active === s.id" data-testid="settings-nav" @click="onNav(s.id)" />
           </li>

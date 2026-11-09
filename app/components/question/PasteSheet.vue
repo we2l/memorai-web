@@ -41,13 +41,13 @@
           <div class="flex items-center gap-1">
             <button
               type="button"
-              class="flex min-h-touch min-w-0 flex-1 items-center gap-2 rounded-row px-1 text-left hover:bg-subtle"
+              class="flex min-h-touch min-w-0 flex-1 items-center gap-2 rounded-row px-1 text-left hover:bg-soft"
               :aria-expanded="expanded === i"
               :aria-controls="`question-panel-${i}`"
               :data-testid="`question-row-${i}`"
               @click="expanded = expanded === i ? -1 : i"
             >
-              <ChevronRight class="size-4 shrink-0 text-fg-muted transition-transform duration-nav" :class="expanded === i && 'rotate-90'" aria-hidden="true" />
+              <ChevronRight class="size-4 shrink-0 text-fg-muted transition-transform duration-fast" :class="expanded === i && 'rotate-90'" aria-hidden="true" />
               <span class="min-w-0 flex-1">
                 <span class="block truncate font-medium text-fg-strong">{{ questionSummary(d, i) }}</span>
                 <span class="block truncate text-meta" :class="hasProblem(i) ? 'text-danger' : 'text-fg-muted'">{{ hasProblem(i) ? 'Falta corrigir' : d.stem }}</span>

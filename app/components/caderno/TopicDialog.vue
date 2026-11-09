@@ -17,7 +17,7 @@
           <label
             v-for="c in NOTEBOOK_COLORS"
             :key="c.value"
-            class="relative flex size-touch cursor-pointer items-center justify-center rounded-full transition-colors duration-nav hover:bg-subtle has-checked:bg-action-subtle has-focus-visible:outline-2 has-focus-visible:outline-focus"
+            class="relative flex size-touch cursor-pointer items-center justify-center rounded-full transition-colors duration-fast hover:bg-soft has-checked:bg-action-subtle has-focus-visible:outline-2 has-focus-visible:outline-focus"
           >
             <input v-model="color" type="radio" :name="`${uid}-color`" :value="c.value" class="sr-only">
             <UiSubjectMark :color="c.value" size="lg" />

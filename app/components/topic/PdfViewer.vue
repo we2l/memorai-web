@@ -2,7 +2,7 @@
   <UiDialog v-model="open" :title="filename" size="xl" :description="totalPages ? `${totalPages} páginas · página ${currentPage}` : undefined">
     <div
       ref="scrollContainer"
-      class="-mx-5 h-[75dvh] select-text overflow-y-auto bg-subtle px-3 py-4 sm:-mx-6"
+      class="-mx-5 h-[75dvh] select-text overflow-y-auto bg-soft px-3 py-4 sm:-mx-6"
       data-testid="pdf-pages"
       tabindex="0"
       role="region"
@@ -19,7 +19,7 @@
           v-for="n in totalPages"
           :key="n"
           :ref="el => setPageRef(el, n)"
-          class="relative max-w-full bg-raised shadow-card"
+          class="relative max-w-full bg-raised shadow-1"
           :style="{ width: `${sizeOf(n).w}px`, height: `${sizeOf(n).h}px` }"
           :data-page="n"
           :data-drawn="drawn.has(n) ? '1' : undefined"

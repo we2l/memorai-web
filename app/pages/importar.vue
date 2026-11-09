@@ -5,7 +5,7 @@
     <!-- 1. The file -->
     <UiSection
       v-if="!store.importId"
-      class="flex flex-col items-center gap-3 rounded-card border border-dashed text-center transition-colors duration-nav"
+      class="flex flex-col items-center gap-3 rounded-card border border-dashed text-center transition-colors duration-fast"
       :class="dragOver ? 'border-action bg-action-subtle' : 'border-line-strong'"
       data-testid="import-drop"
       @dragover.prevent="dragOver = true"

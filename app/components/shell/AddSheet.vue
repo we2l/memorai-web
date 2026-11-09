@@ -18,7 +18,7 @@
         <li v-for="opt in OPTIONS" :key="opt.kind">
           <UiListRow as="button" :title="opt.label" :meta="opt.meta" :disabled="!topicId && opt.kind !== 'anki'" @click="choose(opt.kind)">
             <template #leading>
-              <span class="flex size-9 items-center justify-center rounded-control bg-subtle text-fg-muted" aria-hidden="true">
+              <span class="flex size-9 items-center justify-center rounded-control bg-soft text-fg-muted" aria-hidden="true">
                 <component :is="opt.icon" class="size-4.5" />
               </span>
             </template>
@@ -27,7 +27,7 @@
         </li>
       </ul>
       <!-- The trial opens on the first material (prd-planos-lancamento RF-F2) -->
-      <p v-if="step === 'menu' && trialHint" class="mt-3 rounded-row bg-subtle px-3 py-2 text-meta text-fg" data-testid="add-trial">{{ trialHint }}.</p>
+      <p v-if="step === 'menu' && trialHint" class="mt-3 rounded-row bg-soft px-3 py-2 text-meta text-fg" data-testid="add-trial">{{ trialHint }}.</p>
       <UiCheckbox v-if="step === 'menu'" v-model="autoCards" class="mt-3" label="Gerar cards automaticamente" description="Usa 1 geração para o material todo (as 4 primeiras partes)." />
 
       <form v-else class="flex flex-col gap-3" @submit.prevent="saveText">

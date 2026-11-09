@@ -15,11 +15,11 @@
       :aria-labelledby="labelId"
       :aria-describedby="description ? descriptionId : undefined"
       :disabled="disabled"
-      class="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors duration-nav before:absolute before:-inset-2.5 disabled:cursor-not-allowed"
+      class="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors duration-fast before:absolute before:-inset-2.5 disabled:cursor-not-allowed"
       :class="[modelValue ? 'bg-action' : 'bg-line-input', disabled && 'opacity-60']"
       @click="emit('update:modelValue', !modelValue)"
     >
-      <span class="size-5 rounded-full bg-on-action shadow-card transition-transform duration-nav" :class="modelValue ? 'translate-x-5.5' : 'translate-x-0.5'" aria-hidden="true" />
+      <span class="size-5 rounded-full bg-on-action shadow-1 transition-transform duration-fast" :class="modelValue ? 'translate-x-5.5' : 'translate-x-0.5'" aria-hidden="true" />
     </button>
   </div>
 </template>

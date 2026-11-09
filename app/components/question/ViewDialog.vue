@@ -17,7 +17,7 @@
           class="flex items-start gap-2 rounded-row px-2 py-1.5"
           :class="alt.letter === question.answer ? 'bg-success-subtle' : ''"
         >
-          <span class="flex size-6 shrink-0 items-center justify-center rounded-tag bg-subtle text-meta font-semibold text-fg-strong" aria-hidden="true">{{ alt.letter }}</span>
+          <span class="flex size-6 shrink-0 items-center justify-center rounded-tag bg-soft text-meta font-semibold text-fg-strong" aria-hidden="true">{{ alt.letter }}</span>
           <span class="min-w-0 text-body text-fg">
             {{ alt.text }}
             <span v-if="alt.letter === question.answer" class="ml-1 text-meta font-semibold text-success">(gabarito)</span>
@@ -32,7 +32,7 @@
         <p class="whitespace-pre-line text-body text-fg">{{ question.explanation }}</p>
       </div>
 
-      <p v-if="reasonLine" class="rounded-row bg-subtle px-3 py-2 text-meta text-fg">Por que errei: {{ reasonLine }}</p>
+      <p v-if="reasonLine" class="rounded-row bg-soft px-3 py-2 text-meta text-fg">Por que errei: {{ reasonLine }}</p>
 
       <details class="text-meta text-fg-muted">
         <summary class="min-h-touch cursor-pointer py-2 font-medium text-fg">Texto colado</summary>

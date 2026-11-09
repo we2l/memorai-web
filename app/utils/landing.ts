@@ -2,7 +2,6 @@ import type { InjectionKey } from 'vue'
 import type { CatalogTrial, PlanCatalog } from '~/types'
 import type { LandingCtaPosition } from '~/types/analytics'
 import { trialLimitsText } from '~/utils/trial'
-import { PODCAST_SAMPLE } from '~/utils/podcastSample'
 
 /**
  * Copy and data of the landing D (prd-landing-d; prototype docs/research/assets/landing-prototipo/d.html). Every
@@ -220,11 +219,20 @@ export function areaStartPath(key: LandingArea): string {
 }
 
 /**
- * The real sample of the podcast (utils/podcastSample.ts, shared with the paywall of the app) plus the waveform the
- * landing draws.
+ * The real sample of the podcast plus the waveform the landing draws. A copy of utils/podcastSample.ts (the paywall
+ * of the app): importing it would add a shared chunk to the landing; tests/utils/podcastSample.test.ts keeps both equal.
  */
 export const SAMPLE = {
-  ...PODCAST_SAMPLE,
+  src: '/landing/podcast-amostra.mp3',
+  duration: 22.4,
+  title: 'Seus erros de Seguridade Social',
+  topic: 'Concurso INSS',
+  lines: [
+    { t: 0.7, text: 'Você sabia que existem diferentes tipos de auxílios financeiros? Quanto vale o auxílio-acidente?', kind: 'question' },
+    { t: 7, text: 'Pensa um pouco antes de eu responder.', kind: 'question' },
+    { t: 8.2, text: '(pausa pra você responder de cabeça)', kind: 'pause' },
+    { t: 12.8, text: '50% do salário de benefício, pago como indenização, conforme o artigo 86, parágrafo 1º, da Lei 8.213 de 1991.', kind: 'answer' },
+  ],
   /** RMS of the file in 120 slices */
   peaks: [0.04, 0.04, 0.04, 0.08, 0.53, 0.64, 0.49, 0.58, 0.44, 0.39, 0.72, 0.57, 0.28, 0.36, 0.34, 0.64, 0.29, 0.41, 0.21, 0.21, 0.73, 0.09, 0.04, 0.04, 0.04, 0.4, 0.4, 0.81, 0.41, 0.67, 0.35, 0.86, 0.27, 0.32, 0.04, 0.04, 0.04, 0.57, 0.46, 0.78, 0.46, 0.48, 0.58, 0.37, 0.15, 0.04, 0.04, 0.04, 0.06, 0.04, 0.04, 0.04, 0.04, 0.06, 0.04, 0.04, 0.04, 0.04, 0.04, 0.06, 0.04, 0.04, 0.04, 0.04, 0.06, 0.04, 0.04, 0.04, 0.04, 0.63, 0.58, 0.49, 0.52, 0.57, 0.24, 1.0, 0.56, 0.52, 0.25, 0.09, 0.04, 0.04, 0.82, 0.51, 0.47, 0.51, 0.54, 0.54, 0.38, 0.38, 0.39, 0.74, 0.5, 0.31, 0.58, 0.5, 0.59, 0.26, 0.62, 0.74, 0.35, 0.41, 0.54, 0.46, 0.73, 0.65, 0.35, 0.47, 0.3, 0.32, 0.38, 0.56, 0.15, 0.33, 0.4, 0.2, 0.35, 0.38, 0.17, 0.04],
 }

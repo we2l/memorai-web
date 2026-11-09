@@ -17,8 +17,10 @@ describe('amostra do podcast (paywall e landing)', () => {
   })
 
   it('a landing toca a mesma amostra, com a forma de onda', () => {
-    expect(SAMPLE.src).toBe(PODCAST_SAMPLE.src)
-    expect(SAMPLE.lines).toEqual(PODCAST_SAMPLE.lines)
+    // A copy in utils/landing.ts (no shared chunk on the landing): both must stay equal
+    const { peaks, ...rest } = SAMPLE
+    expect(rest).toEqual(PODCAST_SAMPLE)
+    expect(peaks).toBeDefined()
     expect(SAMPLE.peaks).toHaveLength(120)
   })
 })

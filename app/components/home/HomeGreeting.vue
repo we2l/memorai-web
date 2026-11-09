@@ -1,63 +1,37 @@
 <template>
-  <UiSkeleton v-if="loading" variant="block" size="lg" />
+  <UiSkeleton v-if="loading" variant="text" :lines="2" class="max-w-xs py-1.5" />
 
-  <UiSection v-else variant="tinted" :data-testid="state === 'done' ? 'hero-up-to-date' : undefined">
-    <div class="flex items-center gap-4 sm:gap-6">
-      <picture class="shrink-0">
-        <source :srcset="goalMet ? celebratingAvif : mascotAvif" type="image/avif">
-        <img :src="goalMet ? celebratingWebp : mascotWebp" alt="" width="51" height="80" class="h-20 w-auto" decoding="async">
-      </picture>
-
-      <div class="min-w-0 flex-1">
-        <p class="text-meta text-fg-muted">{{ date }}</p>
-        <h1 class="mt-1 text-page-title-sm text-fg-strong sm:text-page-title">{{ headline }}</h1>
-
-        <!-- Goal and streak wrap as one line of items: the shape never informs alone (ADR-027 §4) -->
-        <div v-if="showGoal || streak >= 1" class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-meta text-fg">
-          <template v-if="showGoal">
-            <span>Meta de hoje</span>
-            <UiProgressBar
-              class="w-32"
-              size="md"
-              :segments="goal!.target_batches"
-              :value="goal!.done_batches"
-              :max="goal!.target_batches"
-              :label="`Meta de hoje: ${goalText}`"
-              :value-text="goalText"
-            />
-            <span class="font-semibold text-fg-strong" data-testid="home-goal">{{ goal!.met ? 'Meta de hoje cumprida' : goalText }}</span>
-          </template>
-          <span v-if="streak >= 1" class="inline-flex items-center gap-1.5 font-semibold text-streak-fg" data-testid="hero-streak">
-            <Flame class="size-4 fill-current text-streak" aria-hidden="true" />
-            <template v-if="atRisk">Revise hoje para manter {{ plural(streak, 'dia', 'dias') }}</template>
-            <template v-else>{{ plural(streak, 'dia', 'dias') }}<span class="sr-only"> seguidos de estudo</span></template>
-          </span>
-        </div>
-
-        <p v-if="state === 'done'" class="mt-2 text-meta text-fg-muted" data-testid="hero-tomorrow">{{ tomorrowLine }}</p>
-        <!-- The Intensivo trial: a line of the greeting, never a block of its own (prd-planos-lancamento RF-F1) -->
-        <p v-if="trialLine" class="mt-2 text-meta text-fg" data-testid="home-trial">
-          {{ trialLine }}. <UiLink to="/planos">Ver planos</UiLink>
-        </p>
-      </div>
+  <header v-else class="flex items-start justify-between gap-3" :data-testid="state === 'done' ? 'hero-up-to-date' : undefined">
+    <div class="min-w-0">
+      <h1 class="text-display text-fg-strong">{{ headline }}</h1>
+      <p class="mt-1.5 text-meta text-fg-muted">
+        {{ date }}<template v-if="subline"> · <span data-testid="hero-subline">{{ subline }}</span></template>
+      </p>
+      <p v-if="state === 'done'" class="mt-1 text-meta text-fg-muted" data-testid="hero-tomorrow">{{ tomorrowLine }}</p>
+      <p v-if="atRisk && streak >= 1" class="mt-1 text-meta font-semibold text-metric-streak-fg" data-testid="hero-streak-risk">
+        Revise hoje para manter {{ plural(streak, 'dia', 'dias') }}
+      </p>
+      <!-- The Intensivo trial: a line of the greeting, never a block of its own (prd-planos-lancamento RF-F1) -->
+      <p v-if="trialLine" class="mt-1 text-meta text-fg" data-testid="home-trial">
+        {{ trialLine }}. <UiLink to="/planos">Ver planos</UiLink>
+      </p>
     </div>
 
-    <!-- Goal of the day: once a day per device, ≤ 700 ms, still with reduced motion (ADR-027 §6); lazy: rare -->
-    <LazyUiCelebration v-if="celebrate" kind="goal" title="Meta cumprida" :subtitle="goalText" :mascot="false" class="mt-4" />
-  </UiSection>
+    <!-- The streak in a chip (ADR-035 §1: the flame identifies, the number stays black); the shape never informs alone -->
+    <UiTag v-if="showStreak" tone="streak" :icon="Flame" size="lg" class="mt-1 tabular-nums" data-testid="hero-streak">
+      {{ streak }}<span class="sr-only">{{ ` ${streak === 1 ? 'dia seguido' : 'dias seguidos'} de estudo` }}</span>
+    </UiTag>
+  </header>
 </template>
 
 <script setup lang="ts">
-// Greeting of Hoje (prd-4a-hoje-v3 RF-F1): the only tinted block of the screen, with the mascot, the date,
-// the sentence of the day, the goal in batches and the streak. States: plan, everything done (with
-// tomorrow), new account, and the salutation alone when the numbers failed to load (never "Tudo em dia").
+// Greeting of Hoje, E2 (prd-visual-e2 RF-3.2): "Bom dia, Ana" in text-display, the date with the sentence of the
+// day ("uns 30 minutos hoje", "boas-vindas ao Baigi", "que bom te ver de volta") and the streak chip. No lilac
+// any more: the one lilac block of Hoje is the exam (ADR-035 §1). Everything done: "Tudo em dia" with tomorrow.
+// The numbers failed to load: the salutation alone (never "Tudo em dia").
 import { Flame } from 'lucide-vue-next'
 import type { Stats, TomorrowForecast } from '~/types'
 import type { GreetingState } from '~/utils/greeting'
-import mascotAvif from '~/assets/mascots/mascot-baigi.avif'
-import mascotWebp from '~/assets/mascots/mascot-baigi.webp'
-import celebratingAvif from '~/assets/mascots/mascot-baigi-celebrating.avif'
-import celebratingWebp from '~/assets/mascots/mascot-baigi-celebrating.webp'
 
 const props = defineProps<{
   stats: Stats | null
@@ -67,6 +41,8 @@ const props = defineProps<{
   loading?: boolean
   /** /stats or /review/backlog-stats failed: salutation only */
   error?: boolean
+  /** Back with a backlog: "que bom te ver de volta" */
+  returning?: boolean
 }>()
 
 const name = computed(() => firstName(props.userName))
@@ -78,32 +54,19 @@ const date = longDate()
 const state = computed<GreetingState>(() => {
   if (props.error || !props.stats) return 'plain'
   if ((props.stats.total_cards ?? 0) === 0) return 'new'
-  return (props.stats.due_today ?? 0) > 0 ? 'plan' : 'done'
+  return (props.stats.due_today ?? 0) > 0 || props.returning ? 'plan' : 'done'
 })
-const headline = computed(() => greetingHeadline(state.value, name.value, props.minutes ?? 0))
-
-const goal = computed(() => props.stats?.goal)
-const showGoal = computed(() => state.value !== 'plain' && state.value !== 'new' && (goal.value?.target_batches ?? 0) > 0)
-const goalMet = computed(() => showGoal.value && !!goal.value?.met)
-const goalText = computed(() => (goal.value ? `${goal.value.done_batches} de ${plural(goal.value.target_batches, 'lote', 'lotes')}` : ''))
+const headline = computed(() => (state.value === 'done' ? `Tudo em dia, ${name.value}` : `${salutation()}, ${name.value}`))
+const subline = computed(() => {
+  if (state.value === 'new') return 'boas-vindas ao Baigi'
+  if (props.returning) return 'que bom te ver de volta'
+  if (state.value === 'plan') return `uns ${roundMinutes(props.minutes ?? 0)} minutos hoje`
+  return ''
+})
 
 const streak = computed(() => (state.value === 'plain' ? 0 : props.stats?.streak ?? 0))
+const showStreak = computed(() => state.value !== 'plain' && (streak.value >= 1 || state.value !== 'new'))
 const atRisk = computed(() => !!props.stats?.streak_at_risk)
-
-// Celebration of the goal: once per study day on this device (key in localStorage, private mode = no party)
-const celebrate = ref(false)
-watch(goalMet, (met) => {
-  if (!met || celebrate.value) return
-  const key = `baigi-goal-celebrated-${studyDay()}`
-  try {
-    if (localStorage.getItem(key)) return
-    localStorage.setItem(key, '1')
-  } catch {
-    return
-  }
-  celebrate.value = true
-  useAnalytics().track('home_goal_met', { target_batches: goal.value!.target_batches })
-}, { immediate: true })
 
 // Everything done: tomorrow's load (prd-retencao-lembretes RF-F07)
 const tomorrow = ref<TomorrowForecast | null>(null)

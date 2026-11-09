@@ -145,8 +145,8 @@ test('Hoje: a prova mais próxima ganha a linha da projeção', async ({ page })
   const next = upcoming.filter(e => e.days_remaining >= 0).sort((a, b) => a.days_remaining - b.days_remaining)[0]
   await gotoApp(page, '/hoje')
   const line = page.getByTestId('home-exam-pace')
-  if (next.projection) await expect(line).toContainText(`Projeção: ${next.projection.keep_pace}% se mantiver o ritmo`)
-  else await expect(line).not.toContainText('Projeção')
+  if (next.projection) await expect(line).toHaveText(`Mantendo o ritmo, você chega à prova lembrando ${next.projection.keep_pace}%`)
+  else await expect(line).not.toContainText('Mantendo o ritmo')
 })
 
 test.describe('Conta nova', () => {

@@ -209,7 +209,7 @@ test.describe('Revisar do caderno com volume (seed perf@audit.test, prd-performa
     const heavy = ((await apiCall(page, 'GET', '/topics')).data as any[]).find(t => t.name === 'Direito — TRF (pesado)')
     test.skip(!heavy, 'seed pesado ausente')
 
-    const n = Number((await page.getByTestId('plan-step-review').locator('p').first().innerText()).match(/Revisar (\d+)/)?.[1])
+    const n = Number((await page.getByTestId('plan-step-review').innerText()).match(/Revisar (\d+)/)?.[1])
     expect(n).toBe((await apiCall(page, 'GET', '/stats')).data.due_today)
     const session = page.waitForResponse(r => r.url().includes('/api/review/session'))
     await gotoApp(page, '/revisar')

@@ -29,17 +29,19 @@ test('atraso: fora do "Revisar hoje", plano de 7 dias e os mesmos números no Ho
   await topicWith(page, 3, `'state' => 'review', 'due' => now(), 'last_review' => now()->subDays(5), 'reps' => 3, 'stability' => 5, 'difficulty' => 5`)
 
   await gotoApp(page, '/hoje')
+  // Hoje E2 (prd-visual-e2 RF-3.7): the backlog without a plan is the card of 3/7/14 days; the review of today goes to the side
+  const card = page.getByTestId('home-backlog')
+  await expect(card.getByTestId('home-backlog-count')).toHaveAttribute('aria-label', '60 cards atrasados')
+  await expect(card.getByRole('radio', { name: '7 dias' })).toHaveAttribute('aria-checked', 'true')
+  await expect(card).toContainText('9por dia, além dos de hoje')
   const step = page.getByTestId('plan-step-review')
   await expect(step).toContainText('Revisar 3 cards')
-  await expect(step.getByTestId('backlog-line-overdue')).toHaveText('60 atrasados · Recuperar em 7 dias')
-  await expect(step.getByTestId('backlog-line-paused')).toBeVisible()
-
-  await step.getByTestId('backlog-line-open').click()
-  const sheet = page.getByTestId('backlog-sheet')
-  await expect(sheet.getByRole('radio', { name: /7 dias/ })).toBeChecked()
-  await expect(sheet).toContainText('~9 por dia, além dos de hoje')
-  await page.getByTestId('backlog-start').click()
+  await card.getByTestId('home-backlog-start').click()
+  await expect(page).toHaveURL(/\/revisar$/)
+  await gotoApp(page, '/hoje')
+  await expect(page.getByTestId('home-backlog')).toHaveCount(0)
   await expect(step.getByTestId('backlog-line-plan')).toHaveText('Recuperando o atraso · dia 1 de 7')
+  await expect(step.getByTestId('backlog-line-paused')).toBeVisible()
   await expect(step).toContainText('Revisar 12 cards')
 
   const stats = (await apiCall(page, 'GET', '/stats')).data

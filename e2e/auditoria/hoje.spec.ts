@@ -94,19 +94,20 @@ test.describe('Plano do dia (e2e-hoje)', () => {
     await expect(main(page).getByTestId('plan-step-material')).toContainText('Continuar Apostila B')
     await expect(primaries(page)).toHaveCount(1)
     await expect(main(page).getByTestId('plan-step-review').locator('.shadow-action')).toHaveCount(1)
-    await expect(main(page).locator('.bg-tinted')).toHaveCount(1)
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText(/^(Bom dia|Boa tarde|Boa noite), Auditoria\. Hoje são uns \d+ minutos\.$/)
+    await expect(main(page).locator('.bg-tinted')).toHaveCount(0)
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(/^(Bom dia|Boa tarde|Boa noite), Auditoria$/)
+    await expect(main(page).getByTestId('hero-subline')).toHaveText(/^uns \d+ minutos hoje$/)
 
     // The exam at 45 days shows (the old Hoje hid anything beyond 14)
     await expect(main(page).getByTestId('home-exam')).toContainText('Prova TRF em 45 dias')
-    await expect(main(page).getByTestId('home-exam').getByRole('link', { name: 'Ver provas →' })).toHaveAttribute('href', '/progresso#provas')
+    await expect(main(page).getByTestId('home-exam').getByRole('link', { name: 'Ver provas' })).toHaveAttribute('href', '/progresso#provas')
 
     // Goal: 12 cards due, nothing done → 0 of 1 batch, the shape with its text
-    await expect(main(page).getByRole('progressbar', { name: 'Meta de hoje: 0 de 1 lote' })).toBeVisible()
-    await expect(main(page).getByTestId('home-goal')).toHaveText('0 de 1 lote')
+    await expect(main(page).getByTestId('home-goal').locator('[role=text]')).toHaveAttribute('aria-label', '0 / 1 lote')
+    await expect(main(page).getByTestId('home-goal-card').getByTestId('ui-week-strip')).toBeVisible()
 
     // Questões opens the quiz sheet with the subject, generating nothing by itself
-    await main(page).getByTestId('plan-step-quiz').getByRole('link', { name: 'Fazer' }).click()
+    await main(page).getByTestId('plan-step-quiz').getByRole('link').click()
     await expect(page).toHaveURL(/\/simulados\?topic_id=/)
     await expect(page.getByRole('dialog', { name: 'Novas questões' })).toBeVisible()
   })
@@ -132,12 +133,12 @@ test.describe('Plano do dia (e2e-hoje)', () => {
     const roots = ((await apiCall(page, 'GET', '/topics')).data as any[])
     const progress = ((await apiCall(page, 'GET', '/topics/progress')).data as any[])
     const block = main(page).getByTestId('home-notebooks')
-    const rows = block.getByRole('link')
+    const rows = block.locator('ul').getByRole('link')
     await expect(rows).toHaveCount(roots.length)
     await expect(block).not.toContainText(SUBJECT)
     const trf = block.locator(`a[href="/cadernos/${seed.rootId}"]`)
     const sessionCount = progress.find(p => p.id === seed.rootId).session_count
-    await expect(trf).toContainText(`${sessionCount} hoje`)
+    await expect(trf).toContainText(`${sessionCount} para hoje`)
     await expect(trf.getByRole('progressbar', { name: new RegExp(`^Domínio de ${ROOT}: \\d+%$`) })).toBeVisible()
     await expect(block.locator(`a[href="/cadernos/${seed.otherRootId}"]`)).toContainText('novo')
   })
@@ -147,11 +148,11 @@ test.describe('Plano do dia (e2e-hoje)', () => {
     const seed = await ensurePlanSeed(page)
     await gotoApp(page, '/hoje')
 
-    await main(page).getByTestId('plan-step-listen').getByRole('button', { name: 'Ouvir' }).click()
+    await main(page).getByTestId('plan-step-listen').getByRole('button').click()
     await expect(page).toHaveURL(/\/hoje$/)
     await expect(page.getByText('Seus erros de Constitucional').last()).toBeVisible()
 
-    await main(page).getByTestId('plan-step-material').getByRole('link', { name: 'Continuar' }).click()
+    await main(page).getByTestId('plan-step-material').getByRole('link').click()
     await expect(page).toHaveURL(new RegExp(`/cadernos/${seed.subjectId}/material/${seed.noteB}$`))
     await expect(page.getByText('Ação direta de inconstitucionalidade.')).toBeVisible()
   })
@@ -185,12 +186,12 @@ test.describe('Plano do dia (e2e-hoje)', () => {
     await page.route(/\/api\/stats$/, route => (fail ? route.fulfill({ status: 500, json: { message: 'x' } }) : route.fallback()))
     await gotoApp(page, '/hoje')
     await expect(main(page).getByText('Não foi possível carregar seu plano de hoje')).toBeVisible()
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText(/^(Bom dia|Boa tarde|Boa noite), Auditoria\.$/)
-    await expect(main(page).getByText(/Tudo em dia|Que bom ter você aqui|Primeiros passos/)).toHaveCount(0)
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(/^(Bom dia|Boa tarde|Boa noite), Auditoria$/)
+    await expect(main(page).getByText(/Tudo em dia|boas-vindas|Primeiros passos/)).toHaveCount(0)
     fail = false
     await main(page).getByRole('alert').getByRole('button', { name: 'Tentar de novo' }).click()
     await expect(main(page).getByText('Não foi possível carregar seu plano de hoje')).toBeHidden()
-    await expect(page.getByRole('heading', { level: 1 })).toContainText('Hoje são uns')
+    await expect(main(page).getByTestId('hero-subline')).toContainText('minutos hoje')
   })
 })
 
@@ -199,7 +200,7 @@ test.describe('Conta nova (e2e-hoje-new)', () => {
 
   test('boas-vindas e primeiros passos clicáveis, com o primário no 1º pendente', async ({ page }) => {
     await gotoApp(page, '/hoje')
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Que bom ter você aqui, Auditoria.')
+    await expect(main(page).getByTestId('hero-subline')).toHaveText('boas-vindas ao Baigi')
     const checklist = main(page).getByTestId('home-checklist')
     await expect(checklist.getByRole('heading', { name: 'Primeiros passos' })).toBeVisible()
     await expect(main(page).getByTestId('home-plan')).toHaveCount(0)
@@ -222,6 +223,53 @@ test.describe('Conta nova (e2e-hoje-new)', () => {
   })
 })
 
+test.describe('Hoje sem cards, B5 (e2e-hoje-new)', () => {
+  test.use({ auditUser: 'hojeNew' })
+
+  test('com material e sem cards: uma ação única leva à matéria com mais material; os primeiros passos viram apoio', async ({ page }) => {
+    await gotoApp(page, '/hoje')
+    const root = (await apiCall(page, 'POST', '/topics', { name: `Concurso ${uid()}` })).data
+    const subject = (await apiCall(page, 'POST', '/topics', { name: 'Seguridade Social', parent_id: root.id })).data
+    await apiCall(page, 'POST', `/topics/${subject.id}/notes`, { title: 'Apostila' })
+    await apiCall(page, 'POST', `/topics/${subject.id}/notes`, { title: 'Resumo' })
+    await gotoApp(page, '/hoje')
+    const action = main(page).getByTestId('home-first-action')
+    await expect(action.getByRole('heading', { level: 2 })).toHaveText('Gere os cards de Seguridade Social e faça a 1ª revisão hoje')
+    await expect(primaries(page)).toHaveCount(1)
+    await expect(main(page).getByTestId('home-checklist').locator('.shadow-action')).toHaveCount(0)
+    await expect(main(page).getByTestId('home-notebooks')).toContainText('2 materiais · 0 cards')
+    await action.getByRole('link', { name: 'Gerar cards e revisar' }).click()
+    await expect(page).toHaveURL(new RegExp(`/cadernos/${subject.id}$`))
+  })
+})
+
+test.describe('Hoje com atraso (e2e-hoje-backlog)', () => {
+  test.use({ auditUser: 'hojeBacklog' })
+
+  test('120 atrasados: 3/7/14 dias, "Começar o plano" cria o plano e abre o lote; depois vira a linha do plano', async ({ page }) => {
+    await gotoApp(page, '/hoje')
+    const topic = (await apiCall(page, 'POST', '/topics', { name: `Atraso ${uid()}` })).data
+    for (let b = 0; b < 2; b++) {
+      await apiCall(page, 'POST', '/ai/accept-cards', { topic_id: topic.id, cards: Array.from({ length: 60 }, (_, i) => ({ front: `Atraso ${b}-${i}?`, back: `R ${i}` })) })
+    }
+    tinker(`$u = App\\Domain\\User\\Models\\User::where('email', '${USERS.hojeBacklog.email}')->firstOrFail(); Illuminate\\Support\\Facades\\DB::table('flashcards')->where('user_id', $u->id)->update(['state' => 'review', 'stability' => 6, 'difficulty' => 5, 'reps' => 3, 'last_review' => now()->subDays(12), 'due' => now()->subDays(5), 'scheduled_days' => 6]); App\\Support\\Services\\UserCacheVersion::bump($u->id); echo 'ok';`)
+    await gotoApp(page, '/hoje')
+    const card = main(page).getByTestId('home-backlog')
+    await expect(card.getByTestId('home-backlog-count')).toHaveAttribute('aria-label', '120 cards atrasados')
+    await expect(main(page).getByTestId('hero-subline')).toHaveText('que bom te ver de volta')
+    await expect(primaries(page)).toHaveCount(1)
+    await card.getByRole('radio', { name: '14 dias' }).click()
+    await expect(card).toContainText('9por dia, além dos de hoje')
+    const plan = page.waitForResponse(r => r.url().includes('/api/review/backlog-plan') && r.request().method() === 'POST')
+    await card.getByTestId('home-backlog-start').click()
+    expect((await plan).request().postDataJSON()).toEqual({ days: 14 })
+    await expect(page).toHaveURL(/\/revisar$/)
+    await gotoApp(page, '/hoje')
+    await expect(main(page).getByTestId('home-backlog')).toHaveCount(0)
+    await expect(main(page).getByTestId('backlog-line-plan')).toContainText('Recuperando o atraso · dia 1 de 14')
+  })
+})
+
 test.describe('Meta cumprida (e2e-hoje-goal)', () => {
   test.use({ auditUser: 'hojeGoal', contextOptions: { reducedMotion: 'reduce' } })
 
@@ -233,8 +281,8 @@ test.describe('Meta cumprida (e2e-hoje-goal)', () => {
     await apiCall(page, 'POST', '/review', { flashcard_id: card.id, rating: 4 })
 
     await gotoApp(page, '/hoje')
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Tudo em dia, Auditoria.')
-    await expect(main(page).getByTestId('home-goal')).toHaveText('Meta de hoje cumprida')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Tudo em dia, Auditoria')
+    await expect(main(page).getByTestId('home-goal-card')).toContainText('Meta de hoje cumprida')
     const party = main(page).getByRole('status').filter({ hasText: 'Meta cumprida' })
     await expect(party).toBeVisible()
     await expect(party.locator('.animate-celebrate-burst')).toHaveCount(0)
@@ -243,7 +291,7 @@ test.describe('Meta cumprida (e2e-hoje-goal)', () => {
 
     await page.reload()
     await page.waitForLoadState('networkidle')
-    await expect(main(page).getByTestId('home-goal')).toHaveText('Meta de hoje cumprida')
+    await expect(main(page).getByTestId('home-goal-card')).toContainText('Meta de hoje cumprida')
     await expect(main(page).getByRole('status').filter({ hasText: 'Meta cumprida' })).toHaveCount(0)
   })
 })

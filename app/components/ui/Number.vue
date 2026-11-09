@@ -26,7 +26,7 @@ const SIZES = { xl: 'num-xl', l: 'num-l', m: 'num-m', s: 'num-s' } as const
   font-weight: 600;
   letter-spacing: -0.01em;
   color: var(--fg-muted);
-  margin-left: 0.12em;
+  margin-left: 0.22em;
 }
 </style>
 

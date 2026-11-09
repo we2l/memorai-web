@@ -95,6 +95,7 @@ export interface FrontEventProps {
   home_plan_step_click: { step: HomePlanStepKey, position: number }
   home_goal_met: { target_batches: number }
   home_checklist_click: { item: HomeChecklistItem }
+  home_first_action_click: { notes: number }
   home_exam_click: Record<string, never>
   scope_open: { depth: number, mode: string | null }
   next_step_click: { kind: 'generate_cards' | 'review_errors' | 'quiz' | 'continue' }

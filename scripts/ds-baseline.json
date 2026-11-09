@@ -27,7 +27,6 @@
     "app/components/blog/ExamPlanner.vue": 1,
     "app/components/blog/ExampleCard.vue": 1,
     "app/components/blog/ForgettingCalculator.vue": 1,
-    "app/components/blog/Quiz.vue": 1,
     "app/components/blog/Shot.vue": 2,
     "app/components/cards/CardSelectionBar.vue": 1,
     "app/components/exam/ExamDialog.vue": 1,

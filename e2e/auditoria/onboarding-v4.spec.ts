@@ -213,6 +213,9 @@ test.describe('Teclado e axe', () => {
       await expect(page.getByTestId('review-card')).toBeFocused()
       await page.keyboard.press('Enter')
       await page.keyboard.press(i % 2 ? 'ArrowRight' : '2')
+      // The answer band (Fase 2b): Enter goes on without waiting the 1.2 s
+      await expect(page.getByTestId('review-feedback')).toBeVisible()
+      await page.keyboard.press('Enter')
     }
     await expect(page.locator('[data-testid=guest-result] [data-celebration-title]')).toBeFocused()
     await expect(page.locator('h1')).toHaveCount(1)

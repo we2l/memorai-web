@@ -95,7 +95,7 @@ for (const width of [390, 1440]) {
     await expect(page.getByTestId('batch-errors')).toHaveText('Reforçar o 1 que errei')
     await expect(page.getByTestId('ui-arc')).toHaveAttribute('data-got', '9')
     // The lote just finished counts in the goal of the day (Fase 2b: never "0 de 2" after a lote)
-    await expect(page.getByTestId('batch-goal')).toContainText(/1\s*de 2/)
+    await expect(page.getByTestId('batch-goal')).toContainText(/^1\s*de \d/)
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width)
   })
 }

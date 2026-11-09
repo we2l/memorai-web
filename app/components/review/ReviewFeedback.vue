@@ -60,7 +60,7 @@ import celebratingAvif from '~/assets/mascots/mascot-baigi-celebrating.avif'
 import celebratingWebp from '~/assets/mascots/mascot-baigi-celebrating.webp'
 import thinkingAvif from '~/assets/mascots/mascot-baigi-thinking.avif'
 import thinkingWebp from '~/assets/mascots/mascot-baigi-thinking.webp'
-import { isOkKind, type FeedbackKind } from '~/utils/reviewFeedback'
+import { AUTO_ADVANCE_MS, isOkKind, type FeedbackKind } from '~/utils/reviewFeedback'
 
 export interface RatingFeedback {
   id: number
@@ -73,9 +73,6 @@ export interface RatingFeedback {
   canWhy: boolean
   undo?: boolean
 }
-
-/** The wait of a hit before the next card (ADR-035 §6) */
-export const AUTO_ADVANCE_MS = 1200
 
 const props = defineProps<{ feedback: RatingFeedback }>()
 const emit = defineEmits<{

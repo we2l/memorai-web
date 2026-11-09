@@ -17,7 +17,7 @@
 
       <div v-if="!done">
         <div class="mb-3 flex min-h-7 items-center" aria-live="polite">
-          <ReviewFeedback v-if="feedback" :feedback="feedback" />
+          <ReviewFeedbackPill v-if="feedback" :feedback="feedback" />
           <p v-else class="text-meta text-fg-muted">Tente responder de cabeça antes de ver a resposta.</p>
         </div>
 

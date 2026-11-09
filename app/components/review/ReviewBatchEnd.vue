@@ -14,7 +14,8 @@
     </UiTag>
 
     <UiArc class="be-arc" :got="summary.remembered" :of="summary.size" :animate="!reduced">
-      <UiNumber :value="shown" :unit="`de ${summary.size}`" size="xl" />
+      <UiNumber :value="shown" :unit="`de ${summary.size}`" size="xl" aria-hidden="true" />
+      <span class="sr-only" data-testid="batch-remembered">Você lembrou {{ summary.remembered }} de {{ summary.size }}</span>
     </UiArc>
     <p class="mt-1 max-w-md text-body text-fg" data-testid="batch-lead">{{ lead }}</p>
 

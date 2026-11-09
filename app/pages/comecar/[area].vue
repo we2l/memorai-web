@@ -99,7 +99,7 @@
     <!-- The review's bottom bar: "Mostrar resposta", then "Não lembrei / Lembrei" with the real intervals -->
     <footer v-if="phase === 'review' && current !== null" class="shrink-0 border-t border-line bg-raised px-gutter pt-3 pb-safe-bottom" data-testid="review-footer">
       <div class="mx-auto w-full max-w-3xl pb-3">
-        <div class="mb-2 flex min-h-8 justify-center"><LazyReviewFeedback v-if="feedback" :feedback="feedback" /></div>
+        <div class="mb-2 flex min-h-8 justify-center"><LazyReviewFeedbackPill v-if="feedback" :feedback="feedback" /></div>
         <ReviewRatings v-if="flipped" :intervals="ratingIntervals" mode="two" again-text="no fim do lote" @rate="rate" />
         <UiButton v-else variant="primary" block aria-keyshortcuts="Space" data-testid="review-show" @click="flip">Mostrar resposta</UiButton>
         <p class="mt-2 hidden text-center text-label text-fg-muted pointer-fine:block" data-testid="review-keys">{{ reviewKeysHint('two') }}</p>
@@ -116,7 +116,7 @@
 // of commitment (exam date and lotes per day) before the sign-up. Everything stays on this device until the account
 // exists (/comecar/pronto). No AI, nothing written on the server.
 import type { CardOrigin, Flashcard } from '~/types'
-import type { RatingFeedback } from '~/components/review/ReviewFeedback.vue'
+import type { PillFeedback as RatingFeedback } from '~/components/review/ReviewFeedbackPill.vue'
 import {
   GUEST_GOALS, guestSummary, isGuestArea, loadGuestProgress, nextGuestCard, returnText, saveGuestProgress,
   type GuestArea, type GuestDeck, type GuestGoal, type GuestProgress, type GuestRating,

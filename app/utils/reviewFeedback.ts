@@ -5,6 +5,9 @@
  */
 import { returnText } from '~/utils/intervalLabel'
 
+/** The wait of a hit before the next card goes on by itself (ADR-035 §6; decision of the owner, 08/11) */
+export const AUTO_ADVANCE_MS = 1200
+
 /** ok/again: the self rating; tf-*: Certo/Errado; typed-*: the typed answer (prd-revisao-v5-fase-b) */
 export type FeedbackKind = 'ok' | 'again' | 'tf-ok' | 'tf-again' | 'typed-ok' | 'typed-again'
 

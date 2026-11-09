@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col items-center gap-0.5">
-    <p class="flex items-center gap-2 text-body font-semibold text-streak-fg" :class="streak.extendedNow && 'motion-safe:animate-celebrate-pop'">
-      <Flame class="size-5 fill-current text-streak" aria-hidden="true" />
+    <p class="flex items-center gap-2 text-body font-semibold text-metric-streak-fg" :class="streak.extendedNow && 'motion-safe:animate-celebrate-pop'">
+      <Flame class="size-5 fill-current text-metric-streak" aria-hidden="true" />
       Dia {{ streak.current }} da sequência<template v-if="streak.record"> · recorde pessoal</template>
     </p>
     <p v-if="streak.rest !== undefined && streak.rest !== null" class="text-label text-fg-muted" data-testid="streak-rest">

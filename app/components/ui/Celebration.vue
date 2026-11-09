@@ -51,10 +51,10 @@ const props = withDefaults(defineProps<{
 }>(), { subtitle: undefined, stats: undefined, mascot: true, level: undefined })
 
 const KINDS: Record<CelebrationKind, { label: string; icon: typeof Star; shape: string; text: string; burst: string[] }> = {
-  batch: { label: 'Lote concluído', icon: Sparkles, shape: 'text-celebrate', text: 'text-celebrate-fg', burst: ['bg-action', 'bg-celebrate'] },
-  goal: { label: 'Meta de hoje cumprida', icon: Star, shape: 'text-celebrate', text: 'text-celebrate-fg', burst: ['bg-celebrate', 'bg-action'] },
-  streak: { label: 'Sequência mantida', icon: Flame, shape: 'text-streak', text: 'text-streak-fg', burst: ['bg-streak', 'bg-celebrate'] },
-  milestone: { label: 'Marco alcançado', icon: Trophy, shape: 'text-celebrate', text: 'text-celebrate-fg', burst: ['bg-celebrate', 'bg-streak', 'bg-action'] },
+  batch: { label: 'Lote concluído', icon: Sparkles, shape: 'text-metric-goal', text: 'text-metric-goal-fg', burst: ['bg-action', 'bg-metric-goal'] },
+  goal: { label: 'Meta de hoje cumprida', icon: Star, shape: 'text-metric-goal', text: 'text-metric-goal-fg', burst: ['bg-metric-goal', 'bg-action'] },
+  streak: { label: 'Sequência mantida', icon: Flame, shape: 'text-metric-streak', text: 'text-metric-streak-fg', burst: ['bg-metric-streak', 'bg-metric-goal'] },
+  milestone: { label: 'Marco alcançado', icon: Trophy, shape: 'text-metric-goal', text: 'text-metric-goal-fg', burst: ['bg-metric-goal', 'bg-metric-streak', 'bg-action'] },
 }
 
 const reduced = useReducedMotion()

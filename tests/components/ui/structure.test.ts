@@ -128,11 +128,11 @@ describe('UiStat', () => {
   it('conquista: forma pequena decorativa e texto no -fg do tom', async () => {
     const w = await mountSuspended(Stat, { props: { value: 6, unit: 'dias', label: 'seguidos', tone: 'streak' } })
     const icon = w.get('svg')
-    expect(icon.classes()).toContain('text-streak')
+    expect(icon.classes()).toContain('text-metric-streak')
     expect(icon.attributes('aria-hidden')).toBe('true')
-    expect(w.findAll('p')[1]!.classes()).toContain('text-streak-fg')
+    expect(w.findAll('p')[1]!.classes()).toContain('text-metric-streak-fg')
     const c = await mountSuspended(Stat, { props: { value: 3, label: 'lotes', tone: 'celebrate', size: 'lg' } })
-    expect(c.findAll('p')[1]!.classes()).toContain('text-celebrate-fg')
+    expect(c.findAll('p')[1]!.classes()).toContain('text-metric-goal-fg')
     expect(c.html()).toContain('num-l')
   })
 })
@@ -159,7 +159,7 @@ describe('UiProgressBar', () => {
     expect(w.get('[role="progressbar"] span').classes()).toContain('bg-progress-neutral')
     expect(w.text()).toBe('75%')
     await w.setProps({ tone: 'celebrate' })
-    expect(w.get('[role="progressbar"] span').classes()).toContain('bg-celebrate')
+    expect(w.get('[role="progressbar"] span').classes()).toContain('bg-metric-goal')
   })
 
   it('segmentos: "1 de 3" e um segmento cheio', async () => {

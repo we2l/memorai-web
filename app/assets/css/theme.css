@@ -6,11 +6,12 @@
      sempre no CSS, para <style> e o que lê com var().
    - @theme inline: cores, sombras e espaços que trocam com o tema. A utility lê o token cru
      (var(--surface-page)), então o .dark no <html> troca tudo sem regra própria.
-   Utilities resultantes: bg-page, bg-raised, bg-subtle, bg-tinted, border-line, border-line-input,
+   Utilities resultantes: bg-page, bg-raised, bg-soft, bg-sunk, bg-tinted, border-hairline, border-line-input,
    text-fg-strong, text-fg, text-fg-muted, bg-action, text-action-fg, text-on-action, bg-action-subtle,
-   ring-focus, text-success, bg-success-subtle, text-quiz, text-listen, bg-subject-1..8, shadow-card,
-   shadow-raised, shadow-float, shadow-0/1/2/action/tinted, text-page-title(-sm), text-section, text-body, text-meta, text-label,
-   text-stat, rounded-tag/row/control/card/float, min-h-touch, px-gutter, mt-section, max-w-page, ease-calm.
+   ring-focus, text-success, bg-success-subtle, text-quiz, text-listen, text-metric-*, bg-subject-1..8,
+   shadow-0/1/2/float/action/tinted, text-display, text-page-title, text-section, text-title, text-body(-sm),
+   text-meta, text-label, num-xl/l/m/s, rounded-tag/row/icon/control/tile/card/hero/sheet/chip, min-h-touch,
+   px-gutter, mt-section, max-w-page, ease-calm.
    Opacidade funciona em todas as cores (bg-action/10 → color-mix).
    Uma cor e um tamanho de texto não podem ter o mesmo nome: text-{nome} vira cor quando existe
    --color-{nome}. Por isso o título de página é text-page-title (text-page seria a cor de bg-page).
@@ -43,7 +44,7 @@
   --tracking-logo: 0.08em;
 
   /* Texto (ADR-035 §2): piso de 13 px; informação que a pessoa lê fica em 14 px ou mais. display, page-title e
-     section crescem a partir de 960 px (--type-* em tokens.css). page-title-sm = o título de página do celular */
+     section crescem a partir de 960 px (--type-* em tokens.css) */
   --text-display: var(--type-display);
   --text-display--line-height: 1.12;
   --text-display--letter-spacing: -0.022em;
@@ -52,10 +53,6 @@
   --text-page-title--line-height: 1.18;
   --text-page-title--letter-spacing: -0.02em;
   --text-page-title--font-weight: 700;
-  --text-page-title-sm: 1.625rem;
-  --text-page-title-sm--line-height: 1.18;
-  --text-page-title-sm--letter-spacing: -0.02em;
-  --text-page-title-sm--font-weight: 700;
   --text-section: var(--type-section);
   --text-section--line-height: 1.25;
   --text-section--letter-spacing: -0.012em;
@@ -73,10 +70,6 @@
   --text-label: 0.8125rem;
   --text-label--line-height: 1.3;
   --text-label--font-weight: 500;
-  --text-stat: 3rem;
-  --text-stat--line-height: 1;
-  --text-stat--letter-spacing: -0.03em;
-  --text-stat--font-weight: 650;
 
   /* Raio (ADR-035 §4): nomes próprios, não colidem com sm/md/lg do Tailwind. chip = pílula (chip e botão),
      icon = azulejo de ícone, control = campo, tile = azulejo e métrica, card = cartão, hero = card da revisão,
@@ -134,7 +127,6 @@
   --color-page: var(--surface-page);
   --color-raised: var(--surface-raised);
   --color-soft: var(--surface-soft);
-  --color-subtle: var(--surface-subtle);
   --color-sunk: var(--surface-sunk);
   --color-tinted: var(--surface-tinted);
   --color-float: var(--surface-float);
@@ -194,10 +186,6 @@
   --color-fb-again-ink: var(--fb-again-ink);
 
   /* Conquista (ponteiros v3 para as métricas; saem na Fase 6) */
-  --color-celebrate: var(--celebrate);
-  --color-celebrate-fg: var(--celebrate-fg);
-  --color-streak: var(--streak);
-  --color-streak-fg: var(--streak-fg);
 
   /* Modos de prática */
   --color-quiz: var(--practice-quiz);
@@ -225,8 +213,6 @@
   --shadow-2: var(--elev-2);
   --shadow-action: var(--elev-action);
   --shadow-tinted: var(--elev-tinted);
-  --shadow-card: var(--elev-card);
-  --shadow-raised: var(--elev-raised);
   --shadow-float: var(--elev-float);
 
   /* Espaço que muda no lg */
@@ -273,7 +259,6 @@
   }
 }
 
-@utility duration-nav { transition-duration: var(--motion-nav); }
 @utility duration-respond { transition-duration: var(--motion-respond); }
 @utility duration-celebrate { transition-duration: var(--motion-celebrate); }
 

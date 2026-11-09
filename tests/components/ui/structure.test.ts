@@ -221,12 +221,12 @@ describe('UiSubjectMark', () => {
 
 describe('UiPracticeIcon', () => {
   it.each([
-    ['review', 'text-action-fg'],
-    ['quiz', 'text-quiz'],
-    ['listen', 'text-listen'],
-  ] as const)('%s: cor do modo só no ícone, quadradinho neutro', async (mode, tone) => {
+    ['review', 'bg-action-subtle', 'text-action-fg'],
+    ['quiz', 'bg-quiz-subtle', 'text-quiz'],
+    ['listen', 'bg-listen-subtle', 'text-listen'],
+  ] as const)('%s: a cor do modo no ícone e no azulejo dele (E2)', async (mode, tile, tone) => {
     const w = await mountSuspended(PracticeIcon, { props: { mode } })
-    expect(w.classes()).toEqual(expect.arrayContaining(['bg-soft', tone, 'size-9']))
+    expect(w.classes()).toEqual(expect.arrayContaining([tile, tone, 'size-9']))
     expect(w.attributes('aria-hidden')).toBe('true')
   })
 

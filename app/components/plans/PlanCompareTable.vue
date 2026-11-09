@@ -4,12 +4,12 @@
       <table class="w-full text-left text-meta">
         <caption class="sr-only">O que cada plano inclui</caption>
         <thead>
-          <tr class="border-b border-line text-label text-fg-muted">
+          <tr class="border-b border-hairline text-label text-fg-muted">
             <th scope="col" class="py-3 pr-3 font-medium">Recurso</th>
             <th v-for="plan in catalogPlans" :key="plan.key" scope="col" class="w-1/3 py-3 pr-3 font-medium">{{ plan.name }}</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-line">
+        <tbody class="divide-y divide-hairline">
           <tr v-for="row in rows" :key="row.key" :data-testid="`compare-${row.key}`">
             <th scope="row" class="py-3 pr-3 font-normal text-fg">{{ row.label }}</th>
             <td v-for="cell in row.cells" :key="cell.plan" class="py-3 pr-3 align-top">

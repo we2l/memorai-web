@@ -7,7 +7,7 @@
       <div class="flex flex-col gap-3">
         <UiSelect v-model="rootId" label="Caderno" :options="rootOptions" placeholder="Escolha o caderno" :error="errors.coverage" data-testid="exam-root" />
         <UiRadioGroup v-if="rootId && subjects.length" v-model="mode" label="O que cai na prova" :options="MODES" variant="cards" :columns="2" />
-        <fieldset v-if="rootId && mode === 'some'" class="min-w-0 rounded-control border border-line-strong px-3 py-2" data-testid="exam-coverage">
+        <fieldset v-if="rootId && mode === 'some'" class="min-w-0 rounded-tile bg-soft px-3 py-2" data-testid="exam-coverage">
           <legend class="px-1 text-meta font-semibold text-fg-strong">Matérias e assuntos</legend>
           <UiCheckbox
             v-for="s in subjects"

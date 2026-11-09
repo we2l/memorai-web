@@ -4,7 +4,7 @@
     <div
       v-if="showBubbleMenu && editable"
       ref="bubbleMenuRef"
-      class="absolute z-popover flex -translate-x-1/2 items-center gap-0.5 rounded-control border border-line-strong bg-float px-1.5 py-1 shadow-float"
+      class="absolute z-popover flex -translate-x-1/2 items-center gap-0.5 rounded-control bg-float px-1.5 py-1 shadow-float"
       :style="bubbleMenuStyle"
       role="toolbar"
       aria-label="Formatação"
@@ -28,16 +28,16 @@
     <EditorContent :editor="editor" class="prose-notion" />
 
     <!-- Editor hint (editing only) -->
-    <div v-if="editable" class="flex select-none items-center gap-4 border-t border-line px-3 py-2 text-label text-fg-muted">
-      <span><kbd class="mr-1 rounded-tag border border-line-strong bg-soft px-1.5 font-sans text-label text-fg">/</kbd> comandos</span>
-      <span><kbd class="mr-1 rounded-tag border border-line-strong bg-soft px-1.5 font-sans text-label text-fg">Ctrl+Shift+C</kbd> cloze</span>
+    <div v-if="editable" class="flex select-none items-center gap-4 border-t border-hairline px-3 py-2 text-label text-fg-muted">
+      <span><kbd class="mr-1 rounded-tag bg-soft px-1.5 shadow-0 font-sans text-label text-fg">/</kbd> comandos</span>
+      <span><kbd class="mr-1 rounded-tag bg-soft px-1.5 shadow-0 font-sans text-label text-fg">Ctrl+Shift+C</kbd> cloze</span>
     </div>
 
     <!-- Slash command menu -->
     <div
       v-if="slashMenu.open"
       ref="slashMenuRef"
-      class="absolute z-popover max-h-80 w-72 overflow-y-auto rounded-float border border-line-strong bg-float p-1.5 shadow-float"
+      class="absolute z-popover max-h-80 w-72 overflow-y-auto rounded-float bg-float p-1.5 shadow-float"
       :style="slashMenu.style"
     >
       <div class="flex flex-col" role="listbox" aria-label="Blocos">

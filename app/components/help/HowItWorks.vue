@@ -12,7 +12,7 @@
           </ul>
         </div>
       </div>
-      <p class="mt-5 border-t border-line pt-4 text-meta text-fg-muted">Os erros da revisão alimentam o podcast e mostram padrões: você melhora a cada ciclo.</p>
+      <p class="mt-5 border-t border-hairline pt-4 text-meta text-fg-muted">Os erros da revisão alimentam o podcast e mostram padrões: você melhora a cada ciclo.</p>
     </UiSection>
 
     <UiSection title="O que cada recurso faz por você">

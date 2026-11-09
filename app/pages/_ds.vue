@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-page text-fg" data-ds-page>
-    <header class="border-b border-line bg-raised px-4 py-3 sm:px-6">
+    <header class="border-b border-hairline bg-raised px-4 py-3 sm:px-6">
       <div class="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4">
         <div>
           <h1 class="text-section text-fg-strong">Design system v3 · pele E2</h1>
@@ -142,7 +142,7 @@
 
             <UiSection title="Tópicos">
               <template #action><UiLink to="/_ds" standalone>+ Tópico</UiLink></template>
-              <div class="-mx-2 divide-y divide-line">
+              <div class="-mx-2 divide-y divide-hairline">
                 <UiListRow v-for="(s, i) in SUBJECTS" :key="s.name" :title="s.name" :meta="s.meta" to="/_ds" :active="i === 1">
                   <template #leading><UiSubjectMark :color="s.color" /></template>
                   <template #trailing>
@@ -218,7 +218,7 @@
                 <UiCheckbox v-model="form.weak" label="Só o que errei" description="Inclui os erros das questões de ontem." />
                 <UiCheckbox :model-value="false" label="Desabilitado" disabled />
               </div>
-              <div class="divide-y divide-line">
+              <div class="divide-y divide-hairline">
                 <UiSwitch v-model="form.reminder" label="E-mails de estudo" description="Um por dia, só quando houver cards para revisar." />
                 <UiSwitch v-model="form.sound" label="Sons na revisão" />
                 <UiSwitch :model-value="true" label="Desabilitado" disabled />

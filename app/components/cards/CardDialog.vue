@@ -10,7 +10,7 @@
       </div>
       <p class="mt-4 text-label font-medium text-fg-muted">Pergunta</p>
       <div class="mt-1 break-words text-body text-fg-strong" v-html="frontHtml" />
-      <p class="mt-4 border-t border-line pt-4 text-label font-medium text-fg-muted">Resposta</p>
+      <p class="mt-4 border-t border-hairline pt-4 text-label font-medium text-fg-muted">Resposta</p>
       <div class="mt-1 break-words text-body text-fg" v-html="backHtml" />
       <p v-if="card.tags?.length" class="mt-4 flex flex-wrap gap-1.5">
         <UiTag v-for="t in card.tags" :key="t">{{ t }}</UiTag>

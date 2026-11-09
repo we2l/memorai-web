@@ -20,7 +20,7 @@
         :max="duration || 1"
         step="1"
         :value="Math.min(player.currentTime, duration || 0)"
-        class="-my-3.5 h-11 w-full cursor-pointer accent-fg-strong"
+        class="-my-3.5 h-11 w-full cursor-pointer accent-action"
         aria-label="Posição no episódio"
         :aria-valuetext="`${formatTime(player.currentTime)} de ${formatTime(duration)}`"
         @input="onSeek"
@@ -60,7 +60,7 @@
 
     <PodcastTranscript :lines="lines" :current-ms="player.currentTime * 1000" :loading="loadingTranscript" class="min-h-0" @seek="player.seek($event)" />
 
-    <div class="flex flex-wrap items-center gap-2 border-t border-line pt-3">
+    <div class="flex flex-wrap items-center gap-2 border-t border-hairline pt-3">
       <UiButton size="sm" variant="ghost" :icon-left="Download" :loading="downloading" @click="download">Baixar o áudio</UiButton>
     </div>
   </div>

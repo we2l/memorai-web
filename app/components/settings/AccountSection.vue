@@ -23,7 +23,7 @@
       <p v-if="auth.user?.google_linked" class="text-meta text-fg-muted" data-testid="google-linked">Conta Google vinculada: você também entra com o Google.</p>
     </div>
 
-    <div class="flex flex-col gap-2 border-t border-line pt-5">
+    <div class="flex flex-col gap-2 border-t border-hairline pt-5">
       <h3 class="text-body font-semibold text-fg-strong">{{ hasPassword ? 'Trocar senha' : 'Definir senha' }}</h3>
       <SettingsPasswordForm />
     </div>

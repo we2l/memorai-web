@@ -3,7 +3,7 @@
     <div
       role="tablist"
       :aria-label="label"
-      class="flex gap-1 overflow-x-auto border-b border-line"
+      class="flex gap-1 overflow-x-auto border-b border-hairline"
       @keydown="onKeydown"
     >
       <button

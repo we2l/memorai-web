@@ -4,7 +4,7 @@
     label="Questões do gabarito"
     :tabs="[{ key: 'all', label: 'Todas', count: questions.length }, { key: 'wrong', label: 'Só erros', count: wrong.length }]"
   >
-    <ol class="divide-y divide-line">
+    <ol class="divide-y divide-hairline">
       <li v-for="q in shown" :id="`q${q.position}`" :key="q.id" class="flex scroll-mt-24 items-start gap-3 py-5">
         <span class="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full" :class="q.is_correct ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'">
           <CheckCircle2 v-if="q.is_correct" class="size-4" aria-hidden="true" />

@@ -279,7 +279,7 @@
     <UiDialog v-model="showShortcuts" title="Atalhos da revisão" size="sm">
       <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-meta">
         <template v-for="s in shortcutList" :key="s.keys">
-          <dt><kbd class="rounded-tag border border-line-strong px-1.5 font-sans text-label text-fg">{{ s.keys }}</kbd></dt>
+          <dt><kbd class="rounded-tag bg-soft px-1.5 font-sans shadow-0 text-label text-fg">{{ s.keys }}</kbd></dt>
           <dd class="text-fg">{{ s.label }}</dd>
         </template>
       </dl>

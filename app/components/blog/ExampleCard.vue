@@ -1,6 +1,6 @@
 <template>
-  <figure class="overflow-hidden rounded-card border border-line bg-raised shadow-1" aria-label="Exemplo de card">
-    <div class="border-b border-line px-5 py-4">
+  <figure class="overflow-hidden rounded-card bg-raised shadow-1" aria-label="Exemplo de card">
+    <div class="border-b border-hairline px-5 py-4">
       <p class="mb-1 text-label text-fg-muted">Frente</p>
       <p class="text-body font-semibold text-fg-strong">{{ q }}</p>
     </div>

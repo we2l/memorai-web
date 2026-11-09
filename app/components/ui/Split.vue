@@ -10,7 +10,7 @@
 </template>
 
 <script setup lang="ts">
-// The two columns of the hub, E2 (prd-visual-e2 RF-4.2, ADR-035 §9): the side (numbers, next step, exam) comes first
+// Two columns, E2 (ADR-035 §9; hub, quiz result, Progresso, checkout): the side (numbers, next step, exam) comes first
 // on the phone and goes to the right from 1024 px, sticky under the TopNav; the main column is fluid. Utilities only: CSS of
 // an index.vue page lands in an index.*.css, the name the landing owns (out of the precache).
 defineProps<{ sideLabel: string }>()

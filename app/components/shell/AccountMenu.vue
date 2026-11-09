@@ -11,7 +11,7 @@
       </button>
     </template>
     <template #header>
-      <div class="mb-1 flex items-center gap-3 border-b border-line px-3 pt-2 pb-3">
+      <div class="mb-1 flex items-center gap-3 border-b border-hairline px-3 pt-2 pb-3">
         <span class="flex size-10 shrink-0 items-center justify-center rounded-full bg-action-subtle text-meta font-semibold text-action-fg" aria-hidden="true">{{ initials }}</span>
         <div class="min-w-0">
           <p class="truncate font-semibold text-fg-strong">{{ auth.user?.name || 'Sua conta' }}</p>

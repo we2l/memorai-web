@@ -180,6 +180,6 @@ describe('UiRadioGroup', () => {
   it('cartões em colunas, selecionado em tom de ação', async () => {
     const w = await mountSuspended(RadioGroup, { props: { modelValue: 'b', options, label: 'Modo', variant: 'cards', columns: 3 } })
     expect(w.get('div').classes()).toEqual(expect.arrayContaining(['grid', 'sm:grid-cols-3']))
-    expect(w.get('label').classes()).toEqual(expect.arrayContaining(['has-checked:border-action', 'has-checked:bg-action-subtle']))
+    expect(w.get('label').classes()).toEqual(expect.arrayContaining(['has-checked:ring-action', 'has-checked:bg-action-subtle']))
   })
 })

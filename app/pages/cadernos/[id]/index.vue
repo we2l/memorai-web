@@ -45,7 +45,7 @@
           origin="caderno"
           @moved="store.fetchSummary()"
         />
-        <CadernoHubGrid side-label="Resumo do caderno">
+        <UiSplit side-label="Resumo do caderno">
           <template v-if="hasSide" #side>
             <CadernoScopeStats v-if="!isEmpty" :summary="summary" :first-material="store.materials[0] ?? null" @listen="listen" />
             <CadernoNextStep v-if="showNextStep" :step="summary.next_step!" @go="kind => track('next_step_click', { kind })" />
@@ -97,7 +97,7 @@
             />
             <CadernoPracticeRow v-else-if="block === 'practice'" :summary="summary" />
           </template>
-        </CadernoHubGrid>
+        </UiSplit>
       </template>
     </template>
 

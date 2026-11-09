@@ -4,10 +4,10 @@
     <template v-if="!flipped">
       <div role="group" aria-label="Sua resposta" class="grid grid-cols-2 gap-2">
         <UiButton block aria-keyshortcuts="C" data-testid="check-certo" @click="choose('certo')">
-          <kbd class="hidden rounded-tag border border-line-strong px-1 font-sans text-label text-fg-muted pointer-fine:inline" aria-hidden="true">C</kbd> Certo
+          <kbd class="hidden rounded-tag bg-soft px-1 font-sans shadow-0 text-label text-fg-muted pointer-fine:inline" aria-hidden="true">C</kbd> Certo
         </UiButton>
         <UiButton block aria-keyshortcuts="E" data-testid="check-errado" @click="choose('errado')">
-          <kbd class="hidden rounded-tag border border-line-strong px-1 font-sans text-label text-fg-muted pointer-fine:inline" aria-hidden="true">E</kbd> Errado
+          <kbd class="hidden rounded-tag bg-soft px-1 font-sans shadow-0 text-label text-fg-muted pointer-fine:inline" aria-hidden="true">E</kbd> Errado
         </UiButton>
       </div>
       <UiButton variant="ghost" block aria-keyshortcuts="B" data-testid="check-blank" @click="choose('blank')">Deixar em branco</UiButton>

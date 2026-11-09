@@ -22,7 +22,7 @@
                 <component :is="opt.icon" class="size-4.5" />
               </span>
             </template>
-            <template v-if="opt.kbd" #trailing><kbd class="rounded-tag border border-line px-1.5 text-label">{{ opt.kbd }}</kbd></template>
+            <template v-if="opt.kbd" #trailing><kbd class="rounded-tag bg-soft px-1.5 text-label shadow-0">{{ opt.kbd }}</kbd></template>
           </UiListRow>
         </li>
       </ul>

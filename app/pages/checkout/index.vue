@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto flex max-w-xl flex-col gap-section px-gutter pt-8 pb-12 lg:pt-12">
+  <div class="mx-auto flex max-w-4xl flex-col gap-section px-gutter pt-8 pb-12 lg:pt-12">
     <UiPageHeader :title="`Assinar o ${proName}`" :meta="plan === 'annual' ? 'Plano anual' : 'Plano mensal'" :back="{ to: '/planos', label: 'Planos' }" />
 
     <!-- Closed ("Assinatura em breve"): nothing to pay yet -->
@@ -14,23 +14,26 @@
       </template>
     </UiSection>
 
-    <template v-else>
-      <!-- What is being bought: the number in black, the one purple is the paying button (ADR-027) -->
-      <UiSection :title="productName(product, proName)" data-testid="checkout-summary">
-        <UiSkeleton v-if="price === null" variant="text" :lines="2" />
-        <template v-else>
-          <p class="text-page-title tabular-nums text-fg-strong" data-testid="checkout-price">{{ formatBrl(price) }}</p>
-          <!-- The Pix discount, visible on both tabs (Lei 13.455/2017) -->
-          <p v-if="annualPix && product === 'annual_pix'" class="text-meta font-semibold text-fg-strong" data-testid="checkout-pix-discount">
-            {{ annualPix.discount_percent }}% de desconto no Pix: {{ formatBrl(annualCard ?? 0) }} no cartão.
-          </p>
-          <p v-else-if="annualPix" class="text-meta font-semibold text-fg-strong" data-testid="checkout-pix-discount">
-            ou Pix {{ formatBrl(annualPix.amount_cents) }} ({{ annualPix.discount_percent }}% de desconto).
-          </p>
-          <p class="mt-1 text-meta text-fg-muted">{{ productTerms(product, plans) }}</p>
-        </template>
-      </UiSection>
-
+    <!-- E2 (prd-visual-e2 RF-5.6, ADR-035 §9): the payment on the left, the summary on the right (first on the phone) -->
+    <UiSplit v-else side-label="Resumo da compra">
+      <template #side>
+        <!-- What is being bought: the number in black, the one purple is the paying button (ADR-027) -->
+        <UiSection :title="productName(product, proName)" data-testid="checkout-summary">
+          <UiSkeleton v-if="price === null" variant="text" :lines="2" />
+          <template v-else>
+            <p data-testid="checkout-price"><UiNumber :value="formatBrl(price)" size="m" /></p>
+            <!-- The Pix discount, visible on both tabs (Lei 13.455/2017) -->
+            <p v-if="annualPix && product === 'annual_pix'" class="text-meta font-semibold text-fg-strong" data-testid="checkout-pix-discount">
+              {{ annualPix.discount_percent }}% de desconto no Pix: {{ formatBrl(annualCard ?? 0) }} no cartão.
+            </p>
+            <p v-else-if="annualPix" class="text-meta font-semibold text-fg-strong" data-testid="checkout-pix-discount">
+              ou Pix {{ formatBrl(annualPix.amount_cents) }} ({{ annualPix.discount_percent }}% de desconto).
+            </p>
+            <p class="mt-1 text-meta text-fg-muted">{{ productTerms(product, plans) }}</p>
+          </template>
+        </UiSection>
+        <CheckoutSellerNote :method="method" />
+      </template>
       <UiSection flush class="px-5 pt-2 pb-5 sm:px-6">
         <UiTabs v-model="method" :tabs="methodTabs" label="Forma de pagamento">
           <!-- Card: the gateway's form; the Baigi only gets a single-use token -->
@@ -38,7 +41,7 @@
             <template v-if="payment && view !== 'rejected'">
               <div v-if="view === 'challenge'" class="flex flex-col gap-3" data-testid="checkout-challenge">
                 <p class="text-body text-fg">O banco pediu uma confirmação. Siga as instruções abaixo; o {{ proName }} libera aqui quando ela terminar.</p>
-                <iframe :src="payment.challenge_url ?? undefined" title="Confirmação do banco" class="h-[70dvh] w-full rounded-row border border-line" />
+                <iframe :src="payment.challenge_url ?? undefined" title="Confirmação do banco" class="h-[70dvh] w-full rounded-row shadow-1" />
               </div>
               <p v-else class="flex items-center gap-2 text-body text-fg" role="status" data-testid="checkout-processing">
                 <UiSpinner size="sm" /> {{ payment.message ?? 'Pagamento em análise. Avisamos aqui assim que for aprovado.' }}
@@ -78,9 +81,7 @@
           </div>
         </UiTabs>
       </UiSection>
-
-      <CheckoutSellerNote :method="method" />
-    </template>
+    </UiSplit>
   </div>
 </template>
 

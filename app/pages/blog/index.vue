@@ -8,7 +8,7 @@
     </header>
 
     <nav v-if="categories.length > 1" aria-label="Categorias" class="mt-6 flex flex-wrap gap-2">
-      <UiLink v-for="c in categories" :key="c" :href="`#${c}`" variant="muted" standalone class="rounded-control border border-line px-3 text-meta">
+      <UiLink v-for="c in categories" :key="c" :href="`#${c}`" variant="muted" standalone class="rounded-chip bg-soft px-3.5 text-meta">
         {{ categoryLabel(c) }}
       </UiLink>
     </nav>

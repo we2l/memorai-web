@@ -36,7 +36,7 @@
       <!-- Create new option -->
       <button
         v-if="showCreateOption"
-        class="subpage-dropdown-item border-t border-line"
+        class="subpage-dropdown-item border-t border-hairline"
         :class="{ 'bg-soft': selectedIndex === filteredChildren.length }"
         @mouseenter="selectedIndex = filteredChildren.length"
         @mousedown.prevent="createNew"

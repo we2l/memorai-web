@@ -34,7 +34,7 @@
         >
           {{ reviewCount > 0 || loading ? 'Revisar agora' : 'Nada para revisar hoje' }}
         </UiButton>
-        <ul class="-mx-3 divide-y divide-line border-t border-line">
+        <ul class="-mx-3 divide-y divide-hairline border-t border-hairline">
           <li><UiListRow title="5 minutos" meta="Os mais urgentes, para uma pausa curta" :to="withScope('/revisar', { mode: 'blitz' })" @click="started('review', 'blitz')" /></li>
           <li><UiListRow title="Só o que errei" meta="Os seus erros recentes" :to="withScope('/revisar', { errors_only: '1' })" @click="started('review', 'errors_only')" /></li>
           <li>
@@ -72,7 +72,7 @@
           {{ weak ? '20 questões do pior assunto' : '20 questões' }}
         </UiButton>
         <p v-if="weak" class="-mt-2 text-meta text-fg-muted">{{ weak.name }}<template v-if="weak.questions.accuracy !== null"> · {{ weak.questions.accuracy }}% de acerto</template></p>
-        <ul class="-mx-3 divide-y divide-line border-t border-line">
+        <ul class="-mx-3 divide-y divide-hairline border-t border-hairline">
           <li v-if="inProgress">
             <UiListRow title="Continuar" :meta="inProgress.title" :to="`/simulados/${inProgress.id}`" @click="started('quiz', 'continue')" />
           </li>
@@ -118,7 +118,7 @@
         <UiButton v-else-if="!podcastPaywall" block icon-tone="listen" :icon-left="Headphones" :to="withScope('/podcasts', { action: 'generate' }, 'topic_id')" @click="started('listen', 'generate')">
           Gerar um episódio
         </UiButton>
-        <ul class="-mx-3 divide-y divide-line border-t border-line">
+        <ul class="-mx-3 divide-y divide-hairline border-t border-hairline">
           <li v-if="continuing">
             <UiListRow :title="`Continuar · ${continuing.title}`" :meta="`ouvido ${Math.round((continuing.progress ?? 0) * 100)}%`" as="button" @click="listen(continuing, 'continue')" />
           </li>
@@ -133,7 +133,7 @@
     </section>
 
     <UiSection v-if="recent.length" title="Últimas questões" flush class="px-5 pt-5 sm:px-6" data-testid="practice-history">
-      <ul class="-mx-3 divide-y divide-line pb-2">
+      <ul class="-mx-3 divide-y divide-hairline pb-2">
         <li v-for="quiz in recent" :key="quiz.id">
           <UiListRow :to="`/simulados/${quiz.id}/resultado`" :title="historyTitle(quiz)" :meta="historyMeta(quiz)">
             <template #leading><UiPracticeIcon mode="quiz" size="sm" /></template>

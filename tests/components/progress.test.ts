@@ -131,9 +131,9 @@ describe('PerformanceTable (RF-F5)', () => {
 describe('ProgressSummary (RF-F2)', () => {
   it('domínio com a tendência em texto e sinal, acerto só com 10, recorde', async () => {
     const w = await mountSuspended(ProgressSummary, { props: { scopeName: 'TRF', data: { mastery: { percent: 41, in_day: 902, cards: 2200, delta_30d: 6 }, questions: { answered: 4, accuracy: null }, retention_30d: 88, streak: 6, streak_longest: 11 } } })
-    expect(w.text()).toContain('41%de domínio em TRF▲ +6 pontos em 30 dias')
+    expect(w.get('[data-testid="progress-metric-mastery"]').text()).toBe('41%de domínio em TRF · ▲ +6 pontos em 30 dias')
     expect(w.text()).toContain('Faça 10 questões para ver o acerto')
-    expect(w.text()).toContain('6 diasde sequência · recorde 11')
+    expect(w.get('[data-testid="progress-metric-streak"]').text()).toBe('6diasde sequência · recorde 11')
   })
 })
 

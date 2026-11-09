@@ -33,7 +33,7 @@
     <UiSection v-else-if="!store.podcasts.length" data-testid="podcasts-empty">
       <div class="flex flex-col items-center gap-5 px-2 py-6 text-center">
         <!-- Preview of the player (static, no image to download) -->
-        <div class="flex w-full max-w-sm items-center gap-3 rounded-card border border-line bg-raised p-3 text-left shadow-1" aria-hidden="true">
+        <div class="flex w-full max-w-sm items-center gap-3 rounded-card bg-raised p-3 text-left shadow-1" aria-hidden="true">
           <span class="flex size-12 shrink-0 items-center justify-center rounded-control bg-soft text-listen"><Headphones class="size-6" /></span>
           <span class="min-w-0 flex-1">
             <span class="block truncate text-meta font-semibold text-fg-strong">Seus erros de ontem</span>

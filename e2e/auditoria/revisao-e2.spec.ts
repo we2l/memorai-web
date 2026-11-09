@@ -41,7 +41,8 @@ for (const width of [390, 1440]) {
       whyBodies.push(route.request().postDataJSON())
       await route.fulfill({ json: WHY })
     })
-    const topicId = await dueTopic(page, 10)
+    // 11 cards: the lote of 10 is not the last one (the last ends with the session)
+    const topicId = await dueTopic(page, 11)
     await gotoApp(page, `/revisar?topic_id=${topicId}`)
 
     // Hit: the band (green, celebrating) and the next card by itself in ~1.2 s, no click

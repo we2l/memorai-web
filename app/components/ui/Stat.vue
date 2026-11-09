@@ -1,7 +1,7 @@
 <template>
   <div class="min-w-0">
     <p class="flex items-baseline gap-1.5 text-fg-strong">
-      <component :is="TONE_ICON[tone]" v-if="tone !== 'default'" class="size-5 shrink-0 self-center fill-current" :class="tone === 'streak' ? 'text-streak' : 'text-celebrate'" aria-hidden="true" />
+      <component :is="TONE_ICON[tone]" v-if="tone !== 'default'" class="size-5 shrink-0 self-center fill-current" :class="tone === 'streak' ? 'text-metric-streak' : 'text-metric-goal'" aria-hidden="true" />
       <span class="tabular-nums" :class="size === 'lg' ? 'num-l' : 'num-s'">{{ value }}</span>
       <span v-if="unit" class="text-body text-fg-muted">{{ unit }}</span>
     </p>
@@ -33,8 +33,8 @@ withDefaults(defineProps<{
 const TONE_ICON = { default: null, celebrate: Trophy, streak: Flame }
 const TONE_TEXT: Record<Tone, string> = {
   default: 'text-fg-muted',
-  celebrate: 'font-semibold text-celebrate-fg',
-  streak: 'font-semibold text-streak-fg',
+  celebrate: 'font-semibold text-metric-goal-fg',
+  streak: 'font-semibold text-metric-streak-fg',
 }
 </script>
 

@@ -58,7 +58,7 @@ const props = withDefaults(defineProps<{
 }>(), { max: 100, tone: 'action', size: 'sm', segments: undefined, valueText: undefined, subject: undefined })
 
 const HEIGHT = { sm: 'h-1.25', md: 'h-2' }
-const FILL = { action: 'bg-action', neutral: 'bg-progress-neutral', celebrate: 'bg-celebrate' }
+const FILL = { action: 'bg-action', neutral: 'bg-progress-neutral', celebrate: 'bg-metric-goal' }
 // Full class names: Tailwind only generates what it finds written
 const SUBJECT = ['bg-subject-1', 'bg-subject-2', 'bg-subject-3', 'bg-subject-4', 'bg-subject-5', 'bg-subject-6', 'bg-subject-7', 'bg-subject-8']
 const fill = computed(() => (props.subject ? SUBJECT[(props.subject - 1) % 8] : FILL[props.tone]))

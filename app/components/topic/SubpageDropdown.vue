@@ -156,7 +156,7 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', onClickOutside))
   background: var(--surface-float);
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-control);
-  box-shadow: var(--elev-raised);
+  box-shadow: var(--elev-2);
   overflow: hidden;
 }
 
@@ -168,11 +168,11 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', onClickOutside))
   padding: 0.5rem 0.75rem;
   text-align: left;
   font-size: var(--text-meta);
-  transition: background-color var(--motion-nav);
+  transition: background-color var(--dur-fast);
   cursor: pointer;
 }
 
 .subpage-dropdown-item:hover {
-  background: var(--surface-subtle);
+  background: var(--surface-soft);
 }
 </style>

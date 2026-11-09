@@ -19,7 +19,7 @@
         </p>
         <template v-else>
           <p class="flex items-center gap-1.5 text-meta text-fg">
-            <Flame class="size-4 fill-current text-streak" aria-hidden="true" /><strong class="text-streak-fg">{{ forecast.streak.current }} dias seguidos</strong>
+            <Flame class="size-4 fill-current text-metric-streak" aria-hidden="true" /><strong class="text-metric-streak-fg">{{ forecast.streak.current }} dias seguidos</strong>
           </p>
           <template v-if="milestone">
             <UiProgressBar class="mt-2" :value="forecast.streak.current" :max="milestone" tone="action" size="md" :label="`Dias seguidos até a meta de ${milestone}`" :value-text="`${forecast.streak.current} de ${milestone}`" />

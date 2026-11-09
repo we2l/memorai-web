@@ -121,6 +121,14 @@
                 <UiSection variant="tile" title="Azulejo" :level="3">Fundo soft, raio 16: métrica e apoio.</UiSection>
                 <UiSection variant="tinted" title="Bloco lilás" :level="3">O único por tela: a prova, o próximo passo.</UiSection>
               </div>
+              <!-- UiSplit (ADR-035 §9): main fluid + side of 400 from 1024 px; the side comes first on the phone. UiField and
+                   UiMenuItem are internal pieces of UiInput/UiTextarea/UiSelect and UiMenu (shown through them) -->
+              <UiSplit side-label="Lateral de exemplo" data-testid="ds-split">
+                <template #side>
+                  <UiSection variant="tile" title="Lateral" :level="3">Números, próximo passo, prova.</UiSection>
+                </template>
+                <UiSection title="Principal" :level="3">Matérias, materiais, desempenho.</UiSection>
+              </UiSplit>
             </div>
           </UiSection>
 
@@ -177,6 +185,7 @@
                   <UiProgressBar :value="62" label="Domínio (action, sm)" show-value />
                   <UiProgressBar :value="74" label="Acerto em questões (neutral)" tone="neutral" show-value />
                   <UiProgressBar :value="80" label="Meta da semana (celebrate, md)" tone="celebrate" size="md" show-value />
+                  <UiProgressBar :value="60" label="Domínio de uma matéria (subject 3)" :subject="3" show-value />
                   <UiProgressBar :value="1" :max="3" :segments="3" label="Meta de hoje" size="md" show-value class="w-56" />
                 </div>
                 <div class="flex flex-col gap-4">

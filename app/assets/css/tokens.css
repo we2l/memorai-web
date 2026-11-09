@@ -17,11 +17,10 @@
   color-scheme: light;
 
   /* Superfícies (ADR-035 §7): página branca pura, cartão branco com sombra em camadas, `soft` para azulejo e
-     apoio, `sunk` para trilho; um bloco lilás por tela. `subtle` (v3) é ponteiro para `soft` */
+     apoio, `sunk` para trilho; um bloco lilás por tela */
   --surface-page: #FFFFFF;
   --surface-raised: #FFFFFF;
   --surface-soft: #F5F4F8;
-  --surface-subtle: var(--surface-soft);
   --surface-sunk: #EFEDF3;
   --surface-tinted: #F1ECFF;
   --surface-float: #FFFFFF;
@@ -76,10 +75,6 @@
   --metric-accuracy-bg: #EAF1FE;
   --metric-accuracy-fg: #1D4FB8;
   /* Ponteiros v3 enquanto houver uso (somem na Fase 6): o amarelo de conquista saiu */
-  --celebrate: var(--metric-goal);
-  --celebrate-fg: var(--metric-goal-fg);
-  --streak: var(--metric-streak);
-  --streak-fg: var(--metric-streak-fg);
 
   /* Faixa de feedback da revisão (ADR-035 §1): nunca vermelho. -strong preenche o "Continuar", com -ink por cima */
   --fb-ok-bg: #E6F6EE;
@@ -125,11 +120,8 @@
   /* A faixa de resposta da revisão sobe da base: sombra para cima */
   --elev-band: 0 -12px 32px -16px rgb(20 18 26 / 0.28);
   /* Ponteiros v3: card → 1, raised (mini-player, toast) → 2 */
-  --elev-card: var(--elev-1);
-  --elev-raised: var(--elev-2);
 
   /* Movimento */
-  --motion-nav: 150ms;
   --motion-respond: 200ms;
   --motion-celebrate: 700ms;
   /* E2 (ADR-035 §6): pressão, rápido, base, folha e momento (teto do ADR-027) */

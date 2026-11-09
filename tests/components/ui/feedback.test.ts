@@ -130,7 +130,7 @@ describe('UiCelebration', () => {
     expect(w.attributes('role')).toBe('status')
     expect(w.text()).toContain('6 dias seguidos!')
     expect(w.text()).toContain('Sequência mantida')
-    expect(w.findAll('p').find(p => p.text() === 'Sequência mantida')!.classes()).toContain('text-streak-fg')
+    expect(w.findAll('p').find(p => p.text() === 'Sequência mantida')!.classes()).toContain('text-metric-streak-fg')
     expect(w.text()).toContain('86%')
     expect(w.text()).toContain('Próximo lote')
     expect(await axeViolations(w.element)).toEqual([])

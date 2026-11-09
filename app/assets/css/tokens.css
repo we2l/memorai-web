@@ -122,6 +122,8 @@
   --glow: none;
   /* O bloco lilás: nada no claro; no escuro, um anel interno para não sumir na página */
   --elev-tinted: none;
+  /* A faixa de resposta da revisão sobe da base: sombra para cima */
+  --elev-band: 0 -12px 32px -16px rgb(20 18 26 / 0.28);
   /* Ponteiros v3: card → 1, raised (mini-player, toast) → 2 */
   --elev-card: var(--elev-1);
   --elev-raised: var(--elev-2);
@@ -292,5 +294,6 @@
   --elev-float: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 0 0 1px rgb(255 255 255 / 0.08), 0 28px 64px -16px rgb(0 0 0 / 0.85);
   --elev-action: inset 0 1px 0 rgb(255 255 255 / 0.22), 0 8px 24px -8px rgb(132 82 245 / 0.7);
   --glow: drop-shadow(0 0 10px rgb(132 82 245 / 0.55));
+  --elev-band: 0 -1px 0 rgb(255 255 255 / 0.06), 0 -16px 40px -16px rgb(0 0 0 / 0.8);
   --elev-tinted: inset 0 0 0 1px rgb(188 166 255 / 0.14), inset 0 1px 0 rgb(255 255 255 / 0.05);
 }

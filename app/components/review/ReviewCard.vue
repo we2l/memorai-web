@@ -1,8 +1,9 @@
 <template>
   <section
     ref="root"
-    class="relative flex w-full flex-col gap-4 rounded-card bg-raised p-6 shadow-card sm:min-h-72 sm:p-8"
+    class="review-card relative flex w-full flex-col gap-4 rounded-hero bg-raised shadow-2"
     :class="[!flipped && 'select-none pointer-fine:cursor-pointer', swipeOn && 'touch-pan-y', swipe.dragging.value && 'swipe-drag']"
+    :data-enter="enter || undefined"
     :style="swipeStyle"
     :aria-label="flipped ? 'Card com a resposta' : 'Card: Espaço para ver a resposta'"
     :role="flipped ? 'region' : 'button'"
@@ -22,13 +23,13 @@
       {{ swipe.direction.value === 'right' ? `${swipeLabels.right} →` : `← ${swipeLabels.left}` }}
     </p>
     <p v-if="label" class="text-label font-semibold text-fg-muted">{{ label }}</p>
-    <div class="card-html break-words text-section text-fg-strong" data-testid="review-front" v-html="front" />
+    <div class="card-html card-q break-words text-fg-strong" data-testid="review-front" v-html="front" />
     <div
       v-if="flipped"
-      class="answer-in flex flex-col gap-4 border-t border-line pt-4"
+      class="answer-in flex flex-col gap-4 pt-4.5"
       data-testid="review-answer"
     >
-      <div class="card-html break-words text-body text-fg" v-html="back" />
+      <div class="card-html card-a break-words text-fg-strong" v-html="back" />
       <div v-if="audio" class="w-full max-w-xs" @click.stop>
         <UiAudioPlayer :src="audio" />
       </div>
@@ -41,9 +42,10 @@
 </template>
 
 <script setup lang="ts">
-// The card of the session (prd-4d-revisao-v3 RF-F3): the subject as a label, the question, and after the
-// turn (Espaço/Enter, a click, or the button on a phone) the answer under a divider, with the origin. The answer fades in within
-// --motion-respond; with prefers-reduced-motion it just appears. Cloze and media as before.
+// The card of the session (prd-4d-revisao-v3 RF-F3; E2 skin, prd-visual-e2 RF-2.1): the subject as a label, the
+// question (25/30 px), and after the turn (Espaço/Enter, a click, or the button on a phone) the answer (19/20 px) under
+// a hairline, with the origin in a soft tile. No flip: the answer opens below in 180 ms (opacity and 6 px); with
+// prefers-reduced-motion it just appears. Radius 24, shadow-2. Cloze and media as before.
 import type { Flashcard } from '~/types'
 
 const props = defineProps<{
@@ -55,6 +57,8 @@ const props = defineProps<{
   swipeEnabled?: boolean
   /** The labels of the two directions: "Lembrei" / "Não lembrei" or "Bom" / "De novo" */
   swipeLabels?: { right: string; left: string }
+  /** The next card after the feedback band: it comes in from the right (240 ms, 28 px; ADR-035 §6) */
+  enter?: boolean
 }>()
 const emit = defineEmits<{ (e: 'flip'): void; (e: 'swipe', rating: 1 | 3): void }>()
 
@@ -97,9 +101,23 @@ const audio = computed(() => (props.flipped ? props.card.back_audio_url : props.
 @media (prefers-reduced-motion: no-preference) {
   section:not(.swipe-drag) { transition: transform var(--motion-respond) var(--ease-calm); }
 }
-/* The answer arrives in --motion-respond; prefers-reduced-motion: it just appears */
+.review-card { padding: 24px 22px; }
+.card-q { font-size: 1.5625rem; line-height: 1.22; font-weight: 700; letter-spacing: -0.018em; }
+.card-a { font-size: 1.1875rem; line-height: 1.5; }
+.answer-in { box-shadow: 0 -1px 0 var(--hairline); }
+@media (min-width: 640px) {
+  .review-card { min-height: 18rem; padding: 36px 40px; }
+  .card-q { font-size: 1.875rem; }
+  .card-a { font-size: 1.25rem; }
+}
+/* The answer arrives in 180 ms; prefers-reduced-motion: it just appears */
 @media (prefers-reduced-motion: no-preference) {
-  .answer-in { animation: answer-in var(--motion-respond) var(--ease-calm) both; }
+  .answer-in { animation: answer-in var(--dur-fast) var(--ease-out) both; }
+  .review-card[data-enter] { animation: card-enter var(--dur-base) var(--ease-out) both; }
+}
+@keyframes card-enter {
+  from { opacity: 0; transform: translateX(28px); }
+  to { opacity: 1; transform: none; }
 }
 @keyframes answer-in {
   from { opacity: 0; transform: translateY(6px); }

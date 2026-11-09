@@ -112,15 +112,10 @@
                 <UiTag tone="brand">Direito Constitucional</UiTag>
                 <UiTag>Lote 1 de 3</UiTag>
               </div>
+              <!-- The answer band of the review (ReviewFeedback): green on a hit, amber on a miss, never red -->
               <div class="flex flex-col gap-3">
-                <div class="rounded-sheet bg-fb-ok-bg p-5 text-fb-ok-fg">
-                  <p class="text-title">Na mosca! Volta em 16 dias.</p>
-                  <span class="mt-3 inline-flex min-h-touch items-center rounded-chip bg-fb-ok-strong px-4.5 font-semibold text-fb-ok-ink">Continuar</span>
-                </div>
-                <div class="rounded-sheet bg-fb-again-bg p-5 text-fb-again-fg">
-                  <p class="text-title">Tranquilo, faz parte. Ele volta daqui a 10 minutos.</p>
-                  <span class="mt-3 inline-flex min-h-touch items-center rounded-chip bg-fb-again-strong px-4.5 font-semibold text-fb-again-ink">Continuar</span>
-                </div>
+                <ReviewFeedback :feedback="{ id: 1, kind: 'ok', title: 'Na mosca!', when: 'Volta em 16 dias.', autoAdvance: false, canWhy: false }" />
+                <ReviewFeedback :feedback="{ id: 2, kind: 'again', title: 'Tranquilo, faz parte.', when: 'Ele volta daqui a 10 minutos.', autoAdvance: false, canWhy: true }" />
               </div>
               <div class="grid gap-3 sm:grid-cols-2">
                 <UiSection variant="tile" title="Azulejo" :level="3">Fundo soft, raio 16: métrica e apoio.</UiSection>

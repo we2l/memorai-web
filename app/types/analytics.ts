@@ -126,6 +126,10 @@ export interface FrontEventProps {
   review_batch_stop: { batch_index: number }
   review_origin_open: { kind: 'quiz' | 'document' | 'note' | 'question' }
   review_explain_open: Record<string, never>
+  /** Faixa de resposta e "Por quê?" (prd-visual-e2 RF-2.4, RF-2.5) */
+  review_feedback_shown: { kind: 'ok' | 'again' | 'tf-ok' | 'tf-again' | 'typed-ok' | 'typed-again' }
+  review_autoadvance_cancel: { via: 'tap' | 'key' | 'why' }
+  review_why_opened: { kind: 'ok' | 'again' | 'tf-ok' | 'tf-again' | 'typed-ok' | 'typed-again' | 'menu' }
   retention_suggestion: { action: 'apply' | 'dismiss' }
   review_goal_met: { target_batches: number }
   /** Praticar v3 (prd-4e-praticar-v3 §3.7) */

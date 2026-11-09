@@ -1,5 +1,5 @@
 <template>
-  <header class="border-b border-line bg-raised" data-testid="review-top">
+  <header class="bg-page" data-testid="review-top">
     <div class="mx-auto flex max-w-page flex-wrap items-center gap-x-3 px-gutter py-2 max-sm:pb-1">
       <UiLink v-if="!onboarding" :to="backTo" variant="muted" class="inline-flex min-h-touch shrink-0 items-center gap-1 font-medium" data-testid="review-exit">
         <ChevronLeft class="size-4" aria-hidden="true" />Sair
@@ -10,14 +10,14 @@
         <span class="text-meta whitespace-nowrap text-fg-muted" data-testid="review-step">{{ stepLabel }}</span>
       </div>
       <p v-else-if="scopeText" class="order-last w-full truncate text-label text-fg-muted sm:order-none sm:w-auto sm:min-w-0 sm:flex-1 sm:text-meta" data-testid="review-scope">
-        Revisando <span class="font-semibold text-fg-strong">{{ scopeText }}</span>{{ scopeNote ? ` ${scopeNote}` : '' }}
+        <span class="sr-only">Revisando </span><UiTag tone="brand" class="max-w-full align-middle"><span class="truncate">{{ scopeText }}</span></UiTag>{{ scopeNote ? ` ${scopeNote}` : '' }}
       </p>
       <span v-else class="hidden flex-1 sm:block" />
 
       <div v-if="batch" class="ml-auto flex items-center gap-3 sm:ml-0" data-testid="review-batch">
         <span class="text-meta font-medium whitespace-nowrap text-fg-strong tabular-nums">
           <!-- A single batch (the visitor's mini-lote) has no "Lote 1 de 1" -->
-          <template v-if="batch.total > 1">Lote {{ batch.index }} de {{ batch.total }} · </template><span class="max-sm:hidden">card {{ batch.card }} de {{ batch.size }}</span><span class="sm:hidden">{{ batch.total > 1 ? '' : 'card ' }}{{ batch.card }}/{{ batch.size }}</span>
+          <UiTag v-if="batch.total > 1" class="mr-1.5 align-middle">Lote {{ batch.index }} de {{ batch.total }}</UiTag><span class="max-sm:hidden">card {{ batch.card }} de {{ batch.size }}</span><span class="sm:hidden">{{ batch.total > 1 ? '' : 'card ' }}{{ batch.card }}/{{ batch.size }}</span>
         </span>
         <UiProgressBar v-if="batch.total <= MAX_SEGMENTS" class="hidden w-48 sm:flex" v-bind="barProps" />
       </div>
@@ -62,8 +62,10 @@ const props = withDefaults(defineProps<{
   stepLabel?: string
   /** The name of the onboarding's X */
   exitLabel?: string
+  /** "Explicar este card" in the ⋯ (the "Por quê?" of a hit, prd-visual-e2 §9) */
+  canExplain?: boolean
 }>(), { scopeNote: undefined, blitzTo: undefined, stepLabel: 'Passo 3 de 3', exitLabel: 'Sair' })
-const emit = defineEmits<{ (e: 'undo'): void; (e: 'edit'): void; (e: 'focus-mode'): void; (e: 'shortcuts'): void }>()
+const emit = defineEmits<{ (e: 'undo'): void; (e: 'edit'): void; (e: 'focus-mode'): void; (e: 'shortcuts'): void; (e: 'explain'): void }>()
 
 const barProps = computed(() => {
   const b = props.batch!
@@ -78,6 +80,7 @@ const barProps = computed(() => {
 })
 
 const menu = computed<MenuItem[]>(() => [
+  ...(props.canExplain ? [{ label: 'Explicar este card', meta: 'P', onSelect: () => emit('explain') }] : []),
   { label: 'Modo foco', meta: 'tela cheia', onSelect: () => emit('focus-mode') },
   { label: 'Atalhos', meta: '?', onSelect: () => emit('shortcuts') },
   ...(props.blitzTo ? [{ label: 'Relâmpago', meta: '5 min', to: props.blitzTo }] : []),

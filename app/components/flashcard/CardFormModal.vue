@@ -7,7 +7,7 @@
         <button
           v-if="showAiHint"
           type="button"
-          class="flex w-full items-center gap-2 rounded-row bg-action-subtle px-3 py-2.5 text-left transition-colors duration-nav hover:bg-subtle"
+          class="flex w-full items-center gap-2 rounded-row bg-action-subtle px-3 py-2.5 text-left transition-colors duration-fast hover:bg-soft"
           @click="openUpgrade"
         >
           <Lightbulb class="size-4 text-action-fg" aria-hidden="true" />
@@ -49,7 +49,7 @@
             @focus="previewSide = 'back'"
           />
         </div>
-        <p v-else class="rounded-row bg-subtle px-4 py-6 text-center text-meta text-fg-muted">O verso é gerado automaticamente pelas lacunas.</p>
+        <p v-else class="rounded-row bg-soft px-4 py-6 text-center text-meta text-fg-muted">O verso é gerado automaticamente pelas lacunas.</p>
         <p v-if="hasOpenCloze" class="text-meta text-danger" role="alert">Falta fechar a lacuna com }} para salvar.</p>
 
         <!-- How the review checks this card (prd-revisao-v5-fase-b RF-F8): editing a card that is not a cloze -->
@@ -89,15 +89,15 @@
             v-for="idx in clozeIndices"
             :key="idx"
             type="button"
-            class="min-h-touch rounded-tag px-2 text-label font-medium transition-colors duration-nav"
-            :class="previewClozeIndex === idx ? 'bg-action text-on-action' : 'bg-subtle text-fg-muted hover:text-fg-strong'"
+            class="min-h-touch rounded-tag px-2 text-label font-medium transition-colors duration-fast"
+            :class="previewClozeIndex === idx ? 'bg-action text-on-action' : 'bg-soft text-fg-muted hover:text-fg-strong'"
             :aria-pressed="previewClozeIndex === idx ? 'true' : 'false'"
             @click="previewClozeIndex = idx"
           >
             c{{ idx }}
           </button>
         </div>
-        <div class="flex min-h-48 flex-col justify-center rounded-card border border-line-strong bg-raised p-5 text-center shadow-card">
+        <div class="flex min-h-48 flex-col justify-center rounded-card bg-raised p-5 text-center shadow-1">
           <p class="mb-2 text-label text-fg-muted">{{ previewSide === 'front' ? (selectedTopicName || 'Pergunta') : 'Resposta' }}</p>
           <div class="max-h-60 overflow-y-auto break-words text-body text-fg-strong" v-html="sanitize(previewSide === 'front' ? frontPreview : backPreview)" />
         </div>
@@ -367,3 +367,7 @@ watch(open, (val) => {
   if (val) populateForm()
 })
 </script>
+
+<style>
+@import "~/assets/css/cloze.css";
+</style>

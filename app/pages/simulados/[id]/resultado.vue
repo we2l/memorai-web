@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto flex max-w-prose flex-col gap-5 px-gutter pt-2 pb-6 md:pt-8">
+  <div class="mx-auto flex max-w-page flex-col gap-5 px-gutter pt-2 pb-6 md:pt-8">
     <UiLink v-if="scope" :to="scope.to" variant="muted" standalone class="-ml-1 self-start px-1">
       <ChevronLeft class="size-4" aria-hidden="true" />
       {{ scope.name }}
@@ -15,28 +15,32 @@
     <!-- Never an endless spinner (03 Q14): the error says it and retries -->
     <UiErrorState v-else-if="state === 'error'" variant="hero" title="Não foi possível carregar o resultado" description="Verifique sua conexão e tente de novo." @retry="load" />
 
-    <template v-else-if="quiz">
+    <!-- E2 (ADR-035 §9): the score, the subjects and the answer key in the main column; the next step and the errors that
+         become cards on the side (first on the phone) -->
+    <UiSplit v-else-if="quiz" side-label="Próximo passo">
+      <template #side>
+        <QuizNextStep
+          :state="nextState"
+          :selected="selected.length"
+          :cards-count="cardsCount"
+          :session-count="sessionCount"
+          :creating="creating"
+          :review-to="reviewPath({ type: 'quiz', id: quiz.id })"
+          :new-quiz-to="newQuizPath"
+          :scope-to="scope?.to"
+          :scope-name="scope?.name"
+          @create="createCards"
+          @review="trackReview"
+        />
+        <QuizErrorCards v-if="errors.length" v-model="selected" :errors="errors" />
+      </template>
       <QuizScore :quiz="quiz" :scope-name="quiz.topic?.name" />
       <QuizByTopic v-if="byTopic.length" :rows="byTopic" />
-      <QuizErrorCards v-if="errors.length" v-model="selected" :errors="errors" />
-      <QuizNextStep
-        :state="nextState"
-        :selected="selected.length"
-        :cards-count="cardsCount"
-        :session-count="sessionCount"
-        :creating="creating"
-        :review-to="reviewPath({ type: 'quiz', id: quiz.id })"
-        :new-quiz-to="newQuizPath"
-        :scope-to="scope?.to"
-        :scope-name="scope?.name"
-        @create="createCards"
-        @review="trackReview"
-      />
       <QuizAnswerKey ref="answerKey" :questions="questions" :initially-open="/^#q\d+$/.test(route.hash)" @ask="askWhyWrong" />
       <UiButton v-if="wrongCount > 0" variant="ghost" class="self-start" :loading="retrying" data-testid="quiz-retry-errors" @click="retryErrors">
         Refazer as que errei ({{ wrongCount }})
       </UiButton>
-    </template>
+    </UiSplit>
   </div>
 </template>
 

@@ -4,7 +4,7 @@
     <div
       v-if="showBubbleMenu && editable"
       ref="bubbleMenuRef"
-      class="absolute z-popover flex -translate-x-1/2 items-center gap-0.5 rounded-control border border-line-strong bg-float px-1.5 py-1 shadow-float"
+      class="absolute z-popover flex -translate-x-1/2 items-center gap-0.5 rounded-control bg-float px-1.5 py-1 shadow-float"
       :style="bubbleMenuStyle"
       role="toolbar"
       aria-label="Formatação"
@@ -13,8 +13,8 @@
         v-for="btn in bubbleButtons"
         :key="btn.label"
         type="button"
-        class="flex size-8 items-center justify-center rounded-row transition-colors duration-nav"
-        :class="btn.active?.() ? 'bg-action-subtle text-action-fg' : 'text-fg hover:bg-subtle hover:text-fg-strong'"
+        class="flex size-8 items-center justify-center rounded-row transition-colors duration-fast"
+        :class="btn.active?.() ? 'bg-action-subtle text-action-fg' : 'text-fg hover:bg-soft hover:text-fg-strong'"
         :title="btn.label"
         :aria-label="btn.label"
         :aria-pressed="btn.active?.() ? 'true' : 'false'"
@@ -28,16 +28,16 @@
     <EditorContent :editor="editor" class="prose-notion" />
 
     <!-- Editor hint (editing only) -->
-    <div v-if="editable" class="flex select-none items-center gap-4 border-t border-line px-3 py-2 text-label text-fg-muted">
-      <span><kbd class="mr-1 rounded-tag border border-line-strong bg-subtle px-1.5 font-sans text-label text-fg">/</kbd> comandos</span>
-      <span><kbd class="mr-1 rounded-tag border border-line-strong bg-subtle px-1.5 font-sans text-label text-fg">Ctrl+Shift+C</kbd> cloze</span>
+    <div v-if="editable" class="flex select-none items-center gap-4 border-t border-hairline px-3 py-2 text-label text-fg-muted">
+      <span><kbd class="mr-1 rounded-tag bg-soft px-1.5 shadow-0 font-sans text-label text-fg">/</kbd> comandos</span>
+      <span><kbd class="mr-1 rounded-tag bg-soft px-1.5 shadow-0 font-sans text-label text-fg">Ctrl+Shift+C</kbd> cloze</span>
     </div>
 
     <!-- Slash command menu -->
     <div
       v-if="slashMenu.open"
       ref="slashMenuRef"
-      class="absolute z-popover max-h-80 w-72 overflow-y-auto rounded-float border border-line-strong bg-float p-1.5 shadow-float"
+      class="absolute z-popover max-h-80 w-72 overflow-y-auto rounded-float bg-float p-1.5 shadow-float"
       :style="slashMenu.style"
     >
       <div class="flex flex-col" role="listbox" aria-label="Blocos">
@@ -48,11 +48,11 @@
           role="option"
           :aria-selected="index === slashMenu.selectedIndex ? 'true' : 'false'"
           class="flex w-full items-center gap-3 rounded-row px-3 py-2 text-left"
-          :class="index === slashMenu.selectedIndex ? 'bg-action-subtle' : 'hover:bg-subtle'"
+          :class="index === slashMenu.selectedIndex ? 'bg-action-subtle' : 'hover:bg-soft'"
           @mousedown.prevent="selectSlashItem(item)"
           @mouseenter="slashMenu.selectedIndex = index"
         >
-          <span class="flex size-9 shrink-0 items-center justify-center rounded-row" :class="index === slashMenu.selectedIndex ? 'bg-raised text-action-fg' : 'bg-subtle text-fg'">
+          <span class="flex size-9 shrink-0 items-center justify-center rounded-row" :class="index === slashMenu.selectedIndex ? 'bg-raised text-action-fg' : 'bg-soft text-fg'">
             <component :is="item.icon" class="size-4.5" aria-hidden="true" />
           </span>
           <span class="flex min-w-0 flex-col">
@@ -458,7 +458,8 @@ onBeforeUnmount(() => {
    (content-visibility): typing in a 300k-character note pays for what is on screen. */
 .prose-notion .tiptap {
   outline: none;
-  font-size: var(--text-body);
+  /* E2 (prd-visual-e2 RF-4.3): the reading size of the material, 17/1.7 */
+  font-size: var(--text-title);
   line-height: 1.7;
   color: var(--fg);
   overflow-wrap: break-word;
@@ -476,7 +477,7 @@ onBeforeUnmount(() => {
   scroll-margin-top: calc(var(--topnav-h) + 4.5rem);
   outline: none;
 }
-.prose-notion .tiptap h1 { font-size: var(--text-page-title-sm); line-height: 1.25; margin: 1.75em 0 0.4em; }
+.prose-notion .tiptap h1 { font-size: var(--text-page-title); line-height: 1.25; margin: 1.75em 0 0.4em; }
 .prose-notion .tiptap h2 { font-size: var(--text-section); line-height: 1.3; margin: 1.5em 0 0.35em; }
 .prose-notion .tiptap h3 { font-size: var(--text-body); line-height: 1.4; margin: 1.25em 0 0.25em; }
 .prose-notion .tiptap :is(h1, h2, h3):focus-visible { box-shadow: 0 0 0 2px var(--focus-ring); border-radius: var(--radius-tag); }

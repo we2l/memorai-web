@@ -1,14 +1,14 @@
 <template>
   <div class="mx-auto max-w-page px-gutter pt-8 lg:pt-12">
     <header class="max-w-article">
-      <h1 class="mb-3 text-page-title-sm text-fg-strong sm:text-page-title">Blog do Baigi</h1>
+      <h1 class="mb-3 text-page-title text-fg-strong">Blog do Baigi</h1>
       <p class="blog-lead text-fg">
         Como estudar e lembrar na prova: repetição espaçada, revisão e métodos, sempre com a fonte para você conferir.
       </p>
     </header>
 
     <nav v-if="categories.length > 1" aria-label="Categorias" class="mt-6 flex flex-wrap gap-2">
-      <UiLink v-for="c in categories" :key="c" :href="`#${c}`" variant="muted" standalone class="rounded-control border border-line px-3 text-meta">
+      <UiLink v-for="c in categories" :key="c" :href="`#${c}`" variant="muted" standalone class="rounded-chip bg-soft px-3.5 text-meta">
         {{ categoryLabel(c) }}
       </UiLink>
     </nav>
@@ -23,7 +23,7 @@
     <section class="mt-12" aria-labelledby="h-ferramentas">
       <h2 id="h-ferramentas" class="mb-4 text-section text-fg-strong">Ferramentas grátis</h2>
       <div class="grid gap-4 sm:grid-cols-2">
-        <UiListRow v-for="t in TOOLS" :key="t.path" :to="t.path" :title="t.title" :meta="t.description" class="rounded-card bg-raised shadow-card" />
+        <UiListRow v-for="t in TOOLS" :key="t.path" :to="t.path" :title="t.title" :meta="t.description" class="rounded-card bg-raised shadow-1" />
       </div>
     </section>
   </div>

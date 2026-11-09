@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col gap-5">
     <div>
-      <h1 class="text-page-title-sm text-fg-strong">{{ guest ? 'Salve seu progresso' : 'Criar sua conta' }}</h1>
+      <h1 class="text-page-title text-fg-strong">{{ guest ? 'Salve seu progresso' : 'Criar sua conta' }}</h1>
       <p v-if="guest" class="mt-1 text-body text-fg-muted" data-testid="signup-guest">Seus cards de {{ guest }} e as avaliações vão para a sua conta.</p>
     </div>
 

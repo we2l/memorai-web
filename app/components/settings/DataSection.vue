@@ -3,7 +3,7 @@
     <SettingsDataExport />
 
     <!-- Revoking stops PostHog right away (prd-analytics-posthog RF-F04) -->
-    <div class="border-t border-line pt-3">
+    <div class="border-t border-hairline pt-3">
       <UiSwitch
         :model-value="consent.analytics.value === true"
         label="Estatísticas de uso anônimas"
@@ -18,7 +18,7 @@
       e nos <UiLink to="/termos" class="underline">Termos de Uso</UiLink>.
     </p>
 
-    <div class="flex flex-col items-start gap-2 border-t border-line pt-5" data-testid="danger-zone">
+    <div class="flex flex-col items-start gap-2 border-t border-hairline pt-5" data-testid="danger-zone">
       <h3 class="text-body font-semibold text-danger">Excluir conta</h3>
       <p class="text-meta text-fg-muted">Apaga todos os seus dados de forma permanente.</p>
       <UiButton variant="danger" @click="showDelete = true">Excluir conta</UiButton>

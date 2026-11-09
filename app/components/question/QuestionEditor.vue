@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col gap-4" :data-testid="`question-editor-${index}`">
-    <p v-if="warning" class="rounded-row bg-subtle px-3 py-2 text-meta text-fg" role="status" data-testid="question-warning">{{ warning }}</p>
+    <p v-if="warning" class="rounded-row bg-soft px-3 py-2 text-meta text-fg" role="status" data-testid="question-warning">{{ warning }}</p>
 
     <UiRadioGroup
       :model-value="q.kind"
@@ -25,7 +25,7 @@
     <fieldset v-if="q.kind === 'multiple_choice'" class="flex min-w-0 flex-col gap-2">
       <legend class="mb-2 text-meta font-semibold text-fg-strong">Alternativas</legend>
       <div v-for="(alt, i) in q.alternatives" :key="i" class="flex items-start gap-2">
-        <span class="mt-2.5 flex size-6 shrink-0 items-center justify-center rounded-tag bg-subtle text-meta font-semibold text-fg-strong" aria-hidden="true">{{ alt.letter }}</span>
+        <span class="mt-2.5 flex size-6 shrink-0 items-center justify-center rounded-tag bg-soft text-meta font-semibold text-fg-strong" aria-hidden="true">{{ alt.letter }}</span>
         <UiInput
           :model-value="alt.text"
           :label="`Alternativa ${alt.letter}`"
@@ -81,8 +81,8 @@
           v-for="r in REASONS"
           :key="r.value"
           type="button"
-          class="inline-flex min-h-touch items-center rounded-control border px-3 text-meta font-medium transition-colors duration-nav"
-          :class="q.error_reason === r.value ? 'border-action bg-action-subtle text-action-fg' : 'border-line-strong bg-raised text-fg hover:bg-subtle'"
+          class="inline-flex min-h-touch items-center rounded-control border px-3 text-meta font-medium transition-colors duration-fast"
+          :class="q.error_reason === r.value ? 'border-action bg-action-subtle text-action-fg' : 'border-line-strong bg-raised text-fg hover:bg-soft'"
           :aria-pressed="q.error_reason === r.value"
           :data-testid="`question-reason-${r.value}`"
           @click="set({ error_reason: q.error_reason === r.value ? '' : r.value })"

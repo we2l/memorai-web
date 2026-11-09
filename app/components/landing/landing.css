@@ -30,6 +30,74 @@
   font-display: swap;
 }
 
+/* ── Primitivos da landing (ADR-028): saíram do entry.css com a E2 (ADR-035 §7) e ficam só aqui ── */
+.landing-page {
+  --palette-amber-200: #F3D9B1;
+  --palette-amber-300: #F5B266;
+  --palette-amber-50: #FFF4E5;
+  --palette-amber-900: #5C3A00;
+  --palette-amber-950: #2E2416;
+  --palette-black: #000000;
+  --palette-ink-800: #37352F;
+  --palette-ink-900: #1F1E1B;
+  --palette-lilac-100: #EDE8FA;
+  --palette-lilac-200: #DCD3F5;
+  --palette-mist-25: #FAFAFB;
+  --palette-mist-50: #F6F5F8;
+  --palette-mist-600: #5F5E66;
+  --palette-night-100: #F1F1EF;
+  --palette-night-200: #D4D4D2;
+  --palette-night-400: #A09DA8;
+  --palette-night-600: #5C5866;
+  --palette-night-750: #3A3542;
+  --palette-night-850: #26222E;
+  --palette-night-900: #1E1B24;
+  --palette-night-950: #141218;
+  --palette-petrol-700: #0B7A8C;
+  --palette-tangerine-300: #F5A524;
+  --palette-tangerine-700: #C26A00;
+  --palette-violet-100: #F1ECFF;
+  --palette-violet-200: #DCD0FF;
+  --palette-violet-300: #B39DFF;
+  --palette-violet-500: #6F3FF5;
+  --palette-violet-550: #7A44F5;
+  --palette-violet-600: #5A2EE6;
+  --palette-violet-700: #4B22C9;
+  --palette-violet-800: #4C338B;
+  --palette-violet-900: #2A2140;
+  --palette-white: #FFFFFF;
+}
+
+/* ── A landing fica na pele v4 (ADR-028) enquanto o app passa à E2 (ADR-035): os semânticos do app que ela lê
+   voltam aos valores de antes, só dentro de .landing-page ── */
+.landing-page {
+  --surface-page: var(--palette-mist-25);
+  --surface-subtle: var(--palette-mist-50);
+  --fg-strong: var(--palette-ink-900);
+  --fg: var(--palette-ink-800);
+  --fg-muted: var(--palette-mist-600);
+  --action-hover: var(--palette-violet-600);
+  --action-fg: var(--palette-violet-500);
+  --elev-card: 0 1px 2px color-mix(in srgb, var(--palette-ink-900) 5%, transparent), 0 4px 16px color-mix(in srgb, var(--palette-ink-900) 4%, transparent);
+  /* O "volume" do botão v3 (o app passou à sombra roxa, --elev-action) */
+  --elev-press: 0 3px 0 var(--action-press);
+}
+
+.dark .landing-page {
+  --surface-page: var(--palette-night-950);
+  --surface-raised: var(--palette-night-900);
+  --surface-subtle: var(--palette-night-850);
+  --surface-float: var(--palette-night-900);
+  --fg-strong: var(--palette-night-100);
+  --fg: var(--palette-night-200);
+  --fg-muted: var(--palette-night-400);
+  --action-hover: var(--palette-violet-550);
+  --action-fg: var(--palette-violet-300);
+  --focus-ring: var(--palette-violet-300);
+  --action-press: var(--palette-violet-700);
+  --elev-card: 0 1px 2px color-mix(in srgb, var(--palette-black) 40%, transparent), 0 4px 16px color-mix(in srgb, var(--palette-black) 20%, transparent);
+}
+
 /* ── Semânticos da landing ── */
 .landing-page {
   --lp-display: 'Bricolage Grotesque', var(--font-sans);

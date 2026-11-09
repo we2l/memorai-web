@@ -1,7 +1,7 @@
 <template>
   <UiSheet v-model="open" size="sm" title="Gerar resumo com IA">
     <div class="flex flex-col gap-4">
-      <div class="flex items-center gap-3 rounded-row bg-subtle p-3">
+      <div class="flex items-center gap-3 rounded-row bg-soft p-3">
         <FileText class="size-5 shrink-0 text-fg-muted" aria-hidden="true" />
         <div class="min-w-0">
           <p class="truncate text-meta font-medium text-fg-strong">{{ document?.original_name }}</p>
@@ -15,7 +15,7 @@
       </p>
 
       <!-- The page limit comes from the catalog (RN-01) -->
-      <p v-if="isPartial" class="rounded-row bg-subtle p-3 text-meta text-fg-muted">
+      <p v-if="isPartial" class="rounded-row bg-soft p-3 text-meta text-fg-muted">
         <template v-if="auth.onTrial">
           Seu PDF tem {{ document?.pages_count }} páginas. Restam {{ pageLimit }} das {{ trialPages }} páginas do teste: a nota cobre as primeiras {{ pageLimit }}.
         </template>

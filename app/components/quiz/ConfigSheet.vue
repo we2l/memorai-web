@@ -49,7 +49,7 @@
           </div>
           <UiSelect v-model="examCount" label="Questões" :options="examCounts" data-testid="quiz-count" />
           <UiSelect v-model="timer" label="Cronômetro" :options="timerOptions" :hint="`Sugestão: 3 minutos por questão (${timerLabel(suggestedTimer(Number(examCount)))})`" />
-          <div class="rounded-row bg-subtle px-3 py-2.5 text-meta" data-testid="quiz-distribution">
+          <div class="rounded-row bg-soft px-3 py-2.5 text-meta" data-testid="quiz-distribution">
             <p class="font-semibold text-fg-strong">Como as questões se dividem</p>
             <p class="text-fg">{{ distributionText }}</p>
             <p class="mt-1 text-fg-muted">Modo Prova: o gabarito aparece no fim. Proporcional aos cards de cada matéria.</p>

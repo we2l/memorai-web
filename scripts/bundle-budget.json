@@ -3,7 +3,7 @@
   "largestChunkGzKb": 150,
   "precacheKb": 1536,
   "entryCssGzKb": 13,
-  "precacheFontsKb": 50,
+  "precacheFontsKb": 54,
   "routes": {
     "/cadernos": {
       "file": "pages/cadernos/index.vue",
@@ -13,7 +13,7 @@
     "/cadernos/:id": {
       "file": "pages/cadernos/[id]/index.vue",
       "gzKb": 25,
-      "closureGzKb": 41
+      "closureGzKb": 43
     },
     "/cadernos/:id/material/:noteId": {
       "file": "pages/cadernos/[id]/material/[noteId].vue",
@@ -32,18 +32,18 @@
     },
     "/hoje": {
       "file": "pages/hoje.vue",
-      "gzKb": 9.6,
-      "closureGzKb": 25
+      "gzKb": 10.5,
+      "closureGzKb": 27
     },
     "/revisar": {
       "file": "pages/revisar.vue",
       "gzKb": 16.6,
-      "closureGzKb": 53
+      "closureGzKb": 55.5
     },
     "/praticar": {
       "file": "pages/praticar.vue",
       "gzKb": 6,
-      "closureGzKb": 26
+      "closureGzKb": 26.5
     },
     "/simulados/:id": {
       "file": "pages/simulados/[id]/index.vue",
@@ -67,13 +67,13 @@
     },
     "/comecar": {
       "file": "pages/comecar/index.vue",
-      "gzKb": 2,
+      "gzKb": 2.5,
       "closureGzKb": 8
     },
     "/comecar/:area": {
       "file": "pages/comecar/[area].vue",
-      "gzKb": 5.5,
-      "closureGzKb": 41
+      "gzKb": 6,
+      "closureGzKb": 43
     },
     "/comecar/pronto": {
       "file": "pages/comecar/pronto.vue",
@@ -83,7 +83,7 @@
     "/configuracoes": {
       "file": "pages/configuracoes.vue",
       "gzKb": 10.5,
-      "closureGzKb": 37
+      "closureGzKb": 37.5
     },
     "/entrar": {
       "file": "pages/entrar.vue",

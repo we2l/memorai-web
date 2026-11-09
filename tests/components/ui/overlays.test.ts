@@ -120,7 +120,7 @@ describe('UiDialog', () => {
 
 describe('UiSheet', () => {
   it.each([
-    ['bottom', 'rounded-t-float', 'pb-safe-bottom'],
+    ['bottom', 'rounded-t-sheet', 'pb-safe-bottom'],
     ['right', 'h-full', 'sm:max-w-md'],
   ] as const)('lado %s: mesmo contrato do diálogo', async (side, a, b) => {
     const { opener } = await openFrom(host(Sheet, { title: 'Gerar podcast', side }))

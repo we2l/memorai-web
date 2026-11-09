@@ -19,7 +19,7 @@
           <span
             v-if="segmentFill(i)"
             class="block h-full rounded-full transition-all duration-respond ease-calm"
-            :class="FILL[tone]"
+            :class="fill"
             :style="segmentFill(i) < 100 ? { width: `${segmentFill(i)}%` } : undefined"
           />
         </span>
@@ -27,7 +27,7 @@
       <span
         v-else
         class="block h-full rounded-full transition-all duration-respond ease-calm"
-        :class="FILL[tone]"
+        :class="fill"
         :style="{ width: `${percent}%` }"
       />
     </div>
@@ -53,10 +53,15 @@ const props = withDefaults(defineProps<{
   /** Text read and shown with the bar; default "41%" or "1 de 3" with segments */
   valueText?: string
   showValue?: boolean
-}>(), { max: 100, tone: 'action', size: 'sm', segments: undefined, valueText: undefined })
+  /** The subject's own tone (1–8, subjectTone): the thin bar of a matéria in its color (ADR-035 §1) */
+  subject?: number
+}>(), { max: 100, tone: 'action', size: 'sm', segments: undefined, valueText: undefined, subject: undefined })
 
 const HEIGHT = { sm: 'h-1.25', md: 'h-2' }
-const FILL = { action: 'bg-action', neutral: 'bg-progress-neutral', celebrate: 'bg-celebrate' }
+const FILL = { action: 'bg-action', neutral: 'bg-progress-neutral', celebrate: 'bg-metric-goal' }
+// Full class names: Tailwind only generates what it finds written
+const SUBJECT = ['bg-subject-1', 'bg-subject-2', 'bg-subject-3', 'bg-subject-4', 'bg-subject-5', 'bg-subject-6', 'bg-subject-7', 'bg-subject-8']
+const fill = computed(() => (props.subject ? SUBJECT[(props.subject - 1) % 8] : FILL[props.tone]))
 
 const clamped = computed(() => Math.min(Math.max(props.value, 0), props.max))
 const percent = computed(() => (props.max > 0 ? Math.round((clamped.value / props.max) * 100) : 0))

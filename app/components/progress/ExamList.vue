@@ -4,7 +4,7 @@
       <UiButton size="sm" :icon-left="Plus" data-testid="exam-new" @click="emit('create')">Nova prova</UiButton>
     </template>
 
-    <p v-if="limitReached" role="status" class="mb-3 flex flex-wrap items-center gap-x-2 rounded-row bg-subtle px-3 py-2 text-meta text-fg" data-testid="exam-limit">
+    <p v-if="limitReached" role="status" class="mb-3 flex flex-wrap items-center gap-x-2 rounded-row bg-soft px-3 py-2 text-meta text-fg" data-testid="exam-limit">
       No plano Grátis, até 2 provas futuras ao mesmo tempo.
       <UiLink to="/planos">No {{ proName }}, sem limite</UiLink>
     </p>
@@ -13,7 +13,7 @@
       Defina sua prova para ver o ritmo e a projeção.
     </p>
     <template v-else>
-      <ul v-if="future.length" class="-my-2 divide-y divide-line">
+      <ul v-if="future.length" class="-my-2 divide-y divide-hairline">
         <ProgressExamRow
           v-for="e in future"
           :key="e.id"
@@ -27,7 +27,7 @@
       </ul>
       <template v-if="past.length">
         <h3 class="mt-5 text-meta font-semibold text-fg-muted">Já passaram</h3>
-        <ul class="divide-y divide-line">
+        <ul class="divide-y divide-hairline">
           <ProgressExamRow
             v-for="e in past"
             :key="e.id"

@@ -1,7 +1,7 @@
 <template>
   <p
     v-if="text || lapsesText"
-    class="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-row bg-subtle px-3.5 py-2.5 text-meta text-fg-muted"
+    class="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-tile bg-soft px-3.5 py-3 text-meta text-fg-muted"
     data-testid="review-origin"
   >
     <span v-if="text">Origem: {{ text }}</span>
@@ -10,7 +10,7 @@
     <button
       v-else-if="origin?.kind === 'question'"
       type="button"
-      class="hit-touch rounded-tag font-semibold text-action-fg underline-offset-2 transition-colors duration-nav hover:text-action-hover hover:underline"
+      class="hit-touch rounded-tag font-semibold text-action-fg underline-offset-2 transition-colors duration-fast hover:text-action-hover hover:underline"
       data-testid="review-origin-link"
       aria-keyshortcuts="O"
       aria-haspopup="dialog"
@@ -23,12 +23,13 @@
 </template>
 
 <script setup lang="ts">
-// Where the card came from (prd-4d-revisao-v3 RF-F3), always visible after the answer, on `bg-subtle` (not
+// Where the card came from (prd-4d-revisao-v3 RF-F3), always visible after the answer, on `bg-soft` (not
 // the tinted block): the part of the PDF ("Abrir o trecho"), the note ("Abrir a nota") or the quiz
 // question ("Ver a questão"), or the pasted question (prd-questao-errada: "Ver a questão" opens a dialog). Without a recorded origin nothing is guessed. "Você errou este card N vezes"
 // from 2 lapses. The material opens with ?from=review and the way back to this session.
 import type { CardOrigin } from '~/types'
 import { documentTitle } from '~/utils/cardState'
+import { reviewOriginLink } from '~/utils/reviewOrigin'
 
 const props = defineProps<{
   origin?: CardOrigin | null
@@ -54,15 +55,7 @@ const text = computed(() => {
 
 const linkText = computed(() => ({ document: 'Abrir o trecho', note: 'Abrir a nota', quiz: 'Ver a questão', question: 'Ver a questão' })[props.origin?.kind ?? 'note'])
 
-const to = computed(() => {
-  const o = props.origin
-  if (!o) return null
-  if (o.kind === 'quiz') return `/simulados/${o.quiz_id}/resultado${o.question_number ? `#q${o.question_number}` : ''}`
-  if (o.kind === 'question') return null
-  const topic = (o.kind === 'note' && o.topic_id) || props.topicId
-  if (!topic) return null
-  return `${cadernoPath(topic, { note: o.note_id })}?from=review&back=${encodeURIComponent(props.backTo)}`
-})
+const to = computed(() => reviewOriginLink(props.origin, props.topicId, props.backTo))
 
 const lapsesText = computed(() => ((props.lapses ?? 0) >= 2 ? `Você errou este card ${props.lapses} vezes` : ''))
 

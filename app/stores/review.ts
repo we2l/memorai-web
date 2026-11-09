@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { BacklogState, CardOrigin, Flashcard, WeakConnection } from '~/types'
+import type { BacklogState, Flashcard, SessionCardOrigin, WeakConnection } from '~/types'
 import { getErrorStatus } from '~/utils/apiErrors'
 import { scopeQuery, type ReviewScope, type SessionScopeInfo } from '~/utils/reviewScope'
 import { REVIEW_BATCH, reviewBatchSizeOf } from '~/utils/reviewBatch'
@@ -8,7 +8,7 @@ export interface SessionCard extends Flashcard {
   next_intervals: { again: string; hard: string; good: string; easy: string }
   topic_name?: string | null
   /** Where the card came from (prd-4d-revisao-v3 RF-B1): quiz question › part of a PDF › note */
-  origin?: CardOrigin | null
+  origin?: SessionCardOrigin | null
 }
 
 /** One rating of the session, for the batches (prd-4d-revisao-v3 RF-F1, RF-F5). */

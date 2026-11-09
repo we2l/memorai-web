@@ -27,7 +27,7 @@ test('sumário com as partes reais; a aberta marcada e "parte 2 de 3" no caminho
   await gotoApp(page, partUrl(1))
   await expect(title(page)).toHaveText('Direitos e garantias')
   const outline = page.getByTestId('material-outline')
-  await expect(outline).toContainText('Partes (24 p.)')
+  await expect(outline.getByRole('heading', { name: /^Partes/ })).toHaveText('Partes24 p.')
   const rows = outline.getByTestId('outline-part')
   await expect(rows).toHaveCount(3)
   await expect(rows.nth(0)).toContainText('1 · Princípios fundamentais')
@@ -81,7 +81,7 @@ test('navegação: links no fim do leitor e [ ], com "opened" gravado; o "Contin
   // A última parte aberta pela 1ª vez é a 1: é ela que o "Continuar" do Hoje abre
   await expect.poll(opened).toBe(seed.noteIds[0])
   await gotoApp(page, '/hoje')
-  await page.getByTestId('plan-step-material').getByRole('link', { name: 'Continuar' }).click()
+  await page.getByTestId('plan-step-material').getByRole('link').click()
   await expect(page).toHaveURL(new RegExp(`${seed.noteIds[0]}$`))
 })
 

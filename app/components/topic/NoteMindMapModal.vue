@@ -41,7 +41,7 @@
           <UiButton size="sm" :disabled="usage.atLimit('mindmap_ai')" @click="regenerate">Gerar de novo</UiButton>
         </span>
       </div>
-      <div class="relative h-80 overflow-hidden rounded-row border border-line-strong bg-subtle sm:h-96">
+      <div class="relative h-80 overflow-hidden rounded-row bg-soft sm:h-96">
         <TopicMindMapRenderer :data="mapData" :color-by-type="true" @node-click="handleNodeClick" />
       </div>
     </template>

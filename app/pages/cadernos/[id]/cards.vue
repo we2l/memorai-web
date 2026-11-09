@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto flex w-full max-w-4xl flex-col gap-6 px-gutter pt-4 md:pt-8" :class="lib.selected.value.size ? 'pb-40' : 'pb-12'">
+  <div class="mx-auto flex w-full max-w-page flex-col gap-6 px-gutter pt-4 md:pt-8" :class="lib.selected.value.size ? 'pb-40' : 'pb-12'">
     <UiPageHeader title="Todos os cards" :meta="meta" :back="{ to: hubPath, label: scopeName || 'Caderno' }">
       <template #actions>
         <UiButton variant="primary" :icon-left="Plus" data-testid="library-create" @click="openCreateCard">Criar card</UiButton>

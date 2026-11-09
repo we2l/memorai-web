@@ -11,19 +11,19 @@
         <UiSection title="Atalhos de teclado" flush class="px-5 pt-5 pb-1 sm:px-6 sm:pt-6">
           <table class="w-full text-left text-meta">
             <thead>
-              <tr class="border-b border-line text-label text-fg-muted">
+              <tr class="border-b border-hairline text-label text-fg-muted">
                 <th scope="col" class="py-3 pr-3 font-medium">Atalho</th>
                 <th scope="col" class="py-3 font-medium">Ação</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-line">
+            <tbody class="divide-y divide-hairline">
               <tr v-for="shortcut in shortcuts" :key="shortcut.keys">
                 <td class="py-3 pr-3">
                   <span class="inline-flex items-center gap-1">
                     <kbd
                       v-for="key in shortcut.keys.split('+')"
                       :key="key"
-                      class="rounded-tag border border-line-strong bg-subtle px-2 py-0.5 text-label text-fg-strong"
+                      class="rounded-tag bg-soft px-2 py-0.5 shadow-0 text-label text-fg-strong"
                     >{{ key.trim() }}</kbd>
                   </span>
                 </td>
@@ -48,14 +48,14 @@
         <UiSection title="Editor de notas" flush class="px-5 pt-5 pb-1 sm:px-6 sm:pt-6">
           <table class="w-full text-left text-meta">
             <thead>
-              <tr class="border-b border-line text-label text-fg-muted">
+              <tr class="border-b border-hairline text-label text-fg-muted">
                 <th scope="col" class="py-3 pr-3 font-medium">Comando</th>
                 <th scope="col" class="py-3 font-medium">O que faz</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-line">
+            <tbody class="divide-y divide-hairline">
               <tr v-for="cmd in editorCommands" :key="cmd.command">
-                <td class="py-3 pr-3"><code class="rounded-tag bg-subtle px-2 py-0.5 text-label text-fg-strong">{{ cmd.command }}</code></td>
+                <td class="py-3 pr-3"><code class="rounded-tag bg-soft px-2 py-0.5 text-label text-fg-strong">{{ cmd.command }}</code></td>
                 <td class="py-3 text-fg">{{ cmd.description }}</td>
               </tr>
             </tbody>

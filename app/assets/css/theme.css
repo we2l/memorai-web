@@ -6,11 +6,12 @@
      sempre no CSS, para <style> e o que lê com var().
    - @theme inline: cores, sombras e espaços que trocam com o tema. A utility lê o token cru
      (var(--surface-page)), então o .dark no <html> troca tudo sem regra própria.
-   Utilities resultantes: bg-page, bg-raised, bg-subtle, bg-tinted, border-line, border-line-input,
+   Utilities resultantes: bg-page, bg-raised, bg-soft, bg-sunk, bg-tinted, border-hairline, border-line-input,
    text-fg-strong, text-fg, text-fg-muted, bg-action, text-action-fg, text-on-action, bg-action-subtle,
-   ring-focus, text-success, bg-success-subtle, text-quiz, text-listen, bg-subject-1..8, shadow-card,
-   shadow-raised, shadow-float, shadow-press(-active), text-page-title(-sm), text-section, text-body, text-meta, text-label,
-   text-stat, rounded-tag/row/control/card/float, min-h-touch, px-gutter, mt-section, max-w-page, ease-calm.
+   ring-focus, text-success, bg-success-subtle, text-quiz, text-listen, text-metric-*, bg-subject-1..8,
+   shadow-0/1/2/float/action/tinted, text-display, text-page-title, text-section, text-title, text-body(-sm),
+   text-meta, text-label, num-xl/l/m/s, rounded-tag/row/icon/control/tile/card/hero/sheet/chip, min-h-touch,
+   px-gutter, mt-section, max-w-page, ease-calm.
    Opacidade funciona em todas as cores (bg-action/10 → color-mix).
    Uma cor e um tamanho de texto não podem ter o mesmo nome: text-{nome} vira cor quando existe
    --color-{nome}. Por isso o título de página é text-page-title (text-page seria a cor de bg-page).
@@ -26,6 +27,13 @@
 
 @theme static {
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  /* <code>/<kbd> do preflight: a pilha padrão do Tailwind tem 7 fontes; o app não mostra código */
+  --font-mono: ui-monospace, monospace;
+  /* Números grandes (ADR-035 §2): Fraunces 600 só nos dígitos, "%", "+", "−", vírgula, ponto, espaço e "º"
+     (unicode-range do @font-face "Baigi Num" em tokens.css); as letras ("de", "dias") caem na Inter sozinhas */
+  --font-num: 'Baigi Num', var(--font-sans);
+  /* Itálico de uma expressão, só no cartão da prova (ADR-035 §2; sem o arquivo, cai na Inter) */
+  --font-it: 'Baigi It', var(--font-sans);
   --font-weight-normal: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
@@ -35,38 +43,49 @@
   /* Marca: BAIGI. no UiLogo */
   --tracking-logo: 0.08em;
 
-  /* Texto: título de página (desktop / celular; calibragem v4: 32/24), seção, corpo, apoio, rótulo
-     e número de destaque */
-  --text-page-title: 2rem;
-  --text-page-title--line-height: 2.5rem;
+  /* Texto (ADR-035 §2): piso de 13 px; informação que a pessoa lê fica em 14 px ou mais. display, page-title e
+     section crescem a partir de 960 px (--type-* em tokens.css) */
+  --text-display: var(--type-display);
+  --text-display--line-height: 1.12;
+  --text-display--letter-spacing: -0.022em;
+  --text-display--font-weight: 700;
+  --text-page-title: var(--type-page-title);
+  --text-page-title--line-height: 1.18;
   --text-page-title--letter-spacing: -0.02em;
-  --text-page-title--font-weight: 650;
-  --text-page-title-sm: 1.5rem;
-  --text-page-title-sm--line-height: 2rem;
-  --text-page-title-sm--letter-spacing: -0.02em;
-  --text-page-title-sm--font-weight: 650;
-  --text-section: 1.25rem;
-  --text-section--line-height: 1.75rem;
-  --text-section--letter-spacing: -0.01em;
-  --text-section--font-weight: 600;
+  --text-page-title--font-weight: 700;
+  --text-section: var(--type-section);
+  --text-section--line-height: 1.25;
+  --text-section--letter-spacing: -0.012em;
+  --text-section--font-weight: 700;
+  --text-title: 1.0625rem;
+  --text-title--line-height: 1.3;
+  --text-title--letter-spacing: -0.006em;
+  --text-title--font-weight: 600;
   --text-body: 1rem;
-  --text-body--line-height: 1.625rem;
-  --text-meta: 0.8125rem;
-  --text-meta--line-height: 1.25rem;
-  --text-label: 0.75rem;
-  --text-label--line-height: 1rem;
+  --text-body--line-height: 1.5;
+  --text-body-sm: 0.9375rem;
+  --text-body-sm--line-height: 1.45;
+  --text-meta: 0.875rem;
+  --text-meta--line-height: 1.4;
+  --text-label: 0.8125rem;
+  --text-label--line-height: 1.3;
   --text-label--font-weight: 500;
-  --text-stat: 3rem;
-  --text-stat--line-height: 1;
-  --text-stat--letter-spacing: -0.03em;
-  --text-stat--font-weight: 650;
 
-  /* Raio: nomes novos, não colidem com sm/md/lg do Tailwind */
+  /* Raio (ADR-035 §4): nomes próprios, não colidem com sm/md/lg do Tailwind. chip = pílula (chip e botão),
+     icon = azulejo de ícone, control = campo, tile = azulejo e métrica, card = cartão, hero = card da revisão,
+     bloco lilás e plano, sheet = folha e faixa de feedback; float = diálogo. tag e row ficam da v3 */
   --radius-tag: 6px;
   --radius-row: 8px;
-  --radius-control: 12px;
-  --radius-card: 16px;
-  --radius-float: 16px;
+  --radius-chip: 999px;
+  --radius-icon: 12px;
+  --radius-control: 14px;
+  --radius-tile: 16px;
+  --radius-card: 20px;
+  --radius-hero: 24px;
+  --radius-sheet: 28px;
+  /* Botões de avaliação da revisão: pílula larga de 62 px */
+  --radius-rating: 18px;
+  --radius-float: 20px;
 
   /* Alvo de toque (min-h-touch, size-touch) */
   --spacing-touch: 2.75rem;
@@ -81,6 +100,10 @@
   --container-reading: 88rem;
 
   --ease-calm: cubic-bezier(0.2, 0, 0, 1);
+  /* E2 (ADR-035 §6): entrada e saída, movimento na tela e folha. Nada de ease-in */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 
   /* Conquista (UiCelebration): <= 700 ms (--motion-celebrate); prefers-reduced-motion zera em base.css */
   --animate-celebrate-pop: celebrate-pop var(--motion-celebrate) var(--ease-calm) both;
@@ -103,13 +126,15 @@
   /* Superfícies */
   --color-page: var(--surface-page);
   --color-raised: var(--surface-raised);
-  --color-subtle: var(--surface-subtle);
+  --color-soft: var(--surface-soft);
+  --color-sunk: var(--surface-sunk);
   --color-tinted: var(--surface-tinted);
   --color-float: var(--surface-float);
   --color-scrim: var(--surface-scrim);
   --color-qr: var(--surface-qr);
 
   /* Linhas */
+  --color-hairline: var(--hairline);
   --color-line: var(--line);
   --color-line-strong: var(--line-strong);
   --color-line-input: var(--line-input);
@@ -118,6 +143,7 @@
   --color-fg-strong: var(--fg-strong);
   --color-fg: var(--fg);
   --color-fg-muted: var(--fg-muted);
+  --color-fg-faint: var(--fg-faint);
   --color-fg-disabled: var(--fg-disabled);
 
   /* Ação */
@@ -125,6 +151,7 @@
   --color-action-hover: var(--action-hover);
   --color-action-press: var(--action-press);
   --color-action-subtle: var(--action-subtle);
+  --color-action-line: var(--action-line);
   --color-action-fg: var(--action-fg);
   --color-on-action: var(--on-action);
   --color-focus: var(--focus-ring);
@@ -139,11 +166,26 @@
   --color-info: var(--state-info);
   --color-info-subtle: var(--state-info-bg);
 
-  /* Conquista */
-  --color-celebrate: var(--celebrate);
-  --color-celebrate-fg: var(--celebrate-fg);
-  --color-streak: var(--streak);
-  --color-streak-fg: var(--streak-fg);
+  /* Métricas e faixa de feedback (ADR-035 §1) */
+  --color-metric-streak: var(--metric-streak);
+  --color-metric-streak-bg: var(--metric-streak-bg);
+  --color-metric-streak-fg: var(--metric-streak-fg);
+  --color-metric-goal: var(--metric-goal);
+  --color-metric-goal-bg: var(--metric-goal-bg);
+  --color-metric-goal-fg: var(--metric-goal-fg);
+  --color-metric-accuracy: var(--metric-accuracy);
+  --color-metric-accuracy-bg: var(--metric-accuracy-bg);
+  --color-metric-accuracy-fg: var(--metric-accuracy-fg);
+  --color-fb-ok-bg: var(--fb-ok-bg);
+  --color-fb-ok-fg: var(--fb-ok-fg);
+  --color-fb-ok-strong: var(--fb-ok-strong);
+  --color-fb-ok-ink: var(--fb-ok-ink);
+  --color-fb-again-bg: var(--fb-again-bg);
+  --color-fb-again-fg: var(--fb-again-fg);
+  --color-fb-again-strong: var(--fb-again-strong);
+  --color-fb-again-ink: var(--fb-again-ink);
+
+  /* Conquista (ponteiros v3 para as métricas; saem na Fase 6) */
 
   /* Modos de prática */
   --color-quiz: var(--practice-quiz);
@@ -166,11 +208,12 @@
   --color-progress-neutral: var(--progress-neutral);
 
   /* Elevação */
-  --shadow-card: var(--elev-card);
-  --shadow-raised: var(--elev-raised);
+  --shadow-0: var(--elev-0);
+  --shadow-1: var(--elev-1);
+  --shadow-2: var(--elev-2);
+  --shadow-action: var(--elev-action);
+  --shadow-tinted: var(--elev-tinted);
   --shadow-float: var(--elev-float);
-  --shadow-press: var(--elev-press);
-  --shadow-press-active: var(--elev-press-active);
 
   /* Espaço que muda no lg */
   --spacing-gutter: var(--gutter);
@@ -216,10 +259,21 @@
   }
 }
 
-@utility duration-nav { transition-duration: var(--motion-nav); }
 @utility duration-respond { transition-duration: var(--motion-respond); }
 @utility duration-celebrate { transition-duration: var(--motion-celebrate); }
 
 /* Linha de lista longa (biblioteca de cards, prd-4c-material-v3 RF-F11): fora da tela não paga estilo,
    layout nem pintura; o tamanho lembrado (auto) evita pulo na rolagem */
 @utility content-auto { content-visibility: auto; contain-intrinsic-size: auto 5.5rem; }
+
+/* Números grandes (ADR-035 §2, RN-3): Fraunces 600 a partir de 28 px, nunca em botão, título ou texto corrido.
+   Sem cor própria: o número fica em --fg-strong (UiNumber), a não ser o da frase da prova */
+@utility num-xl { font: 600 4.75rem/1 var(--font-num); letter-spacing: -0.035em; font-variant-numeric: lining-nums; }
+@utility num-l { font: 600 3.25rem/1 var(--font-num); letter-spacing: -0.03em; font-variant-numeric: lining-nums; }
+@utility num-m { font: 600 2.375rem/1 var(--font-num); letter-spacing: -0.02em; font-variant-numeric: lining-nums; }
+@utility num-s { font: 600 1.75rem/1 var(--font-num); letter-spacing: -0.02em; font-variant-numeric: lining-nums; }
+
+@utility duration-press { transition-duration: var(--dur-press); }
+@utility duration-fast { transition-duration: var(--dur-fast); }
+@utility duration-base { transition-duration: var(--dur-base); }
+@utility duration-sheet { transition-duration: var(--dur-sheet); }

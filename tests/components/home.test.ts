@@ -3,6 +3,8 @@ import { mockNuxtImport, mountSuspended } from '@nuxt/test-utils/runtime'
 import { enableAutoUnmount, flushPromises } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import HomeGreeting from '~/components/home/HomeGreeting.vue'
+import HomeGoal from '~/components/home/HomeGoal.vue'
+import HomeBacklog from '~/components/home/HomeBacklog.vue'
 import HomePlan from '~/components/home/HomePlan.vue'
 import HomeExam from '~/components/home/HomeExam.vue'
 import HomeNotebooks from '~/components/home/HomeNotebooks.vue'
@@ -52,42 +54,22 @@ const stats = (over: Partial<Stats> = {}): Stats => ({
 })
 
 describe('HomeGreeting', () => {
-  it('com plano: frase com minutos, meta "1 de 3 lotes" (forma + texto) e sequência', async () => {
+  it('com plano: "Bom dia, Ana", data com os minutos e o chip da sequência; sem lilás (a prova é o bloco lilás)', async () => {
     const w = await mountSuspended(HomeGreeting, { props: { stats: stats(), userName: 'Rafael Souza', minutes: 34 }, attachTo: document.body })
-    expect(w.get('h1').text()).toMatch(/^(Bom dia|Boa tarde|Boa noite), Rafael\. Hoje são uns 35 minutos\.$/)
-    const bar = w.get('[role="progressbar"]')
-    expect(bar.attributes('aria-label')).toBe('Meta de hoje: 1 de 3 lotes')
-    expect(bar.element.children).toHaveLength(3)
-    expect(w.get('[data-testid="home-goal"]').text()).toContain('1 de 3 lotes')
+    expect(w.get('h1').text()).toMatch(/^(Bom dia|Boa tarde|Boa noite), Rafael$/)
+    expect(w.get('[data-testid="hero-subline"]').text()).toBe('uns 35 minutos hoje')
     expect(w.get('[data-testid="hero-streak"]').text()).toBe('6 dias seguidos de estudo')
-    // The only tinted block of the screen
-    expect(w.findAll('.bg-tinted')).toHaveLength(1)
+    expect(w.findAll('.bg-tinted')).toHaveLength(0)
     expect(apiMock).not.toHaveBeenCalled()
     expect(await axeViolations(w.element)).toEqual([])
     document.documentElement.classList.add('dark')
     expect(await axeViolations(w.element)).toEqual([])
   })
 
-  it('meta 0 de 1 e sequência em risco', async () => {
-    const w = await mountSuspended(HomeGreeting, {
-      props: { stats: stats({ due_today: 7, reviewed_today: 0, streak: 5, streak_at_risk: true, goal: { batch_size: 20, target_batches: 1, done_batches: 0, met: false, minutes_left: 2 } }), userName: 'Ana' },
-    })
-    expect(w.get('[data-testid="home-goal"]').text()).toContain('0 de 1 lote')
-    expect(w.get('[data-testid="hero-streak"]').text()).toBe('Revise hoje para manter 5 dias')
-  })
-
-  it('meta cumprida celebra uma vez por dia neste aparelho e registra o evento', async () => {
-    const met = stats({ due_today: 0, reviewed_today: 60, goal: { batch_size: 20, target_batches: 3, done_batches: 3, met: true, minutes_left: 0 } })
-    apiMock.mockResolvedValue({ data: { due_count: 12, estimated_minutes: 3 } })
-    const first = await mountSuspended(HomeGreeting, { props: { stats: met, userName: 'Ana' } })
-    expect(first.get('[data-testid="home-goal"]').text()).toContain('Meta de hoje cumprida')
-    expect(first.find('[role="status"]').text()).toContain('Meta cumprida')
-    expect(trackMock).toHaveBeenCalledWith('home_goal_met', { target_batches: 3 })
-    first.unmount()
-
-    const again = await mountSuspended(HomeGreeting, { props: { stats: met, userName: 'Ana' } })
-    expect(again.find('[role="status"]').exists()).toBe(false)
-    expect(trackMock).toHaveBeenCalledTimes(1)
+  it('sequência em risco e volta com atraso', async () => {
+    const w = await mountSuspended(HomeGreeting, { props: { stats: stats({ due_today: 0, streak: 5, streak_at_risk: true }), userName: 'Ana', returning: true } })
+    expect(w.get('[data-testid="hero-streak-risk"]').text()).toBe('Revise hoje para manter 5 dias')
+    expect(w.get('[data-testid="hero-subline"]').text()).toBe('que bom te ver de volta')
   })
 
   it('tudo em dia: "Tudo em dia" e a linha de amanhã (só nesse estado busca /review/tomorrow)', async () => {
@@ -95,22 +77,24 @@ describe('HomeGreeting', () => {
     const w = await mountSuspended(HomeGreeting, { props: { stats: stats({ due_today: 0, streak: 3 }), userName: 'Ana Souza' } })
     await flushPromises()
     expect(w.find('[data-testid="hero-up-to-date"]').exists()).toBe(true)
-    expect(w.get('h1').text()).toBe('Tudo em dia, Ana.')
+    expect(w.get('h1').text()).toBe('Tudo em dia, Ana')
     expect(w.get('[data-testid="hero-tomorrow"]').text()).toBe('Amanhã: 12 cards · ≈3 min')
     expect(apiMock).toHaveBeenCalledWith('/review/tomorrow')
   })
 
-  it('conta nova: boas-vindas, sem meta nem "Tudo em dia"', async () => {
-    const w = await mountSuspended(HomeGreeting, { props: { stats: stats({ total_cards: 0, due_today: 0, streak: 0, goal: { batch_size: 20, target_batches: 0, done_batches: 0, met: false, minutes_left: 0 } }), userName: 'Ana' } })
-    expect(w.get('h1').text()).toBe('Que bom ter você aqui, Ana.')
-    expect(w.find('[data-testid="home-goal"]').exists()).toBe(false)
+  it('conta nova: boas-vindas, sem "Tudo em dia"', async () => {
+    const w = await mountSuspended(HomeGreeting, { props: { stats: stats({ total_cards: 0, due_today: 0, streak: 0 }), userName: 'Ana' } })
+    expect(w.get('h1').text()).toMatch(/^(Bom dia|Boa tarde|Boa noite), Ana$/)
+    expect(w.get('[data-testid="hero-subline"]').text()).toBe('boas-vindas ao Baigi')
+    expect(w.find('[data-testid="hero-streak"]').exists()).toBe(false)
     expect(w.text()).not.toContain('Tudo em dia')
   })
 
   it('erro nos números: só a saudação (nunca "Tudo em dia" nem boas-vindas)', async () => {
     const w = await mountSuspended(HomeGreeting, { props: { stats: null, error: true, userName: 'Ana' } })
-    expect(w.get('h1').text()).toMatch(/^(Bom dia|Boa tarde|Boa noite), Ana\.$/)
+    expect(w.get('h1').text()).toMatch(/^(Bom dia|Boa tarde|Boa noite), Ana$/)
     expect(w.find('[data-testid="hero-streak"]').exists()).toBe(false)
+    expect(w.find('[data-testid="hero-subline"]').exists()).toBe(false)
   })
 
   it('no teste: uma linha do cumprimento, sem bloco novo, com "Ver planos"; no último dia, "acaba hoje" (prd-planos-lancamento RF-F1)', async () => {
@@ -121,7 +105,6 @@ describe('HomeGreeting', () => {
     const line = w.get('[data-testid="home-trial"]')
     expect(line.text()).toBe(`Intensivo grátis até ${formatBillingDayMonth(endsAt)}. Ver planos`)
     expect(line.get('a').attributes('href')).toBe('/planos')
-    expect(w.findAll('.bg-tinted')).toHaveLength(1)
     expect(await axeViolations(w.element)).toEqual([])
     useAuthStore().user!.trial!.ends_at = new Date().toISOString()
     await nextTick()
@@ -133,10 +116,45 @@ describe('HomeGreeting', () => {
     useState('plans').value = null
   })
 
-  it('carregando: skeleton do tamanho do bloco', async () => {
+  it('carregando: skeleton', async () => {
     const w = await mountSuspended(HomeGreeting, { props: { stats: null, loading: true } })
     expect(w.find('[data-testid="skeleton"]').exists()).toBe(true)
     expect(w.find('h1').exists()).toBe(false)
+  })
+})
+
+describe('HomeGoal', () => {
+  const history = (dates: string[]) => ({ from: dates[0] ?? '', to: '', days: dates.map(date => ({ date, reviews: 10 })), max: 10 })
+
+  it('anel com "1 / 3 lotes", minutos, a semana com hoje no fim e o anel desenhado uma vez por dia', async () => {
+    const today = studyDay()
+    const yesterday = studyDay(new Date(Date.now() - 86_400_000))
+    const w = await mountSuspended(HomeGoal, { props: { stats: stats(), history: history([yesterday]) }, attachTo: document.body })
+    expect(w.get('[data-testid="home-goal"] [role="text"]').attributes('aria-label')).toBe('1 / 3 lotes')
+    expect(w.text()).toContain('Meta de hoje · cerca de 10 min')
+    const days = w.findAll('[data-testid="ui-week-strip"] li')
+    expect(days).toHaveLength(7)
+    expect(days[6]!.attributes('data-state')).toBe('today')
+    expect(days[5]!.attributes('data-state')).toBe('done')
+    expect(w.get('[data-part="prog"]').attributes('data-draw')).toBeDefined()
+    expect(localStorage.getItem(`baigi-ring-drawn-${today}`)).toBe('1')
+    expect(await axeViolations(w.element)).toEqual([])
+    const again = await mountSuspended(HomeGoal, { props: { stats: stats(), history: null } })
+    expect(again.get('[data-part="prog"]').attributes('data-draw')).toBeUndefined()
+    expect(again.find('[data-testid="ui-week-strip"]').exists()).toBe(false)
+  })
+
+  it('meta cumprida celebra uma vez por dia neste aparelho e registra o evento', async () => {
+    const met = stats({ due_today: 0, goal: { batch_size: 20, target_batches: 3, done_batches: 3, met: true, minutes_left: 0 } })
+    const first = await mountSuspended(HomeGoal, { props: { stats: met, history: null } })
+    await flushPromises()
+    expect(first.text()).toContain('Meta de hoje cumprida')
+    expect(first.find('[role="status"]').text()).toContain('Meta cumprida')
+    expect(trackMock).toHaveBeenCalledWith('home_goal_met', { target_batches: 3 })
+    first.unmount()
+    const again = await mountSuspended(HomeGoal, { props: { stats: met, history: null } })
+    expect(again.find('[role="status"]').exists()).toBe(false)
+    expect(trackMock).toHaveBeenCalledTimes(1)
   })
 })
 
@@ -150,11 +168,12 @@ describe('HomePlan', () => {
     recentNote: null,
   })
 
-  it('um primário só, botões ligados ao título do passo, "Recuperar atraso" para /praticar', async () => {
+  it('um primário só, ligado ao título; os outros passos são a linha inteira; "Recuperar atraso" para /praticar', async () => {
     const w = await mountSuspended(HomePlan, { props: { steps: steps() }, attachTo: document.body })
     expect(w.get('h2').text()).toBe('Plano do dia')
     expect(w.findAll('li')).toHaveLength(3)
-    expect(w.findAll('.bg-action.shadow-press')).toHaveLength(1)
+    expect(w.findAll('.bg-action.shadow-action')).toHaveLength(1)
+    expect(w.get('[data-testid="plan-step-listen"] button').text()).toContain('Ouvir: Erros')
     const start = w.get('a[href="/revisar"]')
     expect(start.text()).toBe('Começar')
     expect(document.getElementById(start.attributes('aria-describedby')!)!.textContent).toBe('Revisar 45 cards de TRF')
@@ -191,17 +210,36 @@ describe('HomeExam', () => {
     reta_final_active: false, cards_per_day: 60, cards_weak: 0, topics: [], podcast_suggestion: false, ...over,
   })
 
-  it('a prova mais próxima a qualquer distância, com ritmo e "Ver provas"', async () => {
+  it('sem projeção: linha simples (sem lilás), a prova mais próxima a qualquer distância, com ritmo e "Ver provas"', async () => {
     const w = await mountSuspended(HomeExam, { props: { exams: [exam({ id: 'b', title: 'Outra', days_remaining: 90 }), exam({})] } })
     expect(w.text()).toContain('TRF 4ª Região em 45 dias')
     expect(w.text()).toContain('Ritmo: 60 cards por dia até lá')
+    expect(w.findAll('.bg-tinted')).toHaveLength(0)
     expect(w.get('a').attributes('href')).toBe('/progresso#provas')
     await w.get('a').trigger('click')
     expect(trackMock).toHaveBeenCalledWith('home_exam_click', {})
   })
 
+  it('com projeção: o bloco lilás com a frase, o número da projeção e até 3 matérias (a mais fraca por último)', async () => {
+    const projection = { keep_pace: 90, stop_today: 75, cards: 40, reviewed_cards: 30, new_cards: 10, desired_retention: 0.9, new_per_day: 20, computed_for: '2026-11-08' }
+    const perf = (id: string, mastery: number | null) => ({ topic_id: id, parent_id: 'root', depth: 1, name: `M ${id}`, cards: 10, mastery, questions: { answered: 0, accuracy: null }, session_count: 0 })
+    const w = await mountSuspended(HomeExam, {
+      props: { exams: [exam({ projection, topics: [{ id: 'root', name: 'INSS' }] })], performance: [perf('a', 40), perf('b', 94), perf('c', null), perf('d', 78), perf('e', 89)] as never },
+      attachTo: document.body,
+    })
+    expect(w.findAll('.bg-tinted')).toHaveLength(1)
+    expect(w.get('[data-testid="home-exam-pace"]').text()).toBe('Mantendo o ritmo, você chega à prova lembrando 90%')
+    expect(w.findAll('[role="progressbar"]').map(b => b.attributes('aria-label'))).toEqual(['Domínio de M b', 'Domínio de M e', 'Domínio de M d'])
+    expect(w.text()).toContain('Ver o plano da prova')
+    expect(await axeViolations(w.element)).toEqual([])
+    document.documentElement.classList.add('dark')
+    expect(await axeViolations(w.element)).toEqual([])
+  })
+
   it('amanhã, hoje e Reta final; nada sem prova', async () => {
-    expect((await mountSuspended(HomeExam, { props: { exams: [exam({ days_remaining: 1, reta_final_active: true })] } })).text()).toMatch(/TRF 4ª Região é amanhã\s*Reta final/)
+    expect((await mountSuspended(HomeExam, { props: { exams: [exam({ days_remaining: 1 })] } })).text()).toContain('TRF 4ª Região é amanhã')
+    const projection = { keep_pace: 90, stop_today: 75 } as never
+    expect((await mountSuspended(HomeExam, { props: { exams: [exam({ days_remaining: 1, reta_final_active: true, projection })] } })).text()).toMatch(/TRF 4ª Região · é amanhã\s*Reta final/)
     expect((await mountSuspended(HomeExam, { props: { exams: [exam({ days_remaining: 0 })] } })).text()).toContain('TRF 4ª Região é hoje')
     expect((await mountSuspended(HomeExam, { props: { exams: [] } })).find('section').exists()).toBe(false)
   })
@@ -227,7 +265,7 @@ describe('HomeNotebooks', () => {
     expect(rows.map(r => r.attributes('href'))).toEqual(['b', 'a', 'c', 'e', 'f'].map(id => `/cadernos/${id}`))
     expect(w.text()).not.toContain('sub')
     expect(w.text()).toContain('Ver todos (6)')
-    expect(rows[0]!.text()).toContain('45 hoje')
+    expect(rows[0]!.text()).toContain('1 material · 45 para hoje')
     expect(rows[2]!.text()).toContain('em dia')
     expect(rows[0]!.get('[role="progressbar"]').attributes('aria-label')).toBe('Domínio de b: 41%')
     expect(await axeViolations(w.element)).toEqual([])
@@ -236,7 +274,8 @@ describe('HomeNotebooks', () => {
   it('caderno sem cards é "novo"; erro tem "Tentar de novo"', async () => {
     const w = await mountSuspended(HomeNotebooks, { props: { topics: [t({ id: 'x', flashcards_count: 0, progress: 0 })] } })
     expect(w.text()).toContain('novo')
-    expect(w.text()).not.toContain('Ver todos')
+    expect(w.text()).toContain('1 material · 0 cards')
+    expect(w.get('a[href="/cadernos"]').text()).toBe('Ver todos')
     const err = await mountSuspended(HomeNotebooks, { props: { topics: [], error: true } })
     expect(err.text()).toContain('Não foi possível carregar seus cadernos')
   })
@@ -248,7 +287,8 @@ describe('UiActivationChecklist (Hoje)', () => {
   it('com primary, o 1º passo pendente é o único primário; "Adicionar material" abre o "+ Adicionar"', async () => {
     const w = await mountSuspended(ActivationChecklist, { props: { ...props, primary: true }, attachTo: document.body })
     expect(w.text()).toContain('1 de 5 concluídos')
-    const primary = w.findAll('.bg-action.shadow-press')
+    expect(w.get('[role="progressbar"]').element.children).toHaveLength(5)
+    const primary = w.findAll('.bg-action.shadow-action')
     expect(primary).toHaveLength(1)
     expect(primary[0]!.text()).toBe('Adicionar')
     await primary[0]!.trigger('click')
@@ -268,8 +308,27 @@ describe('UiActivationChecklist (Hoje)', () => {
 
   it('sem primary, nenhum botão primário; tudo feito some', async () => {
     const w = await mountSuspended(ActivationChecklist, { props })
-    expect(w.findAll('.bg-action.shadow-press')).toHaveLength(0)
+    expect(w.findAll('.bg-action.shadow-action')).toHaveLength(0)
     const done = await mountSuspended(ActivationChecklist, { props: { ...props, hasMaterial: true, hasCards: true, hasReviewed: true, streak: 3 } })
     expect(done.find('section').exists()).toBe(false)
+  })
+})
+
+describe('HomeBacklog', () => {
+  const backlog = { overdue: 120, pending: 120, threshold: 40, active: true, new_paused: true, pause_new: true, plan: null }
+
+  it('120 atrasados, 3/7/14 dias com o que pede por dia; "Começar o plano" cria o plano e abre o lote', async () => {
+    apiMock.mockResolvedValueOnce({ data: { backlog: { ...backlog, plan: { days: 3, total: 120 } } } })
+    const w = await mountSuspended(HomeBacklog, { props: { backlog, dueToday: 0 }, attachTo: document.body })
+    expect(w.get('[data-testid="home-backlog-count"]').attributes('aria-label')).toBe('120 cards atrasados')
+    expect(w.text()).toContain('18por dia, além dos de hoje')
+    await w.get('[role="radio"][data-value="3"]').trigger('click')
+    expect(w.text()).toContain('40por dia, além dos de hoje')
+    expect(w.text()).toContain('10min')
+    expect(await axeViolations(w.element)).toEqual([])
+    await w.get('[data-testid="home-backlog-start"]').trigger('click')
+    await flushPromises()
+    expect(apiMock).toHaveBeenCalledWith('/review/backlog-plan', { method: 'POST', body: { days: 3 } })
+    expect(trackMock).toHaveBeenCalledWith('backlog_plan_created', { days: 3, cards: 120 })
   })
 })

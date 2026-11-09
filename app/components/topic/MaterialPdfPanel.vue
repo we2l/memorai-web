@@ -26,7 +26,7 @@
       </div>
 
       <!-- Material in another language: study the language or only the concepts -->
-      <div v-if="doc.language_detected && !languageDismissed" class="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-row bg-subtle px-3 py-2">
+      <div v-if="doc.language_detected && !languageDismissed" class="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-row bg-soft px-3 py-2">
         <p class="min-w-0 flex-1 text-meta text-fg-strong">Este material está em {{ languageName }}. Como você quer estudá-lo?</p>
         <UiButton size="sm" @click="setLanguageMode">Aprender {{ languageName }}</UiButton>
         <UiButton size="sm" variant="ghost" @click="languageDismissed = true">Só os conceitos</UiButton>

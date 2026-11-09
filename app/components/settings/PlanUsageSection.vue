@@ -21,7 +21,7 @@
       <LazySettingsBillingManage v-if="showManage" class="w-full" />
     </div>
 
-    <div class="border-t border-line pt-5" data-testid="usage">
+    <div class="border-t border-hairline pt-5" data-testid="usage">
       <div class="mb-3 flex flex-wrap items-baseline justify-between gap-x-4">
         <h3 class="text-body font-semibold text-fg-strong">{{ onPreview ? 'Prévia grátis da IA, uma vez por conta' : `Uso de IA ${featureUsage.periodLabel.value}` }}</h3>
         <!-- In the trial the counts are of its 7 days: its end is the plan's line above (prd-planos-lancamento RF-F6) -->
@@ -30,7 +30,7 @@
 
       <UiSkeleton v-if="loading" variant="text" :lines="4" />
       <p v-else-if="!rows.length" class="text-meta text-fg-muted">Não foi possível carregar o uso agora.</p>
-      <ul v-else class="divide-y divide-line">
+      <ul v-else class="divide-y divide-hairline">
         <li v-for="row in rows" :key="row.key" class="flex flex-wrap items-center gap-x-4 gap-y-1 py-3" data-testid="usage-row">
           <span class="min-w-0 flex-1 basis-56 text-body text-fg-strong">{{ row.label }}</span>
           <UiProgressBar v-if="row.limit" class="w-32" :value="row.used" :max="row.limit" :label="`${row.label}: ${row.used} de ${row.limit} ${row.unit}`" />

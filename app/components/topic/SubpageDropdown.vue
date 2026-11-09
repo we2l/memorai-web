@@ -9,7 +9,7 @@
       <input
         ref="inputRef"
         v-model="query"
-        class="w-full rounded-row border border-line-input bg-subtle px-3 py-2 text-meta text-fg-strong placeholder:text-fg-muted"
+        class="w-full rounded-row border border-line-input bg-soft px-3 py-2 text-meta text-fg-strong placeholder:text-fg-muted"
         placeholder="Nome do tópico…"
         aria-label="Nome do tópico"
         @keydown.enter.prevent="confirmSelection"
@@ -25,7 +25,7 @@
         v-for="(child, index) in filteredChildren"
         :key="child.id"
         class="subpage-dropdown-item"
-        :class="{ 'bg-subtle': index === selectedIndex }"
+        :class="{ 'bg-soft': index === selectedIndex }"
         @mouseenter="selectedIndex = index"
         @mousedown.prevent="selectExisting(child.id)"
       >
@@ -36,8 +36,8 @@
       <!-- Create new option -->
       <button
         v-if="showCreateOption"
-        class="subpage-dropdown-item border-t border-line"
-        :class="{ 'bg-subtle': selectedIndex === filteredChildren.length }"
+        class="subpage-dropdown-item border-t border-hairline"
+        :class="{ 'bg-soft': selectedIndex === filteredChildren.length }"
         @mouseenter="selectedIndex = filteredChildren.length"
         @mousedown.prevent="createNew"
       >
@@ -156,7 +156,7 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', onClickOutside))
   background: var(--surface-float);
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-control);
-  box-shadow: var(--elev-raised);
+  box-shadow: var(--elev-2);
   overflow: hidden;
 }
 
@@ -168,11 +168,11 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', onClickOutside))
   padding: 0.5rem 0.75rem;
   text-align: left;
   font-size: var(--text-meta);
-  transition: background-color var(--motion-nav);
+  transition: background-color var(--dur-fast);
   cursor: pointer;
 }
 
 .subpage-dropdown-item:hover {
-  background: var(--surface-subtle);
+  background: var(--surface-soft);
 }
 </style>

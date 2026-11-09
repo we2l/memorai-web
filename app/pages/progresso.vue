@@ -10,9 +10,9 @@
     <!-- A new account: one block, no zeros (03 §4 e, M10) -->
     <UiSection v-if="noCards" data-testid="progress-new">
       <div class="flex flex-col items-center gap-5 px-2 py-6 text-center">
-        <div class="w-full max-w-sm rounded-card border border-line bg-raised p-4 text-left shadow-card" aria-hidden="true">
+        <div class="w-full max-w-sm rounded-card bg-raised p-4 text-left shadow-1" aria-hidden="true">
           <p class="text-label text-fg-muted">Prévia</p>
-          <div class="mt-2 flex items-baseline gap-2"><span class="text-page-title-sm text-fg-strong">62%</span><span class="text-meta text-fg-muted">de domínio · ▲ +6 em 30 dias</span></div>
+          <div class="mt-2 flex items-baseline gap-2"><span class="text-page-title text-fg-strong">62%</span><span class="text-meta text-fg-muted">de domínio · ▲ +6 em 30 dias</span></div>
           <div class="mt-3 flex flex-col gap-2 text-meta">
             <div class="flex items-center gap-2"><span class="w-28 text-fg">Português</span><span class="h-1.25 flex-1 overflow-hidden rounded-full bg-progress-track"><span class="block h-1.25 w-3/5 rounded-full bg-action" /></span></div>
             <div class="flex items-center gap-2"><span class="w-28 text-fg">Constitucional</span><span class="h-1.25 flex-1 overflow-hidden rounded-full bg-progress-track"><span class="block h-1.25 w-2/5 rounded-full bg-action" /></span></div>
@@ -32,31 +32,37 @@
       <ProgressSummary v-else-if="summary" :data="summary" :scope-name="scopeName" />
     </template>
 
-    <div v-if="examsState === 'loading'" aria-busy="true"><UiSkeleton variant="block" /></div>
-    <UiErrorState v-else-if="examsState === 'error'" title="Não foi possível carregar suas provas" @retry="retryFailed" />
-    <ProgressExamList
-      v-else
-      :exams="examStore.exams"
-      :limit-reached="limitReached"
-      :saving-outcome="savingOutcome"
-      @create="openExam(null)"
-      @edit="openExam"
-      @delete="askDelete"
-      @reta="toggleReta"
-      @ics="exportIcs"
-      @google="exportGoogle"
-      @outcome="answerOutcome"
-    />
+    <!-- E2 (ADR-035 §9): the subjects and the days in the main column; the exam card (lilac) and the agenda on the side -->
+    <UiSplit side-label="Provas">
+      <template #side>
+        <LazyProgressExamCard v-if="examsState !== 'loading' && examsState !== 'error'" :exams="examStore.exams" />
+        <div v-if="examsState === 'loading'" aria-busy="true"><UiSkeleton variant="block" /></div>
+        <UiErrorState v-else-if="examsState === 'error'" title="Não foi possível carregar suas provas" @retry="retryFailed" />
+        <ProgressExamList
+          v-else
+          :exams="examStore.exams"
+          :limit-reached="limitReached"
+          :saving-outcome="savingOutcome"
+          @create="openExam(null)"
+          @edit="openExam"
+          @delete="askDelete"
+          @reta="toggleReta"
+          @ics="exportIcs"
+          @google="exportGoogle"
+          @outcome="answerOutcome"
+        />
+      </template>
 
-    <template v-if="!noCards">
-      <div v-if="perfState === 'loading'" aria-busy="true"><UiSkeleton variant="block" size="lg" /></div>
-      <UiErrorState v-else-if="perfState === 'error'" title="Não foi possível carregar o desempenho" @retry="retryFailed" />
-      <ProgressPerformanceTable v-else :rows="scopedRows" :root-id="scope || null" @train="train" />
+      <template v-if="!noCards">
+        <div v-if="perfState === 'loading'" aria-busy="true"><UiSkeleton variant="block" size="lg" /></div>
+        <UiErrorState v-else-if="perfState === 'error'" title="Não foi possível carregar o desempenho" @retry="retryFailed" />
+        <ProgressPerformanceTable v-else :rows="scopedRows" :root-id="scope || null" @train="train" />
 
-      <div v-if="historyState === 'loading'" aria-busy="true"><UiSkeleton variant="block" /></div>
-      <UiErrorState v-else-if="historyState === 'error'" title="Não foi possível carregar o histórico" @retry="retryFailed" />
-      <ProgressStudyHeatmap v-else-if="history" :history="history" @open="day = $event" />
-    </template>
+        <div v-if="historyState === 'loading'" aria-busy="true"><UiSkeleton variant="block" /></div>
+        <UiErrorState v-else-if="historyState === 'error'" title="Não foi possível carregar o histórico" @retry="retryFailed" />
+        <ProgressStudyHeatmap v-else-if="history" :history="history" @open="day = $event" />
+      </template>
+    </UiSplit>
 
     <LazyProgressStudyDayPanel v-if="dayLoaded" :date="day" @close="day = null" />
     <LazyExamDialog v-if="examLoaded" v-model="examOpen" :exam="editing" :topic-ids="dialogTopicIds" origin="progress" @saved="onSaved" />
@@ -77,7 +83,7 @@
 // Progresso (prd-4f-progresso-v3 RF-F1..F8, canvas ProgressoV2): the scope (all cadernos or one; ?caderno=, the
 // caderno of the nearest exam by default), the summary, the agenda of exams with pace and projection, the
 // performance by matéria and assunto and the history of 26 weeks with the day panel. One primary ("Revisar para
-// a prova · N" or "Revisar hoje · N") and no tinted block. 5 requests: /stats/progress, /exams, /topics/performance,
+// a prova · N" or "Revisar hoje · N"); E2: the nearest exam with a projection is the one lilac block. 5 requests: /stats/progress, /exams, /topics/performance,
 // /stats/history and /stats; each section loads and fails on its own.
 import type { Exam, ExamOutcome, ProgressSummaryData, Quiz, Stats, StudyHistory, TopicPerformance } from '~/types'
 import { reviewPath } from '~/utils/reviewScope'

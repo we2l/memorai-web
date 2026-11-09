@@ -1,5 +1,5 @@
 <template>
-  <div class="border border-line-strong rounded-control overflow-hidden bg-subtle">
+  <div class="border border-line-strong rounded-control overflow-hidden bg-soft">
     <div v-if="editor" class="flex items-center gap-0.5 px-2 py-1.5 border-b border-line-strong">
       <button
         v-for="btn in toolbar"

@@ -77,14 +77,14 @@
 .blog-prose code {
   padding: 0.1rem 0.3rem;
   border-radius: var(--radius-tag);
-  background: var(--surface-subtle);
+  background: var(--surface-soft);
   font-size: 0.9em;
 }
 .blog-prose pre {
   margin-bottom: 1.125rem;
   padding: 1rem;
   border-radius: var(--radius-row);
-  background: var(--surface-subtle);
+  background: var(--surface-soft);
   overflow-x: auto;
 }
 .blog-prose pre code {

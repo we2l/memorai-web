@@ -3,7 +3,7 @@
     <UiSection v-if="review.hintsLoading || review.hints.length" title="Dicas da sua nota" :level="2" aria-live="polite">
       <UiSkeleton v-if="review.hintsLoading" variant="text" :lines="2" />
       <template v-else>
-        <ul class="divide-y divide-line">
+        <ul class="divide-y divide-hairline">
           <li v-for="(hint, i) in visibleHints" :key="i" class="flex gap-2 py-2.5 text-meta text-fg">
             <component :is="styleOf(hint.type).icon" class="mt-0.5 size-4 shrink-0" :class="styleOf(hint.type).tone" aria-hidden="true" />
             <span><span class="font-semibold text-fg-strong">{{ styleOf(hint.type).label }}: </span><span v-html="sanitize(hint.text)" /></span>
@@ -14,7 +14,7 @@
     </UiSection>
 
     <UiSection v-if="review.weakSuggestion?.length" title="Caderno conectado também está fraco" :level="2">
-      <ul class="divide-y divide-line">
+      <ul class="divide-y divide-hairline">
         <li v-for="w in review.weakSuggestion" :key="w.id" class="flex items-center justify-between gap-2 py-2 text-meta">
           <span class="font-medium text-fg-strong">{{ w.name }}</span>
           <span class="text-fg-muted">{{ Math.round(w.progress * 100) }}% de domínio</span>

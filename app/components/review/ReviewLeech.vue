@@ -1,5 +1,5 @@
 <template>
-  <section class="flex flex-col gap-2 rounded-control border border-line px-4 py-3" aria-labelledby="leech-title" data-testid="review-leech">
+  <section class="flex flex-col gap-2 rounded-tile bg-soft px-4 py-3" aria-labelledby="leech-title" data-testid="review-leech">
     <p id="leech-title" class="text-meta font-semibold text-fg-strong">
       Esse card não está colando <span class="font-normal text-fg-muted">({{ lapses }} erros)</span>
     </p>

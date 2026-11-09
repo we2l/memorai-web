@@ -48,9 +48,9 @@ const bindings = computed(() => (props.to !== undefined && !props.disabled
   : { type: props.type, disabled: props.disabled || undefined }))
 
 const classes = computed(() => [
-  'relative inline-flex shrink-0 items-center justify-center rounded-control transition-colors duration-nav',
+  'relative inline-flex shrink-0 items-center justify-center rounded-control transition-colors duration-fast',
   props.size === 'sm' ? 'size-9 before:absolute before:-inset-1' : 'size-touch',
-  props.variant === 'subtle' ? 'bg-subtle text-fg-strong' : 'text-fg-muted',
+  props.variant === 'subtle' ? 'bg-soft text-fg-strong' : 'text-fg-muted',
   props.pressed ? 'bg-action-subtle text-action-fg' : '',
   props.disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-line hover:text-fg-strong',
 ])

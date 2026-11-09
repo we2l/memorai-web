@@ -1,6 +1,6 @@
 <template>
   <UiSection :title="title" description="Cada card nasce do enunciado e do comentário da questão e entra no assunto dela. Desmarque o que não quiser." data-testid="quiz-error-cards">
-    <ul class="divide-y divide-line">
+    <ul class="divide-y divide-hairline">
       <li v-for="e in visible" :key="e.question_id" class="py-2" :data-testid="`error-card-${e.number}`">
         <!-- Already a card: no longer a choice (a dimmed, disabled box would fail the contrast) -->
         <p v-if="e.card_id" class="flex min-h-touch items-center gap-3 py-2.5 text-body text-fg-strong" data-testid="error-card-done">
@@ -14,7 +14,7 @@
         >
           <span class="font-semibold">Q{{ e.number }}</span><template v-if="e.topic_name"> · {{ e.topic_name }}</template>
         </UiCheckbox>
-        <p class="ml-8 rounded-row bg-subtle px-3 py-2 text-meta text-fg">
+        <p class="ml-8 rounded-row bg-soft px-3 py-2 text-meta text-fg">
           <span class="font-semibold text-fg-strong">Frente:</span> {{ e.front }}
           <span aria-hidden="true"> · </span>
           <span class="font-semibold text-fg-strong">Verso:</span> {{ e.back }}

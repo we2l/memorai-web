@@ -10,6 +10,10 @@
 /* A landing compila o próprio CSS, com o tema padrão (components/landing/landing.css) */
 @source not "../../pages/index.vue";
 @source not "../../components/landing";
+/* Palavras do código que o Tailwind leria como utilities (array.filter, o evento blur, "transform" num
+   comentário, a variante "outline" do UiButton): nenhuma tela usa essas classes, e as de filtro puxavam ~20
+   @property --tw-* para o entry.css (ADR-035, teto de 13 KB) */
+@source not inline("filter blur backdrop-filter transform ring outline container invisible visible resize table");
 @import './tokens.css';
 @import './theme.css';
 @import './base.css';

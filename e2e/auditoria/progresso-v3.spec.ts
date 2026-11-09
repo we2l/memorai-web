@@ -41,8 +41,10 @@ test('resumo do caderno da prova: domínio = o do caderno (/summary), acerto, le
   await expect(box).toContainText('lembrou ao revisar (30 dias)')
   await expect(box).toContainText(/\d+ dias? de sequência · recorde \d+|de sequência/)
   await expect(page.getByTestId('progress-primary')).toHaveText(/Revisar para a prova · \d+/)
-  await expect(page.locator('.shadow-press').filter({ visible: true })).toHaveCount(1)
-  await expect(page.locator('.bg-tinted')).toHaveCount(0)
+  await expect(page.locator('.shadow-action').filter({ visible: true })).toHaveCount(1)
+  // E2 (prd-visual-e2 RF-5.4): the exam card with the projection is the one lilac block
+  await expect(page.locator('.bg-tinted')).toHaveCount(1)
+  await expect(page.getByTestId('progress-exam-card')).toContainText('Mantendo o ritmo')
 })
 
 test('prova com projeção ("mantendo o ritmo" e "se parar hoje") e "Como calculamos"; a pequena diz o que falta', async ({ page }) => {
@@ -145,8 +147,8 @@ test('Hoje: a prova mais próxima ganha a linha da projeção', async ({ page })
   const next = upcoming.filter(e => e.days_remaining >= 0).sort((a, b) => a.days_remaining - b.days_remaining)[0]
   await gotoApp(page, '/hoje')
   const line = page.getByTestId('home-exam-pace')
-  if (next.projection) await expect(line).toContainText(`Projeção: ${next.projection.keep_pace}% se mantiver o ritmo`)
-  else await expect(line).not.toContainText('Projeção')
+  if (next.projection) await expect(line).toHaveText(`Mantendo o ritmo, você chega à prova lembrando ${next.projection.keep_pace}%`)
+  else await expect(line).not.toContainText('Mantendo o ritmo')
 })
 
 test.describe('Conta nova', () => {
@@ -157,7 +159,7 @@ test.describe('Conta nova', () => {
     await expect(page.getByTestId('progress-new')).toContainText('Seu progresso aparece aqui')
     await expect(page.getByTestId('progress-summary')).toHaveCount(0)
     await expect(page.getByTestId('progress-exams')).toContainText('Defina sua prova para ver o ritmo e a projeção')
-    await expect(page.locator('.shadow-press').filter({ visible: true })).toHaveCount(1)
+    await expect(page.locator('.shadow-action').filter({ visible: true })).toHaveCount(1)
     await axe(page, 'conta nova')
   })
 })

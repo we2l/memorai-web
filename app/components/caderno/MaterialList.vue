@@ -1,7 +1,7 @@
 <template>
   <UiSection :title="sectionTitle" data-testid="scope-materials" :aria-busy="store.materialsLoading ? 'true' : undefined">
     <template #action>
-      <UiButton size="sm" :icon-left="Plus" data-testid="scope-add-material" @click="$emit('add')">Adicionar</UiButton>
+      <UiButton size="sm" variant="outline" :icon-left="Plus" data-testid="scope-add-material" @click="$emit('add')">Adicionar</UiButton>
     </template>
 
     <!-- Search, order and matéria: on the server (q, sort, subject_id) -->
@@ -41,7 +41,7 @@
     </div>
     <template v-else>
       <p v-if="!store.materials.length" class="py-2 text-body text-fg-muted">Nenhum material ainda. Adicione um PDF, um texto ou uma nota.</p>
-      <ul v-if="store.materials.length || (!filtered && specials.length)" class="-mx-3 divide-y divide-line" aria-label="Materiais">
+      <ul v-if="store.materials.length || (!filtered && specials.length)" class="-mx-3 divide-y divide-hairline" aria-label="Materiais">
         <li v-for="(row, i) in store.materials" :key="`${row.kind}:${row.id}`">
           <CadernoMaterialRow
             :ref="el => setRowRef(i, el)"
@@ -58,11 +58,9 @@
         <!-- Cards without a material of their own (F2 origin scopes), after the first page -->
         <template v-if="!filtered">
           <li v-for="sp in specials" :key="sp.key" class="flex items-center gap-3 px-3 py-3" :data-testid="`special-${sp.key}`">
-            <span class="flex size-9 shrink-0 items-center justify-center rounded-control bg-subtle text-fg-muted" aria-hidden="true">
-              <component :is="sp.icon" class="size-4.5" />
-            </span>
+            <UiIconTile :icon="sp.icon" :tone="sp.key === 'loose' ? 'neutral' : 'quiz'" />
             <div class="min-w-0 flex-1">
-              <p class="font-medium text-fg-strong">{{ sp.title }}</p>
+              <p class="font-semibold text-fg-strong">{{ sp.title }}</p>
               <p class="text-meta text-fg-muted">{{ sp.meta }}</p>
             </div>
             <UiButton v-if="sp.session > 0" size="sm" class="shrink-0" :to="sp.to">Revisar {{ sp.session }}</UiButton>

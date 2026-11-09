@@ -3,10 +3,10 @@
     v-if="player.currentPodcast && !inPagePlayer"
     role="region"
     aria-label="Tocando agora"
-    class="fixed right-[calc(10px+env(safe-area-inset-right))] bottom-[calc(var(--nav-h)+8px)] left-[calc(10px+env(safe-area-inset-left))] z-player overflow-hidden rounded-float border border-line bg-raised shadow-raised md:right-4 md:bottom-[calc(16px+env(safe-area-inset-bottom))] md:left-auto md:w-96"
+    class="fixed right-[calc(10px+env(safe-area-inset-right))] bottom-[calc(var(--nav-h)+8px)] left-[calc(10px+env(safe-area-inset-left))] z-player overflow-hidden rounded-float bg-raised shadow-2 md:right-4 md:bottom-[calc(16px+env(safe-area-inset-bottom))] md:left-auto md:w-96"
   >
     <div class="flex items-center gap-3 py-2 pr-1.5 pl-2.5">
-      <span class="flex size-10 shrink-0 items-center justify-center rounded-control bg-subtle text-listen" aria-hidden="true">
+      <span class="flex size-10 shrink-0 items-center justify-center rounded-control bg-soft text-listen" aria-hidden="true">
         <UiBaigiMascot v-if="player.isPlaying" state="subtle" pose="podcast" :visible="true" :size="34" />
         <Headphones v-else class="size-5" />
       </span>
@@ -18,7 +18,7 @@
       </button>
       <button
         type="button"
-        class="hit-touch flex size-10 shrink-0 items-center justify-center rounded-full bg-fg-strong text-raised transition-transform duration-nav active:scale-95"
+        class="hit-touch flex size-10 shrink-0 items-center justify-center rounded-full bg-fg-strong text-raised transition-transform duration-fast active:scale-95"
         :aria-label="player.isPlaying ? 'Pausar' : 'Reproduzir'"
         @click="toggle"
       >
@@ -29,7 +29,7 @@
       <UiIconButton :icon="X" label="Fechar player" size="sm" @click="close" />
     </div>
     <!-- The episode ended: review the cards it talked about (prd-caderno-f2-recorte RF-F5) -->
-    <div v-if="player.hasEnded && episodeCards > 0" class="flex items-center justify-between gap-2 border-t border-line px-3 py-2" role="status">
+    <div v-if="player.hasEnded && episodeCards > 0" class="flex items-center justify-between gap-2 border-t border-hairline px-3 py-2" role="status">
       <span class="text-meta text-fg">Episódio concluído</span>
       <UiButton size="sm" :to="reviewPath({ type: 'podcast', id: player.currentPodcast.id })">
         Revisar {{ episodeCards === 1 ? 'o card' : `os ${episodeCards}` }} do episódio

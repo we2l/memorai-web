@@ -1,11 +1,11 @@
 <template>
   <div class="mx-auto w-full max-w-page px-gutter py-6">
-    <h1 class="mb-5 text-page-title-sm text-fg-strong lg:text-page-title">Configurações</h1>
+    <h1 class="mb-5 text-page-title text-fg-strong">Configurações</h1>
 
     <div class="flex flex-col gap-5 lg:grid lg:grid-cols-[14rem_minmax(0,1fr)] lg:items-start lg:gap-8">
       <!-- The side of the desktop is the list on top of the phone: the sections of the account menu -->
       <nav aria-label="Configurações" class="lg:sticky lg:top-topnav lg:pt-4">
-        <ul class="flex flex-col max-lg:divide-y max-lg:divide-line max-lg:rounded-card max-lg:bg-raised max-lg:shadow-card">
+        <ul class="flex flex-col max-lg:divide-y max-lg:divide-hairline max-lg:rounded-card max-lg:bg-raised max-lg:shadow-1">
           <li v-for="s in SETTINGS_SECTIONS" :key="s.id">
             <UiListRow :href="`#${s.id}`" :title="s.label" :active="isDesktop && active === s.id" data-testid="settings-nav" @click="onNav(s.id)" />
           </li>
@@ -92,10 +92,16 @@ watch(() => route.hash, () => { void followHash() })
 let observer: IntersectionObserver | null = null
 onMounted(async () => {
   if ('IntersectionObserver' in window) {
-    // The section crossing the upper part of the screen is the current one
+    // The section crossing the upper part of the screen is the current one; when two share it (the end of one and the
+    // title of the next, as at the bottom of the page), the later one wins
+    const crossing = new Set<string>()
     observer = new IntersectionObserver((entries) => {
-      const hit = entries.find(e => e.isIntersecting)
-      if (hit) active.value = hit.target.id as SettingsSectionId
+      for (const e of entries) {
+        if (e.isIntersecting) crossing.add(e.target.id)
+        else crossing.delete(e.target.id)
+      }
+      const last = SETTINGS_SECTIONS.map(x => x.id).filter(id => crossing.has(id)).pop()
+      if (last) active.value = last as SettingsSectionId
     }, { rootMargin: '-15% 0px -75% 0px' })
     document.querySelectorAll('[data-settings-section]').forEach(el => observer!.observe(el))
   }

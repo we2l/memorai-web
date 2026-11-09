@@ -3,7 +3,7 @@
     <nav aria-label="Caminho" class="mx-auto mb-4 max-w-article text-meta text-fg-muted">
       <UiLink to="/ferramentas" variant="muted">Ferramentas</UiLink>
     </nav>
-    <h1 class="mx-auto mb-3 max-w-article text-page-title-sm text-fg-strong sm:text-page-title">Calculadora do esquecimento</h1>
+    <h1 class="mx-auto mb-3 max-w-article text-page-title text-fg-strong">Calculadora do esquecimento</h1>
     <p class="blog-lead mx-auto mb-8 max-w-article text-fg">
       Diga há quantos dias você estudou e quantas vezes já se testou. A calculadora estima quanto você ainda deve lembrar
       e em que dia vale revisar, pela mesma conta que o Baigi usa para agendar as revisões.

@@ -37,10 +37,11 @@
 
     <!-- Cards of the note: the next ones by due date -->
     <template v-else>
-      <ul class="-mx-1 divide-y divide-line" aria-label="Próximos cards">
+      <ul class="-mx-1 divide-y divide-hairline" aria-label="Próximos cards">
         <li v-for="card in rows" :key="card.id" class="px-1 py-2.5" data-testid="panel-card">
-          <p class="line-clamp-2 text-meta text-fg-strong">
-            <UiTag :tone="card.state.tone" class="mr-1.5 align-middle">{{ card.state.label }}</UiTag>{{ card.front }}
+          <p class="flex items-start justify-between gap-3 text-body-sm text-fg-strong">
+            <span class="line-clamp-3 min-w-0">{{ card.front }}</span>
+            <UiTag :tone="card.state.tone" class="shrink-0">{{ card.state.label }}</UiTag>
           </p>
         </li>
       </ul>

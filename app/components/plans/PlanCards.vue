@@ -17,7 +17,7 @@
         <div class="flex h-full flex-col">
           <div class="min-h-24">
             <template v-if="free">
-              <p class="text-page-title text-fg-strong tabular-nums">{{ formatPrice(free.prices.monthly?.amount_cents ?? 0) }}</p>
+              <p class="num-m text-fg-strong">{{ formatPrice(free.prices.monthly?.amount_cents ?? 0) }}</p>
               <p class="mt-1 text-meta text-fg-muted">Para sempre</p>
             </template>
             <UiSkeleton v-else variant="text" :lines="2" />
@@ -30,15 +30,15 @@
         </div>
       </UiSection>
 
-      <!-- Pro: the recommendation is written, and the page's only lilac block -->
-      <UiSection :title="pro?.name ?? PRO_NAME_FALLBACK" variant="tinted" data-testid="plan-pro">
+      <!-- Pro: the recommendation is written, with the purple ring (E2, prd-visual-e2 RF-5.6) -->
+      <UiSection :title="pro?.name ?? PRO_NAME_FALLBACK" class="ring-2 ring-action" data-testid="plan-pro">
         <template #action><UiTag tone="action">Recomendado</UiTag></template>
         <div class="flex h-full flex-col">
           <div class="min-h-24">
             <template v-if="pro?.prices.monthly">
               <!-- The annual says what is charged (once a year) and its monthly share (prd-planos-lancamento RF-F4) -->
-              <p class="text-page-title text-fg-strong tabular-nums" data-testid="plan-pro-price">
-                {{ formatPrice(annual ? annual.amount_cents : pro.prices.monthly.amount_cents) }}<span class="text-meta font-normal tracking-normal text-fg-muted">{{ annual ? '/ano' : '/mês' }}</span>
+              <p class="num-m text-fg-strong" data-testid="plan-pro-price">
+                {{ formatPrice(annual ? annual.amount_cents : pro.prices.monthly.amount_cents) }}<span class="font-sans text-meta font-normal tracking-normal text-fg-muted">{{ annual ? '/ano' : '/mês' }}</span>
               </p>
               <p class="mt-1 text-meta text-fg-muted" data-testid="plan-pro-note">{{ annualCopy || monthlyCopy }}</p>
               <!-- The Pix discount, visible as such (Lei 13.455/2017) -->
@@ -107,3 +107,8 @@ const monthlyCopy = computed(() => {
   return days ? `No cartão, renova todo mês e cancela em dois cliques. Ou ${days} dias no Pix, sem renovação` : 'No cartão, renova todo mês e cancela em dois cliques'
 })
 </script>
+
+<!-- The prices in the Fraunces of the big numbers (ADR-035 §2): the @font-face comes with this chunk -->
+<style>
+@import "~/assets/css/fraunces.css";
+</style>

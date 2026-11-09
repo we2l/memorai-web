@@ -88,7 +88,7 @@ describe('UiConfirmModal sobre UiDialog', () => {
 describe('UiPlanBadge', () => {
   it('só tokens v3', async () => {
     const free = await mountSuspended(PlanBadge, { props: { plan: 'free' } })
-    expect(free.html()).toContain('bg-subtle')
+    expect(free.html()).toContain('bg-soft')
     const pro = await mountSuspended(PlanBadge, { props: { plan: 'pro' } })
     expect(pro.html()).toContain('bg-action-subtle')
   })

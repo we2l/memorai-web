@@ -3,24 +3,6 @@
    Em @layer base: qualquer utility vence (título com cor de perigo, botão com focus-visible:*).
    ============================================ */
 
-/* Lacuna do cloze: classes escritas em HTML por composables/useCloze.ts */
-@layer components {
-  .cloze-blank {
-    display: inline;
-    padding: 0.1em 0.6em;
-    border-radius: var(--radius-tag);
-    background: var(--action-subtle);
-    border-bottom: 2px solid var(--action-fg);
-    color: var(--action-fg);
-    font-style: italic;
-  }
-
-  .cloze-answer {
-    color: var(--action-fg);
-    font-weight: 600;
-  }
-}
-
 @layer base {
   html {
     background-color: var(--surface-page);

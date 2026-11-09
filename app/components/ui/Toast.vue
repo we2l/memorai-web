@@ -1,6 +1,6 @@
 <template>
   <div
-    class="pointer-events-auto flex items-center gap-3 rounded-control border border-line bg-float py-1 pl-4 pr-1 text-meta font-medium text-fg-strong shadow-float"
+    class="pointer-events-auto flex items-center gap-3 rounded-control bg-float py-1 pl-4 pr-1 text-meta font-medium text-fg-strong shadow-float"
     @mouseenter="action && emit('pause')"
     @mouseleave="action && emit('resume')"
     @focusin="action && emit('pause')"
@@ -13,7 +13,7 @@
     <button
       v-if="action"
       type="button"
-      class="min-h-touch shrink-0 rounded-row px-3 font-semibold text-action-fg -outline-offset-2 hover:bg-subtle"
+      class="min-h-touch shrink-0 rounded-row px-3 font-semibold text-action-fg -outline-offset-2 hover:bg-soft"
       @click="emit('action')"
     >
       {{ action.label }}

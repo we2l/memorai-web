@@ -1,27 +1,27 @@
 <template>
   <!-- The one tinted block of the result (ADR-027 §6) -->
   <UiSection variant="tinted" label="Próximo passo" aria-label="Próximo passo" data-testid="quiz-next-step">
-    <div class="flex flex-wrap items-center justify-between gap-x-5 gap-y-3">
+    <div class="flex flex-col gap-4">
       <div class="min-w-0" role="status">
-        <p class="font-semibold text-fg-strong">{{ heading }}</p>
-        <p class="text-meta text-fg-muted">{{ support }}</p>
+        <p class="text-title text-fg-strong">{{ heading }}</p>
+        <p class="mt-1 text-meta text-fg-muted">{{ support }}</p>
       </div>
-      <div class="flex flex-wrap gap-2">
+      <div class="flex flex-col gap-2">
         <template v-if="state === 'create'">
-          <UiButton variant="primary" :loading="creating" :disabled="selected === 0" data-testid="quiz-create-cards" @click="emit('create')">
+          <UiButton variant="primary" block :loading="creating" :disabled="selected === 0" data-testid="quiz-create-cards" @click="emit('create')">
             {{ selected === 0 ? 'Marque os erros' : `Criar ${plural(selected, 'card', 'cards')}` }}
           </UiButton>
-          <UiButton v-if="scopeTo" :to="scopeTo">Ver a matéria</UiButton>
+          <UiButton v-if="scopeTo" variant="outline" block :to="scopeTo">Ver a matéria</UiButton>
         </template>
         <template v-else-if="state === 'review'">
-          <UiButton variant="primary" :to="reviewTo" data-testid="quiz-review-now" @click="emit('review')">
+          <UiButton variant="primary" block :to="reviewTo" data-testid="quiz-review-now" @click="emit('review')">
             Revisar {{ sessionCount === 1 ? 'o card' : `os ${sessionCount}` }} agora
           </UiButton>
-          <UiButton v-if="scopeTo" :to="scopeTo">Voltar a {{ scopeName }}</UiButton>
+          <UiButton v-if="scopeTo" variant="outline" block :to="scopeTo">Voltar a {{ scopeName }}</UiButton>
         </template>
         <template v-else>
-          <UiButton variant="primary" :to="newQuizTo">Novas questões</UiButton>
-          <UiButton v-if="scopeTo" :to="scopeTo">Voltar a {{ scopeName }}</UiButton>
+          <UiButton variant="primary" block :to="newQuizTo">Novas questões</UiButton>
+          <UiButton v-if="scopeTo" variant="outline" block :to="scopeTo">Voltar a {{ scopeName }}</UiButton>
         </template>
       </div>
     </div>

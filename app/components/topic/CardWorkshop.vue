@@ -1,5 +1,5 @@
 <template>
-  <div data-testid="card-workshop" :class="panel ? '' : 'rounded-card bg-raised p-5 shadow-card'">
+  <div data-testid="card-workshop" :class="panel ? '' : 'rounded-card bg-raised p-5 shadow-1'">
     <!-- Generating -->
     <div v-if="loading" class="flex flex-col items-center gap-3 py-10 text-center" role="status">
       <UiSpinner />

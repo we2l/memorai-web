@@ -1,65 +1,46 @@
 import { test, expect, gotoApp, apiCall, uid, doc, realGate, sql, USERS, catalogProName } from './support/fixtures'
 import type { Page } from '@playwright/test'
 
+import { openCheckout } from './support/public-pages'
+
 /**
- * Planos → checkout (redirect Stripe mockado), Free com cota esgotada → paywall,
- * não verificado tentando IA/checkout. A IA nunca roda: os gates reais (402/403) respondem antes,
- * e `realGate` só deixa a chamada passar depois de checar a pré-condição no banco.
+ * Planos → checkout (o checkout transparente do Mercado Pago dentro do Baigi, /checkout?plano=…; o pagamento em si fica
+ * em e2e/checkout-mercadopago.spec.ts), Free com cota esgotada → paywall, não verificado tentando IA. A IA nunca roda: os
+ * gates reais (402/403) respondem antes, e `realGate` só deixa a chamada passar depois de checar a pré-condição no banco.
  */
-const STRIPE_URL = 'https://checkout.stripe.com/c/pay/cs_test_audit_e2e'
 
-async function stubStripe(page: Page) {
-  await page.route('https://checkout.stripe.com/**', route => route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>Stripe Checkout (stub)</title><h1>Stripe stub</h1>' }))
-}
-
-async function mockCheckout(page: Page) {
-  const calls: string[] = []
-  for (const path of ['subscription', 'annual'] as const) {
-    await page.route(`**/api/checkout/${path}`, (route) => {
-      calls.push(`${path} ${route.request().postData() ?? ''}`)
-      return route.fulfill({ json: { checkout_url: STRIPE_URL, session_id: 'cs_test_audit_e2e' } })
-    })
-  }
-  return calls
-}
-
-// "Assinar anual" or "Assinar <plano pago>" (the name of the catalog)
-const subscribeButton = (page: Page) => page.getByRole('main').getByRole('button', { name: /^Assinar \S+$/ })
+// "Assinar anual" or "Assinar <plano pago>" (the name of the catalog): a link to the checkout of the Baigi
+const subscribeButton = (page: Page) => page.getByRole('main').getByTestId('plan-subscribe')
 
 test.describe('Planos → checkout (Free)', () => {
   test.use({ auditUser: 'free' })
 
-  test('Assinar abre o checkout da Stripe (anual e mensal)', async ({ page }) => {
-    await stubStripe(page)
-    const calls = await mockCheckout(page)
+  test('Assinar abre o checkout do Mercado Pago no Baigi (anual e mensal)', async ({ page }) => {
+    await openCheckout(page)
     await gotoApp(page, '/planos')
     await expect(page.getByRole('heading', { name: 'Planos', level: 1 })).toBeVisible()
-    const first = (await subscribeButton(page).innerText()).trim()
+    await expect(subscribeButton(page)).toHaveText('Assinar anual')
     await subscribeButton(page).click()
-    await page.waitForURL(STRIPE_URL)
-    await expect(page.getByRole('heading', { name: 'Stripe stub' })).toBeVisible()
-    expect(calls[0]).toMatch(first === 'Assinar anual' ? /^annual/ : /^subscription/)
+    await page.waitForURL('**/checkout?plano=anual')
 
-    // Outro ciclo
     await gotoApp(page, '/planos')
-    const toggle = page.getByRole('main').getByRole('button', { name: first === 'Assinar anual' ? /Mensal/i : /Anual/i }).or(page.getByRole('main').getByRole('radio', { name: first === 'Assinar anual' ? /Mensal/i : /Anual/i })).first()
-    await toggle.click()
-    await expect(subscribeButton(page)).not.toHaveText(first)
+    await page.getByRole('main').getByRole('radio', { name: /Mensal/i }).click()
+    await expect(subscribeButton(page)).toHaveText(`Assinar ${await catalogProName()}`)
     await subscribeButton(page).click()
-    await page.waitForURL(STRIPE_URL)
-    expect(calls).toHaveLength(2)
-    expect(new Set(calls.map(c => c.split(' ')[0]))).toEqual(new Set(['annual', 'subscription']))
+    await page.waitForURL(/\/checkout\?plano=mensal/)
   })
 
-  test('checkout com erro 500: aviso, continua em /planos e o botão volta a funcionar', async ({ page }) => {
-    await page.route('**/api/checkout/**', route => route.request().method() === 'POST'
-      ? route.fulfill({ status: 500, json: { message: 'Server Error' } })
-      : route.fallback())
+  test('checkout fechado ("Assinatura em breve"): os preços ficam e o botão de pagar não aparece', async ({ page }) => {
+    await page.route('**/api/plans', async (route) => {
+      const res = await route.fetch()
+      const body = await res.json()
+      body.data.checkout = { ...(body.data.checkout ?? {}), available: false }
+      await route.fulfill({ response: res, json: body })
+    })
     await gotoApp(page, '/planos')
-    await subscribeButton(page).click()
-    await expect(page.getByRole('alert').getByText(/Não foi possível abrir o checkout|Algo deu errado/)).toBeVisible()
-    expect(new URL(page.url()).pathname).toBe('/planos')
-    await expect(subscribeButton(page)).toBeEnabled()
+    await expect(page.getByTestId('plan-pro-price')).toBeVisible()
+    await expect(subscribeButton(page)).toHaveCount(0)
+    await expect(page.getByTestId('plan-checkout-soon-note')).toBeVisible()
   })
 })
 
@@ -67,6 +48,7 @@ test.describe('Planos — link direto', () => {
   test.use({ auditUser: 'free' })
 
   test('/planos?ciclo=mensal aberto direto (link/e-mail) mostra o mensal', async ({ page }) => {
+    await openCheckout(page)
     await page.goto('/planos?ciclo=mensal')
     await page.waitForLoadState('networkidle')
     // Prerendered: the query only comes back after hydration, and the page follows router.currentRoute
@@ -116,21 +98,6 @@ test.describe('Usuário não verificado', () => {
     expect(gate.map(g => g.status)).toEqual([403])
     expect(gate[0].body.code).toBe('email_unverified')
   })
+  // O pagamento exige o e-mail verificado na API (rotas de checkout no grupo verified.api, testadas no PHPUnit)
 
-  test('checkout também exige e-mail verificado (403 → modal, sem ir à Stripe)', async ({ page }) => {
-    // Plano Pro no seed: força a visão de Free para ter o botão Assinar
-    await page.route('**/api/me', async (route) => {
-      const res = await route.fetch()
-      const body = await res.json()
-      body.data.plan = 'free'
-      await route.fulfill({ response: res, json: body })
-    })
-    await page.route('**/api/subscription', route => route.fulfill({ json: { data: { plan: 'free', billing: null, subscription_status: null, subscription_ends_at: null, has_subscription: false, plan_expires_at: null, in_grace_period: false, grace_ends_at: null, can_renew_annual: true, monthly_scheduled: false } } }))
-    const gate = await realGate(page, /\/api\/checkout\/(subscription|annual)$/, 'unverified', unverified)
-    await gotoApp(page, '/planos')
-    await subscribeButton(page).click()
-    await expect(page.getByRole('dialog', { name: 'Confirme seu e-mail' })).toBeVisible()
-    expect(gate.map(g => g.status)).toEqual([403])
-    expect(new URL(page.url()).pathname).toBe('/planos')
-  })
 })

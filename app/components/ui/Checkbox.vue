@@ -8,7 +8,7 @@
         :checked="modelValue"
         :disabled="disabled"
         :aria-describedby="describedBy"
-        class="peer size-5 cursor-pointer appearance-none rounded-tag border border-line-input bg-raised transition-colors duration-nav checked:border-action checked:bg-action disabled:cursor-not-allowed"
+        class="peer size-5 cursor-pointer appearance-none rounded-tag border border-line-input bg-raised transition-colors duration-fast checked:border-action checked:bg-action disabled:cursor-not-allowed"
         @change="emit('update:modelValue', ($event.target as HTMLInputElement).checked)"
       >
       <Check class="pointer-events-none absolute inset-0 m-auto size-3.5 text-on-action opacity-0 peer-checked:opacity-100" stroke-width="3" aria-hidden="true" />

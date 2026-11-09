@@ -25,7 +25,7 @@
       </p>
 
       <!-- Automatic -->
-      <div v-if="activeLevel === 'auto'" class="relative flex-1 overflow-hidden rounded-card border border-line-strong bg-subtle">
+      <div v-if="activeLevel === 'auto'" class="relative flex-1 overflow-hidden rounded-card bg-soft">
         <TopicMindMapRenderer :data="autoTree" />
       </div>
 
@@ -67,7 +67,7 @@
               <UiButton size="sm" :disabled="usage.atLimit('mindmap_ai')" @click="confirmRegenerate = true">Gerar de novo</UiButton>
             </span>
           </div>
-          <div class="relative flex-1 overflow-hidden rounded-card border border-line-strong bg-subtle">
+          <div class="relative flex-1 overflow-hidden rounded-card bg-soft">
             <TopicMindMapRenderer :data="aiMap" :color-by-type="true" @node-click="handleNodeClick" />
           </div>
         </template>

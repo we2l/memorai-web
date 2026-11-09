@@ -1,6 +1,6 @@
 <template>
   <div>
-    <details class="rounded-card bg-raised px-5 shadow-card xl:hidden">
+    <details class="rounded-card bg-raised px-5 shadow-1 xl:hidden">
       <summary class="flex min-h-touch cursor-pointer items-center text-meta font-semibold text-fg-strong">Neste artigo</summary>
       <ol class="flex list-decimal flex-col gap-1 pb-4 pl-5 text-meta text-fg">
         <li v-for="s in items" :key="s.id"><UiLink :href="`#${s.id}`" variant="muted">{{ s.title }}</UiLink></li>

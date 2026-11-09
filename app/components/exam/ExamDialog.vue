@@ -7,7 +7,7 @@
       <div class="flex flex-col gap-3">
         <UiSelect v-model="rootId" label="Caderno" :options="rootOptions" placeholder="Escolha o caderno" :error="errors.coverage" data-testid="exam-root" />
         <UiRadioGroup v-if="rootId && subjects.length" v-model="mode" label="O que cai na prova" :options="MODES" variant="cards" :columns="2" />
-        <fieldset v-if="rootId && mode === 'some'" class="min-w-0 rounded-control border border-line-strong px-3 py-2" data-testid="exam-coverage">
+        <fieldset v-if="rootId && mode === 'some'" class="min-w-0 rounded-tile bg-soft px-3 py-2" data-testid="exam-coverage">
           <legend class="px-1 text-meta font-semibold text-fg-strong">Matérias e assuntos</legend>
           <UiCheckbox
             v-for="s in subjects"
@@ -24,7 +24,7 @@
 
       <UiSwitch v-model="retaFinal" label="Reta final nos últimos 3 dias" description="A revisão traz até 20 cards extras dos assuntos da prova." />
 
-      <p v-if="limitError" role="alert" class="flex flex-wrap items-center gap-x-2 rounded-row bg-subtle px-3 py-2 text-meta text-fg" data-testid="exam-limit-error">
+      <p v-if="limitError" role="alert" class="flex flex-wrap items-center gap-x-2 rounded-row bg-soft px-3 py-2 text-meta text-fg" data-testid="exam-limit-error">
         {{ limitError }} <UiLink to="/planos">Conhecer o {{ proName }}</UiLink>
       </p>
     </form>

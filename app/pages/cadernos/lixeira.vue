@@ -17,10 +17,10 @@
     </UiSection>
 
     <UiSection v-else flush class="px-3 py-2">
-      <ul ref="list" class="divide-y divide-line" aria-label="Itens na lixeira" data-testid="trash-list">
+      <ul ref="list" class="divide-y divide-hairline" aria-label="Itens na lixeira" data-testid="trash-list">
         <li v-for="b in batches" :key="b.id" class="content-auto py-3" data-testid="trash-row">
           <div class="flex flex-wrap items-center gap-x-3 gap-y-2 px-1 sm:flex-nowrap">
-            <span class="flex size-9 shrink-0 items-center justify-center rounded-control bg-subtle text-fg-muted" aria-hidden="true">
+            <span class="flex size-9 shrink-0 items-center justify-center rounded-control bg-soft text-fg-muted" aria-hidden="true">
               <component :is="ICONS[b.kind]" class="size-4.5" />
             </span>
             <div class="min-w-0 flex-1 basis-3/5">

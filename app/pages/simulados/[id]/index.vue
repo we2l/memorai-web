@@ -36,7 +36,7 @@
 
       <template v-else-if="question">
         <!-- Never in silence: what the generation could not deliver (RF-B3) -->
-        <p v-if="shortfall > 0 && quizStore.currentIndex === 0" role="status" class="rounded-row bg-subtle px-4 py-3 text-meta text-fg" data-testid="quiz-shortfall">
+        <p v-if="shortfall > 0 && quizStore.currentIndex === 0" role="status" class="rounded-row bg-soft px-4 py-3 text-meta text-fg" data-testid="quiz-shortfall">
           Saíram {{ questions.length }} de {{ requested }} questões. As que faltaram não vieram do gerador desta vez.
         </p>
 
@@ -51,7 +51,7 @@
       </template>
     </main>
 
-    <footer v-if="state === 'answering' && question" class="sticky bottom-0 border-t border-line bg-raised pb-safe-bottom">
+    <footer v-if="state === 'answering' && question" class="sticky bottom-0 border-t border-hairline bg-raised pb-safe-bottom">
       <div class="mx-auto flex max-w-prose items-center gap-2 px-gutter py-3">
         <UiButton variant="ghost" :icon-left="ArrowLeft" :disabled="quizStore.currentIndex === 0" @click="quizStore.prevQuestion()">Anterior</UiButton>
         <span class="flex-1" />

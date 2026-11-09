@@ -1,23 +1,20 @@
 <template>
-  <div role="group" aria-label="Como foi" class="grid gap-2" :class="mode === 'two' ? 'grid-cols-2' : 'grid-cols-4'" data-testid="review-ratings" :data-mode="mode">
-    <button
+  <div role="group" aria-label="Como foi" class="grid gap-2.5" :class="mode === 'two' ? 'grid-cols-2' : 'grid-cols-4'" data-testid="review-ratings" :data-mode="mode">
+    <UiButton
       v-for="r in ratings"
       :key="r.value"
-      type="button"
-      class="flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-control px-1 py-2 font-semibold transition-colors duration-nav"
-      :class="[r.primary ? 'bg-action text-on-action shadow-press hover:bg-action-hover active:translate-y-0.5 active:shadow-press-active' : 'border border-line-strong bg-raised text-fg-strong hover:bg-subtle', mode === 'two' ? 'text-body' : 'text-meta']"
+      size="rating"
+      :variant="r.primary ? 'primary' : 'secondary'"
+      :class="mode === 'four' && 'text-body-sm'"
       :aria-keyshortcuts="r.keys"
       :aria-label="`${r.label}${intervals[r.key] ? `, volta ${intervalText(r.key)}` : ''} (${r.key_label})`"
       :data-variant="r.primary ? 'primary' : 'secondary'"
       :data-testid="`rate-${r.value}`"
       @click="$emit('rate', r.value)"
     >
-      <span class="flex items-center gap-1.5">
-        <kbd class="hidden rounded-tag border px-1 font-sans text-label pointer-fine:inline" :class="r.primary ? 'border-on-action/40' : 'border-line-strong text-fg-muted'" aria-hidden="true">{{ r.key_label }}</kbd>
-        {{ r.label }}
-      </span>
-      <span class="text-label font-normal" :class="r.primary ? 'text-on-action' : 'text-fg-muted'" aria-hidden="true">{{ intervalText(r.key) }}</span>
-    </button>
+      {{ r.label }}
+      <template #hint>{{ intervalText(r.key) }}</template>
+    </UiButton>
   </div>
 </template>
 
@@ -25,7 +22,8 @@
 // The ratings of the review. Two (prd-revisao-v5-fase-a RF-F1, the default): "Não lembrei" (neutral, never red) and
 // "Lembrei" (the screen's single primary), Again = 1 and Good = 3 in the FSRS, keys 1 and 2. Four (prd-4d-revisao-v3
 // RF-F4, the option): 1 De novo · 2 Difícil · 3 Bom · 4 Fácil, the Anki convention, "Bom" primary. The interval under
-// each, the key on a pointer device. `again` can say where the card goes instead ("no fim do lote" in the visitor's lote).
+// each (UiButton size="rating": 62 px, radius 18; prd-visual-e2 RF-2.3). The keys are in the side column and in the
+// hint line, not on the buttons. `again` can say where the card goes instead ("no fim do lote" in the visitor's lote).
 import type { ReviewButtonsMode } from '~/utils/reviewButtons'
 import { returnText } from '~/utils/intervalLabel'
 

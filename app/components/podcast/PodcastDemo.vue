@@ -4,7 +4,7 @@
          before the play), outside the PWA precache (public/demo is not in its globPatterns), no autoplay -->
     <video
       :key="colorMode"
-      class="h-auto w-full rounded-card border border-line bg-subtle"
+      class="h-auto w-full rounded-card bg-soft shadow-1"
       :class="compact ? 'max-w-32' : 'max-w-44'"
       width="390"
       height="844"

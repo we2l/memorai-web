@@ -10,12 +10,12 @@
       </div>
       <p class="mt-4 text-label font-medium text-fg-muted">Pergunta</p>
       <div class="mt-1 break-words text-body text-fg-strong" v-html="frontHtml" />
-      <p class="mt-4 border-t border-line pt-4 text-label font-medium text-fg-muted">Resposta</p>
+      <p class="mt-4 border-t border-hairline pt-4 text-label font-medium text-fg-muted">Resposta</p>
       <div class="mt-1 break-words text-body text-fg" v-html="backHtml" />
       <p v-if="card.tags?.length" class="mt-4 flex flex-wrap gap-1.5">
         <UiTag v-for="t in card.tags" :key="t">{{ t }}</UiTag>
       </p>
-      <p v-if="originText" class="mt-4 flex flex-wrap items-center gap-x-2 rounded-row bg-subtle px-3 py-2 text-meta text-fg-muted">
+      <p v-if="originText" class="mt-4 flex flex-wrap items-center gap-x-2 rounded-row bg-soft px-3 py-2 text-meta text-fg-muted">
         <span>Origem: {{ originText }}</span>
         <UiLink v-if="originTo" :to="originTo" data-testid="card-origin-link">Abrir a origem ›</UiLink>
       </p>

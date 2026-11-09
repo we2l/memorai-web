@@ -95,7 +95,7 @@ function navigateToTopic() {
   border-radius: var(--radius-row);
   border: 1px solid var(--line-strong);
   background: var(--surface-raised);
-  transition: border-color var(--motion-nav) ease, background-color var(--motion-nav) ease;
+  transition: border-color var(--dur-fast) ease, background-color var(--dur-fast) ease;
 }
 
 .subpage-node-wrapper.selected .subpage-card {

@@ -14,7 +14,7 @@
 
     <template v-else>
       <!-- Top: the way back, the path, the autosave, Editar and ⋯ -->
-      <header class="sticky top-0 z-sticky border-b border-line bg-raised md:top-topnav" data-testid="material-top">
+      <header class="sticky top-0 z-sticky border-b border-hairline bg-page md:top-topnav" data-testid="material-top">
         <div class="mx-auto flex min-h-14 max-w-reading flex-wrap items-center gap-x-3 gap-y-1 px-gutter py-2">
           <UiLink :to="back.to" variant="muted" class="inline-flex shrink-0 items-center gap-1 font-medium" :aria-label="back.aria" data-testid="material-back">
             <ChevronLeft class="size-4" aria-hidden="true" />{{ back.label }}
@@ -58,7 +58,7 @@
         :class="wide ? 'grid-cols-[240px_minmax(0,1fr)_340px]' : desktop ? 'grid-cols-[minmax(0,1fr)_340px]' : 'grid-cols-1'"
       >
         <!-- Partes e sumário (desktop ≥ 1280) -->
-        <aside v-if="wide" class="sticky top-[calc(var(--topnav-h)+5rem)] max-h-[calc(100dvh-var(--topnav-h)-6rem)] self-start overflow-y-auto">
+        <aside v-if="wide" class="sticky top-[calc(var(--topnav-h)+5rem)] max-h-[calc(100dvh-var(--topnav-h)-6rem)] self-start overflow-y-auto -m-2 p-2">
           <MaterialOutline
             :parts="parts"
             :pages="material.context.value?.document?.pages"
@@ -90,6 +90,7 @@
           :draft-saved-at="m.pendingDraft.value?.savedAt ?? null"
           :generating-text="generatingText"
           :mobile="!desktop"
+          :eyebrow="partText ? partText.charAt(0).toUpperCase() + partText.slice(1) : undefined"
           @update:title="m.noteTitle.value = $event"
           @save-title="m.saveTitle"
           @edit="m.debouncedSave"
@@ -123,14 +124,14 @@
             />
           </template>
           <template v-if="neighbors.previous || neighbors.next" #footer>
-            <nav aria-label="Outras partes" class="mt-10 grid max-w-prose gap-3 border-t border-line pt-6 sm:grid-cols-2" data-testid="part-nav">
-              <NuxtLink v-if="neighbors.previous" :to="cadernoPath(id, { note: neighbors.previous.note_id })" class="flex min-h-touch flex-col rounded-row px-3 py-2 transition-colors duration-nav hover:bg-subtle" aria-keyshortcuts="[" data-testid="part-previous" @click="onPartNav('previous')">
+            <nav aria-label="Outras partes" class="mt-10 grid max-w-prose gap-3 sm:grid-cols-2" data-testid="part-nav">
+              <NuxtLink v-if="neighbors.previous" :to="cadernoPath(id, { note: neighbors.previous.note_id })" class="flex min-h-touch flex-col rounded-tile bg-soft px-4 py-3 transition-colors duration-fast hover:bg-sunk" aria-keyshortcuts="[" data-testid="part-previous" @click="onPartNav('previous')">
                 <span class="text-label text-fg-muted">‹ Parte {{ neighbors.previous.index }}</span>
-                <span class="font-medium break-words text-fg-strong">{{ neighbors.previous.title }}</span>
+                <span class="font-semibold break-words text-fg-strong">{{ neighbors.previous.title }}</span>
               </NuxtLink>
-              <NuxtLink v-if="neighbors.next" :to="cadernoPath(id, { note: neighbors.next.note_id })" class="flex min-h-touch flex-col rounded-row px-3 py-2 text-right transition-colors duration-nav hover:bg-subtle sm:col-start-2" aria-keyshortcuts="]" data-testid="part-next" @click="onPartNav('next')">
+              <NuxtLink v-if="neighbors.next" :to="cadernoPath(id, { note: neighbors.next.note_id })" class="flex min-h-touch flex-col rounded-tile bg-soft px-4 py-3 text-right transition-colors duration-fast hover:bg-sunk sm:col-start-2" aria-keyshortcuts="]" data-testid="part-next" @click="onPartNav('next')">
                 <span class="text-label text-fg-muted">Parte {{ neighbors.next.index }} ›</span>
-                <span class="font-medium break-words text-fg-strong">{{ neighbors.next.title }}</span>
+                <span class="font-semibold break-words text-fg-strong">{{ neighbors.next.title }}</span>
               </NuxtLink>
             </nav>
           </template>
@@ -145,7 +146,7 @@
         </MaterialReader>
 
         <!-- Cards desta parte (desktop ≥ 1024) -->
-        <aside v-if="desktop" class="sticky top-[calc(var(--topnav-h)+5rem)] max-h-[calc(100dvh-var(--topnav-h)-6rem)] self-start overflow-y-auto pb-2" aria-label="Cards do material">
+        <aside v-if="desktop" class="sticky top-[calc(var(--topnav-h)+5rem)] max-h-[calc(100dvh-var(--topnav-h)-6rem)] self-start overflow-y-auto -m-2 p-2" aria-label="Cards do material">
           <template v-if="material.context.value">
             <MaterialCardsPanel
               :context="material.context.value"
@@ -177,7 +178,7 @@
       <!-- Phone: the reader alone, with Sumário and Cards in sheets and the primary at hand -->
       <div
         v-if="!desktop && !keyboardOpen && m.editingNote.value"
-        class="fixed inset-x-0 bottom-[calc(var(--nav-h)+var(--miniplayer-h))] z-sticky flex items-center gap-2 border-t border-line bg-raised px-gutter-safe py-3 short:py-1.5"
+        class="fixed inset-x-0 bottom-[calc(var(--nav-h)+var(--miniplayer-h))] z-sticky flex items-center gap-2 border-t border-hairline bg-raised px-gutter-safe py-3 short:py-1.5"
         data-testid="material-bar"
       >
         <UiButton v-if="outlineItems.length" size="sm" class="whitespace-nowrap" :icon-left="ListTree" @click="outlineSheet = true">Sumário</UiButton>

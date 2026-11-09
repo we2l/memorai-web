@@ -42,7 +42,7 @@
       <template v-else-if="state === 'failed'">
         <div class="mb-6 flex flex-col items-center gap-3 text-center">
           <UiBaigiMascot :size="72" priority />
-          <h1 class="text-page-title-sm text-fg-strong">Não foi dessa vez, e tudo bem.</h1>
+          <h1 class="text-page-title text-fg-strong">Não foi dessa vez, e tudo bem.</h1>
           <p class="text-body text-fg">
             Uma prova é uma fotografia de um dia, não do quanto você sabe. O que você revisou continua na sua memória e nos seus cadernos.
           </p>

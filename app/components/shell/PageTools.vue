@@ -7,7 +7,7 @@
       <UiIconButton :icon="Search" label="Buscar" aria-haspopup="dialog" @click="openSearch" />
       <button
         type="button"
-        class="hit-touch inline-flex min-h-9 items-center gap-1.5 rounded-row bg-subtle px-3 text-meta font-semibold text-fg-strong"
+        class="hit-touch inline-flex min-h-9 items-center gap-1.5 rounded-row bg-soft px-3 text-meta font-semibold text-fg-strong"
         aria-haspopup="dialog"
         @click="addSheet.show('header')"
       >

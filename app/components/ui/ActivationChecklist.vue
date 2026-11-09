@@ -1,10 +1,16 @@
 <template>
-  <UiSection v-if="!allDone" title="Primeiros passos" :description="`${doneCount} de ${items.length} concluídos`">
-    <ul class="-mx-3 -mb-2 divide-y divide-line">
+  <UiSection v-if="!allDone" :aria-labelledby="`${uid}-title`">
+    <div class="flex items-baseline justify-between gap-3">
+      <h2 :id="`${uid}-title`" class="text-title text-fg-strong">Primeiros passos</h2>
+      <p class="text-label font-semibold tabular-nums text-fg-muted">{{ doneCount }} de {{ items.length }}<span class="sr-only"> concluídos</span></p>
+    </div>
+    <UiProgressBar class="mt-3" :segments="items.length" :value="doneCount" :max="items.length" :label="`Primeiros passos: ${doneCount} de ${items.length} concluídos`" />
+
+    <ul class="-mx-2 mt-2 -mb-2 divide-y divide-hairline">
       <li v-for="item in items" :key="item.key">
         <!-- Done: plain text -->
-        <div v-if="item.done" class="flex min-h-touch items-center gap-3 px-3 py-2">
-          <span class="flex size-5 shrink-0 items-center justify-center rounded-full bg-action text-on-action" aria-hidden="true">
+        <div v-if="item.done" class="flex min-h-touch items-center gap-3 px-2 py-2">
+          <span class="flex size-6 shrink-0 items-center justify-center rounded-tag bg-metric-goal-bg text-metric-goal" aria-hidden="true">
             <Check class="size-3.5" stroke-width="3" />
           </span>
           <span class="flex-1 text-meta text-fg-muted line-through">{{ item.label }}</span>
@@ -12,10 +18,10 @@
         </div>
 
         <!-- The first pending step carries the only primary of the screen (prd-4a-hoje-v3 RF-F5) -->
-        <div v-else-if="primary && item.key === firstPending" class="flex items-center gap-3 px-3 py-2">
-          <span class="size-5 shrink-0 rounded-full border-2 border-line-strong" aria-hidden="true" />
+        <div v-else-if="primary && item.key === firstPending" class="flex items-center gap-3 px-2 py-2.5">
+          <span class="size-6 shrink-0 rounded-tag bg-soft" aria-hidden="true" />
           <div class="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-x-3 gap-y-2">
-            <span :id="`${uid}-${item.key}`" class="font-medium text-fg-strong">
+            <span :id="`${uid}-${item.key}`" class="font-semibold text-fg-strong">
               {{ item.label }}
               <span v-if="item.hint" class="block text-meta font-normal text-fg-muted" data-testid="checklist-hint">{{ item.hint }}</span>
             </span>
@@ -28,10 +34,10 @@
           :is="item.to ? NuxtLink : 'button'"
           v-else
           v-bind="item.to ? { to: item.to } : { type: 'button' }"
-          class="flex min-h-touch w-full items-center gap-3 rounded-row px-3 py-2 text-left transition-colors duration-nav hover:bg-subtle"
+          class="flex min-h-touch w-full items-center gap-3 rounded-row px-2 py-2 text-left transition-colors duration-fast hover:bg-soft"
           @click="select(item.key)"
         >
-          <span class="size-5 shrink-0 rounded-full border-2 border-line-strong" aria-hidden="true" />
+          <span class="size-6 shrink-0 rounded-tag bg-soft" aria-hidden="true" />
           <span class="flex-1 font-medium text-fg-strong">
             {{ item.label }}
             <span v-if="item.hint" class="block text-meta font-normal text-fg-muted" data-testid="checklist-hint">{{ item.hint }}</span>
@@ -44,7 +50,8 @@
 </template>
 
 <script setup lang="ts">
-// Activation checklist of a new account (prd-4a-hoje-v3 RF-F5): five first steps, each pending one leads
+// Activation checklist of a new account (prd-4a-hoje-v3 RF-F5; E2 support skin, prd-visual-e2 RF-3.6: the count, the
+// segments and the list): five first steps, each pending one leads
 // to its action; "Adicionar material" opens the "+ Adicionar" sheet of the shell (it writes into the first
 // caderno when no other is open). With `primary`, the first pending step is the main action of the screen.
 import { Check, ChevronRight } from 'lucide-vue-next'

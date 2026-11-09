@@ -2,7 +2,7 @@
   <div role="status" class="flex flex-col items-center text-center">
     <div class="relative mb-3" aria-hidden="true">
       <UiBaigiMascot v-if="mascot" :size="96" state="celebrating" class="motion-safe:animate-celebrate-pop" />
-      <span v-else class="flex h-16 w-16 items-center justify-center rounded-full bg-subtle motion-safe:animate-celebrate-pop">
+      <span v-else class="flex h-16 w-16 items-center justify-center rounded-full bg-soft motion-safe:animate-celebrate-pop">
         <component :is="KINDS[kind].icon" class="h-8 w-8 fill-current" :class="KINDS[kind].shape" />
       </span>
       <template v-if="!reduced">
@@ -15,7 +15,7 @@
         />
       </template>
     </div>
-    <component :is="level ? `h${level}` : 'p'" class="text-fg-strong outline-none" :class="level ? 'text-page-title-sm sm:text-page-title' : 'text-section'" :tabindex="level ? -1 : undefined" data-celebration-title>{{ title }}</component>
+    <component :is="level ? `h${level}` : 'p'" class="text-fg-strong outline-none" :class="level ? 'text-page-title' : 'text-section'" :tabindex="level ? -1 : undefined" data-celebration-title>{{ title }}</component>
     <p class="mt-1 flex items-center gap-1.5 text-meta font-semibold" :class="KINDS[kind].text">
       <component :is="KINDS[kind].icon" class="size-4 fill-current" :class="KINDS[kind].shape" aria-hidden="true" />
       {{ subtitle ?? KINDS[kind].label }}
@@ -51,10 +51,10 @@ const props = withDefaults(defineProps<{
 }>(), { subtitle: undefined, stats: undefined, mascot: true, level: undefined })
 
 const KINDS: Record<CelebrationKind, { label: string; icon: typeof Star; shape: string; text: string; burst: string[] }> = {
-  batch: { label: 'Lote concluído', icon: Sparkles, shape: 'text-celebrate', text: 'text-celebrate-fg', burst: ['bg-action', 'bg-celebrate'] },
-  goal: { label: 'Meta de hoje cumprida', icon: Star, shape: 'text-celebrate', text: 'text-celebrate-fg', burst: ['bg-celebrate', 'bg-action'] },
-  streak: { label: 'Sequência mantida', icon: Flame, shape: 'text-streak', text: 'text-streak-fg', burst: ['bg-streak', 'bg-celebrate'] },
-  milestone: { label: 'Marco alcançado', icon: Trophy, shape: 'text-celebrate', text: 'text-celebrate-fg', burst: ['bg-celebrate', 'bg-streak', 'bg-action'] },
+  batch: { label: 'Lote concluído', icon: Sparkles, shape: 'text-metric-goal', text: 'text-metric-goal-fg', burst: ['bg-action', 'bg-metric-goal'] },
+  goal: { label: 'Meta de hoje cumprida', icon: Star, shape: 'text-metric-goal', text: 'text-metric-goal-fg', burst: ['bg-metric-goal', 'bg-action'] },
+  streak: { label: 'Sequência mantida', icon: Flame, shape: 'text-metric-streak', text: 'text-metric-streak-fg', burst: ['bg-metric-streak', 'bg-metric-goal'] },
+  milestone: { label: 'Marco alcançado', icon: Trophy, shape: 'text-metric-goal', text: 'text-metric-goal-fg', burst: ['bg-metric-goal', 'bg-metric-streak', 'bg-action'] },
 }
 
 const reduced = useReducedMotion()

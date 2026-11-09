@@ -1,5 +1,5 @@
 <template>
-  <ul v-if="!failed" class="w-full divide-y divide-line rounded-card bg-subtle px-1 text-left" data-testid="onboarding-tomorrow-list">
+  <ul v-if="!failed" class="w-full divide-y divide-hairline rounded-card bg-soft px-1 text-left" data-testid="onboarding-tomorrow-list">
     <li class="px-3 py-3 text-body text-fg-strong" data-testid="onboarding-tomorrow">
       <UiSkeleton v-if="loading || !forecast" variant="text" :lines="1" />
       <template v-else-if="forecast.due_count > 0">

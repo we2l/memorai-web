@@ -1,6 +1,6 @@
 <template>
   <div
-    class="fixed inset-x-0 bottom-[calc(var(--nav-h)+var(--miniplayer-h))] z-sticky border-t border-line bg-raised shadow-raised md:bottom-[calc(var(--miniplayer-h)+16px)] md:mx-auto md:max-w-3xl md:rounded-card md:border"
+    class="fixed inset-x-0 bottom-[calc(var(--nav-h)+var(--miniplayer-h))] z-sticky bg-raised shadow-float md:bottom-[calc(var(--miniplayer-h)+16px)] md:mx-auto md:max-w-3xl md:rounded-sheet"
     role="region"
     aria-label="Cards selecionados"
     data-testid="card-selection"
@@ -16,7 +16,7 @@
         data-testid="card-selection-review"
         @click="reviewTo && $emit('review')"
       >
-        Revisar
+        Revisar {{ count }}
       </UiButton>
       <UiButton
         size="sm"

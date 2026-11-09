@@ -1,5 +1,5 @@
 <template>
-  <section v-if="visible" class="w-full rounded-card bg-raised p-5 shadow-card sm:p-6" aria-labelledby="diary-title" data-testid="error-diary">
+  <section v-if="visible" class="w-full rounded-card bg-raised p-5 shadow-1 sm:p-6" aria-labelledby="diary-title" data-testid="error-diary">
     <h2 id="diary-title" class="text-meta font-semibold text-fg-strong">Por que você errou?</h2>
     <p class="mb-3 text-label text-fg-muted">Escolha um motivo para salvar.</p>
 
@@ -8,9 +8,9 @@
         v-for="opt in reasons"
         :key="opt.value"
         type="button"
-        class="inline-flex min-h-touch items-center gap-1.5 rounded-control border px-3 text-meta font-medium transition-colors duration-nav"
+        class="inline-flex min-h-touch items-center gap-1.5 rounded-control border px-3 text-meta font-medium transition-colors duration-fast"
         :aria-pressed="selected === opt.value"
-        :class="selected === opt.value ? 'border-action bg-action-subtle text-action-fg' : 'border-line-strong bg-raised text-fg hover:bg-subtle'"
+        :class="selected === opt.value ? 'border-action bg-action-subtle text-action-fg' : 'border-line-strong bg-raised text-fg hover:bg-soft'"
         @click="selected = opt.value"
       >
         <component :is="opt.icon" class="size-3.5" aria-hidden="true" /> {{ opt.label }}

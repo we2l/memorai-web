@@ -3,7 +3,7 @@
     <nav aria-label="Caminho" class="mx-auto mb-4 max-w-article text-meta text-fg-muted">
       <UiLink to="/ferramentas" variant="muted">Ferramentas</UiLink>
     </nav>
-    <h1 class="mx-auto mb-3 max-w-article text-page-title-sm text-fg-strong sm:text-page-title">Plano até a prova</h1>
+    <h1 class="mx-auto mb-3 max-w-article text-page-title text-fg-strong">Plano até a prova</h1>
     <p class="blog-lead mx-auto mb-8 max-w-article text-fg">
       Com a data da prova e quantos cards você quer dominar, o plano mostra quantos cards novos e quantas revisões cabem por dia,
       e quanto você deve lembrar no dia da prova se mantiver o ritmo.

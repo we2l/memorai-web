@@ -26,7 +26,7 @@ describe('UiSection', () => {
       attachTo: document.body,
     })
     expect(w.element.tagName).toBe('SECTION')
-    expect(w.classes()).toEqual(expect.arrayContaining(['bg-raised', 'shadow-card', 'rounded-card']))
+    expect(w.classes()).toEqual(expect.arrayContaining(['bg-raised', 'shadow-1', 'rounded-card']))
     const heading = w.get('h2')
     expect(heading.text()).toBe('Plano do dia')
     expect(w.attributes('aria-labelledby')).toBe(heading.attributes('id'))
@@ -37,8 +37,8 @@ describe('UiSection', () => {
 
   it('tinted e plain; nível do título; flush sem padding', async () => {
     const w = await mountSuspended(Section, { props: { title: 'Próximo passo', variant: 'tinted', level: 3 } })
-    expect(w.classes()).toContain('bg-tinted')
-    expect(w.classes()).not.toContain('shadow-card')
+    expect(w.classes()).toEqual(expect.arrayContaining(['bg-tinted', 'rounded-hero', 'shadow-tinted']))
+    expect(w.classes()).not.toContain('shadow-1')
     expect(w.find('h3').exists()).toBe(true)
     await w.setProps({ variant: 'plain' })
     expect(w.classes()).toEqual([])
@@ -68,7 +68,7 @@ describe('UiPageHeader', () => {
       attachTo: document.body,
     })
     expect(w.findAll('h1')).toHaveLength(1)
-    expect(w.get('h1').classes()).toEqual(expect.arrayContaining(['text-page-title-sm', 'sm:text-page-title']))
+    expect(w.get('h1').classes()).toEqual(expect.arrayContaining(['text-page-title']))
     const back = w.get('a')
     expect(back.attributes('href')).toBe('/cadernos')
     expect(back.text()).toBe('Cadernos')
@@ -87,7 +87,7 @@ describe('UiListRow', () => {
     })
     expect(w.element.tagName).toBe('A')
     expect(w.attributes('href')).toBe('/cadernos/1')
-    expect(w.classes()).toEqual(expect.arrayContaining(['min-h-touch', 'hover:bg-subtle']))
+    expect(w.classes()).toEqual(expect.arrayContaining(['min-h-touch', 'hover:bg-soft']))
     expect(w.text()).toContain('Português')
     expect(w.text()).toContain('12 hoje')
     expect(w.text()).toContain('62%')
@@ -111,7 +111,7 @@ describe('UiListRow', () => {
     expect(onClick).toHaveBeenCalled()
     const div = await mountSuspended(ListRow, { props: { title: 'Fixa' } })
     expect(div.element.tagName).toBe('DIV')
-    expect(div.classes()).not.toContain('hover:bg-subtle')
+    expect(div.classes()).not.toContain('hover:bg-soft')
   })
 })
 
@@ -128,12 +128,12 @@ describe('UiStat', () => {
   it('conquista: forma pequena decorativa e texto no -fg do tom', async () => {
     const w = await mountSuspended(Stat, { props: { value: 6, unit: 'dias', label: 'seguidos', tone: 'streak' } })
     const icon = w.get('svg')
-    expect(icon.classes()).toContain('text-streak')
+    expect(icon.classes()).toContain('text-metric-streak')
     expect(icon.attributes('aria-hidden')).toBe('true')
-    expect(w.findAll('p')[1]!.classes()).toContain('text-streak-fg')
+    expect(w.findAll('p')[1]!.classes()).toContain('text-metric-streak-fg')
     const c = await mountSuspended(Stat, { props: { value: 3, label: 'lotes', tone: 'celebrate', size: 'lg' } })
-    expect(c.findAll('p')[1]!.classes()).toContain('text-celebrate-fg')
-    expect(c.html()).toContain('text-stat')
+    expect(c.findAll('p')[1]!.classes()).toContain('text-metric-goal-fg')
+    expect(c.html()).toContain('num-l')
   })
 })
 
@@ -159,7 +159,7 @@ describe('UiProgressBar', () => {
     expect(w.get('[role="progressbar"] span').classes()).toContain('bg-progress-neutral')
     expect(w.text()).toBe('75%')
     await w.setProps({ tone: 'celebrate' })
-    expect(w.get('[role="progressbar"] span').classes()).toContain('bg-celebrate')
+    expect(w.get('[role="progressbar"] span').classes()).toContain('bg-metric-goal')
   })
 
   it('segmentos: "1 de 3" e um segmento cheio', async () => {
@@ -181,7 +181,7 @@ describe('UiProgressBar', () => {
 
 describe('UiTag', () => {
   it.each([
-    ['neutral', 'bg-subtle', 'text-fg-muted'],
+    ['neutral', 'bg-soft', 'text-fg-muted'],
     ['action', 'bg-action-subtle', 'text-action-fg'],
     ['success', 'bg-success-subtle', 'text-success'],
     ['warning', 'bg-warning-subtle', 'text-warning'],
@@ -194,7 +194,7 @@ describe('UiTag', () => {
 
   it('prática: fundo neutro com ponto colorido (cor só pequena)', async () => {
     const w = await mountSuspended(Tag, { props: { tone: 'quiz' }, slots: { default: () => 'Questões' } })
-    expect(w.classes()).toEqual(expect.arrayContaining(['bg-subtle', 'text-fg']))
+    expect(w.classes()).toEqual(expect.arrayContaining(['bg-soft', 'text-fg']))
     expect(w.get('[aria-hidden="true"]').classes()).toContain('bg-quiz')
     const l = await mountSuspended(Tag, { props: { tone: 'listen' }, slots: { default: () => 'Ouvir' } })
     expect(l.get('[aria-hidden="true"]').classes()).toContain('bg-listen')
@@ -221,12 +221,12 @@ describe('UiSubjectMark', () => {
 
 describe('UiPracticeIcon', () => {
   it.each([
-    ['review', 'text-action-fg'],
-    ['quiz', 'text-quiz'],
-    ['listen', 'text-listen'],
-  ] as const)('%s: cor do modo só no ícone, quadradinho neutro', async (mode, tone) => {
+    ['review', 'bg-action-subtle', 'text-action-fg'],
+    ['quiz', 'bg-quiz-subtle', 'text-quiz'],
+    ['listen', 'bg-listen-subtle', 'text-listen'],
+  ] as const)('%s: a cor do modo no ícone e no azulejo dele (E2)', async (mode, tile, tone) => {
     const w = await mountSuspended(PracticeIcon, { props: { mode } })
-    expect(w.classes()).toEqual(expect.arrayContaining(['bg-subtle', tone, 'size-9']))
+    expect(w.classes()).toEqual(expect.arrayContaining([tile, tone, 'size-9']))
     expect(w.attributes('aria-hidden')).toBe('true')
   })
 

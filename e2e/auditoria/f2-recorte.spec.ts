@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import type { Page } from '@playwright/test'
-import { test, expect, gotoApp, apiCall, tinker } from './support/fixtures'
+import { test, expect, gotoApp, apiCall, tinker, continueBand } from './support/fixtures'
 import { ensureF2Seed, F2 } from './support/seed-f2'
 
 /**
@@ -29,6 +29,7 @@ async function finishSession(page: Page, n: number) {
     const rated = page.waitForResponse(r => r.request().method() === 'POST' && r.url().endsWith('/api/review'))
     await page.keyboard.press('4')
     await rated
+    await continueBand(page)
   }
 }
 

@@ -1,7 +1,7 @@
 <template>
   <div v-if="podcast" class="flex min-h-0 flex-col gap-5" data-testid="player-panel">
     <div class="flex items-center gap-4">
-      <span class="flex size-18 shrink-0 items-center justify-center rounded-card bg-subtle" aria-hidden="true">
+      <span class="flex size-18 shrink-0 items-center justify-center rounded-card bg-soft" aria-hidden="true">
         <picture class="contents">
           <source srcset="~/assets/mascots/mascot-baigi-podcast.avif" type="image/avif">
           <img src="~/assets/mascots/mascot-baigi-podcast.webp" alt="" class="size-15 object-contain" width="60" height="60" loading="lazy" decoding="async">
@@ -20,7 +20,7 @@
         :max="duration || 1"
         step="1"
         :value="Math.min(player.currentTime, duration || 0)"
-        class="-my-3.5 h-11 w-full cursor-pointer accent-fg-strong"
+        class="-my-3.5 h-11 w-full cursor-pointer accent-action"
         aria-label="Posição no episódio"
         :aria-valuetext="`${formatTime(player.currentTime)} de ${formatTime(duration)}`"
         @input="onSeek"
@@ -36,8 +36,8 @@
       <!-- The primary of the player: play/pause (neutral beside the page's own primary, one purple per screen) -->
       <button
         type="button"
-        class="flex size-16 items-center justify-center rounded-full transition-colors duration-nav active:translate-y-0.5"
-        :class="primary ? 'bg-action text-on-action shadow-press hover:bg-action-hover active:shadow-press-active' : 'bg-fg-strong text-raised'"
+        class="flex size-16 items-center justify-center rounded-full transition-colors duration-fast active:translate-y-0.5"
+        :class="primary ? 'bg-action text-on-action shadow-action hover:bg-action-hover active:scale-97 motion-reduce:active:scale-100' : 'bg-fg-strong text-raised'"
         :aria-label="player.isPlaying ? 'Pausar' : 'Tocar'"
         data-testid="player-toggle"
         @click="toggle"
@@ -60,7 +60,7 @@
 
     <PodcastTranscript :lines="lines" :current-ms="player.currentTime * 1000" :loading="loadingTranscript" class="min-h-0" @seek="player.seek($event)" />
 
-    <div class="flex flex-wrap items-center gap-2 border-t border-line pt-3">
+    <div class="flex flex-wrap items-center gap-2 border-t border-hairline pt-3">
       <UiButton size="sm" variant="ghost" :icon-left="Download" :loading="downloading" @click="download">Baixar o áudio</UiButton>
     </div>
   </div>

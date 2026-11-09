@@ -80,7 +80,7 @@ test.describe('Configurações (Free)', () => {
     expect((await apiCall(page, 'GET', '/stats')).data.goal.target_batches).toBe(2)
 
     await gotoApp(page, '/hoje')
-    await expect(page.getByText(/de 2 lotes/).first()).toBeVisible()
+    await expect(page.getByTestId('home-goal').locator('[role=text]')).toHaveAttribute('aria-label', /\/ 2 lotes/)
   })
 
   test('o tamanho do lote salva sozinho e muda a meta do /stats e o lote da revisão', async ({ page }) => {
@@ -105,7 +105,7 @@ test.describe('Configurações (Free)', () => {
 
     // 25 cards in lotes of 10: 3 lotes, the review cuts them with the size of /me
     await gotoApp(page, `/revisar?scope=topic:${topic}`)
-    await expect(page.getByText(/Lote 1 de 3 · card 1 de 10/)).toBeVisible()
+    await expect(page.getByTestId('review-batch')).toContainText(/Lote 1 de 3\s*card 1 de 10/)
   })
 
   test('âncoras antigas vão para a seção nova', async ({ page }) => {

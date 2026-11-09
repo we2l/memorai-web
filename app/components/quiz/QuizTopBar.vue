@@ -1,5 +1,5 @@
 <template>
-  <header class="sticky top-0 z-nav border-b border-line bg-raised" data-testid="quiz-topbar">
+  <header class="sticky top-0 z-nav border-b border-hairline bg-raised" data-testid="quiz-topbar">
     <div class="mx-auto flex max-w-prose items-center gap-3 px-gutter py-2">
       <UiButton size="sm" variant="ghost" :icon-left="ChevronLeft" class="-ml-3" @click="emit('exit')">Sair</UiButton>
       <p class="min-w-0 flex-1 text-center text-meta font-semibold text-fg-strong" aria-live="polite">

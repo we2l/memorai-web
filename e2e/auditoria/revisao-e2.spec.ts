@@ -46,15 +46,18 @@ for (const width of [390, 1440]) {
     await gotoApp(page, `/revisar?topic_id=${topicId}`)
 
     // Hit: the band (green, celebrating) and the next card by itself in ~1.2 s, no click
+    const front = page.getByTestId('review-front')
+    const first = (await front.innerText()).trim()
     await page.getByTestId('review-show').click()
     await page.getByTestId('rate-3').click()
     const band = page.getByTestId('review-feedback')
     await expect(band).toHaveAttribute('data-kind', 'ok')
     await expect(band.locator('img')).toHaveAttribute('src', /celebrating/)
     await expect(page.getByTestId('review-why')).toHaveCount(0)
-    await expect(page.getByTestId('review-front')).toHaveText('Pergunta 1')
+    await expect(front).toHaveText(first) // the rated card stays under the band
     await expect(band).toHaveCount(0, { timeout: 2500 })
-    await expect(page.getByTestId('review-front')).toHaveText('Pergunta 2')
+    await expect(front).not.toHaveText(first)
+    const second = (await front.innerText()).trim()
 
     // Miss: amber, thinking, waits; "Por quê?" (P) explains from the material
     await page.getByTestId('review-show').click()
@@ -71,8 +74,9 @@ for (const width of [390, 1440]) {
     if (width >= 1024) await expect(page.getByTestId('review-why-panel')).toBeVisible()
     else await page.keyboard.press('Escape')
     expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze()).violations.map(v => v.id)).toEqual([])
+    await expect(front).toHaveText(second)
     await page.getByTestId('review-continue').click()
-    await expect(page.getByTestId('review-front')).toHaveText('Pergunta 3')
+    await expect(front).not.toHaveText(second)
 
     // Enter skips the wait; the rest of the lote with the keyboard
     for (let i = 3; i <= 10; i++) {

@@ -180,7 +180,7 @@ test('"Abrir o trecho" (tecla O) leva ao material e "Voltar à revisão" retoma 
   await expect(cardFace(page).getByTestId('review-front')).not.toHaveText(rated)
   await page.keyboard.press('Space')
   await expect(page.getByTestId('review-origin-link')).toHaveText(/Abrir a nota/)
-  await page.waitForResponse(r => r.url().endsWith('/api/review') && r.request().method() === 'POST').catch(() => {})
+  // The rating went out while the band was up (prd-visual-e2 RF-2.4): nothing to wait for here
   await page.keyboard.press('o')
   await expect(page).toHaveURL(new RegExp(`/material/${note.id}\\?from=review`))
   const back = page.getByTestId('material-back')

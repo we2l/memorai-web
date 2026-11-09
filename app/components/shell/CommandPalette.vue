@@ -20,7 +20,7 @@
       >
         <template #prefix><Search class="size-4.5" aria-hidden="true" /></template>
         <template #suffix>
-          <kbd class="hidden rounded-tag border border-line px-1.5 text-label text-fg-muted sm:inline">{{ isMac ? '⌘' : 'Ctrl' }} K</kbd>
+          <kbd class="hidden rounded-tag bg-soft px-1.5 text-label shadow-0 text-fg-muted sm:inline">{{ isMac ? '⌘' : 'Ctrl' }} K</kbd>
         </template>
       </UiInput>
 
@@ -48,7 +48,7 @@
       <p v-if="query && !hasMatches" class="py-6 text-center text-meta text-fg-muted" role="status">
         Nada encontrado para “{{ query }}”.
       </p>
-      <p class="hidden gap-4 border-t border-line pt-3 text-label text-fg-muted sm:flex" aria-hidden="true">
+      <p class="hidden gap-4 border-t border-hairline pt-3 text-label text-fg-muted sm:flex" aria-hidden="true">
         <span>↑↓ navegar</span><span>↵ abrir</span><span>Esc fechar</span>
       </p>
     </div>

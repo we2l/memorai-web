@@ -1,14 +1,16 @@
 <template>
   <UiSection as="header" class="flex flex-col gap-3" data-testid="quiz-score">
     <p class="text-meta text-fg-muted">{{ summary }}</p>
-    <h1 class="text-page-title text-fg-strong">Você acertou {{ correct }} de {{ total }}</h1>
-    <div class="flex flex-wrap items-baseline gap-x-5 gap-y-2">
-      <span class="text-stat tabular-nums text-fg-strong">{{ percent }}%</span>
-      <!-- The change against the last time, in words and with an arrow (never the color alone) -->
-      <p v-if="previous" class="flex items-center gap-1.5 text-meta font-semibold" :class="deltaTone" data-testid="quiz-delta">
-        <component :is="deltaIcon" class="size-4 shrink-0" aria-hidden="true" />
-        {{ deltaText }}
-      </p>
+    <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
+      <UiNumber :value="`${percent}%`" size="xl" />
+      <div class="min-w-0">
+        <h1 class="text-section text-fg-strong">Você acertou {{ correct }} de {{ total }}</h1>
+        <!-- The change against the last time, in words and with an arrow (never the color alone) -->
+        <p v-if="previous" class="mt-1.5 flex items-center gap-1.5 text-meta font-semibold" :class="deltaTone" data-testid="quiz-delta">
+          <component :is="deltaIcon" class="size-4 shrink-0" aria-hidden="true" />
+          {{ deltaText }}
+        </p>
+      </div>
     </div>
   </UiSection>
 </template>

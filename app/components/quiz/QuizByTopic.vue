@@ -3,14 +3,14 @@
     <!-- Desktop: a table; phone: 2 lines per assunto, no horizontal scroll -->
     <table class="hidden w-full text-body sm:table">
       <thead>
-        <tr class="border-b border-line text-left text-label text-fg-muted">
+        <tr class="border-b border-hairline text-left text-label text-fg-muted">
           <th scope="col" class="py-2 pr-3 font-medium">Assunto</th>
           <th scope="col" class="px-3 py-2 text-right font-medium">Acertos</th>
           <th scope="col" class="px-3 py-2 text-right font-medium">Nesta bateria</th>
           <th scope="col" class="py-2 pl-3 text-right font-medium">Histórico</th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-line">
+      <tbody class="divide-y divide-hairline">
         <tr v-for="row in rows" :key="row.topic_id">
           <th scope="row" class="py-3 pr-3 text-left font-medium">
             <UiLink :to="cadernoPath(row.topic_id)">{{ row.name }}</UiLink>
@@ -28,7 +28,7 @@
         </tr>
       </tbody>
     </table>
-    <ul class="divide-y divide-line sm:hidden">
+    <ul class="divide-y divide-hairline sm:hidden">
       <li v-for="row in rows" :key="row.topic_id" class="py-3">
         <UiLink :to="cadernoPath(row.topic_id)" class="font-medium">{{ row.name }}</UiLink>
         <p class="mt-0.5 text-meta text-fg">

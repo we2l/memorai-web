@@ -1,6 +1,6 @@
 <template>
   <UiDialog v-model="open" size="sm" title="Preferências de cookies">
-    <div class="divide-y divide-line">
+    <div class="divide-y divide-hairline">
       <UiSwitch
         :model-value="true"
         label="Essenciais"

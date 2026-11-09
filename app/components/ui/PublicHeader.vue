@@ -1,5 +1,5 @@
 <template>
-  <header class="border-b border-line bg-raised">
+  <header class="border-b border-hairline bg-raised">
     <div class="mx-auto flex h-14 max-w-page items-center justify-between gap-4 px-gutter">
       <NuxtLink to="/" class="inline-flex min-h-touch items-center rounded-control" aria-label="Baigi: ir para o início">
         <UiLogo :icon-size="24" text-class="text-body text-fg-strong" />

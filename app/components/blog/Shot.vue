@@ -2,11 +2,11 @@
   <figure class="mx-auto max-w-80">
     <picture class="dark:hidden">
       <source :srcset="`${s.light}.avif`" type="image/avif">
-      <img :src="`${s.light}.webp`" :alt="s.alt" :width="s.width" :height="s.height" loading="lazy" decoding="async" class="h-auto w-full rounded-card border border-line">
+      <img :src="`${s.light}.webp`" :alt="s.alt" :width="s.width" :height="s.height" loading="lazy" decoding="async" class="h-auto w-full rounded-card shadow-1">
     </picture>
     <picture class="hidden dark:block">
       <source :srcset="`${s.dark}.avif`" type="image/avif">
-      <img :src="`${s.dark}.webp`" :alt="s.alt" :width="s.width" :height="s.height" loading="lazy" decoding="async" class="h-auto w-full rounded-card border border-line">
+      <img :src="`${s.dark}.webp`" :alt="s.alt" :width="s.width" :height="s.height" loading="lazy" decoding="async" class="h-auto w-full rounded-card shadow-1">
     </picture>
     <figcaption class="mt-2 text-center text-meta text-fg-muted">{{ caption }}</figcaption>
   </figure>

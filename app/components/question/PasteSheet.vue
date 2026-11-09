@@ -36,7 +36,7 @@
 
       <QuestionEditor v-if="drafts.length === 1" v-model="drafts[0]!" :index="0" :errors="errors[0] ?? {}" />
 
-      <ul v-else class="-mx-1 flex flex-col divide-y divide-line" aria-label="Questões encontradas">
+      <ul v-else class="-mx-1 flex flex-col divide-y divide-hairline" aria-label="Questões encontradas">
         <li v-for="(d, i) in drafts" :key="i" class="py-1">
           <div class="flex items-center gap-1">
             <button

@@ -44,7 +44,7 @@
     <PlansPlanCompareTable />
 
     <UiSection title="Perguntas sobre cobrança" flush class="px-5 pt-5 pb-1 sm:px-6 sm:pt-6" data-testid="plan-faq">
-      <div class="divide-y divide-line">
+      <div class="divide-y divide-hairline">
         <details v-for="faq in FAQS" :key="faq.q" class="group">
           <summary class="flex min-h-touch cursor-pointer list-none items-center justify-between gap-3 py-2 text-body font-semibold text-fg-strong">
             {{ faq.q }}

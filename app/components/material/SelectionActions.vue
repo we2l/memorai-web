@@ -5,7 +5,7 @@
     role="toolbar"
     aria-label="Ações para o trecho selecionado"
     data-testid="selection-actions"
-    class="z-popover flex flex-wrap items-center gap-1 rounded-control border border-line-strong bg-float p-1 shadow-float"
+    class="z-popover flex flex-wrap items-center gap-1 rounded-control bg-float p-1 shadow-float"
     :class="mobile ? 'fixed inset-x-gutter bottom-[calc(var(--nav-h)+var(--miniplayer-h)+var(--sticky-action-h)+8px)] justify-center' : 'absolute -translate-x-1/2'"
     :style="mobile ? undefined : position"
     @mousedown.prevent

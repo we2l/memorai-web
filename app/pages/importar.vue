@@ -31,7 +31,7 @@
           <template v-if="store.preview.media_count"> · {{ countOf(store.preview.media_count, 'mídia', 'mídias') }}</template>
         </p>
 
-        <div class="mt-4 border-t border-line pt-4" data-testid="import-mapping">
+        <div class="mt-4 border-t border-hairline pt-4" data-testid="import-mapping">
           <h3 class="text-meta font-semibold text-fg-strong">Como fica no Baigi</h3>
           <template v-if="store.preview.mapping">
             <ul class="mt-1 flex flex-col gap-1 text-body text-fg">
@@ -43,7 +43,7 @@
           <p v-else class="mt-1 text-body text-fg">Um caderno por baralho raiz, com as matérias e os assuntos dentro.</p>
         </div>
 
-        <div v-if="conflicts.length" class="mt-4 border-t border-line pt-4" data-testid="import-conflicts">
+        <div v-if="conflicts.length" class="mt-4 border-t border-hairline pt-4" data-testid="import-conflicts">
           <h3 class="text-meta font-semibold text-fg-strong">Já existem no Baigi</h3>
           <div v-for="deck in conflicts" :key="deck.name" class="mt-2 grid items-center gap-2 sm:grid-cols-2">
             <p class="min-w-0 text-body break-words text-fg">
@@ -60,7 +60,7 @@
           </div>
         </div>
 
-        <div v-if="openTopic" class="mt-4 border-t border-line pt-4">
+        <div v-if="openTopic" class="mt-4 border-t border-hairline pt-4">
           <UiRadioGroup v-model="destination" :options="destinationOptions" label="Para onde vão os cards" data-testid="import-destination" />
         </div>
 

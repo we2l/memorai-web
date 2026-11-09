@@ -1,5 +1,5 @@
 <template>
-  <section class="rounded-card border border-line bg-raised p-5 shadow-1 sm:p-6" :aria-labelledby="titleId" data-testid="tool-plan">
+  <section class="rounded-card bg-raised p-5 shadow-1 sm:p-6" :aria-labelledby="titleId" data-testid="tool-plan">
     <!-- On its own page the H1 already names the tool: the heading stays for screen readers only -->
     <h2 :id="titleId" class="mb-1 text-section text-fg-strong" :class="!embedded && 'sr-only'">Plano até a prova</h2>
     <p v-if="embedded" class="mb-5 text-meta text-fg-muted">Quanto revisar por dia para chegar à prova lembrando do que estudou.</p>
@@ -47,19 +47,19 @@
       <dl class="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <div>
           <dt class="text-label text-fg-muted">Cards novos por dia</dt>
-          <dd class="text-stat text-fg-strong" data-testid="tool-plan-new">{{ plan.newPerDay }}</dd>
+          <dd class="num-m text-fg-strong" data-testid="tool-plan-new">{{ plan.newPerDay }}</dd>
         </div>
         <div>
           <dt class="text-label text-fg-muted">Revisões por dia (média)</dt>
-          <dd class="text-stat text-fg-strong" data-testid="tool-plan-reviews">{{ plan.reviewsAvg }}</dd>
+          <dd class="num-m text-fg-strong" data-testid="tool-plan-reviews">{{ plan.reviewsAvg }}</dd>
         </div>
         <div>
           <dt class="text-label text-fg-muted">Minutos por dia (média)</dt>
-          <dd class="text-stat text-fg-strong" data-testid="tool-plan-minutes">{{ plan.minutesAvg }}</dd>
+          <dd class="num-m text-fg-strong" data-testid="tool-plan-minutes">{{ plan.minutesAvg }}</dd>
         </div>
         <div>
           <dt class="text-label text-fg-muted">Lembrança no dia da prova</dt>
-          <dd class="text-stat text-fg-strong" data-testid="tool-plan-recall">{{ Math.round(plan.recallOnExam * 100) }}%</dd>
+          <dd class="num-m text-fg-strong" data-testid="tool-plan-recall">{{ Math.round(plan.recallOnExam * 100) }}%</dd>
         </div>
       </dl>
       <ul class="mt-5 flex flex-col gap-2 text-body text-fg">

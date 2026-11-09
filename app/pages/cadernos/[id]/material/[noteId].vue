@@ -178,7 +178,7 @@
       <!-- Phone: the reader alone, with Sumário and Cards in sheets and the primary at hand -->
       <div
         v-if="!desktop && !keyboardOpen && m.editingNote.value"
-        class="fixed inset-x-0 bottom-[calc(var(--nav-h)+var(--miniplayer-h))] z-sticky flex items-center gap-2 border-t border-line bg-raised px-gutter-safe py-3 short:py-1.5"
+        class="fixed inset-x-0 bottom-[calc(var(--nav-h)+var(--miniplayer-h))] z-sticky flex items-center gap-2 border-t border-hairline bg-raised px-gutter-safe py-3 short:py-1.5"
         data-testid="material-bar"
       >
         <UiButton v-if="outlineItems.length" size="sm" class="whitespace-nowrap" :icon-left="ListTree" @click="outlineSheet = true">Sumário</UiButton>

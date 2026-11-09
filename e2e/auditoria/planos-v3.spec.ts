@@ -1,7 +1,7 @@
 import AxeBuilder from '@axe-core/playwright'
 import type { Page } from '@playwright/test'
 import { test, expect, gotoApp, API, catalogProName } from './support/fixtures'
-import { mockSubscription, expectNoHydrationMismatch } from './support/public-pages'
+import { mockSubscription, expectNoHydrationMismatch, openCheckout } from './support/public-pages'
 
 /**
  * /planos, /checkout/sucesso, /termos, /privacidade e /ajuda v4 (prd-4h-landing-v3 RF-F11 a RF-F15): um layout só,
@@ -26,7 +26,8 @@ test.describe('/planos anônimo', () => {
     await expect(page.getByRole('heading', { name: 'Planos', level: 1 })).toBeVisible()
     await expect(page.getByTestId('plan-pro').getByText('Recomendado')).toBeVisible()
     await expect(primaries(page)).toHaveCount(1)
-    await expect(page.locator('.bg-tinted').filter({ visible: true })).toHaveCount(1)
+    // E2 (prd-visual-e2 RF-5.6): the Intensivo has the purple ring, no lilac block
+    await expect(page.getByTestId('plan-pro')).toHaveClass(/ring-action/)
 
     await expect(page.getByRole('radio', { name: 'Anual' })).toBeChecked()
     // The annual by its total, and its monthly share only as an equivalence (decisão do dono, 08/11)
@@ -127,11 +128,13 @@ test.describe('/planos logado: o mesmo layout', () => {
 
     test('sem casca do app e sem erro de hidratação; "Ir para o Hoje" e "Seu plano" no Grátis', async ({ page }) => {
       const hydration = expectNoHydrationMismatch(page)
+      await openCheckout(page)
       await gotoApp(page, '/planos')
       await expect(page.getByRole('link', { name: 'Ir para o Hoje' })).toBeVisible()
       await expect(page.getByRole('link', { name: 'Entrar' })).toHaveCount(0)
       await expect(page.getByTestId('plan-free').getByText('Seu plano')).toBeVisible()
-      await expect(page.getByTestId('plan-pro').getByRole('button', { name: 'Assinar anual' })).toBeVisible()
+      // "Assinar" is a link to the Mercado Pago checkout of the Baigi (/checkout?plano=…)
+      await expect(page.getByTestId('plan-pro').getByRole('link', { name: 'Assinar anual' })).toHaveAttribute('href', '/checkout?plano=anual')
       await expect(primaries(page)).toHaveCount(1)
       await expect(page.getByRole('navigation', { name: 'Principal' })).toHaveCount(0)
       hydration.check()
@@ -144,6 +147,7 @@ test.describe('/planos logado: o mesmo layout', () => {
     })
 
     test('link de renovação antigo (?renovar=1) abre o checkout do Mercado Pago', async ({ page }) => {
+      await openCheckout(page)
       await page.goto('/planos?ciclo=anual&renovar=1')
       await page.waitForURL('**/checkout?plano=anual')
     })
@@ -166,6 +170,7 @@ test.describe('/planos logado: o mesmo layout', () => {
 
     test('fora da janela: vale até, renovação explicada em texto (sem tooltip) e botão desativado', async ({ page }) => {
       await mockSubscription(page, { plan: 'pro', billing: 'annual', has_subscription: false, can_renew_annual: false, plan_expires_at: '2027-09-28T15:05:00-03:00' })
+      await openCheckout(page)
       await gotoApp(page, '/planos')
       await expect(page.getByTestId('annual-valid-until')).toContainText('28/09/2027')
       await expect(page.getByRole('button', { name: 'Renovar', exact: true })).toBeDisabled()
@@ -208,7 +213,8 @@ test.describe('Páginas públicas', () => {
     await page.setViewportSize({ width: 1440, height: 900 })
     await gotoApp(page, '/termos')
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Termos de Uso')
-    await expect(page.getByText('[[CNPJ]]')).toBeVisible()
+    // Without the seller in the catalog (local API), the placeholder of the responsible person is on screen
+    await expect(page.getByText(/\[\[nome e CPF do responsável\]\]/).first()).toBeVisible()
     await page.getByRole('navigation', { name: 'Índice' }).getByRole('link', { name: 'Rescisão' }).click()
     await expect(page).toHaveURL(/#rescisao/)
     await expect(page.getByRole('heading', { name: /^\d+\. Rescisão$/ })).toBeInViewport()

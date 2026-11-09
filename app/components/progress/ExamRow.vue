@@ -1,6 +1,6 @@
 <template>
   <li class="flex items-start gap-x-3 py-4 sm:gap-x-4" :data-testid="`exam-${exam.id}`">
-    <span class="flex w-14 shrink-0 flex-col items-center rounded-control border border-line-strong py-1.5" aria-hidden="true">
+    <span class="flex w-14 shrink-0 flex-col items-center rounded-tile bg-soft py-1.5" aria-hidden="true">
       <span class="text-section tabular-nums text-fg-strong">{{ day }}</span>
       <span class="text-label uppercase text-fg-muted">{{ month }}</span>
     </span>

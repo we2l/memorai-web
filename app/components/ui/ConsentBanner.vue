@@ -6,10 +6,10 @@
     aria-labelledby="consent-title"
     aria-describedby="consent-text"
     :class="bar
-      ? 'fixed z-40 inset-x-0 bottom-0 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line-strong bg-raised px-gutter-safe pt-3 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-float'
+      ? 'fixed z-40 inset-x-0 bottom-0 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-hairline bg-raised px-gutter-safe pt-3 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-float'
       : inline
-        ? 'flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line bg-raised px-gutter py-3'
-        : ['fixed z-40 inset-x-0 sm:inset-x-auto sm:left-4 sm:bottom-4 sm:max-w-105 bg-raised border-t sm:border border-line-strong sm:rounded-card shadow-float px-4 pt-4 sm:pb-4', hasNav ? 'bottom-nav pb-4' : 'bottom-0 pb-[calc(1rem+env(safe-area-inset-bottom))]']"
+        ? 'flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-hairline bg-raised px-gutter py-3'
+        : ['fixed z-40 inset-x-0 sm:inset-x-auto sm:left-4 sm:bottom-4 sm:max-w-105 bg-raised border-t border-hairline sm:border-t-0 sm:rounded-card shadow-float px-4 pt-4 sm:pb-4', hasNav ? 'bottom-nav pb-4' : 'bottom-0 pb-[calc(1rem+env(safe-area-inset-bottom))]']"
     data-testid="consent-banner"
   >
     <h2 id="consent-title" :class="thin ? 'sr-only' : 'text-section text-fg-strong mb-1'">Sua privacidade</h2>

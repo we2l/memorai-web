@@ -24,7 +24,7 @@
     <UiSection v-else-if="!quizStore.quizzes.length" data-testid="quizzes-empty">
       <div class="flex flex-col items-center gap-5 px-2 py-6 text-center">
         <!-- Preview of a result (static markup: nothing to download, nothing in the precache) -->
-        <div class="w-full max-w-sm rounded-card border border-line bg-raised p-4 text-left shadow-1" aria-hidden="true">
+        <div class="w-full max-w-sm rounded-card bg-raised p-4 text-left shadow-1" aria-hidden="true">
           <p class="text-label text-fg-muted">10 questões em 12 min</p>
           <p class="font-semibold text-fg-strong">Você acertou 7 de 10</p>
           <div class="mt-3 flex flex-col gap-2 text-meta">
@@ -45,7 +45,7 @@
       <UiSelect v-if="rootOptions.length > 2" v-model="filter" :options="rootOptions" label="Caderno" class="max-w-xs" data-testid="quiz-filter" />
 
       <UiSection v-if="inProgress.length" title="Em andamento">
-        <ul class="-mx-3 -mb-2 divide-y divide-line">
+        <ul class="-mx-3 -mb-2 divide-y divide-hairline">
           <li v-for="quiz in inProgress" :key="quiz.id">
             <UiListRow :to="`/simulados/${quiz.id}`" :title="rowTitle(quiz)" :meta="`${plural(quiz.total_questions, 'questão', 'questões')} · continuar de onde parou`">
               <template #leading><UiPracticeIcon mode="quiz" size="sm" /></template>
@@ -56,7 +56,7 @@
 
       <UiSection title="Histórico" data-testid="quiz-history">
         <p v-if="!completed.length" class="text-meta text-fg-muted">Nenhuma bateria terminada {{ filter ? 'neste caderno' : 'ainda' }}.</p>
-        <ul v-else class="-mx-3 -mb-2 divide-y divide-line">
+        <ul v-else class="-mx-3 -mb-2 divide-y divide-hairline">
           <li v-for="quiz in completed" :key="quiz.id">
             <UiListRow :to="`/simulados/${quiz.id}/resultado`" :title="rowTitle(quiz)" :meta="rowMeta(quiz)">
               <template #leading><UiPracticeIcon mode="quiz" size="sm" /></template>

@@ -3,7 +3,7 @@
     <template #action>
       <UiButton size="sm" @click="$emit('accept-all')">Aceitar todos</UiButton>
     </template>
-    <ul class="divide-y divide-line">
+    <ul class="divide-y divide-hairline">
       <li v-for="(card, i) in cards" :key="i" class="py-3">
         <p class="text-label text-fg-muted">Frente</p>
         <div class="line-clamp-2 text-body text-fg-strong" v-html="sanitize(stripMedia(card.front))" />

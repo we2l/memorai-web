@@ -5,7 +5,7 @@
       <UiSkeleton :lines="2" />
     </div>
 
-    <ul v-else class="divide-y divide-line rounded-card bg-soft px-1">
+    <ul v-else class="divide-y divide-hairline rounded-card bg-soft px-1">
       <li class="px-3 py-3 text-body text-fg-strong" data-testid="tomorrow-load">
         <template v-if="forecast.due_count > 0">
           Amanhã: <strong>{{ pluralCards(forecast.due_count) }}</strong> · ≈{{ forecast.estimated_minutes }} min

@@ -18,7 +18,7 @@
 
         <section v-if="day.by_topic.length" aria-label="Assuntos revisados">
           <h3 class="mb-1 text-meta font-semibold text-fg-muted">Assuntos</h3>
-          <ul class="-mx-3 divide-y divide-line">
+          <ul class="-mx-3 divide-y divide-hairline">
             <li v-for="t in day.by_topic" :key="t.topic_id">
               <UiListRow :to="cadernoPath(t.topic_id)" :title="t.name" :meta="t.root_name && t.root_name !== t.name ? t.root_name : undefined" @click="emit('close')">
                 <template #trailing><span class="tabular-nums text-fg-strong">{{ t.reviews }}</span></template>
@@ -29,7 +29,7 @@
 
         <section v-if="day.quizzes.length" aria-label="Questões do dia">
           <h3 class="mb-1 text-meta font-semibold text-fg-muted">Questões</h3>
-          <ul class="-mx-3 divide-y divide-line">
+          <ul class="-mx-3 divide-y divide-hairline">
             <li v-for="q in day.quizzes" :key="q.id">
               <UiListRow :to="`/simulados/${q.id}/resultado`" :title="q.title" @click="emit('close')">
                 <template #trailing><span v-if="q.score_percent !== null" class="font-semibold tabular-nums text-fg-strong">{{ Math.round(q.score_percent) }}%</span></template>

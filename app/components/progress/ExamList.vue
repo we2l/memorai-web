@@ -13,7 +13,7 @@
       Defina sua prova para ver o ritmo e a projeção.
     </p>
     <template v-else>
-      <ul v-if="future.length" class="-my-2 divide-y divide-line">
+      <ul v-if="future.length" class="-my-2 divide-y divide-hairline">
         <ProgressExamRow
           v-for="e in future"
           :key="e.id"
@@ -27,7 +27,7 @@
       </ul>
       <template v-if="past.length">
         <h3 class="mt-5 text-meta font-semibold text-fg-muted">Já passaram</h3>
-        <ul class="divide-y divide-line">
+        <ul class="divide-y divide-hairline">
           <ProgressExamRow
             v-for="e in past"
             :key="e.id"

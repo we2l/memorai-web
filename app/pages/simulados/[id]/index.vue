@@ -51,7 +51,7 @@
       </template>
     </main>
 
-    <footer v-if="state === 'answering' && question" class="sticky bottom-0 border-t border-line bg-raised pb-safe-bottom">
+    <footer v-if="state === 'answering' && question" class="sticky bottom-0 border-t border-hairline bg-raised pb-safe-bottom">
       <div class="mx-auto flex max-w-prose items-center gap-2 px-gutter py-3">
         <UiButton variant="ghost" :icon-left="ArrowLeft" :disabled="quizStore.currentIndex === 0" @click="quizStore.prevQuestion()">Anterior</UiButton>
         <span class="flex-1" />

@@ -5,7 +5,7 @@
     </slot>
     <div
       v-if="open"
-      class="absolute top-full z-popover mt-1 min-w-56 rounded-control border border-line bg-float py-1 shadow-float"
+      class="absolute top-full z-popover mt-1 min-w-56 rounded-control bg-float py-1 shadow-float"
       :class="align === 'end' ? 'right-0 w-max max-w-80' : 'left-0'"
       data-menu-panel
     >

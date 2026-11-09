@@ -97,7 +97,7 @@
             c{{ idx }}
           </button>
         </div>
-        <div class="flex min-h-48 flex-col justify-center rounded-card border border-line-strong bg-raised p-5 text-center shadow-1">
+        <div class="flex min-h-48 flex-col justify-center rounded-card bg-raised p-5 text-center shadow-1">
           <p class="mb-2 text-label text-fg-muted">{{ previewSide === 'front' ? (selectedTopicName || 'Pergunta') : 'Resposta' }}</p>
           <div class="max-h-60 overflow-y-auto break-words text-body text-fg-strong" v-html="sanitize(previewSide === 'front' ? frontPreview : backPreview)" />
         </div>

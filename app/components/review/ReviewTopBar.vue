@@ -10,14 +10,14 @@
         <span class="text-meta whitespace-nowrap text-fg-muted" data-testid="review-step">{{ stepLabel }}</span>
       </div>
       <p v-else-if="scopeText" class="order-last w-full truncate text-label text-fg-muted sm:order-none sm:w-auto sm:min-w-0 sm:flex-1 sm:text-meta" data-testid="review-scope">
-        Revisando <span class="font-semibold text-fg-strong">{{ scopeText }}</span>{{ scopeNote ? ` ${scopeNote}` : '' }}
+        <span class="sr-only">Revisando </span><UiTag tone="brand" class="max-w-full align-middle"><span class="truncate">{{ scopeText }}</span></UiTag>{{ scopeNote ? ` ${scopeNote}` : '' }}
       </p>
       <span v-else class="hidden flex-1 sm:block" />
 
       <div v-if="batch" class="ml-auto flex items-center gap-3 sm:ml-0" data-testid="review-batch">
         <span class="text-meta font-medium whitespace-nowrap text-fg-strong tabular-nums">
           <!-- A single batch (the visitor's mini-lote) has no "Lote 1 de 1" -->
-          <template v-if="batch.total > 1">Lote {{ batch.index }} de {{ batch.total }} · </template><span class="max-sm:hidden">card {{ batch.card }} de {{ batch.size }}</span><span class="sm:hidden">{{ batch.total > 1 ? '' : 'card ' }}{{ batch.card }}/{{ batch.size }}</span>
+          <UiTag v-if="batch.total > 1" class="mr-1.5 align-middle">Lote {{ batch.index }} de {{ batch.total }}</UiTag><span class="max-sm:hidden">card {{ batch.card }} de {{ batch.size }}</span><span class="sm:hidden">{{ batch.total > 1 ? '' : 'card ' }}{{ batch.card }}/{{ batch.size }}</span>
         </span>
         <UiProgressBar v-if="batch.total <= MAX_SEGMENTS" class="hidden w-48 sm:flex" v-bind="barProps" />
       </div>

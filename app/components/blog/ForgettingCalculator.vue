@@ -1,5 +1,5 @@
 <template>
-  <section class="rounded-card border border-line bg-raised p-5 shadow-1 sm:p-6" :aria-labelledby="titleId" data-testid="tool-forgetting">
+  <section class="rounded-card bg-raised p-5 shadow-1 sm:p-6" :aria-labelledby="titleId" data-testid="tool-forgetting">
     <!-- On its own page the H1 already names the tool: the heading stays for screen readers only -->
     <h2 :id="titleId" class="mb-1 text-section text-fg-strong" :class="!embedded && 'sr-only'">Calculadora do esquecimento</h2>
     <p v-if="embedded" class="mb-5 text-meta text-fg-muted">Quanto você ainda deve lembrar de algo que estudou, e quando revisar.</p>
@@ -29,7 +29,7 @@
     </div>
 
     <div class="mt-6" aria-live="polite">
-      <p class="text-stat text-fg-strong" data-testid="tool-forgetting-percent">{{ percentNow }}%</p>
+      <p class="num-m text-fg-strong" data-testid="tool-forgetting-percent">{{ percentNow }}%</p>
       <p class="mt-2 text-body text-fg" data-testid="tool-forgetting-sentence">{{ sentence }}</p>
     </div>
 

@@ -10,12 +10,12 @@
     <SettingsReviewButtonsPicker :settings="settings" />
     <LazySettingsReviewOptions :settings="settings" />
 
-    <div class="border-t border-line pt-5">
+    <div class="border-t border-hairline pt-5">
       <h3 class="mb-1 text-body font-semibold text-fg-strong">Lembrete diário</h3>
       <SettingsReminderPreferences :settings="settings" @retry="$emit('retry')" />
     </div>
 
-    <div class="grid gap-4 border-t border-line pt-5 sm:grid-cols-3" data-testid="study-fields">
+    <div class="grid gap-4 border-t border-hairline pt-5 sm:grid-cols-3" data-testid="study-fields">
       <div class="flex flex-col gap-1">
         <UiSelect
           :model-value="settings.default_learning_mode ?? 'general'"
@@ -43,9 +43,9 @@
       <p class="min-h-5 text-meta text-success sm:col-span-3" role="status" data-testid="study-saved">{{ fieldsSaved ? 'Salvo' : '' }}</p>
     </div>
 
-    <SettingsStudyPreferences :settings="settings" class="border-t border-line pt-5" />
+    <SettingsStudyPreferences :settings="settings" class="border-t border-hairline pt-5" />
 
-    <PodcastDailyEpisodeSwitch class="border-t border-line pt-3" />
+    <PodcastDailyEpisodeSwitch class="border-t border-hairline pt-3" />
   </div>
 </template>
 

@@ -42,7 +42,9 @@ test('resumo do caderno da prova: domínio = o do caderno (/summary), acerto, le
   await expect(box).toContainText(/\d+ dias? de sequência · recorde \d+|de sequência/)
   await expect(page.getByTestId('progress-primary')).toHaveText(/Revisar para a prova · \d+/)
   await expect(page.locator('.shadow-action').filter({ visible: true })).toHaveCount(1)
-  await expect(page.locator('.bg-tinted')).toHaveCount(0)
+  // E2 (prd-visual-e2 RF-5.4): the exam card with the projection is the one lilac block
+  await expect(page.locator('.bg-tinted')).toHaveCount(1)
+  await expect(page.getByTestId('progress-exam-card')).toContainText('Mantendo o ritmo')
 })
 
 test('prova com projeção ("mantendo o ritmo" e "se parar hoje") e "Como calculamos"; a pequena diz o que falta', async ({ page }) => {

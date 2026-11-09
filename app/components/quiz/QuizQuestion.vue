@@ -4,7 +4,7 @@
       <UiTag>{{ TYPE_LABELS[question.type] }}</UiTag>
       <UiTag v-if="topicName">{{ topicName }}</UiTag>
     </div>
-    <p :id="stemId" class="text-body whitespace-pre-line text-fg-strong">{{ question.stem }}</p>
+    <p :id="stemId" class="text-title whitespace-pre-line text-fg-strong">{{ question.stem }}</p>
 
     <UiTextarea
       v-if="question.type === 'short_answer'"
@@ -19,7 +19,7 @@
       <li
         v-for="o in options"
         :key="o.value"
-        class="flex items-start gap-3 rounded-control border p-3"
+        class="flex items-start gap-3 rounded-tile p-3.5"
         :class="o.tone ? TONES[o.tone] : TONE_REST"
       >
         <span class="flex size-6 shrink-0 items-center justify-center rounded-tag bg-raised text-meta font-semibold text-fg-strong" aria-hidden="true">{{ o.marker }}</span>
@@ -86,8 +86,8 @@ const locked = computed(() => props.learning && answered.value)
 const correctLetter = computed(() => answerLetter(props.question, props.question.correct_answer ?? ''))
 
 interface AnswerOption { value: string; label: string; marker: string; tone?: 'success' | 'danger'; description?: string }
-const TONE_REST = 'border-line bg-raised'
-const TONES = { success: 'border-success bg-success-subtle', danger: 'border-danger bg-danger-subtle' }
+const TONE_REST = 'bg-raised shadow-1'
+const TONES = { success: 'bg-success-subtle', danger: 'bg-danger-subtle' }
 
 const options = computed<AnswerOption[]>(() => {
   const q = props.question

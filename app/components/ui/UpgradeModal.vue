@@ -1,7 +1,7 @@
 <template>
   <UiDialog v-model="open" size="sm" :title="title" :description="body">
-    <!-- The podcast is not in the trial nor in the Free: the demo of the episode (prd-planos-lancamento RF-F3) -->
-    <LazyPodcastDemo v-if="feature === 'podcast' && canUpgrade" class="pt-1" />
+    <!-- The podcast is not in the trial nor in the Free: the sample of an episode (prd-planos-lancamento RF-F3) -->
+    <LazyPodcastSample v-if="feature === 'podcast' && canUpgrade" source="upgrade_modal" class="mt-1" />
     <template #footer>
       <template v-if="canUpgrade">
         <UiButton variant="ghost" @click="open = false">Depois</UiButton>

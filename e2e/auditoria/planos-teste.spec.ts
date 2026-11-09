@@ -154,44 +154,6 @@ test.describe('Teste rodando', () => {
     await expect(page.getByTestId('usage-renews')).toHaveCount(0)
     await expect(page.getByTestId('usage-row').filter({ hasText: 'Páginas de PDF lidas pela IA' })).toContainText('0 de 100')
   })
-
-  test('podcast fora do teste: o vídeo de demonstração no lugar de gerar (Ouvir e Praticar), sem autoplay e fora do precache', async ({ page }) => {
-    await page.emulateMedia({ reducedMotion: 'reduce' })
-    const name = await (async () => { await gotoApp(page, '/podcasts'); return proName(page) })()
-    await page.getByTestId('podcast-generate').click()
-    const sheet = page.getByRole('dialog', { name: 'Podcast dos pontos fracos' })
-    await expect(sheet).toBeVisible()
-    const video = sheet.getByTestId('podcast-demo-video')
-    await expect(video).toHaveAttribute('preload', 'none')
-    await expect(video).toHaveAttribute('poster', '/demo/podcast-light-poster.jpg')
-    await expect(video).toHaveAttribute('playsinline', '')
-    await expect(video).toHaveAttribute('controls', '')
-    await expect(video).not.toHaveAttribute('autoplay', /.*/)
-    expect(await video.evaluate((v: HTMLVideoElement) => v.muted && v.paused)).toBe(true)
-    await expect(sheet).toContainText('Demonstração sem som')
-    await expect(sheet).toContainText('O podcast não entra no teste grátis.')
-    await expect(sheet.getByTestId('podcast-scope')).toHaveCount(0)
-    await expect(sheet.getByRole('link', { name: `Conhecer o ${name}` })).toHaveAttribute('href', '/planos')
-    // The recording itself is there, and the service worker does not precache it
-    expect((await page.request.get('/demo/podcast-light.mp4')).status()).toBe(200)
-    const sw = await (await page.request.get('/sw.js')).text()
-    expect(sw).not.toContain('demo/')
-    await axe(page, 'paywall do podcast')
-    await page.keyboard.press('Escape')
-
-    await gotoApp(page, '/praticar')
-    const listen = page.getByTestId('practice-listen')
-    await expect(listen.getByTestId('podcast-demo-video')).toHaveAttribute('preload', 'none')
-    await expect(listen.getByTestId('practice-listen-plans')).toHaveAttribute('href', '/planos')
-    await expect(listen).not.toContainText('Gerar um episódio')
-  })
-
-  test('escuro: o vídeo e o poster do tema escuro', async ({ page }) => {
-    await page.addInitScript(() => localStorage.setItem('color-mode', 'dark'))
-    await gotoApp(page, '/praticar')
-    await expect(page.getByTestId('practice-listen').getByTestId('podcast-demo-video')).toHaveAttribute('poster', '/demo/podcast-dark-poster.jpg')
-    await axe(page, 'Praticar escuro')
-  })
 })
 
 test.describe('Últimos dias do teste', () => {

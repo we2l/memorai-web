@@ -91,17 +91,16 @@ describe('UpgradeModal', () => {
     expect(document.body.textContent).toContain('Você usou 3 de 3 simulados do catálogo do teste')
   })
 
-  it('podcast (fora do teste e do Grátis): o vídeo de demonstração com legenda', async () => {
+  it('podcast (fora do teste e do Grátis): a amostra com som, que só baixa no play', async () => {
     useAuthStore().user = { plan: 'free', trial: { status: 'active', started_at: '2026-11-05T12:00:00Z', ends_at: '2026-11-12T12:00:00Z' } } as never
     await mountModal({ feature: 'podcast', used: 0, limit: 0, planRequired: 'pro' })
-    // Lazy: the demo comes in its own chunk
-    await vi.waitFor(() => expect(document.querySelector('video')).not.toBeNull())
-    const video = document.querySelector('video')!
-    expect(video.getAttribute('preload')).toBe('none')
-    expect(video.muted).toBe(true)
-    expect(video.hasAttribute('autoplay')).toBe(false)
-    expect(video.getAttribute('poster')).toBe('/demo/podcast-light-poster.jpg')
-    expect(document.getElementById(video.getAttribute('aria-describedby')!)?.textContent).toContain('Demonstração sem som')
+    // Lazy: the sample comes in its own chunk
+    await vi.waitFor(() => expect(document.querySelector('[data-testid="podcast-sample"]')).not.toBeNull())
+    const audio = document.querySelector('[data-testid="podcast-sample"] audio')!
+    expect(audio.getAttribute('preload')).toBe('none')
+    expect(audio.hasAttribute('autoplay')).toBe(false)
+    expect(document.querySelectorAll('[data-testid="podcast-sample-lines"] li')).toHaveLength(4)
+    expect(document.querySelector('[data-testid="podcast-sample-play"]')?.getAttribute('aria-label')).toBe('Ouvir um exemplo')
     expect(document.body.textContent).toContain('O podcast não entra no teste grátis.')
   })
 })

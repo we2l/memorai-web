@@ -130,7 +130,7 @@ test('resultado por assunto: placar contra a última vez, tabela com histórico 
   await expect(table.locator('table tr', { hasText: 'Controle' })).toContainText(`${ctrl.history_accuracy}%`)
   await expect(page.locator('.bg-tinted')).toHaveCount(1)
   // One primary on the screen (ADR-027 §6)
-  await expect(page.locator('.shadow-press').filter({ visible: true })).toHaveCount(1)
+  await expect(page.locator('.shadow-action').filter({ visible: true })).toHaveCount(1)
   await axe(page, 'resultado')
 })
 

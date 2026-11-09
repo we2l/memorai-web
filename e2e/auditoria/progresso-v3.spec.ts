@@ -41,7 +41,7 @@ test('resumo do caderno da prova: domínio = o do caderno (/summary), acerto, le
   await expect(box).toContainText('lembrou ao revisar (30 dias)')
   await expect(box).toContainText(/\d+ dias? de sequência · recorde \d+|de sequência/)
   await expect(page.getByTestId('progress-primary')).toHaveText(/Revisar para a prova · \d+/)
-  await expect(page.locator('.shadow-press').filter({ visible: true })).toHaveCount(1)
+  await expect(page.locator('.shadow-action').filter({ visible: true })).toHaveCount(1)
   await expect(page.locator('.bg-tinted')).toHaveCount(0)
 })
 
@@ -157,7 +157,7 @@ test.describe('Conta nova', () => {
     await expect(page.getByTestId('progress-new')).toContainText('Seu progresso aparece aqui')
     await expect(page.getByTestId('progress-summary')).toHaveCount(0)
     await expect(page.getByTestId('progress-exams')).toContainText('Defina sua prova para ver o ritmo e a projeção')
-    await expect(page.locator('.shadow-press').filter({ visible: true })).toHaveCount(1)
+    await expect(page.locator('.shadow-action').filter({ visible: true })).toHaveCount(1)
     await axe(page, 'conta nova')
   })
 })

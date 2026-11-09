@@ -1,0 +1,23 @@
+/* Fora do entry.css (teto de 13 KB gz): o UiNumber importa este arquivo, e o CSS vem no chunk de quem mostra um
+   número grande. O woff2 dos dígitos continua no precache (glob do SW); o itálico, não (globIgnores). */
+/* Fraunces (OFL 1.1; scripts/fonts/build-num-font.py), ADR-035 §2:
+   - "Baigi Num": instância 600 só com os dígitos e "% + − , . º" (2,4 KB, no precache). O unicode-range faz as letras
+     de "18 de 20" caírem na Inter sem marcação extra;
+   - "Baigi It": itálico 500, minúsculas, acentos e pontuação, só no cartão da prova (decisão do dono, 08/11).
+     Fica fora do precache (globIgnores em nuxt.config.ts) e só baixa quando a tela usa. */
+@font-face {
+  font-family: 'Baigi Num';
+  src: url('../fonts/baigi-num-600.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0020, U+0025, U+002B, U+002C, U+002E, U+0030-0039, U+00BA, U+2212;
+}
+
+@font-face {
+  font-family: 'Baigi It';
+  src: url('../fonts/baigi-it-500.woff2') format('woff2');
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
+}

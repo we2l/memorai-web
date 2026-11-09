@@ -10,25 +10,31 @@
   >
     <UiSpinner v-if="loading" :size="size" />
     <component :is="iconLeft" v-else-if="iconLeft" :class="iconClass" aria-hidden="true" />
-    <slot />
+    <span v-if="size === 'rating'" class="flex flex-col items-center gap-px">
+      <slot />
+      <span v-if="$slots.hint" class="text-label font-medium" :class="variant === 'primary' ? 'text-on-action' : 'text-fg-muted'"><slot name="hint" /></span>
+    </span>
+    <slot v-else />
     <component :is="iconRight" v-if="iconRight" :class="iconClass" aria-hidden="true" />
   </component>
 </template>
 
 <script setup lang="ts">
-// DS v3 button (ADR-027 §6, raio-X §D). One primary per screen, purple with "volume" (shadow-press);
-// the others are neutral and may carry the colored icon of a practice mode (iconTone: color only on
-// the icon, never as fill). Replaces btn-*, the 24 hand-made spinners and the `!min-h-0 !px-3` small button.
+// DS button, E2 skin (ADR-035 §3-§4, prd-visual-e2 RF-1.1): a pill. One primary per screen, purple with the inner
+// highlight and the diffuse purple shadow (shadow-action); secondary on the soft surface, outline white with the
+// layered shadow, ghost bare. Pressed: scale(.97) in 140 ms, off with prefers-reduced-motion. `rating` is the
+// 62 px button of the review, with the interval under the label (slot `hint`). The others may carry the colored
+// icon of a practice mode (iconTone: color only on the icon, never as fill).
 import type { Component } from 'vue'
 import type { RouteLocationRaw } from 'vue-router'
 
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger'
-export type ButtonSize = 'sm' | 'md'
+export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger'
+export type ButtonSize = 'sm' | 'md' | 'lg' | 'rating'
 export type IconTone = 'action' | 'quiz' | 'listen'
 
 const props = withDefaults(defineProps<{
   variant?: ButtonVariant
-  /** md: 44 px; sm: 36 px with the touch area stretched to 44 px */
+  /** md: 44 px; lg: 54 px; rating: 62 px with the hint under the label; sm: 36 px with the touch area stretched to 44 px */
   size?: ButtonSize
   to?: RouteLocationRaw
   href?: string
@@ -70,18 +76,19 @@ const bindings = computed(() => {
 })
 const ariaDisabled = computed(() => (inert.value && (isLink.value || props.loading) ? 'true' : undefined))
 
+const PRESS = 'active:scale-97 motion-reduce:active:scale-100'
 const VARIANTS: Record<ButtonVariant, { rest: string; live: string }> = {
-  primary: {
-    rest: 'bg-action text-on-action shadow-press',
-    live: 'hover:bg-action-hover active:translate-y-0.5 active:shadow-press-active',
-  },
-  secondary: { rest: 'bg-raised text-fg-strong border border-line-strong', live: 'hover:bg-subtle active:bg-line' },
-  ghost: { rest: 'text-fg-strong', live: 'hover:bg-subtle active:bg-line' },
-  danger: { rest: 'bg-danger-subtle text-danger border border-transparent', live: 'hover:border-danger' },
+  primary: { rest: 'bg-action text-on-action shadow-action', live: `hover:bg-action-hover ${PRESS}` },
+  secondary: { rest: 'bg-soft text-fg-strong', live: `hover:bg-sunk ${PRESS}` },
+  outline: { rest: 'bg-raised text-fg-strong shadow-1', live: `hover:bg-soft ${PRESS}` },
+  ghost: { rest: 'text-fg-strong', live: `hover:bg-soft ${PRESS}` },
+  danger: { rest: 'bg-danger-subtle text-danger', live: `hover:shadow-1 ${PRESS}` },
 }
 const SIZES: Record<ButtonSize, string> = {
-  md: 'min-h-touch px-4.5 text-body',
-  sm: 'min-h-9 px-3 text-meta before:absolute before:-inset-1',
+  md: 'min-h-touch rounded-chip px-4.5 text-body-sm',
+  lg: 'min-h-13.5 rounded-chip px-6 text-body',
+  rating: 'min-h-15.5 flex-col rounded-rating px-2 text-title',
+  sm: 'min-h-9 rounded-chip px-3 text-meta before:absolute before:-inset-1',
 }
 const ICON_TONES: Record<IconTone, string> = { action: 'text-action-fg', quiz: 'text-quiz', listen: 'text-listen' }
 
@@ -95,7 +102,7 @@ const classes = computed(() => {
     state = `${v.rest} cursor-progress`
   }
   return [
-    'relative inline-flex items-center justify-center gap-2 rounded-control font-semibold text-center text-balance select-none transition duration-nav ease-calm',
+    'relative inline-flex items-center justify-center gap-2 font-semibold text-center text-balance select-none transition duration-press ease-out',
     SIZES[props.size],
     state,
     props.block && 'w-full',

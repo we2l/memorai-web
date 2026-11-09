@@ -37,7 +37,7 @@
       <button
         type="button"
         class="flex size-16 items-center justify-center rounded-full transition-colors duration-nav active:translate-y-0.5"
-        :class="primary ? 'bg-action text-on-action shadow-press hover:bg-action-hover active:shadow-press-active' : 'bg-fg-strong text-raised'"
+        :class="primary ? 'bg-action text-on-action shadow-action hover:bg-action-hover active:scale-97 motion-reduce:active:scale-100' : 'bg-fg-strong text-raised'"
         :aria-label="player.isPlaying ? 'Pausar' : 'Tocar'"
         data-testid="player-toggle"
         @click="toggle"

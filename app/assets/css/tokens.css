@@ -1,196 +1,148 @@
 /* ============================================
-   Design System v3 — tokens (ADR-027 §1-§2, calibragem v4 "equilíbrio")
-   Camadas 1 e 2: o ÚNICO arquivo do app com cor literal (lint:tokens).
-   - Primitivos (--palette-*): só servem aos semânticos; nenhum componente os usa.
-   - Semânticos: claro em :root, escuro em .dark (sempre no <html>, nunca numa subárvore:
+   Design System v3 — tokens (ADR-027 §1-§2), pele E2 "gamificado sóbrio" (ADR-035 §7)
+   O ÚNICO arquivo do app com cor literal (lint:tokens).
+   - Semânticos com o valor direto (a camada de primitivos ficou implícita na E2, ver abaixo); claro em :root, escuro em .dark (sempre no <html>, nunca numa subárvore:
      o @theme inline resolve no <html>).
    - Nenhum nome aqui começa por namespace do Tailwind (--color-, --text-, --radius-, --shadow-...):
      esses prefixos só existem no @theme (theme.css), como ponte. check-ds (token-name) garante.
    Todo par de texto/fundo passa por tests/scripts/tokensContrast.test.ts.
    ============================================ */
 
-/* Camada 1: primitivos */
-:root {
-  --palette-white: #FFFFFF;
-  --palette-black: #000000;
-
-  /* Neutros claros (cinza com um toque lilás) */
-  --palette-mist-25: #FAFAFB;
-  --palette-mist-50: #F6F5F8;
-  --palette-mist-75: #F1F0F4;
-  --palette-mist-100: #EEEDF1;
-  --palette-mist-200: #E4E2EA;
-  --palette-mist-350: #B4B2BD;
-  --palette-mist-400: #A3A1AB;
-  --palette-mist-450: #8A8994;
-  --palette-mist-600: #5F5E66;
-  --palette-ink-800: #37352F;
-  --palette-ink-900: #1F1E1B;
-
-  /* Neutros escuros */
-  --palette-night-950: #141218;
-  --palette-night-900: #1E1B24;
-  --palette-night-850: #26222E;
-  --palette-night-800: #2E2A36;
-  --palette-night-750: #3A3542;
-  --palette-night-600: #5C5866;
-  --palette-night-500: #75717F;
-  --palette-night-450: #6E6A78;
-  --palette-night-400: #A09DA8;
-  --palette-night-200: #D4D4D2;
-  --palette-night-100: #F1F1EF;
-
-  /* Marca: roxo de ação (claro e escuro) e lilás dos blocos tingidos */
-  --palette-violet-50: #F4F0FF;
-  --palette-violet-100: #F1ECFF;
-  --palette-violet-300: #B39DFF;
-  --palette-violet-450: #8452F5;
-  --palette-violet-500: #6F3FF5;
-  --palette-violet-550: #7A44F5;
-  --palette-violet-600: #5A2EE6;
-  --palette-violet-700: #4B22C9;
-  --palette-violet-900: #2A2140;
-  --palette-violet-950: #231D33;
-
-  /* Landing D (prd-landing-d RF-D16): só servem aos semânticos --lp-* de components/landing/landing.css */
-  --palette-violet-200: #DCD0FF;
-  --palette-violet-800: #4C338B;
-  --palette-lilac-100: #EDE8FA;
-  --palette-lilac-200: #DCD3F5;
-  --palette-amber-200: #F3D9B1;
-  --palette-amber-900: #5C3A00;
-
-  /* Modos de prática (só no ícone): Questões laranja, Ouvir petróleo */
-  --palette-tangerine-700: #C26A00;
-  --palette-tangerine-300: #F5A524;
-  --palette-petrol-700: #0B7A8C;
-  --palette-petrol-300: #3CC2D4;
-
-  /* Conquista: forma (amarelo/laranja) + texto que a acompanha */
-  --palette-yellow-400: #FFC800;
-  --palette-yellow-800: #8F5C00;
-  --palette-orange-400: #FF9600;
-  --palette-orange-800: #A35300;
-
-  /* Estados (claro: texto + fundo; escuro: texto + fundo) */
-  --palette-green-50: #EAF6EC;
-  --palette-green-700: #237A35;
-  --palette-green-300: #7BD88F;
-  --palette-green-950: #1C2A20;
-  --palette-amber-50: #FFF4E5;
-  --palette-amber-800: #9A4A00;
-  --palette-amber-300: #F5B266;
-  --palette-amber-950: #2E2416;
-  --palette-red-50: #FCECEC;
-  --palette-red-700: #B4232A;
-  --palette-red-300: #F28B82;
-  --palette-red-950: #2E1C1C;
-  --palette-blue-50: #EAF1FC;
-  --palette-blue-700: #1F5FBF;
-  --palette-blue-300: #8AB4F8;
-  --palette-blue-950: #1A2433;
-
-  /* Matérias: 8 tons para o ponto ao lado do nome (claro / escuro) */
-  --palette-subject-violet: #6D28D9;
-  --palette-subject-blue: #1C64D9;
-  --palette-subject-green: #0B7A5F;
-  --palette-subject-orange: #C2410C;
-  --palette-subject-pink: #BE185D;
-  --palette-subject-petrol: #0E7490;
-  --palette-subject-amber: #A16207;
-  --palette-subject-slate: #475569;
-  --palette-subject-violet-night: #A78BFA;
-  --palette-subject-blue-night: #60A5FA;
-  --palette-subject-green-night: #34D399;
-  --palette-subject-orange-night: #FB923C;
-  --palette-subject-pink-night: #F472B6;
-  --palette-subject-petrol-night: #22D3EE;
-  --palette-subject-amber-night: #E8A23B;
-  --palette-subject-slate-night: #94A3B8;
-}
+/* Camada 1 (primitivos) fica implícita desde a E2 (ADR-035 §7): o semântico guarda o valor direto, sem a cadeia
+   var(--palette-*), porque o entry.css tem teto de 13 KB gz e a cadeia custava ~1,1 KB. Este arquivo continua o único
+   do app com cor literal; a landing, congelada na v4, tem os primitivos dela em components/landing/landing.css. */
 
 /* Camada 2: semânticos, tema claro */
 :root {
   color-scheme: light;
 
-  /* Superfícies: página quase branca, seções brancas com sombra sutil, um bloco tingido por tela */
-  --surface-page: var(--palette-mist-25);
-  --surface-raised: var(--palette-white);
-  --surface-subtle: var(--palette-mist-50);
-  --surface-tinted: var(--palette-violet-50);
-  --surface-float: var(--palette-white);
+  /* Superfícies (ADR-035 §7): página branca pura, cartão branco com sombra em camadas, `soft` para azulejo e
+     apoio, `sunk` para trilho; um bloco lilás por tela. `subtle` (v3) é ponteiro para `soft` */
+  --surface-page: #FFFFFF;
+  --surface-raised: #FFFFFF;
+  --surface-soft: #F5F4F8;
+  --surface-subtle: var(--surface-soft);
+  --surface-sunk: #EFEDF3;
+  --surface-tinted: #F1ECFF;
+  --surface-float: #FFFFFF;
   /* Fundo do QR Code do Pix: branco nos dois temas, senão o leitor do banco não enxerga */
-  --surface-qr: var(--palette-white);
-  --surface-scrim: color-mix(in srgb, var(--palette-ink-900) 40%, transparent);
+  --surface-qr: #FFFFFF;
+  --surface-scrim: rgb(20 18 26 / 0.42);
 
-  /* Linhas: divisor, borda e campo (>= 3:1, WCAG 1.4.11) */
-  --line: var(--palette-mist-75);
-  --line-strong: var(--palette-mist-200);
-  --line-input: var(--palette-mist-450);
+  /* Linhas: divisor, borda e campo (>= 3:1, WCAG 1.4.11). Na E2 a borda fica só em campo e divisor:
+     superfície elevada usa sombra (--elev-*), e o divisor dentro do cartão é --hairline */
+  --hairline: rgb(20 18 26 / 0.07);
+  --line: #F1F0F4;
+  --line-strong: #E4E2EA;
+  --line-input: #878691;
 
   /* Texto */
-  --fg-strong: var(--palette-ink-900);
-  --fg: var(--palette-ink-800);
-  --fg-muted: var(--palette-mist-600);
-  --fg-disabled: var(--palette-mist-400);
+  --fg-strong: #14121A;
+  --fg: #2B2833;
+  --fg-muted: #5E5A68;
+  /* Só ícone e chevron (não é texto: 3,4:1) */
+  --fg-faint: #8C8897;
+  --fg-disabled: #A3A1AB;
 
   /* Ação (a marca): action preenche, action-fg é link/texto/ícone, on-action é o texto sobre o preenchimento */
-  --action: var(--palette-violet-500);
-  --action-hover: var(--palette-violet-600);
-  --action-press: var(--palette-violet-700);
-  --action-subtle: var(--palette-violet-100);
-  --action-fg: var(--palette-violet-500);
-  --on-action: var(--palette-white);
-  --focus-ring: var(--palette-violet-500);
+  --action: #6F3FF5;
+  --action-hover: #5F30EA;
+  --action-press: #4B22C9;
+  --action-subtle: #EFE9FF;
+  --action-line: #DCD0FF;
+  --action-fg: #5228D6;
+  --on-action: #FFFFFF;
+  --focus-ring: #6F3FF5;
 
   /* Estados */
-  --state-success: var(--palette-green-700);
-  --state-success-bg: var(--palette-green-50);
-  --state-warning: var(--palette-amber-800);
-  --state-warning-bg: var(--palette-amber-50);
-  --state-danger: var(--palette-red-700);
-  --state-danger-bg: var(--palette-red-50);
-  --state-info: var(--palette-blue-700);
-  --state-info-bg: var(--palette-blue-50);
+  --state-success: #237A35;
+  --state-success-bg: #EAF6EC;
+  --state-warning: #9A4A00;
+  --state-warning-bg: #FFF4E5;
+  --state-danger: #B4232A;
+  --state-danger-bg: #FCECEC;
+  --state-info: #1F5FBF;
+  --state-info-bg: #EAF1FC;
 
-  /* Conquista: a forma nunca informa sozinha (texto ao lado em -fg) */
-  --celebrate: var(--palette-yellow-400);
-  --celebrate-fg: var(--palette-yellow-800);
-  --streak: var(--palette-orange-400);
-  --streak-fg: var(--palette-orange-800);
+  /* Métricas (ADR-035 §1): a única cor fora do roxo, sempre pequena e com rótulo. Forma (ícone), azulejo (-bg) e
+     texto do chip (-fg). Número nunca colorido */
+  --metric-streak: #DD5F0C;
+  --metric-streak-bg: #FFF1E6;
+  --metric-streak-fg: #9A3F06;
+  --metric-goal: #0F9654;
+  --metric-goal-bg: #E6F6EE;
+  --metric-goal-fg: #0B6B3D;
+  --metric-accuracy: #2F6FEB;
+  --metric-accuracy-bg: #EAF1FE;
+  --metric-accuracy-fg: #1D4FB8;
+  /* Ponteiros v3 enquanto houver uso (somem na Fase 6): o amarelo de conquista saiu */
+  --celebrate: var(--metric-goal);
+  --celebrate-fg: var(--metric-goal-fg);
+  --streak: var(--metric-streak);
+  --streak-fg: var(--metric-streak-fg);
 
-  /* Modos de prática: cor só no ícone, num quadradinho neutro (Revisar usa --action) */
-  --practice-quiz: var(--palette-tangerine-700);
-  --practice-quiz-bg: var(--palette-mist-50);
-  --practice-listen: var(--palette-petrol-700);
-  --practice-listen-bg: var(--palette-mist-50);
+  /* Faixa de feedback da revisão (ADR-035 §1): nunca vermelho. -strong preenche o "Continuar", com -ink por cima */
+  --fb-ok-bg: #E6F6EE;
+  --fb-ok-fg: #0B5A34;
+  --fb-ok-strong: #12A05C;
+  --fb-ok-ink: #04130B;
+  --fb-again-bg: #FFF3E3;
+  --fb-again-fg: #7A3D06;
+  --fb-again-strong: #E8762B;
+  --fb-again-ink: #2B1402;
+
+  /* Modos de prática: cor só no ícone, num azulejo tingido (Revisar usa --action) */
+  --practice-quiz: #C26A00;
+  --practice-quiz-bg: #FFF4E2;
+  --practice-listen: #0B7A8C;
+  --practice-listen-bg: #E3F5F7;
 
   /* Matérias: ponto pequeno; a barra de domínio é --action para todas */
-  --subject-1: var(--palette-subject-violet);
-  --subject-2: var(--palette-subject-blue);
-  --subject-3: var(--palette-subject-green);
-  --subject-4: var(--palette-subject-orange);
-  --subject-5: var(--palette-subject-pink);
-  --subject-6: var(--palette-subject-petrol);
-  --subject-7: var(--palette-subject-amber);
-  --subject-8: var(--palette-subject-slate);
+  --subject-1: #6D28D9;
+  --subject-2: #1C64D9;
+  --subject-3: #0B7A5F;
+  --subject-4: #C2410C;
+  --subject-5: #BE185D;
+  --subject-6: #0E7490;
+  --subject-7: #A16207;
+  --subject-8: #475569;
 
   /* Barras: trilho e barra secundária neutra (acerto em questões) */
-  --progress-track: var(--palette-mist-100);
-  --progress-neutral: var(--palette-mist-350);
+  --progress-track: var(--surface-sunk);
+  --progress-neutral: #B4B2BD;
 
-  /* Elevação: card (seção), raised (mini-player, toast), float (menu, diálogo) */
-  --elev-card: 0 1px 2px color-mix(in srgb, var(--palette-ink-900) 5%, transparent), 0 4px 16px color-mix(in srgb, var(--palette-ink-900) 4%, transparent);
-  --elev-raised: 0 8px 24px color-mix(in srgb, var(--palette-ink-900) 10%, transparent);
-  --elev-float: 0 16px 40px color-mix(in srgb, var(--palette-ink-900) 12%, transparent);
-  /* "Volume" da ação principal (UiButton primary): borda inferior em --action-press; pressionado, afunda */
-  --elev-press: 0 3px 0 var(--action-press);
-  --elev-press-active: 0 1px 0 var(--action-press);
+  /* Profundidade (ADR-035 §3): sombra em camadas da cor da tinta com um anel de 1 px, não borda.
+     0 = só o anel; 1 = cartão; 2 = card da revisão, plano em destaque; float = folha, painel, menu;
+     action = realce interno + sombra roxa do botão principal; glow = brilho do anel e do arco (só no escuro) */
+  --elev-0: 0 0 0 1px var(--hairline);
+  --elev-1: 0 0 0 1px rgb(20 18 26 / 0.06), 0 1px 2px rgb(20 18 26 / 0.04), 0 8px 24px -12px rgb(20 18 26 / 0.16);
+  --elev-2: 0 0 0 1px rgb(20 18 26 / 0.06), 0 2px 4px rgb(20 18 26 / 0.04), 0 18px 40px -18px rgb(20 18 26 / 0.26);
+  --elev-float: 0 0 0 1px rgb(20 18 26 / 0.06), 0 24px 56px -16px rgb(20 18 26 / 0.3);
+  --elev-action: inset 0 1px 0 rgb(255 255 255 / 0.18), 0 6px 16px -8px rgb(111 63 245 / 0.55);
+  --glow: none;
+  /* O bloco lilás: nada no claro; no escuro, um anel interno para não sumir na página */
+  --elev-tinted: none;
+  /* A faixa de resposta da revisão sobe da base: sombra para cima */
+  --elev-band: 0 -12px 32px -16px rgb(20 18 26 / 0.28);
+  /* Ponteiros v3: card → 1, raised (mini-player, toast) → 2 */
+  --elev-card: var(--elev-1);
+  --elev-raised: var(--elev-2);
 
   /* Movimento */
   --motion-nav: 150ms;
   --motion-respond: 200ms;
   --motion-celebrate: 700ms;
+  /* E2 (ADR-035 §6): pressão, rápido, base, folha e momento (teto do ADR-027) */
+  --dur-press: 140ms;
+  --dur-fast: 180ms;
+  --dur-base: 240ms;
+  --dur-sheet: 320ms;
+  --dur-moment: 700ms;
+
+  /* Escala responsiva (ADR-035 §2): o tamanho muda a partir de 960 px; theme.css lê daqui */
+  --type-display: 1.875rem;
+  --type-page-title: 1.625rem;
+  --type-section: 1.25rem;
 
   /* Camadas: popover acima de overlay (Select dentro de Modal) */
   --z-sticky: 10;
@@ -204,7 +156,7 @@
   /* Medidas de casca (navegação v3: TopNav >= 768 px, BottomNav abaixo) */
   --gutter: 16px;
   --section-gap: 32px;
-  --topnav-h: 56px;
+  --topnav-h: 68px;
   --bottomnav-h: calc(56px + env(safe-area-inset-bottom));
   /* O que a casca ocupa embaixo, para o conteúdo, a barra fixa da página e o toast não ficarem atrás.
      O layout escreve os *-set (mini-player com podcast; barra fixa da página); toasts e o mini-player são
@@ -244,6 +196,14 @@
   --sticky-action-h: 0px;
 }
 
+@media (min-width: 960px) {
+  :root {
+    --type-display: 2.25rem;
+    --type-page-title: 1.875rem;
+    --type-section: 1.3125rem;
+  }
+}
+
 @media (min-width: 1024px) {
   :root {
     --gutter: 32px;
@@ -251,66 +211,89 @@
   }
 }
 
-/* Camada 2: semânticos, tema escuro (ação roxa também aqui; amarelo é só conquista, ADR-027 §3) */
+/* Camada 2: semânticos, tema escuro (mesma personalidade, outra luz; ADR-035 §3 e §7) */
 .dark {
   color-scheme: dark;
 
-  --surface-page: var(--palette-night-950);
-  --surface-raised: var(--palette-night-900);
-  --surface-subtle: var(--palette-night-850);
-  --surface-tinted: var(--palette-violet-950);
-  --surface-float: var(--palette-night-900);
-  --surface-scrim: color-mix(in srgb, var(--palette-black) 60%, transparent);
+  /* A superfície elevada fica um degrau mais clara que a página (ADR-035 §3) */
+  --surface-page: #0F0D14;
+  --surface-raised: #19161F;
+  --surface-soft: #221E2B;
+  --surface-sunk: #0B0A0F;
+  --surface-tinted: #221A3A;
+  --surface-float: #1E1A26;
+  --surface-scrim: rgb(0 0 0 / 0.62);
 
-  --line: var(--palette-night-800);
-  --line-strong: var(--palette-night-750);
-  --line-input: var(--palette-night-500);
+  --hairline: rgb(255 255 255 / 0.07);
 
-  --fg-strong: var(--palette-night-100);
-  --fg: var(--palette-night-200);
-  --fg-muted: var(--palette-night-400);
-  --fg-disabled: var(--palette-night-450);
+  --line: #2E2A36;
+  --line-strong: #3A3542;
+  --line-input: #75717F;
 
-  --action: var(--palette-violet-450);
-  --action-hover: var(--palette-violet-550);
-  --action-press: var(--palette-violet-700);
-  --action-subtle: var(--palette-violet-900);
-  --action-fg: var(--palette-violet-300);
-  --on-action: var(--palette-white);
-  --focus-ring: var(--palette-violet-300);
+  --fg-strong: #F5F3F9;
+  --fg: #DCD8E4;
+  --fg-muted: #A7A1B4;
+  --fg-faint: #7A7487;
+  --fg-disabled: #6E6A78;
 
-  --state-success: var(--palette-green-300);
-  --state-success-bg: var(--palette-green-950);
-  --state-warning: var(--palette-amber-300);
-  --state-warning-bg: var(--palette-amber-950);
-  --state-danger: var(--palette-red-300);
-  --state-danger-bg: var(--palette-red-950);
-  --state-info: var(--palette-blue-300);
-  --state-info-bg: var(--palette-blue-950);
+  --action: #8452F5;
+  --action-hover: #7A44F5;
+  --action-press: #6A3BE0;
+  --action-subtle: #2A2142;
+  --action-line: #3D3163;
+  --action-fg: #BCA6FF;
+  --on-action: #FFFFFF;
+  --focus-ring: #BCA6FF;
 
-  --celebrate: var(--palette-yellow-400);
-  --celebrate-fg: var(--palette-yellow-400);
-  --streak: var(--palette-orange-400);
-  --streak-fg: var(--palette-orange-400);
+  --state-success: #7BD88F;
+  --state-success-bg: #1C2A20;
+  --state-warning: #F5B266;
+  --state-warning-bg: #2E2416;
+  --state-danger: #F28B82;
+  --state-danger-bg: #2E1C1C;
+  --state-info: #8AB4F8;
+  --state-info-bg: #1A2433;
 
-  --practice-quiz: var(--palette-tangerine-300);
-  --practice-quiz-bg: var(--palette-night-850);
-  --practice-listen: var(--palette-petrol-300);
-  --practice-listen-bg: var(--palette-night-850);
+  --metric-streak: #FF8A3D;
+  --metric-streak-bg: #33200F;
+  --metric-streak-fg: #FFB27A;
+  --metric-goal: #3CCB85;
+  --metric-goal-bg: #11291D;
+  --metric-goal-fg: #7BE0A8;
+  --metric-accuracy: #6EA0FF;
+  --metric-accuracy-bg: #14213A;
+  --metric-accuracy-fg: #A9C6FF;
 
-  --subject-1: var(--palette-subject-violet-night);
-  --subject-2: var(--palette-subject-blue-night);
-  --subject-3: var(--palette-subject-green-night);
-  --subject-4: var(--palette-subject-orange-night);
-  --subject-5: var(--palette-subject-pink-night);
-  --subject-6: var(--palette-subject-petrol-night);
-  --subject-7: var(--palette-subject-amber-night);
-  --subject-8: var(--palette-subject-slate-night);
+  --fb-ok-bg: #10281C;
+  --fb-ok-fg: #9BE8BE;
+  --fb-ok-strong: #3CCB85;
+  --fb-again-bg: #2C1F10;
+  --fb-again-fg: #FFC98F;
+  --fb-again-strong: #FF9A55;
 
-  --progress-track: var(--palette-night-800);
-  --progress-neutral: var(--palette-night-600);
+  --practice-quiz: #F5A524;
+  --practice-quiz-bg: #2E2412;
+  --practice-listen: #3CC2D4;
+  --practice-listen-bg: #0F2A2E;
 
-  --elev-card: 0 1px 2px color-mix(in srgb, var(--palette-black) 40%, transparent), 0 4px 16px color-mix(in srgb, var(--palette-black) 20%, transparent);
-  --elev-raised: 0 8px 24px color-mix(in srgb, var(--palette-black) 40%, transparent);
-  --elev-float: 0 16px 40px color-mix(in srgb, var(--palette-black) 50%, transparent);
+  --subject-1: #A78BFA;
+  --subject-2: #60A5FA;
+  --subject-3: #34D399;
+  --subject-4: #FB923C;
+  --subject-5: #F472B6;
+  --subject-6: #22D3EE;
+  --subject-7: #E8A23B;
+  --subject-8: #94A3B8;
+
+  --progress-track: #2A2533;
+  --progress-neutral: #5C5866;
+
+  /* No escuro a profundidade vem da luz de cima (borda interna clara) e da sombra preta forte */
+  --elev-1: inset 0 1px 0 rgb(255 255 255 / 0.05), 0 0 0 1px rgb(255 255 255 / 0.06), 0 10px 28px -14px rgb(0 0 0 / 0.7);
+  --elev-2: inset 0 1px 0 rgb(255 255 255 / 0.06), 0 0 0 1px rgb(255 255 255 / 0.07), 0 22px 48px -18px rgb(0 0 0 / 0.8);
+  --elev-float: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 0 0 1px rgb(255 255 255 / 0.08), 0 28px 64px -16px rgb(0 0 0 / 0.85);
+  --elev-action: inset 0 1px 0 rgb(255 255 255 / 0.22), 0 8px 24px -8px rgb(132 82 245 / 0.7);
+  --glow: drop-shadow(0 0 10px rgb(132 82 245 / 0.55));
+  --elev-band: 0 -1px 0 rgb(255 255 255 / 0.06), 0 -16px 40px -16px rgb(0 0 0 / 0.8);
+  --elev-tinted: inset 0 0 0 1px rgb(188 166 255 / 0.14), inset 0 1px 0 rgb(255 255 255 / 0.05);
 }

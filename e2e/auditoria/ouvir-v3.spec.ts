@@ -40,7 +40,7 @@ test('"Para hoje" (o episódio da manhã), "Continuar" (ouvido 40%) e "Bibliotec
   await expect(page.getByTestId('podcasts-continue')).toContainText('ouvido 40%')
   await expect(page.getByTestId('podcasts-library')).toContainText('Português ouvido')
   await expect(page.getByTestId('podcasts-library')).toContainText('ouvido até o fim')
-  await expect(page.locator('.shadow-press').filter({ visible: true })).toHaveCount(1)
+  await expect(page.locator('.shadow-action').filter({ visible: true })).toHaveCount(1)
   await axe(page, '/podcasts')
 })
 
@@ -129,7 +129,7 @@ test.describe('Free', () => {
     await expect(box.getByRole('switch')).toBeDisabled()
     await expect(box.getByRole('link', { name: `No ${await catalogProName()}` })).toHaveAttribute('href', '/planos')
     await expect(page.getByTestId('podcasts-empty')).toContainText('Seu primeiro episódio')
-    await expect(page.locator('.shadow-press').filter({ visible: true })).toHaveCount(1)
+    await expect(page.locator('.shadow-action').filter({ visible: true })).toHaveCount(1)
   })
 })
 

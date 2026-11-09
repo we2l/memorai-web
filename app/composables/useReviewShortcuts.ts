@@ -8,6 +8,8 @@ export interface ReviewShortcutHandlers {
   edit?: () => void
   /** O: open the origin of the card (the material, the note or the question) */
   openOrigin?: () => void
+  /** P with the answer on screen: the "Por quê?" of the card (on a hit it is not offered on the band) */
+  why?: () => void
   toggleHelp: () => void
   escape: () => void
   isFlipped: () => boolean
@@ -15,6 +17,9 @@ export interface ReviewShortcutHandlers {
   isSuspended?: () => boolean
   /** End of a batch on screen: Enter = next batch, Esc = back to the scope; the rest is off */
   batchEnd?: () => { next: () => void; stop: () => void } | null
+  /** The feedback band after a rating (prd-visual-e2 RF-2.4): Enter/Space = Continuar, P = "Por quê?" (on a miss),
+   * U = undo; any other key only stops the 1.2 s of a hit, and never rates the next card behind the band */
+  hold?: () => { next: () => void; why: (() => void) | null; stop: () => void } | null
   /** Two buttons (default when absent: four): 1 / ← "Não lembrei", 2 / → / Space / Enter "Lembrei" (prd-revisao-v5-fase-a D2) */
   mode?: () => ReviewButtonsMode
   /** A checked card (prd-revisao-v5-fase-b RF-F5, RF-F6): its own component answers Enter; no flip or rating keys here */
@@ -45,6 +50,26 @@ export function createReviewShortcutHandler(h: ReviewShortcutHandlers) {
     if (h.isSuspended?.() || hasOpenModal()) return
 
     const key = e.key
+    const band = h.hold?.()
+    if (band) {
+      const onControl = !!(e.target as HTMLElement | null)?.closest?.('button, a')
+      if ((key === 'Enter' || key === ' ') && !onControl) {
+        e.preventDefault()
+        band.next()
+      } else if ((key === 'p' || key === 'P') && band.why && !e.ctrlKey) {
+        e.preventDefault()
+        band.why()
+      } else if ((key === 'u' || key === 'U') || ((key === 'z' || key === 'Z') && e.ctrlKey)) {
+        e.preventDefault()
+        h.undo()
+      } else if (key === 'Escape') {
+        h.escape()
+      } else if (!['Shift', 'Control', 'Alt', 'Meta', 'Tab', 'Enter', ' '].includes(key)) {
+        if (['1', '2', '3', '4', 'ArrowLeft', 'ArrowRight'].includes(key)) e.preventDefault()
+        band.stop()
+      }
+      return
+    }
     const batch = h.batchEnd?.()
     if (batch) {
       if (key === 'Enter' && !(e.target as HTMLElement | null)?.closest?.('button, a')) {
@@ -122,6 +147,11 @@ export function createReviewShortcutHandler(h: ReviewShortcutHandlers) {
       if (!h.openOrigin || !h.isFlipped()) return
       e.preventDefault()
       h.openOrigin()
+      return
+    }
+    if ((key === 'p' || key === 'P') && h.why && h.isFlipped()) {
+      e.preventDefault()
+      h.why()
       return
     }
     if (key === '?') {

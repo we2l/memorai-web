@@ -1,5 +1,5 @@
 <template>
-  <header class="border-b border-line bg-raised" data-testid="review-top">
+  <header class="bg-page" data-testid="review-top">
     <div class="mx-auto flex max-w-page flex-wrap items-center gap-x-3 px-gutter py-2 max-sm:pb-1">
       <UiLink v-if="!onboarding" :to="backTo" variant="muted" class="inline-flex min-h-touch shrink-0 items-center gap-1 font-medium" data-testid="review-exit">
         <ChevronLeft class="size-4" aria-hidden="true" />Sair
@@ -62,8 +62,10 @@ const props = withDefaults(defineProps<{
   stepLabel?: string
   /** The name of the onboarding's X */
   exitLabel?: string
+  /** "Explicar este card" in the ⋯ (the "Por quê?" of a hit, prd-visual-e2 §9) */
+  canExplain?: boolean
 }>(), { scopeNote: undefined, blitzTo: undefined, stepLabel: 'Passo 3 de 3', exitLabel: 'Sair' })
-const emit = defineEmits<{ (e: 'undo'): void; (e: 'edit'): void; (e: 'focus-mode'): void; (e: 'shortcuts'): void }>()
+const emit = defineEmits<{ (e: 'undo'): void; (e: 'edit'): void; (e: 'focus-mode'): void; (e: 'shortcuts'): void; (e: 'explain'): void }>()
 
 const barProps = computed(() => {
   const b = props.batch!
@@ -78,6 +80,7 @@ const barProps = computed(() => {
 })
 
 const menu = computed<MenuItem[]>(() => [
+  ...(props.canExplain ? [{ label: 'Explicar este card', meta: 'P', onSelect: () => emit('explain') }] : []),
   { label: 'Modo foco', meta: 'tela cheia', onSelect: () => emit('focus-mode') },
   { label: 'Atalhos', meta: '?', onSelect: () => emit('shortcuts') },
   ...(props.blitzTo ? [{ label: 'Relâmpago', meta: '5 min', to: props.blitzTo }] : []),

@@ -21,7 +21,7 @@ export const API = `${API_ORIGIN}/api`
 export const AUDIT_PASSWORD = 'Senha-Audit-2026'
 const CONTAINER = process.env.E2E_API_CONTAINER || 'baigi-app'
 
-export type UserKey = 'visual' | 'pro' | 'free' | 'quota' | 'unverified' | 'onboarding' | 'onboardingUnverified' | 'empty' | 'session' | 'logout' | 'account' | 'mobile' | 'legacy' | 'scope' | 'nav' | 'hoje' | 'hojeNew' | 'hojeGoal' | 'recorte' | 'hub' | 'material' | 'library' | 'revisao' | 'revisaoEmpty' | 'praticar' | 'praticarFree' | 'progresso' | 'progressoNew' | 'onbText' | 'onbExit' | 'onbExam' | 'onbAnki' | 'onbSample' | 'onbKeyboard' | 'conta' | 'contaPro' | 'parts' | 'organizacao' | 'landingShots' | 'trialInvite' | 'trialUnverified' | 'trialActive' | 'trialTomorrow' | 'trialToday' | 'trialUsed' | 'questao' | 'preview' | 'binario' | 'faseB' | 'trocaA' | 'trocaB'
+export type UserKey = 'visual' | 'pro' | 'free' | 'quota' | 'unverified' | 'onboarding' | 'onboardingUnverified' | 'empty' | 'session' | 'logout' | 'account' | 'mobile' | 'legacy' | 'scope' | 'nav' | 'hoje' | 'hojeNew' | 'hojeGoal' | 'recorte' | 'hub' | 'material' | 'library' | 'revisao' | 'revisaoEmpty' | 'praticar' | 'praticarFree' | 'progresso' | 'progressoNew' | 'onbText' | 'onbExit' | 'onbExam' | 'onbAnki' | 'onbSample' | 'onbKeyboard' | 'conta' | 'contaPro' | 'parts' | 'organizacao' | 'landingShots' | 'trialInvite' | 'trialUnverified' | 'trialActive' | 'trialTomorrow' | 'trialToday' | 'trialUsed' | 'questao' | 'preview' | 'binario' | 'faseB' | 'trocaA' | 'trocaB' | 'revisaoE2'
 
 type UserSpec = { email: string; plan: 'free' | 'pro'; verified: boolean; onboarded: boolean; reset: true; quota_exhausted?: Record<string, number>; name?: string; trial?: 'used' | 'active' | 'tomorrow' | 'today'; buttons?: 'two' | 'four' }
 
@@ -36,6 +36,8 @@ export const USERS: Record<UserKey, UserSpec> = {
   // Revisão v5 (revisao-botoes.spec.ts): the 2 buttons of a real account (the other audit users keep the 4 of the Anki)
   binario: { email: 'e2e-binario@audit.test', plan: 'free', verified: true, onboarded: true, reset: true, buttons: 'two' },
   faseB: { email: 'e2e-fase-b@audit.test', plan: 'free', verified: true, onboarded: true, reset: true, buttons: 'two' },
+  // Revisão E2 (revisao-e2.spec.ts): the answer band, "Por quê?" and the end of a lote, with a name for the title
+  revisaoE2: { email: 'e2e-revisao-e2@audit.test', plan: 'pro', verified: true, onboarded: true, reset: true, name: 'Ana', buttons: 'two' },
   // Troca de conta na mesma aba (troca-de-conta.spec.ts): a conta B nunca pode ver os cadernos da A
   trocaA: { email: 'e2e-troca-a@audit.test', plan: 'free', verified: true, onboarded: true, reset: true },
   trocaB: { email: 'e2e-troca-b@audit.test', plan: 'free', verified: true, onboarded: true, reset: true },
@@ -286,4 +288,14 @@ export async function gotoApp(page: Page, url: string) {
   await page.goto(url)
   await page.waitForLoadState('networkidle')
   expect(new URL(page.url()).pathname, `sessão perdida ao abrir ${url}`).not.toBe('/entrar')
+}
+
+/**
+ * The answer band of the review (prd-visual-e2 RF-2.4): after a rating the card stays under the band; a hit goes on
+ * by itself in 1.2 s and a miss waits for "Continuar". Clicks "Continuar" when the band is still there.
+ */
+export async function continueBand(page: Page) {
+  const band = page.getByTestId('review-feedback')
+  await page.getByTestId('review-continue').click({ timeout: 1500 }).catch(() => { /* intencional: o acerto já seguiu sozinho */ })
+  await expect(band).toHaveCount(0, { timeout: 3000 })
 }

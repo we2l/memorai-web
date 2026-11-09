@@ -74,7 +74,7 @@ async function ensurePlanSeed(page: Page): Promise<PlanSeed> {
 }
 
 const main = (page: Page) => page.getByRole('main')
-const primaries = (page: Page) => main(page).locator('.bg-action.shadow-press')
+const primaries = (page: Page) => main(page).locator('.bg-action.shadow-action')
 
 test.describe('Plano do dia (e2e-hoje)', () => {
   test.use({ auditUser: 'hoje' })
@@ -93,7 +93,7 @@ test.describe('Plano do dia (e2e-hoje)', () => {
     await expect(main(page).getByTestId('plan-step-listen')).toContainText('Ouvir: Seus erros de Constitucional')
     await expect(main(page).getByTestId('plan-step-material')).toContainText('Continuar Apostila B')
     await expect(primaries(page)).toHaveCount(1)
-    await expect(main(page).getByTestId('plan-step-review').locator('.shadow-press')).toHaveCount(1)
+    await expect(main(page).getByTestId('plan-step-review').locator('.shadow-action')).toHaveCount(1)
     await expect(main(page).locator('.bg-tinted')).toHaveCount(1)
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(/^(Bom dia|Boa tarde|Boa noite), Auditoria\. Hoje são uns \d+ minutos\.$/)
 
@@ -206,7 +206,7 @@ test.describe('Conta nova (e2e-hoje-new)', () => {
     await expect(main(page).getByTestId('home-notebooks')).toHaveCount(0)
     await expect(primaries(page)).toHaveCount(1)
     const create = checklist.getByRole('link', { name: 'Criar caderno' })
-    await expect(create).toHaveClass(/shadow-press/)
+    await expect(create).toHaveClass(/shadow-action/)
     await create.click()
     // /cadernos?action=new-notebook opens the create dialog (and drops the param)
     await expect(page).toHaveURL(/\/cadernos/)

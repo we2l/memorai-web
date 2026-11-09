@@ -10,6 +10,8 @@
       :can-edit="!!review.currentCard && !review.showErrorDiary && !batchEndIndex && !onboardingEnd"
       :blitz-to="isBlitz ? null : blitzTo"
       :onboarding="isOnboarding"
+      :can-explain="canExplainFromMenu"
+      @explain="openWhy('menu')"
       @undo="handleUndo"
       @edit="openEdit"
       @focus-mode="enterFocus"
@@ -57,20 +59,21 @@
       </UiErrorState>
 
       <!-- First batch of the onboarding: 1st rating of every card, no waiting for the learning ones (prd-4g RF-F8) -->
-      <LazyReviewOnboardingEnd v-else-if="onboardingEnd" :summary="sessionSummary" :forecast="tomorrow" :loading="tomorrowLoading" :failed="tomorrowFailed" />
+      <LazyReviewOnboardingEnd v-else-if="onboardingEnd && !held" :summary="sessionSummary" :forecast="tomorrow" :loading="tomorrowLoading" :failed="tomorrowFailed" />
 
       <!-- Queue still draining / next page on its way -->
-      <div v-else-if="(review.saving || review.awaitingPage) && !review.showErrorDiary" class="flex flex-col items-center gap-4 px-gutter py-16 text-center" role="status">
+      <div v-else-if="(review.saving || review.awaitingPage) && !review.showErrorDiary && !held" class="flex flex-col items-center gap-4 px-gutter py-16 text-center" role="status">
         <UiSpinner />
         <p class="text-body text-fg">{{ review.saving ? 'Salvando suas avaliações…' : 'Carregando mais cards…' }}</p>
       </div>
 
       <!-- End of a batch: the reward lives here, not on each rating -->
       <LazyReviewBatchEnd
-        v-else-if="batchEndIndex && !review.showErrorDiary"
+        v-else-if="batchEndIndex && !review.showErrorDiary && !held"
         :index="batchEndIndex"
+        :name="firstName"
         :summary="batchEndSummary!"
-        :goal="statsNow?.goal ?? null"
+        :goal="batchGoal"
         :goal-met="goalCelebrated"
         :streak="streakInfo"
         :stats-loading="statsLoading"
@@ -83,7 +86,7 @@
       />
 
       <!-- The session ended -->
-      <template v-else-if="review.finished && !review.showErrorDiary">
+      <template v-else-if="review.finished && !review.showErrorDiary && !held">
         <LazyReviewSessionEnd
           v-if="review.totalRated > 0"
           :summary="sessionSummary"
@@ -129,17 +132,20 @@
       </template>
 
       <!-- Waiting for cards in learning -->
-      <div v-else-if="!review.currentCard && review.pendingLearning > 0 && !review.showErrorDiary" class="mx-auto flex max-w-md flex-col items-center gap-3 px-gutter py-16 text-center" data-testid="review-waiting">
+      <div v-else-if="!review.currentCard && review.pendingLearning > 0 && !review.showErrorDiary && !held" class="mx-auto flex max-w-md flex-col items-center gap-3 px-gutter py-16 text-center" data-testid="review-waiting">
         <h1 class="text-section text-fg-strong">Volta em 1 min</h1>
         <p class="text-body text-fg-muted">{{ review.pendingLearning }} {{ review.pendingLearning === 1 ? 'card que você está aprendendo volta' : 'cards que você está aprendendo voltam' }} em instantes.</p>
         <UiButton variant="primary" :to="backTo">Encerrar por hoje</UiButton>
       </div>
 
       <!-- The card -->
-      <div v-else-if="review.currentCard" class="mx-auto flex w-full max-w-3xl flex-col gap-4 px-gutter py-6">
+      <div v-else-if="held || review.currentCard" class="review-grid mx-auto w-full px-gutter py-6">
+        <div class="flex min-w-0 flex-col gap-4">
         <ReviewCard
-          :card="review.showErrorDiary && review.diary ? review.diary.card : review.currentCard"
-          :flipped="review.flipped || review.showErrorDiary"
+          :key="shownCard?.id"
+          :card="shownCard!"
+          :enter="entering"
+          :flipped="!!held || review.flipped || review.showErrorDiary"
           :label="cardLabel"
           :swipe-enabled="swipeEnabled"
           :swipe-labels="buttonsMode === 'two' ? { right: 'Lembrei', left: 'Não lembrei' } : { right: 'Bom', left: 'De novo' }"
@@ -160,7 +166,7 @@
 
         <!-- The card that never sticks (prd-revisao-v5-fase-b RF-F7): what helps, from the leech mark -->
         <LazyReviewLeech
-          v-if="review.flipped && !review.showErrorDiary && !isOnboarding && shownCard?.is_leech"
+          v-if="review.flipped && !held && !review.showErrorDiary && !isOnboarding && shownCard?.is_leech"
           :lapses="shownCard.lapses"
           :has-origin="!!shownCard.origin"
           :can-explain="true"
@@ -170,13 +176,9 @@
           @pause="pauseCard"
         />
 
-        <!-- The first batch of the onboarding has no AI on the way: nothing to confirm, nothing to spend -->
-        <div v-if="review.flipped && !review.showErrorDiary && !isOnboarding && !shownCard?.is_leech" class="flex justify-center">
-          <UiButton size="sm" variant="ghost" :icon-left="MessageCircle" data-testid="review-explain" @click="explainCard">Explicar este card</UiButton>
-        </div>
 
         <!-- Error diary (replaces the ratings after an error) -->
-        <template v-if="review.showErrorDiary">
+        <template v-if="review.showErrorDiary && !held">
           <LazyFlashcardErrorDiary
             :visible="true"
             :flashcard-id="review.diary?.flashcard_id ?? ''"
@@ -190,7 +192,23 @@
         </template>
 
         <!-- Hints after an error and a weak connected caderno: optional context, never blocks -->
-        <LazyReviewHints v-if="!review.showErrorDiary && (review.hintsLoading || review.hints.length || review.weakSuggestion?.length)" />
+        <LazyReviewHints v-if="!held && !review.showErrorDiary && (review.hintsLoading || review.hints.length || review.weakSuggestion?.length)" />
+        </div>
+
+        <!-- Desktop (>= 1024 px): the side column, "Neste lote" / "Do seu material", or the "Por quê?" (RF-2.6) -->
+        <div v-if="wide" class="min-w-0">
+          <LazyReviewWhy v-if="why.open.value" :why="why" docked @ask-more="askMoreWhy" />
+          <LazyReviewSide
+            v-else
+            :flipped="!!held || review.flipped"
+            :origin="shownCard?.origin"
+            :topic-id="shownCard?.topic_id"
+            :back-to="route.fullPath"
+            :summary="liveBatch"
+            :keys="sideKeys"
+            @open-origin="track('review_origin_open', { kind: shownCard?.origin?.kind ?? 'note' })"
+          />
+        </div>
       </div>
 
       <!-- No card at all to show (the API answered nothing; should not happen once finished) -->
@@ -202,16 +220,25 @@
 
     <!-- Bottom bar: "Mostrar resposta" (the primary before the turn) or the 4 ratings, fixed on the phone -->
     <footer
-      v-if="review.currentCard && !review.showErrorDiary && !batchEndIndex && !onboardingEnd && !review.finished && !review.saving && !review.awaitingPage"
-      class="shrink-0 border-t border-line bg-raised px-gutter pt-3 pb-safe-bottom"
+      v-if="held || (review.currentCard && !review.showErrorDiary && !batchEndIndex && !onboardingEnd && !review.finished && !review.saving && !review.awaitingPage)"
+      class="shrink-0 bg-page px-gutter pt-3 pb-safe-bottom"
       data-testid="review-footer"
     >
-      <div class="mx-auto w-full max-w-3xl pb-3">
-        <!-- The answer to the last rating (RF-F4); its own chunk, loaded on the 1st rating -->
-        <div class="mb-2 flex min-h-8 justify-center"><LazyReviewFeedback v-if="feedback" :feedback="feedback" @undo="undoFromFeedback" /></div>
+      <div class="review-grid mx-auto w-full pb-3">
+        <div class="min-w-0">
+        <!-- The answer band of the rating (RF-2.4): the dolphin, where the card goes, "Por quê?" on a miss; its own chunk -->
+        <LazyReviewFeedback
+          v-if="held && feedback"
+          ref="feedbackRef"
+          :feedback="feedback"
+          @continue="continueAfterFeedback"
+          @why="openWhy(feedback.kind)"
+          @undo="undoFromFeedback"
+          @cancel-auto="(via) => track('review_autoadvance_cancel', { via })"
+        />
         <!-- Certo/Errado or typed answer where the card allows it (prd-revisao-v5-fase-b RF-F5, RF-F6) -->
         <LazyReviewCheck
-          v-if="currentCheck"
+          v-else-if="currentCheck"
           :key="review.currentCard.id"
           ref="checkRef"
           :check="currentCheck"
@@ -226,11 +253,15 @@
           <UiButton v-else variant="primary" block aria-keyshortcuts="Space" data-testid="review-show" @click="review.flip()">Mostrar resposta</UiButton>
         </template>
         <!-- Only with a mouse or trackpad (pointer: fine), where a keyboard is likely: never on a phone -->
-        <p class="mt-2 hidden text-center text-label text-fg-muted pointer-fine:block" data-testid="review-keys">
+        <p v-if="!held" class="mt-2 hidden text-center text-label text-fg-muted pointer-fine:block" data-testid="review-keys">
           {{ keysHint }} · U desfazer<template v-if="showShortcutTip"> · ? atalhos</template>
         </p>
+        </div>
       </div>
     </footer>
+
+    <!-- "Por quê?" on the phone: a sheet over the card (RF-2.5) -->
+    <LazyReviewWhy v-if="!wide && whyLoaded" :why="why" :docked="false" @ask-more="askMoreWhy" />
 
     <!-- Timer expired -->
     <UiDialog v-model="showTimerModal" :title="isBlitz ? 'Relâmpago concluído!' : 'Tempo esgotado'" size="sm">
@@ -268,11 +299,11 @@ import type { CardCheck, Stats, TomorrowForecast } from '~/types'
 import type { ReviewAnswer, SessionCard } from '~/stores/review'
 import { cadernoPath, markScopeCleared } from '~/utils/scope'
 import { reviewPath, scopeBackPath, scopeOf, scopeQuery, sessionScopeFromQuery } from '~/utils/reviewScope'
-import { batchSummary, studyDayEnd } from '~/composables/useReviewBatches'
+import { batchSummary, goalAfterBatch, studyDayEnd } from '~/composables/useReviewBatches'
 import type { StreakInfo } from '~/components/review/ReviewBatchEnd.vue'
 import { MessageCircle } from 'lucide-vue-next'
 import { reviewButtonsOf, reviewKeysHint } from '~/utils/reviewButtons'
-import { feedbackText } from '~/utils/intervalLabel'
+import { feedbackTitle, feedbackWhen, isOkKind, type FeedbackKind } from '~/utils/reviewFeedback'
 import type { RatingFeedback } from '~/components/review/ReviewFeedback.vue'
 
 definePageMeta({ chrome: 'focus' })
@@ -352,8 +383,8 @@ const contextText = computed(() => {
   return ''
 })
 
-// The card on screen (the diary keeps the card that was missed)
-const shownCard = computed(() => (review.showErrorDiary && review.diary ? review.diary.card : review.currentCard))
+// The card on screen: the one just rated while its feedback band is up, then the diary's missed card or the current one
+const shownCard = computed(() => held.value?.card ?? (review.showErrorDiary && review.diary ? review.diary.card : review.currentCard))
 const cardLabel = computed(() => shownCard.value?.topic_name ?? '')
 
 // === Stats: before the session (goal, streak, cards in the account) and at each end ===
@@ -396,6 +427,9 @@ const streakInfo = computed<StreakInfo | null>(() => {
   const extendedNow = !!s.streak_extended_today && !statsBefore.value?.streak_extended_today && !streakAnimated.value
   return { current: s.streak, record: s.streak >= 3 && s.streak === (s.streak_longest ?? 0), extendedNow, rest: s.streak_rest_available ?? null }
 })
+
+/** The goal on the end of a lote: the lote just finished counts even before (or despite) GET /stats (Fase 2b) */
+const batchGoal = computed(() => goalAfterBatch(statsBefore.value?.goal, statsNow.value?.goal))
 
 const announcement = ref('')
 watch(batchEndIndex, async (index, prev) => {
@@ -532,35 +566,102 @@ function onCardFlip() {
   if (!currentCheck.value) review.flip()
 }
 const RATING_KEY = { 1: 'again', 2: 'hard', 3: 'good', 4: 'easy' } as const
-const RATING_LABEL = { two: { 1: 'Não lembrei', 3: 'Lembrei' }, four: { 1: 'De novo', 2: 'Difícil', 3: 'Bom', 4: 'Fácil' } } as const
-/** The answer to the last rating (RF-F4): where the card goes, until the next one */
+
+// === The answer band (prd-visual-e2 RF-2.4, ADR-035 §6) ===
+// The rating goes to the store at once (queue, undo and the next page as before); the rated card stays on screen under
+// the band until "Continuar": a hit goes on by itself in 1.2 s, a miss waits (that is where "Por quê?" lives).
+const held = shallowRef<{ card: SessionCard } | null>(null)
 const feedback = ref<RatingFeedback | null>(null)
+const feedbackRef = ref<{ cancel: (via: 'tap' | 'key' | 'why') => void } | null>(null)
+/** The next card comes in from the right after a band (not on the first card, not after an undo) */
+const entering = ref(false)
 let feedbackId = 0
+
+function kindOf(rating: number, answer?: ReviewAnswer): FeedbackKind {
+  if (answer?.answer_mode === 'true_false') return answer.answer_outcome === 'correct' ? 'tf-ok' : 'tf-again'
+  if (answer?.answer_mode === 'typed') return answer.answer_outcome === 'correct' ? 'typed-ok' : 'typed-again'
+  return rating >= 2 ? 'ok' : 'again'
+}
+
 function handleRate(rating: number, answer?: ReviewAnswer) {
   const card = review.currentCard
-  if (!card || review.showErrorDiary || batchEndIndex.value || !review.flipped) return
+  if (!card || review.showErrorDiary || batchEndIndex.value || !review.flipped || held.value) return
   if (rating <= 2) lastErrorCard.value = { ...card }
   const r = rating as 1 | 2 | 3 | 4
-  const labels: Record<number, string> = RATING_LABEL[buttonsMode.value]
-  const label = answer?.answer_mode === 'true_false' || answer?.answer_mode === 'typed'
-    ? CHECK_LABEL[answer.answer_outcome ?? 'wrong']
-    : labels[r] ?? RATING_LABEL.four[r]
-  const text = feedbackText(label, review.currentIntervals[RATING_KEY[r]] ?? '')
+  const kind = kindOf(r, answer)
+  const checked = answer?.answer_mode === 'true_false' || answer?.answer_mode === 'typed'
+  const interval = review.currentIntervals[RATING_KEY[r]] ?? ''
   const swiped = answer?.answer_mode === 'swipe'
-  feedback.value = { id: ++feedbackId, remembered: r >= 2, text, undo: swiped }
-  if (swiped) {
-    // "Desfazer" on the pill for 5 s after a gesture (RF-F10)
-    const id = feedbackId
-    setTimeout(() => { if (feedback.value?.id === id) feedback.value = { ...feedback.value, undo: false } }, 5000)
+  // A checked card already showed its result and waited for "Continuar": a hit goes straight on; a miss gets the band
+  if (!(checked && isOkKind(kind))) {
+    feedback.value = {
+      id: ++feedbackId,
+      kind,
+      title: feedbackTitle(kind, card.id),
+      when: feedbackWhen(kind, interval),
+      autoAdvance: isOkKind(kind),
+      canWhy: !isOkKind(kind) && !isOnboarding.value,
+      undo: swiped,
+    }
+    held.value = { card: { ...card } }
+    entering.value = false
+    track('review_feedback_shown', { kind })
+    if (swiped) {
+      // "Desfazer" on the band for 5 s after a gesture (RF-F10)
+      const id = feedbackId
+      setTimeout(() => { if (feedback.value?.id === id) feedback.value = { ...feedback.value, undo: false } }, 5000)
+    }
   }
-  announcement.value = `${text}.`
   review.rate(r, answer ?? { answer_mode: buttonsMode.value === 'two' ? 'self_binary' : 'self_four' })
 }
-const CHECK_LABEL = { correct: 'Acertou', wrong: 'Errou', blank: 'Em branco' } as const
-function undoFromFeedback() {
+
+/** "Continuar" (or the 1.2 s of a hit): the band leaves and the next card comes in. */
+function continueAfterFeedback() {
+  if (!held.value) return
+  held.value = null
   feedback.value = null
+  entering.value = true
+  why.close()
+}
+
+function undoFromFeedback() {
+  held.value = null
+  feedback.value = null
+  entering.value = false
   void handleUndo()
 }
+
+// === "Por quê?" (RF-2.5): only on a miss; on a hit it lives in the ⋯ menu ("Explicar este card") ===
+const why = useReviewWhy()
+const whyLoaded = useLoadedOnce(() => why.open.value)
+const canExplainFromMenu = computed(() => !isOnboarding.value && (!!held.value || (review.flipped && !!review.currentCard && !review.showErrorDiary)))
+function openWhy(kind: FeedbackKind | 'menu') {
+  const card = shownCard.value
+  if (!card) return
+  feedbackRef.value?.cancel('why')
+  track('review_why_opened', { kind })
+  why.show({ id: card.id, front: htmlToPlain(card.front), topic_id: card.topic_id ?? scopeTopicId.value })
+}
+function askMoreWhy() {
+  why.close()
+  void why.askMore(scopeTopicId.value)
+}
+
+// === Desktop side column (RF-2.6) ===
+const wide = ref(false)
+let wideQuery: MediaQueryList | null = null
+const onWide = () => { wide.value = !!wideQuery?.matches }
+onMounted(() => {
+  wideQuery = window.matchMedia?.('(min-width: 1024px)') ?? null
+  onWide()
+  wideQuery?.addEventListener?.('change', onWide)
+})
+onBeforeUnmount(() => wideQuery?.removeEventListener?.('change', onWide))
+const liveBatch = computed(() => (batches.enabled.value && review.log.length ? batchSummary(review.log, batches.position.value.index, studyDayEnd()) : null))
+const sideKeys = computed(() => (buttonsMode.value === 'two'
+  ? [{ key: 'Espaço', label: 'virar' }, { key: '1', label: 'Não lembrei' }, { key: '2', label: 'Lembrei' }, { key: 'P', label: 'Por quê?' }, { key: 'U', label: 'desfazer' }]
+  : [{ key: 'Espaço', label: 'virar' }, { key: '1–4', label: 'avaliar' }, { key: 'P', label: 'Por quê?' }, { key: 'U', label: 'desfazer' }]))
+const firstName = computed(() => auth.user?.name?.trim().split(/\s+/)[0] ?? null)
 
 // "Pausar o card" (RF-F7): it leaves the session now; "Desfazer" brings it back here
 async function pauseCard() {
@@ -585,9 +686,6 @@ async function pauseCard() {
     reportApiError(e, { error: 'Não foi possível pausar o card.' })
   }
 }
-watch(batchEndIndex, (index) => { if (index) feedback.value = null })
-// The pill speaks of the previous card: it leaves when the next one turns, never next to its answer or its check
-watch(() => review.flipped, (flipped) => { if (flipped) feedback.value = null })
 
 async function handleUndo() {
   await review.undo()
@@ -663,6 +761,7 @@ function openOrigin() {
 useReviewShortcuts({
   edit: openEdit,
   openOrigin,
+  why: () => { if (canExplainFromMenu.value) openWhy('menu') },
   flip: () => { if (review.currentCard && !review.showErrorDiary) review.flip() },
   rate: (r) => { if (review.flipped && !review.showErrorDiary) handleRate(r) },
   checkMode: () => currentCheck.value?.mode ?? null,
@@ -676,7 +775,14 @@ useReviewShortcuts({
   },
   isFlipped: () => review.flipped,
   mode: () => buttonsMode.value,
-  isSuspended: () => showTimerModal.value || showEditCard.value || onboardingEnd.value,
+  isSuspended: () => showTimerModal.value || showEditCard.value || (onboardingEnd.value && !held.value),
+  hold: () => (held.value && feedback.value
+    ? {
+        next: continueAfterFeedback,
+        why: feedback.value.canWhy ? () => openWhy(feedback.value!.kind) : null,
+        stop: () => feedbackRef.value?.cancel('key'),
+      }
+    : null),
   batchEnd: () => (batchEndIndex.value && !review.showErrorDiary
     ? { next: nextBatch, stop: () => { stopAtBatch(); void navigateTo(backTo.value) } }
     : null),
@@ -822,3 +928,12 @@ watch(() => route.query, (newQ, oldQ) => {
 
 useHead({ title: 'Revisão · Baigi' })
 </script>
+
+<style scoped>
+/* Card column of 720 px and, from 1024 px, the side column of 360 px (prd-visual-e2 RF-2.6); the footer keeps the
+   same grid so the ratings and the band sit under the card */
+.review-grid { max-width: 48rem; }
+@media (min-width: 1024px) {
+  .review-grid { display: grid; grid-template-columns: minmax(0, 45rem) 22.5rem; gap: 32px; justify-content: center; align-items: start; max-width: none; }
+}
+</style>

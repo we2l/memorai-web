@@ -168,6 +168,8 @@ describe('useNoteEditor local draft', () => {
 
   beforeEach(() => {
     vi.useFakeTimers()
+    // The draft expires after 7 days: the clock stays next to the note's updated_at, or the tests rot with the calendar
+    vi.setSystemTime(Date.parse(note.updated_at) + 3600_000)
     apiMock.mockReset()
     vi.stubGlobal('localStorage', memoryStorage())
     useNoteStore().$reset()

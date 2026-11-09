@@ -11,6 +11,15 @@
       "prazo": "permanente"
     },
     {
+      "path": "app/components/landing/landing.css",
+      "rules": [
+        "hex"
+      ],
+      "match": "^\\s*--palette-[\\w-]+:\\s*#[0-9A-Fa-f]{6};",
+      "motivo": "Primitivos da landing D (ADR-028), congelada na pele v4: saíram do entry.css com a E2 (ADR-035 §7, teto de 13 KB gz) e ficam só no CSS dela.",
+      "prazo": "permanente"
+    },
+    {
       "path": "app/components/auth/GoogleButton.vue",
       "rules": [
         "hex"

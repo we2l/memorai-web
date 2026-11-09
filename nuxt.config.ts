@@ -50,7 +50,7 @@ const SESSION_HINT_SCRIPT = `(function(){var d=document.documentElement,p=locati
 
 // Page color of the DS v3 (--surface-page in app/assets/css/tokens.css, light and dark): the manifest and
 // the theme-color metas need the literal. tests/scripts/pwaManifest.test.ts keeps both in sync with tokens.css.
-const THEME_COLOR = { light: '#FAFAFB', dark: '#141218' }
+const THEME_COLOR = { light: '#FFFFFF', dark: '#0F0D14' }
 
 // Theme before the first paint (prd-ds-v3-fundacao RF-1.4): localStorage['color-mode'] is light | dark |
 // system (missing = system, the key the E2E set). .dark goes on <html> and color-scheme inline paints the
@@ -114,10 +114,10 @@ export default defineNuxtConfig({
   // Precache (prd-ds-v3-fundacao RF-0.4): the SW precaches every woff2, unicode-range or not, so only
   // what PT-BR needs ships. Latin covers U+0000-00FF (ç, ã, ê, à...) plus dashes, quotes and €; rare
   // latin-ext letters fall back to the system font. No italic file: <em>/cloze get a synthetic oblique.
-  // Inter is variable: one file covers 400-700.
+  // Inter is variable: one file and one @font-face cover 400-700 (a range, not 4 faces: entry.css, ADR-035).
   fonts: {
     families: [
-      { name: 'Inter', weights: [400, 500, 600, 700], styles: ['normal'], subsets: ['latin'], provider: 'google' },
+      { name: 'Inter', weights: ['400 700'], styles: ['normal'], subsets: ['latin'], provider: 'google' },
     ],
   },
 
@@ -160,8 +160,9 @@ export default defineNuxtConfig({
       },
     },
     build: {
-      // Mascots stay as files (runtime-cached by the SW) instead of base64 inside JS chunks
-      assetsInlineLimit: (file: string) => (file.includes('/mascots/') ? false : undefined),
+      // Mascots stay as files (runtime-cached by the SW) instead of base64 inside JS chunks; the Fraunces files
+      // (ADR-035 §2) too, or the 2.4 KB of digits would land inside entry.css as base64
+      assetsInlineLimit: (file: string) => (file.includes('/mascots/') || file.endsWith('.woff2') ? false : undefined),
     },
   },
 
@@ -204,7 +205,7 @@ export default defineNuxtConfig({
       // index.html + _nuxt/index.*.css + landing/** (title font, clips, screens, sample: prd-landing-d RF-D14/D15): the
       // landing (prd-landing-v4 RF-L14), online like the rest of the marketing; the
       // installed app starts at /hoje and navigateFallback is null, so nothing offline ever served it
-      globIgnores: ['index.html', 'landing/**', 'termos/**', 'privacidade/**', 'planos/**', 'ajuda/**', 'entrar/**', 'criar-conta/**', 'esqueci-senha/**', '_nuxt/email-*.js', '_nuxt/analytics-*.js', '_nuxt/consent-*.js', '_nuxt/once-*.js', '_nuxt/dev-*.js', '_nuxt/index.*.css', 'blog/**', 'ferramentas/**', 'quem-faz/**', 'sitemap.xml', '_nuxt/blog-*.css'],
+      globIgnores: ['index.html', 'landing/**', 'termos/**', 'privacidade/**', 'planos/**', 'ajuda/**', 'entrar/**', 'criar-conta/**', 'esqueci-senha/**', '_nuxt/email-*.js', '_nuxt/analytics-*.js', '_nuxt/consent-*.js', '_nuxt/once-*.js', '_nuxt/dev-*.js', '_nuxt/index.*.css', '_nuxt/baigi-it-*.woff2', 'blog/**', 'ferramentas/**', 'quem-faz/**', 'sitemap.xml', '_nuxt/blog-*.css'],
       // Heavy on-demand chunks (pdf.js ~330 KB) stay out of the install download;
       // maximumFileSizeToCacheInBytes would fail the build instead of skipping.
       manifestTransforms: [

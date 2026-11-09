@@ -45,4 +45,21 @@ describe.skipIf(skipWithoutBuild)('fontes self-hosted (build)', () => {
     const missing = [...'ação não você à é í ó ú â ô ü ÇÃÕÂÊÔÁÉÍÓÚÀ – — “ ” ‘ ’ … • € ª º'].filter(c => c !== ' ' && !covered(c.codePointAt(0)!))
     expect(missing).toEqual([])
   })
+
+  // ADR-035 §2: the Fraunces of the big numbers (digits only) is precached; the exam-card italic is not
+  it('Fraunces: "Baigi Num" (dígitos, no precache) e "Baigi It" (fora do precache), sem base64 no CSS', () => {
+    const nuxtDir = join(PUBLIC_DIR, '_nuxt')
+    const files = readdirSync(nuxtDir)
+    const num = files.filter(f => /^baigi-num-600\..+\.woff2$/.test(f))
+    const it500 = files.filter(f => /^baigi-it-500\..+\.woff2$/.test(f))
+    expect(num).toHaveLength(1)
+    expect(it500).toHaveLength(1)
+    const urls = [...readFileSync(join(PUBLIC_DIR, 'sw.js'), 'utf8').matchAll(/url:"([^"]+)"/g)].map(m => m[1]!)
+    expect(urls.some(u => u.endsWith(num[0]!))).toBe(true)
+    expect(urls.filter(u => u.includes('baigi-it-'))).toEqual([])
+    const css = files.filter(f => f.endsWith('.css')).map(f => readFileSync(join(nuxtDir, f), 'utf8')).join('\n')
+    const face = css.match(/@font-face\{[^}]*font-family:\s*"?Baigi Num"?;[^}]*\}/)?.[0] ?? ''
+    expect(face).toMatch(/unicode-range:\s*U\+0*20,/i)
+    expect(css).not.toMatch(/data:font\/woff2/)
+  })
 })

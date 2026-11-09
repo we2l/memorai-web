@@ -154,7 +154,7 @@ describe('HomePlan', () => {
     const w = await mountSuspended(HomePlan, { props: { steps: steps() }, attachTo: document.body })
     expect(w.get('h2').text()).toBe('Plano do dia')
     expect(w.findAll('li')).toHaveLength(3)
-    expect(w.findAll('.bg-action.shadow-press')).toHaveLength(1)
+    expect(w.findAll('.bg-action.shadow-action')).toHaveLength(1)
     const start = w.get('a[href="/revisar"]')
     expect(start.text()).toBe('Começar')
     expect(document.getElementById(start.attributes('aria-describedby')!)!.textContent).toBe('Revisar 45 cards de TRF')
@@ -248,7 +248,7 @@ describe('UiActivationChecklist (Hoje)', () => {
   it('com primary, o 1º passo pendente é o único primário; "Adicionar material" abre o "+ Adicionar"', async () => {
     const w = await mountSuspended(ActivationChecklist, { props: { ...props, primary: true }, attachTo: document.body })
     expect(w.text()).toContain('1 de 5 concluídos')
-    const primary = w.findAll('.bg-action.shadow-press')
+    const primary = w.findAll('.bg-action.shadow-action')
     expect(primary).toHaveLength(1)
     expect(primary[0]!.text()).toBe('Adicionar')
     await primary[0]!.trigger('click')
@@ -268,7 +268,7 @@ describe('UiActivationChecklist (Hoje)', () => {
 
   it('sem primary, nenhum botão primário; tudo feito some', async () => {
     const w = await mountSuspended(ActivationChecklist, { props })
-    expect(w.findAll('.bg-action.shadow-press')).toHaveLength(0)
+    expect(w.findAll('.bg-action.shadow-action')).toHaveLength(0)
     const done = await mountSuspended(ActivationChecklist, { props: { ...props, hasMaterial: true, hasCards: true, hasReviewed: true, streak: 3 } })
     expect(done.find('section').exists()).toBe(false)
   })

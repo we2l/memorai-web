@@ -1,11 +1,6 @@
 <template>
   <Teleport to="body">
-    <Transition
-      :enter-active-class="motion.active"
-      :enter-from-class="motion.from"
-      :leave-active-class="motion.active"
-      :leave-to-class="motion.from"
-    >
+    <Transition name="ui-dialog" :duration="placement === 'bottom' ? { enter: 320, leave: 200 } : undefined">
       <div
         v-if="modelValue"
         class="fixed inset-0 z-overlay flex bg-scrim"
@@ -71,11 +66,9 @@ const descriptionId = `${titleId}-desc`
 const SIZES = { sm: 'sm:max-w-sm', md: 'sm:max-w-lg', lg: 'sm:max-w-2xl', xl: 'h-full sm:h-auto sm:max-w-5xl' }
 const LAYOUT: Record<DialogPlacement, { scrim: string; panel: string }> = {
   center: { scrim: 'items-center justify-center p-4', panel: 'max-h-full rounded-float' },
-  bottom: { scrim: 'items-end justify-center', panel: 'max-h-9/10 rounded-t-float pb-safe-bottom' },
+  bottom: { scrim: 'items-end justify-center', panel: 'ui-dialog-sheet max-h-9/10 rounded-t-sheet pb-safe-bottom' },
   right: { scrim: 'justify-end', panel: 'h-full pr-safe-right pb-safe-bottom' },
 }
-// One fade (200 ms, --motion-respond) for the backdrop and the panel together: cheap in CSS and calm
-const motion = { active: 'transition-opacity duration-respond ease-calm', from: 'opacity-0' }
 
 function close() {
   emit('update:modelValue', false)
@@ -87,3 +80,16 @@ function dismiss() {
 
 useModalLayer({ open: () => props.modelValue, panel, onEscape: dismiss })
 </script>
+
+<style scoped>
+/* The backdrop and a centered panel fade together (240 ms); the bottom sheet rises with the drawer curve in 320 ms
+   and leaves in 200 ms (ADR-035 §6). Only opacity and transform; prefers-reduced-motion zeroes them (base.css). */
+.ui-dialog-enter-active,
+.ui-dialog-leave-active { transition: opacity var(--dur-base) var(--ease-out); }
+.ui-dialog-enter-from,
+.ui-dialog-leave-to { opacity: 0; }
+.ui-dialog-enter-active .ui-dialog-sheet { transition: transform var(--dur-sheet) var(--ease-drawer); }
+.ui-dialog-leave-active .ui-dialog-sheet { transition: transform 200ms var(--ease-out); }
+.ui-dialog-enter-from .ui-dialog-sheet,
+.ui-dialog-leave-to .ui-dialog-sheet { transform: translateY(100%); }
+</style>

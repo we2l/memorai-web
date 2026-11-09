@@ -1125,6 +1125,10 @@ export type CardOrigin =
   | { kind: 'note'; note_id: string; title: string; topic_id: string | null }
   | { kind: 'question'; question_id: string; title: string; source: string | null }
 
+/** Origin of a card in the review session: + up to 360 characters of the excerpt that best matches the back
+ * (GET /review/session, prd-visual-e2 RF-B2); null without a note or text. Only the session has it. */
+export type SessionCardOrigin = CardOrigin & { excerpt?: string | null }
+
 /** A card of the library (GET /topics/{id}/flashcards, cursor mode). */
 export interface LibraryCard extends Flashcard {
   topic_name?: string | null

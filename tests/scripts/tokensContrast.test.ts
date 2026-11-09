@@ -2,14 +2,15 @@
 import { describe, expect, it } from 'vitest'
 import { contrast, readTokens, resolveHex, type Theme } from './tokensFile'
 
-// Contrast of the DS v3 tokens (prd-ds-v3-fundacao RF-1.3, ADR-027 §2), both themes. A value that fails
-// here is adjusted in tokens.css and the final table goes to ADR-027 §2.
+// Contrast of the DS v3 tokens (prd-ds-v3-fundacao RF-1.3, ADR-027 §2) in the E2 skin (ADR-035 §7), both themes.
+// A value that fails here is adjusted in tokens.css and the final table goes to ADR-035 §7.
 // - text: 4.5:1 (WCAG 1.4.3); field border, focus ring, icons and dots that carry meaning: 3:1 (1.4.11)
 // - the conquest shapes (--celebrate/--streak) never inform alone (ADR-027 §4): their text pair is tested
 const tokens = readTokens()
 const THEMES: Theme[] = ['light', 'dark']
 
-const SURFACES = ['--surface-page', '--surface-raised', '--surface-subtle', '--surface-tinted', '--surface-float']
+const SURFACES = ['--surface-page', '--surface-raised', '--surface-subtle', '--surface-soft', '--surface-tinted', '--surface-float']
+const METRICS = ['streak', 'goal', 'accuracy']
 const TEXT = ['--fg-strong', '--fg', '--fg-muted', '--action-fg']
 const STATES = ['success', 'warning', 'danger', 'info']
 const SUBJECTS = Array.from({ length: 8 }, (_, i) => `--subject-${i + 1}`)
@@ -36,6 +37,18 @@ const pairs: Pair[] = [
   ...['quiz', 'listen'].flatMap(m => [`--practice-${m}-bg`, '--surface-raised', '--surface-page'].map(bg => ({ fg: `--practice-${m}`, bg, min: 3 }))),
   // Subject dots next to the name
   ...SUBJECTS.flatMap(fg => ['--surface-raised', '--surface-page', '--surface-subtle'].map(bg => ({ fg, bg, min: 3 }))),
+  // E2 (ADR-035 §7): the chip text of a metric on its tile, and the icon (non-text) on the tile and on the card
+  ...METRICS.map(m => ({ fg: `--metric-${m}-fg`, bg: `--metric-${m}-bg`, min: 4.5 })),
+  ...METRICS.flatMap(m => [`--metric-${m}-bg`, '--surface-raised'].map(bg => ({ fg: `--metric-${m}`, bg, min: 3 }))),
+  // The feedback band of the review: its text on it, the "Continuar" fill on it, and the ink on the fill
+  ...['ok', 'again'].flatMap(k => [
+    { fg: `--fb-${k}-fg`, bg: `--fb-${k}-bg`, min: 7 },
+    { fg: `--fb-${k}-strong`, bg: `--fb-${k}-bg`, min: 2 },
+    { fg: `--fb-${k}-ink`, bg: `--fb-${k}-strong`, min: 4.5 },
+  ]),
+  // The selected item of the shell (pill on --action-subtle) and the field border on the soft tile
+  { fg: '--action-fg', bg: '--action-subtle', min: 4.5 },
+  { fg: '--line-input', bg: '--surface-soft', min: 3 },
 ]
 
 describe('tokens.css: cada semântico de cor resolve para um hex nos dois temas', () => {
@@ -68,12 +81,17 @@ describe('tokens.css: contraste dos pares (WCAG 2)', () => {
   })
 })
 
-describe('tokens.css: regras do ADR-027', () => {
-  it('ação roxa nos dois temas, distinta do amarelo de conquista (§3)', () => {
+describe('tokens.css: regras do ADR-027 e do ADR-035', () => {
+  it('página branca pura no claro e um degrau abaixo do cartão no escuro (ADR-035 §7)', () => {
+    expect(resolveHex(tokens.light, '--surface-page')).toBe('#FFFFFF')
+    expect(resolveHex(tokens.dark, '--surface-page')).toBe('#0F0D14')
+    expect(resolveHex(tokens.dark, '--surface-raised')).toBe('#19161F')
+  })
+
+  it('os ponteiros v3 seguem as métricas: o amarelo de conquista saiu (ADR-035 §7)', () => {
     for (const theme of THEMES) {
-      const action = resolveHex(tokens[theme], '--action')!
-      const celebrate = resolveHex(tokens[theme], '--celebrate')!
-      expect(contrast(action, celebrate), theme).toBeGreaterThan(2)
+      expect(resolveHex(tokens[theme], '--celebrate'), theme).toBe(resolveHex(tokens[theme], '--metric-goal'))
+      expect(resolveHex(tokens[theme], '--streak'), theme).toBe(resolveHex(tokens[theme], '--metric-streak'))
     }
   })
 

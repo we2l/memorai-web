@@ -18,11 +18,17 @@ describe('BlogQuiz (prd-blog-seo RF-B9)', () => {
       await w.get('[data-testid="blog-quiz-reveal"]').trigger('click')
       expect(w.get('[data-testid="blog-quiz-answer"]').text()).toContain('Fonte:')
       await w.get(`[data-testid="rate-${ok ? 3 : 1}"]`).trigger('click')
-      if (!ok) expect(w.get('[data-testid="review-feedback"]').text()).toContain('Não lembrei · volta ainda hoje')
+      // The review's band, compact (Fase 2b): where the card goes, then "Continuar"
+      const band = w.get('[data-testid="review-feedback"]')
+      expect(band.attributes('data-compact')).toBe('true')
+      expect(band.text()).toContain(ok ? 'Volta em 2 dias.' : 'Ele volta ainda hoje.')
+      expect(w.find('[data-testid="review-why"]').exists()).toBe(false)
+      await w.get('[data-testid="review-continue"]').trigger('click')
     }
     const result = w.get('[data-testid="blog-quiz-result"]').text()
     expect(result).toContain('Você lembrou 2 de 3')
     expect(result).toContain('voltariam em 2 dias')
+    expect(w.get('[data-testid="ui-arc"]').attributes('data-got')).toBe('2')
     expect(w.get('[data-testid="blog-quiz-cta"]').text()).toContain('Revisar 6 cards de concurso sem criar conta')
     expect(w.get('[data-testid="blog-quiz-cta"]').attributes('href')).toBe('/comecar/concurso?utm_source=blog&utm_medium=organic&utm_campaign=blog&utm_content=lei-seca-quiz')
     // The full list stays in the HTML, outside the exercise
@@ -37,7 +43,12 @@ describe('BlogQuiz (prd-blog-seo RF-B9)', () => {
     await quiz.trigger('keydown', { key: ' ' })
     expect(w.find('[data-testid="blog-quiz-answer"]').exists()).toBe(true)
     await quiz.trigger('keydown', { key: '1' })
-    expect(w.get('[data-testid="review-feedback"]').text()).toContain('Não lembrei')
+    expect(w.get('[data-testid="review-feedback"]').attributes('data-kind')).toBe('again')
+    // 2 behind the band does not rate the card; Enter goes on
+    await quiz.trigger('keydown', { key: '2' })
+    expect(w.get('[data-testid="blog-quiz-count"]').text()).toBe('1 de 3')
+    await quiz.trigger('keydown', { key: 'Enter' })
+    expect(w.find('[data-testid="review-feedback"]').exists()).toBe(false)
     expect(w.get('[data-testid="blog-quiz-count"]').text()).toBe('2 de 3')
   })
 })

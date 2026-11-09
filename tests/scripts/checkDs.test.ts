@@ -4,7 +4,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { componentFindings, cssClassNames, cssDeclaredVars, ghostFindings, isForbiddenArbitrary, multiPrimaryPages, namespacedRawTokens, runtimeVars, splitToken, templateClassRefs, tokenNameFindings, varRefs } from '../../scripts/check-ds.mjs'
+import { belowMinFont, componentFindings, cssFontSizes, cssClassNames, cssDeclaredVars, ghostFindings, isForbiddenArbitrary, multiPrimaryPages, namespacedRawTokens, runtimeVars, splitToken, templateClassRefs, tokenNameFindings, varRefs } from '../../scripts/check-ds.mjs'
 
 const SCRIPT = resolve(__dirname, '../../scripts/check-ds.mjs')
 const dirs: string[] = []
@@ -200,6 +200,31 @@ describe('check-ds: guardas de componente (RF-2.4)', () => {
     expect(isForbiddenArbitrary('h-[100dvh]')).toBe(false)
     expect(isForbiddenArbitrary('bottom-[calc(var(--bottomnav-h)+8px)]')).toBe(false)
     expect(isForbiddenArbitrary('bg-raised')).toBe(false)
+  })
+
+  it('text-min: nada abaixo de 13 px em classe, <style> e CSS do app; a landing fica de fora (ADR-035 §2)', () => {
+    const vue = `<template><p class="text-[12px] text-[13px] text-[0.75rem]" /></template>
+    <style scoped>.a { font-size: 11px } .b { font: 600 12px/1.2 var(--font-sans) } .c { font-size: 14px } .d { font-size: 0.8em }</style>`
+    expect(rules({
+      'app/pages/w.vue': vue,
+      'app/assets/css/x.css': '.e { font-size: 0.75rem } .f { font-size: 0.8125rem }',
+      'app/components/landing/landing.css': '.g { font-size: 12px }',
+      'app/pages/index.vue': '<template><p class="text-[11px]" /></template>',
+    }).filter(r => r.startsWith('text-min')).sort()).toEqual([
+      'text-min:w.vue:font-size 11px', 'text-min:w.vue:font-size 12px', 'text-min:w.vue:text-[0.75rem]', 'text-min:w.vue:text-[12px]',
+      'text-min:x.css:font-size 0.75rem',
+    ])
+    expect(belowMinFont('12.5px')).toBe(true)
+    expect(belowMinFont('0.8125rem')).toBe(false)
+    expect(belowMinFont('0.9em')).toBe(false)
+    expect(cssFontSizes('a{font:italic 500 1.25rem/1 x}').map(f => f.value)).toEqual(['1.25rem'])
+  })
+
+  it('border-surface: superfície com borda inteira fora de campo; divisor e campo passam (ADR-035 §3)', () => {
+    const src = `<template><div class="rounded-card border border-line p-4" /><div class="border-t border-line" />
+      <ul class="divide-y divide-line" /><div class="border border-line-strong" /></template>`
+    expect(rules({ 'app/pages/v.vue': src, 'app/components/ui/Input.vue': '<template><input class="border border-line-input border-line"></template>' })
+      .filter(r => r.startsWith('border-surface')).sort()).toEqual(['border-surface:v.vue:border border-line', 'border-surface:v.vue:border border-line'])
   })
 
   it('avisa (sem catraca) página com mais de um primário', () => {

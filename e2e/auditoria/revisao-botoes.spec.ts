@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import type { Page } from '@playwright/test'
-import { test, expect, gotoApp, apiCall, uid, tinker, USERS } from './support/fixtures'
+import { test, expect, gotoApp, apiCall, uid, tinker, USERS, continueBand } from './support/fixtures'
 
 /**
  * Revisão v5, Fase A (prd-revisao-v5-fase-a §3.2): "Não lembrei / Lembrei" by default (Again = 1, Good = 3), the 4
@@ -54,18 +54,18 @@ test('dois botões: verso antes de avaliar, teclas 1/2/←/→/Espaço, a pílul
   await page.waitForTimeout(200)
   expect(sent).toEqual([])
   await page.keyboard.press('2')
-  await expect(page.getByTestId('review-feedback')).toHaveText(/Lembrei · volta em /)
+  // The E2 band (prd-visual-e2 RF-2.4): where the card goes, green on a hit
+  await expect(page.getByTestId('review-feedback')).toContainText(/Volta em /)
   await expect(page.getByTestId('review-feedback')).toHaveAttribute('data-remembered', 'true')
 
   for (const key of ['1', 'ArrowLeft', 'ArrowRight', 'Space']) {
+    await continueBand(page)
     await expect(page.getByTestId('review-show')).toBeVisible()
     await page.keyboard.press('Space')
     await expect(ratings).toBeVisible()
-    // The pill of the previous card leaves when this one turns (never next to its answer)
-    await expect(page.getByTestId('review-feedback')).toHaveCount(0)
     await page.keyboard.press(key)
   }
-  await expect(page.getByTestId('review-feedback')).toContainText('Lembrei')
+  await expect(page.getByTestId('review-feedback')).toHaveAttribute('data-kind', 'ok')
   await expect.poll(() => sent).toEqual([3, 1, 1, 3, 3])
   // The reward lives in the pill and at the end of the lote, never in a toast per rating
   await expect(page.locator('.z-toast').getByText(/lembrei|volta/i)).toHaveCount(0)
@@ -79,13 +79,14 @@ test('fim do lote com memória: lembrou X de N, os que só voltam daqui a 1 sema
     await expect(page.getByTestId('review-show')).toBeVisible()
     await page.keyboard.press('Space')
     await page.keyboard.press(i === 0 ? '1' : '2')
+    await continueBand(page)
   }
   const end = page.getByTestId('review-batch-end')
   await expect(end).toBeVisible({ timeout: 15_000 })
   await expect(end).toContainText('Você lembrou 9 de 10')
-  await expect(end.getByTestId('batch-far')).toContainText('9só voltam daqui a 1 semana ou mais')
+  await expect(end.getByTestId('batch-lead')).toHaveText('9 cards só voltam daqui a uma semana ou mais.')
   await expect(end).not.toContainText('%')
-  await expect(end.getByTestId('batch-streak')).toContainText('Dia 1 da sequência')
+  await expect(end.getByTestId('batch-streak')).toContainText(/1\s*dia\s*Sequência/)
   await expect(end.getByTestId('streak-rest')).toHaveText('Você tem 1 dia de folga por semana sem perder a sequência.')
   await expect(page.getByTestId('review-feedback')).toHaveCount(0)
 })
@@ -105,9 +106,9 @@ test('os 4 botões como opção: Configurações → Estudo grava, e a revisão 
   await expect(page.getByTestId('review-ratings').getByRole('button')).toHaveText([/De novo/, /Difícil/, /Bom/, /Fácil/])
   await expect(page.getByTestId('review-keys')).toHaveText(/1 2 3 4 · Espaço mostrar/)
   await page.keyboard.press('2')
-  await expect(page.getByTestId('review-feedback')).toHaveText(/Difícil · volta em/)
+  await expect(page.getByTestId('review-feedback')).toHaveAttribute('data-kind', 'ok')
   await expect.poll(() => sent).toEqual([2])
-  // Next card turned: the pill of the previous one is gone (prd-revisao-v5-fase-b)
+  await continueBand(page)
   await page.keyboard.press('Space')
   await expect(page.getByTestId('review-ratings')).toBeVisible()
   await expect(page.getByTestId('review-feedback')).toHaveCount(0)

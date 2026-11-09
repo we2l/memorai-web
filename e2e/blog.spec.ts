@@ -33,14 +33,25 @@ test.describe('blog e ferramentas', () => {
     await quiz.getByTestId('blog-quiz-reveal').click()
     await expect(quiz.getByTestId('blog-quiz-answer')).toBeVisible()
     await quiz.getByTestId('rate-3').click()
-    await expect(quiz.getByTestId('review-feedback')).toContainText('Lembrei · volta em 2 dias')
+    // The review's answer band, compact in the article (prd-visual-e2 Fase 2b): a hit goes on in 1.2 s
+    const band = quiz.getByTestId('review-feedback')
+    await expect(band).toHaveAttribute('data-kind', 'ok')
+    await expect(band).toHaveAttribute('data-compact', 'true')
+    await expect(band).toContainText('Volta em 2 dias.')
+    await expect(band).toHaveCount(0, { timeout: 3000 })
     while (await quiz.getByTestId('blog-quiz-reveal').isVisible()) {
       await quiz.getByTestId('blog-quiz-card').focus()
       await page.keyboard.press('Space')
       await expect(quiz.getByTestId('blog-quiz-answer')).toBeVisible()
       await page.keyboard.press('1')
+      // A miss waits for "Continuar" (Enter); no "Por quê?" without an account
+      await expect(band).toHaveAttribute('data-kind', 'again')
+      await expect(band.getByTestId('review-why')).toHaveCount(0)
+      await page.keyboard.press('Enter')
+      await expect(band).toHaveCount(0)
     }
     await expect(quiz.getByTestId('blog-quiz-result')).toContainText('Você lembrou 1 de')
+    await expect(quiz.getByTestId('ui-arc')).toHaveAttribute('data-got', '1')
     await expect(quiz.getByTestId('blog-quiz-cta')).toHaveAttribute('href', /^\/comecar\/concurso\?.*utm_content=como-revisar-lei-seca-inss-quiz/)
   })
 

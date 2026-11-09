@@ -57,6 +57,14 @@ describe('landing: promessas com a condição à vista (landing-promessas 2026-1
     expect(landingSampleLine(null, 30)).toBe('Amostra de 30 s de um episódio do Intensivo.')
   })
 
+  it('as perguntas que todo mundo faz (raio-X L2/L3): concurso, cupom e computador', () => {
+    const faqs = landingFaqs(launch())
+    expect(faqs.map(f => f.q)).toEqual(expect.arrayContaining(['Serve para o meu concurso?', 'Tem cupom de desconto?', 'Abre no computador?']))
+    expect(faqs.find(f => f.q === 'Serve para o meu concurso?')!.a).toContain('Não é um banco de cards de outra pessoa')
+    // Prices only from the catalog: no number in the cupom answer
+    expect(faqs.find(f => f.q === 'Tem cupom de desconto?')!.a).not.toMatch(/\d/)
+  })
+
   it('a landing não promete o que o produto não faz', () => {
     const all = JSON.stringify([HERO_VARIANTS, AREAS, landingFaqs(launch())])
     expect(all).not.toMatch(/180 páginas|6 partes|página de onde saiu|divide os cards por dia|plano do dia sai|Aqui não\./)

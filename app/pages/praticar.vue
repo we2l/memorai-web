@@ -99,9 +99,9 @@
           </div>
         </header>
         <UiSkeleton v-if="loading" variant="block" />
-        <!-- Not on the paid plan, nothing to listen to: the demo of the episode instead of "Gerar" (prd-planos-lancamento RF-F3) -->
+        <!-- Not on the paid plan, nothing to listen to: the sample of an episode instead of "Gerar" (prd-planos-lancamento RF-F3) -->
         <template v-else-if="podcastPaywall && !latest">
-          <PodcastDemo compact />
+          <LazyPodcastSample compact source="praticar" />
           <UiButton block icon-tone="listen" :icon-left="Headphones" to="/planos" data-testid="practice-listen-plans" @click="toPlans">
             Conhecer o {{ proName }}
           </UiButton>

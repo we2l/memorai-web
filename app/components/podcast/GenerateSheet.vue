@@ -1,5 +1,5 @@
 <template>
-  <!-- Not on the paid plan (Free and the trial, prd-planos-lancamento RF-F3): the demo of the episode instead of the form -->
+  <!-- Not on the paid plan (Free and the trial, prd-planos-lancamento RF-F3): the sample of an episode instead of the form -->
   <UiSheet
     v-if="paywall"
     v-model="model"
@@ -7,7 +7,7 @@
     :description="`Um episódio curto com os cards que você mais erra, para ouvir no caminho. É do ${proName}.`"
   >
     <div class="flex flex-col items-center gap-4" data-testid="podcast-paywall">
-      <PodcastDemo />
+      <PodcastSample source="generate_sheet" />
       <p class="text-center text-meta text-fg">
         <template v-if="podcastBenefit">No {{ proName }}: {{ podcastBenefit }}.</template>
         <template v-if="auth.onTrial"> O podcast não entra no teste grátis.</template>

@@ -27,8 +27,8 @@
     },
     "/": {
       "file": "pages/index.vue",
-      "gzKb": 15.1,
-      "closureGzKb": 20
+      "gzKb": 15.6,
+      "closureGzKb": 20.5
     },
     "/hoje": {
       "file": "pages/hoje.vue",

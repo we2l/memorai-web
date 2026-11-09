@@ -1,9 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mockNuxtImport, mountSuspended } from '@nuxt/test-utils/runtime'
 import { enableAutoUnmount, flushPromises } from '@vue/test-utils'
+import { axeViolations } from './ui/axe'
 import StudyHeatmap from '~/components/progress/StudyHeatmap.vue'
 import ExamProjection from '~/components/progress/ExamProjection.vue'
 import PerformanceTable from '~/components/progress/PerformanceTable.vue'
+import ProgressExamCard from '~/components/progress/ExamCard.vue'
 import ProgressSummary from '~/components/progress/ProgressSummary.vue'
 import ExamDialog from '~/components/exam/ExamDialog.vue'
 import ExamRow from '~/components/progress/ExamRow.vue'
@@ -177,5 +179,20 @@ describe('ExamDialog (RF-F9)', () => {
     expect(document.querySelector('[data-testid="exam-limit-error"]')?.textContent).toContain('até 3 provas futuras')
     expect(document.querySelector('[data-testid="exam-limit-error"] a')?.getAttribute('href')).toBe('/planos')
     expect(toastShow).not.toHaveBeenCalled()
+  })
+})
+
+describe('ProgressExamCard (E2, prd-visual-e2 RF-5.4)', () => {
+  const exam = (over: Record<string, unknown>) => ({ id: 'e', title: 'Técnico do INSS', exam_date: '2026-12-22', days_remaining: 44, is_past: false, days_since: null, topics: [], projection: { keep_pace: 90, stop_today: 75, cards: 40, reviewed_cards: 30, new_cards: 10, desired_retention: 0.9, new_per_day: 1, computed_for: '2026-11-08' }, ...over })
+
+  it('a prova mais próxima com projeção é o bloco lilás, com "Se parar hoje"; sem projeção, nada', async () => {
+    const w = await mountSuspended(ProgressExamCard, { props: { exams: [exam({ id: 'b', days_remaining: 90 }), exam({})] as never }, attachTo: document.body })
+    expect(w.get('section').classes()).toContain('bg-tinted')
+    expect(w.text()).toContain('Técnico do INSS · em 44 dias')
+    expect(w.text()).toContain('Mantendo o ritmo, você chega à prova lembrando 90%')
+    expect(w.text()).toContain('Se parar hoje: 75%')
+    expect(await axeViolations(w.element)).toEqual([])
+    const none = await mountSuspended(ProgressExamCard, { props: { exams: [exam({ projection: null })] as never } })
+    expect(none.find('section').exists()).toBe(false)
   })
 })

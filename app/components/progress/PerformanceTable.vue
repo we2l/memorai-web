@@ -7,14 +7,14 @@
     <p v-if="!lines.length" class="text-body text-fg-muted">Crie matérias no caderno para ver o desempenho de cada uma.</p>
     <div v-else role="table" aria-label="Desempenho por matéria e assunto" class="-mx-1">
       <div role="row" class="hidden grid-cols-12 gap-4 border-b border-hairline px-1 pb-2 text-label text-fg-muted sm:grid">
-        <span role="columnheader" class="col-span-5">Matéria e assunto</span>
+        <span role="columnheader" class="col-span-4">Matéria e assunto</span>
         <span role="columnheader" class="col-span-3">Domínio dos cards</span>
         <span role="columnheader" class="col-span-3">Acerto em questões</span>
-        <span role="columnheader" class="col-span-1 text-right"><span class="sr-only">Ação</span></span>
+        <span role="columnheader" class="col-span-2 text-right"><span class="sr-only">Ação</span></span>
       </div>
       <div role="rowgroup" class="divide-y divide-hairline">
         <div v-for="line in lines" :key="line.row.topic_id" role="row" class="grid grid-cols-12 items-center gap-x-4 gap-y-1.5 px-1 py-3" :data-testid="`performance-${line.row.topic_id}`">
-          <span role="rowheader" class="col-span-9 flex min-w-0 items-center gap-2 sm:col-span-5" :class="line.indent && 'pl-6'">
+          <span role="rowheader" class="col-span-9 flex min-w-0 items-center gap-2 sm:col-span-4" :class="line.indent && 'pl-6'">
             <UiIconButton
               v-if="line.expandable"
               :icon="expanded.has(line.row.topic_id) ? ChevronDown : ChevronRight"
@@ -43,7 +43,7 @@
             </template>
             <span v-else class="text-fg-muted">— <span class="text-label">faça 10 questões</span></span>
           </span>
-          <span role="cell" class="col-span-3 col-start-10 row-start-1 flex justify-end sm:col-span-1 sm:col-start-auto sm:row-start-auto">
+          <span role="cell" class="col-span-3 col-start-10 row-start-1 flex justify-end sm:col-span-2 sm:col-start-auto sm:row-start-auto">
             <UiButton v-if="line.action.kind === 'train'" size="sm" variant="ghost" :icon-left="CircleHelp" icon-tone="quiz" @click="act(line.action.kind, line.row)">Treinar</UiButton>
             <UiButton v-else size="sm" variant="ghost" :to="line.action.to" class="whitespace-nowrap" @click="act(line.action.kind, line.row)">{{ line.action.label }}</UiButton>
           </span>

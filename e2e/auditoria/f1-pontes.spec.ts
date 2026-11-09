@@ -49,11 +49,11 @@ test.describe('Um número só (seed perf@audit.test)', () => {
     // Hoje: the caderno row ("N hoje", Hoje v3)
     const homeCard = page.getByTestId('home-notebooks').locator(`a[href="/cadernos/${heavy.id}"]`).first()
     await expect(homeCard).toBeVisible()
-    const home = num(await homeCard.innerText(), /(\d+)\s+hoje/)
+    const home = num(await homeCard.innerText(), /(\d+)\s+(?:para\s+)?hoje/)
 
     // List of cadernos (the old tree root row) and the hub header
     await gotoApp(page, '/cadernos')
-    const row = num(await page.getByTestId('notebook-list').locator(`a[href="/cadernos/${heavy.id}"]`).innerText(), /(\d+)\s+hoje/)
+    const row = num(await page.getByTestId('notebook-list').locator(`a[href="/cadernos/${heavy.id}"]`).innerText(), /(\d+)\s+(?:para\s+)?hoje/)
     await gotoApp(page, `/cadernos/${heavy.id}`)
     const cta = reviewCta(page)
     await expect(cta).toBeVisible()

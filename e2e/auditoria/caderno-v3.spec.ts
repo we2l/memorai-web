@@ -36,10 +36,10 @@ test.describe('Um número de sessão (seed pesado)', () => {
     const { ctx, page, heavy } = await heavyPage(browser)
     test.skip(!heavy, 'seed pesado ausente (memorai-api/scripts/perf/seed-caderno-pesado.php)')
     const homeRow = page.getByTestId('home-notebooks').locator(`a[href="/cadernos/${heavy.id}"]`).first()
-    const home = num(await homeRow.innerText(), /(\d+)\s+hoje/)
+    const home = num(await homeRow.innerText(), /(\d+)\s+(?:para\s+)?hoje/)
 
     await gotoApp(page, '/cadernos')
-    const listRow = num(await page.getByTestId('notebook-list').locator(`a[href="/cadernos/${heavy.id}"]`).innerText(), /(\d+)\s+hoje/)
+    const listRow = num(await page.getByTestId('notebook-list').locator(`a[href="/cadernos/${heavy.id}"]`).innerText(), /(\d+)\s+(?:para\s+)?hoje/)
 
     await gotoApp(page, `/cadernos/${heavy.id}`)
     const cta = page.getByTestId('scope-review')
@@ -89,7 +89,7 @@ test.describe('Um número de sessão (seed pesado)', () => {
     const subTotal = num(await page.getByTestId('scope-materials').getByRole('heading').innerText(), /\((\d+)\)/)
     expect(subTotal).toBeLessThan(rootTotal)
     expect(num(await page.getByTestId('scope-review').innerText(), /· (\d+)/)).toBe(today)
-    await expect(header(page)).toContainText(`já inclui estes ${today}`)
+    await expect(page.getByTestId('scope-stats')).toContainText(`já inclui estes ${today}`)
     await ctx.close()
   })
 
@@ -208,7 +208,7 @@ test.describe('Escopo do usuário (e2e-hub)', () => {
     const row = page.getByTestId('subject-row').filter({ hasText: 'Constitucional' })
     await expect(row).toHaveAttribute('aria-label', /acerto em questões 50%/)
     await expect(row).toContainText('ponto fraco')
-    await expect(header(page)).toContainText('de acerto em 12 questões')
+    await expect(page.getByTestId('scope-stats')).toContainText('acerto em 12 questões')
     await expect(page.getByTestId('subject-row').filter({ hasText: 'Controle' })).toHaveAttribute('aria-label', /faça 10 questões/)
   })
 

@@ -1,7 +1,7 @@
 <template>
   <div class="rounded-tile bg-soft p-3.5" :data-tone="tone">
     <UiIconTile :icon="icon" :tone="tone" size="sm" />
-    <UiNumber class="mt-3 block" :value="value" :unit="unit" size="s" />
+    <p class="mt-3"><UiNumber :value="value" :unit="unit" size="s" /></p>
     <p class="mt-1 text-meta text-fg-muted">{{ label }}</p>
   </div>
 </template>

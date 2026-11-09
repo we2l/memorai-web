@@ -38,11 +38,11 @@ export function landingQuery(): URLSearchParams {
 /** Real screens of the app (e2e/landing/shots.ts) in public/landing, 390 CSS px wide at 2x. */
 export const SCREENS = {
   'hoje-tela': { height: 844, alt: 'Tela real do Hoje na conta de demonstração: o plano do dia e a prova de Técnico do INSS em 45 dias, chegando à prova lembrando 90% mantendo o ritmo.' },
-  'revisao': { height: 538, alt: 'Tela real da revisão na conta de demonstração: o card “Quanto vale o auxílio-acidente?” virado, com a origem dele na apostila de Seguridade Social.' },
-  'anatomia': { height: 355, alt: 'Tela real da revisão de Anatomia na conta de demonstração: o card sobre o principal músculo da inspiração, com a resposta.' },
-  'oab': { height: 416, alt: 'Tela real da revisão para a OAB na conta de demonstração: o card sobre o prazo da contestação no CPC, com a resposta.' },
-  'enem': { height: 440, alt: 'Tela real da revisão para o ENEM na conta de demonstração: o card sobre a 1ª Lei de Mendel, com a resposta.' },
-  'ingles': { height: 353, alt: 'Tela real da revisão de inglês na conta de demonstração: o card “I’m looking forward to it”, com a tradução.' },
+  'revisao': { height: 844, alt: 'Tela real da revisão na conta de demonstração: o card “Quanto vale o auxílio-acidente?” virado, com a origem dele na apostila de Seguridade Social e os botões Não lembrei e Lembrei.' },
+  'anatomia': { height: 844, alt: 'Tela real da revisão de Anatomia na conta de demonstração: o card sobre o principal músculo da inspiração, com a resposta.' },
+  'oab': { height: 844, alt: 'Tela real da revisão para a OAB na conta de demonstração: o card sobre o prazo da contestação no CPC, com a resposta.' },
+  'enem': { height: 844, alt: 'Tela real da revisão para o ENEM na conta de demonstração: o card sobre a 1ª Lei de Mendel, com a resposta.' },
+  'ingles': { height: 844, alt: 'Tela real da revisão de inglês na conta de demonstração: o card “I’m looking forward to it”, com a tradução.' },
 } as const
 export type ScreenName = keyof typeof SCREENS
 

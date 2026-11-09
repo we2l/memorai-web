@@ -475,11 +475,8 @@
   & .lp-area-panel li svg { width: 22px; height: 22px; color: var(--action-fg); margin-top: 2px; }
   & .lp-area-panel li b { color: var(--fg-strong); }
   & .lp-area-media { display: grid; justify-items: center; }
+  /* A tela inteira do app (390 × 844, e2e/landing/shots.ts): o celular tem a proporção real, como no herói */
   & .lp-area-media .lp-phone { width: min(280px, 74vw); }
-  /* As telas das áreas são recortes (320–472 px): o celular acompanha a altura do recorte, sem meia tela vazia */
-  & .lp-area-media .lp-phone { aspect-ratio: auto; padding-bottom: 14px; }
-  & .lp-area-media .lp-screen { height: auto; border-radius: 36px 36px 28px 28px; }
-  & .lp-area-media .lp-screen img { height: auto; object-fit: contain; }
 }
 
 @media (min-width: 1024px) {

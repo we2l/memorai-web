@@ -27,6 +27,8 @@ const OUT = path.join(__dirname, '..', '..', 'public', 'landing')
 const DEMO = path.join(__dirname, '..', '..', 'app', 'assets', 'landing', 'demo.json')
 const WIDTH = 390
 const HEIGHT = 640
+/** CSS px of status bar above a full screen (under the notch of the landing's phone) */
+const STATUS_BAR = 40
 
 type Card = [front: string, back: string]
 
@@ -316,11 +318,16 @@ async function seed(page: Page): Promise<Seed> {
  * Captures a 390 px wide region of the screen: the page scrolled to `scrollY`, `top` px down the viewport, `height`
  * tall. Only the part the landing talks about, so it can be shown big enough to read on a phone.
  */
-async function save(page: Page, name: string, theme: string, { scrollY = 0 as number | null, top = 0, height = HEIGHT } = {}) {
+async function save(page: Page, name: string, theme: string, { scrollY = 0 as number | null, top = 0, height = HEIGHT, statusBar = 0 } = {}) {
   if (scrollY !== null) await page.evaluate(y => window.scrollTo(0, y), scrollY)
   await page.waitForTimeout(300)
-  const png = await page.screenshot({ clip: { x: 0, y: top, width: WIDTH, height }, animations: 'disabled' })
-  const img = sharp(png).resize({ width: WIDTH * 2 })
+  const png = await page.screenshot({ clip: { x: 0, y: top, width: WIDTH, height: height - statusBar }, animations: 'disabled' })
+  // A full phone screen: the status bar is a strip of the page's background on top, so the notch of the landing's
+  // phone frame sits over it (as on a real phone) and never over the app's header
+  const bg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor)
+  const [r, g, b] = (bg.match(/\d+/g) ?? ['255', '255', '255']).map(Number)
+  const full = statusBar ? await sharp(png).extend({ top: statusBar * 2, background: { r: r!, g: g!, b: b! } }).png().toBuffer() : png
+  const img = sharp(full).resize({ width: WIDTH * 2 })
   fs.mkdirSync(OUT, { recursive: true })
   await img.clone().avif({ quality: 52, effort: 6 }).toFile(path.join(OUT, `${name}-${theme}.avif`))
   await img.clone().webp({ quality: 74, effort: 6 }).toFile(path.join(OUT, `${name}-${theme}.webp`))
@@ -383,7 +390,7 @@ async function record(browser: Browser, state: Awaited<ReturnType<Page['context'
   const base = path.join(__dirname, '..', '..', 'test-results')
   fs.mkdirSync(base, { recursive: true })
   const dir = fs.mkdtempSync(path.join(base, 'clip-'))
-  const context = await browser.newContext({ baseURL: 'http://localhost:3000', storageState: state, viewport: { width: WIDTH, height: 844 }, deviceScaleFactor: 1, colorScheme: theme, recordVideo: { dir, size: { width: WIDTH, height: 844 } } })
+  const context = await browser.newContext({ baseURL: 'http://localhost:3000', storageState: state, viewport: { width: WIDTH, height: 844 }, deviceScaleFactor: 1, isMobile: true, hasTouch: true, colorScheme: theme, recordVideo: { dir, size: { width: WIDTH, height: 844 } } })
   await context.addInitScript((t) => { try { localStorage.setItem('color-mode', t) } catch { /* only the capture */ } }, theme)
   const page = await context.newPage()
   const born = Date.now()
@@ -446,13 +453,15 @@ async function clips(page: Page, browser: Browser, s: Seed) {
   })
 }
 
-test.use({ auditUser: 'landingShots', viewport: { width: WIDTH, height: 844 }, deviceScaleFactor: 2 })
+// A touch phone (pointer coarse): no keyboard hints, as the app shows on a real phone
+test.use({ auditUser: 'landingShots', viewport: { width: WIDTH, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true })
 
 test('telas e vídeos reais da landing', async ({ page, browser }) => {
   await gotoApp(page, '/hoje')
   const s = await seed(page)
-  const heights: Record<string, number> = {}
 
+  // The app lays out in the phone's screen under the status bar: 844 − STATUS_BAR tall
+  await page.setViewportSize({ width: WIDTH, height: 844 - STATUS_BAR })
   for (const theme of ['light', 'dark'] as const) {
     await page.addInitScript((t) => { try { localStorage.setItem('color-mode', t) } catch { /* only the capture */ } }, theme)
 
@@ -466,24 +475,22 @@ test('telas e vídeos reais da landing', async ({ page, browser }) => {
       const nav = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 64
       return Math.max(0, Math.ceil(window.scrollY + exam.bottom - (window.innerHeight - nav - 16)))
     })
-    await save(page, 'hoje-tela', theme, { scrollY: hojeY, height: 844 })
+    await save(page, 'hoje-tela', theme, { scrollY: hojeY, height: 844, statusBar: STATUS_BAR })
     if (theme === 'light') await saveDemoNumbers(page)
 
     // The short cards end higher: their capture stops under the answer
-    // Each capture ends 24 px under the card (the height goes to SCREENS in app/utils/landing.ts)
+    // The whole phone screen, the card turned and the buttons at the bottom: the phone of the landing keeps the
+    // real proportion (390 × 844) in the hero and in the areas
     for (const [name, url] of [['revisao', `/revisar?scope=document:${s.docId}`], ['ingles', `/revisar?scope=topic:${s.inglesId}`], ['anatomia', `/revisar?scope=topic:${s.anatomiaId}`], ['oab', `/revisar?scope=topic:${s.oabId}`], ['enem', `/revisar?scope=topic:${s.enemId}`]] as const) {
       await gotoApp(page, url)
       await page.getByTestId('review-show').click()
       await expect(page.getByTestId('review-show')).toHaveCount(0)
       await settle(page)
-      const box = (await page.getByTestId('review-card').boundingBox())!
-      const height = Math.min(844, Math.ceil(box.y + box.height + 24))
-      heights[name] = Math.max(heights[name] ?? 0, height)
-      await save(page, name, theme, { height })
+      await save(page, name, theme, { height: 844, statusBar: STATUS_BAR })
     }
   }
 
-  console.log(`SCREENS heights: ${JSON.stringify(heights)}`)
+  await page.setViewportSize({ width: WIDTH, height: 844 })
   // The clips rate cards: after the screens and the numbers of demo.json
   await clips(page, browser, s)
 })

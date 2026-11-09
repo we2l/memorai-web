@@ -98,6 +98,8 @@
   --spacing-touch: 2.75rem;
 
   --container-page: 70rem;
+  /* E2 (ADR-035 §9): Hoje, hub, Progresso e checkout em duas colunas (principal fluida + lateral de 400), até 1.240 px */
+  --container-wide: 77.5rem;
   --container-prose: 42rem;
   /* Blog (prd-blog-seo, ajustes do dono): coluna de leitura de ~700 px (60–75 caracteres a 18 px) e blocos
      embutidos (quiz, ferramenta, print) um pouco mais largos */

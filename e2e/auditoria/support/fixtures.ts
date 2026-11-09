@@ -21,7 +21,7 @@ export const API = `${API_ORIGIN}/api`
 export const AUDIT_PASSWORD = 'Senha-Audit-2026'
 const CONTAINER = process.env.E2E_API_CONTAINER || 'baigi-app'
 
-export type UserKey = 'visual' | 'pro' | 'free' | 'quota' | 'unverified' | 'onboarding' | 'onboardingUnverified' | 'empty' | 'session' | 'logout' | 'account' | 'mobile' | 'legacy' | 'scope' | 'nav' | 'hoje' | 'hojeNew' | 'hojeGoal' | 'recorte' | 'hub' | 'material' | 'library' | 'revisao' | 'revisaoEmpty' | 'praticar' | 'praticarFree' | 'progresso' | 'progressoNew' | 'onbText' | 'onbExit' | 'onbExam' | 'onbAnki' | 'onbSample' | 'onbKeyboard' | 'conta' | 'contaPro' | 'parts' | 'organizacao' | 'landingShots' | 'trialInvite' | 'trialUnverified' | 'trialActive' | 'trialTomorrow' | 'trialToday' | 'trialUsed' | 'questao' | 'preview' | 'binario' | 'faseB' | 'trocaA' | 'trocaB' | 'revisaoE2'
+export type UserKey = 'visual' | 'pro' | 'free' | 'quota' | 'unverified' | 'onboarding' | 'onboardingUnverified' | 'empty' | 'session' | 'logout' | 'account' | 'mobile' | 'legacy' | 'scope' | 'nav' | 'hoje' | 'hojeNew' | 'hojeGoal' | 'recorte' | 'hub' | 'material' | 'library' | 'revisao' | 'revisaoEmpty' | 'praticar' | 'praticarFree' | 'progresso' | 'progressoNew' | 'onbText' | 'onbExit' | 'onbExam' | 'onbAnki' | 'onbSample' | 'onbKeyboard' | 'conta' | 'contaPro' | 'parts' | 'organizacao' | 'landingShots' | 'trialInvite' | 'trialUnverified' | 'trialActive' | 'trialTomorrow' | 'trialToday' | 'trialUsed' | 'questao' | 'preview' | 'binario' | 'faseB' | 'trocaA' | 'trocaB' | 'revisaoE2' | 'hojeBacklog'
 
 type UserSpec = { email: string; plan: 'free' | 'pro'; verified: boolean; onboarded: boolean; reset: true; quota_exhausted?: Record<string, number>; name?: string; trial?: 'used' | 'active' | 'tomorrow' | 'today'; buttons?: 'two' | 'four' }
 
@@ -62,6 +62,8 @@ export const USERS: Record<UserKey, UserSpec> = {
   hoje: { email: 'e2e-hoje@audit.test', plan: 'pro', verified: true, onboarded: true, reset: true },
   hojeNew: { email: 'e2e-hoje-new@audit.test', plan: 'free', verified: true, onboarded: true, reset: true },
   hojeGoal: { email: 'e2e-hoje-goal@audit.test', plan: 'free', verified: true, onboarded: true, reset: true },
+  // Hoje E2 com atraso (hoje.spec.ts, prd-visual-e2 RF-3.7): cards vencidos há dias, sem plano
+  hojeBacklog: { email: 'e2e-hoje-backlog@audit.test', plan: 'free', verified: true, onboarded: true, reset: true, buttons: 'two' },
   // Caderno F2 (f2-recorte.spec.ts): a PDF, a note, a quiz and an episode, each one its own session
   recorte: { email: 'e2e-recorte@audit.test', plan: 'pro', verified: true, onboarded: true, reset: true },
   // Caderno v3 (prd-4b-caderno-v3, e2e/auditoria/caderno-v3.spec.ts)

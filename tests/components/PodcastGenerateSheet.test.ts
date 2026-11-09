@@ -84,13 +84,13 @@ describe('PodcastGenerateSheet (prd-caderno-f1-pontes RF-F5, prd-4e-praticar-v3 
     useState('plans').value = null
   })
 
-  it('fora do plano pago (Grátis e teste): o vídeo de demonstração no lugar do formulário, sem pedir /details (RF-F3)', async () => {
+  it('fora do plano pago (Grátis e teste): a amostra com som no lugar do formulário, sem pedir /details (RF-F3)', async () => {
     api({ ok: true })
     useAuthStore().user = { id: 'u', plan: 'free', name: 'Ana', trial: { status: 'active', started_at: null, ends_at: null } } as any
     await mountSuspended(GenerateSheet, { props: { modelValue: true, topicId: 't1' }, attachTo: document.body })
     await flushPromises()
     expect(document.querySelector('[data-testid="podcast-paywall"]')).not.toBeNull()
-    expect(document.querySelector('video')?.getAttribute('preload')).toBe('none')
+    expect(document.querySelector('[data-testid="podcast-sample"] audio')?.getAttribute('preload')).toBe('none')
     expect(document.body.textContent).toContain('O podcast não entra no teste grátis.')
     expect(document.querySelector('[data-testid="podcast-scope"]')).toBeNull()
     expect(apiMock).not.toHaveBeenCalledWith('/topics/t1/details')

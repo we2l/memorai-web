@@ -41,6 +41,8 @@ export interface FrontEventProps {
   landing_cta_clicked: { position: LandingCtaPosition, message: LandingMessageProp, area?: LandingAreaProp }
   /** First play of the real podcast sample (prd-landing-d RF-D18) */
   landing_sample_played: { message: LandingMessageProp }
+  /** First play of the podcast sample on the paywall of the app (Free and trial; PodcastSample) */
+  podcast_sample_played: { source: 'generate_sheet' | 'praticar' | 'upgrade_modal' }
   /** Blog and free tools (prd-blog-seo RF-A1): `input` is a bucket, never the exact number (RN-6) */
   blog_viewed: { slug: string, category: string }
   blog_cta_clicked: { slug: string, position: 'inline' | 'end' | 'tool', area: string | null }
@@ -81,7 +83,7 @@ export interface FrontEventProps {
   pdf_upload_started: { size_mb: number, source: UploadSource }
   review_session_started: { mode: ReviewMode, scoped: ReviewScope, cards_available: number, scope_type: ReviewScopeType | null, origin: 'quiz' | 'question' | 'loose' | null, ahead: boolean, errors_only: boolean }
   review_session_completed: { cards: number, duration_s: number, mode: ReviewMode, again_rate: number }
-  // podcast_demo: the podcast paywall with the demo video (GenerateSheet, Ouvir of /praticar; prd-planos-lancamento RF-F3)
+  // podcast_demo: the podcast paywall with the sample of an episode (GenerateSheet, Ouvir of /praticar; prd-planos-lancamento RF-F3)
   paywall_viewed: { feature: string | null, source: 'limit_402' | 'planos_page' | 'podcast_demo', plan_required: 'pro' | null }
   upgrade_clicked: { feature: string | null, billing: AnalyticsBilling | null, source: 'upgrade_modal' | 'planos_page' | 'podcast_demo' }
   plans_toggle: { period: 'monthly' | 'annual' }

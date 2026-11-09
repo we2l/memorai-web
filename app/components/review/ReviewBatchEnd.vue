@@ -42,6 +42,10 @@
       <UiMetricTile v-else class="be-met" :icon="Clock" tone="action" :value="summary.minutes" unit="min" label="De foco" />
     </div>
     <p v-if="statsLoading && !goal" class="sr-only" role="status">Atualizando a meta…</p>
+    <!-- The weekly rest of the streak (prd-revisao-v5-fase-b): one missed day in 7 does not break it -->
+    <p v-if="streak && streak.current > 0 && streak.rest != null" class="mt-2 text-meta text-fg-muted" data-testid="streak-rest">
+      {{ streak.rest ? 'Você tem 1 dia de folga por semana sem perder a sequência.' : 'A folga desta semana já foi usada.' }}
+    </p>
 
     <div class="mt-6 flex w-full flex-col gap-1.5">
       <UiButton variant="primary" size="lg" block :aria-keyshortcuts="'Enter'" data-testid="batch-next" @click="$emit('next')">

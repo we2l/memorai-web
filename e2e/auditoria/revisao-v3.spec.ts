@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import type { Page } from '@playwright/test'
-import { test, expect, gotoApp, apiCall, uid, tinker, USERS } from './support/fixtures'
+import { test, expect, gotoApp, apiCall, uid, tinker, USERS, continueBand } from './support/fixtures'
 
 /**
  * Revisão v3 (prd-4d-revisao-v3 §9, tasks 10.1): batches of 20 with a visible end, the origin of the card
@@ -33,6 +33,8 @@ async function rate(page: Page, key: '1' | '2' | '3' | '4' = '3') {
   await page.keyboard.press('Space')
   await expect(page.getByTestId('review-ratings')).toBeVisible()
   await page.keyboard.press(key)
+  // The answer band (prd-visual-e2 RF-2.4): a hit goes on in 1.2 s, a miss waits for "Continuar"
+  await continueBand(page)
 }
 
 test.beforeEach(async ({ page }) => {
@@ -48,16 +50,16 @@ test('lotes de 20 com fim visível: "Lote 1 de 3", o fim do lote e "Próximo lot
   await expect(top(page)).toContainText('Lote 1 de 3 · card 1 de 20')
   for (let i = 0; i < 20; i++) await rate(page, '3')
   const end = page.getByTestId('review-batch-end')
-  await expect(end.getByRole('heading', { level: 1 })).toHaveText(/Lote concluído!|Meta de hoje cumprida!/)
+  await expect(end.getByRole('heading', { level: 1 })).toHaveText(/Bom trabalho|Meta de hoje feita!/)
   await expect(end).toContainText('Você lembrou 20 de 20')
   await expect(page.getByTestId('review-announce')).toHaveText('Lote 1 concluído, 20 de 20 lembrados.')
-  await expect(end.getByTestId('batch-goal')).toContainText(/\d+ de \d+ lotes?/)
+  await expect(end.getByTestId('batch-goal')).toContainText(/\d+\s*de \d+\s*Lotes? da meta/)
   await expect(page.getByTestId('review-footer')).toHaveCount(0)
   // Enter = "Próximo lote"
   await page.keyboard.press('Enter')
   await expect(top(page)).toContainText('Lote 2 de 3 · card 1 de 20')
   for (let i = 0; i < 20; i++) await rate(page, '3')
-  await expect(end).toContainText('Próximo lote (5)')
+  await expect(end).toContainText('Próximo lote · 5 cards')
   await end.getByTestId('batch-next').click()
   await expect(top(page)).toContainText('Lote 3 de 3 · card 1 de 5')
   for (let i = 0; i < 5; i++) await rate(page, '3')
@@ -75,7 +77,7 @@ test('card de aprendizagem que volta não conta outra vez no lote', async ({ pag
   for (let i = 0; i < 19; i++) await rate(page, '3')
   const end = page.getByTestId('review-batch-end')
   await expect(end).toContainText('Você lembrou 19 de 20')
-  await expect(end.getByTestId('batch-next')).toHaveText('Próximo lote (2)')
+  await expect(end.getByTestId('batch-next')).toHaveText('Próximo lote · 2 cards')
   await end.getByTestId('batch-next').click()
   await expect(top(page)).toContainText('Lote 2 de 2')
   await rate(page, '3') // the 21st card
@@ -103,20 +105,21 @@ test('meta cumprida no lote celebra uma vez por dia e grava a chave compartilhad
   await rate(page, '3')
   const end = page.getByTestId('review-batch-end')
   await expect(end).toHaveAttribute('data-kind', 'goal')
-  await expect(end.getByRole('heading', { level: 1 })).toHaveText('Meta de hoje cumprida!')
+  await expect(end.getByRole('heading', { level: 1 })).toHaveText('Meta de hoje feita!')
   const key = await page.evaluate(() => Object.keys(localStorage).find(k => k.startsWith('baigi-goal-celebrated-')))
   expect(key).toBeTruthy()
   await end.getByTestId('batch-next').click()
   for (let i = 0; i < 20; i++) await rate(page, '3')
   await expect(end).toHaveAttribute('data-kind', 'batch')
-  await expect(end.getByRole('heading', { level: 1 })).toHaveText('Lote concluído!')
+  await expect(end.getByRole('heading', { level: 1 })).toHaveText(/^Bom trabalho/)
 })
 
 test('celebração ≤ 700 ms; com movimento reduzido, nenhuma animação', async ({ page }) => {
   const topicId = await dueTopic(page, 42)
   await gotoApp(page, `/revisar?topic_id=${topicId}`)
   for (let i = 0; i < 20; i++) await rate(page, '3')
-  const mascot = page.getByTestId('review-batch-end').locator('[class*="animate-celebrate-pop"]').first()
+  // The dolphin leads the gesture (ADR-035 §6: 520 ms)
+  const mascot = page.getByTestId('review-batch-end').locator('picture').first()
   const ms = await mascot.evaluate(el => parseFloat(getComputedStyle(el).animationDuration) * 1000)
   expect(ms).toBeGreaterThan(0)
   expect(ms).toBeLessThanOrEqual(700)
@@ -128,7 +131,6 @@ test('celebração ≤ 700 ms; com movimento reduzido, nenhuma animação', asyn
   await expect(end).toBeVisible()
   const animated = await end.evaluate(el => [...el.querySelectorAll('*')].filter(n => getComputedStyle(n).animationName !== 'none' && parseFloat(getComputedStyle(n).animationDuration) > 0.01).length)
   expect(animated).toBe(0)
-  await expect(end.locator('[class*="animate-celebrate-burst"]')).toHaveCount(0)
 })
 
 test('origem nos 3 tipos (PDF com parte, nota, questão) e nada no card avulso', async ({ page }) => {
@@ -154,6 +156,7 @@ test('origem nos 3 tipos (PDF com parte, nota, questão) e nada no card avulso',
     const origin = page.getByTestId('review-origin')
     seen[front] = (await origin.count()) ? await origin.innerText() : ''
     await page.keyboard.press('3')
+    await continueBand(page)
   }
   expect(seen['Origem PDF?']).toContain('Origem: Apostila O')
   expect(seen['Origem PDF?']).toContain('Abrir o trecho')
@@ -257,6 +260,7 @@ test.describe('Acessibilidade da revisão (axe)', () => {
         await page.keyboard.press('Space')
         await check('resposta')
         await page.keyboard.press('3')
+        await continueBand(page)
         for (let i = 0; i < 19; i++) await rate(page, '3')
         await expect(page.getByTestId('review-batch-end')).toBeVisible()
         await page.waitForTimeout(300)

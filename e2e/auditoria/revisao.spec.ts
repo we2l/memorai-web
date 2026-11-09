@@ -1,4 +1,4 @@
-import { test, expect, gotoApp, apiCall, uid, cachedLoginState } from './support/fixtures'
+import { test, expect, gotoApp, apiCall, uid, cachedLoginState, continueBand } from './support/fixtures'
 import type { Page } from '@playwright/test'
 
 /**
@@ -35,6 +35,7 @@ test.describe('Revisão — caminho feliz', () => {
     await expect(page.getByRole('button', { name: /^Fácil/ })).toBeVisible()
     for (const label of RATINGS) await expect(page.getByRole('button', { name: new RegExp(`^${label}`) })).toBeVisible()
     await page.getByRole('button', { name: /^Fácil/ }).click()
+    await continueBand(page)
 
     // Cards 2–4: Espaço vira, 4 avalia (Fácil tira o card da sessão de hoje)
     for (let i = 0; i < 3; i++) {
@@ -42,6 +43,7 @@ test.describe('Revisão — caminho feliz', () => {
       await page.keyboard.press('Space')
       await expect(answer(page)).toBeVisible()
       await page.keyboard.press('4')
+      await continueBand(page)
     }
     // Fim da sessão (B1: a tag não resolvia e a tela ficava em branco), com o "Amanhã"
     await expect(page.getByTestId('review-session-end')).toBeVisible({ timeout: 10_000 })
@@ -60,6 +62,7 @@ test.describe('Revisão — caminho feliz', () => {
       await page.keyboard.press('Space')
       await expect(answer(page)).toBeVisible()
       await page.keyboard.press(key)
+      await continueBand(page)
       // "De novo" abre o diário de erro (carregado sob demanda): pula para seguir
       const diary = page.getByTestId('error-diary')
       await expect(diary.or(page.getByTestId('review-show'))).toBeVisible()
@@ -76,6 +79,7 @@ test.describe('Revisão — caminho feliz', () => {
     // Botão "Desfazer"
     await page.keyboard.press('Space')
     await page.keyboard.press('4')
+    await continueBand(page)
     await expect(cardFace(page)).not.toContainText(first)
     await page.getByRole('button', { name: /^Desfazer/ }).click()
     await expect(cardFace(page)).toContainText(first)
@@ -84,6 +88,7 @@ test.describe('Revisão — caminho feliz', () => {
     // Tecla U
     await page.keyboard.press('Space')
     await page.keyboard.press('4')
+    await continueBand(page)
     await expect(cardFace(page)).not.toContainText(first)
     await page.keyboard.press('u')
     await expect(cardFace(page)).toContainText(first)
@@ -91,6 +96,7 @@ test.describe('Revisão — caminho feliz', () => {
     // Ctrl+Z
     await page.keyboard.press('Space')
     await page.keyboard.press('4')
+    await continueBand(page)
     await expect(cardFace(page)).not.toContainText(first)
     await page.keyboard.press('Control+z')
     await expect(cardFace(page)).toContainText(first)
@@ -131,6 +137,7 @@ test.describe('Revisão — caminho triste', () => {
     await gotoApp(page, `/revisar?topic_id=${topicId}`)
     await page.keyboard.press('Space')
     await page.keyboard.press('4')
+    await continueBand(page)
     await expect(page.getByTestId('review-session-end')).toBeVisible({ timeout: 10_000 })
     await gotoApp(page, `/revisar?topic_id=${topicId}`)
     const done = page.getByTestId('review-all-done')
@@ -162,6 +169,7 @@ test.describe('Revisão — caminho triste', () => {
     await gotoApp(page, `/revisar?topic_id=${topicId}`)
     await page.keyboard.press('Space')
     await page.keyboard.press('4')
+    await continueBand(page)
     // 3 tentativas com backoff (1 s, 2 s, 4 s) e depois pausa com aviso
     const banner = page.getByRole('alert').filter({ hasText: 'avaliação não enviada' })
     await expect(banner).toBeVisible({ timeout: 15_000 })

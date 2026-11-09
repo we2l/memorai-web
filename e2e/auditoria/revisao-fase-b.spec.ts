@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test'
-import { test, expect, gotoApp, apiCall, uid, tinker, USERS } from './support/fixtures'
+import { test, expect, gotoApp, apiCall, uid, tinker, USERS, continueBand } from './support/fixtures'
 
 /**
  * Revisão v5, Fase B (prd-revisao-v5-fase-b): the backlog apart from today with "Recuperar em N dias" and the paused new
@@ -73,11 +73,12 @@ test('Certo/Errado com C/E/B, digitar com diff e "Contar como certo", leech com 
   await expect(page.getByTestId('check-result')).toHaveText('Em branco · Gabarito: Errado')
   await page.keyboard.press('Enter')
 
+  // A miss of a checked card gets the E2 band, with "Por quê?" (prd-visual-e2 RF-2.4); a hit goes straight on
+  await expect(page.getByTestId('review-feedback')).toHaveAttribute('data-kind', 'again')
+  await expect(page.getByTestId('review-why')).toBeVisible()
+  await continueBand(page)
   await expect(page.locator('[data-mode=typed]')).toBeVisible()
-  await expect(page.getByTestId('review-feedback')).toContainText('Em branco · volta')
   await page.getByTestId('check-input').fill('borrow')
-  // The pill of the previous card leaves as soon as the person types, never next to the check
-  await expect(page.getByTestId('review-feedback')).toHaveCount(0)
   await page.keyboard.press('Enter')
   await expect(page.getByTestId('check-diff')).toContainText('faltou: to')
   await expect(page.getByTestId('review-feedback')).toHaveCount(0)

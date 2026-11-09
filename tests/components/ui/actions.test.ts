@@ -23,18 +23,25 @@ describe('UiButton', () => {
     const w = await mountSuspended(Button, { slots: label('Salvar'), attachTo: document.body })
     const el = w.get('button')
     expect(el.attributes('type')).toBe('button')
-    expect(el.classes()).toEqual(expect.arrayContaining(['bg-raised', 'border-line-strong', 'min-h-touch']))
+    expect(el.classes()).toEqual(expect.arrayContaining(['bg-soft', 'rounded-chip', 'min-h-touch']))
     expect(await axeViolations(w.element)).toEqual([])
   })
 
   it.each([
-    ['primary', ['bg-action', 'text-on-action', 'shadow-press', 'hover:bg-action-hover']],
-    ['secondary', ['bg-raised', 'text-fg-strong', 'hover:bg-subtle']],
-    ['ghost', ['text-fg-strong', 'hover:bg-subtle']],
+    ['primary', ['bg-action', 'text-on-action', 'shadow-action', 'hover:bg-action-hover', 'active:scale-97']],
+    ['secondary', ['bg-soft', 'text-fg-strong', 'hover:bg-sunk']],
+    ['outline', ['bg-raised', 'text-fg-strong', 'shadow-1']],
+    ['ghost', ['text-fg-strong', 'hover:bg-soft']],
     ['danger', ['bg-danger-subtle', 'text-danger']],
   ] as const)('variante %s usa os tokens dela', async (variant, classes) => {
     const w = await mountSuspended(Button, { props: { variant }, slots: label('Ok') })
     expect(w.classes()).toEqual(expect.arrayContaining([...classes]))
+  })
+
+  it('rating: 62 px, raio 18, com o intervalo embaixo do rótulo (E2)', async () => {
+    const w = await mountSuspended(Button, { props: { size: 'rating', variant: 'primary' }, slots: { default: () => 'Lembrei', hint: () => 'volta em 16 dias' } })
+    expect(w.classes()).toEqual(expect.arrayContaining(['min-h-15.5', 'rounded-rating', 'flex-col']))
+    expect(w.text()).toBe('Lembreivolta em 16 dias')
   })
 
   it('sm tem 36 px visíveis e área de toque estendida a 44 px', async () => {
@@ -64,7 +71,7 @@ describe('UiButton', () => {
   it('primário desabilitado troca para cinza legível, sem volume', async () => {
     const w = await mountSuspended(Button, { props: { variant: 'primary', disabled: true }, slots: label('Ok') })
     expect(w.classes()).toEqual(expect.arrayContaining(['bg-line-strong', 'text-fg-muted', 'cursor-not-allowed']))
-    expect(w.classes()).not.toContain('shadow-press')
+    expect(w.classes()).not.toContain('shadow-action')
   })
 
   it('to vira link; desabilitado perde o href e fica aria-disabled', async () => {

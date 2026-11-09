@@ -3,8 +3,8 @@
     <header class="border-b border-line bg-raised px-4 py-3 sm:px-6">
       <div class="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 class="text-section text-fg-strong">Design system v3</h1>
-          <p class="text-meta text-fg-muted">Referência interna dos componentes-base (ADR-027). Só em dev ou com NUXT_DS_PAGE=1.</p>
+          <h1 class="text-section text-fg-strong">Design system v3 · pele E2</h1>
+          <p class="text-meta text-fg-muted">Referência interna dos componentes-base (ADR-027, ADR-035). Só em dev ou com NUXT_DS_PAGE=1.</p>
         </div>
         <UiTabs v-model="mode" :tabs="MODES" label="Tema da página" />
       </div>
@@ -66,6 +66,66 @@
                   <p class="text-meta text-fg-muted">Painel da aba “{{ TABS.find(t => t.key === active)?.label }}”.</p>
                 </template>
               </UiTabs>
+            </div>
+          </UiSection>
+
+          <!-- E2 (ADR-035): pílulas, avaliação, números, métricas, anel, arco, semana, segmentado, chips e faixa -->
+          <UiSection title="Direção E2" description="Botões em pílula, sombra em camadas, números em Fraunces, ícones de métrica coloridos e pequenos, faixa de feedback sem vermelho." data-ds-scope>
+            <div class="flex flex-col gap-6">
+              <div class="flex flex-wrap items-center gap-3">
+                <UiButton data-ds-scope variant="primary" size="lg">Começar o lote</UiButton>
+                <UiButton variant="secondary">Secundário</UiButton>
+                <UiButton variant="outline">Contorno</UiButton>
+                <UiButton variant="ghost">Fantasma</UiButton>
+              </div>
+              <div class="grid grid-cols-2 gap-2.5 sm:max-w-md">
+                <UiButton size="rating">Não lembrei<template #hint>volta em 10 min</template></UiButton>
+                <UiButton data-ds-scope variant="primary" size="rating">Lembrei<template #hint>volta em 16 dias</template></UiButton>
+              </div>
+              <div class="flex flex-wrap items-end gap-6">
+                <UiNumber value="18" unit="de 20" size="xl" />
+                <UiNumber value="90%" size="l" />
+                <UiNumber value="45" size="m" />
+                <UiNumber value="14" unit="dias" size="s" />
+              </div>
+              <div class="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+                <UiMetricTile :icon="Flame" tone="streak" value="14" unit="dias" label="Sequência" />
+                <UiMetricTile :icon="Check" tone="goal" value="2" unit="de 3" label="Lotes da meta" />
+                <UiMetricTile :icon="TrendingUp" tone="accuracy" value="72%" label="Acerto em questões" />
+                <UiMetricTile :icon="Layers" tone="action" value="45" label="Para hoje" />
+              </div>
+              <div class="flex flex-wrap items-center gap-3">
+                <UiIconTile v-for="t in ICON_TONES" :key="t.tone" :icon="t.icon" :tone="t.tone" :label="t.tone" />
+                <UiIconTile :icon="Flame" tone="streak" size="lg" label="sequência" />
+                <UiIconTile :icon="Check" tone="goal" size="sm" label="meta" />
+              </div>
+              <div class="flex flex-wrap items-center gap-8">
+                <UiRing :value="1 / 3" :animate="replay > 0" :key="`r${replay}`"><Check class="size-6 text-action-fg" aria-hidden="true" /></UiRing>
+                <UiArc :got="18" :of="20" :animate="replay > 0" :key="`a${replay}`"><UiNumber value="18" unit="de 20" size="xl" /></UiArc>
+                <UiButton size="sm" variant="secondary" @click="replay++">Repetir desenho</UiButton>
+              </div>
+              <UiWeekStrip class="max-w-sm" :days="WEEK" />
+              <UiSegmented v-model="seg" class="max-w-sm" label="Recuperar o atraso em" :options="SEG" />
+              <div class="flex flex-wrap items-center gap-2">
+                <UiTag tone="streak" :icon="Flame" size="lg">14 dias</UiTag>
+                <UiTag tone="goal" :icon="Check">Meta de hoje feita</UiTag>
+                <UiTag tone="brand">Direito Constitucional</UiTag>
+                <UiTag>Lote 1 de 3</UiTag>
+              </div>
+              <div class="flex flex-col gap-3">
+                <div class="rounded-sheet bg-fb-ok-bg p-5 text-fb-ok-fg">
+                  <p class="text-title">Na mosca! Volta em 16 dias.</p>
+                  <span class="mt-3 inline-flex min-h-touch items-center rounded-chip bg-fb-ok-strong px-4.5 font-semibold text-fb-ok-ink">Continuar</span>
+                </div>
+                <div class="rounded-sheet bg-fb-again-bg p-5 text-fb-again-fg">
+                  <p class="text-title">Tranquilo, faz parte. Ele volta daqui a 10 minutos.</p>
+                  <span class="mt-3 inline-flex min-h-touch items-center rounded-chip bg-fb-again-strong px-4.5 font-semibold text-fb-again-ink">Continuar</span>
+                </div>
+              </div>
+              <div class="grid gap-3 sm:grid-cols-2">
+                <UiSection variant="tile" title="Azulejo" :level="3">Fundo soft, raio 16: métrica e apoio.</UiSection>
+                <UiSection variant="tinted" title="Bloco lilás" :level="3">O único por tela: a prova, o próximo passo.</UiSection>
+              </div>
             </div>
           </UiSection>
 
@@ -261,11 +321,29 @@
 // variants, tones and states, both themes side by side. Dev only: nuxt.config.ts drops the route from the
 // production build (and keeps the chunk out of the precache under NUXT_DS_PAGE=1). Each block is its own
 // [data-ds-scope], so the "one primary per screen" dev warning counts per block.
-import { ArrowRight, ChevronDown, CircleHelp, Copy, Ellipsis, Headphones, Pencil, Plus, RotateCw, Search, Star, Trash2, X } from 'lucide-vue-next'
+import { ArrowRight, Check, ChevronDown, CircleHelp, Copy, Ellipsis, Flame, Headphones, Layers, Pencil, Plus, RotateCw, Search, Star, Trash2, TrendingUp, X } from 'lucide-vue-next'
+import type { IconTileTone } from '~/components/ui/IconTile.vue'
+import type { WeekDay } from '~/components/ui/WeekStrip.vue'
 import type { TagTone } from '~/components/ui/Tag.vue'
 import type { PracticeMode } from '~/components/ui/PracticeIcon.vue'
 
 definePageMeta({ layout: false })
+
+// E2 block (ADR-035)
+const ICON_TONES: { tone: IconTileTone; icon: typeof Flame }[] = [
+  { tone: 'action', icon: Layers }, { tone: 'streak', icon: Flame }, { tone: 'goal', icon: Check },
+  { tone: 'accuracy', icon: TrendingUp }, { tone: 'quiz', icon: CircleHelp }, { tone: 'listen', icon: Headphones },
+  { tone: 'neutral', icon: Copy },
+]
+const WEEK: WeekDay[] = [
+  { short: 'S', name: 'Segunda', state: 'done' }, { short: 'T', name: 'Terça', state: 'done' },
+  { short: 'Q', name: 'Quarta', state: 'rest' }, { short: 'Q', name: 'Quinta', state: 'done' },
+  { short: 'S', name: 'Sexta', state: 'missed' }, { short: 'S', name: 'Sábado', state: 'today' },
+  { short: 'D', name: 'Domingo', state: 'future' },
+]
+const SEG = [{ value: 3, label: '3 dias' }, { value: 7, label: '7 dias' }, { value: 14, label: '14 dias' }]
+const seg = ref<number | string | null>(7)
+const replay = ref(0)
 useHead({ title: 'Design system · Baigi', meta: [{ name: 'robots', content: 'noindex' }] })
 
 type Mode = 'lado' | 'claro' | 'escuro'

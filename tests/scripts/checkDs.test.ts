@@ -220,6 +220,13 @@ describe('check-ds: guardas de componente (RF-2.4)', () => {
     expect(cssFontSizes('a{font:italic 500 1.25rem/1 x}').map(f => f.value)).toEqual(['1.25rem'])
   })
 
+  it('border-surface: superfície com borda inteira fora de campo; divisor e campo passam (ADR-035 §3)', () => {
+    const src = `<template><div class="rounded-card border border-line p-4" /><div class="border-t border-line" />
+      <ul class="divide-y divide-line" /><div class="border border-line-strong" /></template>`
+    expect(rules({ 'app/pages/v.vue': src, 'app/components/ui/Input.vue': '<template><input class="border border-line-input border-line"></template>' })
+      .filter(r => r.startsWith('border-surface')).sort()).toEqual(['border-surface:v.vue:border border-line', 'border-surface:v.vue:border border-line'])
+  })
+
   it('avisa (sem catraca) página com mais de um primário', () => {
     const pages = multiPrimaryPages({
       'app/pages/a.vue': '<UiButton variant="primary" /><UiButton variant="primary" />',

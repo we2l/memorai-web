@@ -28,6 +28,9 @@
 //   dark-style       .dark inside a <style> (dark mode comes from the tokens)
 //   z-index          z-<n> / z-[n] outside ui/ and shell/ (z-sticky ... z-toast)
 //   deprecated       v2 names of scripts/ds-v3-map.json: classes and var(--v2) (the codemod swaps them)
+//   border-surface   a surface drawn by a full border (`border` + `border-line(-strong)`) outside a form field:
+//                    in the E2 (ADR-035 §3) depth is the layered shadow (shadow-1, UiSection); the border stays
+//                    on fields, dividers (border-t/b, divide-*) and tables. Ratchet down to zero by Phase 5
 //   text-min         a font size below 13 px (ADR-035 §2, RN-4): text-[Npx|Nrem] in a class, font-size/font in a
 //                    <style> or app CSS; the landing keeps its own scale (ADR-028) and is out
 // And a warning (no ratchet): a page with more than one variant="primary" (ADR-027 §6).
@@ -39,7 +42,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 import { allowedBy, blank, blankComments, cliOptions, lineLocator, listFiles, loadAllowlist, runRatchet } from './lib/ds-guard.mjs'
 
 export const GHOST_RULES = ['ghost-var', 'ghost-class', 'token-name']
-export const COMPONENT_RULES = ['component-class', 'overlay', 'spin', 'switch-role', 'arbitrary', 'important', 'inline-style', 'dark-style', 'z-index', 'deprecated', 'text-min']
+export const COMPONENT_RULES = ['component-class', 'overlay', 'spin', 'switch-role', 'arbitrary', 'important', 'inline-style', 'dark-style', 'z-index', 'deprecated', 'text-min', 'border-surface']
 export const RULES = [...GHOST_RULES, ...COMPONENT_RULES]
 
 // Theme variable namespaces of Tailwind 4 (tailwindcss/theme.css)
@@ -261,6 +264,7 @@ export function isForbiddenArbitrary(base) {
 
 /** The floor of the type scale (ADR-035 §2): 13 px (0.8125rem). */
 export const MIN_FONT_PX = 13
+const FIELD_FILES = /^app\/components\/ui\/(?:Input|Textarea|Select|Checkbox|RadioGroup|TagInput|RichInput|Field|Switch)\.vue$/
 const LANDING = /^app\/(?:components\/landing\/|pages\/index\.vue$)/
 
 /** A px or rem size below the floor (em and % are relative: not judged). */
@@ -332,6 +336,9 @@ export function componentFindings(sources, map, allowlist) {
     }
     for (const [index, bases] of byAttribute) {
       if (bases.includes('fixed') && bases.includes('inset-0') && !OVERLAY_FILES.includes(file)) add('overlay', 'fixed inset-0', index)
+      if (bases.includes('border') && bases.some(b => b === 'border-line' || b === 'border-line-strong') && !FIELD_FILES.test(file)) {
+        add('border-surface', 'border border-line', index)
+      }
     }
 
     const text = blankComments(source)

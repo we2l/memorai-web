@@ -26,7 +26,7 @@ describe('UiSection', () => {
       attachTo: document.body,
     })
     expect(w.element.tagName).toBe('SECTION')
-    expect(w.classes()).toEqual(expect.arrayContaining(['bg-raised', 'shadow-card', 'rounded-card']))
+    expect(w.classes()).toEqual(expect.arrayContaining(['bg-raised', 'shadow-1', 'rounded-card']))
     const heading = w.get('h2')
     expect(heading.text()).toBe('Plano do dia')
     expect(w.attributes('aria-labelledby')).toBe(heading.attributes('id'))
@@ -37,8 +37,8 @@ describe('UiSection', () => {
 
   it('tinted e plain; nível do título; flush sem padding', async () => {
     const w = await mountSuspended(Section, { props: { title: 'Próximo passo', variant: 'tinted', level: 3 } })
-    expect(w.classes()).toContain('bg-tinted')
-    expect(w.classes()).not.toContain('shadow-card')
+    expect(w.classes()).toEqual(expect.arrayContaining(['bg-tinted', 'rounded-hero', 'shadow-tinted']))
+    expect(w.classes()).not.toContain('shadow-1')
     expect(w.find('h3').exists()).toBe(true)
     await w.setProps({ variant: 'plain' })
     expect(w.classes()).toEqual([])

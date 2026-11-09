@@ -7,7 +7,7 @@ import { mockSubscription, expectNoHydrationMismatch } from './support/public-pa
  * /planos, /checkout/sucesso, /termos, /privacidade e /ajuda v4 (prd-4h-landing-v3 RF-F11 a RF-F15): um layout só,
  * logado ou não, números só do catálogo e um destaque por tela. Nenhum checkout real: as rotas de checkout do Mercado Pago são mockadas.
  */
-const primaries = (page: Page) => page.locator('.shadow-press').filter({ visible: true })
+const primaries = (page: Page) => page.locator('.shadow-action').filter({ visible: true })
 
 async function catalog(page: Page) {
   const res = await page.request.get(`${API}/plans`)

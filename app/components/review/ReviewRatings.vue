@@ -5,7 +5,7 @@
       :key="r.value"
       type="button"
       class="flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-control px-1 py-2 font-semibold transition-colors duration-nav"
-      :class="[r.primary ? 'bg-action text-on-action shadow-press hover:bg-action-hover active:translate-y-0.5 active:shadow-press-active' : 'border border-line-strong bg-raised text-fg-strong hover:bg-subtle', mode === 'two' ? 'text-body' : 'text-meta']"
+      :class="[r.primary ? 'bg-action text-on-action shadow-action hover:bg-action-hover active:scale-97 motion-reduce:active:scale-100' : 'bg-soft text-fg-strong hover:bg-sunk', mode === 'two' ? 'text-body' : 'text-meta']"
       :aria-keyshortcuts="r.keys"
       :aria-label="`${r.label}${intervals[r.key] ? `, volta ${intervalText(r.key)}` : ''} (${r.key_label})`"
       :data-variant="r.primary ? 'primary' : 'secondary'"

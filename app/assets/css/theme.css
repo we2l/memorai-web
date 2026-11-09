@@ -88,6 +88,8 @@
   --radius-card: 20px;
   --radius-hero: 24px;
   --radius-sheet: 28px;
+  /* Botões de avaliação da revisão: pílula larga de 62 px */
+  --radius-rating: 18px;
   --radius-float: 20px;
 
   /* Alvo de toque (min-h-touch, size-touch) */
@@ -220,6 +222,7 @@
   --shadow-1: var(--elev-1);
   --shadow-2: var(--elev-2);
   --shadow-action: var(--elev-action);
+  --shadow-tinted: var(--elev-tinted);
   --shadow-card: var(--elev-card);
   --shadow-raised: var(--elev-raised);
   --shadow-float: var(--elev-float);

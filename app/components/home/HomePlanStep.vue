@@ -3,7 +3,7 @@
     <!-- A row with a control inside (the primary, the backlog line, "Desligar"): text and button wrap on one line -->
     <div v-if="!asRow" class="flex items-start gap-3.5 px-2 py-3.5">
       <UiIconTile :icon="icon" :tone="tone" />
-      <div class="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-x-4 gap-y-2">
+      <div class="flex min-w-0 flex-1 items-center justify-between gap-x-3 gap-y-2" :class="step.primary ? '' : 'flex-wrap'">
         <div class="min-w-0">
           <p :id="titleId" class="font-semibold break-words text-fg-strong">{{ step.title }}</p>
           <p class="text-meta text-fg-muted">

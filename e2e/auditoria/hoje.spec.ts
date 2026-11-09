@@ -103,7 +103,7 @@ test.describe('Plano do dia (e2e-hoje)', () => {
     await expect(main(page).getByTestId('home-exam').getByRole('link', { name: 'Ver provas' })).toHaveAttribute('href', '/progresso#provas')
 
     // Goal: 12 cards due, nothing done → 0 of 1 batch, the shape with its text
-    await expect(main(page).getByTestId('home-goal').getByRole('text')).toHaveAttribute('aria-label', '0 / 1 lote')
+    await expect(main(page).getByTestId('home-goal').locator('[role=text]')).toHaveAttribute('aria-label', '0 / 1 lote')
     await expect(main(page).getByTestId('home-goal-card').getByTestId('ui-week-strip')).toBeVisible()
 
     // Questões opens the quiz sheet with the subject, generating nothing by itself
@@ -133,7 +133,7 @@ test.describe('Plano do dia (e2e-hoje)', () => {
     const roots = ((await apiCall(page, 'GET', '/topics')).data as any[])
     const progress = ((await apiCall(page, 'GET', '/topics/progress')).data as any[])
     const block = main(page).getByTestId('home-notebooks')
-    const rows = block.getByRole('link')
+    const rows = block.locator('ul').getByRole('link')
     await expect(rows).toHaveCount(roots.length)
     await expect(block).not.toContainText(SUBJECT)
     const trf = block.locator(`a[href="/cadernos/${seed.rootId}"]`)

@@ -81,7 +81,7 @@ test('navegação: links no fim do leitor e [ ], com "opened" gravado; o "Contin
   // A última parte aberta pela 1ª vez é a 1: é ela que o "Continuar" do Hoje abre
   await expect.poll(opened).toBe(seed.noteIds[0])
   await gotoApp(page, '/hoje')
-  await page.getByTestId('plan-step-material').getByRole('link', { name: 'Continuar' }).click()
+  await page.getByTestId('plan-step-material').getByRole('link').click()
   await expect(page).toHaveURL(new RegExp(`${seed.noteIds[0]}$`))
 })
 

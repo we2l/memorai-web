@@ -1,6 +1,6 @@
 <template>
   <!-- Keyed by the loading state: the content replaces the skeleton instead of pushing it (no layout shift) -->
-  <div :key="loading ? 'loading' : 'ready'" class="mx-auto flex max-w-wide flex-col gap-5 px-gutter pt-2 pb-6 md:pt-8" :aria-busy="loading ? 'true' : undefined">
+  <div :key="loading ? 'loading' : 'ready'" class="hoje-page mx-auto flex flex-col gap-5 px-gutter pt-2 pb-6 md:pt-8" :aria-busy="loading ? 'true' : undefined">
     <HomeGreeting :stats="stats" :user-name="auth.user?.name" :minutes="minutes" :loading="loading" :error="statsError" :returning="showBacklog" />
 
     <!-- E2 (ADR-035 §9): two columns from 1024 px, the main one fluid and a side of 400; on the phone the left one
@@ -8,13 +8,13 @@
     <div class="hoje-grid">
       <div class="flex min-w-0 flex-col gap-5">
         <!-- Hoje without cards (B5): one action that leads to the first cards; the first steps become support -->
-        <HomeFirstAction v-if="firstAction" :topic="firstAction" :roots-with-material="rootsWithMaterial" />
-        <HomeBacklog v-else-if="showBacklog" :backlog="backlogState!" :due-today="stats?.due_today ?? 0" />
+        <LazyHomeFirstAction v-if="firstAction" :topic="firstAction" :roots-with-material="rootsWithMaterial" />
+        <LazyHomeBacklog v-else-if="showBacklog" :backlog="backlogState!" :due-today="stats?.due_today ?? 0" />
 
         <HomeGoal v-if="!loading && showGoal" :stats="stats!" :history="history" />
 
         <!-- Account without cards and without material: the first steps take the place of the plan and carry the primary -->
-        <HomeChecklist v-if="!loading && noCards" :stats="stats" :roots="roots" :primary="!firstAction" />
+        <LazyHomeChecklist v-if="!loading && noCards" :stats="stats" :roots="roots" :primary="!firstAction" />
         <HomePlan
           v-else-if="!showBacklog"
           :steps="steps"
@@ -26,7 +26,7 @@
           @retry="loadData"
         />
 
-        <HomeChecklist v-if="!loading && !noCards" :stats="stats" :roots="roots" />
+        <LazyHomeChecklist v-if="!loading && !noCards" :stats="stats" :roots="roots" />
       </div>
 
       <div class="flex min-w-0 flex-col gap-5">
@@ -188,6 +188,8 @@ watch(useBacklogPlan().changed, () => loadData())
 </script>
 
 <style scoped>
+/* E2 (ADR-035 §9): up to 1.240 px, the main column fluid and a side of 400 */
+.hoje-page { max-width: 77.5rem; }
 .hoje-grid {
   display: grid;
   gap: 1.25rem;

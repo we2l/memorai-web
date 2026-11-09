@@ -21,7 +21,7 @@
         <li v-for="s in subjects" :key="s.id" class="grid grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_auto] items-center gap-3 text-meta">
           <span class="truncate text-fg">{{ s.name }}</span>
           <span class="h-1.5 overflow-hidden rounded-full bg-raised" role="progressbar" :aria-label="`Domínio de ${s.name}`" aria-valuemin="0" aria-valuemax="100" :aria-valuenow="s.mastery">
-            <span class="block h-full rounded-full" :class="`bg-subject-${s.tone}`" :style="{ width: `${s.mastery}%` }" />
+            <span class="block h-full rounded-full" :class="SUBJECT_BG[s.tone - 1]" :style="{ width: `${s.mastery}%` }" />
           </span>
           <span class="w-10 text-right font-semibold tabular-nums text-fg-strong" aria-hidden="true">{{ s.mastery }}%</span>
         </li>
@@ -64,6 +64,9 @@ import type { ExamUpcoming, TopicPerformance, TopicProgress } from '~/types'
 
 const props = defineProps<{ exams: ExamUpcoming[]; performance?: TopicPerformance[]; progress?: TopicProgress[] }>()
 
+// Full class names: Tailwind only generates what it finds written (the subject's own color, ADR-035 §1)
+const SUBJECT_BG = ['bg-subject-1', 'bg-subject-2', 'bg-subject-3', 'bg-subject-4', 'bg-subject-5', 'bg-subject-6', 'bg-subject-7', 'bg-subject-8']
+
 const exam = computed(() => [...props.exams]
   .filter(e => e.days_remaining >= 0)
   .sort((a, b) => a.days_remaining - b.days_remaining)[0] ?? null)
@@ -83,8 +86,7 @@ const shortDate = computed(() => (exam.value
 
 const pace = computed(() => {
   const n = exam.value?.cards_per_day ?? 0
-  const line = n > 0 ? `Ritmo: ${plural(n, 'card', 'cards')} por dia até lá` : 'Nada atrasado para essa prova'
-  return `${line} · a projeção aparece depois de 20 cards revisados`
+  return n > 0 ? `Ritmo: ${plural(n, 'card', 'cards')} por dia até lá` : 'A projeção aparece depois de 20 cards revisados.'
 })
 
 // The subjects of the exam: the children of its topics (or the topics themselves), with mastery

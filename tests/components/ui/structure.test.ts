@@ -133,7 +133,7 @@ describe('UiStat', () => {
     expect(w.findAll('p')[1]!.classes()).toContain('text-streak-fg')
     const c = await mountSuspended(Stat, { props: { value: 3, label: 'lotes', tone: 'celebrate', size: 'lg' } })
     expect(c.findAll('p')[1]!.classes()).toContain('text-celebrate-fg')
-    expect(c.html()).toContain('text-stat')
+    expect(c.html()).toContain('num-l')
   })
 })
 

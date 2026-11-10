@@ -151,7 +151,9 @@ export interface FrontEventProps {
   heatmap_day_open: Record<string, never>
   exam_create: { origin: 'progress' | 'scope' | 'hoje' }
   exam_export: { kind: 'ics' | 'google' }
-  projection_explain_open: Record<string, never>
+  /** Prontidão para a prova (prd-prontidao-prova RF-F5) */
+  readiness_explain_open: Record<string, never>
+  readiness_action_clicked: { kind: string; origin: 'home' | 'progress' }
 }
 
 export type FrontEvent = keyof FrontEventProps

@@ -295,6 +295,8 @@
 // reward moved from each rating (the old toasts) to the end of the batch; the 3 banners became one line; the
 // "Mergulhar" became the focus mode. Slices of the F2 (scope=, card_ids, origin, ahead, errors_only), the
 // blitz (5 min, no batches), the session timer, undo, the error diary and the unsent ratings stay as they were.
+import { requireNetwork } from '~/utils/requireNetwork'
+import { loadOfflineDb } from '~/utils/offlineDbLoader'
 import type { CardCheck, Stats, TomorrowForecast } from '~/types'
 import type { ReviewAnswer, SessionCard } from '~/stores/review'
 import { cadernoPath, markScopeCleared } from '~/utils/scope'
@@ -637,12 +639,13 @@ const whyLoaded = useLoadedOnce(() => why.open.value)
 const canExplainFromMenu = computed(() => !isOnboarding.value && (!!held.value || (review.flipped && !!review.currentCard && !review.showErrorDiary)))
 function openWhy(kind: FeedbackKind | 'menu') {
   const card = shownCard.value
-  if (!card) return
+  if (!card || !requireNetwork()) return
   feedbackRef.value?.cancel('why')
   track('review_why_opened', { kind })
   why.show({ id: card.id, front: htmlToPlain(card.front), topic_id: card.topic_id ?? scopeTopicId.value })
 }
 function askMoreWhy() {
+  if (!requireNetwork()) return
   why.close()
   void why.askMore(scopeTopicId.value)
 }
@@ -814,18 +817,20 @@ function askAbout(card: { id: string; front: string; back: string; topic_id?: st
 }
 function openChatForError() {
   const card = review.diary?.card ?? lastErrorCard.value
-  if (card) askAbout(card, 'review_error', `Me explica esse card que errei: "${htmlToPlain(card.front)}"`)
+  if (card && requireNetwork()) askAbout(card, 'review_error', `Me explica esse card que errei: "${htmlToPlain(card.front)}"`)
 }
 function explainCard() {
   const card = review.currentCard
-  if (!card) return
+  if (!card || !requireNetwork()) return
   track('review_explain_open', {})
   askAbout(card, 'review_card', 'Me explica este card.')
 }
 
-// === Leaving with unsent ratings asks first (RF-F2.4) ===
+// === Leaving with unsent ratings asks first (RF-F2.4), unless they are kept on the device (prd-revisao-offline RF-F4) ===
+const queueKept = ref(false)
+onMounted(() => { void loadOfflineDb().then(m => m.offlineDbReady()).then((ok) => { queueKept.value = ok }) })
 function onBeforeUnload(e: BeforeUnloadEvent) {
-  if (review.pendingCount > 0) {
+  if (review.pendingCount > 0 && !queueKept.value) {
     e.preventDefault()
     e.returnValue = ''
   }
@@ -833,7 +838,7 @@ function onBeforeUnload(e: BeforeUnloadEvent) {
 onMounted(() => window.addEventListener('beforeunload', onBeforeUnload))
 onUnmounted(() => window.removeEventListener('beforeunload', onBeforeUnload))
 onBeforeRouteLeave(() => {
-  if (review.pendingCount > 0) return window.confirm(`${review.pendingCount} avaliação(ões) ainda não foram enviadas. Sair mesmo assim?`)
+  if (review.pendingCount > 0 && !queueKept.value) return window.confirm(`${review.pendingCount} avaliação(ões) ainda não foram enviadas. Sair mesmo assim?`)
   return true
 })
 

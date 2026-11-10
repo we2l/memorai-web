@@ -20,6 +20,7 @@ Idioma: português do Brasil. Site: https://baigi.com.br
 
 - [Curva do esquecimento](https://baigi.com.br/blog/curva-do-esquecimento): quanto se esquece e como revisar no dia certo
 - [Cronograma de revisão para a OAB 48](https://baigi.com.br/blog/cronograma-revisao-oab-48)
+- [OAB faltando 1 mês: plano de 30 dias](https://baigi.com.br/blog/oab-faltando-1-mes)
 - [TJ-SP Escrevente 2027: lei seca da Vunesp](https://baigi.com.br/blog/tj-sp-escrevente-lei-seca-vunesp)
 - [Como revisar lei seca para o INSS](https://baigi.com.br/blog/como-revisar-lei-seca-inss)
 - [Alternativa ao Anki](https://baigi.com.br/blog/alternativa-ao-anki)

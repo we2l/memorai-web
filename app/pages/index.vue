@@ -30,19 +30,21 @@
 // and the title font live in public/landing (nuxt.config.ts).
 import '~/components/landing/landing.css'
 import type { LandingMessageProp } from '~/types/analytics'
-import { LANDING_CTA, LANDING_MESSAGE_SCRIPT, landingMessageOf, landingQuery, paidPlanName, type LandingArea, type LandingCtaPosition } from '~/utils/landing'
+import { LANDING_CTA, LANDING_MESSAGE_SCRIPT, landingMessageOf, landingQuery, type LandingArea, type LandingCtaPosition } from '~/utils/landing'
 import { startLandingMotion } from '~/utils/landingMotion'
+import { INDEXABLE, homeJsonLd, jsonLdScript } from '~/utils/seo'
 
 definePageMeta({ layout: 'landing' })
 
 const TITLE = 'Baigi: chega de memória de peixe'
 const { plans: catalog, failed, fetchPlans } = usePlans()
-// The AI (cards from the PDF) is not in the Free plan: the description says where it is, with the catalog's name
-const description = computed(() => `Mande seu PDF ou suas anotações e a IA cria os cards, na prévia grátis e no ${paidPlanName(catalog.value)}. Revisar é grátis: cada card volta perto da hora de esquecer, e você vê quanto vai lembrar no dia da prova. Para concurso, OAB, ENEM, faculdade, medicina e idiomas.`)
+// ~150 characters (the result page cuts longer ones) with the terms people search: flashcards, IA, revisão espaçada
+const description = 'Flashcards com IA feitos do seu PDF e revisão espaçada que mostra quanto você vai lembrar na prova. Revisar é grátis. Concurso, OAB, ENEM e faculdade.'
 
 useHead({
   title: TITLE,
   meta: [
+    { name: 'robots', content: INDEXABLE },
     { name: 'description', content: description },
     { property: 'og:title', content: TITLE },
     { property: 'og:description', content: description },
@@ -62,7 +64,7 @@ useHead({
   ],
   // The poster of the hero's clip is the LCP: asked for first, ahead of the app's modulepreloads (measured: LCP 3.4 s
   // -> 1.6 s with applied throttling). AVIF only (the <picture> falls back to WebP); the theme of the system picks one.
-  link: (['light', 'dark'] as const).map(theme => ({
+  link: [{ rel: 'canonical', href: 'https://baigi.com.br/' }, ...(['light', 'dark'] as const).map(theme => ({
     rel: 'preload',
     as: 'image',
     href: `/landing/video/revisao-${theme}-poster.avif`,
@@ -70,8 +72,11 @@ useHead({
     media: `(prefers-color-scheme: ${theme})`,
     fetchpriority: 'high' as const,
     tagPriority: 'critical' as const,
-  })),
-  script: [{ innerHTML: LANDING_MESSAGE_SCRIPT, tagPosition: 'head' }],
+  }))],
+  script: [
+    { innerHTML: LANDING_MESSAGE_SCRIPT, tagPosition: 'head' },
+    { type: 'application/ld+json', innerHTML: jsonLdScript(homeJsonLd(description)) },
+  ],
 })
 
 

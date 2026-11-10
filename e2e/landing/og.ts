@@ -29,7 +29,7 @@ const FRAME = `
   .landing-page .lp-hero { min-height: 0; height: ${H}px; padding: 0; overflow: hidden; }
   .landing-page .lp-hero > .lp-wrap { max-width: none; height: 100%; padding: 0 56px; grid-template-columns: 1fr 470px; gap: 0; }
   .landing-page .lp-hero .lp-text { padding: 70px 0 0; }
-  .landing-page .lp-hero h1 { font-size: 128px; }
+  .landing-page .lp-hero .lp-h1 { font-size: 128px; }
   .landing-page .lp-tag { font-size: 30px; right: 10px; bottom: -48px; }
   .landing-page .lp-scene { height: ${H}px; margin: 0; }
   .landing-page .lp-scene .lp-phone { width: 236px; top: 40px; right: 20px; }

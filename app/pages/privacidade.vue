@@ -95,6 +95,7 @@
 </template>
 
 <script setup lang="ts">
+import { INDEXABLE } from '~/utils/seo'
 definePageMeta({ layout: 'public' })
 
 // TODO(jurídico): datas definitivas na publicação do texto revisado
@@ -117,5 +118,9 @@ const sections = [
 useSeoMeta({
   title: 'Política de Privacidade — BAIGI',
   description: 'Como o BAIGI trata seus dados pessoais, com quem compartilha e como exercer seus direitos da LGPD.',
+})
+useHead({
+  meta: [{ name: 'robots', content: INDEXABLE }],
+  link: [{ rel: 'canonical', href: 'https://baigi.com.br/privacidade' }],
 })
 </script>

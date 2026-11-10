@@ -76,7 +76,11 @@ import { PenTool, Mail, Search as SearchIcon, Scissors, Headphones, BarChart3 } 
 // One public layout, signed in or not (prd-4h-landing-v3 RF-F14): swapping it by login was the hydration mismatch
 definePageMeta({ layout: 'public' })
 
-useHead({ title: 'Ajuda · Baigi' })
+useBlogSeo({
+  title: 'Ajuda do Baigi: como usar os cards, a revisão e o podcast',
+  description: 'Como funciona o Baigi: criar cards do seu material, revisar em lotes, simulados, podcast dos pontos fracos, atalhos de teclado e dúvidas comuns.',
+  path: '/ajuda',
+})
 
 // /ajuda?tab=atalhos: "Ajuda e atalhos" of the account menu, the search and the "?" shortcut
 const route = useRoute()

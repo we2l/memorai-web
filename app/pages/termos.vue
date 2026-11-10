@@ -96,6 +96,7 @@
 </template>
 
 <script setup lang="ts">
+import { INDEXABLE } from '~/utils/seo'
 import { sellerLine } from '~/utils/checkoutState'
 
 definePageMeta({ layout: 'public' })
@@ -129,5 +130,9 @@ const sections = [
 useSeoMeta({
   title: 'Termos de Uso — BAIGI',
   description: 'Regras de uso do BAIGI: conta, planos, cobrança, cancelamento, direito de arrependimento, uso justo e limitações da IA.',
+})
+useHead({
+  meta: [{ name: 'robots', content: INDEXABLE }],
+  link: [{ rel: 'canonical', href: 'https://baigi.com.br/termos' }],
 })
 </script>

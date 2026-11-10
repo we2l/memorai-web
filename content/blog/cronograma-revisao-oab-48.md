@@ -7,7 +7,7 @@ category: oab
 area: oab
 author: weslley
 published: 2026-11-09
-updated: 2026-11-09
+updated: 2026-11-10
 pillar: curva-do-esquecimento
 related: oab-faltando-1-mes, como-revisar-lei-seca-inss, curva-do-esquecimento
 tags: OAB, Exame de Ordem, 48º Exame, 1ª fase, cronograma, revisão
@@ -131,9 +131,9 @@ Não. A prova objetiva é sem consulta. A consulta à legislação, sem anotaç�
 
 A que estava em vigor na publicação do edital, em 21 de setembro de 2026. O edital diz que legislação que entrou em vigor depois dessa data, e alterações posteriores, não serão cobradas.
 
-### Se eu passar na 1ª fase e reprovar na 2ª, perco tudo?
+### Como funciona a repescagem da OAB 48?
 
-Não. O edital permite reaproveitar o resultado da 1ª fase uma vez, para fazer só a 2ª fase do Exame seguinte, pagando a taxa de inscrição.
+"Repescagem" é o nome popular do que o edital chama de reaproveitamento. Quem passa na 1ª fase e reprova na 2ª pode reaproveitar o resultado da prova objetiva para fazer só a 2ª fase do Exame imediatamente seguinte, pagando a taxa de inscrição. Então quem passou na 1ª fase do 47º e reprovou na 2ª pode ir direto para a 2ª fase do 48º (prevista para 28/02/2027). O edital do 48º diz que os procedimentos desse pedido saem num edital complementar, com publicação prevista para 12 de novembro de 2026. Confira lá os prazos.
 
 ### Existe uma tabela oficial de quantas questões caem de cada matéria?
 
@@ -141,7 +141,7 @@ Não. O edital só garante o mínimo de 15% para Ética, Estatuto, Regulamento G
 
 ## Fontes
 
-1. Conselho Federal da OAB e FGV, Edital de Abertura do 48º Exame de Ordem Unificado, de 21 de setembro de 2026: data e horário da prova objetiva (item 3.1.1), 80 questões e 4 alternativas (3.4.1 e 3.4.1.4), cota mínima de 15% (3.4.1.1), jurisprudência pacificada (3.4.1.2), data de corte da legislação e consulta na 2ª fase (3.6.14.3 e 3.6.14.4), nota mínima (4.1.3), reaproveitamento (2.8.1) e cronograma (Anexo V). [https://s.oab.org.br/arquivos/2026/09/fb43fb37-838e-4d33-a863-99fa1f98b921.pdf](https://s.oab.org.br/arquivos/2026/09/fb43fb37-838e-4d33-a863-99fa1f98b921.pdf). Notícia da OAB: [https://www.oab.org.br/noticia/64615/confira-o-edital-de-abertura-do-48-exame-de-ordem-unificado](https://www.oab.org.br/noticia/64615/confira-o-edital-de-abertura-do-48-exame-de-ordem-unificado)
+1. Conselho Federal da OAB e FGV, Edital de Abertura do 48º Exame de Ordem Unificado, de 21 de setembro de 2026: data e horário da prova objetiva (item 3.1.1), 80 questões e 4 alternativas (3.4.1 e 3.4.1.4), cota mínima de 15% (3.4.1.1), jurisprudência pacificada (3.4.1.2), data de corte da legislação e consulta na 2ª fase (3.6.14.3 e 3.6.14.4), nota mínima (4.1.3), reaproveitamento ou repescagem (2.8.1 e 2.8.1.1) e cronograma (Anexo V). [https://s.oab.org.br/arquivos/2026/09/fb43fb37-838e-4d33-a863-99fa1f98b921.pdf](https://s.oab.org.br/arquivos/2026/09/fb43fb37-838e-4d33-a863-99fa1f98b921.pdf). Notícia da OAB: [https://www.oab.org.br/noticia/64615/confira-o-edital-de-abertura-do-48-exame-de-ordem-unificado](https://www.oab.org.br/noticia/64615/confira-o-edital-de-abertura-do-48-exame-de-ordem-unificado)
 2. Provimento CFOAB nº 144/2011, que regulamenta o Exame de Ordem (art. 11: nota mínima, cota de 15% e matérias da 1ª fase). [https://www.oab.org.br/leisnormas/legislacao/provimentos/144-2011](https://www.oab.org.br/leisnormas/legislacao/provimentos/144-2011)
 3. OAB, inclusão de Direito Eleitoral, Financeiro e Previdenciário a partir do 38º Exame (5 de abril de 2022). [https://www.oab.org.br/noticia/59558/oab-libera-escolha-do-local-do-exame-e-insere-tres-disciplinas-obrigatorias](https://www.oab.org.br/noticia/59558/oab-libera-escolha-do-local-do-exame-e-insere-tres-disciplinas-obrigatorias)
 4. Lei nº 8.906, de 4 de julho de 1994, Estatuto da Advocacia e da OAB (arts. 7º, XIV, 8º, 35, 37 e 43). [https://www.planalto.gov.br/ccivil_03/leis/l8906.htm](https://www.planalto.gov.br/ccivil_03/leis/l8906.htm)

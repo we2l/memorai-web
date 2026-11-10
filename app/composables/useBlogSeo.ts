@@ -39,7 +39,9 @@ export function useBlogSeo(input: BlogSeoInput) {
     ...(input.modified ? [{ property: 'article:modified_time', content: input.modified }] : []),
   ]
   useHead({
-    title: input.title.includes(SITE_NAME) ? input.title : `${input.title} · ${SITE_NAME}`,
+    // The brand only when it fits in 60 characters: the result page cuts longer titles, and an unknown brand at the
+    // end is what gets cut (seo-audit, title-tags)
+    title: input.title.includes(SITE_NAME) || input.title.length + SITE_NAME.length + 3 > 60 ? input.title : `${input.title} · ${SITE_NAME}`,
     meta,
     link: [
       { rel: 'canonical', href: url },

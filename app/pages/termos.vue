@@ -128,8 +128,9 @@ const sections = [
 ]
 
 useSeoMeta({
-  title: 'Termos de Uso — BAIGI',
-  description: 'Regras de uso do BAIGI: conta, planos, cobrança, cancelamento, direito de arrependimento, uso justo e limitações da IA.',
+  title: 'Termos de Uso · Baigi',
+  description: 'Termos de Uso do Baigi: regras da conta, dos planos e da cobrança, cancelamento, direito de arrependimento em 7 dias, uso justo e limites da IA.',
+  ogImage: 'https://baigi.com.br/landing/og-baigi.jpg',
 })
 useHead({
   meta: [{ name: 'robots', content: INDEXABLE }],

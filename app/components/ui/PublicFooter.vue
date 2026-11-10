@@ -1,6 +1,8 @@
 <template>
   <footer class="mt-12 border-t border-hairline">
     <div class="mx-auto flex max-w-page flex-wrap gap-x-4 px-gutter py-4 text-meta">
+      <!-- The page that sells: before this link only the landing pointed to /planos (SEO audit, 10/11) -->
+      <UiLink to="/planos" variant="muted" standalone class="underline">Planos e preços</UiLink>
       <UiLink to="/blog" variant="muted" standalone class="underline">Blog</UiLink>
       <UiLink to="/ferramentas" variant="muted" standalone class="underline">Ferramentas</UiLink>
       <UiLink to="/quem-faz" variant="muted" standalone class="underline">Quem faz</UiLink>

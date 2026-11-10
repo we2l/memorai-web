@@ -219,19 +219,38 @@ function addHere() { addSheet.show('scope') }
 const upload = useDocumentUpload()
 const blockedReasons = ref<Record<string, string>>({})
 
+/**
+ * A caderno with matérias: the file name may say where the PDF goes (prd-edital-caderno RF-F3, D5). Loaded on the
+ * upload, out of the hub's closure.
+ */
+async function placeByFileName(fileName: string) {
+  const s = summary.value
+  if (!s || s.topic.depth !== 0 || !s.subjects.length) return null
+  const { matchSubjectByFileName } = await import('~/utils/subjectMatch')
+  return matchSubjectByFileName(fileName, s.subjects)
+}
+
 async function uploadPdf(file: File, autoCards: boolean) {
   const invalid = await upload.validate(file)
   if (invalid) return toast.show(invalid, 'error')
-  const topicId = id.value
+  const scopeId = id.value
+  const placed = await placeByFileName(file.name)
+  const topicId = placed?.id ?? scopeId
   const result = await upload.upload(file, { topicId, autoCards, source: 'caderno' })
-  if (!result || store.topicId !== topicId) return
+  if (!result || store.topicId !== scopeId) return
   const auto = upload.autoGeneration.value
   const doc = result.document
+  if (placed) {
+    track('material_auto_placed', { by: 'file_name' })
+    toast.show(`PDF guardado em ${placed.name}, pelo nome do arquivo.`, 'success', {
+      action: { label: 'Mover', onClick: () => openMove({ kind: 'pdf', id: doc.id, name: doc.original_name, topicId: placed.id }) },
+    })
+  }
   if (auto && !auto.dispatched && auto.blocked_reason) blockedReasons.value = { ...blockedReasons.value, [doc.id]: auto.blocked_reason }
   const status = auto?.dispatched ? 'processing' : auto?.blocked_reason ? 'blocked' : documentRowStatus(doc)
   store.prependRow({
     kind: 'pdf', id: doc.id, note_id: doc.note_id ?? null, title: doc.original_name,
-    topic: { id: topicId, name: summary.value?.topic.name ?? '' },
+    topic: { id: topicId, name: placed?.name ?? summary.value?.topic.name ?? '' },
     pages: doc.pages_count, parts: null, words: null, cards: 0, mastery: null, session_count: 0, ahead_count: 0,
     status, progress: null, updated_at: new Date().toISOString(),
   })

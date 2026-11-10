@@ -32,7 +32,7 @@ export type HomeChecklistItem = 'topic' | 'material' | 'cards' | 'review' | 'str
 
 /** Landing (prd-landing-v4 RF-L13, prd-landing-d RF-D18): `?m=` of the video and where the click happened */
 export type LandingMessageProp = 'padrao' | 'prova' | 'esqueci' | 'faculdade' | 'ingles'
-export type LandingCtaPosition = 'header' | 'hero' | 'curve' | 'story_material' | 'story_review' | 'quiz' | 'projection'
+export type LandingCtaPosition = 'header' | 'hero' | 'curve' | 'story_edital' | 'story_material' | 'story_review' | 'quiz' | 'errors' | 'projection'
   | 'podcast' | 'areas' | 'plans_free' | 'plans_pro' | 'final' | 'sticky'
 /** The tab of the areas whose call was clicked (position `areas`) */
 export type LandingAreaProp = 'concurso' | 'faculdade' | 'oab' | 'enem' | 'idiomas'

@@ -295,7 +295,7 @@
 // reward moved from each rating (the old toasts) to the end of the batch; the 3 banners became one line; the
 // "Mergulhar" became the focus mode. Slices of the F2 (scope=, card_ids, origin, ahead, errors_only), the
 // blitz (5 min, no batches), the session timer, undo, the error diary and the unsent ratings stay as they were.
-import { requireNetwork } from '~/stores/offline'
+import { requireNetwork } from '~/utils/requireNetwork'
 import { loadOfflineDb } from '~/utils/offlineDbLoader'
 import type { CardCheck, Stats, TomorrowForecast } from '~/types'
 import type { ReviewAnswer, SessionCard } from '~/stores/review'

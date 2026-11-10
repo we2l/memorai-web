@@ -9,7 +9,7 @@ author: weslley
 published: 2026-11-09
 updated: 2026-11-09
 pillar: curva-do-esquecimento
-related: como-revisar-lei-seca-inss, curva-do-esquecimento
+related: oab-faltando-1-mes, como-revisar-lei-seca-inss, curva-do-esquecimento
 tags: OAB, Exame de Ordem, 48º Exame, 1ª fase, cronograma, revisão
 ---
 
@@ -46,6 +46,8 @@ Duas regras do edital mudam o jeito de revisar:
 - **Jurisprudência pacificada.** A resposta pode ter de refletir a jurisprudência pacificada dos Tribunais Superiores, e não só a letra da lei. Quando uma questão errada for de jurisprudência, o card tem de trazer o entendimento, não apenas o artigo.
 
 ## Cronograma de 8 semanas até 10 de janeiro
+
+Se você chegou aqui com só um mês até a prova, use o [plano de 30 dias da reta final](/blog/oab-faltando-1-mes).
 
 A ideia é simples: seis semanas para passar pela matéria em blocos, com questões e cards, e duas semanas só para simulado e revisão. Quem já estudou para outro Exame pode usar as primeiras semanas mais para questões do que para teoria.
 

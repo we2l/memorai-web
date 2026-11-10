@@ -9,7 +9,7 @@
       <input
         ref="inputRef"
         v-model="query"
-        class="w-full rounded-row border border-line-input bg-soft px-3 py-2 text-meta text-fg-strong placeholder:text-fg-muted"
+        class="w-full rounded-row border border-line-input bg-raised px-3 py-2 text-body text-fg-strong placeholder:text-fg-muted"
         placeholder="Nome do tópico…"
         aria-label="Nome do tópico"
         @keydown.enter.prevent="confirmSelection"

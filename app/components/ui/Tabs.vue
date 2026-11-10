@@ -16,7 +16,7 @@
         :aria-selected="tab.key === modelValue"
         :aria-controls="$slots.default ? panelId : undefined"
         :tabindex="tab.key === activeKey ? 0 : -1"
-        class="-mb-px min-h-touch shrink-0 whitespace-nowrap border-b-2 px-3 text-body font-medium transition-colors duration-fast"
+        class="-mb-px min-h-touch shrink-0 whitespace-nowrap border-b-2 px-3 text-body font-medium transition-colors duration-fast focus-visible:-outline-offset-2"
         :class="tab.key === modelValue ? 'border-action text-fg-strong' : 'border-transparent text-fg-muted hover:text-fg-strong'"
         @click="select(tab.key)"
       >

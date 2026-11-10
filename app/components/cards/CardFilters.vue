@@ -1,6 +1,7 @@
 <template>
   <div class="flex flex-col gap-3" data-testid="card-filters">
-    <div class="flex flex-wrap items-end gap-3">
+    <!-- items-start: the hint under the search ("pelo menos 2 letras") does not lift the field out of line with the order -->
+    <div class="flex flex-wrap items-start gap-3">
       <UiInput
         v-model="search"
         type="search"

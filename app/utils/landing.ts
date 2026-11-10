@@ -38,11 +38,11 @@ export function landingQuery(): URLSearchParams {
 /** Real screens of the app (e2e/landing/shots.ts) in public/landing, 390 CSS px wide at 2x. */
 export const SCREENS = {
   'hoje-tela': { height: 844, alt: 'Tela real do Hoje na conta de demonstração: o plano do dia e a prova de Técnico do INSS em 45 dias, chegando à prova lembrando 90% mantendo o ritmo.' },
-  'revisao': { height: 538, alt: 'Tela real da revisão na conta de demonstração: o card “Quanto vale o auxílio-acidente?” virado, com a origem dele na apostila de Seguridade Social.' },
-  'anatomia': { height: 355, alt: 'Tela real da revisão de Anatomia na conta de demonstração: o card sobre o principal músculo da inspiração, com a resposta.' },
-  'oab': { height: 416, alt: 'Tela real da revisão para a OAB na conta de demonstração: o card sobre o prazo da contestação no CPC, com a resposta.' },
-  'enem': { height: 440, alt: 'Tela real da revisão para o ENEM na conta de demonstração: o card sobre a 1ª Lei de Mendel, com a resposta.' },
-  'ingles': { height: 353, alt: 'Tela real da revisão de inglês na conta de demonstração: o card “I’m looking forward to it”, com a tradução.' },
+  'revisao': { height: 844, alt: 'Tela real da revisão na conta de demonstração: o card “Quanto vale o auxílio-acidente?” virado, com a origem dele na apostila de Seguridade Social e os botões Não lembrei e Lembrei.' },
+  'anatomia': { height: 844, alt: 'Tela real da revisão de Anatomia na conta de demonstração: o card sobre o principal músculo da inspiração, com a resposta.' },
+  'oab': { height: 844, alt: 'Tela real da revisão para a OAB na conta de demonstração: o card sobre o prazo da contestação no CPC, com a resposta.' },
+  'enem': { height: 844, alt: 'Tela real da revisão para o ENEM na conta de demonstração: o card sobre a 1ª Lei de Mendel, com a resposta.' },
+  'ingles': { height: 844, alt: 'Tela real da revisão de inglês na conta de demonstração: o card “I’m looking forward to it”, com a tradução.' },
 } as const
 export type ScreenName = keyof typeof SCREENS
 
@@ -224,17 +224,18 @@ export function areaStartPath(key: LandingArea): string {
  */
 export const SAMPLE = {
   src: '/landing/podcast-amostra.mp3',
-  duration: 22.4,
+  duration: 19.8,
   title: 'Seus erros de Seguridade Social',
   topic: 'Concurso INSS',
   lines: [
-    { t: 0.7, text: 'Você sabia que existem diferentes tipos de auxílios financeiros? Quanto vale o auxílio-acidente?', kind: 'question' },
-    { t: 7, text: 'Pensa um pouco antes de eu responder.', kind: 'question' },
-    { t: 8.2, text: '(pausa pra você responder de cabeça)', kind: 'pause' },
-    { t: 12.8, text: '50% do salário de benefício, pago como indenização, conforme o artigo 86, parágrafo 1º, da Lei 8.213 de 1991.', kind: 'answer' },
+    { t: 0.1, text: 'Essa aqui te pegou duas vezes no último mês.', kind: 'question' },
+    { t: 2.6, text: 'Qual é a carência do auxílio por incapacidade temporária? Tenta lembrar.', kind: 'question' },
+    { t: 6.3, text: '(pausa pra você responder de cabeça)', kind: 'pause' },
+    { t: 10.6, text: 'Doze contribuições mensais, artigo 25, inciso I, da Lei 8.213.', kind: 'answer' },
+    { t: 18.4, text: 'Doze contribuições: um ano pagando.', kind: 'answer' },
   ],
   /** RMS of the file in 120 slices */
-  peaks: [0.04, 0.04, 0.04, 0.08, 0.53, 0.64, 0.49, 0.58, 0.44, 0.39, 0.72, 0.57, 0.28, 0.36, 0.34, 0.64, 0.29, 0.41, 0.21, 0.21, 0.73, 0.09, 0.04, 0.04, 0.04, 0.4, 0.4, 0.81, 0.41, 0.67, 0.35, 0.86, 0.27, 0.32, 0.04, 0.04, 0.04, 0.57, 0.46, 0.78, 0.46, 0.48, 0.58, 0.37, 0.15, 0.04, 0.04, 0.04, 0.06, 0.04, 0.04, 0.04, 0.04, 0.06, 0.04, 0.04, 0.04, 0.04, 0.04, 0.06, 0.04, 0.04, 0.04, 0.04, 0.06, 0.04, 0.04, 0.04, 0.04, 0.63, 0.58, 0.49, 0.52, 0.57, 0.24, 1.0, 0.56, 0.52, 0.25, 0.09, 0.04, 0.04, 0.82, 0.51, 0.47, 0.51, 0.54, 0.54, 0.38, 0.38, 0.39, 0.74, 0.5, 0.31, 0.58, 0.5, 0.59, 0.26, 0.62, 0.74, 0.35, 0.41, 0.54, 0.46, 0.73, 0.65, 0.35, 0.47, 0.3, 0.32, 0.38, 0.56, 0.15, 0.33, 0.4, 0.2, 0.35, 0.38, 0.17, 0.04],
+  peaks: [0.39, 0.25, 0.47, 0.22, 0.2, 0.38, 0.25, 0.56, 0.29, 0.33, 0.37, 0.28, 0.04, 0.04, 0.04, 0.04, 0.25, 0.28, 0.47, 0.41, 0.31, 0.42, 0.26, 0.31, 0.25, 0.3, 0.29, 0.25, 0.22, 0.17, 0.31, 0.04, 0.04, 0.04, 0.04, 0.32, 0.47, 0.27, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.08, 0.78, 1.0, 0.31, 0.31, 0.33, 0.41, 0.25, 0.27, 0.31, 0.34, 0.04, 0.04, 0.13, 0.15, 0.31, 0.26, 0.27, 0.25, 0.25, 0.22, 0.24, 0.21, 0.35, 0.29, 0.23, 0.37, 0.28, 0.04, 0.62, 0.31, 0.29, 0.27, 0.17, 0.3, 0.26, 0.16, 0.04, 0.04, 0.08, 0.74, 0.25, 0.4, 0.35, 0.14, 0.04, 0.04, 0.06, 0.46, 0.39, 0.36, 0.27, 0.05, 0.04, 0.04],
 }
 
 // ── The plans, only from the catalog ──

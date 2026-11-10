@@ -116,8 +116,9 @@ const sections = [
 ]
 
 useSeoMeta({
-  title: 'Política de Privacidade — BAIGI',
-  description: 'Como o BAIGI trata seus dados pessoais, com quem compartilha e como exercer seus direitos da LGPD.',
+  title: 'Política de Privacidade · Baigi',
+  description: 'Política de Privacidade do Baigi: quais dados pessoais coletamos, para quê, com quem compartilhamos e como exercer seus direitos pela LGPD.',
+  ogImage: 'https://baigi.com.br/landing/og-baigi.jpg',
 })
 useHead({
   meta: [{ name: 'robots', content: INDEXABLE }],

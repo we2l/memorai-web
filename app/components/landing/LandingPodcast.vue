@@ -2,10 +2,12 @@
   <section id="podcast" class="lp-sec lp-pod-sec" aria-labelledby="landing-podcast">
     <div class="lp-wrap lp-split">
       <div>
-        <h2 id="landing-podcast" class="lp-h2" data-reveal>E o que você mais erra vira podcast.</h2>
-        <p class="lp-lead" data-reveal>O Baigi faz a pergunta, espera você pensar e dá a resposta. Episódio curto, feito dos seus cards, pra ouvir com as mãos ocupadas.</p>
-        <!-- The "›" travels with the next step: it never ends a line alone -->
-        <p class="lp-chips" data-reveal><span>Errou no simulado</span><b class="step">›<span>virou card</span></b><b class="step">›<span>virou episódio</span></b></p>
+        <h2 id="landing-podcast" class="lp-h2" data-reveal>Revise no ônibus, na academia, na caminhada.</h2>
+        <p class="lp-lead" data-reveal>O que você mais erra vira um episódio curto. O Baigi faz a pergunta, espera você lembrar e dá a resposta. Sem olhar para a tela.</p>
+        <!-- Where people listen: the time that is already there, eyes and hands busy -->
+        <ul class="lp-chips" data-reveal aria-label="Outros momentos para ouvir">
+          <li><span>No carro</span></li><li><span>Na fila</span></li><li><span>Lavando a louça</span></li>
+        </ul>
         <div class="lp-act">
           <button type="button" class="lp-btn lp-btn-band" data-cta data-testid="landing-cta-podcast" @click="listen">Ouvir um exemplo</button>
           <NuxtLink to="/comecar" class="lp-link" data-testid="landing-cta-podcast-signup" @click="track?.('podcast')">ou começar grátis</NuxtLink>
@@ -21,7 +23,7 @@
 </template>
 
 <script setup lang="ts">
-// The podcast (prd-landing-d RF-D7): the petrol band, the dolphin with headphones over the player of the real
+// The podcast (prd-landing-d RF-D7): where it is heard (bus, gym, walk), the petrol band, the dolphin with headphones over the player of the real
 // sample, "Ouvir um exemplo" playing right there, and the plan line from the catalog (the paid plan's benefit; the
 // trial leaves the podcast out).
 import type { PlanCatalog } from '~/types'

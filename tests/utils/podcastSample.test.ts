@@ -5,14 +5,15 @@ import { SAMPLE } from '~/utils/landing'
 describe('amostra do podcast (paywall e landing)', () => {
   it('a linha falada segue o tempo do arquivo', () => {
     expect(sampleLineAt(0)).toBe(0)
-    expect(sampleLineAt(7.5)).toBe(1)
-    expect(sampleLineAt(9)).toBe(2)
-    expect(sampleLineAt(20)).toBe(3)
+    expect(sampleLineAt(3)).toBe(1)
+    expect(sampleLineAt(8)).toBe(2)
+    expect(sampleLineAt(12)).toBe(3)
+    expect(sampleLineAt(19)).toBe(4)
   })
 
   it('relógio em m:ss', () => {
     expect(sampleClock(0)).toBe('0:00')
-    expect(sampleClock(22.4)).toBe('0:22')
+    expect(sampleClock(19.8)).toBe('0:19')
     expect(sampleClock(-1)).toBe('0:00')
   })
 

@@ -99,7 +99,7 @@ describe('UpgradeModal', () => {
     const audio = document.querySelector('[data-testid="podcast-sample"] audio')!
     expect(audio.getAttribute('preload')).toBe('none')
     expect(audio.hasAttribute('autoplay')).toBe(false)
-    expect(document.querySelectorAll('[data-testid="podcast-sample-lines"] li')).toHaveLength(4)
+    expect(document.querySelectorAll('[data-testid="podcast-sample-lines"] li')).toHaveLength(5)
     expect(document.querySelector('[data-testid="podcast-sample-play"]')?.getAttribute('aria-label')).toBe('Ouvir um exemplo')
     expect(document.body.textContent).toContain('O podcast não entra no teste grátis.')
   })

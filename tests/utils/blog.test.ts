@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { articleJsonLd, blogStartPath, bucket, faqJsonLd, formatBlogDate, relatedArticles } from '~/utils/blog'
-import { jsonLdScript } from '~/composables/useBlogSeo'
+import { jsonLdScript } from '~/utils/seo'
 import { BLOG_AUTHORS } from '~~/modules/blog/authors'
 import type { BlogArticle, BlogMeta } from '~~/modules/blog/types'
 

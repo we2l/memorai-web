@@ -77,7 +77,8 @@
 // Termos and the checkout. Real photo sent by the owner, no EXIF (public/quem-faz). The contact comes from
 // runtimeConfig (NUXT_PUBLIC_CONTACT_EMAIL).
 import { articles, authors } from '#blog/index'
-import { SITE_URL, absoluteUrl, breadcrumbJsonLd, personJsonLd } from '~/utils/blog'
+import { absoluteUrl, breadcrumbJsonLd, personJsonLd } from '~/utils/blog'
+import { SITE_URL } from '~/utils/seo'
 import '~/assets/css/blog-prose.css'
 
 // The page has its own primary call: the header's "Criar conta grátis" goes quiet (one highlight per screen, ADR-027 §6)

@@ -42,6 +42,8 @@ export const SCREENS = {
   'anatomia': { height: 844, alt: 'Tela real da revisão de Anatomia na conta de demonstração: o card sobre o principal músculo da inspiração, com a resposta.' },
   'oab': { height: 844, alt: 'Tela real da revisão para a OAB na conta de demonstração: o card sobre o prazo da contestação no CPC, com a resposta.' },
   'enem': { height: 844, alt: 'Tela real da revisão para o ENEM na conta de demonstração: o card sobre a 1ª Lei de Mendel, com a resposta.' },
+  'edital': { height: 844, alt: 'Tela real do caderno Escrevente TJ-SP na conta de demonstração, montado pelo edital: a prova em 120 dias e as matérias com os assuntos, de Língua Portuguesa a Informática.' },
+  'leech': { height: 844, alt: 'Tela real da revisão na conta de demonstração: o card da carência da aposentadoria por idade, errado 5 vezes, com o aviso “Esse card não está colando” e os botões Ver a origem, Reescrever, Explicar e Pausar o card.' },
   'ingles': { height: 844, alt: 'Tela real da revisão de inglês na conta de demonstração: o card “I’m looking forward to it”, com a tradução.' },
 } as const
 export type ScreenName = keyof typeof SCREENS
@@ -116,8 +118,19 @@ export function titleParts(line: string): { text: string, mark: boolean }[] {
 /** "Como funciona": the phone stays (desktop) and the screen changes, only material and review (owner, 06/11). */
 export const STORY = [
   {
+    key: 'edital',
+    step: '1 · Edital',
+    title: 'Manda o edital. O Baigi monta o caderno.',
+    text: 'PDF ou texto colado: o Baigi acha o conteúdo programático e propõe as matérias e os assuntos. Você ajusta e cria o caderno, já com a data da prova.',
+    ai: true,
+    screen: 'edital',
+    cta: 'Montar meu caderno pelo edital',
+    position: 'story_edital',
+    pose: 'thinking',
+  },
+  {
     key: 'material',
-    step: '1 · Material',
+    step: '2 · Material',
     title: 'Manda a apostila. O Baigi faz os cards.',
     text: 'O PDF vira uma nota em partes, e as primeiras já saem com cards. Nas outras, é um toque. Cada card mostra de que parte do PDF saiu.',
     ai: true,
@@ -128,7 +141,7 @@ export const STORY = [
   },
   {
     key: 'revisao',
-    step: '2 · Revisão',
+    step: '3 · Revisão',
     title: 'Todo dia um número, em lotes curtos.',
     text: 'Abriu o app e viu 400 cards atrasados? Aqui eles vêm em lotes de 10 a 30 cards, e o atraso se divide em 3, 7 ou 14 dias. Faz um lote, vê quantos faltam e decide se para ou segue.',
     ai: false,

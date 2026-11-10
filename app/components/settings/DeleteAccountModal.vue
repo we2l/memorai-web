@@ -45,6 +45,7 @@
 </template>
 
 <script setup lang="ts">
+import { deleteOfflineDb } from '~/utils/offlineDb'
 const open = defineModel<boolean>({ required: true })
 
 const auth = useAuthStore()
@@ -77,6 +78,8 @@ async function submit() {
     // The API already ended every session: clear the local state and reload (utils/accountState.ts)
     clearAccountStorage()
     auth.clearAuth()
+    // Nothing of this account stays for offline review either (prd-revisao-offline RF-F8)
+    await deleteOfflineDb()
     flashToast('Sua conta está sendo excluída.', 'success')
     reloadTo('/', { replace: true })
   } catch (e: any) {

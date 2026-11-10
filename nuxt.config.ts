@@ -196,8 +196,8 @@ export default defineNuxtConfig({
       skipWaiting: true,
       clientsClaim: true,
       cleanupOutdatedCaches: true,
-      // No app shell with ssr:false + prerender: a '/' fallback served the landing
-      // instead of the app. Offline page is Phase 2.
+      // No global fallback: a '/' fallback served the landing instead of the app. Offline, only /hoje and /revisar
+      // fall back to the app shell (runtimeCaching below; prd-revisao-offline RF-F1, D9).
       navigateFallback: null,
       // Images are runtime-cached (below); never precache png/pdf (RF-05)
       globPatterns: ['**/*.{js,css,html,svg,ico,woff2}'],
@@ -213,6 +213,15 @@ export default defineNuxtConfig({
       ],
       // API responses are never cached (RN-F03): no rule for the API origin
       runtimeCaching: [
+        {
+          // Offline review (prd-revisao-offline RF-F1, D9): online nothing changes (NetworkOnly); without network the
+          // installed app opens /hoje and /revisar from the prerendered shell in the precache. Inline: workbox
+          // serializes this function into sw.js, so it cannot read anything from this file.
+          urlPattern: ({ request, url }) => request.mode === 'navigate' && /^\/(hoje|revisar)\/?$/.test(url.pathname),
+          handler: 'NetworkOnly',
+          // No networkTimeoutSeconds: workbox only allows it with NetworkFirst, which would cache the app HTML
+          options: { precacheFallback: { fallbackURL: '/app-shell/index.html' } },
+        },
         {
           urlPattern: /\/_nuxt\/.*\.(png|webp|avif|svg)$/,
           handler: 'CacheFirst',
@@ -250,6 +259,9 @@ export default defineNuxtConfig({
     '/quem-faz': { ssr: true, prerender: true },
     '/ferramentas/**': { ssr: true, prerender: true },
     '/redefinir-senha': { ssr: false },
+    // The empty app shell (prd-revisao-offline RF-F1): precached, served by the service worker for /hoje and /revisar
+    // when the network fails; opened directly, it goes to /hoje
+    '/app-shell': { ssr: false, prerender: true },
     // PostHog reverse proxy (RF-F10, anti-adblock). EU region (ADR-024, Questão 1).
     '/ingest/static/**': { proxy: 'https://eu-assets.i.posthog.com/static/**' },
     '/ingest/**': { proxy: 'https://eu.i.posthog.com/**' },
@@ -288,6 +300,9 @@ export default defineNuxtConfig({
       appVersion: APP_VERSION,
       // Contact shown on /quem-faz and the blog (prd-blog-seo). The mailbox/redirect must exist before publishing.
       contactEmail: process.env.NUXT_PUBLIC_CONTACT_EMAIL || 'contato@baigi.com.br',
+      // Offline review kill switch (prd-revisao-offline RF-F10): 0 turns off the saved lot, the saved user and the bar;
+      // the persistent queue stays (it protects ratings, offline or not)
+      offlineReview: process.env.NUXT_PUBLIC_OFFLINE_REVIEW !== '0',
     },
   },
 

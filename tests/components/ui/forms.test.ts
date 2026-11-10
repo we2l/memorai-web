@@ -183,3 +183,22 @@ describe('UiRadioGroup', () => {
     expect(w.get('label').classes()).toEqual(expect.arrayContaining(['has-checked:ring-action', 'has-checked:bg-action-subtle']))
   })
 })
+
+describe('UiFieldGrid (controles alinhados)', () => {
+  it('a partir de sm cada campo vira subgrade de 3 linhas: rótulo, controle e dica + erro num bloco só', async () => {
+    const FieldGrid = (await import('~/components/ui/FieldGrid.vue')).default
+    const w = await mountSuspended(FieldGrid, {
+      props: { cols: 3 },
+      slots: { default: () => [h(Input, { label: 'Data da prova', type: 'date' }), h(Input, { label: 'Quantos cards?', hint: 'De 10 a 20.000', error: 'Use um número' })] },
+      attachTo: document.body,
+    })
+    expect(w.classes()).toEqual(expect.arrayContaining(['grid', 'sm:grid-cols-3', 'sm:*:row-span-3', 'sm:*:grid-rows-subgrid']))
+    const fields = w.element.children
+    expect(fields).toHaveLength(2)
+    // Field without hint: label + control; with hint and error: label + control + one block with both
+    expect(fields[0]!.children).toHaveLength(2)
+    expect(fields[1]!.children).toHaveLength(3)
+    expect(fields[1]!.children[2]!.querySelector('[role=alert]')!.textContent).toBe('Use um número')
+    expect(await axeViolations(w.element)).toEqual([])
+  })
+})

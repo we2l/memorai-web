@@ -24,7 +24,8 @@
 // highlight and the diffuse purple shadow (shadow-action); secondary on the soft surface, outline white with the
 // layered shadow, ghost bare. Pressed: scale(.97) in 140 ms, off with prefers-reduced-motion. `rating` is the
 // 62 px button of the review, with the interval under the label (slot `hint`). The others may carry the colored
-// icon of a practice mode (iconTone: color only on the icon, never as fill).
+// icon of a practice mode (iconTone: color only on the icon, never as fill). The vertical padding only shows when a
+// long label wraps on the phone: one line stays at the min height.
 import type { Component } from 'vue'
 import type { RouteLocationRaw } from 'vue-router'
 
@@ -85,8 +86,8 @@ const VARIANTS: Record<ButtonVariant, { rest: string; live: string }> = {
   danger: { rest: 'bg-danger-subtle text-danger', live: `hover:shadow-1 ${PRESS}` },
 }
 const SIZES: Record<ButtonSize, string> = {
-  md: 'min-h-touch rounded-chip px-4.5 text-body-sm',
-  lg: 'min-h-13.5 rounded-chip px-6 text-body',
+  md: 'min-h-touch rounded-chip px-4.5 py-2.5 text-body-sm',
+  lg: 'min-h-13.5 rounded-chip px-6 py-3 text-body',
   rating: 'min-h-15.5 flex-col rounded-rating px-2 text-title',
   sm: 'min-h-9 rounded-chip px-3 text-meta before:absolute before:-inset-1',
 }

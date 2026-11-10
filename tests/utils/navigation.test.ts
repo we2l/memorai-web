@@ -41,6 +41,8 @@ const EXPECTED: Record<string, string | null> = {
   '/': null,
   '/_ds': null,
   '/ajuda': null,
+  // The offline app shell (prd-revisao-offline RF-F1): never shown, it goes to /hoje
+  '/app-shell': null,
   '/auth/google/callback': null,
   '/checkout': null,
   '/checkout/sucesso': null,

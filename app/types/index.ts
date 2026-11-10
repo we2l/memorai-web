@@ -778,6 +778,8 @@ export interface Exam {
   cards_per_day?: number | null
   /** Retention on the exam day (RF-B1, §5.1); null without enough data */
   projection?: ExamProjection | null
+  /** Prontidão para a prova (prd-prontidao-prova); null for a past exam */
+  readiness?: ExamReadiness | null
 }
 
 export interface ExamCoverage {
@@ -797,6 +799,47 @@ export interface ExamProjection {
   new_per_day: number
   computed_for: string
 }
+
+/**
+ * Prontidão para a prova (prd-prontidao-prova §4): a 0-100 estimate of the preparation, made of the parts Baigi measures,
+ * never a chance of passing. score null = not enough data yet (`missing` says what is left).
+ */
+export interface ExamReadiness {
+  version: number
+  score: number | null
+  band: { key: 'starting' | 'on_the_way' | 'well_prepared' | 'ready'; label: string } | null
+  /** Without 10 answered questions the score stops at 84 */
+  capped: boolean
+  parts: ReadinessPart[]
+  actions: ReadinessAction[]
+  missing: { cards: number; cards_needed: number; graduated: number; graduated_needed: number } | null
+}
+
+export interface ReadinessPart {
+  key: 'memory' | 'on_track' | 'questions' | 'coverage'
+  label: string
+  /** 0-100; null without data or switched off */
+  value: number | null
+  weight: number
+  enabled: boolean
+  keep_pace?: number
+  stop_today?: number
+  late?: number
+  in_review?: number
+  answered?: number
+  min_answered?: number
+  topics?: number
+  covered?: number
+}
+
+export type ReadinessAction =
+  | { kind: 'review_late'; count: number; topic_id: string | null }
+  | { kind: 'follow_plan'; count: number }
+  | { kind: 'raise_new'; per_day: number; new_cards: number }
+  | { kind: 'practice_weak'; topic_id: string; topic_name: string; accuracy: number }
+  | { kind: 'practice_start'; topic_id: string | null; answered: number; min_answered: number }
+  | { kind: 'review_weak'; topic_id: string; topic_name: string; mastery: number | null }
+  | { kind: 'create_cards'; topic_id: string; topic_name: string }
 
 /** GET /stats/progress?root_id= (prd-4f-progresso-v3 RF-B4) */
 export interface ProgressSummaryData {
@@ -849,6 +892,7 @@ export interface ExamUpcoming {
   topics: { id: string; name: string }[]
   podcast_suggestion: boolean
   projection?: ExamProjection | null
+  readiness?: ExamReadiness | null
   /** Covered only by the sample caderno: "Mover para {name}" (prd-revisao-v5-fase-b RF-B19) */
   move_offer?: { topic_id: string; name: string } | null
 }

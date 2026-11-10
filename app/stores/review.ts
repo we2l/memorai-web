@@ -3,6 +3,10 @@ import type { BacklogState, Flashcard, SessionCardOrigin, WeakConnection } from 
 import { getErrorStatus } from '~/utils/apiErrors'
 import { scopeQuery, type ReviewScope, type SessionScopeInfo } from '~/utils/reviewScope'
 import { REVIEW_BATCH, reviewBatchSizeOf } from '~/utils/reviewBatch'
+import { studyDay } from '~/utils/greeting'
+import type { StoredRating } from '~/utils/offlineDb'
+import { loadOfflineDb } from '~/utils/offlineDbLoader'
+import { useOfflineStore } from '~/stores/offline'
 
 export interface SessionCard extends Flashcard {
   next_intervals: { again: string; hard: string; good: string; easy: string }
@@ -65,6 +69,10 @@ export interface QueueItem {
   status: 'pending' | 'sending'
   /** Undone while in flight: the server review is undone as soon as it answers. */
   cancelled?: boolean
+  /** When the person answered (ISO): the server schedules at this time (prd-revisao-offline RF-B1) */
+  reviewed_at: string
+  /** Left in IndexedDB by an earlier page (offline, closed app): sent, but outside the session on screen */
+  restored?: boolean
 }
 
 export interface UndoEntry {
@@ -94,6 +102,27 @@ function uuid(): string {
 }
 
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms))
+
+/** The 422 of a rating answered offline more than review.offline_max_days ago (prd-revisao-offline RF-B2) */
+export const CODE_TOO_OLD = 'review_too_old'
+
+/** "Não lembrei" without network comes back at the end of the batch after this long, like a learning step (D7) */
+export const OFFLINE_AGAIN_MS = 60_000
+
+// utils/offlineDb loads on demand: the visitor of /comecar/{area} shares this store and never reviews offline
+const offlineDb = loadOfflineDb
+/** The IndexedDB write of each queued rating: the send waits for it ("persisted before the send", RF-F4) */
+const persisting = new Map<string, Promise<unknown>>()
+/** After its write: an undo during the write must not leave the row behind to be sent on the next boot */
+function queueDelete(clientId: string) {
+  const written = persisting.get(clientId) ?? Promise.resolve()
+  persisting.delete(clientId)
+  void written.then(offlineDb).then(m => m.queueDelete(clientId))
+}
+
+function errorCode(e: unknown): string | undefined {
+  return (e as { data?: { code?: string } } | null)?.data?.code
+}
 
 /** Diary cadence (RN-UX-04): `sometimes` = 1st error of the session and then every 3rd. */
 export function shouldOpenDiary(mode: ErrorDiaryMode, errorsThisSession: number): boolean {
@@ -196,7 +225,9 @@ export const useReviewStore = defineStore('review', {
     canUndo: (state) => state.undoStack.length > 0,
     /** Nothing left to show but answers still on their way to the server. */
     saving(state): boolean {
+      // Offline the end does not wait for the queue (prd-revisao-offline RF-F5)
       return state.currentIndex >= state.cards.length && state.learningQueue.length === 0 && state.reviewQueue.length > 0
+        && !useOfflineStore().offline
     },
     /** Nothing left to show while the next page of the session is on its way (never "Tudo em dia"). */
     awaitingPage(state): boolean {
@@ -251,9 +282,11 @@ export const useReviewStore = defineStore('review', {
         if (opts.mode) params.set('mode', opts.mode)
         if (opts.includeRelated) params.set('include_related', '1')
         const query = params.toString() ? `?${params}` : ''
+        this.sessionQuery = query
         const res = await $api<any>(`/review/session${query}`)
         if (seq !== sessionSeq) return
-        this.sessionQuery = query
+        useOfflineStore().markOnline()
+        this.saveLot(query, res)
         this.scope = res.scope ?? null
         this.retaFinal = res.reta_final ?? null
         this.backlog = res.backlog ?? null
@@ -269,11 +302,51 @@ export const useReviewStore = defineStore('review', {
         this.prefetchPage()
       } catch (e) {
         if (seq !== sessionSeq) return
+        // No network: the lot saved today for this account and slice (prd-revisao-offline RF-F3)
+        if (getErrorStatus(e) === undefined && await this.openSavedLot(seq)) return
+        if (seq !== sessionSeq) return
         this.sessionError = e
         this.finished = false
       } finally {
         if (seq === sessionSeq) this.loading = false
       }
+    },
+
+    /** Keeps the 1st page of the session for an offline review of the same day (RF-F3). */
+    saveLot(query: string, res: { data: unknown[]; [k: string]: unknown }) {
+      const userId = useAuthStore().user?.id
+      if (!userId || !useOfflineStore().enabled) return
+      const day = studyDay()
+      void offlineDb().then(m => m.sessionPut({ key: m.sessionKey(userId, query), user_id: userId, day, res, rated: [], saved_at: Date.now() }))
+      if (query === '') useOfflineStore().savedLot = true
+    },
+
+    /** Opens the saved lot of today without its rated cards; false when there is none. */
+    async openSavedLot(seq: number): Promise<boolean> {
+      const userId = useAuthStore().user?.id
+      if (!userId || !useOfflineStore().enabled) return false
+      const db = await offlineDb()
+      const saved = await db.sessionGet(db.sessionKey(userId, this.sessionQuery))
+      if (seq !== sessionSeq || !saved || saved.user_id !== userId || saved.day !== studyDay()) return false
+      const queued = new Set((await db.queueForUser(userId)).map(q => q.flashcard_id))
+      if (seq !== sessionSeq) return false
+      const rated = new Set(saved.rated)
+      const data = (saved.res.data as SessionCard[]).filter(c => !rated.has(c.id) && !queued.has(c.id))
+      useOfflineStore().markOffline()
+      const res = saved.res as any
+      this.scope = res.scope ?? null
+      this.retaFinal = res.reta_final ?? null
+      this.backlog = res.backlog ?? null
+      this.leechLapses = res.leech_lapses ?? 4
+      // Offline there is no next page (fora do escopo §7)
+      this.addPage({ ...res, data, has_more: false })
+      this.initialTotal = this.cards.length
+      this.sessionCount = this.cards.length + this.learningQueue.length
+      this.sessionStartedAt = Date.now()
+      this.cardShownAt = Date.now()
+      this.sessionError = null
+      this.checkFinished()
+      return true
     },
 
     /**
@@ -320,6 +393,7 @@ export const useReviewStore = defineStore('review', {
         const { $api } = useNuxtApp()
         const res = await $api<any>(`/review/session${this.sessionQuery}`)
         if (seq !== sessionSeq) return
+        useOfflineStore().markOnline()
         this.addPage(res)
         ok = true
       } catch (e) {
@@ -348,8 +422,23 @@ export const useReviewStore = defineStore('review', {
 
       const clientId = uuid()
       const wasFromLearningQueue = this.learningQueue.some(q => q.card.id === card.id)
+      const reviewedAt = new Date().toISOString()
+      const offline = useOfflineStore()
 
-      this.reviewQueue.push({ client_id: clientId, flashcard_id: card.id, rating, answer, attempts: 0, status: 'pending' })
+      this.reviewQueue.push({ client_id: clientId, flashcard_id: card.id, rating, answer, attempts: 0, status: 'pending', reviewed_at: reviewedAt })
+      // Persisted before the send (RF-F4): a closed tab or a dead battery does not lose the rating
+      const userId = useAuthStore().user?.id
+      if (userId) {
+        const row: StoredRating = { client_id: clientId, user_id: userId, flashcard_id: card.id, rating, answer, reviewed_at: reviewedAt }
+        const askPersist = offline.offline && !offline.persistAsked
+        if (askPersist) offline.persistAsked = true
+        persisting.set(clientId, offlineDb().then(async (m) => {
+          await m.queuePut(row)
+          if (offline.enabled) await m.sessionMarkRated(userId, card.id)
+          if (askPersist) m.askPersistentStorage()
+        }).catch(() => undefined))
+      }
+      offline.setPending(this.reviewQueue.length)
       this.undoStack.push({ client_id: clientId, rating, cardSnapshot: { ...card }, index: this.currentIndex, wasFromLearningQueue })
       if (this.undoStack.length > UNDO_MAX) this.undoStack.shift()
 
@@ -368,6 +457,8 @@ export const useReviewStore = defineStore('review', {
 
       // The rated card leaves the session until the server answers
       this.learningQueue = this.learningQueue.filter(q => q.card.id !== card.id)
+      // Offline no answer is coming: "Não lembrei" comes back at the end of the batch in 1 min (D7)
+      if (offline.offline && rating === 1) this.learningQueue.push({ card: { ...card }, dueAt: Date.now() + OFFLINE_AGAIN_MS })
 
       const advance = () => {
         if (!wasFromLearningQueue) {
@@ -441,21 +532,35 @@ export const useReviewStore = defineStore('review', {
       advance?.()
     },
 
-    /** Serial, idempotent sender (RN-UX-02). */
+    /**
+     * Serial, idempotent sender (RN-UX-02), in the order of the queue. Without network (no HTTP status) it stops
+     * without spending a retry and waits for `online`, the app coming back to the front or 30 s (plugins/offline,
+     * prd-revisao-offline RF-F4).
+     */
     async processQueue() {
       if (this.processing || this.queuePaused) return
       this.processing = true
       const { $api } = useNuxtApp()
+      const offline = useOfflineStore()
+      let sent = false
       try {
         while (this.reviewQueue.length && !this.queuePaused) {
           const item = this.reviewQueue[0]!
           item.status = 'sending'
           try {
+            await persisting.get(item.client_id)
+            persisting.delete(item.client_id)
             const res = await $api<any>('/review', {
               method: 'POST',
-              body: { flashcard_id: item.flashcard_id, rating: item.rating, client_id: item.client_id, ...item.answer },
+              body: {
+                flashcard_id: item.flashcard_id, rating: item.rating, client_id: item.client_id, ...item.answer,
+                reviewed_at: item.reviewed_at, client_sent_at: new Date().toISOString(),
+              },
             })
+            offline.markOnline()
+            sent = true
             this.reviewQueue.shift()
+            void queueDelete(item.client_id)
             if (item.cancelled) {
               // Undone while in flight: revert on the server before sending the next one
               const reviewId: string | undefined = res.data?.review?.id
@@ -466,11 +571,26 @@ export const useReviewStore = defineStore('review', {
           } catch (e) {
             item.status = 'pending'
             const status = getErrorStatus(e)
-            if (status !== undefined && status >= 400 && status < 500 && status !== 408 && status !== 429) {
-              // Card gone / invalid: drop it and keep reviewing
+            if (status === undefined) {
+              // No network: keep it (memory and IndexedDB) and wait; nothing is lost and no retry is spent
+              offline.markOffline()
+              break
+            }
+            offline.markOnline()
+            if (status === 401) {
+              // Signed out elsewhere: the rating stays in IndexedDB until this account signs in again (RF-F8)
               this.reviewQueue.shift()
               this.undoStack = this.undoStack.filter(u => u.client_id !== item.client_id)
-              if (status !== 401) useToast().show('Uma avaliação não pôde ser salva (o card pode ter sido excluído).', 'warning')
+              continue
+            }
+            if (status >= 400 && status < 500 && status !== 408 && status !== 429) {
+              // Card gone / invalid / too old: drop it and keep reviewing
+              this.reviewQueue.shift()
+              void queueDelete(item.client_id)
+              this.undoStack = this.undoStack.filter(u => u.client_id !== item.client_id)
+              useToast().show(errorCode(e) === CODE_TOO_OLD
+                ? 'Uma avaliação feita há mais de 7 dias sem internet não pôde ser salva.'
+                : 'Uma avaliação não pôde ser salva (o card pode ter sido excluído).', 'warning')
               continue
             }
             item.attempts++
@@ -483,11 +603,33 @@ export const useReviewStore = defineStore('review', {
         }
       } finally {
         this.processing = false
+        offline.setPending(this.reviewQueue.length)
+        if (sent && this.reviewQueue.length === 0) offline.synced()
         this.checkFinished()
       }
     },
 
+    /**
+     * Ratings an earlier page left in IndexedDB (offline, app closed): back in the queue, outside the session on
+     * screen, and sent (plugins/offline, RF-F4). Another account's never come in.
+     */
+    async resumeStoredQueue(userId: string) {
+      const stored = await (await offlineDb()).queueForUser(userId)
+      const known = new Set(this.reviewQueue.map(q => q.client_id))
+      const missing = stored.filter(r => !known.has(r.client_id))
+      if (!missing.length) return
+      this.reviewQueue.push(...missing.map(r => ({
+        client_id: r.client_id, flashcard_id: r.flashcard_id, rating: r.rating, answer: r.answer as ReviewAnswer | undefined,
+        attempts: 0, status: 'pending' as const, reviewed_at: r.reviewed_at, restored: true,
+      })))
+      useOfflineStore().setPending(this.reviewQueue.length)
+      await this.processQueue()
+    },
+
     applyServerAnswer(item: QueueItem, data: any) {
+      // A rating of an earlier page: nothing of it is on screen
+      if (item.restored) return
+
       const reviewId: string | null = data?.review?.id ?? null
       const entry = this.undoStack.find(u => u.client_id === item.client_id)
       if (entry && reviewId) entry.review_id = reviewId
@@ -503,10 +645,16 @@ export const useReviewStore = defineStore('review', {
 
       const updatedCard = { ...data.flashcard, next_intervals: data.next_intervals } as SessionCard
       // The server answer is the source of truth for scheduling
-      if (updatedCard.is_learning) {
-        const noMainLeft = this.currentIndex >= this.cards.length
-        const dueAt = noMainLeft ? Date.now() : (updatedCard.due ? new Date(updatedCard.due).getTime() : Date.now() + 60000)
-        this.learningQueue.push({ card: updatedCard, dueAt })
+      if (updatedCard.is_learning && !this.reviewQueue.some(q => q.flashcard_id === updatedCard.id)) {
+        const local = this.learningQueue.find(q => q.card.id === updatedCard.id)
+        if (local) {
+          // Already back in the batch from an offline "Não lembrei" (D7): the server data, the same place, no copy
+          local.card = updatedCard
+        } else {
+          const noMainLeft = this.currentIndex >= this.cards.length
+          const dueAt = noMainLeft ? Date.now() : (updatedCard.due ? new Date(updatedCard.due).getTime() : Date.now() + 60000)
+          this.learningQueue.push({ card: updatedCard, dueAt })
+        }
         this._tick++
       }
 
@@ -515,6 +663,7 @@ export const useReviewStore = defineStore('review', {
 
     /** Hints are optional context: fetched after the answer, never on the critical path (RF-F2.7). */
     async fetchHints(cardId: string) {
+      if (useOfflineStore().offline) return // optional context, never offline (RF-F7)
       this.hintsLoading = true
       try {
         const { $api } = useNuxtApp()
@@ -547,7 +696,7 @@ export const useReviewStore = defineStore('review', {
         this.undoStack.pop()
         this.forgetRating(entry)
         const queued = this.reviewQueue.findIndex(q => q.client_id === entry.client_id)
-        if (queued !== -1 && this.reviewQueue[queued]!.status !== 'sending') this.reviewQueue.splice(queued, 1)
+        if (queued !== -1 && this.reviewQueue[queued]!.status !== 'sending') this.dropQueued(queued)
         else if (queued !== -1) this.reviewQueue[queued]!.cancelled = true
         else if (entry.review_id) await this.remoteUndo(entry, true)
         this.restoreCard(entry, entry.cardSnapshot, true)
@@ -558,7 +707,7 @@ export const useReviewStore = defineStore('review', {
       const queued = this.reviewQueue.findIndex(q => q.client_id === entry.client_id)
       if (queued !== -1) {
         if (this.reviewQueue[queued]!.status === 'sending') this.reviewQueue[queued]!.cancelled = true
-        else this.reviewQueue.splice(queued, 1)
+        else this.dropQueued(queued)
         this.undoStack.pop()
         this.forgetRating(entry)
         this.restoreCard(entry, entry.cardSnapshot)
@@ -568,6 +717,13 @@ export const useReviewStore = defineStore('review', {
 
       if (!entry.review_id) return false
       return this.remoteUndo(entry)
+    },
+
+    /** Undo of a rating still waiting: it leaves the queue and IndexedDB, nothing reaches the server (RF-F5). */
+    dropQueued(index: number) {
+      const [gone] = this.reviewQueue.splice(index, 1)
+      if (gone) void queueDelete(gone.client_id)
+      useOfflineStore().setPending(this.reviewQueue.length)
     },
 
     async remoteUndo(entry: UndoEntry, alreadyRestored = false): Promise<boolean> {
@@ -645,7 +801,9 @@ export const useReviewStore = defineStore('review', {
       const hasMainCards = this.currentIndex < this.cards.length
       const hasPendingLearning = this.learningQueue.length > 0
       // The end screen waits for the queue to drain (RF-F2.4) and for the last page of the session
-      this.finished = !hasMainCards && !hasPendingLearning && this.reviewQueue.length === 0 && !this.sessionError && !this.hasMore
+      // Offline the end shows the local numbers and does not wait for the send (prd-revisao-offline RF-F5)
+      const sent = this.reviewQueue.length === 0 || useOfflineStore().offline
+      this.finished = !hasMainCards && !hasPendingLearning && sent && !this.sessionError && !this.hasMore
     },
   },
 })

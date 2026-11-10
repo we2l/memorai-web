@@ -54,7 +54,7 @@
                 <UiIconTile :icon="CalendarDays" tone="action" />
                 <div class="min-w-0">
                   <p class="font-semibold text-fg-strong">{{ summary.exam.title }} · {{ summary.exam.days_remaining === 0 ? 'hoje' : `em ${summary.exam.days_remaining} ${summary.exam.days_remaining === 1 ? 'dia' : 'dias'}` }}</p>
-                  <p class="text-meta text-fg-muted">{{ summary.exam.projection ? `Mantendo o ritmo, chega lembrando ${summary.exam.projection.keep_pace}%` : 'A projeção aparece depois de 20 cards revisados' }}</p>
+                  <p class="text-meta text-fg-muted" data-testid="scope-exam-readiness">{{ examReadinessLine }}</p>
                 </div>
               </div>
             </UiSection>
@@ -122,6 +122,7 @@
 </template>
 
 <script setup lang="ts">
+import { readinessMissingText } from '~/utils/readinessMissing'
 // Hub of a scope (prd-4b-caderno-v3 RF-F3…RF-F12): the same page for a caderno, a matéria and an assunto,
 // organized by the study cycle. Header with ONE number of review, Próximo passo, Matérias e assuntos,
 // Materiais and Praticar, in the order of the mode (D11). Opening it asks only the summary and the first
@@ -151,6 +152,11 @@ const roots = computed(() => topicStore.tree.map(t => ({ id: t.id, name: t.name 
 
 const hasCards = computed(() => (summary.value?.counts.cards ?? 0) > 0)
 // A material just added here (its line is on top) ends the empty state before the summary counts it
+// The exam of the scope (prd-prontidao-prova): the readiness of the Hoje, or what is left before it shows
+const examReadinessLine = computed(() => {
+  const r = summary.value?.exam?.readiness
+  return r?.score != null ? `Prontidão ${r.score} de 100 · ${r.band?.label ?? ''}`.replace(/ · $/, '') : readinessMissingText(r)
+})
 const isEmpty = computed(() => !!summary.value && !hasCards.value && summary.value.counts.materials === 0 && !store.materials.length)
 
 /** Blocks in the order of the mode (RF-F8): Matérias before Materiais, except in the faculdade mode. */

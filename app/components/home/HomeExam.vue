@@ -1,7 +1,7 @@
 <template>
   <template v-if="exam">
-    <!-- With a projection: the one lilac block of Hoje, the sentence of the E1 (ADR-035 §1, §2) -->
-    <UiSection v-if="exam.projection" variant="tinted" aria-label="Próxima prova" data-testid="home-exam" class="flex flex-col">
+    <!-- With a readiness number: the one lilac block of Hoje (prd-prontidao-prova RF-F2; ADR-035 §1) -->
+    <UiSection v-if="readiness" variant="tinted" aria-label="Próxima prova" data-testid="home-exam" class="flex flex-col">
       <div class="flex items-start justify-between gap-3">
         <p class="pt-1 text-label font-semibold text-action-fg">
           {{ exam.title }} · {{ when }}
@@ -12,9 +12,10 @@
         </span>
       </div>
 
-      <p class="mt-2.5 text-section text-fg-strong" data-testid="home-exam-pace">
-        <em class="exam-it">Mantendo o ritmo</em>, você chega à prova lembrando
-        <UiNumber :value="`${exam.projection.keep_pace}%`" size="s" class="exam-num" />
+      <ExamReadinessScore :readiness="readiness" class="mt-3" />
+
+      <p v-if="action" class="mt-3 text-meta text-fg" data-testid="home-exam-action">
+        Para subir: <UiLink :to="action.to" @click="trackAction">{{ action.label }}</UiLink>
       </p>
 
       <ul v-if="subjects.length" class="mt-4 flex flex-col gap-2.5" aria-label="Domínio por matéria">
@@ -27,10 +28,10 @@
         </li>
       </ul>
 
-      <UiLink to="/progresso#provas" standalone class="mt-4 self-start" @click="track">Ver o plano da prova →</UiLink>
+      <UiLink to="/progresso#provas" standalone class="mt-4 self-start" @click="track">Ver detalhes →</UiLink>
     </UiSection>
 
-    <!-- Without a projection yet (< 20 cards): a plain row, no lilac -->
+    <!-- Without a readiness number yet (< 20 cards or < 10 graduated): a plain row with what is left, no lilac -->
     <UiSection v-else aria-label="Próxima prova" data-testid="home-exam">
       <div class="flex items-center gap-3.5">
         <UiIconTile :icon="CalendarDays" tone="action" />
@@ -55,12 +56,13 @@
 </template>
 
 <script setup lang="ts">
-// Next exam on Hoje, E2 (prd-visual-e2 RF-3.5): the lilac card with "Mantendo o ritmo, você chega à prova lembrando
-// 90%" (keep_pace of the projection, the one number in purple; the italic only here, ADR-035 §2) and the mastery of
-// up to 3 subjects of the exam from /topics/performance (the weakest last; no new API). Without a projection
-// (< 20 cards): a plain row with the pace. Nothing without an exam.
+// Next exam on Hoje (prd-visual-e2 RF-3.5, prd-prontidao-prova RF-F2): the lilac card with the readiness for the exam
+// (number, band, parts; the "lembrando N%" of the projection became one of the parts, DD3), "Para subir" with the
+// first action (a link, never a primary) and the mastery of up to 3 subjects of the exam from /topics/performance.
+// Without a number: a plain row with what is left. Nothing without an exam.
 import { CalendarDays } from 'lucide-vue-next'
 import type { ExamUpcoming, TopicPerformance, TopicProgress } from '~/types'
+import { readinessActionLink, readinessMissingText } from '~/utils/readiness'
 
 const props = defineProps<{ exams: ExamUpcoming[]; performance?: TopicPerformance[]; progress?: TopicProgress[] }>()
 
@@ -84,10 +86,13 @@ const shortDate = computed(() => (exam.value
   ? new Intl.DateTimeFormat('pt-BR', { day: 'numeric', month: 'short', timeZone: 'UTC' }).format(new Date(`${exam.value.exam_date.slice(0, 10)}T12:00:00Z`)).replace('.', '')
   : ''))
 
-const pace = computed(() => {
-  const n = exam.value?.cards_per_day ?? 0
-  return n > 0 ? `Ritmo: ${plural(n, 'card', 'cards')} por dia até lá` : 'A projeção aparece depois de 20 cards revisados.'
+const readiness = computed(() => (exam.value?.readiness?.score != null ? exam.value.readiness : null))
+const action = computed(() => {
+  const first = readiness.value?.actions[0]
+  return first ? { kind: first.kind, ...readinessActionLink(first) } : null
 })
+
+const pace = computed(() => readinessMissingText(exam.value?.readiness))
 
 // The subjects of the exam: the children of its topics (or the topics themselves), with mastery
 const subjects = computed(() => {
@@ -105,10 +110,8 @@ const subjects = computed(() => {
 function track() {
   useAnalytics().track('home_exam_click', {})
 }
-</script>
 
-<style scoped>
-/* The italic of the exam card (ADR-035 §2): Fraunces Italic 500, out of the precache; without it, the Inter */
-.exam-it { font-family: var(--font-it); font-weight: 500; font-size: 1.08em; letter-spacing: -0.01em; }
-.exam-num { color: var(--action-fg); vertical-align: -0.12em; }
-</style>
+function trackAction() {
+  if (action.value) useAnalytics().track('readiness_action_clicked', { kind: action.value.kind, origin: 'home' })
+}
+</script>

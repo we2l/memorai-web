@@ -187,7 +187,7 @@ export const AREAS = [
     pain: 'Criar card dá uma preguiça que você desiste antes de começar.',
     points: [
       ['Tira foto do resumo', 'e os cards saem dali.'],
-      ['Lote curto no metrô.', '20 cards e pronto.'],
+      ['Lote curto no metrô, até sem sinal.', '20 cards e pronto.'],
       ['Errou no simulado?', 'A questão vira card com o comentário no verso.'],
     ],
     cta: 'Começar pelo ENEM',
@@ -384,6 +384,11 @@ export function landingFaqs(catalog: PlanCatalog | null): { q: string, a: string
     {
       q: 'Abre no computador?',
       a: 'Abre. É o mesmo Baigi no navegador do computador e do celular, com tudo sincronizado. No celular, dá para instalar na tela inicial como um app.',
+    },
+    {
+      // prd-revisao-offline (ADR-036): only the review of today's lot; nothing else promised
+      q: 'Funciona sem internet?',
+      a: 'A revisão, sim. Abra o Baigi com internet uma vez no dia e o lote de hoje fica no aparelho: dá para revisar no metrô ou no avião, e as respostas sobem quando a conexão volta. Criar cards, a IA e o podcast precisam de internet.',
     },
     {
       q: 'O que é a prontidão para a prova?',

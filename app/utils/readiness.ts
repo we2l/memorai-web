@@ -1,8 +1,11 @@
 // Prontidão para a prova (prd-prontidao-prova RF-F1): the texts and links of the readiness of GET /exams and
 // /exams/upcoming. The number is an estimate of the preparation, never a chance of passing (DD2): no text here says
 // "chance" or "aprovação".
-import type { ExamReadiness, ReadinessAction, ReadinessPart } from '~/types'
+import type { ReadinessAction, ReadinessPart } from '~/types'
 import { plural } from '~/utils/greeting'
+
+// The text of the missing number lives apart (the hub of the caderno imports only it)
+export { readinessMissingText } from '~/utils/readinessMissing'
 
 /** Short names of the parts for the one-line summary ("Memória 88 · Em dia 95 · Questões 64") */
 const SHORT: Record<ReadinessPart['key'], string> = {
@@ -18,17 +21,6 @@ export function readinessPartsText(parts: ReadinessPart[]): string {
     .filter(p => p.enabled)
     .map(p => (p.value === null ? `${SHORT[p.key]}: ${p.key === 'questions' ? 'falta medir' : 'sem dados'}` : `${SHORT[p.key]} ${p.value}`))
     .join(' · ')
-}
-
-/** What is left before the number shows ("Revise mais 8 cards da prova para ver sua prontidão.") */
-export function readinessMissingText(readiness: ExamReadiness | null | undefined): string {
-  const m = readiness?.missing
-  if (!m) return 'Revise alguns cards dos assuntos da prova para ver sua prontidão.'
-  const cards = Math.max(0, m.cards_needed - m.cards)
-  if (cards > 0) return `Crie mais ${plural(cards, 'card', 'cards')} dos assuntos da prova para ver sua prontidão.`
-  const graduated = Math.max(0, m.graduated_needed - m.graduated)
-  if (graduated > 0) return `Revise mais ${plural(graduated, 'card', 'cards')} da prova para ver sua prontidão.`
-  return 'Revise alguns cards dos assuntos da prova para ver sua prontidão.'
 }
 
 /** Where an action leads and its sentence (§5.5) */

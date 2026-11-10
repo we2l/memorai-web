@@ -1124,7 +1124,8 @@ export interface ScopeSummary {
   session: { count: number; overdue: number; errors: number; backlog?: number }
   can_quiz?: StudyGate
   can_podcast?: StudyGate
-  exam: { id: string; title: string; days_remaining: number; cards_per_day: number | null; reta_final_active: boolean; projection?: ExamProjection | null } | null
+  /** + readiness (prd-prontidao-prova): the same number as the Hoje and the Progresso */
+  exam: { id: string; title: string; days_remaining: number; cards_per_day: number | null; reta_final_active: boolean; projection?: ExamProjection | null; readiness?: ExamReadiness | null } | null
   /** The person's backlog (prd-revisao-v5-fase-b RF-B7) */
   backlog?: BacklogState | null
   /** The onboarding's exam stuck on the sample, offered to this caderno (prd-revisao-v5-fase-b RF-B19) */

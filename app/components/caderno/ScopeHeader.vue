@@ -69,8 +69,8 @@ const contextLine = computed(() => {
   if (exam) {
     parts.push(exam.days_remaining === 0 ? 'Prova hoje' : `Prova em ${exam.days_remaining} ${exam.days_remaining === 1 ? 'dia' : 'dias'}`)
     if (exam.cards_per_day) parts.push(`${exam.cards_per_day} ${exam.cards_per_day === 1 ? 'card' : 'cards'} por dia`)
-    // The projection on the day if the pace is kept (prd-4f-progresso-v3 RF-F10)
-    if (exam.projection) parts.push(`projeção ${exam.projection.keep_pace}%`)
+    // The readiness for the exam (prd-prontidao-prova; was the projection of prd-4f-progresso-v3 RF-F10)
+    if (exam.readiness?.score != null) parts.push(`prontidão ${exam.readiness.score} de 100`)
   }
   const label = learningModeLabel(mode.value)
   if (label && isRoot.value) parts.push(label)

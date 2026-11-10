@@ -375,7 +375,7 @@ export function landingFaqs(catalog: PlanCatalog | null): { q: string, a: string
     },
     {
       q: 'Serve para o meu concurso?',
-      a: 'Serve para qualquer prova. Mande o edital e o Baigi monta o caderno com as matérias e os assuntos. Os cards saem do seu material, da apostila ou da lei seca, e a questão que você errou também vira card.',
+      a: 'Serve para qualquer prova. Não é um banco de cards de outra pessoa: mande o edital e o Baigi monta o caderno, os cards saem do seu material e a questão que você errou vira card.',
     },
     {
       q: 'Tem cupom de desconto?',

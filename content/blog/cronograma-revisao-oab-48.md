@@ -68,7 +68,7 @@ Dentro de cada semana, a rotina é a mesma:
 2. **Cada erro vira um card.** Uma pergunta curta, a resposta e o artigo. Nada de copiar o artigo inteiro no verso.
 3. **Revisão diária dos cards antigos.** Os cards das semanas anteriores continuam voltando. É isso que impede o Constitucional da semana 2 de sumir até janeiro.
 
-O terceiro passo é o que separa um cronograma de um calendário de leitura. Sem revisão, a maior parte do que você estudou em novembro já terá sumido em janeiro. Expliquei por que no [guia da curva do esquecimento](/blog/curva-do-esquecimento).
+Sem o terceiro passo, o plano vira um calendário de leitura. Pelo modelo de revisão que usamos (FSRS, parâmetros padrão), um card que você acertou uma vez tem chance estimada de 67% de ser lembrado 30 dias depois, e ela continua caindo até janeiro. Revisando no dia certo, o card volta antes de essa chance ficar abaixo de 90%. Expliquei a conta no [guia da curva do esquecimento](/blog/curva-do-esquecimento).
 
 ## Como transformar Ética em cards
 
@@ -93,7 +93,7 @@ Coloque sempre o artigo no verso. Na revisão, se a dúvida vier, você confere 
 
 ## Quantos cards por dia até a prova?
 
-Depende de quantos cards você vai criar até a prova. Uma conta grosseira: se você chegar a 600 cards em 6 semanas (42 dias), são cerca de 14 novos por dia, mais as revisões dos dias anteriores, que crescem com o tempo e depois se acalmam. Nas duas últimas semanas, sem cards novos, sobra só a revisão.
+Depende de quantos cards você vai criar até a prova. Para ter uma ideia: se você chegar a 600 cards em 6 semanas (42 dias), são cerca de 14 novos por dia, mais as revisões dos dias anteriores, que crescem com o tempo e depois se acalmam. Nas duas últimas semanas, sem cards novos, sobra só a revisão.
 
 A ferramenta abaixo faz essa conta com o mesmo modelo de revisão que o Baigi usa. Coloque **10/01/2027** como data da prova e o número de cards que você pretende ter.
 
@@ -101,11 +101,11 @@ A ferramenta abaixo faz essa conta com o mesmo modelo de revisão que o Baigi us
 {"tool": "plano-ate-a-prova"}
 ```
 
-## Onde o Baigi entra nisso
+## O que o Baigi faz nesse método?
 
-Tudo acima dá para fazer no papel ou no Anki. O Baigi existe para tirar dois trabalhos do caminho. O primeiro é escrever os cards: você cola a questão que errou, ou manda o PDF do seu material, e o card sai com a origem anotada (a IA tem uma prévia grátis). O segundo é a agenda: cada card volta no dia certo pelo FSRS, revisar é grátis, e você marca a data da prova para ver quanto deve lembrar no dia 10.
+Em oito semanas, o card mais útil costuma nascer da questão da FGV que você errou. No Baigi, você cola a questão e ele separa enunciado, alternativas e gabarito sem IA, de graça; ou manda o PDF do Estatuto e a IA propõe os cards (há uma prévia grátis da IA). Cada card volta no dia certo pelo FSRS, revisar é grátis, inclusive sem internet, e com a prova marcada em 10/01/2027 você vê quanto deve lembrar no dia.
 
-Ele não substitui as questões nem a leitura da lei. Confira cada card gerado com o texto do Estatuto, como você faria com o resumo de um colega.
+A banca cobra o detalhe, e a IA erra: confira cada card gerado pela IA com o texto do Estatuto antes de revisar.
 
 ```quiz
 {"area": "oab", "title": "Teste: você lembra do Estatuto da OAB?", "cards": [

@@ -7,7 +7,7 @@ category: comparacao
 area: medicina
 author: weslley
 published: 2026-11-08
-updated: 2026-11-08
+updated: 2026-11-10
 pillar: curva-do-esquecimento
 related: como-revisar-lei-seca-inss
 tags: Anki, alternativa ao Anki, flashcards, repetição espaçada
@@ -19,7 +19,7 @@ tags: Anki, alternativa ao Anki, flashcards, repetição espaçada
 
 Ele também tem coisas que poucos concorrentes têm: um catálogo grande de complementos (add-ons) e de baralhos compartilhados pela comunidade no AnkiWeb, oclusão de imagem embutida desde a 23.10 (ótima para anatomia) e controle fino sobre as opções de revisão.
 
-Eu uso o mesmo FSRS no Baigi, o app que eu fiz. Então este texto não vai dizer que o algoritmo do Anki é ruim. O algoritmo é ótimo. A pergunta é outra: o que faz tanta gente baixar o Anki e largar pouco depois?
+Eu uso o mesmo FSRS no Baigi, o app que eu fiz. Então este texto não vai dizer que o algoritmo do Anki é ruim, porque ele é bom. O que interessa aqui é por que tanta gente baixa o Anki e larga pouco depois.
 
 ## Por que tanta gente desiste do Anki?
 
@@ -30,7 +30,7 @@ Na minha leitura de fóruns e comunidades de estudo (é uma impressão, não uma
 3. **Os quatro botões confundem.** "De novo", "Difícil", "Bom" e "Fácil" parecem simples, mas usar "Difícil" quando esqueceu é um hábito comum o bastante para o manual do Anki alertar contra ele: com o FSRS, "Difícil" conta como resposta certa, e usá-lo para erro deixa todos os intervalos altos demais.
 4. **No iPhone, o app é pago.** O AnkiMobile é o app oficial para iPhone e iPad e custa R$ 149,90 na App Store do Brasil (preço de novembro de 2026); a venda ajuda a financiar o desenvolvimento do Anki. Para quem estuda pelo celular, isso pesa.
 
-Nenhuma dessas é defeito de algoritmo. São trabalho, interface e preço.
+As quatro são de trabalho, de interface ou de preço, e nenhuma é do algoritmo.
 
 ```card
 {"q": "No Anki, quando usar o botão \"Difícil\"?", "a": "Quando você acertou, mas com dúvida ou demorou para lembrar. Se esqueceu, a resposta é \"De novo\". \"Difícil\" conta como acerto.", "source": "Manual do Anki, estudo e opções do baralho"}
@@ -42,7 +42,7 @@ Se alguma destas frases descreve você, fique no Anki:
 
 - **Você gosta de montar os próprios cards** e já tem um jeito de fazer isso que não cansa.
 - **Você usa complementos** que mudam a revisão, ou baralhos compartilhados que sua turma mantém atualizados.
-- **Você revisa muito sem internet.** O Anki no computador e no Android guarda a coleção no aparelho e funciona sem internet; a sincronização com o AnkiWeb é à parte.
+- **Você precisa do app inteiro sem internet.** O Anki no computador e no Android guarda a coleção toda no aparelho e funciona offline, inclusive para criar e editar cards; a sincronização com o AnkiWeb é à parte.
 - **Você tem anos de baralhos com mídia e formatação própria.** Migrar sempre perde alguma coisa.
 - **Você quer controle fino**: passos de aprendizagem, limites, filtros, parâmetros do FSRS otimizados com o seu histórico.
 
@@ -50,7 +50,7 @@ Trocar de ferramenta custa tempo. Se a sua revisão funciona, não troque por mo
 
 ## Quando vale procurar uma alternativa?
 
-Vale quando o que trava você é um dos problemas da lista acima, e não o algoritmo. Aí a pergunta certa é: qual ferramenta tira esse trabalho específico?
+Vale quando o que trava você é um dos problemas da lista acima, e não o algoritmo. Aí procure a ferramenta que tira esse trabalho específico.
 
 - **Se o problema é criar cards:** procure algo que gere rascunhos de card a partir do seu material (PDF, anotações, questões erradas) e deixe você revisar e corrigir. Cards prontos de outra pessoa resolvem o trabalho, mas nem sempre cobrem o que a sua prova cobra.
 - **Se o problema é a fila:** procure algo que divida a revisão em lotes pequenos e não mostre um número vermelho assustador.
@@ -74,7 +74,7 @@ Comparo com o Baigi porque é a ferramenta que eu conheço por dentro. Para outr
 | Importar do Anki | — | Importa .apkg (formato novo e antigo), mantendo o agendamento de cada card |
 | Levar seus cards embora | Exporta .apkg | Exporta os cards em CSV, junto com os seus dados |
 | Complementos e baralhos compartilhados | Catálogo grande no AnkiWeb | Não tem |
-| Offline | Sim | Precisa de internet para a maior parte das funções |
+| Sem internet | Tudo, no computador e no Android | A revisão: abrindo o app com internet uma vez no dia, o lote de hoje fica no aparelho e as respostas sobem quando a conexão volta. Criar cards e a IA precisam de internet |
 
 Repare que o Anki ganha em várias linhas. O Baigi faz sentido para quem trava em criar cards, quem tem prova marcada e quem estuda pelo celular sem querer pagar o app do iPhone.
 
@@ -106,7 +106,7 @@ Cada um resolve uma parte diferente, e as versões e os preços mudam muito. Por
 - deixa exportar os seus cards?
 - o plano grátis deixa revisar sem limite, ou corta a revisão para forçar a assinatura?
 
-Esta última importa muito: limitar quantos cards você revisa por dia pune justamente quem está estudando direito.
+Confira a última antes das outras: limitar quantos cards você revisa por dia pune justamente quem está estudando direito.
 
 Se você ainda está entendendo por que a revisão espaçada funciona, comece pelo [guia da curva do esquecimento](/blog/curva-do-esquecimento). E se o seu caso é concurso com lei seca, veja [como revisar a Lei 8.213 para o INSS](/blog/como-revisar-lei-seca-inss).
 

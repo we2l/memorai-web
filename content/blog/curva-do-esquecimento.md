@@ -73,7 +73,7 @@ O jeito mais simples de se testar é o flashcard: a pergunta de um lado, a respo
 
 A outra metade da resposta é o espaçamento. Estudar o mesmo conteúdo em sessões separadas por dias rende mais do que a mesma quantidade de estudo num bloco só. A revisão de Cepeda e colegas, de 2006, reuniu 317 experimentos sobre prática distribuída. Das 271 comparações diretas entre estudar de uma vez e estudar espaçado, só 12 não mostraram vantagem para o espaçado.
 
-O ponto que muda tudo é este: **cada revisão bem-sucedida deixa a curva seguinte mais lenta.** No FSRS, isso aparece como estabilidade, o número de dias até a chance de lembrar cair para 90%. Pelo modelo padrão, para um card que você acerta toda vez:
+**Cada revisão bem-sucedida deixa a curva seguinte mais lenta.** No FSRS, isso aparece como estabilidade, o número de dias até a chance de lembrar cair para 90%. Pelo modelo padrão, para um card que você acerta toda vez:
 
 1. depois do primeiro estudo, a memória chega a 90% em cerca de 2 dias;
 2. revisando nesse dia, o próximo ponto de 90% vai para cerca de 12 dias;
@@ -105,7 +105,7 @@ Se você estuda para uma prova com data, dá para planejar ao contrário: quanto
 
 ## E se eu estudo por PDF e videoaula?
 
-Funciona igual, mas falta um passo: transformar o que você leu em perguntas. É aí que a maioria desiste, porque fazer card dá trabalho.
+Funciona igual, mas falta um passo: transformar o que você leu em perguntas. Muita gente para aí, porque escrever card leva tempo.
 
 Duas saídas que funcionam:
 

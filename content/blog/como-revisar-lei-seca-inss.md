@@ -35,7 +35,7 @@ A Lei 8.213/1991 trata dos benefícios da Previdência. Para revisão, vale come
 2. **Qualidade de segurado** (art. 15): por quanto tempo a pessoa continua segurada depois de parar de contribuir.
 3. **Benefícios com prazo ou percentual**: salário-maternidade (art. 71), auxílio-acidente (art. 86) e outros.
 
-Uma observação importante sobre os nomes: a lei ainda escreve "auxílio-doença" e "aposentadoria por invalidez" (por exemplo, no art. 25, I). Desde a Emenda Constitucional 103/2019, o art. 201, I, da Constituição fala em "incapacidade temporária ou permanente para o trabalho", e a própria emenda usa "aposentadoria por incapacidade permanente". É comum a prova e os materiais usarem "auxílio por incapacidade temporária" e "aposentadoria por incapacidade permanente". Faça cards que liguem os dois nomes.
+Os nomes também confundem. A lei ainda escreve "auxílio-doença" e "aposentadoria por invalidez" (por exemplo, no art. 25, I). Desde a Emenda Constitucional 103/2019, o art. 201, I, da Constituição fala em "incapacidade temporária ou permanente para o trabalho", e a própria emenda usa "aposentadoria por incapacidade permanente". É comum a prova e os materiais usarem "auxílio por incapacidade temporária" e "aposentadoria por incapacidade permanente". Faça cards que liguem os dois nomes.
 
 Cuidado também com o que o STF já mudou. A lei ainda traz uma carência de 10 contribuições para o salário-maternidade da contribuinte individual, da segurada especial e da facultativa (art. 25, III), mas o Supremo declarou essa exigência inconstitucional em 21 de março de 2024 (ADI 2110 e ADI 2111). Em lei seca, conferir o texto compilado e as decisões que o alteram faz parte do estudo.
 
@@ -89,7 +89,7 @@ Na prática, uma rotina simples:
 
 ## Quanto revisar por dia até a prova?
 
-Depende do volume e do tempo até a prova. Uma conta grosseira ajuda a decidir: se você quer chegar com 1.500 cards de lei seca em 90 dias, são cerca de 17 cards novos por dia (18, se você deixar os 3 últimos dias só para revisão, como a ferramenta abaixo faz), mais as revisões que crescem com o tempo.
+Depende do volume e do tempo até a prova. Faça a conta: se você quer chegar com 1.500 cards de lei seca em 90 dias, são cerca de 17 cards novos por dia (18, se você deixar os 3 últimos dias só para revisão, como a ferramenta abaixo faz), mais as revisões que crescem com o tempo.
 
 A ferramenta abaixo faz essa conta com o mesmo modelo de revisão. Como ainda não há edital, use uma data de referência e ajuste quando ela sair.
 
@@ -101,11 +101,11 @@ A ferramenta abaixo faz essa conta com o mesmo modelo de revisão. Como ainda n�
 {"shot": "hoje-prova", "caption": "Tela real do Baigi, conta de demonstração: a prova marcada e quanto a pessoa deve lembrar no dia."}
 ```
 
-## Onde o Baigi entra nisso
+## O que o Baigi faz nesse método?
 
-Tudo o que está acima dá para fazer no papel ou no Anki. O Baigi existe para tirar dois trabalhos do caminho. O primeiro é escrever os cards: você manda a apostila em PDF e a IA propõe as perguntas a partir do seu material, com a página de onde saiu cada uma (há uma prévia grátis da IA). O segundo é organizar a revisão: cada card volta no dia certo pelo FSRS, e revisar é grátis.
+No papel ou no Anki, você escreve cada card à mão. No Baigi, você manda a apostila de Seguridade Social em PDF e a IA propõe as perguntas, com a página de onde saiu cada uma (há uma prévia grátis da IA). Cada card volta no dia certo pelo FSRS, e revisar é grátis, inclusive sem internet: o lote do dia fica no celular.
 
-Ele não substitui a leitura da lei nem as questões. É o lugar onde o que você leu e errou fica guardado até a prova. Confira cada card que a IA gerar com o texto da lei, como você faria com o resumo de um colega.
+A IA erra. Antes de revisar, confira cada card com o texto compilado da lei: em lei seca, um número trocado no card é pior do que não ter o card. E ele não substitui as questões da banca.
 
 Se você já tem baralhos no Anki, dá para importar o arquivo .apkg. Escrevi sobre [quando vale trocar o Anki e quando não vale](/blog/alternativa-ao-anki).
 

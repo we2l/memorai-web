@@ -5,7 +5,6 @@
 import { BLOG_CATEGORIES, type BlogArea, type BlogArticle, type BlogMeta } from '~~/modules/blog/types'
 import type { BlogAuthor } from '~~/modules/blog/authors'
 
-export { SITE_NAME, SITE_URL } from '~/utils/seo'
 import { PUBLISHER, SITE_NAME, SITE_URL } from '~/utils/seo'
 export const DEFAULT_OG_IMAGE = `${SITE_URL}/landing/og-baigi.jpg`
 

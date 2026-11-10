@@ -4,8 +4,8 @@
  * default head says `noindex` (nuxt.config.ts): a page is indexed only when it calls this (or sets INDEXABLE itself),
  * so the empty shell of an unknown URL or of a route behind the login never enters the index.
  */
-import { DEFAULT_OG_IMAGE, SITE_NAME, absoluteUrl } from '~/utils/blog'
-import { INDEXABLE, jsonLdScript } from '~/utils/seo'
+import { DEFAULT_OG_IMAGE, absoluteUrl } from '~/utils/blog'
+import { INDEXABLE, SITE_NAME, jsonLdScript } from '~/utils/seo'
 
 export interface BlogSeoInput {
   title: string
@@ -17,8 +17,6 @@ export interface BlogSeoInput {
   modified?: string
   jsonLd?: object[]
 }
-
-export { INDEXABLE, jsonLdScript }
 
 export function useBlogSeo(input: BlogSeoInput) {
   const url = absoluteUrl(input.path)

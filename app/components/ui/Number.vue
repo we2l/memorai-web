@@ -31,4 +31,8 @@ const SIZES = { xl: 'num-xl', l: 'num-l', m: 'num-m', s: 'num-s' } as const
 </style>
 
 <!-- The @font-face of the Fraunces live with the big numbers, not in entry.css (ADR-035 §2) -->
-<style src="~/assets/css/fraunces.css"></style>
+<!-- @import, not <style src>: vite:vue caches a src style by file path, and two SFCs with the same src at different
+     style indexes (Number at 1, Stat at 0) broke the Vercel build depending on the module order -->
+<style>
+@import "~/assets/css/fraunces.css";
+</style>

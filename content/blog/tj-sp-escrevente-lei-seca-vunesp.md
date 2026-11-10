@@ -27,7 +27,7 @@ O Tribunal de Justiça de São Paulo publicou em 19 de outubro de 2026, no Diár
 | Objetiva | 70 questões de 5 alternativas |
 | Redação | Dissertativa-argumentativa, de 0 a 40 pontos, mínimo de 24 |
 
-As 70 questões se dividem em três blocos: **Língua Portuguesa (16)**, **Conhecimentos em Direito (30)** e **Conhecimentos Gerais (24)**, que juntam Atualidades, Matemática, Informática e Raciocínio Lógico. Para seguir no concurso é preciso acertar **pelo menos metade das questões de Português e metade das de Direito**, além de nota final 5 ou mais. Não há teste de digitação neste edital, ao contrário do concurso de 2024.
+As 70 questões se dividem em três blocos: Língua Portuguesa (16), Conhecimentos em Direito (30) e Conhecimentos Gerais (24), que juntam Atualidades, Matemática, Informática e Raciocínio Lógico. Para seguir no concurso é preciso acertar **pelo menos metade das questões de Português e metade das de Direito**, além de nota final 5 ou mais. Não há teste de digitação neste edital, ao contrário do concurso de 2024.
 
 Duas observações antes de planejar. A data de 14/03 está "prevista" no edital, então confira o site da Vunesp e o Diário da Justiça antes de fechar o calendário. E, como o edital é de cadastro de reserva, as nomeações dependem do fim da validade dos concursos anteriores da mesma região.
 
@@ -35,7 +35,7 @@ Este texto é um guia de método de estudo, escrito por quem faz o Baigi, um app
 
 ## Que leis caem no bloco de Direito?
 
-O edital traz uma lista fechada, artigo por artigo. É a melhor notícia do concurso: dá para saber exatamente o que revisar.
+O edital traz uma lista fechada, artigo por artigo. Assim dá para saber exatamente o que revisar.
 
 1. **Constituição Federal:** Título II, Capítulos I, II e III (direitos e deveres individuais e coletivos, direitos sociais e nacionalidade); Título III, Capítulo VII, Seções I e II (administração pública e servidores); e o art. 92.
 2. **Código Penal:** arts. 293 a 305, 307, 308, 311-A, 312 a 317, 319 a 333, 336, 337, 339 a 347, 357 e 359.
@@ -46,7 +46,7 @@ O edital traz uma lista fechada, artigo por artigo. É a melhor notícia do conc
 
 O edital manda considerar a legislação "com as alterações e atualizações vigentes até a data da publicação deste edital". Estude pelo texto compilado do Planalto e do site da Assembleia de SP, não por apostila antiga. Isso pesa na Lei 8.429/1992, que foi muito alterada pela Lei 14.230/2021.
 
-## Como a Vunesp pergunta a lei
+## Como a Vunesp pergunta a lei seca?
 
 No caderno de questões de Escrevente de 2023, boa parte das questões de Direito copia o texto da lei e troca um detalhe da alternativa. Um exemplo é a questão 41, sobre produção antecipada de provas. Uma alternativa repete o art. 382, § 2º, do CPC palavra por palavra: "O juiz não se pronunciará sobre a ocorrência ou a inocorrência do fato, nem sobre as respectivas consequências jurídicas". Outra pega o § 4º, que só admite recurso contra a decisão que indeferir **totalmente** a prova, e troca por "total ou parcialmente".
 
@@ -58,7 +58,7 @@ O que isso muda no estudo:
 - **Faça cards do detalhe, não do artigo inteiro.** Uma pergunta por informação.
 - **Erro em questão vira card no mesmo dia.** A troca que te pegou uma vez tende a pegar de novo.
 
-## Como transformar um artigo em cards
+## Como transformar um artigo da lista em cards?
 
 Pegue o art. 3º, I, da Lei 9.099/1995, que define o que vai para o Juizado Especial Cível: "as causas cujo valor não exceda a quarenta vezes o salário mínimo". Vira isto:
 
@@ -80,7 +80,7 @@ Coloque sempre o artigo no verso. Quando a dúvida vier na revisão, confira no 
 {"area": "concurso", "text": "Quer ver o método funcionando antes de montar os seus cards? Revise 6 cards prontos de concurso agora, sem criar conta, e veja quando cada um volta."}
 ```
 
-## Plano de 16 semanas até 14 de março
+## Como dividir as 16 semanas até 14 de março?
 
 Contando da semana de 23 de novembro, são 16 semanas até a prova prevista. A ideia: um bloco do edital por vez, com questões e cards, e as últimas semanas para simulados, redação e revisão. Português e Conhecimentos Gerais entram em paralelo, um pouco todo dia, porque o bloco de Português também tem nota mínima.
 
@@ -95,11 +95,11 @@ Contando da semana de 23 de novembro, são 16 semanas até a prova prevista. A i
 | 14 e 15 | 22/2 a 7/3 | Simulados completos e redação |
 | 16 | 8/3 a 14/3 | Só revisão; prova no dia 14 |
 
-O passo que não pode faltar é a **revisão diária dos cards antigos**. Sem ela, a Constituição de novembro some até março. Expliquei a conta no [guia da curva do esquecimento](/blog/curva-do-esquecimento). O mesmo método vale para outras leis: escrevi sobre ele usando a [lei seca do INSS](/blog/como-revisar-lei-seca-inss).
+Em todas as semanas, revise os cards antigos todo dia. Sem isso, a Constituição de novembro some até março. Expliquei a conta no [guia da curva do esquecimento](/blog/curva-do-esquecimento). O mesmo método vale para outras leis: escrevi sobre ele usando a [lei seca do INSS](/blog/como-revisar-lei-seca-inss).
 
 ## Quantos cards por dia até a prova?
 
-Depende de quantos cards a lista do edital vai gerar para você. Uma conta grosseira: 1.200 cards em 13 semanas (91 dias) são cerca de 13 novos por dia, mais as revisões. Nas três últimas semanas, sem cards novos, sobra só a revisão.
+Depende de quantos cards a lista do edital vai gerar para você. Para ter uma ideia: 1.200 cards em 13 semanas (91 dias) são cerca de 13 novos por dia, mais as revisões. Nas três últimas semanas, sem cards novos, sobra só a revisão.
 
 A ferramenta abaixo faz essa conta com o mesmo modelo de revisão que o Baigi usa. Coloque **14/03/2027** como data da prova.
 
@@ -107,11 +107,11 @@ A ferramenta abaixo faz essa conta com o mesmo modelo de revisão que o Baigi us
 {"tool": "plano-ate-a-prova"}
 ```
 
-## Onde o Baigi entra nisso
+## O que o Baigi faz nesse método?
 
-Tudo acima dá para fazer no papel ou no Anki. O Baigi tira dois trabalhos do caminho. O primeiro é escrever os cards: você cola a questão que errou, ou manda o PDF da lei ou da apostila, e o card sai com a origem anotada (a IA tem uma prévia grátis). O segundo é a agenda: cada card volta no dia certo pelo FSRS, revisar é grátis, e você marca a data da prova para ver quanto deve lembrar no dia 14.
+No TJ-SP, o trabalho pesado é transformar centenas de artigos da lista em perguntas. No Baigi, você cola a questão da Vunesp que errou (o card sai sem IA, de graça) ou manda o PDF da lei e a IA propõe os cards, com a origem anotada (há uma prévia grátis da IA). Cada card volta no dia certo pelo FSRS, revisar é grátis, e com a prova marcada em 14/03/2027 você vê quanto deve lembrar no dia.
 
-Ele não substitui a leitura da lei nem as questões da Vunesp. Confira cada card gerado com o texto compilado da lei.
+Com a lista fechada, um card errado custa caro: confira cada card gerado pela IA com o texto compilado da lei antes de revisar.
 
 ```quiz
 {"area": "concurso", "title": "Teste: você lembra da lista do edital?", "cards": [

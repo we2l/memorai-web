@@ -58,7 +58,7 @@ async function open(page: Page, path = '/', catalog: object = launchCatalog('Int
 }
 
 /** The hero title the visitor sees (the variants hidden by CSS do not count). */
-const visibleTitle = (page: Page) => page.locator('h1 [data-m-variant]:visible')
+const visibleTitle = (page: Page) => page.locator('.lp-h1[data-m-variant]:visible')
 
 /** Scrolls to the first point below the hero where no call of a section is on screen; returns false if none. */
 async function scrollToNoCall(page: Page): Promise<boolean> {
@@ -172,7 +172,7 @@ test.describe('landing D', () => {
       await expect(visibleTitle(page), m).toHaveCount(1)
       // The lines are blocks: compare the text without the spaces between them
       expect((await visibleTitle(page).textContent())!.replace(/\s/g, ''), m).toBe(title.replace(/\s/g, ''))
-      await expect(page.locator('h1 .lp-grifo:visible')).toHaveText('peixe')
+      await expect(page.locator('.lp-h1 .lp-grifo:visible')).toHaveText('peixe')
       await page.waitForLoadState('networkidle')
       expect((await visibleTitle(page).textContent())!.replace(/\s/g, ''), `${m} depois de hidratar`).toBe(title.replace(/\s/g, ''))
     }

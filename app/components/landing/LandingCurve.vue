@@ -22,6 +22,8 @@
       </div>
       <div class="lp-act">
         <LandingCta to="/comecar" position="curve" tone="band" section>Começar a revisar grátis</LandingCta>
+        <!-- Internal link to the free tool (SEO: the landing pointed to the blog and the tools only in the footer) -->
+        <NuxtLink to="/ferramentas/calculadora-do-esquecimento" class="lp-link" data-testid="landing-curve-calculator">Calcule quanto você ainda lembra de um assunto</NuxtLink>
       </div>
     </div>
   </section>

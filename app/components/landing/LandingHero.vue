@@ -2,17 +2,28 @@
   <section class="lp-hero" aria-labelledby="landing-title">
     <div class="lp-wrap">
       <div class="lp-text">
-        <h1 id="landing-title">
-          <span v-for="v in HERO_VARIANTS" :key="v.key" :data-m-variant="v.key">
+        <!-- One element per ?m= variant, so search engines read one title: only the default one is the <h1>; the
+             others are headings of level 1 too (role/aria-level) but hidden by CSS until the head script picks them -->
+        <div class="lp-title">
+          <component
+            :is="v.key === 'padrao' ? 'h1' : 'p'"
+            v-for="v in HERO_VARIANTS"
+            :id="v.key === 'padrao' ? 'landing-title' : undefined"
+            :key="v.key"
+            class="lp-h1"
+            :role="v.key === 'padrao' ? undefined : 'heading'"
+            :aria-level="v.key === 'padrao' ? undefined : 1"
+            :data-m-variant="v.key"
+          >
             <span v-for="(line, i) in v.lines" :key="line" class="ln" :style="{ '--d': `${60 + 140 * i}ms` }">
               <template v-for="part in titleParts(line)" :key="part.text">
                 <span v-if="part.mark" class="lp-grifo">{{ part.text }}</span>
                 <template v-else>{{ part.text }}</template>
               </template>
             </span>
-          </span>
+          </component>
           <span class="lp-tag" aria-hidden="true">golfinho não é peixe</span>
-        </h1>
+        </div>
         <p class="lp-lead fade" style="--d: 600ms">
           <span v-for="v in HERO_VARIANTS" :key="v.key" :data-m-variant="v.key">{{ v.lead }}</span>
         </p>

@@ -1,8 +1,11 @@
 /**
- * Head of the blog, the tools and /quem-faz (prd-blog-seo RF-S1): title, description, canonical, Open Graph, Twitter
- * and the JSON-LD blocks, all in the prerendered HTML.
+ * Head of every public page (blog, tools, /quem-faz, /planos, /ajuda; prd-blog-seo RF-S1): title, description,
+ * canonical, Open Graph, Twitter, the JSON-LD blocks and `robots: index`, all in the prerendered HTML. The app's
+ * default head says `noindex` (nuxt.config.ts): a page is indexed only when it calls this (or sets INDEXABLE itself),
+ * so the empty shell of an unknown URL or of a route behind the login never enters the index.
  */
-import { DEFAULT_OG_IMAGE, SITE_NAME, absoluteUrl } from '~/utils/blog'
+import { DEFAULT_OG_IMAGE, absoluteUrl } from '~/utils/blog'
+import { INDEXABLE, SITE_NAME, jsonLdScript } from '~/utils/seo'
 
 export interface BlogSeoInput {
   title: string
@@ -15,15 +18,11 @@ export interface BlogSeoInput {
   jsonLd?: object[]
 }
 
-/** JSON inside <script>: `<` escaped so no text of an article can close the tag */
-export function jsonLdScript(data: object): string {
-  return JSON.stringify(data).replace(/</g, '\\u003c')
-}
-
 export function useBlogSeo(input: BlogSeoInput) {
   const url = absoluteUrl(input.path)
   const image = input.image ? absoluteUrl(input.image) : DEFAULT_OG_IMAGE
   const meta = [
+    { name: 'robots', content: INDEXABLE },
     { name: 'description', content: input.description },
     { property: 'og:title', content: input.title },
     { property: 'og:description', content: input.description },

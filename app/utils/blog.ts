@@ -5,8 +5,7 @@
 import { BLOG_CATEGORIES, type BlogArea, type BlogArticle, type BlogMeta } from '~~/modules/blog/types'
 import type { BlogAuthor } from '~~/modules/blog/authors'
 
-export const SITE_URL = 'https://baigi.com.br'
-export const SITE_NAME = 'Baigi'
+import { PUBLISHER, SITE_NAME, SITE_URL } from '~/utils/seo'
 export const DEFAULT_OG_IMAGE = `${SITE_URL}/landing/og-baigi.jpg`
 
 export type BlogCtaPosition = 'inline' | 'quiz' | 'end' | 'tool'
@@ -54,12 +53,7 @@ export function bucket(n: number, edges: number[]): string {
   return `${edges[edges.length - 1]}+`
 }
 
-const PUBLISHER = {
-  '@type': 'Organization',
-  'name': SITE_NAME,
-  'url': `${SITE_URL}/`,
-  'logo': { '@type': 'ImageObject', 'url': `${SITE_URL}/pwa-512x512.png` },
-}
+
 
 export function personJsonLd(author: BlogAuthor) {
   return {

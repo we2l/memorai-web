@@ -154,7 +154,7 @@
 .landing-page {
   overflow-x: clip;
 
-  & h1, & h2, & .lp-display {
+  & h1, & h2, & .lp-h1, & .lp-display {
     font-family: var(--lp-display);
     font-weight: 700;
     letter-spacing: -0.01em;
@@ -287,8 +287,9 @@
 .landing-page {
   & .lp-hero { position: relative; padding: 20px 0 0; overflow: hidden; }
   & .lp-hero > .lp-wrap { display: grid; gap: 8px; position: relative; }
-  & .lp-hero h1 { font-size: clamp(56px, 9vw, 140px); position: relative; }
-  & .lp-hero h1 .ln { display: block; }
+  & .lp-title { position: relative; }
+  & .lp-hero .lp-h1 { font-size: clamp(56px, 9vw, 140px); }
+  & .lp-hero .lp-h1 .ln { display: block; }
   & .lp-grifo { position: relative; z-index: 0; white-space: nowrap; color: var(--lp-grifo-fg); }
   & .lp-grifo::before { content: ''; position: absolute; z-index: -1; left: -.06em; right: -.08em; top: .2em; bottom: .02em; background: var(--lp-grifo); border-radius: .12em .2em .1em .25em; transform: rotate(-1.2deg); transform-origin: left; }
   & .lp-tag { position: absolute; right: 0; bottom: -26px; display: inline-block; font-family: var(--lp-display); font-weight: 700; font-size: clamp(16px, 1.6vw, 22px); line-height: 1.1; padding: 6px 14px 8px; border-radius: 8px; transform: rotate(-5deg); white-space: nowrap; background: var(--lp-tag); color: var(--lp-white); letter-spacing: 0; }
@@ -331,6 +332,7 @@
   & .lp-curve-sec h2 { color: var(--lp-white); font-size: clamp(44px, 6.6vw, 104px); max-width: 14ch; }
   & .lp-curve-sec .lp-lead, & .lp-curve-sec .lp-legend, & .lp-curve-sec .lp-fine { color: var(--lp-curve-muted); }
   & .lp-curve-sec .lp-lead { max-width: 46ch; }
+  & .lp-curve-sec .lp-link { color: var(--lp-white); }
   & .lp-curve-m { position: absolute; width: 92px; right: 16px; top: 14px; }
   & .lp-curve { margin-top: 28px; }
   & .lp-curve svg { width: 100%; height: auto; overflow: visible; }
@@ -565,7 +567,7 @@ html:has(.landing-page) { scroll-padding-bottom: 104px; }
 @keyframes lp-pop { 0% { transform: scale(.7) rotate(-8deg); opacity: 0; } 60% { transform: scale(1.08) rotate(3deg); opacity: 1; } 100% { transform: none; } }
 
 html.lp-motion .landing-page {
-  & .lp-hero h1 .ln { animation: lp-rise 800ms var(--lp-ease) both; animation-delay: var(--d, 0ms); }
+  & .lp-hero .lp-h1 .ln { animation: lp-rise 800ms var(--lp-ease) both; animation-delay: var(--d, 0ms); }
   & .lp-hero .lp-grifo::before { animation: lp-grifo 900ms var(--lp-ease) 700ms both; }
   & .lp-hero .lp-tag { animation: lp-tag 600ms var(--lp-ease) 1000ms both; }
   /* Também só transform: o apoio e a chamada do herói ficam legíveis (e com contraste) desde a primeira pintura */

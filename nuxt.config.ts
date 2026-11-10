@@ -301,6 +301,9 @@ export default defineNuxtConfig({
         // indicator (prd-responsividade RF-4). The sides of landscape are handled in base.css and on the fixed bars.
         { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' },
         { name: 'description', content: 'Estude de forma mais inteligente — repetição espaçada com IA' },
+        // Not indexed unless the page says so (useBlogSeo / INDEXABLE): the SPA shell answers 200 for any unknown
+        // URL and for the routes behind the login, and those must not become soft 404s in Search
+        { name: 'robots', content: 'noindex, follow' },
         // Follow the OS until THEME_SCRIPT syncs them with the app theme (light, dark or system)
         { name: 'theme-color', content: THEME_COLOR.light, media: '(prefers-color-scheme: light)' },
         { name: 'theme-color', content: THEME_COLOR.dark, media: '(prefers-color-scheme: dark)' },

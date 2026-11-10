@@ -67,7 +67,11 @@ import type { BillingPeriod } from '~/components/plans/BillingToggle.vue'
 
 definePageMeta({ layout: 'public', quietHeaderCta: true })
 
-useHead({ title: 'Planos · Baigi' })
+useBlogSeo({
+  title: 'Planos e preços do Baigi: Grátis e Intensivo',
+  description: 'Revisar é grátis para sempre. O Intensivo traz a IA que cria cards do seu PDF, simulados e o podcast dos seus erros. Mensal ou anual, no cartão ou Pix.',
+  path: '/planos',
+})
 
 const router = useRouter()
 const auth = useAuthStore()

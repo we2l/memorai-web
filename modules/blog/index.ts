@@ -18,8 +18,12 @@ import { BLOG_CATEGORIES, BLOG_TOOLS, parseArticle, toMeta, type BlogArticle } f
 
 export const SITE_URL = 'https://baigi.com.br'
 
-/** Public pages that go into the sitemap besides the blog (the prerendered marketing pages) */
-const STATIC_PAGES = ['/', '/planos', '/quem-faz', '/ajuda', '/termos', '/privacidade']
+/**
+ * Public pages that go into the sitemap besides the blog (the prerendered marketing pages). /termos and /privacidade
+ * stay indexable but out of it (no search intent). No lastmod here: Vercel clones shallow, so a date from git would be
+ * wrong, and Google ignores lastmod that is not consistently accurate.
+ */
+const STATIC_PAGES = ['/', '/planos', '/quem-faz', '/ajuda']
 /** Internal paths an article may link to besides /blog/** and /ferramentas/** */
 const LINKABLE = /^\/(|planos|ajuda|quem-faz|criar-conta|entrar|comecar(\/(concurso|enem|medicina|oab|ingles|faculdade))?)$/
 

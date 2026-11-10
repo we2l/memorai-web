@@ -39,7 +39,7 @@ Com um mês, **matéria nova do zero rende pouco**. Cada hora vale mais gasta no
 
 **Não existe divisão oficial de quantas questões caem de cada matéria.** As tabelas que circulam vêm de contagens de cursinho em provas antigas e servem de pista. Por isso este plano não escolhe as matérias por você: o seu primeiro simulado faz isso. A matéria onde você erra mais naquele dia é a que ganha horas.
 
-Por que questões, e não releitura? Porque tentar lembrar segura mais do que reler. Num experimento de Roediger e Karpicke (2006), quem leu um texto uma vez e depois se testou lembrava, uma semana depois, de 61% das ideias, contra 40% de quem só releu. O [guia da curva do esquecimento](/blog/curva-do-esquecimento) explica o resto.
+Questões rendem mais que releitura porque tentar lembrar segura mais do que reler. Num experimento de Roediger e Karpicke (2006), quem leu um texto uma vez e depois se testou lembrava, uma semana depois, de 61% das ideias, contra 40% de quem só releu. O [guia da curva do esquecimento](/blog/curva-do-esquecimento) explica o resto.
 
 Duas regras do edital ajudam a decidir o que revisar:
 
@@ -119,11 +119,11 @@ O edital tem várias regras que eliminam quem não as conhece. Leia o edital int
 
 Na véspera, não estude matéria nova. Revise os cards vencidos, separe o documento e a caneta e durma.
 
-## Onde o Baigi entra nisso
+## O que o Baigi faz nesse método?
 
-Tudo acima dá para fazer no papel ou no Anki. O Baigi tira dois trabalhos do caminho. O primeiro é montar o card: você cola a questão que errou, ele separa enunciado, alternativas e gabarito sem IA, e você anota por que errou. Isso é grátis. O segundo é a agenda: cada card volta no dia certo, e revisar também é grátis. Você marca a data da prova e vê quanto deve lembrar no dia 10.
+Nos últimos 30 dias, o que mais toma tempo é transformar os erros dos três simulados em cards. No Baigi, você cola cada questão errada, ele separa enunciado, alternativas e gabarito sem IA, e você anota por que errou; isso é grátis. A revisão também é grátis e funciona sem internet: abrindo o app com internet uma vez no dia, o lote fica no celular para o ônibus. Com a prova marcada em 10/01/2027, você vê quanto deve lembrar no dia.
 
-Ele não faz o simulado por você nem substitui a leitura da lei. Confira cada card gerado com o texto do Estatuto, como você faria com o resumo de um colega.
+Ele não faz o simulado por você nem substitui a leitura da lei.
 
 ```quiz
 {"area": "oab", "title": "Teste: você sabe as regras do dia da prova?", "cards": [

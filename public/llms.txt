@@ -1,0 +1,26 @@
+# Baigi
+
+> App brasileiro de memorização com repetição espaçada (FSRS). Os flashcards saem do material da própria pessoa (PDF, apostila, lei seca, anotações) com ajuda de IA, e cada card volta no dia certo até a prova. Para concurso, OAB, ENEM e vestibular, faculdade e idiomas. Revisar é grátis para sempre; a IA completa fica no plano pago, o Intensivo.
+
+Idioma: português do Brasil. Site: https://baigi.com.br
+
+## Produto
+
+- [Planos e preços](https://baigi.com.br/planos): o que é grátis e o que é do Intensivo (preço sempre atualizado nesta página)
+- [Começar grátis](https://baigi.com.br/comecar): revise 6 cards de exemplo da sua área sem criar conta
+- [Ajuda](https://baigi.com.br/ajuda): como usar os cards, a revisão em lotes, os simulados e o podcast dos pontos fracos
+- [Quem faz o Baigi](https://baigi.com.br/quem-faz): o autor e a identificação do vendedor
+
+## Ferramentas grátis
+
+- [Calculadora do esquecimento](https://baigi.com.br/ferramentas/calculadora-do-esquecimento): quanto você ainda lembra de um assunto e se vale revisar agora
+- [Plano até a prova](https://baigi.com.br/ferramentas/plano-ate-a-prova): quantos cards novos e revisões por dia até a data da prova
+
+## Blog
+
+- [Curva do esquecimento](https://baigi.com.br/blog/curva-do-esquecimento): quanto se esquece e como revisar no dia certo
+- [Cronograma de revisão para a OAB 48](https://baigi.com.br/blog/cronograma-revisao-oab-48)
+- [TJ-SP Escrevente 2027: lei seca da Vunesp](https://baigi.com.br/blog/tj-sp-escrevente-lei-seca-vunesp)
+- [Como revisar lei seca para o INSS](https://baigi.com.br/blog/como-revisar-lei-seca-inss)
+- [Alternativa ao Anki](https://baigi.com.br/blog/alternativa-ao-anki)
+- [Todos os artigos](https://baigi.com.br/blog) e o [RSS](https://baigi.com.br/blog/rss.xml)

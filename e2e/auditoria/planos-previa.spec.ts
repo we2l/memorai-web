@@ -63,7 +63,7 @@ test.describe('Prévia grátis da IA', () => {
     await expect(sample.locator('audio')).toHaveAttribute('preload', 'none')
     await expect(sample.locator('audio')).not.toHaveAttribute('autoplay', /.*/)
     // The whole transcript, nothing current before the play
-    await expect(sample.getByTestId('podcast-sample-lines').locator('li')).toHaveCount(4)
+    await expect(sample.getByTestId('podcast-sample-lines').locator('li')).toHaveCount(5)
     await expect(sample.locator('[aria-current="true"]')).toHaveCount(0)
     await expect(sheet.getByTestId('podcast-scope')).toHaveCount(0)
     await expect(sheet.getByRole('link', { name: `Conhecer o ${name}` })).toHaveAttribute('href', '/planos')

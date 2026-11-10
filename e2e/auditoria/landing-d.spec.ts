@@ -80,7 +80,8 @@ async function scrollToNoCall(page: Page): Promise<boolean> {
 }
 
 /** What the old landings promised and the product does not keep (prd-landing-v4 §5.1). */
-const FORBIDDEN = [/offline/i, /servidores no brasil/i, /1 clique/i, /sem perder nada/i, /o que cai mais/i, /em segundos/i, /mais popular/i, /mesmo algoritmo do anki/i, /sobreviv/i, /mapa mental/i, /nunca mais esque/i, /aprove em/i, /aprovação garantida/i, /180 páginas/i, /página de onde saiu/i, /intervalos e erros vêm junto/i, /dias do (Pro|Intensivo) no primeiro/i]
+// "offline" left the list on 10/11: the review works without network since prd-revisao-offline (ADR-036)
+const FORBIDDEN = [/servidores no brasil/i, /1 clique/i, /sem perder nada/i, /o que cai mais/i, /em segundos/i, /mais popular/i, /mesmo algoritmo do anki/i, /sobreviv/i, /mapa mental/i, /nunca mais esque/i, /aprove em/i, /aprovação garantida/i, /180 páginas/i, /página de onde saiu/i, /intervalos e erros vêm junto/i, /dias do (Pro|Intensivo) no primeiro/i]
 
 /** The calls of the sections (prd-landing-d RF-D2 a RF-D10): each one goes to sign-up or to /planos. */
 const CALLS: [testId: string, path: string][] = [
@@ -225,13 +226,14 @@ test.describe('landing D', () => {
     await other.close()
   })
 
-  test('a projeção usa os números da conta de demonstração', async ({ page }) => {
+  test('a prontidão usa os números da conta de demonstração', async ({ page }) => {
     await open(page)
     // demo.json is written by e2e/landing/shots.ts from the same account the screens show
     const demo = JSON.parse(readFileSync(join(__dirname, '../../app/assets/landing/demo.json'), 'utf8'))
     await page.locator('.lp-proof').scrollIntoViewIfNeeded()
-    await expect(page.locator('.lp-proof')).toContainText(`${demo.keep_pace}%`, { timeout: 5000 })
-    await expect(page.locator('.lp-proof')).toContainText(`${demo.stop_today}%`)
+    // prd-prontidao-prova: the score and its memory part, never a chance of passing
+    await expect(page.locator('.lp-proof')).toContainText(`${demo.readiness.score}de 100 de prontidão`, { timeout: 5000 })
+    await expect(page.locator('.lp-proof')).toContainText(`${demo.readiness.memory}%lembrando no dia`)
     await expect(page.getByText(`${demo.exam}, daqui a ${demo.days} dias, na conta de demonstração.`)).toBeVisible()
   })
 

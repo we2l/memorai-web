@@ -71,9 +71,9 @@ const CONSENT_CHUNK = /\/components\/ui\/Consent(Banner|Modal)\.vue/
 // instead of in every install download (precache budget, prd-correcoes-experiencia Q2, prd-4g-conta-onboarding-v3,
 // prd-4b-caderno-v3 §10.2), and the landing (prd-landing-v4 RF-L14: marketing, online only). /ajuda stays: "?" opens
 // the shortcuts offline too.
-const ONE_SHOT_PAGE_CHUNK = /\/(pages\/(index|comecar(\/(index|pronto|\[area\]))?|entrar|criar-conta|esqueci-senha|checkout\/(sucesso|index)|auth\/google\/callback|redefinir-senha|termos|privacidade|planos|importar|cadernos\/lixeira)|layouts\/(auth|landing)|components\/review\/ReviewOnboardingEnd|components\/caderno\/(MaterialCardsState|MoveDialog|TrashDialog))\.vue/
+const ONE_SHOT_PAGE_CHUNK = /\/(pages\/(index|comecar(\/(index|pronto|\[area\]))?|entrar|criar-conta|esqueci-senha|checkout\/(sucesso|index)|auth\/google\/callback|redefinir-senha|termos|privacidade|planos|importar|cadernos\/(lixeira|edital))|layouts\/(auth|landing)|components\/review\/ReviewOnboardingEnd|components\/caderno\/(MaterialCardsState|MoveDialog|TrashDialog))\.vue/
 // Pieces shared only by those pages: a shared chunk has no facade module, so it goes by what is inside it.
-const ONE_SHOT_SHARED = /\/(components\/auth\/|components\/onboarding\/|components\/checkout\/|utils\/(mercadoPago|checkoutState|authMessages|organization|moveTargets|ankiMapping|guestProgress|postAuthRedirect)|composables\/useTrashBatch)/
+const ONE_SHOT_SHARED = /\/(components\/auth\/|components\/edital\/|components\/onboarding\/|components\/checkout\/|utils\/(editalProposal|mercadoPago|checkoutState|authMessages|organization|moveTargets|ankiMapping|guestProgress|postAuthRedirect)|composables\/(useTrashBatch|useEditalReader))/
 // Blog and free tools (prd-blog-seo RF-B9): marketing read online, like the landing. Pages, their components, the
 // articles (one chunk per content/blog/*.md) and the tools' math go to once-* chunks, out of the install download.
 const BLOG_CHUNK = /\/(pages\/(blog|ferramentas)\/|pages\/quem-faz\.vue|components\/blog\/|content\/blog\/|utils\/(blog|forgetting|examPlan)\.ts|composables\/(useBlogSeo|useAreaQuery)\.ts|modules\/blog\/)|^\0#blog\//

@@ -22,6 +22,7 @@ const EXPECTED: Record<string, string | null> = {
   '/hoje': 'hoje',
   '/cadernos': 'cadernos',
   '/cadernos/:id': 'cadernos',
+  '/cadernos/edital': 'cadernos',
   '/cadernos/lixeira': 'cadernos',
   '/cadernos/:id/cards': 'cadernos',
   '/cadernos/:id/mapa': 'cadernos',

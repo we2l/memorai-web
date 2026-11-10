@@ -14,6 +14,8 @@ export type OnboardingPath = 'sample' | 'pdf' | 'text' | 'anki' | 'skip' | 'ques
 export type GuestAreaProp = 'concurso' | 'enem' | 'medicina' | 'oab' | 'ingles' | 'faculdade'
 export type OwnMaterialKind = 'pdf' | 'note' | 'anki' | 'question'
 export type UploadSource = 'onboarding' | 'caderno' | 'other'
+/** Where the edital's "conteúdo programático" came from (prd-edital-caderno RF-B2) */
+export type EditalFound = 'heading' | 'whole' | 'manual' | 'text'
 export type ReminderSource = 'settings' | 'session_end' | 'onboarding'
 /** Navegação v3 (prd-navegacao-v3 RF-12) */
 export type NavItem = 'hoje' | 'cadernos' | 'praticar' | 'progresso'
@@ -151,6 +153,13 @@ export interface FrontEventProps {
   heatmap_day_open: Record<string, never>
   exam_create: { origin: 'progress' | 'scope' | 'hoje' }
   exam_export: { kind: 'ics' | 'google' }
+  /** Edital vira caderno (prd-edital-caderno RF-F4) */
+  edital_started: { source: 'pdf' | 'text', manual_pages: boolean }
+  edital_read: { subjects: number, topics: number, found: EditalFound }
+  edital_choose: { editais: number }
+  edital_failed: { stage: 'read' | 'apply' }
+  edital_applied: { subjects: number, topics: number, edited: boolean, exam: boolean }
+  material_auto_placed: { by: 'file_name' }
   /** Prontidão para a prova (prd-prontidao-prova RF-F5) */
   readiness_explain_open: Record<string, never>
   readiness_action_clicked: { kind: string; origin: 'home' | 'progress' }

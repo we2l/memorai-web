@@ -33,7 +33,7 @@
     "/hoje": {
       "file": "pages/hoje.vue",
       "gzKb": 10.5,
-      "closureGzKb": 27
+      "closureGzKb": 28
     },
     "/revisar": {
       "file": "pages/revisar.vue",
@@ -62,7 +62,7 @@
     },
     "/progresso": {
       "file": "pages/progresso.vue",
-      "gzKb": 11.5,
+      "gzKb": 12,
       "closureGzKb": 43
     },
     "/comecar": {

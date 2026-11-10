@@ -42,24 +42,27 @@ test('resumo do caderno da prova: domínio = o do caderno (/summary), acerto, le
   await expect(box).toContainText(/\d+ dias? de sequência · recorde \d+|de sequência/)
   await expect(page.getByTestId('progress-primary')).toHaveText(/Revisar para a prova · \d+/)
   await expect(page.locator('.shadow-action').filter({ visible: true })).toHaveCount(1)
-  // E2 (prd-visual-e2 RF-5.4): the exam card with the projection is the one lilac block
+  // E2 (prd-visual-e2 RF-5.4) + prd-prontidao-prova RF-F3: the exam card with the readiness is the one lilac block
   await expect(page.locator('.bg-tinted')).toHaveCount(1)
-  await expect(page.getByTestId('progress-exam-card')).toContainText('Mantendo o ritmo')
+  await expect(page.getByTestId('progress-exam-card')).toContainText('Prontidão para a prova')
 })
 
-test('prova com projeção ("mantendo o ritmo" e "se parar hoje") e "Como calculamos"; a pequena diz o que falta', async ({ page }) => {
+test('prova com prontidão (número, partes, "Como calculamos", ações); a pequena diz o que falta', async ({ page }) => {
   await gotoApp(page, '/progresso#provas')
   const api = (await apiCall(page, 'GET', `/exams/${seed.examId}`)).data
-  expect(api.projection).not.toBeNull()
+  expect(api.readiness.score).not.toBeNull()
   const row = exam(page, seed.examId)
   await expect(row).toContainText('em 42 dias')
   await expect(row).toContainText(`caderno ${seed.rootName}`)
-  await expect(row.getByTestId('exam-projection')).toContainText(`${api.projection.keep_pace}% se mantiver o ritmo · ${api.projection.stop_today}% se parar hoje`)
+  const readiness = row.getByTestId('exam-readiness')
+  await expect(readiness).toContainText(`Prontidão: ${api.readiness.score} de 100 · ${api.readiness.band.label}`)
+  await expect(readiness).toContainText(`Memória ${api.readiness.parts[0].value}`)
   await row.getByRole('button', { name: 'Como calculamos' }).click()
   await expect(row.getByRole('button', { name: 'Como calculamos' })).toHaveAttribute('aria-expanded', 'true')
-  await expect(row).toContainText('é um piso')
-  // Português has 3 cards and none reviewed: projection null
-  await expect(exam(page, seed.smallExamId).getByTestId('exam-projection')).toHaveText('Revise alguns cards dos assuntos da prova para ver a projeção.')
+  await expect(row).toContainText(`lembrando ${api.projection.keep_pace}% mantendo o ritmo, ${api.projection.stop_today}% se parar hoje`)
+  await expect(row).toContainText('não da aprovação')
+  // Português has 3 cards and none reviewed: no number, what is left
+  await expect(exam(page, seed.smallExamId).getByTestId('exam-readiness')).toHaveText(/para ver sua prontidão\.$/)
   await axe(page, '/progresso')
 })
 
@@ -142,13 +145,18 @@ test('"Definir prova" no ⋯ da matéria cria a prova com a cobertura dela', asy
   await apiCall(page, 'DELETE', `/exams/${body.id}`)
 })
 
-test('Hoje: a prova mais próxima ganha a linha da projeção', async ({ page }) => {
+test('Hoje: a prova mais próxima ganha a prontidão (ou o que falta para ela)', async ({ page }) => {
   const upcoming = (await apiCall(page, 'GET', '/exams/upcoming')).data as any[]
   const next = upcoming.filter(e => e.days_remaining >= 0).sort((a, b) => a.days_remaining - b.days_remaining)[0]
   await gotoApp(page, '/hoje')
-  const line = page.getByTestId('home-exam-pace')
-  if (next.projection) await expect(line).toHaveText(`Mantendo o ritmo, você chega à prova lembrando ${next.projection.keep_pace}%`)
-  else await expect(line).not.toContainText('Mantendo o ritmo')
+  const card = page.getByTestId('home-exam')
+  if (next.readiness?.score != null) {
+    await expect(card).toContainText('Prontidão para a prova')
+    await expect(card.getByTestId('readiness-band')).toHaveText(next.readiness.band.label)
+  }
+  else {
+    await expect(page.getByTestId('home-exam-pace')).toContainText('para ver sua prontidão')
+  }
 })
 
 test.describe('Conta nova', () => {

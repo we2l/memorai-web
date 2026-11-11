@@ -3,6 +3,7 @@ import type { User } from '~/types'
 import { hasProAccess, opensTrialOnUse, trialEnded } from '~/utils/trial'
 import { useOfflineStore } from '~/stores/offline'
 import { loadOfflineDb } from '~/utils/offlineDbLoader'
+import { attributionPayload } from '~/utils/firstTouch'
 
 // utils/offlineDb and the review store load on demand: this store is in the entry of every page
 const offlineDb = loadOfflineDb
@@ -73,7 +74,8 @@ export const useAuthStore = defineStore('auth', {
       const { $api } = useNuxtApp()
       const res = await $api<{ data: { user: User } }>('/register', {
         method: 'POST',
-        body: payload,
+        // First touch of this device (utm_* of the first visit): sign-ups per post without PostHog
+        body: { ...payload, ...attributionPayload() },
       })
       this.setUser(res.data.user)
       return res.data.user

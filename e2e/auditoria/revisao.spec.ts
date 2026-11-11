@@ -161,21 +161,24 @@ test.describe('Revisão — caminho triste', () => {
     await expect(cardFace(page)).toContainText('Pergunta 1')
   })
 
-  test('avaliação que não chega ao servidor: aviso "não enviada" + "Tentar de novo" reenvia', async ({ page }) => {
+  test('avaliação que não chega ao servidor (navegador online): faixa "Não conseguimos falar com o servidor" + "Tentar de novo" reenvia', async ({ page }) => {
     test.setTimeout(60_000)
     const { topicId, cardIds } = await seedTopic(page, 2)
-    let offline = true
-    await page.route('**/api/review', route => offline && route.request().method() === 'POST' ? route.abort('internetdisconnected') : route.fallback())
+    let down = true
+    // No HTTP status (API down, proxy timeout): the rating stays in the queue (ADR-036); the browser is online, so
+    // the bar says the server did not answer, never "Sem internet" (QA 2026-11 M3)
+    await page.route('**/api/review', route => down && route.request().method() === 'POST' ? route.abort('connectionrefused') : route.fallback())
     await gotoApp(page, `/revisar?topic_id=${topicId}`)
     await page.keyboard.press('Space')
     await page.keyboard.press('4')
     await continueBand(page)
-    // 3 tentativas com backoff (1 s, 2 s, 4 s) e depois pausa com aviso
-    const banner = page.getByRole('alert').filter({ hasText: 'avaliação não enviada' })
-    await expect(banner).toBeVisible({ timeout: 15_000 })
-    offline = false
-    await banner.getByRole('button', { name: 'Tentar de novo' }).click()
-    await expect(banner).toBeHidden({ timeout: 10_000 })
+    const bar = page.getByTestId('offline-bar')
+    await expect(bar).toContainText('Não conseguimos falar com o servidor', { timeout: 15_000 })
+    await expect(bar).not.toContainText('Sem internet')
+    await expect(page.getByTestId('offline-pending')).toHaveText('1 avaliação para enviar.')
+    down = false
+    await bar.getByRole('button', { name: 'Tentar de novo' }).click()
+    await expect(bar).toHaveCount(0, { timeout: 10_000 })
     await expect.poll(async () => (await Promise.all(cardIds.map(id => card(page, id)))).filter((c: any) => c.reps === 1).length).toBe(1)
   })
 })

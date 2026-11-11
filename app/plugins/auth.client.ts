@@ -16,7 +16,7 @@ export default defineNuxtPlugin(async () => {
     await $api('/logout', { method: 'POST' })
       .then(clearPendingLogout)
       .catch((e: unknown) => { if (getErrorStatus(e) !== undefined) clearPendingLogout() })
-  } else if (!auth.user && (!isPublicRoute(route.path) || hasHint)) {
+  } else if (!auth.user && bootNeedsMe(route.path, { known: useRouter().resolve(route.path).matched.length > 0, hasHint })) {
     await auth.fetchMe()
   }
 

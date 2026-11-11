@@ -1,4 +1,4 @@
-import { test, expect, gotoApp, apiCall, uid, loginState, forgetSession, USERS, AUDIT_PASSWORD } from './support/fixtures'
+import { test, expect, gotoApp, apiCall, uid, loginState, forgetSession, USERS, AUDIT_PASSWORD, SESSION_COOKIE } from './support/fixtures'
 import type { Browser, BrowserContext, Page } from '@playwright/test'
 
 /**
@@ -64,7 +64,7 @@ async function expectOnlyB(page: Page, nameA: string, nameB: string) {
 }
 
 async function expireSession(context: BrowserContext) {
-  await context.clearCookies({ name: 'baigi-session' })
+  await context.clearCookies({ name: SESSION_COOKIE })
   await context.clearCookies({ name: /^remember_web_/ })
 }
 

@@ -18,6 +18,10 @@ import { CONSENT_DECIDED } from '../../helpers'
 export const WEB = process.env.E2E_WEB_ORIGIN || 'http://localhost:3000'
 export const API_ORIGIN = process.env.E2E_API_ORIGIN || 'http://localhost:8037'
 export const API = `${API_ORIGIN}/api`
+/** The API's session cookie (SESSION_COOKIE of the API's .env; baigi-session locally) */
+export const SESSION_COOKIE = process.env.E2E_SESSION_COOKIE || 'baigi-session'
+/** A request to the API, wherever E2E_API_ORIGIN points (page.route predicates) */
+export const isApiUrl = (url: URL) => url.origin === new URL(API_ORIGIN).origin && url.pathname.startsWith('/api/')
 export const AUDIT_PASSWORD = 'Senha-Audit-2026'
 const CONTAINER = process.env.E2E_API_CONTAINER || 'baigi-app'
 

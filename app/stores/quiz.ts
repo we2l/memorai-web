@@ -2,9 +2,6 @@ import { defineStore } from 'pinia'
 import { PollTimeoutError, pollUntil } from '~/composables/usePoll'
 import type { Quiz, QuizKind, QuizQuestion, QuizStats } from '~/types'
 
-/** Ceiling of the history /praticar reads: 20 pages of 15 = 300 quizzes. */
-const QUIZ_HISTORY_MAX_PAGES = 20
-
 /** POST /quizzes (prd-4e-praticar-v3 RF-B1/B2): `scope` = topic:|document:|note:<id> (or the topic_id shortcut). */
 export interface CreateQuizInput {
   topic_id?: string
@@ -51,23 +48,15 @@ export const useQuizStore = defineStore('quiz', {
   },
 
   actions: {
-    /**
-     * The whole history: GET /quizzes pages 15 at a time (in progress first, then the newest). /praticar filters it by
-     * caderno and counts it, so page 1 alone lost quizzes after the 15th (auditoria 2026-11 BUG-16). The other pages
-     * come in parallel, up to QUIZ_HISTORY_MAX_PAGES.
-     */
+    /** The whole history, every page (BUG-16): utils/quizHistory, on demand (the result's chunk is at its budget). */
     async fetchQuizzes(topicId?: string) {
       this.loading = true
       try {
         const { $api } = useNuxtApp()
-        const page = (n: number) => $api<{ data: Quiz[]; meta?: { last_page?: number } }>('/quizzes', {
+        const { fetchQuizHistory } = await import('~/utils/quizHistory')
+        this.quizzes = await fetchQuizHistory(n => $api('/quizzes', {
           params: { ...(topicId ? { topic_id: topicId } : {}), page: n },
-        })
-        const first = await page(1)
-        const last = Math.min(first.meta?.last_page ?? 1, QUIZ_HISTORY_MAX_PAGES)
-        const rest = await Promise.all(Array.from({ length: last - 1 }, (_, i) => page(i + 2)))
-        const seen = new Set<string>()
-        this.quizzes = [first, ...rest].flatMap(r => r.data).filter(q => !seen.has(q.id) && seen.add(q.id))
+        }))
       } finally {
         this.loading = false
       }
@@ -144,19 +133,24 @@ export const useQuizStore = defineStore('quiz', {
       this.stopTimer()
       const { $api } = useNuxtApp()
       const timeSpent = this.getTimeSpent()
-      const res = await $api<any>(`/quizzes/${this.currentQuiz.id}/finish`, {
-        method: 'POST',
-        body: { time_spent: timeSpent },
-      })
+      const id = this.currentQuiz.id
+      let res: any
+      try {
+        res = await $api<any>(`/quizzes/${id}/finish`, {
+          method: 'POST',
+          body: { time_spent: timeSpent },
+        })
+      } catch (e) {
+        // Already finished (the Prova's timer a moment before the click) or no longer in progress: the server's
+        // state wins, no error; the caller opens the result when it is completed (API #177)
+        // The code read inline (no utils/quizConflict here: the result's chunk is at its budget of 19.5 KB)
+        const code = (e as { data?: { code?: string } } | null)?.data?.code
+        if (code === 'quiz_not_in_progress' || code === 'quiz_completed') return this.fetchQuiz(id)
+        throw e
+      }
       this.currentQuiz = res.data
       this.questions = res.data.questions ?? []
       return res.data as Quiz
-    },
-
-    async deleteQuiz(id: string) {
-      const { $api } = useNuxtApp()
-      await $api(`/quizzes/${id}`, { method: 'DELETE' })
-      this.quizzes = this.quizzes.filter((q) => q.id !== id)
     },
 
     async fetchStats(topicId?: string) {
@@ -220,7 +214,10 @@ export const useQuizStore = defineStore('quiz', {
           this.stopTimer()
           // Auto-finish in exam mode
           if (this.currentQuiz?.mode === 'exam') {
-            this.finishQuiz()
+            this.finishQuiz().catch(() => {
+              // intencional: the 409 of a finished quiz is handled inside; any other error leaves the quiz open
+              // with its "Finalizar" (no useApiAction here: this store is in the result's chunk, budget 19.5 KB)
+            })
           }
           return
         }

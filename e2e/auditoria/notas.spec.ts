@@ -1,4 +1,4 @@
-import { test, expect, gotoApp, apiCall, uid, doc } from './support/fixtures'
+import { test, expect, gotoApp, apiCall, uid, doc, API, WEB } from './support/fixtures'
 import type { Page } from '@playwright/test'
 
 /**
@@ -79,7 +79,7 @@ test.describe('Nota — caminho feliz', () => {
     await page.getByRole('alertdialog').getByRole('button', { name: 'Mandar para a lixeira' }).click()
     await expect(page.getByRole('status').getByText('“Nota para excluir” foi para a lixeira.')).toBeVisible()
     await expect(page).toHaveURL(new RegExp(`/cadernos/${topicId}$`))
-    const res = await page.context().request.get(`http://localhost:8037/api/notes/${n.data.id}`, { headers: { Accept: 'application/json', Origin: 'http://localhost:3000', Referer: 'http://localhost:3000/' } })
+    const res = await page.context().request.get(`${API}/notes/${n.data.id}`, { headers: { Accept: 'application/json', Origin: WEB, Referer: `${WEB}/` } })
     expect(res.status()).toBe(404)
   })
 })

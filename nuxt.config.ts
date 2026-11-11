@@ -172,6 +172,8 @@ export default defineNuxtConfig({
       name: 'BAIGI',
       short_name: 'BAIGI',
       description: 'Estude de forma mais inteligente — repetição espaçada com IA',
+      // vite-plugin-pwa writes "en" without it (QA 2026-11 M8)
+      lang: 'pt-BR',
       // DS v3 light page (--surface-page in assets/css/tokens.css)
       theme_color: THEME_COLOR.light,
       background_color: THEME_COLOR.light,

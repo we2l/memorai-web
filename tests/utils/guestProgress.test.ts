@@ -1,8 +1,9 @@
 import { describe, expect, it, beforeEach, vi } from 'vitest'
 import {
   clearGuestProgress, growthText, guestSummary, loadGuestProgress, nextGuestCard,
-  guestExamSkipped, guestExamSkippedText, guestImportBody, guestImportFailure, pendingGuestProgress, returnText, saveGuestProgress, GUEST_STORAGE_KEY,
+  pendingGuestProgress, returnText, saveGuestProgress, GUEST_STORAGE_KEY,
 } from '~/utils/guestProgress'
+import { guestExamSkipped, guestExamSkippedText, guestImportBody, guestImportFailure } from '~/utils/guestImport'
 
 const INTERVALS = { again: '1min', hard: '1min', good: '10min', easy: '8d' }
 const CARDS = [0, 1, 2]

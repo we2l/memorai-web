@@ -91,7 +91,8 @@ let lastSaved: SavedLote | null = null
 import type { ContentPath } from '~/components/onboarding/ContentStep.vue'
 import type { Flashcard, TomorrowForecast } from '~/types'
 import { AiJobError } from '~/composables/useAiJob'
-import { areaName, clearGuestProgress, guestExamSkipped, guestExamSkippedText, guestImportBody, guestImportFailure, loadGuestProgress, type GuestExamSkipped, type GuestImportFailure } from '~/utils/guestProgress'
+import { areaName, clearGuestProgress, loadGuestProgress } from '~/utils/guestProgress'
+import { guestExamSkipped, guestExamSkippedText, guestImportBody, guestImportFailure, type GuestExamSkipped, type GuestImportFailure } from '~/utils/guestImport'
 import { markFirstMaterialPending } from '~/utils/firstMaterial'
 import { reviewPath } from '~/utils/reviewScope'
 

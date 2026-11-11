@@ -30,7 +30,7 @@
               {{ saved.cards }} cards de {{ saved.topicName }}{{ saved.reviews ? `, com as ${saved.reviews} avaliações do lote` : '' }}.
             </p>
             <p v-if="saved?.examSkipped" class="mt-1 text-body text-fg-muted" data-testid="saved-exam-skipped">
-              A data da prova já passou, então ela não foi marcada. <UiLink to="/progresso#provas">Marcar a prova</UiLink>
+              {{ guestExamSkippedText(saved.examSkipped) }} <UiLink to="/progresso#provas">Ver as provas</UiLink>
             </p>
           </div>
         </div>
@@ -76,8 +76,8 @@
 </template>
 
 <script lang="ts">
-interface GuestImport { data: { card_ids: string[], reviews_applied: number, created: boolean, exam_id?: string | null, exam_skipped?: unknown } }
-interface SavedLote { cards: number, reviews: number, topicName: string, examSkipped: boolean }
+interface GuestImport { data: { card_ids: string[], reviews_applied: number, created: boolean, exam_id?: string | null, exam_skipped?: GuestExamSkipped | null } }
+interface SavedLote { cards: number, reviews: number, topicName: string, examSkipped: GuestExamSkipped | null }
 /** Module scope: one POST per lote even when the page mounts twice on the way in (a 2nd would apply nothing). */
 let inflight: Promise<GuestImport> | null = null
 let lastSaved: SavedLote | null = null
@@ -91,7 +91,7 @@ let lastSaved: SavedLote | null = null
 import type { ContentPath } from '~/components/onboarding/ContentStep.vue'
 import type { Flashcard, TomorrowForecast } from '~/types'
 import { AiJobError } from '~/composables/useAiJob'
-import { areaName, clearGuestProgress, guestImportBody, guestImportFailure, loadGuestProgress, type GuestImportFailure } from '~/utils/guestProgress'
+import { areaName, clearGuestProgress, guestExamSkipped, guestExamSkippedText, guestImportBody, guestImportFailure, loadGuestProgress, type GuestExamSkipped, type GuestImportFailure } from '~/utils/guestProgress'
 import { markFirstMaterialPending } from '~/utils/firstMaterial'
 import { reviewPath } from '~/utils/reviewScope'
 
@@ -160,8 +160,9 @@ async function save(opts: { withoutExam?: boolean } = {}) {
       cards: res.data.card_ids.length,
       reviews: res.data.reviews_applied,
       topicName: areaName(lote.area),
-      // The API may also leave a past exam out by itself (exam_skipped); without the field, our own check
-      examSkipped: examDropped || !!res.data.exam_skipped,
+      // The API leaves the exam out by itself (exam_skipped, #179: past date or the Free's limit); without the
+      // field, our own check of the date
+      examSkipped: guestExamSkipped(res.data.exam_skipped, examDropped),
     }
     if (first) track('signup_from_guest', { area: lote.area, reviews_applied: res.data.reviews_applied, created: res.data.created })
     ready()

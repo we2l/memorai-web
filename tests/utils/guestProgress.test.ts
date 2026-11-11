@@ -1,7 +1,7 @@
 import { describe, expect, it, beforeEach, vi } from 'vitest'
 import {
   clearGuestProgress, growthText, guestSummary, loadGuestProgress, nextGuestCard,
-  guestImportBody, guestImportFailure, pendingGuestProgress, returnText, saveGuestProgress, GUEST_STORAGE_KEY,
+  guestExamSkipped, guestExamSkippedText, guestImportBody, guestImportFailure, pendingGuestProgress, returnText, saveGuestProgress, GUEST_STORAGE_KEY,
 } from '~/utils/guestProgress'
 
 const INTERVALS = { again: '1min', hard: '1min', good: '10min', easy: '8d' }
@@ -127,5 +127,19 @@ describe('guestProgress: POST /onboarding/guest (QA M2)', () => {
     expect(guestImportFailure(err(500))).toBe('network')
     expect(guestImportFailure(new TypeError('fetch failed'))).toBe('network')
     expect(guestImportFailure(err(419))).toBe('network')
+  })
+})
+
+describe('guestProgress: exam_skipped (API #179)', () => {
+  it('a razão da API vence; sem o campo, o nosso descarte da data', () => {
+    expect(guestExamSkipped('exam_limit_reached', false)).toBe('exam_limit_reached')
+    expect(guestExamSkipped('exam_date_past', false)).toBe('exam_date_past')
+    expect(guestExamSkipped(undefined, true)).toBe('exam_date_past')
+    expect(guestExamSkipped(null, false)).toBeNull()
+  })
+
+  it('uma linha por razão', () => {
+    expect(guestExamSkippedText('exam_date_past')).toBe('A data da prova já passou, então ela não foi marcada.')
+    expect(guestExamSkippedText('exam_limit_reached')).toMatch(/máximo de provas/)
   })
 })

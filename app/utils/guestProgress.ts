@@ -235,3 +235,19 @@ export function guestImportFailure(e: unknown): GuestImportFailure {
   if (status && status >= 400 && status < 500 && status !== 408 && status !== 419) return 'invalid'
   return 'network'
 }
+
+/** Why the lote's exam was not created: the API's exam_skipped (#179) or our own check of the date. */
+export type GuestExamSkipped = 'exam_date_past' | 'exam_limit_reached'
+
+export function guestExamSkipped(apiValue: unknown, examDropped: boolean): GuestExamSkipped | null {
+  if (apiValue === 'exam_limit_reached') return 'exam_limit_reached'
+  if (apiValue || examDropped) return 'exam_date_past'
+  return null
+}
+
+/** The quiet line under "Seu progresso está salvo" (the link "Marcar a prova" goes after it). */
+export function guestExamSkippedText(reason: GuestExamSkipped): string {
+  return reason === 'exam_limit_reached'
+    ? 'A prova não foi marcada: o plano Grátis já tem o máximo de provas ativas.'
+    : 'A data da prova já passou, então ela não foi marcada.'
+}

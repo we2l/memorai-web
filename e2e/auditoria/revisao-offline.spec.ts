@@ -66,6 +66,12 @@ test('o app instalado abre a revisão sem rede pelo lote salvo e sincroniza depo
 
   await context.setOffline(true)
   await page.goto(`/revisar?topic_id=${topicId}`)
+  // Chromium resets navigator.onLine to true on a document loaded under the offline emulation (the service worker
+  // served it); on a phone in airplane mode it stays false. Re-applying gives the real state, and the `offline`
+  // event is what the browser fires when the connection drops (QA 2026-11 M3: true + no answer = server down)
+  await context.setOffline(false)
+  await context.setOffline(true)
+  await page.evaluate(() => window.dispatchEvent(new Event('offline')))
   await expect(page.getByTestId('offline-bar')).toContainText('Sem internet')
   await rate(page, '2')
   await rate(page, '2')

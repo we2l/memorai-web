@@ -9,6 +9,9 @@ author: baigi
 published: 2026-11-08
 updated: 2026-11-08
 related: como-revisar-lei-seca-inss, alternativa-ao-anki
+context: Ebbinghaus e FSRS
+cover: {"value": "94,7%", "label": "de chance de lembrar 1 dia depois de acertar"}
+facts: [{"value": "80,8%", "label": "depois de 7 dias", "icon": "chart"}, {"value": "66,8%", "label": "depois de 30 dias", "icon": "chart"}]
 tags: curva do esquecimento, Ebbinghaus, repetição espaçada, revisão
 ---
 

@@ -10,6 +10,8 @@ published: 2026-11-08
 updated: 2026-11-10
 pillar: curva-do-esquecimento
 related: como-revisar-lei-seca-inss
+context: Anki e alternativas
+cover: {"value": "R$ 149,90", "label": "o AnkiMobile no iPhone"}
 tags: Anki, alternativa ao Anki, flashcards, repetição espaçada
 ---
 

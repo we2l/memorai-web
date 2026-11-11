@@ -10,6 +10,8 @@ published: 2026-11-08
 updated: 2026-11-08
 pillar: curva-do-esquecimento
 related: alternativa-ao-anki
+context: INSS · Lei 8.213/1991
+cover: {"value": "50%", "label": "do salário de benefício: o auxílio-acidente"}
 tags: INSS, lei seca, Lei 8.213, concurso, revisão
 ---
 

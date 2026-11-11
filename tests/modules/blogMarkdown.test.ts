@@ -22,6 +22,20 @@ function doc(body: string, front = FRONT) {
 }
 
 describe('parseArticle (prd-blog-seo RF-B1..B4)', () => {
+  it('capa e fatos (prd-blog-v2): só número escrito no artigo, até 3 fatos, ícone conhecido', () => {
+    const front = (extra: string) => FRONT.replace('tags:', `${extra}\ntags:`)
+    const ok = parseArticle(doc('São 16 semanas e 70 questões.\n', front('context: TJ-SP\ncover: {"value": "16", "label": "semanas"}\nfacts: [{"value": "70 questões", "label": "na prova", "icon": "questions"}]')), 'x.md', 'capa')
+    expect(ok.cover).toEqual({ value: '16', label: 'semanas' })
+    expect(ok.facts).toEqual([{ value: '70 questões', label: 'na prova', icon: 'questions' }])
+    expect(ok.context).toBe('TJ-SP')
+    expect(ok.featured).toBe(false)
+    expect(() => parseArticle(doc('Texto.\n', front('cover: {"value": "99%", "label": "inventado"}')), 'x.md', 'capa')).toThrow(/não está escrito no artigo/)
+    expect(() => parseArticle(doc('70 questões.\n', front('facts: [{"value": "70 questões", "label": "x", "icon": "foguete"}]')), 'x.md', 'capa')).toThrow(/ícone desconhecido/)
+    expect(() => parseArticle(doc('Texto.\n', front('cover: 16 semanas')), 'x.md', 'capa')).toThrow(/JSON/)
+    const sem = parseArticle(doc('Texto.\n'), 'x.md', 'sem-capa')
+    expect([sem.cover, sem.facts, sem.context]).toEqual([null, [], null])
+  })
+
   it('Fontes: o link mostra o nome da fonte, ganha o domínio ao lado e a lista ganha a classe própria (prd-blog-v2 RF-L2)', () => {
     const a = parseArticle(doc(`Texto com [site](https://www.exemplo.com/a) fora das fontes.
 

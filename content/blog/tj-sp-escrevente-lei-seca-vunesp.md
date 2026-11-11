@@ -10,6 +10,9 @@ published: 2026-11-09
 updated: 2026-11-09
 pillar: curva-do-esquecimento
 related: como-revisar-lei-seca-inss, curva-do-esquecimento
+context: TJ-SP Escrevente
+cover: {"value": "16", "label": "semanas de estudo até a prova"}
+facts: [{"value": "14/03/2027", "label": "prova prevista, à tarde", "icon": "calendar"}, {"value": "70 questões", "label": "e redação no mesmo dia", "icon": "questions"}, {"value": "30", "label": "questões de Direito, quase tudo lei seca", "icon": "target"}]
 tags: TJ-SP, Escrevente, Vunesp, lei seca, concurso, revisão
 ---
 

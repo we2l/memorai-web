@@ -12,7 +12,7 @@
  * FAQ: the `### questions` under a `## Perguntas frequentes` heading become FAQPage data.
  */
 import { Marked, type Token, type Tokens } from 'marked'
-import { BLOG_AREAS, BLOG_CATEGORIES, BLOG_SHOTS, BLOG_TOOLS, type BlogShot, type BlogArea, type BlogArticle, type BlogCategory, type BlogMeta, type BlogSegment, type BlogTool, type QuizCard } from './types'
+import { BLOG_AREAS, BLOG_CATEGORIES, BLOG_FACT_ICONS, BLOG_SHOTS, BLOG_TOOLS, type BlogCover, type BlogFact, type BlogFactIcon, type BlogShot, type BlogArea, type BlogArticle, type BlogCategory, type BlogMeta, type BlogSegment, type BlogTool, type QuizCard } from './types'
 
 export * from './types'
 
@@ -104,6 +104,45 @@ function isFigure(text: string): boolean {
   return text.length <= 24 && /\d/.test(text) && /^[\d\s/.,:%ºª°R$hx+–-]*(?:\s(?:a|e|até|de)\s[\d\s/.,:%ºª°R$hx+–-]*)*$/.test(text)
 }
 
+const squash = (text: string) => text.replace(/\s+/g, ' ')
+
+function parseJsonField<T>(raw: string | undefined, key: string, file: string): T | null {
+  if (!raw) return null
+  try {
+    return JSON.parse(raw) as T
+  } catch {
+    throw new Error(`${file}: "${key}" do front matter precisa ser JSON numa linha`)
+  }
+}
+
+/**
+ * Cover and facts of the article (prd-blog-v2 RF-V1/RF-V2): short values and labels, and every value must be written in
+ * the article itself (title, summary, description or body): a cover never brings a number the text does not back.
+ */
+function parseCover(data: Record<string, string>, body: string, file: string): { cover: BlogCover | null, facts: BlogFact[] } {
+  const text = squash([data.title, data.summary, data.description, body].join(' '))
+  const check = (item: { value?: unknown, label?: unknown }, key: string) => {
+    if (typeof item?.value !== 'string' || typeof item.label !== 'string' || !item.value.trim() || !item.label.trim()) {
+      throw new Error(`${file}: "${key}" pede value e label em texto`)
+    }
+    if (item.value.length > 12) throw new Error(`${file}: "${key}" com value "${item.value}" longo demais (até 12 caracteres)`)
+    if (item.label.length > 48) throw new Error(`${file}: "${key}" com label longo demais (até 48 caracteres)`)
+    if (!text.includes(squash(item.value))) throw new Error(`${file}: "${key}" mostra "${item.value}", que não está escrito no artigo`)
+  }
+  const cover = parseJsonField<BlogCover>(data.cover, 'cover', file)
+  if (cover) check(cover, 'cover')
+  const facts = parseJsonField<BlogFact[]>(data.facts, 'facts', file) ?? []
+  if (!Array.isArray(facts) || facts.length > 3) throw new Error(`${file}: "facts" é uma lista de até 3 itens`)
+  for (const f of facts) {
+    check(f, 'facts')
+    if (!BLOG_FACT_ICONS.includes(f.icon as BlogFactIcon)) throw new Error(`${file}: ícone desconhecido "${String(f.icon)}" em facts (${BLOG_FACT_ICONS.join(', ')})`)
+  }
+  return {
+    cover: cover ? { value: cover.value, label: cover.label } : null,
+    facts: facts.map(f => ({ value: f.value, label: f.label, icon: f.icon })),
+  }
+}
+
 const EMBEDS = new Set(['quiz', 'cta', 'tool', 'card', 'shot'])
 const MARKER = (i: number) => `<!--blog-embed:${i}-->`
 
@@ -118,6 +157,9 @@ export function parseArticle(source: string, file: string, slug: string): BlogAr
   const updated = data.updated || data.published!
   if (!DATE.test(data.published!) || !DATE.test(updated)) throw new Error(`${file}: datas em AAAA-MM-DD`)
   if (data.description!.length > 170) throw new Error(`${file}: description com mais de 170 caracteres`)
+  if (data.featured && !['true', 'false'].includes(data.featured)) throw new Error(`${file}: featured é true ou false`)
+  if (data.context && data.context.length > 40) throw new Error(`${file}: context com mais de 40 caracteres`)
+  const { cover, facts } = parseCover(data, body, file)
 
   const embeds: BlogSegment[] = []
   const toc: BlogArticle['toc'] = []
@@ -223,6 +265,10 @@ export function parseArticle(source: string, file: string, slug: string): BlogAr
     summary: data.summary || null,
     pillar: data.pillar || null,
     related: data.related ? data.related.split(',').map(s => s.trim()).filter(Boolean) : [],
+    context: data.context || null,
+    cover,
+    facts,
+    featured: data.featured === 'true',
     toc,
     faq,
     segments,

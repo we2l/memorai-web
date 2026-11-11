@@ -41,6 +41,8 @@ export function loadArticles(dir: string): BlogArticle[] {
     if (slugs.has(reserved)) throw new Error(`content/blog/${reserved}.md: o slug "${reserved}" é de uma página do blog (/blog/${reserved})`)
   }
   const tools = new Set<string>(BLOG_TOOLS)
+  const featured = articles.filter(a => a.featured)
+  if (featured.length > 1) throw new Error(`featured: true em mais de um artigo (${featured.map(a => a.slug).join(', ')}); o destaque do /blog é um só`)
   for (const a of articles) {
     if (!BLOG_AUTHORS[a.author]) throw new Error(`content/blog/${a.slug}.md: autor desconhecido "${a.author}" (modules/blog/authors.ts)`)
     for (const ref of [a.pillar, ...a.related].filter(Boolean) as string[]) {

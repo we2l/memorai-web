@@ -10,6 +10,9 @@ published: 2026-11-10
 updated: 2026-11-10
 pillar: curva-do-esquecimento
 related: cronograma-revisao-oab-48, curva-do-esquecimento, como-revisar-lei-seca-inss
+context: 48º Exame de Ordem
+cover: {"value": "30", "label": "dias de estudo até a 1ª fase"}
+facts: [{"value": "10/01/2027", "label": "1ª fase, das 13h às 18h", "icon": "calendar"}, {"value": "40 acertos", "label": "em 80 questões para passar", "icon": "target"}, {"value": "3", "label": "simulados completos no plano", "icon": "questions"}]
 tags: OAB, Exame de Ordem, 48º Exame, 1ª fase, reta final, simulado, revisão
 ---
 

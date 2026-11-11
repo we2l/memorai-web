@@ -10,6 +10,9 @@ published: 2026-11-09
 updated: 2026-11-10
 pillar: curva-do-esquecimento
 related: oab-faltando-1-mes, como-revisar-lei-seca-inss, curva-do-esquecimento
+context: 48º Exame de Ordem
+cover: {"value": "8", "label": "semanas até a 1ª fase"}
+facts: [{"value": "10/01/2027", "label": "data da 1ª fase", "icon": "calendar"}, {"value": "80 questões", "label": "aprova quem faz 40 pontos", "icon": "questions"}, {"value": "15%", "label": "no mínimo, de Ética e afins", "icon": "target"}]
 tags: OAB, Exame de Ordem, 48º Exame, 1ª fase, cronograma, revisão
 ---
 

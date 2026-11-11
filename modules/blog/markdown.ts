@@ -202,7 +202,7 @@ export function parseArticle(source: string, file: string, slug: string): BlogAr
           if (!inSources) return a
           const label = plainText(tokens).trim()
           if (isUrlText(label)) throw new Error(`${file}: nas Fontes, o link "${href}" mostra a própria URL; escreva o nome da fonte: [Lei nº 8.213/1991](url)`)
-          return `${a}<span class="blog-src-domain"> · ${escapeHtml(sourceDomain(href))}</span>`
+          return a
         }
         if (href.startsWith('#')) return `<a href="${escapeHtml(href)}"${t}>${inner}</a>`
         throw new Error(`${file}: link "${href}" sem / nem https://`)
@@ -233,8 +233,13 @@ export function parseArticle(source: string, file: string, slug: string): BlogAr
 
   const tokens = marked.lexer(body)
   const faq = extractFaq(tokens)
-  // The list of sources gets its own class (simple list, the name as the link and the domain beside it)
-  const html = marked.parser(tokens).replace(/(<h2 id="fontes">[\s\S]*?<\/h2>\s*)<ol>/, '$1<ol class="blog-sources">')
+  // The list of sources gets its own class (simple list, the name as the link) and each item ends with the domains
+  // of its links, small ("· planalto.gov.br")
+  const html = marked.parser(tokens).replace(/(<h2 id="fontes">[\s\S]*?<\/h2>\s*)<ol>([\s\S]*?)<\/ol>/, (_m, head: string, items: string) =>
+    `${head}<ol class="blog-sources">${items.replace(/<li>([\s\S]*?)<\/li>/g, (_li, inner: string) => {
+      const domains = [...new Set([...inner.matchAll(/href="(https?:\/\/[^"]+)"/g)].map(m => sourceDomain(m[1]!.replace(/&amp;/g, '&'))))]
+      return `<li>${inner}${domains.length ? `<span class="blog-src-domain"> · ${domains.map(escapeHtml).join(' · ')}</span>` : ''}</li>`
+    })}</ol>`)
   const words = html.replace(/<span class="blog-src-domain">[^<]*<\/span>/g, '').replace(/<[^>]+>/g, ' ').split(/\s+/).filter(Boolean).length
     + embeds.reduce((n, e) => n + (e.kind === 'quiz' ? e.cards.length * 25 : 0), 0)
 

@@ -37,6 +37,18 @@ export function formatBlogDate(iso: string): string {
   return `${d} de ${MONTHS[(m ?? 1) - 1]} de ${y}`
 }
 
+const SHORT_MONTHS = ['jan.', 'fev.', 'mar.', 'abr.', 'maio', 'jun.', 'jul.', 'ago.', 'set.', 'out.', 'nov.', 'dez.']
+/** 2026-11-08 → "8 nov. 2026" (cards of the index) */
+export function formatBlogDateShort(iso: string): string {
+  const [y, m, d] = iso.split('-').map(Number)
+  return `${d} ${SHORT_MONTHS[(m ?? 1) - 1]} ${y}`
+}
+
+/** The highlight of /blog: the `featured: true` article or, without one, the newest (the list comes newest first) */
+export function featuredArticle<T extends Pick<BlogMeta, 'featured'>>(all: T[]): T | undefined {
+  return all.find(a => a.featured) ?? all[0]
+}
+
 export function categoryLabel(category: BlogMeta['category']): string {
   return BLOG_CATEGORIES[category]
 }

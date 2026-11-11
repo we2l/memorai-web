@@ -45,7 +45,7 @@ describe('parseArticle (prd-blog-seo RF-B1..B4)', () => {
 `), 'x.md', 'fontes')
     const html = a.segments.map(s => (s.kind === 'html' ? s.html : '')).join('')
     expect(html).toContain('<ol class="blog-sources">')
-    expect(html).toContain('Lei nº 8.213/1991</a><span class="blog-src-domain"> · planalto.gov.br</span>')
+    expect(html).toContain('Lei nº 8.213/1991</a> (art. 86).<span class="blog-src-domain"> · planalto.gov.br</span></li>')
     // Outside the sources, no domain
     expect(html.match(/blog-src-domain/g)).toHaveLength(1)
   })

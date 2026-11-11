@@ -11,7 +11,7 @@
     <p>
       O controlador dos dados é {{ RESPONSIBLE_NAME }}, pessoa física responsável pelo BAIGI. Como agente de tratamento
       de pequeno porte (Resolução CD/ANPD nº 2/2022), o BAIGI não indica encarregado (DPO). O canal para tirar dúvidas e
-      exercer seus direitos é o e-mail <a href="mailto:privacidade@baigi.com.br">privacidade@baigi.com.br</a>.
+      exercer seus direitos é o e-mail <a href="mailto:contato@baigi.com.br">contato@baigi.com.br</a>.
     </p>
 
     <h2 id="dados">2. Dados que coletamos</h2>
@@ -64,7 +64,7 @@
       <li>revogar consentimentos e saber com quem seus dados são compartilhados.</li>
     </ul>
     <p>
-      Se preferir, escreva para <a href="mailto:privacidade@baigi.com.br">privacidade@baigi.com.br</a>.
+      Se preferir, escreva para <a href="mailto:contato@baigi.com.br">contato@baigi.com.br</a>.
       Respondemos em até 15 dias.
     </p>
 

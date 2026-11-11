@@ -9,7 +9,7 @@ author: baigi
 published: 2026-11-08
 updated: 2026-11-08
 pillar: curva-do-esquecimento
-related: alternativa-ao-anki
+related: alternativa-ao-anki, caderno-de-erros-digital
 context: INSS · Lei 8.213/1991
 cover: {"value": "50%", "label": "do salário de benefício: o auxílio-acidente"}
 tags: INSS, lei seca, Lei 8.213, concurso, revisão
@@ -82,7 +82,7 @@ Na prática, uma rotina simples:
 1. **Estude um bloco da lei** (por exemplo, as carências) e escreva os cards no mesmo dia.
 2. **Faça a revisão do dia antes de matéria nova.** Um lote de 20 cards leva poucos minutos.
 3. **Faça questões da banca** sobre o mesmo bloco.
-4. **Cada questão errada vira card**, com o artigo no verso. É o caderno de erros, só que ele volta sozinho no tempo certo.
+4. **Cada questão errada vira card**, com o artigo no verso. É o [caderno de erros](/blog/caderno-de-erros-digital), só que ele volta sozinho no tempo certo.
 5. **Limite os cards novos por dia**, para a revisão de amanhã continuar cabendo.
 
 ```cta

@@ -70,6 +70,7 @@ export default defineNuxtPlugin(() => {
     if (auth.offline) void auth.fetchMe()
     kick(true)
   })
+  window.addEventListener('offline', () => offline.connectionLost())
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') kick()
   })

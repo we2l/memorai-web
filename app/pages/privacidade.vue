@@ -1,7 +1,7 @@
 <template>
   <LegalLayout title="Política de Privacidade" :effective-date="EFFECTIVE_DATE" :updated-at="UPDATED_AT" :sections="sections">
     <!-- TEXTO JURÍDICO PENDENTE: revisão de advogado obrigatória antes de produção (PRD ux-critica §8.1) -->
-    <!-- TODO(jurídico): substituir [[CNPJ]] e [[ENCARREGADO_LGPD]] pelos dados reais -->
+    <!-- Controlador: só o nome (utils/legal.ts), nunca o CPF; sem encarregado como agente de pequeno porte (Res. CD/ANPD 2/2022, art. 11) -->
     <p>
       Esta política explica quais dados pessoais o BAIGI trata, para quê, com quem compartilha e como você exerce
       seus direitos previstos na Lei Geral de Proteção de Dados (Lei nº 13.709/2018 — LGPD).
@@ -9,9 +9,9 @@
 
     <h2 id="controlador">1. Controlador e encarregado</h2>
     <p>
-      O controlador dos dados é o BAIGI, inscrito no CNPJ <span class="placeholder">[[CNPJ]]</span>.
-      O encarregado pelo tratamento de dados pessoais (DPO) é <span class="placeholder">[[ENCARREGADO_LGPD]]</span>,
-      que pode ser contatado pelo e-mail <a href="mailto:privacidade@baigi.com.br">privacidade@baigi.com.br</a>.
+      O controlador dos dados é {{ RESPONSIBLE_NAME }}, pessoa física responsável pelo BAIGI. Como agente de tratamento
+      de pequeno porte (Resolução CD/ANPD nº 2/2022), o BAIGI não indica encarregado (DPO). O canal para tirar dúvidas e
+      exercer seus direitos é o e-mail <a href="mailto:privacidade@baigi.com.br">privacidade@baigi.com.br</a>.
     </p>
 
     <h2 id="dados">2. Dados que coletamos</h2>
@@ -64,7 +64,7 @@
       <li>revogar consentimentos e saber com quem seus dados são compartilhados.</li>
     </ul>
     <p>
-      Se preferir, escreva para o encarregado em <a href="mailto:privacidade@baigi.com.br">privacidade@baigi.com.br</a>.
+      Se preferir, escreva para <a href="mailto:privacidade@baigi.com.br">privacidade@baigi.com.br</a>.
       Respondemos em até 15 dias.
     </p>
 
@@ -96,11 +96,12 @@
 
 <script setup lang="ts">
 import { INDEXABLE } from '~/utils/seo'
+import { RESPONSIBLE_NAME } from '~/utils/legal'
 definePageMeta({ layout: 'public' })
 
 // TODO(jurídico): datas definitivas na publicação do texto revisado
 const EFFECTIVE_DATE = '1º de outubro de 2026'
-const UPDATED_AT = '7 de novembro de 2026'
+const UPDATED_AT = '11 de novembro de 2026'
 
 const sections = [
   { id: 'controlador', title: 'Controlador e encarregado' },

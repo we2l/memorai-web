@@ -16,7 +16,7 @@ const extras = { pdf_pages_per_note: 100, rag_max_pages: 300, upload_max_mb: 50,
 
 const catalog = {
   currency: 'BRL', period: 'calendar_month', period_timezone: 'America/Sao_Paulo', features: {},
-  checkout: { available: true, gateway: 'mercadopago', public_key: null, seller: { name: 'Fulano de Tal', document: '123.456.789-09', email: 'contato@baigi.com.br' }, statement_descriptor: 'BAIGI', refund_window_days: 7 },
+  checkout: { available: true, gateway: 'mercadopago', public_key: null, seller: { name: 'Fulano de Tal', email: 'contato@baigi.com.br' }, statement_descriptor: 'BAIGI', refund_window_days: 7 },
   plans: [
     { key: 'free', name: 'Grátis', prices: { monthly: null, annual: null }, limits: {}, extras },
     { key: 'pro', name: 'Intensivo', limits: {}, extras, prices: {
@@ -72,7 +72,7 @@ describe('checkout do Mercado Pago', () => {
     expect(receiver.text()).not.toContain('123.456.789-09')
     expect(receiver.find('a').attributes('href')).toBe('/quem-faz')
     expect(wrapper.find('img[alt^="QR Code do Pix"]').attributes('src')).toBe('data:image/png;base64,iVBORw0KGgo=')
-    expect(wrapper.find('[data-testid="checkout-seller"]').text()).toContain('Vendido por Fulano de Tal, CPF 123.456.789-09')
+    expect(wrapper.find('[data-testid="checkout-seller"]').text()).toContain('Vendido por Fulano de Tal, responsável')
   })
 
   it('gestão: cancelar pede confirmação e chama a API uma vez', async () => {

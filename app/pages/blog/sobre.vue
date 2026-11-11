@@ -31,7 +31,7 @@
         <li><strong>Fonte primária:</strong> o edital, o texto da lei no Planalto, o caderno de questões da banca e os estudos sobre memória. Cada fonte fica listada no fim do artigo, com o link.</li>
         <li><strong>Conferência:</strong> datas, números, artigos de lei e resultados de pesquisa são conferidos na fonte antes de publicar. As contas de intervalo usam os parâmetros padrão do FSRS, e o texto diz quando o número é uma conta nossa.</li>
         <li><strong>IA:</strong> usamos IA na pesquisa e na revisão do texto. Nenhum fato entra só porque a IA disse.</li>
-        <li><strong>Atualização:</strong> a data de "Atualizado em" só muda quando um fato muda (edital novo, lei alterada, data da prova).</li>
+        <li><strong>Atualização:</strong> a data de “Atualizado em” só muda quando um fato muda (edital novo, lei alterada, data da prova).</li>
       </ol>
     </section>
 

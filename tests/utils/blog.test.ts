@@ -5,7 +5,7 @@ import { BLOG_AUTHORS } from '~~/modules/blog/authors'
 import type { BlogArticle, BlogMeta } from '~~/modules/blog/types'
 
 const meta = (slug: string, extra: Partial<BlogMeta> = {}): BlogMeta => ({
-  slug, title: slug, seoTitle: slug, description: 'd', category: 'concurso', area: 'concurso', author: 'weslley',
+  slug, title: slug, seoTitle: slug, description: 'd', category: 'concurso', area: 'concurso', author: 'baigi',
   published: '2026-11-08', updated: '2026-11-08', readingMinutes: 5, tags: [], image: null, summary: null, pillar: null, related: [], ...extra,
 })
 
@@ -22,10 +22,13 @@ describe('utils/blog', () => {
     expect(bucket(40, [1, 7, 30])).toBe('30+')
   })
 
-  it('Article com autor, foto e datas; FAQPage; o JSON no <script> não fecha a tag', () => {
+  it('Article assinado pela marca (Organization, nenhum Person), datas; FAQPage; o JSON no <script> não fecha a tag', () => {
     const a = { ...meta('x'), toc: [], faq: [{ q: 'P?', a: 'R' }], segments: [], links: [] } as BlogArticle
-    const ld = articleJsonLd(a, BLOG_AUTHORS.weslley!)
-    expect(ld.author).toMatchObject({ '@type': 'Person', 'url': 'https://baigi.com.br/quem-faz', 'image': 'https://baigi.com.br/quem-faz/weslley.webp' })
+    const ld = articleJsonLd(a, BLOG_AUTHORS.baigi!)
+    expect(ld.author).toMatchObject({ '@type': 'Organization', 'name': 'Baigi', 'url': 'https://baigi.com.br/' })
+    expect(ld.author).toEqual(ld.publisher)
+    expect(JSON.stringify(ld)).not.toContain('Person')
+    expect(Object.keys(BLOG_AUTHORS)).toEqual(['baigi'])
     expect(ld.dateModified).toBe('2026-11-08')
     expect(faqJsonLd(a.faq).mainEntity[0]).toMatchObject({ name: 'P?', acceptedAnswer: { text: 'R' } })
     expect(jsonLdScript({ t: '</script>' })).not.toContain('</script>')

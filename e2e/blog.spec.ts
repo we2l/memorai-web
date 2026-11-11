@@ -55,11 +55,57 @@ test.describe('blog e ferramentas', () => {
     await expect(quiz.getByTestId('blog-quiz-cta')).toHaveAttribute('href', /^\/comecar\/concurso\?.*utm_content=como-revisar-lei-seca-inss-quiz/)
   })
 
+  // prd-blog-v2: the card that turns (keyboard), the contents beside the text from 1024 px, the thin cookie bar, the
+  // brand as the author and the filter of the index
+  test('artigo v2: card que vira pelo teclado, sumário lateral marca a seção, barra fina de cookies e autor Baigi', async ({ page }) => {
+    await page.setViewportSize({ width: 1024, height: 800 })
+    // No decision yet: the consent banner shows (the default storage state has one)
+    await page.context().clearCookies()
+    await page.goto('/blog/tj-sp-escrevente-lei-seca-vunesp')
+    const consent = page.getByTestId('consent-banner')
+    await expect(consent).toBeVisible()
+    expect((await consent.boundingBox())!.height).toBeLessThan(90)
+    await expect(page.getByTestId('blog-byline')).toContainText('Por Baigi')
+    await expect(page.getByTestId('blog-byline').getByRole('link', { name: 'Baigi' })).toHaveAttribute('href', '/blog/sobre')
+    await expect(page.getByTestId('blog-cover')).toContainText('16')
+
+    const card = page.getByTestId('blog-example-card')
+    await card.scrollIntoViewIfNeeded()
+    await expect(card.getByTestId('blog-example-answer')).toBeHidden()
+    await card.focus()
+    await page.keyboard.press('Space')
+    await expect(card.getByTestId('blog-example-answer')).toBeVisible()
+    await page.keyboard.press('2')
+    const band = card.getByTestId('review-feedback')
+    await expect(band).toHaveAttribute('data-kind', 'ok')
+    await expect(band).toHaveAttribute('data-compact', 'true')
+    await page.keyboard.press('Enter')
+    await expect(band).toHaveCount(0)
+    await expect(card).toHaveAttribute('data-state', 'done')
+
+    const toc = page.getByTestId('blog-toc')
+    await expect(toc).toBeVisible()
+    await toc.getByRole('link', { name: 'Perguntas frequentes' }).click()
+    await expect(toc.locator('a[aria-current="location"]')).toHaveText('Perguntas frequentes')
+  })
+
+  test('índice v2: destaque, filtro por categoria na URL e o link Sobre', async ({ page }) => {
+    await page.goto('/blog')
+    await expect(page.getByTestId('blog-featured')).toBeVisible()
+    await page.getByTestId('blog-filter-oab').click()
+    await expect(page).toHaveURL(/#oab$/)
+    await expect(page.getByTestId('blog-featured')).toHaveCount(0)
+    await expect(page.getByTestId('blog-grid').locator('article')).toHaveCount(2)
+    await page.getByTestId('blog-filter-all').click()
+    await expect(page.getByTestId('blog-featured')).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Como eles são feitos' })).toHaveAttribute('href', '/blog/sobre')
+  })
+
   const SHOTS = process.env.BLOG_SHOTS
   test('telas para conferência visual', async ({ page }) => {
     test.skip(!SHOTS, 'BLOG_SHOTS=pasta para gravar')
     test.setTimeout(120_000)
-    for (const path of ['/blog', '/blog/curva-do-esquecimento', '/blog/como-revisar-lei-seca-inss', '/blog/alternativa-ao-anki', '/ferramentas/calculadora-do-esquecimento', '/ferramentas/plano-ate-a-prova', '/quem-faz']) {
+    for (const path of ['/blog', '/blog/sobre', '/blog/tj-sp-escrevente-lei-seca-vunesp', '/blog/curva-do-esquecimento', '/blog/como-revisar-lei-seca-inss', '/blog/alternativa-ao-anki', '/ferramentas/calculadora-do-esquecimento', '/ferramentas/plano-ate-a-prova', '/quem-faz']) {
       for (const width of [390, 768, 1024, 1280, 1440]) {
         for (const theme of ['light', 'dark']) {
           await page.setViewportSize({ width, height: 900 })

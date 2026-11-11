@@ -11,7 +11,7 @@ description: Um teste.
 summary: Resposta curta.
 category: concurso
 area: concurso
-author: weslley
+author: baigi
 published: 2026-11-08
 tags: lei, inss
 ---
@@ -22,6 +22,42 @@ function doc(body: string, front = FRONT) {
 }
 
 describe('parseArticle (prd-blog-seo RF-B1..B4)', () => {
+  it('capa e fatos (prd-blog-v2): só número escrito no artigo, até 3 fatos, ícone conhecido', () => {
+    const front = (extra: string) => FRONT.replace('tags:', `${extra}\ntags:`)
+    const ok = parseArticle(doc('São 16 semanas e 70 questões.\n', front('context: TJ-SP\ncover: {"value": "16", "label": "semanas"}\nfacts: [{"value": "70 questões", "label": "na prova", "icon": "questions"}]')), 'x.md', 'capa')
+    expect(ok.cover).toEqual({ value: '16', label: 'semanas' })
+    expect(ok.facts).toEqual([{ value: '70 questões', label: 'na prova', icon: 'questions' }])
+    expect(ok.context).toBe('TJ-SP')
+    expect(ok.featured).toBe(false)
+    expect(() => parseArticle(doc('Texto.\n', front('cover: {"value": "99%", "label": "inventado"}')), 'x.md', 'capa')).toThrow(/não está escrito no artigo/)
+    expect(() => parseArticle(doc('70 questões.\n', front('facts: [{"value": "70 questões", "label": "x", "icon": "foguete"}]')), 'x.md', 'capa')).toThrow(/ícone desconhecido/)
+    expect(() => parseArticle(doc('Texto.\n', front('cover: 16 semanas')), 'x.md', 'capa')).toThrow(/JSON/)
+    const sem = parseArticle(doc('Texto.\n'), 'x.md', 'sem-capa')
+    expect([sem.cover, sem.facts, sem.context]).toEqual([null, [], null])
+  })
+
+  it('Fontes: o link mostra o nome da fonte, ganha o domínio ao lado e a lista ganha a classe própria (prd-blog-v2 RF-L2)', () => {
+    const a = parseArticle(doc(`Texto com [site](https://www.exemplo.com/a) fora das fontes.
+
+## Fontes
+
+1. [Lei nº 8.213/1991](https://www.planalto.gov.br/ccivil_03/leis/l8213cons.htm) (art. 86).
+`), 'x.md', 'fontes')
+    const html = a.segments.map(s => (s.kind === 'html' ? s.html : '')).join('')
+    expect(html).toContain('<ol class="blog-sources">')
+    expect(html).toContain('Lei nº 8.213/1991</a> (art. 86).<span class="blog-src-domain"> · planalto.gov.br</span></li>')
+    // Outside the sources, no domain
+    expect(html.match(/blog-src-domain/g)).toHaveLength(1)
+  })
+
+  it('Fontes: link com a própria URL como texto reprova o build', () => {
+    for (const label of ['https://www.planalto.gov.br/l8213.htm', 'www.planalto.gov.br/l8213.htm', 'planalto.gov.br/ccivil_03/l8213.htm']) {
+      expect(() => parseArticle(doc(`## Fontes\n\n1. Lei. [${label}](https://www.planalto.gov.br/l8213.htm)\n`), 'x.md', 'fontes')).toThrow(/mostra a própria URL/)
+    }
+    // A raw URL outside the sources is still accepted (it is the author's choice there)
+    expect(() => parseArticle(doc('Veja [https://exemplo.com](https://exemplo.com).\n'), 'x.md', 'fora')).not.toThrow()
+  })
+
   it('lê o front matter, monta o sumário pelos ## e o FAQ pela seção de perguntas', () => {
     const a = parseArticle(doc(`Intro.
 

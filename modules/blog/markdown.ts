@@ -12,7 +12,7 @@
  * FAQ: the `### questions` under a `## Perguntas frequentes` heading become FAQPage data.
  */
 import { Marked, type Token, type Tokens } from 'marked'
-import { BLOG_AREAS, BLOG_CATEGORIES, BLOG_SHOTS, BLOG_TOOLS, type BlogShot, type BlogArea, type BlogArticle, type BlogCategory, type BlogMeta, type BlogSegment, type BlogTool, type QuizCard } from './types'
+import { BLOG_AREAS, BLOG_CATEGORIES, BLOG_FACT_ICONS, BLOG_SHOTS, BLOG_TOOLS, type BlogCover, type BlogFact, type BlogFactIcon, type BlogShot, type BlogArea, type BlogArticle, type BlogCategory, type BlogMeta, type BlogSegment, type BlogTool, type QuizCard } from './types'
 
 export * from './types'
 
@@ -87,6 +87,62 @@ function parseEmbed(lang: string, text: string, file: string): BlogSegment {
   return { kind: 'card', q: String(data.q), a: String(data.a), source: data.source as string | undefined }
 }
 
+const SOURCES = /^fontes$/i
+
+/** "https://www.planalto.gov.br/ccivil_03/..." -> "planalto.gov.br": shown small next to each source */
+export function sourceDomain(href: string): string {
+  return new URL(href).hostname.replace(/^www\./, '')
+}
+
+/** A link whose text is a URL or a bare domain path ("https://...", "www.x.com/y") instead of the name of the source */
+function isUrlText(text: string): boolean {
+  return /^(https?:\/\/|www\.)/i.test(text) || /^[\w-]+(\.[\w-]+)+\/\S+$/.test(text)
+}
+
+/** A short cell that is a date, a range or a number ("23/11 a 6/12", "1 e 2", "R$ 81,00"): kept on one line */
+function isFigure(text: string): boolean {
+  return text.length <= 24 && /\d/.test(text) && /^[\d\s/.,:%ºª°R$hx+–-]*(?:\s(?:a|e|até|de)\s[\d\s/.,:%ºª°R$hx+–-]*)*$/.test(text)
+}
+
+const squash = (text: string) => text.replace(/\s+/g, ' ')
+
+function parseJsonField<T>(raw: string | undefined, key: string, file: string): T | null {
+  if (!raw) return null
+  try {
+    return JSON.parse(raw) as T
+  } catch {
+    throw new Error(`${file}: "${key}" do front matter precisa ser JSON numa linha`)
+  }
+}
+
+/**
+ * Cover and facts of the article (prd-blog-v2 RF-V1/RF-V2): short values and labels, and every value must be written in
+ * the article itself (title, summary, description or body): a cover never brings a number the text does not back.
+ */
+function parseCover(data: Record<string, string>, body: string, file: string): { cover: BlogCover | null, facts: BlogFact[] } {
+  const text = squash([data.title, data.summary, data.description, body].join(' '))
+  const check = (item: { value?: unknown, label?: unknown }, key: string) => {
+    if (typeof item?.value !== 'string' || typeof item.label !== 'string' || !item.value.trim() || !item.label.trim()) {
+      throw new Error(`${file}: "${key}" pede value e label em texto`)
+    }
+    if (item.value.length > 12) throw new Error(`${file}: "${key}" com value "${item.value}" longo demais (até 12 caracteres)`)
+    if (item.label.length > 48) throw new Error(`${file}: "${key}" com label longo demais (até 48 caracteres)`)
+    if (!text.includes(squash(item.value))) throw new Error(`${file}: "${key}" mostra "${item.value}", que não está escrito no artigo`)
+  }
+  const cover = parseJsonField<BlogCover>(data.cover, 'cover', file)
+  if (cover) check(cover, 'cover')
+  const facts = parseJsonField<BlogFact[]>(data.facts, 'facts', file) ?? []
+  if (!Array.isArray(facts) || facts.length > 3) throw new Error(`${file}: "facts" é uma lista de até 3 itens`)
+  for (const f of facts) {
+    check(f, 'facts')
+    if (!BLOG_FACT_ICONS.includes(f.icon as BlogFactIcon)) throw new Error(`${file}: ícone desconhecido "${String(f.icon)}" em facts (${BLOG_FACT_ICONS.join(', ')})`)
+  }
+  return {
+    cover: cover ? { value: cover.value, label: cover.label } : null,
+    facts: facts.map(f => ({ value: f.value, label: f.label, icon: f.icon })),
+  }
+}
+
 const EMBEDS = new Set(['quiz', 'cta', 'tool', 'card', 'shot'])
 const MARKER = (i: number) => `<!--blog-embed:${i}-->`
 
@@ -101,11 +157,16 @@ export function parseArticle(source: string, file: string, slug: string): BlogAr
   const updated = data.updated || data.published!
   if (!DATE.test(data.published!) || !DATE.test(updated)) throw new Error(`${file}: datas em AAAA-MM-DD`)
   if (data.description!.length > 170) throw new Error(`${file}: description com mais de 170 caracteres`)
+  if (data.featured && !['true', 'false'].includes(data.featured)) throw new Error(`${file}: featured é true ou false`)
+  if (data.context && data.context.length > 40) throw new Error(`${file}: context com mais de 40 caracteres`)
+  const { cover, facts } = parseCover(data, body, file)
 
   const embeds: BlogSegment[] = []
   const toc: BlogArticle['toc'] = []
   const links: string[] = []
   const usedIds = new Set<string>()
+  /** The ## section being rendered: inside "Fontes" a link must name the source and gets its domain (prd-blog-v2 RF-L2) */
+  let inSources = false
 
   const marked = new Marked({
     gfm: true,
@@ -116,7 +177,10 @@ export function parseArticle(source: string, file: string, slug: string): BlogAr
         for (let n = 2; usedIds.has(id); n++) id = `${slugify(text)}-${n}`
         usedIds.add(id)
         if (depth === 1) throw new Error(`${file}: o título (H1) vem do front matter; use ## no texto`)
-        if (depth === 2) toc.push({ id, title: text })
+        if (depth === 2) {
+          toc.push({ id, title: text })
+          inSources = SOURCES.test(text)
+        }
         return `<h${depth} id="${id}">${this.parser.parseInline(tokens)}</h${depth}>\n`
       },
       code({ text, lang }: Tokens.Code) {
@@ -133,9 +197,35 @@ export function parseArticle(source: string, file: string, slug: string): BlogAr
           links.push(href.split('#')[0]!.split('?')[0]!)
           return `<a href="${escapeHtml(href)}"${t}>${inner}</a>`
         }
-        if (/^https?:\/\//.test(href)) return `<a href="${escapeHtml(href)}"${t} rel="noopener" target="_blank">${inner}</a>`
+        if (/^https?:\/\//.test(href)) {
+          const a = `<a href="${escapeHtml(href)}"${t} rel="noopener" target="_blank">${inner}</a>`
+          if (!inSources) return a
+          const label = plainText(tokens).trim()
+          if (isUrlText(label)) throw new Error(`${file}: nas Fontes, o link "${href}" mostra a própria URL; escreva o nome da fonte: [Lei nº 8.213/1991](url)`)
+          return a
+        }
         if (href.startsWith('#')) return `<a href="${escapeHtml(href)}"${t}>${inner}</a>`
         throw new Error(`${file}: link "${href}" sem / nem https://`)
+      },
+      table({ header, rows, align }: Tokens.Table) {
+        const cell = (c: Tokens.TableCell) => this.parser.parseInline(c.tokens)
+        const style = (i: number) => (align[i] ? ` style="text-align:${align[i]}"` : '')
+        const labels = header.map(h => escapeHtml(plainText(h.tokens).trim()))
+        const head = header.map((h, i) => `<th scope="col"${style(i)}>${cell(h)}</th>`).join('')
+        // A 2-column "name: value" table (Item | O que diz o edital) needs no label on the phone: the row title says it
+        const keyValue = header.length === 2 && rows.every(r => !/\d/.test(plainText(r[0]?.tokens)))
+        const body = rows.map(row => `<tr>${row.map((c, i) => {
+          const text = plainText(c.tokens).trim()
+          const cls = [i === 0 ? 'blog-row-title' : '', isFigure(text) ? 'nw' : ''].filter(Boolean).join(' ')
+          // On the phone each row is a card and each cell shows its column above it; the row title only when it is a
+          // number ("1 e 2" alone says nothing, "Vagas" does)
+          const label = (i > 0 && !keyValue) || (i === 0 && isFigure(text)) ? ` data-label="${labels[i]}"` : ''
+          const tag = i === 0 ? 'th scope="row"' : 'td'
+          // Dates inside a longer cell ("De 28/10 a 10/12/2026") never break in the middle
+          const html = cls.includes('nw') ? cell(c) : cell(c).replace(/\b\d{1,2}\/\d{1,2}(?:\/\d{2,4})?\b/g, '<span class="nw">$&</span>')
+          return `<${tag}${cls ? ` class="${cls}"` : ''}${label}${style(i)}>${html}</${tag.split(' ')[0]}>`
+        }).join('')}</tr>`).join('\n')
+        return `<div class="blog-table"><table>\n<thead><tr>${head}</tr></thead>\n<tbody>\n${body}\n</tbody></table></div>\n`
       },
       html() {
         throw new Error(`${file}: HTML cru no Markdown não é aceito (use os blocos quiz, cta, tool e card)`)
@@ -145,8 +235,14 @@ export function parseArticle(source: string, file: string, slug: string): BlogAr
 
   const tokens = marked.lexer(body)
   const faq = extractFaq(tokens)
-  const html = marked.parser(tokens)
-  const words = html.replace(/<[^>]+>/g, ' ').split(/\s+/).filter(Boolean).length
+  // The list of sources gets its own class (simple list, the name as the link) and each item ends with the domains
+  // of its links, small ("· planalto.gov.br")
+  const html = marked.parser(tokens).replace(/(<h2 id="fontes">[\s\S]*?<\/h2>\s*)<ol>([\s\S]*?)<\/ol>/, (_m, head: string, items: string) =>
+    `${head}<ol class="blog-sources">${items.replace(/<li>([\s\S]*?)<\/li>/g, (_li, inner: string) => {
+      const domains = [...new Set([...inner.matchAll(/href="(https?:\/\/[^"]+)"/g)].map(m => sourceDomain(m[1]!.replace(/&amp;/g, '&'))))]
+      return `<li>${inner}${domains.length ? `<span class="blog-src-domain"> · ${domains.map(escapeHtml).join(' · ')}</span>` : ''}</li>`
+    })}</ol>`)
+  const words = html.replace(/<span class="blog-src-domain">[^<]*<\/span>/g, '').replace(/<[^>]+>/g, ' ').split(/\s+/).filter(Boolean).length
     + embeds.reduce((n, e) => n + (e.kind === 'quiz' ? e.cards.length * 25 : 0), 0)
 
   const segments: BlogSegment[] = []
@@ -176,6 +272,10 @@ export function parseArticle(source: string, file: string, slug: string): BlogAr
     summary: data.summary || null,
     pillar: data.pillar || null,
     related: data.related ? data.related.split(',').map(s => s.trim()).filter(Boolean) : [],
+    context: data.context || null,
+    cover,
+    facts,
+    featured: data.featured === 'true',
     toc,
     faq,
     segments,

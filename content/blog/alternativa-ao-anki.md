@@ -5,11 +5,13 @@ description: Comparação honesta entre o Anki e as alternativas: o que o Anki f
 summary: O Anki continua sendo a melhor escolha para quem gosta de montar e ajustar os próprios baralhos, e é grátis no computador, no Android e no navegador. Vale procurar uma alternativa quando o problema é o trabalho de criar os cards, a fila que acumula ou o pagamento do app no iPhone.
 category: comparacao
 area: medicina
-author: weslley
+author: baigi
 published: 2026-11-08
 updated: 2026-11-10
 pillar: curva-do-esquecimento
 related: como-revisar-lei-seca-inss
+context: Anki e alternativas
+cover: {"value": "R$ 149,90", "label": "o AnkiMobile no iPhone"}
 tags: Anki, alternativa ao Anki, flashcards, repetição espaçada
 ---
 
@@ -19,11 +21,11 @@ tags: Anki, alternativa ao Anki, flashcards, repetição espaçada
 
 Ele também tem coisas que poucos concorrentes têm: um catálogo grande de complementos (add-ons) e de baralhos compartilhados pela comunidade no AnkiWeb, oclusão de imagem embutida desde a 23.10 (ótima para anatomia) e controle fino sobre as opções de revisão.
 
-Eu uso o mesmo FSRS no Baigi, o app que eu fiz. Então este texto não vai dizer que o algoritmo do Anki é ruim, porque ele é bom. O que interessa aqui é por que tanta gente baixa o Anki e larga pouco depois.
+O Baigi usa o mesmo FSRS. Então este texto não vai dizer que o algoritmo do Anki é ruim, porque ele é bom. O que interessa aqui é por que tanta gente baixa o Anki e larga pouco depois.
 
 ## Por que tanta gente desiste do Anki?
 
-Na minha leitura de fóruns e comunidades de estudo (é uma impressão, não uma pesquisa), quatro queixas se repetem.
+Na nossa leitura de fóruns e comunidades de estudo (é uma impressão, não uma pesquisa), quatro queixas se repetem.
 
 1. **Criar os cards dá trabalho.** É a mais comum. Passar uma apostila inteira para flashcards leva horas, e muita gente desiste antes de começar. O Anki é uma ferramenta de revisão; quem escreve o conteúdo é você.
 2. **A fila acumula.** Três dias sem abrir e aparecem centenas de cards vencidos. Esse número grande assusta, e a pessoa evita o app justamente quando mais precisa.
@@ -61,7 +63,7 @@ Vale quando o que trava você é um dos problemas da lista acima, e não o algor
 
 ## Comparação: Anki e Baigi
 
-Comparo com o Baigi porque é a ferramenta que eu conheço por dentro. Para outros apps, use a mesma tabela como checklist.
+A comparação é com o Baigi porque é a ferramenta que conhecemos por dentro. Para outros apps, use a mesma tabela como checklist.
 
 | Critério | Anki | Baigi |
 |---|---|---|
@@ -139,13 +141,13 @@ Depende da ferramenta nova. Exporte o .apkg com o agendamento, importe e confira
 
 ## Fontes
 
-1. Notas da versão 23.10 do Anki (FSRS e oclusão de imagem embutidos). [https://github.com/ankitects/anki/releases/tag/23.10](https://github.com/ankitects/anki/releases/tag/23.10)
-2. Notas da versão 25.07 do Anki (FSRS-6). [https://github.com/ankitects/anki/releases/tag/25.07](https://github.com/ankitects/anki/releases/tag/25.07)
-3. Manual do Anki, opções do baralho ("Difícil" no lugar de "De novo" com o FSRS). [https://docs.ankiweb.net/manual/deck-options](https://docs.ankiweb.net/manual/deck-options)
-4. Manual do Anki, estudo (o que cada botão quer dizer). [https://docs.ankiweb.net/manual/studying](https://docs.ankiweb.net/manual/studying)
-5. Manual do Anki, exportação de baralhos. [https://docs.ankiweb.net/manual/exporting](https://docs.ankiweb.net/manual/exporting)
-6. Manual do Anki, sincronização com o AnkiWeb (conta grátis e estudo online). [https://docs.ankiweb.net/manual/syncing](https://docs.ankiweb.net/manual/syncing)
-7. Site oficial do Anki, com as versões para cada plataforma. [https://apps.ankiweb.net/](https://apps.ankiweb.net/)
-8. AnkiMobile Flashcards na App Store do Brasil (R$ 149,90, consultado em 8 de novembro de 2026). [https://apps.apple.com/br/app/id373493387](https://apps.apple.com/br/app/id373493387)
-9. Licença do Anki (AGPL). [https://github.com/ankitects/anki/blob/main/LICENSE](https://github.com/ankitects/anki/blob/main/LICENSE)
-10. FSRS: conjunto de 727 milhões de revisões do benchmark. [https://github.com/open-spaced-repetition/srs-benchmark](https://github.com/open-spaced-repetition/srs-benchmark)
+1. [Notas da versão 23.10 do Anki](https://github.com/ankitects/anki/releases/tag/23.10) (FSRS e oclusão de imagem embutidos).
+2. [Notas da versão 25.07 do Anki](https://github.com/ankitects/anki/releases/tag/25.07) (FSRS-6).
+3. [Manual do Anki, opções do baralho](https://docs.ankiweb.net/manual/deck-options) ("Difícil" no lugar de "De novo" com o FSRS).
+4. [Manual do Anki, estudo](https://docs.ankiweb.net/manual/studying) (o que cada botão quer dizer).
+5. [Manual do Anki, exportação de baralhos](https://docs.ankiweb.net/manual/exporting).
+6. [Manual do Anki, sincronização com o AnkiWeb](https://docs.ankiweb.net/manual/syncing) (conta grátis e estudo online).
+7. [Site oficial do Anki](https://apps.ankiweb.net/), com as versões para cada plataforma.
+8. [AnkiMobile Flashcards na App Store do Brasil](https://apps.apple.com/br/app/id373493387) (R$ 149,90, consultado em 8 de novembro de 2026).
+9. [Licença do Anki (AGPL)](https://github.com/ankitects/anki/blob/main/LICENSE).
+10. [FSRS: conjunto de 727 milhões de revisões do benchmark](https://github.com/open-spaced-repetition/srs-benchmark).

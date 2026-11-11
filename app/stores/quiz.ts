@@ -153,12 +153,6 @@ export const useQuizStore = defineStore('quiz', {
       return res.data as Quiz
     },
 
-    async deleteQuiz(id: string) {
-      const { $api } = useNuxtApp()
-      await $api(`/quizzes/${id}`, { method: 'DELETE' })
-      this.quizzes = this.quizzes.filter((q) => q.id !== id)
-    },
-
     async fetchStats(topicId?: string) {
       const { $api } = useNuxtApp()
       const params = topicId ? `?topic_id=${topicId}` : ''

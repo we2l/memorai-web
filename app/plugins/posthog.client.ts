@@ -8,6 +8,7 @@
 import type { PostHog, CaptureResult } from 'posthog-js'
 import type { Ref } from 'vue'
 import { sanitizeAnalyticsUrl, URL_PROPERTIES } from '~/utils/analyticsUrl'
+import { firstTouchProperties } from '~/utils/firstTouch'
 
 type PosthogCall = (ph: PostHog) => void
 
@@ -83,6 +84,9 @@ export function createPosthogHandle(setup: PosthogSetup) {
           before_send: sanitizeEvent,
         })
         posthog.register({ app_version: setup.appVersion })
+        // First touch of this device (utils/firstTouch.ts): every event carries the post that brought the person
+        const touch = firstTouchProperties()
+        if (Object.keys(touch).length) posthog.register_once(touch)
         handle.instance = posthog
         return posthog
       })

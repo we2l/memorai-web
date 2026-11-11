@@ -14,6 +14,7 @@
 </template>
 
 <script setup lang="ts">
+import { attributionPayload } from '~/utils/firstTouch'
 definePageMeta({ layout: 'auth' })
 
 const { $api } = useNuxtApp()
@@ -33,7 +34,7 @@ onMounted(async () => {
     const res = await $api<{ data: { user: any } }>('/auth/google/callback', {
       method: 'POST',
       // Banner choice applies only if this creates the account (RF-B04)
-      body: { code, state, ...useConsent().signupPayload() },
+      body: { code, state, ...useConsent().signupPayload(), ...attributionPayload() },
     })
     auth.setUser(res.data.user)
     // Full page load (utils/accountState.ts), replacing the callback: Voltar does not reuse the spent code

@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { PollTimeoutError, pollUntil } from '~/composables/usePoll'
 import type { Quiz, QuizKind, QuizQuestion, QuizStats } from '~/types'
+import { quizConflict } from '~/utils/quizConflict'
 
 /** POST /quizzes (prd-4e-praticar-v3 RF-B1/B2): `scope` = topic:|document:|note:<id> (or the topic_id shortcut). */
 export interface CreateQuizInput {
@@ -132,10 +133,19 @@ export const useQuizStore = defineStore('quiz', {
       this.stopTimer()
       const { $api } = useNuxtApp()
       const timeSpent = this.getTimeSpent()
-      const res = await $api<any>(`/quizzes/${this.currentQuiz.id}/finish`, {
-        method: 'POST',
-        body: { time_spent: timeSpent },
-      })
+      const id = this.currentQuiz.id
+      let res: any
+      try {
+        res = await $api<any>(`/quizzes/${id}/finish`, {
+          method: 'POST',
+          body: { time_spent: timeSpent },
+        })
+      } catch (e) {
+        // Already finished (the Prova's timer a moment before the click) or no longer in progress: the server's
+        // state wins, no error; the caller opens the result when it is completed (API #177)
+        if (quizConflict(e) === 'quiz_not_in_progress' || quizConflict(e) === 'quiz_completed') return this.fetchQuiz(id)
+        throw e
+      }
       this.currentQuiz = res.data
       this.questions = res.data.questions ?? []
       return res.data as Quiz
@@ -208,7 +218,7 @@ export const useQuizStore = defineStore('quiz', {
           this.stopTimer()
           // Auto-finish in exam mode
           if (this.currentQuiz?.mode === 'exam') {
-            this.finishQuiz()
+            this.finishQuiz().catch((e: unknown) => reportApiError(e, { silent: true }))
           }
           return
         }

@@ -2,9 +2,6 @@ import { defineStore } from 'pinia'
 import { PollTimeoutError, pollUntil } from '~/composables/usePoll'
 import type { Quiz, QuizKind, QuizQuestion, QuizStats } from '~/types'
 
-/** Ceiling of the history /praticar reads: 20 pages of 15 = 300 quizzes. */
-const QUIZ_HISTORY_MAX_PAGES = 20
-
 /** POST /quizzes (prd-4e-praticar-v3 RF-B1/B2): `scope` = topic:|document:|note:<id> (or the topic_id shortcut). */
 export interface CreateQuizInput {
   topic_id?: string
@@ -51,23 +48,15 @@ export const useQuizStore = defineStore('quiz', {
   },
 
   actions: {
-    /**
-     * The whole history: GET /quizzes pages 15 at a time (in progress first, then the newest). /praticar filters it by
-     * caderno and counts it, so page 1 alone lost quizzes after the 15th (auditoria 2026-11 BUG-16). The other pages
-     * come in parallel, up to QUIZ_HISTORY_MAX_PAGES.
-     */
+    /** The whole history, every page (BUG-16): utils/quizHistory, on demand (the result's chunk is at its budget). */
     async fetchQuizzes(topicId?: string) {
       this.loading = true
       try {
         const { $api } = useNuxtApp()
-        const page = (n: number) => $api<{ data: Quiz[]; meta?: { last_page?: number } }>('/quizzes', {
+        const { fetchQuizHistory } = await import('~/utils/quizHistory')
+        this.quizzes = await fetchQuizHistory(n => $api('/quizzes', {
           params: { ...(topicId ? { topic_id: topicId } : {}), page: n },
-        })
-        const first = await page(1)
-        const last = Math.min(first.meta?.last_page ?? 1, QUIZ_HISTORY_MAX_PAGES)
-        const rest = await Promise.all(Array.from({ length: last - 1 }, (_, i) => page(i + 2)))
-        const seen = new Set<string>()
-        this.quizzes = [first, ...rest].flatMap(r => r.data).filter(q => !seen.has(q.id) && seen.add(q.id))
+        }))
       } finally {
         this.loading = false
       }

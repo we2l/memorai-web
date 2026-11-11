@@ -5,11 +5,14 @@ description: O que o edital do TJ-SP 2026 cobra em Direito, como a Vunesp pergun
 summary: O concurso de Escrevente do TJ-SP (edital nº 02/2026, Vunesp) tem prova prevista para 14 de março de 2027, com 70 questões e redação. O bloco de Direito vale 30 questões e é quase todo lei seca, com uma lista fechada de artigos. Para dar conta, troque a releitura por cards curtos de cada artigo da lista, transforme cada questão errada em card e revise todo dia até a prova.
 category: concurso
 area: concurso
-author: weslley
+author: baigi
 published: 2026-11-09
 updated: 2026-11-09
 pillar: curva-do-esquecimento
 related: como-revisar-lei-seca-inss, curva-do-esquecimento
+context: TJ-SP Escrevente
+cover: {"value": "16", "label": "semanas de estudo até a prova"}
+facts: [{"value": "14/03/2027", "label": "prova prevista, à tarde", "icon": "calendar"}, {"value": "70 questões", "label": "e redação no mesmo dia", "icon": "questions"}, {"value": "30", "label": "questões de Direito, quase tudo lei seca", "icon": "target"}]
 tags: TJ-SP, Escrevente, Vunesp, lei seca, concurso, revisão
 ---
 
@@ -27,7 +30,7 @@ O Tribunal de Justiça de São Paulo publicou em 19 de outubro de 2026, no Diár
 | Objetiva | 70 questões de 5 alternativas |
 | Redação | Dissertativa-argumentativa, de 0 a 40 pontos, mínimo de 24 |
 
-As 70 questões se dividem em três blocos: **Língua Portuguesa (16)**, **Conhecimentos em Direito (30)** e **Conhecimentos Gerais (24)**, que juntam Atualidades, Matemática, Informática e Raciocínio Lógico. Para seguir no concurso é preciso acertar **pelo menos metade das questões de Português e metade das de Direito**, além de nota final 5 ou mais. Não há teste de digitação neste edital, ao contrário do concurso de 2024.
+As 70 questões se dividem em três blocos: Língua Portuguesa (16), Conhecimentos em Direito (30) e Conhecimentos Gerais (24), que juntam Atualidades, Matemática, Informática e Raciocínio Lógico. Para seguir no concurso é preciso acertar **pelo menos metade das questões de Português e metade das de Direito**, além de nota final 5 ou mais. Não há teste de digitação neste edital, ao contrário do concurso de 2024.
 
 Duas observações antes de planejar. A data de 14/03 está "prevista" no edital, então confira o site da Vunesp e o Diário da Justiça antes de fechar o calendário. E, como o edital é de cadastro de reserva, as nomeações dependem do fim da validade dos concursos anteriores da mesma região.
 
@@ -35,7 +38,7 @@ Este texto é um guia de método de estudo, escrito por quem faz o Baigi, um app
 
 ## Que leis caem no bloco de Direito?
 
-O edital traz uma lista fechada, artigo por artigo. É a melhor notícia do concurso: dá para saber exatamente o que revisar.
+O edital traz uma lista fechada, artigo por artigo. Assim dá para saber exatamente o que revisar.
 
 1. **Constituição Federal:** Título II, Capítulos I, II e III (direitos e deveres individuais e coletivos, direitos sociais e nacionalidade); Título III, Capítulo VII, Seções I e II (administração pública e servidores); e o art. 92.
 2. **Código Penal:** arts. 293 a 305, 307, 308, 311-A, 312 a 317, 319 a 333, 336, 337, 339 a 347, 357 e 359.
@@ -46,7 +49,7 @@ O edital traz uma lista fechada, artigo por artigo. É a melhor notícia do conc
 
 O edital manda considerar a legislação "com as alterações e atualizações vigentes até a data da publicação deste edital". Estude pelo texto compilado do Planalto e do site da Assembleia de SP, não por apostila antiga. Isso pesa na Lei 8.429/1992, que foi muito alterada pela Lei 14.230/2021.
 
-## Como a Vunesp pergunta a lei
+## Como a Vunesp pergunta a lei seca?
 
 No caderno de questões de Escrevente de 2023, boa parte das questões de Direito copia o texto da lei e troca um detalhe da alternativa. Um exemplo é a questão 41, sobre produção antecipada de provas. Uma alternativa repete o art. 382, § 2º, do CPC palavra por palavra: "O juiz não se pronunciará sobre a ocorrência ou a inocorrência do fato, nem sobre as respectivas consequências jurídicas". Outra pega o § 4º, que só admite recurso contra a decisão que indeferir **totalmente** a prova, e troca por "total ou parcialmente".
 
@@ -58,7 +61,7 @@ O que isso muda no estudo:
 - **Faça cards do detalhe, não do artigo inteiro.** Uma pergunta por informação.
 - **Erro em questão vira card no mesmo dia.** A troca que te pegou uma vez tende a pegar de novo.
 
-## Como transformar um artigo em cards
+## Como transformar um artigo da lista em cards?
 
 Pegue o art. 3º, I, da Lei 9.099/1995, que define o que vai para o Juizado Especial Cível: "as causas cujo valor não exceda a quarenta vezes o salário mínimo". Vira isto:
 
@@ -80,7 +83,7 @@ Coloque sempre o artigo no verso. Quando a dúvida vier na revisão, confira no 
 {"area": "concurso", "text": "Quer ver o método funcionando antes de montar os seus cards? Revise 6 cards prontos de concurso agora, sem criar conta, e veja quando cada um volta."}
 ```
 
-## Plano de 16 semanas até 14 de março
+## Como dividir as 16 semanas até 14 de março?
 
 Contando da semana de 23 de novembro, são 16 semanas até a prova prevista. A ideia: um bloco do edital por vez, com questões e cards, e as últimas semanas para simulados, redação e revisão. Português e Conhecimentos Gerais entram em paralelo, um pouco todo dia, porque o bloco de Português também tem nota mínima.
 
@@ -95,11 +98,11 @@ Contando da semana de 23 de novembro, são 16 semanas até a prova prevista. A i
 | 14 e 15 | 22/2 a 7/3 | Simulados completos e redação |
 | 16 | 8/3 a 14/3 | Só revisão; prova no dia 14 |
 
-O passo que não pode faltar é a **revisão diária dos cards antigos**. Sem ela, a Constituição de novembro some até março. Expliquei a conta no [guia da curva do esquecimento](/blog/curva-do-esquecimento). O mesmo método vale para outras leis: escrevi sobre ele usando a [lei seca do INSS](/blog/como-revisar-lei-seca-inss).
+Em todas as semanas, revise os cards antigos todo dia. Sem isso, a Constituição de novembro some até março. Explicamos a conta no [guia da curva do esquecimento](/blog/curva-do-esquecimento). O mesmo método vale para outras leis, como mostra o guia da [lei seca do INSS](/blog/como-revisar-lei-seca-inss).
 
 ## Quantos cards por dia até a prova?
 
-Depende de quantos cards a lista do edital vai gerar para você. Uma conta grosseira: 1.200 cards em 13 semanas (91 dias) são cerca de 13 novos por dia, mais as revisões. Nas três últimas semanas, sem cards novos, sobra só a revisão.
+Depende de quantos cards a lista do edital vai gerar para você. Para ter uma ideia: 1.200 cards em 13 semanas (91 dias) são cerca de 13 novos por dia, mais as revisões. Nas três últimas semanas, sem cards novos, sobra só a revisão.
 
 A ferramenta abaixo faz essa conta com o mesmo modelo de revisão que o Baigi usa. Coloque **14/03/2027** como data da prova.
 
@@ -107,11 +110,11 @@ A ferramenta abaixo faz essa conta com o mesmo modelo de revisão que o Baigi us
 {"tool": "plano-ate-a-prova"}
 ```
 
-## Onde o Baigi entra nisso
+## O que o Baigi faz nesse método?
 
-Tudo acima dá para fazer no papel ou no Anki. O Baigi tira dois trabalhos do caminho. O primeiro é escrever os cards: você cola a questão que errou, ou manda o PDF da lei ou da apostila, e o card sai com a origem anotada (a IA tem uma prévia grátis). O segundo é a agenda: cada card volta no dia certo pelo FSRS, revisar é grátis, e você marca a data da prova para ver quanto deve lembrar no dia 14.
+No TJ-SP, o trabalho pesado é transformar centenas de artigos da lista em perguntas. No Baigi, você cola a questão da Vunesp que errou (o card sai sem IA, de graça) ou manda o PDF da lei e a IA propõe os cards, com a origem anotada (há uma prévia grátis da IA). Cada card volta no dia certo pelo FSRS, revisar é grátis, e com a prova marcada em 14/03/2027 você vê quanto deve lembrar no dia.
 
-Ele não substitui a leitura da lei nem as questões da Vunesp. Confira cada card gerado com o texto compilado da lei.
+Com a lista fechada, um card errado custa caro: confira cada card gerado pela IA com o texto compilado da lei antes de revisar.
 
 ```quiz
 {"area": "concurso", "title": "Teste: você lembra da lista do edital?", "cards": [
@@ -147,13 +150,13 @@ Serve para ver o estilo da Vunesp na letra da lei. Mas a proporção mudou: a pr
 
 ## Fontes
 
-1. Tribunal de Justiça de São Paulo, Edital de Abertura nº 02/2026, Escrevente Técnico Judiciário (Vunesp), de 14 de outubro de 2026, publicado no Diário da Justiça Eletrônico, edição 4542, caderno 10, de 19 de outubro de 2026 (abertura na p. 125; conteúdo programático no Anexo VIII). [https://www.tjsp.jus.br/atc/dejesp/consultaSimples.do?cdVolume=4542&nuDiario=4542&cdCaderno=10&nuSeqpagina=125](https://www.tjsp.jus.br/atc/dejesp/consultaSimples.do?cdVolume=4542&nuDiario=4542&cdCaderno=10&nuSeqpagina=125)
-2. TJ-SP, notícia da abertura dos concursos de Escrevente e Oficial de Justiça (19 de outubro de 2026). [https://www.tjsp.jus.br/Noticias/Noticia?codigoNoticia=115772](https://www.tjsp.jus.br/Noticias/Noticia?codigoNoticia=115772)
-3. TJ-SP, notícia do concurso de Escrevente da Capital de 2025, o primeiro com 70 questões, redação e sem digitação. [https://www.tjsp.jus.br/Noticias/Noticia?codigoNoticia=108814](https://www.tjsp.jus.br/Noticias/Noticia?codigoNoticia=108814)
-4. Vunesp, caderno de questões TJSP2201/001, Escrevente Técnico Judiciário (2023), questão 41. Cópia do PDF original da banca hospedada por terceiro, porque o site da Vunesp não abriu na consulta: [https://cdn.direcaoconcursos.com.br/uploads/2023/05/Caderno-de-questoes_TJ-SP.pdf](https://cdn.direcaoconcursos.com.br/uploads/2023/05/Caderno-de-questoes_TJ-SP.pdf)
-5. Código de Processo Civil, Lei nº 13.105/2015 (arts. 231, IX, 335 e 382, §§ 2º e 4º). [https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13105.htm](https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13105.htm)
-6. Código Penal, Decreto-Lei nº 2.848/1940 (arts. 312 e 317). [https://www.planalto.gov.br/ccivil_03/decreto-lei/del2848compilado.htm](https://www.planalto.gov.br/ccivil_03/decreto-lei/del2848compilado.htm)
-7. Lei nº 9.099/1995, Juizados Especiais Cíveis e Criminais (arts. 3º, I, 9º e 61). [https://www.planalto.gov.br/ccivil_03/leis/l9099.htm](https://www.planalto.gov.br/ccivil_03/leis/l9099.htm)
-8. Lei nº 12.153/2009, Juizados Especiais da Fazenda Pública (art. 2º). [https://www.planalto.gov.br/ccivil_03/_ato2007-2010/2009/lei/l12153.htm](https://www.planalto.gov.br/ccivil_03/_ato2007-2010/2009/lei/l12153.htm)
-9. Lei nº 14.230/2021, que alterou a Lei de Improbidade Administrativa (Lei nº 8.429/1992). [https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14230.htm](https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14230.htm)
-10. FSRS, algoritmo de repetição espaçada de código aberto usado pelo Baigi e pelo Anki. [https://github.com/open-spaced-repetition/awesome-fsrs/wiki/The-Algorithm](https://github.com/open-spaced-repetition/awesome-fsrs/wiki/The-Algorithm)
+1. [Edital de Abertura nº 02/2026, Escrevente Técnico Judiciário (Vunesp)](https://www.tjsp.jus.br/atc/dejesp/consultaSimples.do?cdVolume=4542&nuDiario=4542&cdCaderno=10&nuSeqpagina=125), Tribunal de Justiça de São Paulo, de 14 de outubro de 2026, publicado no Diário da Justiça Eletrônico, edição 4542, caderno 10, de 19 de outubro de 2026 (abertura na p. 125; conteúdo programático no Anexo VIII).
+2. [TJ-SP, notícia da abertura dos concursos de Escrevente e Oficial de Justiça](https://www.tjsp.jus.br/Noticias/Noticia?codigoNoticia=115772) (19 de outubro de 2026).
+3. [TJ-SP, notícia do concurso de Escrevente da Capital de 2025](https://www.tjsp.jus.br/Noticias/Noticia?codigoNoticia=108814), o primeiro com 70 questões, redação e sem digitação.
+4. [Vunesp, caderno de questões TJSP2201/001, Escrevente Técnico Judiciário (2023)](https://cdn.direcaoconcursos.com.br/uploads/2023/05/Caderno-de-questoes_TJ-SP.pdf), questão 41. Cópia do PDF original da banca hospedada por terceiro, porque o site da Vunesp não abriu na consulta.
+5. [Código de Processo Civil, Lei nº 13.105/2015](https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13105.htm) (arts. 231, IX, 335 e 382, §§ 2º e 4º).
+6. [Código Penal, Decreto-Lei nº 2.848/1940](https://www.planalto.gov.br/ccivil_03/decreto-lei/del2848compilado.htm) (arts. 312 e 317).
+7. [Lei nº 9.099/1995, Juizados Especiais Cíveis e Criminais](https://www.planalto.gov.br/ccivil_03/leis/l9099.htm) (arts. 3º, I, 9º e 61).
+8. [Lei nº 12.153/2009, Juizados Especiais da Fazenda Pública](https://www.planalto.gov.br/ccivil_03/_ato2007-2010/2009/lei/l12153.htm) (art. 2º).
+9. [Lei nº 14.230/2021, que alterou a Lei de Improbidade Administrativa (Lei nº 8.429/1992)](https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14230.htm).
+10. [FSRS, algoritmo de repetição espaçada de código aberto](https://github.com/open-spaced-repetition/awesome-fsrs/wiki/The-Algorithm) usado pelo Baigi e pelo Anki.

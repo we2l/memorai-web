@@ -1,8 +1,8 @@
 <template>
   <div v-if="hasNotice" class="mt-4 flex flex-col gap-2" data-testid="material-pdf-panel">
-      <!-- Partial: the plan read only part of the PDF -->
-      <p v-if="partial" class="text-meta text-fg-muted">
-        Parcial: {{ reader }} leu {{ doc.processed_pages }} de {{ doc.pages_count }} páginas. <UiLink to="/planos">Desbloquear o resto</UiLink>
+      <!-- Partial: the plan read only part of the PDF (the paid plan gets the reason, never the upgrade) -->
+      <p v-if="partialNotice" class="text-meta text-fg-muted" data-testid="material-pdf-partial">
+        {{ partialNotice.text }} <UiLink v-if="partialNotice.upgrade" to="/planos">Desbloquear o resto</UiLink>
       </p>
 
       <!-- PDF → cards (RF-F5.2), now by the note it opened -->
@@ -40,6 +40,7 @@
 // regeneration and the language offer. Nothing to say: nothing rendered.
 import type { Document } from '~/types'
 import { TARGET_LANGUAGES } from '~/utils/learningModes'
+import { partialRead, partialReadNotice } from '~/utils/pdfPartial'
 
 const props = defineProps<{ doc: Document; topicId: string; topicLearningMode?: string | null }>()
 const emit = defineEmits<{ (e: 'changed'): void; (e: 'regenerate'): void }>()
@@ -47,17 +48,27 @@ const emit = defineEmits<{ (e: 'changed'): void; (e: 'regenerate'): void }>()
 const { $api } = useNuxtApp()
 const { run } = useApiAction()
 
-// The trial reads up to its 100 pages (prd-planos-lancamento RF-F5)
+// The trial reads up to its 100 pages (prd-planos-lancamento RF-F5); the paid plan up to its pages per PDF and per
+// month, and the line says which one (QA 2026-11 M1)
 const auth = useAuthStore()
-const reader = computed(() => (auth.onTrial ? 'o teste' : auth.user?.plan === 'pro' ? 'a IA' : 'o plano grátis'))
-const partial = computed(() => !!props.doc.processed_pages && !!props.doc.pages_count && props.doc.processed_pages < props.doc.pages_count)
+const { limitOf, fetchPlans } = usePlans()
+const partial = computed(() => partialRead(props.doc))
+const partialNotice = computed(() => {
+  if (!partial.value) return null
+  const reader = auth.onTrial ? 'trial' : auth.user?.plan === 'pro' ? 'paid' : 'free'
+  return partialReadNotice(partial.value, reader, { perPdfCap: limitOf('pro')?.extras.pdf_pages_per_note ?? null })
+})
+// The pages per PDF come from the catalog (one GET per session), only when the paid plan has a partial read
+onMounted(() => {
+  if (partial.value && auth.user?.plan === 'pro') void fetchPlans()
+})
 const modeChanged = computed(() => !!props.doc.learning_mode_used && !!props.topicLearningMode && props.doc.learning_mode_used !== props.topicLearningMode)
 const languageName = computed(() => TARGET_LANGUAGES.find(l => l.value === props.doc.source_language)?.label ?? 'outro idioma')
 const languageDismissed = ref(false)
 
 const cardsBusy = computed(() => props.doc.auto_cards_status === 'pending' || props.doc.auto_cards_status === 'generating')
 const cardsProblem = computed(() => ['skipped_quota', 'skipped_empty', 'failed'].includes(props.doc.auto_cards_status ?? ''))
-const hasNotice = computed(() => partial.value || cardsBusy.value || cardsProblem.value || modeChanged.value || (!!props.doc.language_detected && !languageDismissed.value))
+const hasNotice = computed(() => !!partial.value || cardsBusy.value || cardsProblem.value || modeChanged.value || (!!props.doc.language_detected && !languageDismissed.value))
 
 const retrying = ref(false)
 async function retryCards() {

@@ -1,9 +1,9 @@
 <template>
   <section id="como" class="lp-story" aria-labelledby="landing-how">
     <div class="lp-wrap">
-      <h2 id="landing-how" class="lp-h2" data-reveal>Do PDF à revisão de hoje.</h2>
+      <h2 id="landing-how" class="lp-h2" data-reveal>Do edital à revisão de hoje.</h2>
       <p class="lp-lead" data-reveal data-testid="landing-story-lead">Não é um banco de cards de outra pessoa. Os cards saem do seu material, do seu edital.</p>
-      <p class="lp-fine lp-demo-note" data-testid="landing-demo-story">Gravações do app numa conta de demonstração, com conteúdo de exemplo.</p>
+      <p class="lp-fine lp-demo-note" data-testid="landing-demo-story">Telas e gravações do app numa conta de demonstração, com conteúdo de exemplo.</p>
     </div>
     <div class="lp-wrap lp-story-in">
       <div>
@@ -13,7 +13,10 @@
           <p class="lp-lead">{{ s.text }}</p>
           <!-- Phone: each chapter brings its own clip (no fixed stage under 1024 px) -->
           <div class="inline-media">
-            <LandingPhone><LandingClip :clip="s.clip" /></LandingPhone>
+            <LandingPhone>
+              <LandingScreen v-if="'screen' in s" :name="s.screen" />
+              <LandingClip v-else :clip="s.clip" />
+            </LandingPhone>
           </div>
           <div class="lp-act">
             <LandingCta to="/comecar" :position="s.position" section>{{ s.cta }}</LandingCta>
@@ -26,7 +29,8 @@
         <div ref="stage" class="lp-stage">
           <LandingPhone>
             <div v-for="s in STORY" :key="s.key" class="lp-layer" :data-on="String(active === s.key)" :data-layer="s.key">
-              <LandingClip :clip="s.clip" :auto="false" />
+              <LandingScreen v-if="'screen' in s" :name="s.screen" />
+              <LandingClip v-else :clip="s.clip" :auto="false" />
             </div>
           </LandingPhone>
           <LandingMascot :pose="pose" class="lp-guide" :class="{ 'lp-pop': popKey > 0 }" :data-pop="popKey" />
@@ -37,7 +41,8 @@
 </template>
 
 <script setup lang="ts">
-// "Como funciona" (prd-landing-d RF-D4; the stage of the B direction): only material and review (owner, 06/11), the
+// "Como funciona" (prd-landing-d RF-D4; the stage of the B direction): edital (a real screen of the caderno it made,
+// 10/11), material and review (owner, 06/11), the
 // quiz and the podcast have their own sections. On the desktop the chapter in the middle of the screen picks the
 // layer of the fixed phone (and plays only that clip, with motion allowed) and the dolphin's pose; the other chapter
 // turns grey, never transparent (its text keeps 4.5:1).

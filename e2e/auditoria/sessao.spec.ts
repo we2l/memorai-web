@@ -1,4 +1,4 @@
-import { test, expect, gotoApp, apiCall, uid, loginState, forgetSession, API, WEB, USERS, AUDIT_PASSWORD } from './support/fixtures'
+import { test, expect, gotoApp, apiCall, uid, loginState, forgetSession, API, WEB, USERS, AUDIT_PASSWORD, SESSION_COOKIE } from './support/fixtures'
 import type { Page, BrowserContext } from '@playwright/test'
 
 /**
@@ -15,7 +15,7 @@ async function me(context: BrowserContext) {
  * sempre usa remember=true, então só o cookie de sessão não basta — o recaller reautentica).
  */
 async function expireSession(context: BrowserContext) {
-  await context.clearCookies({ name: 'baigi-session' })
+  await context.clearCookies({ name: SESSION_COOKIE })
   await context.clearCookies({ name: /^remember_web_/ })
 }
 

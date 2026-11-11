@@ -3,7 +3,7 @@ import type { CheckoutPayment, PlanCatalog } from '~/types'
 import { annualCardLine, isSettled, methodFromQuery, paymentView, planFromQuery, priceOf, productOf, productTerms, remainingLabel, sellerLine } from '~/utils/checkoutState'
 
 const catalog = {
-  checkout: { available: true, seller: { name: 'Fulano de Tal', document: '123.456.789-09', email: null } },
+  checkout: { available: true, seller: { name: 'Fulano de Tal', email: null } },
   plans: [{ key: 'pro', prices: {
     monthly: { amount_cents: 3490, label: '', pix_days: 30 },
     annual: { amount_cents: 23990, label: '', installments_max: 12, pix: { amount_cents: 22790, label: '', discount_percent: 5, savings_cents: 1200 } },
@@ -65,7 +65,7 @@ describe('checkoutState', () => {
   it('conta o tempo do Pix e identifica o vendedor', () => {
     expect(remainingLabel(new Date(Date.now() + 90_500).toISOString())).toBe('1:30')
     expect(remainingLabel(null)).toBe('')
-    expect(sellerLine(catalog)).toBe('Fulano de Tal, CPF 123.456.789-09')
+    expect(sellerLine(catalog)).toBe('Fulano de Tal')
     expect(sellerLine(null)).toBe('')
   })
 })

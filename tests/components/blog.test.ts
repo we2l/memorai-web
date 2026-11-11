@@ -3,6 +3,8 @@ import { mountSuspended } from '@nuxt/test-utils/runtime'
 import BlogQuiz from '~/components/blog/Quiz.vue'
 import ForgettingCalculator from '~/components/blog/ForgettingCalculator.vue'
 import ExamPlanner from '~/components/blog/ExamPlanner.vue'
+import ExampleCard from '~/components/blog/ExampleCard.vue'
+import Toc from '~/components/blog/Toc.vue'
 
 const cards = [
   { q: 'Carência do auxílio por incapacidade temporária?', a: '12 contribuições mensais', source: 'Lei 8.213/1991, art. 25, I' },
@@ -50,6 +52,45 @@ describe('BlogQuiz (prd-blog-seo RF-B9)', () => {
     await quiz.trigger('keydown', { key: 'Enter' })
     expect(w.find('[data-testid="review-feedback"]').exists()).toBe(false)
     expect(w.get('[data-testid="blog-quiz-count"]').text()).toBe('2 de 3')
+  })
+})
+
+describe('card de exemplo que vira (prd-blog-v2 RF-V2)', () => {
+  it('mouse: Mostrar resposta, Lembrei, faixa do golfinho, Continuar e Testar de novo', async () => {
+    const w = await mountSuspended(ExampleCard, { props: { q: 'Até que valor?', a: '40 salários mínimos', source: 'Lei 9.099/1995, art. 3º, I' } })
+    expect(w.get('[data-testid="blog-example-answer"]').attributes('style')).toContain('display: none')
+    await w.get('[data-testid="blog-example-reveal"]').trigger('click')
+    expect(w.get('[data-testid="blog-example-answer"]').attributes('style') ?? '').not.toContain('display: none')
+    await w.get('[data-testid="blog-example-ok"]').trigger('click')
+    const band = w.get('[data-testid="review-feedback"]')
+    expect(band.attributes('data-kind')).toBe('ok')
+    expect(band.attributes('data-compact')).toBe('true')
+    expect(band.text()).toContain('Volta em 2 dias.')
+    await w.get('[data-testid="review-continue"]').trigger('click')
+    expect(w.text()).toContain('voltaria em 2 dias')
+    await w.get('[data-testid="blog-example-again-try"]').trigger('click')
+    expect(w.find('[data-testid="blog-example-reveal"]').exists()).toBe(true)
+  })
+
+  it('teclado: Espaço mostra, 1 = Não lembrei (âmbar, volta ainda hoje), Enter segue', async () => {
+    const w = await mountSuspended(ExampleCard, { props: { q: 'P?', a: 'R' } })
+    const card = w.get('[data-testid="blog-example-card"]')
+    await card.trigger('keydown', { key: ' ' })
+    expect(card.attributes('data-state')).toBe('back')
+    await card.trigger('keydown', { key: '1' })
+    expect(w.get('[data-testid="review-feedback"]').attributes('data-kind')).toBe('again')
+    expect(w.get('[data-testid="review-feedback"]').text()).toContain('Ele volta ainda hoje.')
+    await card.trigger('keydown', { key: 'Enter' })
+    expect(w.find('[data-testid="review-feedback"]').exists()).toBe(false)
+    expect(card.attributes('data-state')).toBe('done')
+  })
+})
+
+describe('sumário (prd-blog-v2 RF-L3)', () => {
+  it('a 1ª seção começa marcada e a caixa recolhível conta as seções', async () => {
+    const w = await mountSuspended(Toc, { props: { items: [{ id: 'a', title: 'A' }, { id: 'b', title: 'B' }] } })
+    expect(w.get('[data-testid="blog-toc"] a[aria-current="location"]').text()).toBe('A')
+    expect(w.get('[data-testid="blog-toc-collapsible"]').text()).toContain('2 seções')
   })
 })
 

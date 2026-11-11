@@ -37,11 +37,13 @@ export function landingQuery(): URLSearchParams {
 
 /** Real screens of the app (e2e/landing/shots.ts) in public/landing, 390 CSS px wide at 2x. */
 export const SCREENS = {
-  'hoje-tela': { height: 844, alt: 'Tela real do Hoje na conta de demonstração: o plano do dia e a prova de Técnico do INSS em 45 dias, chegando à prova lembrando 90% mantendo o ritmo.' },
+  'hoje-tela': { height: 844, alt: 'Tela real do Hoje na conta de demonstração: o plano do dia e a prova de Técnico do INSS em 45 dias, com prontidão de 76 de 100 e o que fazer para subir.' },
   'revisao': { height: 844, alt: 'Tela real da revisão na conta de demonstração: o card “Quanto vale o auxílio-acidente?” virado, com a origem dele na apostila de Seguridade Social e os botões Não lembrei e Lembrei.' },
   'anatomia': { height: 844, alt: 'Tela real da revisão de Anatomia na conta de demonstração: o card sobre o principal músculo da inspiração, com a resposta.' },
   'oab': { height: 844, alt: 'Tela real da revisão para a OAB na conta de demonstração: o card sobre o prazo da contestação no CPC, com a resposta.' },
   'enem': { height: 844, alt: 'Tela real da revisão para o ENEM na conta de demonstração: o card sobre a 1ª Lei de Mendel, com a resposta.' },
+  'edital': { height: 844, alt: 'Tela real do caderno Escrevente TJ-SP na conta de demonstração, montado pelo edital: a prova em 120 dias e as matérias com os assuntos, de Língua Portuguesa a Informática.' },
+  'leech': { height: 844, alt: 'Tela real da revisão na conta de demonstração: o card da carência da aposentadoria por idade, errado 5 vezes, com o aviso “Esse card não está colando” e os botões Ver a origem, Reescrever, Explicar e Pausar o card.' },
   'ingles': { height: 844, alt: 'Tela real da revisão de inglês na conta de demonstração: o card “I’m looking forward to it”, com a tradução.' },
 } as const
 export type ScreenName = keyof typeof SCREENS
@@ -72,14 +74,14 @@ export const HERO_VARIANTS: HeroVariant[] = [
   {
     key: 'padrao',
     lines: ['Chega de', 'memória', 'de *peixe*.'],
-    lead: 'Leu ontem e hoje não lembra nada? Acontece com quem não revisa. O Baigi traz cada card de volta perto da hora de esquecer e mostra quanto você vai lembrar no dia da prova.',
+    lead: 'Leu ontem e hoje não lembra nada? Acontece com quem não revisa. O Baigi traz cada card de volta perto da hora de esquecer e mostra o quanto você está pronto para a prova.',
     media: { clip: 'revisao' },
     bubble: 'Faltam 45 dias pra prova do INSS. Hoje são 3 lotes de 20.',
   },
   {
     key: 'prova',
     lines: ['Até a prova,', 'sem memória', 'de *peixe*.'],
-    lead: 'Marque a data. O Baigi divide a revisão de cada dia em lotes de 10 a 30 cards e mostra quanto você vai lembrar na prova: mantendo o ritmo e se parar hoje.',
+    lead: 'Mande o edital e marque a data. O Baigi monta o caderno, divide a revisão de cada dia em lotes de 10 a 30 cards e mostra a sua prontidão para a prova, de 0 a 100.',
     media: { screen: 'hoje-tela' },
     bubble: 'Faltam 45 dias pra prova do INSS. Hoje são 3 lotes de 20.',
   },
@@ -116,8 +118,19 @@ export function titleParts(line: string): { text: string, mark: boolean }[] {
 /** "Como funciona": the phone stays (desktop) and the screen changes, only material and review (owner, 06/11). */
 export const STORY = [
   {
+    key: 'edital',
+    step: '1 · Edital',
+    title: 'Manda o edital. O Baigi monta o caderno.',
+    text: 'PDF ou texto colado: o Baigi acha o conteúdo programático e propõe as matérias e os assuntos. Você ajusta e cria o caderno, já com a data da prova.',
+    ai: true,
+    screen: 'edital',
+    cta: 'Montar meu caderno pelo edital',
+    position: 'story_edital',
+    pose: 'thinking',
+  },
+  {
     key: 'material',
-    step: '1 · Material',
+    step: '2 · Material',
     title: 'Manda a apostila. O Baigi faz os cards.',
     text: 'O PDF vira uma nota em partes, e as primeiras já saem com cards. Nas outras, é um toque. Cada card mostra de que parte do PDF saiu.',
     ai: true,
@@ -128,9 +141,9 @@ export const STORY = [
   },
   {
     key: 'revisao',
-    step: '2 · Revisão',
+    step: '3 · Revisão',
     title: 'Todo dia um número, em lotes curtos.',
-    text: 'Abriu o app e viu 400 cards atrasados? Aqui eles vêm em lotes: você escolhe o tamanho, de 10 a 30 cards, e quantos por dia. Faz um, vê quantos faltam e decide se para ou segue.',
+    text: 'Abriu o app e viu 400 cards atrasados? Aqui eles vêm em lotes de 10 a 30 cards, e o atraso se divide em 3, 7 ou 14 dias. Faz um lote, vê quantos faltam e decide se para ou segue.',
     ai: false,
     clip: 'revisao',
     cta: 'Fazer meu primeiro lote',
@@ -147,9 +160,9 @@ export const AREAS = [
     dot: 'bg-subject-1',
     pain: 'Uma semana depois, já esqueceu tudo da matéria.',
     points: [
-      ['Marque a data da prova.', 'O Baigi mostra quantos cards por dia até lá e põe as matérias da prova na frente.'],
+      ['Mande o edital.', 'O Baigi monta o caderno com as matérias e os assuntos e marca a data da prova.'],
       ['Simulado por matéria.', 'Você vê o acerto de cada assunto, de Benefícios a Português, e os erros já viram card.'],
-      ['A projeção.', 'Quanto você vai lembrar no dia, mantendo o ritmo ou se parar hoje.'],
+      ['A prontidão.', 'Um número de 0 a 100 para a prova, com o que fazer para subir.'],
     ],
     cta: 'Começar pelo meu concurso',
     screen: 'revisao',
@@ -160,8 +173,8 @@ export const AREAS = [
     dot: 'bg-subject-2',
     pain: '300 cards por dia e a fila nunca acaba.',
     points: [
-      ['Lotes de 20 com fim.', 'Fez um, sabe quantos faltam e decide se segue.'],
-      ['Atrasou?', 'O modo recuperação começa pelos 20 mais urgentes, sem a montanha toda na cara.'],
+      ['Lotes de 10 a 30 cards com fim.', 'Fez um, sabe quantos faltam e decide se segue.'],
+      ['Atrasou?', 'Escolha recuperar em 3, 7 ou 14 dias, sem a montanha toda na cara.'],
       ['Os slides da aula em PDF viram cards,', 'cada um com a parte de onde saiu.'],
     ],
     cta: 'Começar pela minha faculdade',
@@ -187,7 +200,7 @@ export const AREAS = [
     pain: 'Criar card dá uma preguiça que você desiste antes de começar.',
     points: [
       ['Tira foto do resumo', 'e os cards saem dali.'],
-      ['Lote curto no metrô.', '20 cards e pronto.'],
+      ['Lote curto no metrô, até sem sinal.', '20 cards e pronto.'],
       ['Errou no simulado?', 'A questão vira card com o comentário no verso.'],
     ],
     cta: 'Começar pelo ENEM',
@@ -375,7 +388,7 @@ export function landingFaqs(catalog: PlanCatalog | null): { q: string, a: string
     },
     {
       q: 'Serve para o meu concurso?',
-      a: 'Serve para qualquer prova. Não é um banco de cards de outra pessoa: os cards saem do seu material, do seu edital, da apostila ou da lei seca que você manda. A questão que você errou também vira card.',
+      a: 'Serve para qualquer prova. Não é um banco de cards de outra pessoa: mande o edital e o Baigi monta o caderno, os cards saem do seu material e a questão que você errou vira card.',
     },
     {
       q: 'Tem cupom de desconto?',
@@ -386,8 +399,13 @@ export function landingFaqs(catalog: PlanCatalog | null): { q: string, a: string
       a: 'Abre. É o mesmo Baigi no navegador do computador e do celular, com tudo sincronizado. No celular, dá para instalar na tela inicial como um app.',
     },
     {
-      q: 'Como vocês sabem quanto eu vou lembrar?',
-      a: 'Cada card tem uma força que sobe quando você acerta e cai com o tempo. A conta soma a força de todos os seus cards no dia da prova. Ela aparece com a prova marcada, a partir de 20 cards da prova, com pelo menos 10 já revisados e firmes.',
+      // prd-revisao-offline (ADR-036): only the review of today's lot; nothing else promised
+      q: 'Funciona sem internet?',
+      a: 'A revisão, sim. Abra o Baigi com internet uma vez no dia e o lote de hoje fica no aparelho: dá para revisar no metrô ou no avião, e as respostas sobem quando a conexão volta. Criar cards, a IA e o podcast precisam de internet.',
+    },
+    {
+      q: 'O que é a prontidão para a prova?',
+      a: 'Um número de 0 a 100 com o quanto você vai lembrar no dia da prova, as revisões em dia e o seu acerto em questões, e o que fazer para subir. Aparece com a prova marcada e 20 cards dela. Estima o seu preparo, não a aprovação.',
     },
     {
       q: 'Já uso o Anki. Começo do zero?',

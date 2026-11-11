@@ -15,6 +15,8 @@ test.use({ auditUser: 'revisao' })
 const php = (code: string) => tinker(`$u = App\\Domain\\User\\Models\\User::where('email', '${USERS.revisao.email}')->firstOrFail(); ${code}`)
 const cardFace = (page: Page) => page.getByTestId('review-card')
 const top = (page: Page) => page.getByTestId('review-batch')
+/** The E2 bar: the "Lote N de M" tag, then "card X de Y" (no separator in the text since prd-visual-e2) */
+const batchText = (lote: number, lotes: number, card: number, size: number) => new RegExp(`Lote ${lote} de ${lotes}\\s*·?\\s*card ${card} de ${size}`)
 
 /** A caderno with `n` cards already studied and due now (new cards would stop at the 20 new of the day). */
 async function dueTopic(page: Page, n: number, prefix = 'Pergunta') {
@@ -47,7 +49,7 @@ test.beforeEach(async ({ page }) => {
 test('lotes de 20 com fim visível: "Lote 1 de 3", o fim do lote e "Próximo lote" seguem até o fim da sessão', async ({ page }) => {
   const topicId = await dueTopic(page, 45)
   await gotoApp(page, `/revisar?topic_id=${topicId}`)
-  await expect(top(page)).toContainText('Lote 1 de 3 · card 1 de 20')
+  await expect(top(page)).toContainText(batchText(1, 3, 1, 20))
   for (let i = 0; i < 20; i++) await rate(page, '3')
   const end = page.getByTestId('review-batch-end')
   await expect(end.getByRole('heading', { level: 1 })).toHaveText(/^(Bom trabalho|Meta feita)/)
@@ -57,11 +59,11 @@ test('lotes de 20 com fim visível: "Lote 1 de 3", o fim do lote e "Próximo lot
   await expect(page.getByTestId('review-footer')).toHaveCount(0)
   // Enter = "Próximo lote"
   await page.keyboard.press('Enter')
-  await expect(top(page)).toContainText('Lote 2 de 3 · card 1 de 20')
+  await expect(top(page)).toContainText(batchText(2, 3, 1, 20))
   for (let i = 0; i < 20; i++) await rate(page, '3')
   await expect(end).toContainText('Próximo lote · 5 cards')
   await end.getByTestId('batch-next').click()
-  await expect(top(page)).toContainText('Lote 3 de 3 · card 1 de 5')
+  await expect(top(page)).toContainText(batchText(3, 3, 1, 5))
   for (let i = 0; i < 5; i++) await rate(page, '3')
   // The last batch ends with the session: no "Próximo lote"
   const sessionEnd = page.getByTestId('review-session-end')

@@ -5,11 +5,14 @@ description: Plano semana a semana até a 1ª fase do 48º Exame de Ordem, em 10
 summary: A 1ª fase do 48º Exame de Ordem está marcada para 10 de janeiro de 2027, com 80 questões e aprovação a partir de 40 acertos. Com cerca de 8 semanas, vale estudar as matérias em blocos nas seis primeiras, transformar cada questão errada em card e deixar as duas últimas para simulados e revisão. Comece por Ética, que tem pelo menos 15% da prova somada a Direitos Humanos e Filosofia.
 category: oab
 area: oab
-author: weslley
+author: baigi
 published: 2026-11-09
-updated: 2026-11-09
+updated: 2026-11-10
 pillar: curva-do-esquecimento
-related: como-revisar-lei-seca-inss, curva-do-esquecimento
+related: oab-faltando-1-mes, como-revisar-lei-seca-inss, curva-do-esquecimento
+context: 48º Exame de Ordem
+cover: {"value": "8", "label": "semanas até a 1ª fase"}
+facts: [{"value": "10/01/2027", "label": "data da 1ª fase", "icon": "calendar"}, {"value": "80 questões", "label": "aprova quem faz 40 pontos", "icon": "questions"}, {"value": "15%", "label": "no mínimo, de Ética e afins", "icon": "target"}]
 tags: OAB, Exame de Ordem, 48º Exame, 1ª fase, cronograma, revisão
 ---
 
@@ -47,6 +50,8 @@ Duas regras do edital mudam o jeito de revisar:
 
 ## Cronograma de 8 semanas até 10 de janeiro
 
+Se você chegou aqui com só um mês até a prova, use o [plano de 30 dias da reta final](/blog/oab-faltando-1-mes).
+
 A ideia é simples: seis semanas para passar pela matéria em blocos, com questões e cards, e duas semanas só para simulado e revisão. Quem já estudou para outro Exame pode usar as primeiras semanas mais para questões do que para teoria.
 
 | Semana | Datas | Foco |
@@ -66,7 +71,7 @@ Dentro de cada semana, a rotina é a mesma:
 2. **Cada erro vira um card.** Uma pergunta curta, a resposta e o artigo. Nada de copiar o artigo inteiro no verso.
 3. **Revisão diária dos cards antigos.** Os cards das semanas anteriores continuam voltando. É isso que impede o Constitucional da semana 2 de sumir até janeiro.
 
-O terceiro passo é o que separa um cronograma de um calendário de leitura. Sem revisão, a maior parte do que você estudou em novembro já terá sumido em janeiro. Expliquei por que no [guia da curva do esquecimento](/blog/curva-do-esquecimento).
+Sem o terceiro passo, o plano vira um calendário de leitura. Pelo modelo de revisão que usamos (FSRS, parâmetros padrão), um card que você acertou uma vez tem chance estimada de 67% de ser lembrado 30 dias depois, e ela continua caindo até janeiro. Revisando no dia certo, o card volta antes de essa chance ficar abaixo de 90%. Explicamos a conta no [guia da curva do esquecimento](/blog/curva-do-esquecimento).
 
 ## Como transformar Ética em cards
 
@@ -91,7 +96,7 @@ Coloque sempre o artigo no verso. Na revisão, se a dúvida vier, você confere 
 
 ## Quantos cards por dia até a prova?
 
-Depende de quantos cards você vai criar até a prova. Uma conta grosseira: se você chegar a 600 cards em 6 semanas (42 dias), são cerca de 14 novos por dia, mais as revisões dos dias anteriores, que crescem com o tempo e depois se acalmam. Nas duas últimas semanas, sem cards novos, sobra só a revisão.
+Depende de quantos cards você vai criar até a prova. Para ter uma ideia: se você chegar a 600 cards em 6 semanas (42 dias), são cerca de 14 novos por dia, mais as revisões dos dias anteriores, que crescem com o tempo e depois se acalmam. Nas duas últimas semanas, sem cards novos, sobra só a revisão.
 
 A ferramenta abaixo faz essa conta com o mesmo modelo de revisão que o Baigi usa. Coloque **10/01/2027** como data da prova e o número de cards que você pretende ter.
 
@@ -99,11 +104,11 @@ A ferramenta abaixo faz essa conta com o mesmo modelo de revisão que o Baigi us
 {"tool": "plano-ate-a-prova"}
 ```
 
-## Onde o Baigi entra nisso
+## O que o Baigi faz nesse método?
 
-Tudo acima dá para fazer no papel ou no Anki. O Baigi existe para tirar dois trabalhos do caminho. O primeiro é escrever os cards: você cola a questão que errou, ou manda o PDF do seu material, e o card sai com a origem anotada (a IA tem uma prévia grátis). O segundo é a agenda: cada card volta no dia certo pelo FSRS, revisar é grátis, e você marca a data da prova para ver quanto deve lembrar no dia 10.
+Em oito semanas, o card mais útil costuma nascer da questão da FGV que você errou. No Baigi, você cola a questão e ele separa enunciado, alternativas e gabarito sem IA, de graça; ou manda o PDF do Estatuto e a IA propõe os cards (há uma prévia grátis da IA). Cada card volta no dia certo pelo FSRS, revisar é grátis, inclusive sem internet, e com a prova marcada em 10/01/2027 você vê quanto deve lembrar no dia.
 
-Ele não substitui as questões nem a leitura da lei. Confira cada card gerado com o texto do Estatuto, como você faria com o resumo de um colega.
+A banca cobra o detalhe, e a IA erra: confira cada card gerado pela IA com o texto do Estatuto antes de revisar.
 
 ```quiz
 {"area": "oab", "title": "Teste: você lembra do Estatuto da OAB?", "cards": [
@@ -129,9 +134,9 @@ Não. A prova objetiva é sem consulta. A consulta à legislação, sem anotaç�
 
 A que estava em vigor na publicação do edital, em 21 de setembro de 2026. O edital diz que legislação que entrou em vigor depois dessa data, e alterações posteriores, não serão cobradas.
 
-### Se eu passar na 1ª fase e reprovar na 2ª, perco tudo?
+### Como funciona a repescagem da OAB 48?
 
-Não. O edital permite reaproveitar o resultado da 1ª fase uma vez, para fazer só a 2ª fase do Exame seguinte, pagando a taxa de inscrição.
+"Repescagem" é o nome popular do que o edital chama de reaproveitamento. Quem passa na 1ª fase e reprova na 2ª pode reaproveitar o resultado da prova objetiva para fazer só a 2ª fase do Exame imediatamente seguinte, pagando a taxa de inscrição. Então quem passou na 1ª fase do 47º e reprovou na 2ª pode ir direto para a 2ª fase do 48º (prevista para 28/02/2027). O edital do 48º diz que os procedimentos desse pedido saem num edital complementar, com publicação prevista para 12 de novembro de 2026. Confira lá os prazos.
 
 ### Existe uma tabela oficial de quantas questões caem de cada matéria?
 
@@ -139,9 +144,9 @@ Não. O edital só garante o mínimo de 15% para Ética, Estatuto, Regulamento G
 
 ## Fontes
 
-1. Conselho Federal da OAB e FGV, Edital de Abertura do 48º Exame de Ordem Unificado, de 21 de setembro de 2026: data e horário da prova objetiva (item 3.1.1), 80 questões e 4 alternativas (3.4.1 e 3.4.1.4), cota mínima de 15% (3.4.1.1), jurisprudência pacificada (3.4.1.2), data de corte da legislação e consulta na 2ª fase (3.6.14.3 e 3.6.14.4), nota mínima (4.1.3), reaproveitamento (2.8.1) e cronograma (Anexo V). [https://s.oab.org.br/arquivos/2026/09/fb43fb37-838e-4d33-a863-99fa1f98b921.pdf](https://s.oab.org.br/arquivos/2026/09/fb43fb37-838e-4d33-a863-99fa1f98b921.pdf). Notícia da OAB: [https://www.oab.org.br/noticia/64615/confira-o-edital-de-abertura-do-48-exame-de-ordem-unificado](https://www.oab.org.br/noticia/64615/confira-o-edital-de-abertura-do-48-exame-de-ordem-unificado)
-2. Provimento CFOAB nº 144/2011, que regulamenta o Exame de Ordem (art. 11: nota mínima, cota de 15% e matérias da 1ª fase). [https://www.oab.org.br/leisnormas/legislacao/provimentos/144-2011](https://www.oab.org.br/leisnormas/legislacao/provimentos/144-2011)
-3. OAB, inclusão de Direito Eleitoral, Financeiro e Previdenciário a partir do 38º Exame (5 de abril de 2022). [https://www.oab.org.br/noticia/59558/oab-libera-escolha-do-local-do-exame-e-insere-tres-disciplinas-obrigatorias](https://www.oab.org.br/noticia/59558/oab-libera-escolha-do-local-do-exame-e-insere-tres-disciplinas-obrigatorias)
-4. Lei nº 8.906, de 4 de julho de 1994, Estatuto da Advocacia e da OAB (arts. 7º, XIV, 8º, 35, 37 e 43). [https://www.planalto.gov.br/ccivil_03/leis/l8906.htm](https://www.planalto.gov.br/ccivil_03/leis/l8906.htm)
-5. Constituição Federal, art. 133. [https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm](https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm)
-6. FSRS, algoritmo de repetição espaçada de código aberto usado pelo Baigi e pelo Anki. [https://github.com/open-spaced-repetition/awesome-fsrs/wiki/The-Algorithm](https://github.com/open-spaced-repetition/awesome-fsrs/wiki/The-Algorithm)
+1. [Edital de Abertura do 48º Exame de Ordem Unificado](https://s.oab.org.br/arquivos/2026/09/fb43fb37-838e-4d33-a863-99fa1f98b921.pdf), Conselho Federal da OAB e FGV, de 21 de setembro de 2026: data e horário da prova objetiva (item 3.1.1), 80 questões e 4 alternativas (3.4.1 e 3.4.1.4), cota mínima de 15% (3.4.1.1), jurisprudência pacificada (3.4.1.2), data de corte da legislação e consulta na 2ª fase (3.6.14.3 e 3.6.14.4), nota mínima (4.1.3), reaproveitamento ou repescagem (2.8.1 e 2.8.1.1) e cronograma (Anexo V). Veja também a [notícia da OAB](https://www.oab.org.br/noticia/64615/confira-o-edital-de-abertura-do-48-exame-de-ordem-unificado).
+2. [Provimento CFOAB nº 144/2011](https://www.oab.org.br/leisnormas/legislacao/provimentos/144-2011), que regulamenta o Exame de Ordem (art. 11: nota mínima, cota de 15% e matérias da 1ª fase).
+3. [OAB, inclusão de Direito Eleitoral, Financeiro e Previdenciário a partir do 38º Exame](https://www.oab.org.br/noticia/59558/oab-libera-escolha-do-local-do-exame-e-insere-tres-disciplinas-obrigatorias) (5 de abril de 2022).
+4. [Lei nº 8.906, de 4 de julho de 1994, Estatuto da Advocacia e da OAB](https://www.planalto.gov.br/ccivil_03/leis/l8906.htm) (arts. 7º, XIV, 8º, 35, 37 e 43).
+5. [Constituição Federal](https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm), art. 133.
+6. [FSRS, algoritmo de repetição espaçada de código aberto](https://github.com/open-spaced-repetition/awesome-fsrs/wiki/The-Algorithm) usado pelo Baigi e pelo Anki.

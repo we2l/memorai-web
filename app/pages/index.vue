@@ -7,9 +7,11 @@
       <LandingCurve />
       <LandingStory :catalog="catalog" />
       <LandingQuiz :catalog="catalog" />
+      <LandingErrors :catalog="catalog" />
       <LandingProjection />
       <LandingPodcast :catalog="catalog" @sample="sample" />
       <LandingAreas :catalog="catalog" />
+      <LandingFacts />
       <LandingPlans :catalog="catalog" :failed="failed" @retry="fetchPlans" />
       <LandingFinal />
     </main>

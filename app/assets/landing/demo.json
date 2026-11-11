@@ -2,5 +2,12 @@
   "exam": "Técnico do INSS",
   "days": 45,
   "keep_pace": 90,
-  "stop_today": 75
+  "stop_today": 75,
+  "readiness": {
+    "score": 76,
+    "band": "Bem preparado",
+    "memory": 90,
+    "on_track": 40,
+    "questions": 68
+  }
 }

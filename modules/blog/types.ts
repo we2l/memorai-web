@@ -36,6 +36,24 @@ export const BLOG_SHOTS = {
 } as const
 export type BlogShot = keyof typeof BLOG_SHOTS
 
+/** Icons of the article's facts (prd-blog-v2 RF-V2): app/components/blog/Cover.vue maps each one to a lucide icon and a tone */
+export const BLOG_FACT_ICONS = ['calendar', 'questions', 'target', 'chart'] as const
+export type BlogFactIcon = typeof BLOG_FACT_ICONS[number]
+/** The number of the cover: only a number written in the article itself (checked by the module) */
+export interface BlogCover { value: string, label: string }
+export interface BlogFact extends BlogCover { icon: BlogFactIcon }
+
+/** Dot color of each category (a subject tone of UiSubjectMark; never purple, the action's color) */
+export const BLOG_CATEGORY_TONE: Record<BlogCategory, string> = {
+  metodo: 'green',
+  concurso: 'blue',
+  enem: 'amber',
+  oab: 'orange',
+  medicina: 'pink',
+  idiomas: 'slate',
+  comparacao: 'teal',
+}
+
 export interface QuizCard { q: string, a: string, source?: string }
 export type BlogSegment =
   | { kind: 'html', html: string }
@@ -63,6 +81,14 @@ export interface BlogMeta {
   summary: string | null
   pillar: string | null
   related: string[]
+  /** What the article is about, next to the category ("TJ-SP Escrevente") */
+  context: string | null
+  /** The big number of the cover (index cards and article header); null = the cover shows only the category */
+  cover: BlogCover | null
+  /** Up to 3 facts under the cover in the article header */
+  facts: BlogFact[]
+  /** The highlight of /blog (at most one; without it, the newest article) */
+  featured: boolean
 }
 
 export interface BlogArticle extends BlogMeta {

@@ -85,6 +85,8 @@ import { ArrowLeft } from 'lucide-vue-next'
 import { cadernoPath } from '~/utils/scope'
 import { distributionLabel } from '~/utils/quizDistribution'
 import { formatAnswer } from '~/utils/quizAnswer'
+import { quizConflict } from '~/utils/quizConflict'
+import { quizConflictMessage } from '~/utils/quizConflictMessage'
 
 definePageMeta({ chrome: 'focus' })
 useHead({ title: 'Questões · Baigi' })
@@ -92,6 +94,7 @@ useHead({ title: 'Questões · Baigi' })
 const route = useRoute()
 const quizStore = useQuizStore()
 const topicStore = useTopicStore()
+const toast = useToast()
 
 type State = 'loading' | 'generating' | 'failed' | 'error' | 'answering'
 const state = ref<State>('loading')
@@ -148,7 +151,15 @@ async function confirm() {
     // Prova: straight to the next one; Treino stays for the correction
     if (!learning.value && !isLast.value) quizStore.nextQuestion()
   } catch (e) {
-    reportApiError(e, { error: 'Não foi possível salvar a resposta. Tente de novo.' })
+    const conflict = quizConflict(e)
+    if (conflict) {
+      // The quiz moved on (finished by the timer) or the Treino already graded it: the server's state on screen;
+      // a completed quiz opens the result (watch below)
+      await quizStore.fetchQuiz(quizId.value).catch((err: unknown) => reportApiError(err, { silent: true }))
+      if (quiz.value?.status !== 'completed') toast.show(quizConflictMessage(conflict), 'info')
+    } else {
+      reportApiError(e, { error: 'Não foi possível salvar a resposta. Tente de novo.' })
+    }
   } finally {
     saving.value = false
   }
@@ -163,11 +174,18 @@ async function finish() {
   if (finishing.value) return
   finishing.value = true
   try {
-    await quizStore.finishQuiz()
+    const done = await quizStore.finishQuiz()
     confirmFinish.value = false
+    // A 409 reloads the quiz in the store: finished = the result, without an error toast (API #177)
+    if (done && done.status !== 'completed') {
+      toast.show(quizConflictMessage('quiz_not_in_progress'), 'info')
+      return
+    }
     await navigateTo(`/simulados/${quizId.value}/resultado`, { replace: true })
   } catch (e) {
-    reportApiError(e, { error: 'Não foi possível finalizar. Tente de novo.' })
+    const conflict = quizConflict(e)
+    reportApiError(e, conflict ? { silent: true } : { error: 'Não foi possível finalizar. Tente de novo.' })
+    if (conflict) toast.show(quizConflictMessage(conflict), 'info')
   } finally {
     finishing.value = false
   }

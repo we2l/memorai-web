@@ -213,8 +213,9 @@ test.describe('Páginas públicas', () => {
     await page.setViewportSize({ width: 1440, height: 900 })
     await gotoApp(page, '/termos')
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Termos de Uso')
-    // Without the seller in the catalog (local API), the placeholder of the responsible person is on screen
-    await expect(page.getByText(/\[\[nome e CPF do responsável\]\]/).first()).toBeVisible()
+    // The responsible person by name only, never a CPF nor a placeholder
+    await expect(page.getByTestId('terms-seller')).toContainText('Weslley Araujo de Sousa Leite')
+    await expect(page.getByTestId('terms-seller')).not.toContainText('CPF')
     await page.getByRole('navigation', { name: 'Índice' }).getByRole('link', { name: 'Rescisão' }).click()
     await expect(page).toHaveURL(/#rescisao/)
     await expect(page.getByRole('heading', { name: /^\d+\. Rescisão$/ })).toBeInViewport()

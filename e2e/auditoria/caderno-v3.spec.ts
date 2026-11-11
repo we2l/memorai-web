@@ -1,6 +1,6 @@
 import AxeBuilder from '@axe-core/playwright'
 import type { Browser, Page } from '@playwright/test'
-import { test, expect, gotoApp, apiCall, uid, tinker, cachedLoginState, USERS } from './support/fixtures'
+import { test, expect, gotoApp, apiCall, uid, tinker, cachedLoginState, USERS, isApiUrl } from './support/fixtures'
 
 /**
  * Caderno v3, o hub (prd-4b-caderno-v3 §10.1, tasks 13.1): um painel por escopo (caderno, matéria, assunto)
@@ -64,7 +64,7 @@ test.describe('Um número de sessão (seed pesado)', () => {
     const { ctx, page, heavy } = await heavyPage(browser)
     test.skip(!heavy, 'seed pesado ausente')
     const api: string[] = []
-    page.on('request', (r) => { if (r.url().includes(':8037/api/')) api.push(new URL(r.url()).pathname.replace(/[0-9a-f]{8}-[0-9a-f-]{27}/g, '{id}')) })
+    page.on('request', (r) => { if (isApiUrl(new URL(r.url()))) api.push(new URL(r.url()).pathname.replace(/[0-9a-f]{8}-[0-9a-f-]{27}/g, '{id}')) })
     await gotoApp(page, `/cadernos/${heavy.id}`)
     await expect(materials(page).first()).toBeVisible()
     expect(api).toContain('/api/topics/{id}/summary')

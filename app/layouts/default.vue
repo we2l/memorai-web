@@ -5,6 +5,8 @@
 
     <main class="relative" :class="focusChrome ? '' : 'pb-[calc(var(--nav-h)+var(--miniplayer-h)+var(--sticky-action-h)+16px)]'">
       <ShellPageTools v-if="showChrome" />
+      <!-- Offline review (prd-revisao-offline RF-F6): also on the review, where the rest of the shell hides -->
+      <LazyShellOfflineBar v-if="offline.offline || offline.hadOfflineWork" />
       <LazyUiVerifyEmailBanner v-if="auth.user && !auth.isVerified" :modal-only="focusChrome || route.path === '/configuracoes'" />
       <slot />
     </main>
@@ -47,6 +49,7 @@ const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
 const player = usePlayerStore()
+const offline = useOfflineStore()
 
 const focusChrome = computed(() => route.meta.chrome === 'focus')
 const showChrome = computed(() => !focusChrome.value)

@@ -2,6 +2,7 @@
   <div class="mx-auto flex max-w-page flex-col gap-6 px-gutter pt-2 pb-6 md:pt-8">
     <UiPageHeader title="Cadernos" :meta="meta">
       <template v-if="roots.length" #actions>
+        <UiButton variant="outline" :icon-left="FileText" to="/cadernos/edital" data-testid="edital-entry">Montar pelo edital</UiButton>
         <UiButton variant="primary" :icon-left="Plus" data-tour="create-notebook" @click="openCreate">Novo caderno</UiButton>
       </template>
     </UiPageHeader>
@@ -17,6 +18,7 @@
         <template #action>
           <div class="flex flex-wrap justify-center gap-2">
             <UiButton variant="primary" :icon-left="Plus" data-tour="create-notebook" @click="openCreate">Criar caderno</UiButton>
+            <UiButton variant="outline" :icon-left="FileText" to="/cadernos/edital" data-testid="edital-entry">Montar pelo edital</UiButton>
             <UiButton variant="ghost" :icon-left="Download" to="/importar">Importar do Anki</UiButton>
           </div>
         </template>
@@ -53,7 +55,7 @@
 // in the Fraunces, "N hoje") and "+ Novo caderno". Each caderno opens its hub, /cadernos/{id}. Old URLs
 // (/cadernos?topic=…&note=…&tab=…) are sent to the new routes (RF-F1): API pending actions, e-mails and
 // favorites still carry them.
-import { Download, Plus } from 'lucide-vue-next'
+import { Download, FileText, Plus } from 'lucide-vue-next'
 import type { Topic, TopicProgress } from '~/types'
 import { legacyCadernoRedirect } from '~/utils/scope'
 

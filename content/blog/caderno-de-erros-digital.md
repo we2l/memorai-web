@@ -109,10 +109,6 @@ Na mesma tela, você marca o motivo do erro (Confundi, Não sabia, Esqueci ou Er
 
 O card colado é a questão inteira, como ela caiu. Isso é bom para treinar a pegadinha da banca. Para lei seca, vale criar também o card curto do detalhe, como no exemplo do auxílio-reclusão. O Baigi também lê PDF e propõe cards com IA, mas no plano Grátis isso é uma prévia.
 
-```shot
-{"shot": "simulado", "caption": "Tela real do Baigi, conta de demonstração: o resultado de um simulado, com as questões erradas que viram card."}
-```
-
 ```quiz
 {"area": "concurso", "title": "Teste: o caderno de erros do exemplo", "cards": [
   {"q": "O auxílio-reclusão exige carência?", "a": "Sim, 24 contribuições mensais.", "source": "Lei 8.213/1991, art. 25, IV"},

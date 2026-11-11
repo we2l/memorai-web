@@ -71,9 +71,9 @@ const CONSENT_CHUNK = /\/components\/ui\/Consent(Banner|Modal)\.vue/
 // instead of in every install download (precache budget, prd-correcoes-experiencia Q2, prd-4g-conta-onboarding-v3,
 // prd-4b-caderno-v3 §10.2), and the landing (prd-landing-v4 RF-L14: marketing, online only). /ajuda stays: "?" opens
 // the shortcuts offline too.
-const ONE_SHOT_PAGE_CHUNK = /\/(pages\/(index|comecar(\/(index|pronto|\[area\]))?|entrar|criar-conta|esqueci-senha|checkout\/(sucesso|index)|auth\/google\/callback|redefinir-senha|termos|privacidade|planos|importar|cadernos\/lixeira)|layouts\/(auth|landing)|components\/review\/ReviewOnboardingEnd|components\/caderno\/(MaterialCardsState|MoveDialog|TrashDialog))\.vue/
+const ONE_SHOT_PAGE_CHUNK = /\/(pages\/(index|comecar(\/(index|pronto|\[area\]))?|entrar|criar-conta|esqueci-senha|checkout\/(sucesso|index)|auth\/google\/callback|redefinir-senha|termos|privacidade|planos|importar|cadernos\/(lixeira|edital))|layouts\/(auth|landing)|components\/review\/ReviewOnboardingEnd|components\/caderno\/(MaterialCardsState|MoveDialog|TrashDialog))\.vue/
 // Pieces shared only by those pages: a shared chunk has no facade module, so it goes by what is inside it.
-const ONE_SHOT_SHARED = /\/(components\/auth\/|components\/onboarding\/|components\/checkout\/|utils\/(mercadoPago|checkoutState|authMessages|organization|moveTargets|ankiMapping|guestProgress|postAuthRedirect)|composables\/useTrashBatch)/
+const ONE_SHOT_SHARED = /\/(components\/auth\/|components\/edital\/|components\/onboarding\/|components\/checkout\/|utils\/(editalProposal|mercadoPago|checkoutState|authMessages|organization|moveTargets|ankiMapping|guestProgress|postAuthRedirect)|composables\/(useTrashBatch|useEditalReader))/
 // Blog and free tools (prd-blog-seo RF-B9): marketing read online, like the landing. Pages, their components, the
 // articles (one chunk per content/blog/*.md) and the tools' math go to once-* chunks, out of the install download.
 const BLOG_CHUNK = /\/(pages\/(blog|ferramentas)\/|pages\/quem-faz\.vue|components\/blog\/|content\/blog\/|utils\/(blog|forgetting|examPlan)\.ts|composables\/(useBlogSeo|useAreaQuery)\.ts|modules\/blog\/)|^\0#blog\//
@@ -172,6 +172,8 @@ export default defineNuxtConfig({
       name: 'BAIGI',
       short_name: 'BAIGI',
       description: 'Estude de forma mais inteligente — repetição espaçada com IA',
+      // vite-plugin-pwa writes "en" without it (QA 2026-11 M8)
+      lang: 'pt-BR',
       // DS v3 light page (--surface-page in assets/css/tokens.css)
       theme_color: THEME_COLOR.light,
       background_color: THEME_COLOR.light,
@@ -196,8 +198,8 @@ export default defineNuxtConfig({
       skipWaiting: true,
       clientsClaim: true,
       cleanupOutdatedCaches: true,
-      // No app shell with ssr:false + prerender: a '/' fallback served the landing
-      // instead of the app. Offline page is Phase 2.
+      // No global fallback: a '/' fallback served the landing instead of the app. Offline, only /hoje and /revisar
+      // fall back to the app shell (runtimeCaching below; prd-revisao-offline RF-F1, D9).
       navigateFallback: null,
       // Images are runtime-cached (below); never precache png/pdf (RF-05)
       globPatterns: ['**/*.{js,css,html,svg,ico,woff2}'],
@@ -213,6 +215,15 @@ export default defineNuxtConfig({
       ],
       // API responses are never cached (RN-F03): no rule for the API origin
       runtimeCaching: [
+        {
+          // Offline review (prd-revisao-offline RF-F1, D9): online nothing changes (NetworkOnly); without network the
+          // installed app opens /hoje and /revisar from the prerendered shell in the precache. Inline: workbox
+          // serializes this function into sw.js, so it cannot read anything from this file.
+          urlPattern: ({ request, url }) => request.mode === 'navigate' && /^\/(hoje|revisar)\/?$/.test(url.pathname),
+          handler: 'NetworkOnly',
+          // No networkTimeoutSeconds: workbox only allows it with NetworkFirst, which would cache the app HTML
+          options: { precacheFallback: { fallbackURL: '/app-shell/index.html' } },
+        },
         {
           urlPattern: /\/_nuxt\/.*\.(png|webp|avif|svg)$/,
           handler: 'CacheFirst',
@@ -250,6 +261,9 @@ export default defineNuxtConfig({
     '/quem-faz': { ssr: true, prerender: true },
     '/ferramentas/**': { ssr: true, prerender: true },
     '/redefinir-senha': { ssr: false },
+    // The empty app shell (prd-revisao-offline RF-F1): precached, served by the service worker for /hoje and /revisar
+    // when the network fails; opened directly, it goes to /hoje
+    '/app-shell': { ssr: false, prerender: true },
     // PostHog reverse proxy (RF-F10, anti-adblock). EU region (ADR-024, Questão 1).
     '/ingest/static/**': { proxy: 'https://eu-assets.i.posthog.com/static/**' },
     '/ingest/**': { proxy: 'https://eu.i.posthog.com/**' },
@@ -288,6 +302,9 @@ export default defineNuxtConfig({
       appVersion: APP_VERSION,
       // Contact shown on /quem-faz and the blog (prd-blog-seo). The mailbox/redirect must exist before publishing.
       contactEmail: process.env.NUXT_PUBLIC_CONTACT_EMAIL || 'contato@baigi.com.br',
+      // Offline review kill switch (prd-revisao-offline RF-F10): 0 turns off the saved lot, the saved user and the bar;
+      // the persistent queue stays (it protects ratings, offline or not)
+      offlineReview: process.env.NUXT_PUBLIC_OFFLINE_REVIEW !== '0',
     },
   },
 

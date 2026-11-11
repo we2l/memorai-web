@@ -2,10 +2,10 @@
   <LegalLayout title="Termos de Uso" :effective-date="EFFECTIVE_DATE" :updated-at="UPDATED_AT" :sections="sections">
     <!-- TEXTO JURÍDICO PENDENTE: revisão de advogado obrigatória antes de produção (PRD ux-critica §8.1) -->
     <!-- TODO(jurídico): confirmar a política de reembolso com o advogado/contador (prd-pagamento-mercado-pago §8) -->
-    <!-- Vendedor (Decreto 7.962/2013 art. 2): nome e CPF do catálogo (BILLING_SELLER_* da API); aqui e no checkout, nunca na landing -->
+    <!-- Responsável: só o nome (utils/legal.ts); o CPF do dono nunca é publicado (decisão de 11/11/2026) -->
     <p data-testid="terms-seller">
       Estes termos regem o uso do BAIGI, serviço de estudo com repetição espaçada e inteligência artificial,
-      oferecido por <template v-if="seller">{{ seller }}</template><span v-else class="placeholder">[[nome e CPF do responsável]]</span>,
+      oferecido por {{ RESPONSIBLE_NAME }},
       pessoa física responsável pelo BAIGI. Contato: <a :href="`mailto:${sellerEmail}`">{{ sellerEmail }}</a>.
     </p>
 
@@ -97,13 +97,12 @@
 
 <script setup lang="ts">
 import { INDEXABLE } from '~/utils/seo'
-import { sellerLine } from '~/utils/checkoutState'
+import { RESPONSIBLE_NAME } from '~/utils/legal'
 
 definePageMeta({ layout: 'public' })
 
-// Seller and checkout state from the catalog, read after hydration (the page is prerendered)
+// Contact and checkout state from the catalog, read after hydration (the page is prerendered)
 const { plans, fetchPlans } = usePlans()
-const seller = computed(() => sellerLine(plans.value))
 const sellerEmail = computed(() => plans.value?.checkout?.seller?.email || 'contato@baigi.com.br')
 const descriptor = computed(() => plans.value?.checkout?.statement_descriptor || 'BAIGI')
 const checkoutOpen = computed(() => checkoutAvailable(plans.value))
@@ -111,7 +110,7 @@ onMounted(() => { void fetchPlans() })
 
 // TODO(jurídico): datas definitivas na publicação do texto revisado
 const EFFECTIVE_DATE = '1º de outubro de 2026'
-const UPDATED_AT = '8 de novembro de 2026'
+const UPDATED_AT = '11 de novembro de 2026'
 
 const sections = [
   { id: 'aceitacao', title: 'Aceitação' },

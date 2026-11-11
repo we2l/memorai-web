@@ -210,27 +210,45 @@ describe('HomeExam', () => {
     reta_final_active: false, cards_per_day: 60, cards_weak: 0, topics: [], podcast_suggestion: false, ...over,
   })
 
-  it('sem projeção: linha simples (sem lilás), a prova mais próxima a qualquer distância, com ritmo e "Ver provas"', async () => {
-    const w = await mountSuspended(HomeExam, { props: { exams: [exam({ id: 'b', title: 'Outra', days_remaining: 90 }), exam({})] } })
+  const readiness = { version: 1, score: 72, band: { key: 'well_prepared', label: 'Bem preparado' }, capped: false, parts: [
+      { key: 'memory', label: 'Memória no dia da prova', value: 88, weight: 0.5, enabled: true, keep_pace: 88, stop_today: 61 },
+      { key: 'on_track', label: 'Revisões em dia', value: 95, weight: 0.15, enabled: true, late: 12, in_review: 240 },
+      { key: 'questions', label: 'Acerto em questões', value: 64, weight: 0.2, enabled: true, answered: 30, min_answered: 10 },
+      { key: 'coverage', label: 'Assuntos da prova com cards', value: null, weight: 0.15, enabled: false },
+    ], actions: [
+      { kind: 'review_late', count: 12, topic_id: 'root' },
+      { kind: 'practice_weak', topic_id: 'adm', topic_name: 'Direito Administrativo', accuracy: 45 },
+    ], missing: null } as never
+  const missing = { version: 1, score: null, band: null, capped: false, parts: [], actions: [], missing: { cards: 12, cards_needed: 20, graduated: 3, graduated_needed: 10 } } as never
+
+  it('sem número: linha simples (sem lilás), a prova mais próxima a qualquer distância, com o que falta e "Ver provas"', async () => {
+    const w = await mountSuspended(HomeExam, { props: { exams: [exam({ id: 'b', title: 'Outra', days_remaining: 90 }), exam({ readiness: missing })] } })
     expect(w.text()).toContain('TRF 4ª Região em 45 dias')
-    expect(w.text()).toContain('Ritmo: 60 cards por dia até lá')
+    expect(w.get('[data-testid="home-exam-pace"]').text()).toBe('Crie mais 8 cards dos assuntos da prova para ver sua prontidão.')
     expect(w.findAll('.bg-tinted')).toHaveLength(0)
     expect(w.get('a').attributes('href')).toBe('/progresso#provas')
     await w.get('a').trigger('click')
     expect(trackMock).toHaveBeenCalledWith('home_exam_click', {})
   })
 
-  it('com projeção: o bloco lilás com a frase, o número da projeção e até 3 matérias (a mais fraca por último)', async () => {
-    const projection = { keep_pace: 90, stop_today: 75, cards: 40, reviewed_cards: 30, new_cards: 10, desired_retention: 0.9, new_per_day: 20, computed_for: '2026-11-08' }
+  it('com número: o bloco lilás com a prontidão, as partes, a 1ª ação e até 3 matérias (a mais fraca por último)', async () => {
     const perf = (id: string, mastery: number | null) => ({ topic_id: id, parent_id: 'root', depth: 1, name: `M ${id}`, cards: 10, mastery, questions: { answered: 0, accuracy: null }, session_count: 0 })
     const w = await mountSuspended(HomeExam, {
-      props: { exams: [exam({ projection, topics: [{ id: 'root', name: 'INSS' }] })], performance: [perf('a', 40), perf('b', 94), perf('c', null), perf('d', 78), perf('e', 89)] as never },
+      props: { exams: [exam({ readiness, topics: [{ id: 'root', name: 'INSS' }] })], performance: [perf('a', 40), perf('b', 94), perf('c', null), perf('d', 78), perf('e', 89)] as never },
       attachTo: document.body,
     })
     expect(w.findAll('.bg-tinted')).toHaveLength(1)
-    expect(w.get('[data-testid="home-exam-pace"]').text()).toBe('Mantendo o ritmo, você chega à prova lembrando 90%')
+    expect(w.text()).toContain('Prontidão para a prova')
+    expect(w.get('[data-testid="readiness-band"]').text()).toBe('Bem preparado')
+    expect(w.get('[data-testid="readiness-parts"]').text()).toBe('Memória 88 · Em dia 95 · Questões 64')
+    expect(w.text()).not.toMatch(/chance|aprova/i)
+    const action = w.get('[data-testid="home-exam-action"] a')
+    expect(action.text()).toBe('Revise os 12 cards atrasados da prova')
+    expect(action.attributes('href')).toBe('/revisar?scope=topic:root&backlog=1')
+    await action.trigger('click')
+    expect(trackMock).toHaveBeenCalledWith('readiness_action_clicked', { kind: 'review_late', origin: 'home' })
     expect(w.findAll('[role="progressbar"]').map(b => b.attributes('aria-label'))).toEqual(['Domínio de M b', 'Domínio de M e', 'Domínio de M d'])
-    expect(w.text()).toContain('Ver o plano da prova')
+    expect(w.text()).toContain('Ver detalhes')
     expect(await axeViolations(w.element)).toEqual([])
     document.documentElement.classList.add('dark')
     expect(await axeViolations(w.element)).toEqual([])
@@ -238,8 +256,7 @@ describe('HomeExam', () => {
 
   it('amanhã, hoje e Reta final; nada sem prova', async () => {
     expect((await mountSuspended(HomeExam, { props: { exams: [exam({ days_remaining: 1 })] } })).text()).toContain('TRF 4ª Região é amanhã')
-    const projection = { keep_pace: 90, stop_today: 75 } as never
-    expect((await mountSuspended(HomeExam, { props: { exams: [exam({ days_remaining: 1, reta_final_active: true, projection })] } })).text()).toMatch(/TRF 4ª Região · é amanhã\s*Reta final/)
+    expect((await mountSuspended(HomeExam, { props: { exams: [exam({ days_remaining: 1, reta_final_active: true, readiness })] } })).text()).toMatch(/TRF 4ª Região · é amanhã\s*Reta final/)
     expect((await mountSuspended(HomeExam, { props: { exams: [exam({ days_remaining: 0 })] } })).text()).toContain('TRF 4ª Região é hoje')
     expect((await mountSuspended(HomeExam, { props: { exams: [] } })).find('section').exists()).toBe(false)
   })

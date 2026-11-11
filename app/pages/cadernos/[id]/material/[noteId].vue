@@ -114,7 +114,8 @@
               <p class="min-w-0 flex-1 text-meta text-fg-strong">Não deu para ler o PDF.</p>
               <UiButton size="sm" :loading="regenerating" @click="regenerate">Tentar de novo</UiButton>
             </div>
-            <TopicMaterialPdfPanel
+            <!-- Lazy: notices of a few PDFs only, out of the route chunk (budget 20 KB) -->
+            <LazyTopicMaterialPdfPanel
               v-else-if="m.document.value && !m.generating.value"
               :doc="m.document.value"
               :topic-id="id"

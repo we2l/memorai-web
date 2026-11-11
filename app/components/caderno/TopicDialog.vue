@@ -29,6 +29,10 @@
 
       <template v-if="showMode">
         <UiSelect v-model="mode" :options="modeOptions" label="Modo de estudo" hint="Vale para o caderno inteiro: matérias e assuntos herdam." />
+        <!-- Edital vira caderno (prd-edital-caderno RF-F2): only when creating a caderno for an exam -->
+        <p v-if="props.mode === 'create' && mode === 'exam'" class="text-meta text-fg-muted" data-testid="topic-dialog-edital">
+          Tem o edital? <UiLink to="/cadernos/edital" @click="open = false">Monte as matérias por ele</UiLink>.
+        </p>
         <div v-if="mode === 'language'" class="grid gap-3 sm:grid-cols-2">
           <UiSelect v-model="targetLanguage" :options="languageOptions" label="Idioma" placeholder="Escolha" />
           <UiSelect v-model="languageLevel" :options="levelOptions" label="Nível" placeholder="Escolha" />

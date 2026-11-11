@@ -14,7 +14,7 @@
       <p class="text-meta text-fg-muted">{{ meta }}</p>
       <p v-if="exam.reta_final_active" class="text-meta text-fg-muted">Nos últimos 3 dias, a revisão traz até 20 cards extras dos assuntos da prova.</p>
 
-      <ProgressExamProjection v-if="future" :projection="exam.projection" :exam-title="exam.title" />
+      <ProgressExamReadiness v-if="future" :readiness="exam.readiness" />
 
       <!-- Past: "Passou?" (prd-retencao-lembretes F6), or the answer given -->
       <template v-else>
@@ -37,7 +37,7 @@
 
 <script setup lang="ts">
 // An exam of the agenda (prd-4f-progresso-v3 RF-F3): the date block, the coverage and the pace, "Reta final"
-// with what it does, the projection (future) or "Passei / Não passei" (past), and ⋯ with Editar, the calendar
+// with what it does, the readiness (future, prd-prontidao-prova) or "Passei / Não passei" (past), and ⋯ with Editar, the calendar
 // of the phone (.ics, Google Agenda), Reta final on/off and Excluir.
 import type { MenuItem } from '~/components/ui/Menu.vue'
 import type { Exam, ExamOutcome } from '~/types'

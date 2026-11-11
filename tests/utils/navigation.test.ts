@@ -22,6 +22,7 @@ const EXPECTED: Record<string, string | null> = {
   '/hoje': 'hoje',
   '/cadernos': 'cadernos',
   '/cadernos/:id': 'cadernos',
+  '/cadernos/edital': 'cadernos',
   '/cadernos/lixeira': 'cadernos',
   '/cadernos/:id/cards': 'cadernos',
   '/cadernos/:id/mapa': 'cadernos',
@@ -40,6 +41,8 @@ const EXPECTED: Record<string, string | null> = {
   '/': null,
   '/_ds': null,
   '/ajuda': null,
+  // The offline app shell (prd-revisao-offline RF-F1): never shown, it goes to /hoje
+  '/app-shell': null,
   '/auth/google/callback': null,
   '/checkout': null,
   '/checkout/sucesso': null,
@@ -58,6 +61,7 @@ const EXPECTED: Record<string, string | null> = {
   // Blog, free tools and "Quem faz" (prd-blog-seo): public pages, no place
   '/blog': null,
   '/blog/:slug': null,
+  '/blog/sobre': null,
   '/ferramentas': null,
   '/ferramentas/calculadora-do-esquecimento': null,
   '/ferramentas/plano-ate-a-prova': null,

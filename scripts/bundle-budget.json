@@ -13,7 +13,7 @@
     "/cadernos/:id": {
       "file": "pages/cadernos/[id]/index.vue",
       "gzKb": 25,
-      "closureGzKb": 43
+      "closureGzKb": 43.5
     },
     "/cadernos/:id/material/:noteId": {
       "file": "pages/cadernos/[id]/material/[noteId].vue",
@@ -27,18 +27,18 @@
     },
     "/": {
       "file": "pages/index.vue",
-      "gzKb": 15.6,
-      "closureGzKb": 21
+      "gzKb": 16.8,
+      "closureGzKb": 22
     },
     "/hoje": {
       "file": "pages/hoje.vue",
       "gzKb": 10.5,
-      "closureGzKb": 27
+      "closureGzKb": 28
     },
     "/revisar": {
       "file": "pages/revisar.vue",
       "gzKb": 16.6,
-      "closureGzKb": 55.5
+      "closureGzKb": 57
     },
     "/praticar": {
       "file": "pages/praticar.vue",
@@ -62,7 +62,7 @@
     },
     "/progresso": {
       "file": "pages/progresso.vue",
-      "gzKb": 11.5,
+      "gzKb": 12,
       "closureGzKb": 43
     },
     "/comecar": {
@@ -73,7 +73,7 @@
     "/comecar/:area": {
       "file": "pages/comecar/[area].vue",
       "gzKb": 6,
-      "closureGzKb": 43
+      "closureGzKb": 44.5
     },
     "/comecar/pronto": {
       "file": "pages/comecar/pronto.vue",

@@ -15,6 +15,8 @@ export default defineNuxtPlugin(() => {
       options.headers = headers
     },
     onResponse({ request, options, response }) {
+      // Any answer of the server (even an error) means there is network again (prd-revisao-offline D10)
+      if (import.meta.client) useOfflineStore().markOnline()
       // The first material or AI action may have opened the Intensivo trial on the server: /me again
       if (import.meta.client && response.ok && opensTrialRequest(options.method, typeof request === 'string' ? request : request.url)) {
         void useAuthStore().refreshTrialAfterUse()

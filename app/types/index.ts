@@ -778,6 +778,8 @@ export interface Exam {
   cards_per_day?: number | null
   /** Retention on the exam day (RF-B1, §5.1); null without enough data */
   projection?: ExamProjection | null
+  /** Prontidão para a prova (prd-prontidao-prova); null for a past exam */
+  readiness?: ExamReadiness | null
 }
 
 export interface ExamCoverage {
@@ -797,6 +799,47 @@ export interface ExamProjection {
   new_per_day: number
   computed_for: string
 }
+
+/**
+ * Prontidão para a prova (prd-prontidao-prova §4): a 0-100 estimate of the preparation, made of the parts Baigi measures,
+ * never a chance of passing. score null = not enough data yet (`missing` says what is left).
+ */
+export interface ExamReadiness {
+  version: number
+  score: number | null
+  band: { key: 'starting' | 'on_the_way' | 'well_prepared' | 'ready'; label: string } | null
+  /** Without 10 answered questions the score stops at 84 */
+  capped: boolean
+  parts: ReadinessPart[]
+  actions: ReadinessAction[]
+  missing: { cards: number; cards_needed: number; graduated: number; graduated_needed: number } | null
+}
+
+export interface ReadinessPart {
+  key: 'memory' | 'on_track' | 'questions' | 'coverage'
+  label: string
+  /** 0-100; null without data or switched off */
+  value: number | null
+  weight: number
+  enabled: boolean
+  keep_pace?: number
+  stop_today?: number
+  late?: number
+  in_review?: number
+  answered?: number
+  min_answered?: number
+  topics?: number
+  covered?: number
+}
+
+export type ReadinessAction =
+  | { kind: 'review_late'; count: number; topic_id: string | null }
+  | { kind: 'follow_plan'; count: number }
+  | { kind: 'raise_new'; per_day: number; new_cards: number }
+  | { kind: 'practice_weak'; topic_id: string; topic_name: string; accuracy: number }
+  | { kind: 'practice_start'; topic_id: string | null; answered: number; min_answered: number }
+  | { kind: 'review_weak'; topic_id: string; topic_name: string; mastery: number | null }
+  | { kind: 'create_cards'; topic_id: string; topic_name: string }
 
 /** GET /stats/progress?root_id= (prd-4f-progresso-v3 RF-B4) */
 export interface ProgressSummaryData {
@@ -849,6 +892,7 @@ export interface ExamUpcoming {
   topics: { id: string; name: string }[]
   podcast_suggestion: boolean
   projection?: ExamProjection | null
+  readiness?: ExamReadiness | null
   /** Covered only by the sample caderno: "Mover para {name}" (prd-revisao-v5-fase-b RF-B19) */
   move_offer?: { topic_id: string; name: string } | null
 }
@@ -970,7 +1014,7 @@ export interface CatalogCheckout {
   gateway?: string
   /** Public by design: the browser tokenizes the card with it */
   public_key?: string | null
-  seller?: { name: string | null; document: string | null; email: string | null }
+  seller?: { name: string | null; email: string | null }
   statement_descriptor?: string
   refund_window_days?: number
 }
@@ -1001,11 +1045,31 @@ export interface Paginated<T> {
 /** GET /ai/jobs/{id} — async AI generation (RF-30) */
 export interface AiJob<T = unknown> {
   id: string
-  type: 'cards' | 'mindmap' | 'mindmap_note'
+  type: 'cards' | 'mindmap' | 'mindmap_note' | 'edital'
   status: 'pending' | 'processing' | 'done' | 'failed'
   result?: T
   error?: string
   created_at: string
+}
+
+/** Edital vira caderno (prd-edital-caderno §4): the proposal the AI read, edited before the caderno exists */
+export interface EditalTopicDraft { name: string; description: string | null }
+export interface EditalSubjectDraft { name: string; topics: EditalTopicDraft[] }
+export interface EditalProposal { name: string; exam_date: string | null; subjects: EditalSubjectDraft[] }
+export interface EditalReadResult {
+  /** choose = a Diário with more than one edital: read again with the pages of one */
+  status: 'ready' | 'choose'
+  proposal: EditalProposal | null
+  alternatives?: { label: string; pages: { from: number; to: number } | null }[]
+  source: { kind: 'pdf' | 'text'; pages: { from: number; to: number } | null; total_pages: number | null; found: 'heading' | 'whole' | 'manual' | 'text'; truncated: boolean }
+  counts: { subjects: number; topics: number }
+  applied_topic_id: string | null
+}
+export interface EditalApplied {
+  topic: { id: string; name: string; color: string | null; learning_mode: string | null }
+  counts: { subjects: number; topics: number }
+  exam: { id: string; exam_date: string } | null
+  exam_skipped: 'exam_limit_reached' | null
 }
 
 declare module '#app' {
@@ -1060,7 +1124,8 @@ export interface ScopeSummary {
   session: { count: number; overdue: number; errors: number; backlog?: number }
   can_quiz?: StudyGate
   can_podcast?: StudyGate
-  exam: { id: string; title: string; days_remaining: number; cards_per_day: number | null; reta_final_active: boolean; projection?: ExamProjection | null } | null
+  /** + readiness (prd-prontidao-prova): the same number as the Hoje and the Progresso */
+  exam: { id: string; title: string; days_remaining: number; cards_per_day: number | null; reta_final_active: boolean; projection?: ExamProjection | null; readiness?: ExamReadiness | null } | null
   /** The person's backlog (prd-revisao-v5-fase-b RF-B7) */
   backlog?: BacklogState | null
   /** The onboarding's exam stuck on the sample, offered to this caderno (prd-revisao-v5-fase-b RF-B19) */

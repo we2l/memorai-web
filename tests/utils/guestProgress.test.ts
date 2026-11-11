@@ -3,6 +3,7 @@ import {
   clearGuestProgress, growthText, guestSummary, loadGuestProgress, nextGuestCard,
   pendingGuestProgress, returnText, saveGuestProgress, GUEST_STORAGE_KEY,
 } from '~/utils/guestProgress'
+import { guestExamSkipped, guestExamSkippedText, guestImportBody, guestImportFailure } from '~/utils/guestImport'
 
 const INTERVALS = { again: '1min', hard: '1min', good: '10min', easy: '8d' }
 const CARDS = [0, 1, 2]
@@ -83,5 +84,63 @@ describe('landing: the call of each area', () => {
     expect(areaStartPath('idiomas')).toBe('/comecar/ingles?from=landing')
     expect(areaStartPath('oab')).toBe('/comecar/oab?from=landing')
     expect(areaStartPath('faculdade')).toBe('/comecar')
+  })
+})
+
+describe('guestProgress: POST /onboarding/guest (QA M2)', () => {
+  const lote = { v: 1 as const, area: 'oab' as const, version: 'v', reviews: [{ index: 0, rating: 3 as const, reviewed_at: 'x' }], done: true, goal_batches: 2 as const }
+  // 11/11 01:00 in Brasília is still 11/11 there (04:00 UTC)
+  const now = new Date('2026-11-11T04:00:00Z')
+
+  it('sends a future exam date and the goal', () => {
+    expect(guestImportBody({ ...lote, exam_date: '2026-11-12' }, { now })).toEqual({
+      body: { area: 'oab', version: 'v', reviews: lote.reviews, daily_goal_batches: 2, exam_date: '2026-11-12' },
+      examDropped: false,
+    })
+  })
+
+  it('leaves out an exam date that is today or past in Brasília, and says so', () => {
+    for (const exam_date of ['2026-11-11', '2026-11-10', 'nope']) {
+      const { body, examDropped } = guestImportBody({ ...lote, exam_date }, { now })
+      expect(body.exam_date).toBeUndefined()
+      expect(examDropped).toBe(true)
+    }
+  })
+
+  it('uses the study day of Brasília, not UTC', () => {
+    // 10/11 22:00 in Brasília = 11/11 01:00 UTC: an exam on 11/11 is still tomorrow
+    expect(guestImportBody({ ...lote, exam_date: '2026-11-11' }, { now: new Date('2026-11-11T01:00:00Z') }).body.exam_date).toBe('2026-11-11')
+  })
+
+  it('without an exam, nothing is dropped; withoutExam drops it on purpose', () => {
+    expect(guestImportBody({ ...lote, exam_date: null }, { now }).examDropped).toBe(false)
+    expect(guestImportBody(lote, { now }).examDropped).toBe(false)
+    expect(guestImportBody({ ...lote, exam_date: '2027-01-01' }, { now, withoutExam: true })).toMatchObject({ examDropped: true })
+  })
+
+  it('tells a data error from a network one', () => {
+    const err = (status?: number, errors?: Record<string, string[]>) => ({ response: { status }, data: errors ? { errors } : undefined })
+    expect(guestImportFailure(err(422, { exam_date: ['A data da prova deve ser no futuro.'] }))).toBe('exam_date')
+    expect(guestImportFailure(err(422, { exam_date: ['x'], version: ['y'] }))).toBe('invalid')
+    expect(guestImportFailure(err(422))).toBe('invalid')
+    expect(guestImportFailure(err(403))).toBe('invalid')
+    expect(guestImportFailure(err(429))).toBe('rate')
+    expect(guestImportFailure(err(500))).toBe('network')
+    expect(guestImportFailure(new TypeError('fetch failed'))).toBe('network')
+    expect(guestImportFailure(err(419))).toBe('network')
+  })
+})
+
+describe('guestProgress: exam_skipped (API #179)', () => {
+  it('a razão da API vence; sem o campo, o nosso descarte da data', () => {
+    expect(guestExamSkipped('exam_limit_reached', false)).toBe('exam_limit_reached')
+    expect(guestExamSkipped('exam_date_past', false)).toBe('exam_date_past')
+    expect(guestExamSkipped(undefined, true)).toBe('exam_date_past')
+    expect(guestExamSkipped(null, false)).toBeNull()
+  })
+
+  it('uma linha por razão', () => {
+    expect(guestExamSkippedText('exam_date_past')).toBe('A data da prova já passou, então ela não foi marcada.')
+    expect(guestExamSkippedText('exam_limit_reached')).toMatch(/máximo de provas/)
   })
 })

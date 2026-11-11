@@ -3,7 +3,7 @@ import { mockNuxtImport, mountSuspended } from '@nuxt/test-utils/runtime'
 import { enableAutoUnmount, flushPromises } from '@vue/test-utils'
 import { axeViolations } from './ui/axe'
 import StudyHeatmap from '~/components/progress/StudyHeatmap.vue'
-import ExamProjection from '~/components/progress/ExamProjection.vue'
+import ExamReadiness from '~/components/progress/ExamReadiness.vue'
 import PerformanceTable from '~/components/progress/PerformanceTable.vue'
 import ProgressExamCard from '~/components/progress/ExamCard.vue'
 import ProgressSummary from '~/components/progress/ProgressSummary.vue'
@@ -51,18 +51,38 @@ describe('StudyHeatmap (prd-4f-progresso-v3 RF-F6)', () => {
   })
 })
 
-describe('ExamProjection (RF-F4)', () => {
-  it('dois números, o nome completo para o leitor de tela e "Como calculamos"', async () => {
-    const w = await mountSuspended(ExamProjection, { props: { examTitle: 'TRF', projection: { keep_pace: 78, stop_today: 52, cards: 2200, reviewed_cards: 1505, new_cards: 695, desired_retention: 0.9, new_per_day: 20, computed_for: '2026-12-14' } } })
-    expect(w.text()).toContain('78% se mantiver o ritmo · 52% se parar hoje')
-    expect(w.get('.sr-only').text()).toBe('Projeção na prova TRF: 78% mantendo o ritmo, 52% se parar hoje')
-    await w.get('button').trigger('click')
-    expect(w.text()).toContain('20 cards novos por dia')
+const READINESS = { version: 1, score: 72, band: { key: 'well_prepared', label: 'Bem preparado' }, capped: false, parts: [
+      { key: 'memory', label: 'Memória no dia da prova', value: 88, weight: 0.5, enabled: true, keep_pace: 88, stop_today: 61 },
+      { key: 'on_track', label: 'Revisões em dia', value: 95, weight: 0.15, enabled: true, late: 12, in_review: 240 },
+      { key: 'questions', label: 'Acerto em questões', value: 64, weight: 0.2, enabled: true, answered: 30, min_answered: 10 },
+      { key: 'coverage', label: 'Assuntos da prova com cards', value: null, weight: 0.15, enabled: false },
+    ], actions: [
+      { kind: 'review_late', count: 12, topic_id: 'root' },
+      { kind: 'practice_weak', topic_id: 'adm', topic_name: 'Direito Administrativo', accuracy: 45 },
+    ], missing: null }
+
+describe('ExamReadiness (prd-prontidao-prova RF-F4)', () => {
+  it('número, faixa, partes, "Como calculamos" e até 3 ações', async () => {
+    const w = await mountSuspended(ExamReadiness, { props: { readiness: { ...READINESS, capped: true } as never }, attachTo: document.body })
+    expect(w.text()).toContain('Prontidão: 72 de 100 · Bem preparado')
+    expect(w.get('[data-testid="exam-readiness-parts"]').text()).toBe('Memória 88 · Em dia 95 · Questões 64')
+    const explain = w.get('button')
+    expect(explain.attributes('aria-expanded')).toBe('false')
+    await explain.trigger('click')
+    const text = w.get('[data-testid="exam-readiness-explain"]').text()
+    expect(text).toContain('Memória no dia da prova (peso 50%): 88 (lembrando 88% mantendo o ritmo, 61% se parar hoje).')
+    expect(text).toContain('no máximo até 84')
+    expect(text).toContain('não da aprovação')
+    expect(text).not.toContain('Assuntos da prova com cards')
+    const links = w.findAll('a')
+    expect(links.map(l => l.text())).toEqual(['Revise os 12 cards atrasados da prova', 'Faça 10 questões de Direito Administrativo: acerto 45%'])
+    expect(links[1]!.attributes('href')).toBe('/simulados?topic_id=adm&count=10')
+    expect(await axeViolations(w.element)).toEqual([])
   })
 
-  it('sem dado suficiente (null): o que fazer, sem número', async () => {
-    const w = await mountSuspended(ExamProjection, { props: { examTitle: 'TRF', projection: null } })
-    expect(w.text()).toBe('Revise alguns cards dos assuntos da prova para ver a projeção.')
+  it('sem número: o que falta, sem botão', async () => {
+    const w = await mountSuspended(ExamReadiness, { props: { readiness: { ...READINESS, score: null, band: null, parts: [], actions: [], missing: { cards: 25, cards_needed: 20, graduated: 4, graduated_needed: 10 } } as never } })
+    expect(w.text()).toBe('Revise mais 6 cards da prova para ver sua prontidão.')
     expect(w.find('button').exists()).toBe(false)
   })
 })
@@ -182,17 +202,18 @@ describe('ExamDialog (RF-F9)', () => {
   })
 })
 
-describe('ProgressExamCard (E2, prd-visual-e2 RF-5.4)', () => {
-  const exam = (over: Record<string, unknown>) => ({ id: 'e', title: 'Técnico do INSS', exam_date: '2026-12-22', days_remaining: 44, is_past: false, days_since: null, topics: [], projection: { keep_pace: 90, stop_today: 75, cards: 40, reviewed_cards: 30, new_cards: 10, desired_retention: 0.9, new_per_day: 1, computed_for: '2026-11-08' }, ...over })
+describe('ProgressExamCard (prd-prontidao-prova RF-F3)', () => {
+  const exam = (over: Record<string, unknown>) => ({ id: 'e', title: 'Técnico do INSS', exam_date: '2026-12-22', days_remaining: 44, is_past: false, days_since: null, topics: [], readiness: READINESS, ...over })
 
-  it('a prova mais próxima com projeção é o bloco lilás, com "Se parar hoje"; sem projeção, nada', async () => {
+  it('a prova mais próxima com número é o bloco lilás, com faixa e partes; sem número, nada', async () => {
     const w = await mountSuspended(ProgressExamCard, { props: { exams: [exam({ id: 'b', days_remaining: 90 }), exam({})] as never }, attachTo: document.body })
     expect(w.get('section').classes()).toContain('bg-tinted')
     expect(w.text()).toContain('Técnico do INSS · em 44 dias')
-    expect(w.text()).toContain('Mantendo o ritmo, você chega à prova lembrando 90%')
-    expect(w.text()).toContain('Se parar hoje: 75%')
+    expect(w.text()).toContain('Prontidão para a prova')
+    expect(w.get('[data-testid="readiness-parts"]').text()).toBe('Memória 88 · Em dia 95 · Questões 64')
+    expect(w.text()).not.toMatch(/chance|aprova/i)
     expect(await axeViolations(w.element)).toEqual([])
-    const none = await mountSuspended(ProgressExamCard, { props: { exams: [exam({ projection: null })] as never } })
+    const none = await mountSuspended(ProgressExamCard, { props: { exams: [exam({ readiness: { ...READINESS, score: null } })] as never } })
     expect(none.find('section').exists()).toBe(false)
   })
 })

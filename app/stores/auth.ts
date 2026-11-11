@@ -1,6 +1,12 @@
 import { defineStore } from 'pinia'
 import type { User } from '~/types'
 import { hasProAccess, opensTrialOnUse, trialEnded } from '~/utils/trial'
+import { useOfflineStore } from '~/stores/offline'
+import { loadOfflineDb } from '~/utils/offlineDbLoader'
+import { attributionPayload } from '~/utils/firstTouch'
+
+// utils/offlineDb and the review store load on demand: this store is in the entry of every page
+const offlineDb = loadOfflineDb
 
 // Non-sensitive hint (not a credential): avoids calling /me for anonymous visitors.
 const LOGGED_IN_HINT = 'baigi_logged_in'
@@ -10,6 +16,8 @@ export const useAuthStore = defineStore('auth', {
   state: () => ({
     user: null as User | null,
     loaded: false,
+    /** The user on screen is the one saved on this device: /me failed for lack of network (prd-revisao-offline RF-F2) */
+    offline: false,
   }),
 
   getters: {
@@ -30,9 +38,26 @@ export const useAuthStore = defineStore('auth', {
         this.setUser(res.data)
         return res.data
       } catch (e: any) {
-        if ((e?.response?.status ?? e?.statusCode) === 401) this.clearAuth()
+        const status = getErrorStatus(e)
+        if (status === 401) this.clearAuth()
+        else if (status === undefined && !this.user) await this.useSavedUser()
         return null
       }
+    },
+
+    /**
+     * Boot without network (RF-F2): with the session hint, the last /me saved on this device opens the app, so the
+     * saved lot can be reviewed. /me runs again on `online` (plugins/offline).
+     */
+    async useSavedUser() {
+      if (!import.meta.client || !useOfflineStore().enabled || !/(?:^|;\s*)baigi_logged_in=1/.test(document.cookie)) return
+      const { metaGet } = await offlineDb()
+      const id = await metaGet<string>('user')
+      const saved = id ? await metaGet<User>(`user:${id}`) : undefined
+      if (!saved) return
+      this.user = saved
+      this.offline = true
+      useOfflineStore().markOffline()
     },
 
     async login(email: string, password: string): Promise<User> {
@@ -49,7 +74,8 @@ export const useAuthStore = defineStore('auth', {
       const { $api } = useNuxtApp()
       const res = await $api<{ data: { user: User } }>('/register', {
         method: 'POST',
-        body: payload,
+        // First touch of this device (utm_* of the first visit): sign-ups per post without PostHog
+        body: { ...payload, ...attributionPayload() },
       })
       this.setUser(res.data.user)
       return res.data.user
@@ -57,6 +83,16 @@ export const useAuthStore = defineStore('auth', {
 
     async logout(): Promise<void> {
       const { $api } = useNuxtApp()
+      // Ratings still waiting get up to 3 s to reach the server; the rest stays queued (ids and notes only) until this
+      // account signs in again, and the saved lot and user go now (prd-revisao-offline RF-F8, D11)
+      const userId = this.user?.id
+      if (userId) {
+        const flush = useOfflineStore().pending > 0
+          ? import('~/stores/review').then(m => m.useReviewStore().processQueue())
+          : Promise.resolve()
+        await Promise.race([flush, new Promise(r => setTimeout(r, 3000))])
+        await (await offlineDb()).forgetAccountCache(userId)
+      }
       // Cleared first: a 401 of /logout itself (session already over) then finds no user to send to /entrar?redirect.
       // An explicit logout: the next person on this browser finds no ids nor drafts of this account either.
       clearAccountStorage()
@@ -89,12 +125,17 @@ export const useAuthStore = defineStore('auth', {
 
     setUser(user: User) {
       this.user = user
+      this.offline = false
       clearPendingLogout()
       if (import.meta.client) {
         document.cookie = `${LOGGED_IN_HINT}=1; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax`
         // Account consent vs. this device's cookie (RF-F01), then identify without PII (RF-F07)
         void useConsent().syncWithServer(user)
         useAnalytics().identify(user)
+        // To open without network next time (RF-F2); nothing with the kill switch off (RF-F10)
+        if (useOfflineStore().enabled) {
+          void offlineDb().then(({ metaPut }) => Promise.all([metaPut(`user:${user.id}`, user), metaPut('user', user.id)]))
+        }
       }
     },
 

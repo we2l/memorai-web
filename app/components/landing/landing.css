@@ -406,6 +406,30 @@
   }
 }
 
+/* ── 4b. Seus erros viram estudo (10/11): fundo da página, a lista das áreas e o celular dos simulados ── */
+.landing-page {
+  & .lp-errors ul { list-style: none; margin: 24px 0 0; padding: 0; display: grid; gap: 14px; max-width: 520px; }
+  & .lp-errors li { display: grid; grid-template-columns: 26px 1fr; gap: 10px; font-size: 17px; line-height: 1.45; }
+  & .lp-errors li svg { width: 22px; height: 22px; color: var(--action-fg); margin-top: 2px; }
+  & .lp-errors li b { color: var(--fg-strong); }
+  & .lp-errors-media { display: grid; justify-items: center; }
+  & .lp-errors-media .lp-phone { width: min(290px, 76vw); }
+}
+
+/* ── Faixa de respostas curtas (10/11): só texto, quatro colunas no desktop ── */
+.landing-page {
+  & .lp-facts { padding: 40px 0; border-top: 1px solid var(--line); }
+  & .lp-facts ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 18px 32px; grid-template-columns: 1fr 1fr; font-size: 16px; line-height: 1.45; }
+  & .lp-facts b { display: block; color: var(--fg-strong); }
+  & .lp-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+}
+
+@media (min-width: 1024px) {
+  .landing-page {
+    & .lp-facts ul { grid-template-columns: repeat(4, 1fr); }
+  }
+}
+
 /* ── 5. Projeção ── */
 .landing-page {
   & .lp-proj .lp-wrap { display: grid; gap: 28px; align-items: center; }

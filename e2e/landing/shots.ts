@@ -314,6 +314,43 @@ async function seed(page: Page): Promise<Seed> {
   return { rootId: root.id, docId, part5: noteIds[4]!, inglesId: ingles.id, anatomiaId: anatomia.id, quizId, oabId: oab.id, enemId: enem.id, due, weak: acidente }
 }
 
+// ── The new sections (landing, 10/11): the caderno the edital made and the card that never sticks ──
+
+/** Matérias and assuntos of the TJ-SP Escrevente edital (public content), the way the edital reader proposes them */
+const EDITAL_TJSP: { name: string, topics: string[] }[] = [
+  { name: 'Língua Portuguesa', topics: ['Interpretação de texto', 'Concordância verbal e nominal', 'Regência e crase', 'Pontuação'] },
+  { name: 'Direito Penal', topics: ['Crimes contra a administração pública'] },
+  { name: 'Direito Processual Penal', topics: ['Inquérito policial', 'Ação penal', 'Prisão e liberdade provisória'] },
+  { name: 'Direito Processual Civil', topics: ['Atos processuais', 'Citação e intimação', 'Prazos'] },
+  { name: 'Direito Constitucional', topics: ['Direitos e garantias fundamentais', 'Poder Judiciário'] },
+  { name: 'Direito Administrativo', topics: ['Atos administrativos', 'Improbidade administrativa'] },
+  { name: 'Normas da Corregedoria', topics: ['Normas de serviço do cartório judicial'] },
+  { name: 'Matemática e Raciocínio Lógico', topics: ['Porcentagem e juros', 'Proposições e equivalências'] },
+  { name: 'Informática', topics: ['Planilhas', 'Correio eletrônico'] },
+]
+
+/**
+ * The caderno the edital made: a reading already done (an ai_jobs row with the proposal, written here: no AI) applied by
+ * the real POST /editais/{id}/apply. The exam is far after the INSS one, so the Hoje keeps the INSS as the nearest.
+ */
+async function seedEdital(page: Page): Promise<string> {
+  const proposal = { name: 'Escrevente TJ-SP', exam_date: null, subjects: EDITAL_TJSP.map(m => ({ name: m.name, topics: m.topics.map(t => ({ name: t, description: null })) })) }
+  const result = JSON.stringify({ status: 'ready', proposal }).replace(/\\/g, '\\\\').replace(/'/g, "\\'")
+  const out = php(`$j = App\\Domain\\Agent\\Models\\AiJob::create(['user_id' => $u->id, 'type' => 'edital', 'status' => 'done', 'payload' => [], 'result' => json_decode('${result}', true)]); echo 'JOB_ID=' . $j->id;`)
+  const jobId = out.match(/JOB_ID=([0-9a-f-]{36})/)?.[1]
+  if (!jobId) throw new Error(`leitura do edital não criada:\n${out}`)
+  const examDate = new Date(Date.now() + 120 * 86_400_000).toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' })
+  const applied = (await apiCall(page, 'POST', `/editais/${jobId}/apply`, { name: proposal.name, exam_date: examDate, subjects: proposal.subjects })).data as { topic: { id: string } }
+  return applied.topic.id
+}
+
+/** A card with 5 errors, due now: the review shows "Esse card não está colando" (prd-revisao-v5-fase-b RF-F7) */
+async function seedLeech(page: Page, rootId: string, noteId: string): Promise<string> {
+  const [id] = await addCards(page, rootId, rootId, [['Qual é a carência da aposentadoria por idade?', '180 contribuições mensais (art. 25, II, da Lei 8.213/1991).']], noteId)
+  study([id!], -1, 3, 5)
+  return id!
+}
+
 /**
  * Captures a 390 px wide region of the screen: the page scrolled to `scrollY`, `top` px down the viewport, `height`
  * tall. Only the part the landing talks about, so it can be shown big enough to read on a phone.
@@ -346,9 +383,16 @@ async function settle(page: Page) {
  * so the text and the screen never disagree (app/assets/landing/demo.json).
  */
 async function saveDemoNumbers(page: Page) {
-  const exam = ((await apiCall(page, 'GET', '/exams?status=upcoming')).data as { title: string, days_remaining: number, projection: { keep_pace: number, stop_today: number } | null }[])[0]
+  type Readiness = { score: number | null, band: { label: string } | null, parts: { key: string, value: number | null, enabled: boolean }[] }
+  const exam = ((await apiCall(page, 'GET', '/exams?status=upcoming')).data as { title: string, days_remaining: number, projection: { keep_pace: number, stop_today: number } | null, readiness: Readiness | null }[])[0]
   if (!exam?.projection) throw new Error('prova de demonstração sem projeção')
-  const demo = { exam: exam.title, days: exam.days_remaining, keep_pace: exam.projection.keep_pace, stop_today: exam.projection.stop_today }
+  if (exam.readiness?.score == null) throw new Error('prova de demonstração sem prontidão')
+  // The readiness of the Hoje (prd-prontidao-prova): the landing repeats the number and its parts, never a chance
+  const part = (key: string) => exam.readiness!.parts.find(p => p.key === key && p.enabled)?.value ?? null
+  const demo = {
+    exam: exam.title, days: exam.days_remaining, keep_pace: exam.projection.keep_pace, stop_today: exam.projection.stop_today,
+    readiness: { score: exam.readiness.score, band: exam.readiness.band?.label ?? null, memory: part('memory'), on_track: part('on_track'), questions: part('questions') },
+  }
   fs.writeFileSync(DEMO, `${JSON.stringify(demo, null, 2)}\n`)
 }
 
@@ -356,6 +400,9 @@ async function saveDemoNumbers(page: Page) {
 
 const VIDEO = path.join(OUT, 'video')
 const FFMPEG_CONTAINER = process.env.FFMPEG_CONTAINER ?? 'baigi-app'
+const ONLY_HOJE = process.env.LANDING_SHOTS_ONLY === 'hoje'
+/** LANDING_SHOTS_ONLY=novas: only the screens of the new sections (edital, leech), without the clips */
+const ONLY_NEW = process.env.LANDING_SHOTS_ONLY === 'novas'
 
 function ffmpeg(args: string[]) {
   execFileSync('docker', ['exec', FFMPEG_CONTAINER, 'ffmpeg', '-v', 'error', '-y', ...args], { stdio: 'inherit', timeout: 180_000 })
@@ -459,11 +506,24 @@ test.use({ auditUser: 'landingShots', viewport: { width: WIDTH, height: 844 }, d
 test('telas e vídeos reais da landing', async ({ page, browser }) => {
   await gotoApp(page, '/hoje')
   const s = await seed(page)
+  const editalId = await seedEdital(page)
+  const leechId = await seedLeech(page, s.rootId, s.part5)
 
   // The app lays out in the phone's screen under the status bar: 844 − STATUS_BAR tall
   await page.setViewportSize({ width: WIDTH, height: 844 - STATUS_BAR })
   for (const theme of ['light', 'dark'] as const) {
     await page.addInitScript((t) => { try { localStorage.setItem('color-mode', t) } catch { /* only the capture */ } }, theme)
+
+    // The new sections: the hub of the caderno the edital made, and the card that never sticks (turned)
+    await gotoApp(page, `/cadernos/${editalId}`)
+    await settle(page)
+    await save(page, 'edital', theme, { height: 844, statusBar: STATUS_BAR })
+    await gotoApp(page, `/revisar?scope=cards&card_ids=${leechId}`)
+    await page.getByTestId('review-show').click()
+    await expect(page.getByTestId('review-leech')).toBeVisible()
+    await settle(page)
+    await save(page, 'leech', theme, { height: 844, statusBar: STATUS_BAR })
+    if (ONLY_NEW) continue
 
     await gotoApp(page, '/hoje')
     await settle(page)
@@ -477,6 +537,8 @@ test('telas e vídeos reais da landing', async ({ page, browser }) => {
     })
     await save(page, 'hoje-tela', theme, { scrollY: hojeY, height: 844, statusBar: STATUS_BAR })
     if (theme === 'light') await saveDemoNumbers(page)
+    // LANDING_SHOTS_ONLY=hoje: only the Hoje and the numbers (a change of the Hoje without re-recording every clip)
+    if (ONLY_HOJE) continue
 
     // The short cards end higher: their capture stops under the answer
     // The whole phone screen, the card turned and the buttons at the bottom: the phone of the landing keeps the
@@ -490,6 +552,7 @@ test('telas e vídeos reais da landing', async ({ page, browser }) => {
     }
   }
 
+  if (ONLY_HOJE || ONLY_NEW) return
   await page.setViewportSize({ width: WIDTH, height: 844 })
   // The clips rate cards: after the screens and the numbers of demo.json
   await clips(page, browser, s)

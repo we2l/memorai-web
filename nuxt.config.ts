@@ -2,6 +2,7 @@ import { readdirSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
 import tailwindcss from '@tailwindcss/vite'
 import { sentryVitePlugin } from '@sentry/vite-plugin'
+import { shortLinkRules } from './app/utils/shortLinks'
 
 // Source maps of the browser bundle go to Sentry only when the build has its credentials (Vercel env, optional):
 // 'hidden' writes them without the sourceMappingURL comment, the plugin uploads and deletes them, and the
@@ -279,6 +280,8 @@ export default defineNuxtConfig({
     '/documents': { redirect: { to: '/cadernos', statusCode: 301 } },
     '/decks': { redirect: { to: '/cadernos', statusCode: 301 } },
     '/decks/**': { redirect: { to: '/cadernos', statusCode: 301 } },
+    // Short links of the social profiles (/tiktok, /yt): 302 to /comecar with the channel UTM (utils/shortLinks.ts)
+    ...shortLinkRules(),
   },
 
   runtimeConfig: {

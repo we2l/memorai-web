@@ -9,8 +9,13 @@
     <div v-else-if="state === 'failed'" class="flex flex-col items-start gap-4" data-testid="saved-error">
       <h1 class="text-page-title text-fg-strong">Seu lote ainda não foi salvo</h1>
       <p role="alert" class="text-body text-fg">{{ failMessage }}</p>
-      <div class="flex flex-wrap gap-2">
-        <UiButton variant="primary" @click="save">Tentar de novo</UiButton>
+      <!-- The data was refused: trying again fails the same way, so the ways on leave the lote behind -->
+      <div v-if="failKind === 'invalid'" class="flex flex-wrap gap-2">
+        <UiButton variant="primary" data-testid="saved-redo" @click="leaveLote('/comecar')">Refazer o exemplo</UiButton>
+        <UiButton variant="ghost" data-testid="saved-skip" @click="leaveLote('/hoje')">Ir para o Hoje</UiButton>
+      </div>
+      <div v-else class="flex flex-wrap gap-2">
+        <UiButton variant="primary" data-testid="saved-retry" @click="save()">Tentar de novo</UiButton>
         <UiButton variant="ghost" to="/hoje">Ir para o Hoje</UiButton>
       </div>
     </div>
@@ -23,6 +28,9 @@
             <h1 ref="title" class="text-page-title text-fg-strong outline-none" tabindex="-1">{{ saved ? 'Seu progresso está salvo' : 'Comece pelo seu material' }}</h1>
             <p v-if="saved" class="mt-1 text-body text-fg-muted" data-testid="saved-line">
               {{ saved.cards }} cards de {{ saved.topicName }}{{ saved.reviews ? `, com as ${saved.reviews} avaliações do lote` : '' }}.
+            </p>
+            <p v-if="saved?.examSkipped" class="mt-1 text-body text-fg-muted" data-testid="saved-exam-skipped">
+              {{ guestExamSkippedText(saved.examSkipped) }} <UiLink to="/progresso#provas">Ver as provas</UiLink>
             </p>
           </div>
         </div>
@@ -68,10 +76,11 @@
 </template>
 
 <script lang="ts">
-interface GuestImport { data: { card_ids: string[], reviews_applied: number, created: boolean, exam_id?: string | null } }
+interface GuestImport { data: { card_ids: string[], reviews_applied: number, created: boolean, exam_id?: string | null, exam_skipped?: GuestExamSkipped | null } }
+interface SavedLote { cards: number, reviews: number, topicName: string, examSkipped: GuestExamSkipped | null }
 /** Module scope: one POST per lote even when the page mounts twice on the way in (a 2nd would apply nothing). */
 let inflight: Promise<GuestImport> | null = null
-let lastSaved: { cards: number, reviews: number, topicName: string } | null = null
+let lastSaved: SavedLote | null = null
 </script>
 
 <script setup lang="ts">
@@ -81,9 +90,9 @@ let lastSaved: { cards: number, reviews: number, topicName: string } | null = nu
 // nothing here keeps the person in the flow.
 import type { ContentPath } from '~/components/onboarding/ContentStep.vue'
 import type { Flashcard, TomorrowForecast } from '~/types'
-import { getErrorStatus } from '~/utils/apiErrors'
 import { AiJobError } from '~/composables/useAiJob'
 import { areaName, clearGuestProgress, loadGuestProgress } from '~/utils/guestProgress'
+import { guestExamSkipped, guestExamSkippedText, guestImportBody, guestImportFailure, type GuestExamSkipped, type GuestImportFailure } from '~/utils/guestImport'
 import { markFirstMaterialPending } from '~/utils/firstMaterial'
 import { reviewPath } from '~/utils/reviewScope'
 
@@ -99,7 +108,8 @@ const pasteQuestion = usePasteQuestion()
 
 const state = ref<'saving' | 'failed' | 'ready'>('saving')
 const failMessage = ref('')
-const saved = ref<{ cards: number, reviews: number, topicName: string } | null>(null)
+const failKind = ref<GuestImportFailure>('network')
+const saved = ref<SavedLote | null>(null)
 const title = ref<HTMLElement | null>(null)
 const tomorrow = ref<TomorrowForecast | null>(null)
 const tomorrowLoading = ref(true)
@@ -122,7 +132,7 @@ const retryFinish = ref<(() => void) | null>(null)
 const aiReady = computed(() => auth.isVerified || !auth.hasProAccess)
 watch(text, (t) => { if (!nameTouched.value) notebookName.value = smartTitle(t, 40) })
 
-async function save() {
+async function save(opts: { withoutExam?: boolean } = {}) {
   const lote = loadGuestProgress()
   if (lastSaved) {
     saved.value = lastSaved
@@ -134,19 +144,12 @@ async function save() {
     return ready()
   }
   state.value = 'saving'
+  // The commitment of the visitor (prd-revisao-v5-fase-a RF-F9): lotes per day and the exam on the sample; an exam
+  // date that is no longer in the future (the lote waited on the device) stays out and the lote is saved (QA M2)
+  const { body, examDropped } = guestImportBody(lote, { withoutExam: opts.withoutExam })
   try {
     // One request per lote, even if the page mounts twice on the way in (a 2nd POST would answer "nothing applied")
-    inflight ??= $api<GuestImport>('/onboarding/guest', {
-      method: 'POST',
-      // The commitment of the visitor (prd-revisao-v5-fase-a RF-F9): lotes per day and the exam on the sample
-      body: {
-        area: lote.area,
-        version: lote.version,
-        reviews: lote.reviews,
-        ...(lote.goal_batches ? { daily_goal_batches: lote.goal_batches } : {}),
-        ...(lote.exam_date ? { exam_date: lote.exam_date } : {}),
-      },
-    })
+    inflight ??= $api<GuestImport>('/onboarding/guest', { method: 'POST', body })
     const res = await inflight
     clearGuestProgress()
     if (auth.user) {
@@ -154,17 +157,37 @@ async function save() {
       markFirstMaterialPending(auth.user.id)
     }
     const first = !lastSaved
-    saved.value = lastSaved ??= { cards: res.data.card_ids.length, reviews: res.data.reviews_applied, topicName: areaName(lote.area) }
+    saved.value = lastSaved ??= {
+      cards: res.data.card_ids.length,
+      reviews: res.data.reviews_applied,
+      topicName: areaName(lote.area),
+      // The API leaves the exam out by itself (exam_skipped, #179: past date or the Free's limit); without the
+      // field, our own check of the date
+      examSkipped: guestExamSkipped(res.data.exam_skipped, examDropped),
+    }
     if (first) track('signup_from_guest', { area: lote.area, reviews_applied: res.data.reviews_applied, created: res.data.created })
     ready()
   } catch (e) {
     inflight = null
+    const kind = guestImportFailure(e)
+    // The exam date alone was refused (the server's day turned first): the lote goes without it
+    if (kind === 'exam_date' && body.exam_date) return save({ withoutExam: true })
     reportApiError(e, { silent: true })
-    failMessage.value = getErrorStatus(e) === 429
-      ? 'Muitas tentativas. Tente de novo em alguns minutos: o lote continua guardado neste aparelho.'
-      : 'Não conseguimos falar com o servidor. O lote continua guardado neste aparelho.'
+    failKind.value = kind
+    failMessage.value = {
+      rate: 'Muitas tentativas. Tente de novo em alguns minutos: o lote continua guardado neste aparelho.',
+      network: 'Não conseguimos falar com o servidor. O lote continua guardado neste aparelho.',
+      exam_date: 'Não conseguimos salvar a data da prova.',
+      invalid: 'Este lote de exemplo não pôde ser salvo na sua conta. Refaça o exemplo ou siga para o Hoje.',
+    }[kind]
     state.value = 'failed'
   }
+}
+
+/** A lote the server refuses: it leaves this device, or every sign-in would bring the person back here. */
+function leaveLote(to: string) {
+  clearGuestProgress()
+  return navigateTo(to)
 }
 
 function ready() {

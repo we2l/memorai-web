@@ -34,7 +34,7 @@ function launchCatalog(name: string, { trial = true, preview = false } = {}) {
         key: 'pro', name,
         prices: {
           monthly: { amount_cents: 2990, label: 'R$ 29,90/mês' },
-          annual: { amount_cents: 23990, label: 'R$ 239,90/ano', monthly_equivalent_cents: 1999, installments_max: 1, savings_cents: 11890 },
+          annual: { amount_cents: 23990, label: 'R$ 239,90/ano', monthly_equivalent_cents: 1999, installments_max: 12, savings_cents: 11890, offer_line: 'R$ 239,90 por ano (equivale a R$ 19,99 por mês) · até 3× sem juros · ou 12× com juros · Pix R$ 227,90' },
         },
         highlights: ['Tudo do Grátis', 'IA nos cards, no tira-dúvidas, nas questões e nos mapas mentais', 'Podcast curto dos seus pontos fracos'],
         limits: { cards_ai: 400, agent_chat: 700, podcast: 8, pdf_to_note: 20, quiz_ai: 40, note_improve: 60, mindmap_ai: 40 },
@@ -83,29 +83,33 @@ async function scrollToNoCall(page: Page): Promise<boolean> {
 // "offline" left the list on 10/11: the review works without network since prd-revisao-offline (ADR-036)
 const FORBIDDEN = [/servidores no brasil/i, /1 clique/i, /sem perder nada/i, /o que cai mais/i, /em segundos/i, /mais popular/i, /mesmo algoritmo do anki/i, /sobreviv/i, /mapa mental/i, /nunca mais esque/i, /aprove em/i, /aprovação garantida/i, /180 páginas/i, /página de onde saiu/i, /intervalos e erros vêm junto/i, /dias do (Pro|Intensivo) no primeiro/i]
 
-/** The calls of the sections (prd-landing-d RF-D2 a RF-D10): each one goes to sign-up or to /planos. */
+/**
+ * The calls of the sections (prd-landing-d RF-D2 a RF-D10; onboarding v4, ADR-032): every one goes to /comecar (the
+ * visitor reviews before the account), the areas to their own deck.
+ */
 const CALLS: [testId: string, path: string][] = [
-  ['landing-cta-hero', '/criar-conta'],
-  ['landing-cta-curve', '/criar-conta'],
-  ['landing-cta-story_material', '/criar-conta'],
-  ['landing-cta-story_review', '/criar-conta'],
-  ['landing-cta-quiz', '/criar-conta'],
-  ['landing-cta-projection', '/criar-conta'],
-  ['landing-cta-podcast-signup', '/criar-conta'],
-  ['landing-cta-areas-concurso', '/criar-conta'],
-  ['landing-cta-plans_free', '/criar-conta'],
+  ['landing-cta-hero', '/comecar'],
+  ['landing-cta-curve', '/comecar'],
+  ['landing-cta-story_material', '/comecar'],
+  ['landing-cta-story_review', '/comecar'],
+  ['landing-cta-quiz', '/comecar'],
+  ['landing-cta-projection', '/comecar'],
+  ['landing-cta-podcast-signup', '/comecar'],
+  ['landing-cta-areas-concurso', '/comecar/concurso?from=landing'],
+  ['landing-cta-plans_free', '/comecar'],
+  // With the trial in the catalog the paid card sells the plan; without it, /comecar (LandingPlans)
   ['landing-cta-plans_pro', '/planos'],
-  ['landing-cta-final', '/criar-conta'],
+  ['landing-cta-final', '/comecar'],
 ]
 
 test.describe('landing D', () => {
-  test('o CTA do herói leva ao cadastro, e cada seção tem a sua chamada', async ({ page }) => {
+  test('o CTA do herói leva ao /comecar, e cada seção tem a sua chamada', async ({ page }) => {
     await open(page)
     for (const [id, path] of CALLS) await expect(page.getByTestId(id), id).toHaveAttribute('href', path)
-    await expect(page.getByTestId('landing-cta-hero')).toHaveText('Criar conta grátis')
+    await expect(page.getByTestId('landing-cta-hero')).toHaveText('Começar grátis')
     await expect(page.getByTestId('landing-cta-quiz')).toHaveText('Fazer um simulado com meu material')
     await page.getByTestId('landing-cta-hero').click()
-    await page.waitForURL('**/criar-conta')
+    await page.waitForURL('**/comecar')
   })
 
   for (const name of ['Pro', 'Intensivo']) {
@@ -121,7 +125,8 @@ test.describe('landing D', () => {
       await expect(plans.getByTestId('landing-plans-trial')).toHaveText(`O teste de 7 dias começa no primeiro material, pede o e-mail confirmado e vale uma vez por conta. Inclui 20 gerações de cards com IA, 30 perguntas ao tira-dúvidas, 3 PDFs transformados em nota (100 páginas no total) e 3 simulados com IA. O podcast fica só no ${name}.`)
       await expect(plans.getByText('20 PDFs por mês, até 500 páginas cada (4.000 páginas no mês)')).toBeVisible()
       // The AI says its plan next to the calls that sell it
-      await expect(page.getByTestId('landing-ai-story')).toHaveText(`A IA está no teste grátis, com até 100 páginas de PDF, e no ${name}.`)
+      // Under each call of the story that uses the AI (the edital and the PDF)
+      for (const line of await page.getByTestId('landing-ai-story').all()) await expect(line).toHaveText(`A IA está no teste grátis, com até 100 páginas de PDF, e no ${name}.`)
       await expect(page.getByTestId('landing-ai-quiz')).toHaveText(`A IA está no teste grátis e no ${name}.`)
       await expect(page.locator('#areas [data-testid="landing-ai-areas"]:visible')).toHaveText(`A IA está no teste grátis e no ${name}.`)
       await expect(plans.getByText('8 episódios por mês, de até 8 min')).toBeVisible()
@@ -338,8 +343,8 @@ test.describe('landing D', () => {
       // A point of the page where no call of a section is on screen
       expect(await scrollToNoCall(page)).toBe(true)
       await expect(bar).toHaveAttribute('data-show', 'true')
-      await bar.getByRole('link', { name: 'Criar conta grátis' }).click()
-      await page.waitForURL('**/criar-conta')
+      await bar.getByRole('link', { name: 'Começar grátis' }).click()
+      await page.waitForURL('**/comecar')
       await page.goBack()
       await page.waitForLoadState('networkidle')
       await page.getByTestId('landing-cta-final').scrollIntoViewIfNeeded()
@@ -354,8 +359,9 @@ test.describe('landing D', () => {
       const banner = (await page.getByTestId('consent-banner').boundingBox())!
       const heroCta = (await page.getByTestId('landing-cta-hero').boundingBox())!
       expect(heroCta.y + heroCta.height).toBeLessThan(banner.y)
-      // Two lines on a phone: the sentence with the policy link, then the three buttons
-      expect(banner.height).toBeLessThanOrEqual(110)
+      // Two lines on a phone: the sentence with the policy link, then the three buttons (112 px measured on
+      // 11/11 with the 16 px gutter; a third line would pass 130)
+      expect(banner.height).toBeLessThanOrEqual(120)
       await page.locator('.lp-story .lp-chap').first().locator('h3').scrollIntoViewIfNeeded()
       await page.evaluate(() => window.scrollBy(0, 300))
       await expect(page.getByTestId('consent-banner')).toBeVisible()
@@ -385,7 +391,7 @@ test.describe('landing D', () => {
       await expect(page.locator('#como h2')).toBeInViewport()
       await expect(headerCta).toBeVisible()
       await headerCta.click()
-      await page.waitForURL('**/criar-conta')
+      await page.waitForURL('**/comecar')
     })
 
     test('no "Como funciona" a tela do celular fixo troca com o capítulo', async ({ page }) => {

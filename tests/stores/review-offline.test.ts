@@ -99,6 +99,7 @@ describe('fila persistente (RF-F4)', () => {
 
     expect(apiMock.mock.calls.map(c => c[1].body.flashcard_id)).toEqual(['a', 'b'])
     expect(offline.offline).toBe(false)
+    expect(offline.serverDown).toBe(false)
     await vi.waitFor(() => expect(db.queue.size).toBe(0))
     expect(toastShow).toHaveBeenCalledWith('Avaliações sincronizadas.', 'success')
   })
@@ -254,5 +255,42 @@ describe('conta sem rede (RF-F2)', () => {
     await auth.fetchMe()
 
     expect(auth.user).toBeNull()
+  })
+})
+
+describe('servidor inacessível com o navegador online (QA M3)', () => {
+  beforeEach(() => { setup(); vi.restoreAllMocks() })
+
+  it('a fila fica, o motivo é o servidor e "Tentar de novo" envia na hora, mesmo com a fila pausada', async () => {
+    vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(true)
+    const store = useReviewStore()
+    const offline = useOfflineStore()
+    store.cards = [card('a')]
+    apiMock.mockRejectedValue(networkError())
+    store.rate(3)
+    await flushPromises()
+
+    expect(offline.offline).toBe(true)
+    expect(offline.serverDown).toBe(true)
+    expect(store.reviewQueue).toHaveLength(1)
+
+    store.queuePaused = true
+    apiMock.mockReset()
+    apiMock.mockResolvedValueOnce(answer('a', 'r1'))
+    await offline.retryNow()
+    await vi.waitFor(() => expect(store.reviewQueue).toHaveLength(0))
+    expect(offline.offline).toBe(false)
+    expect(offline.serverDown).toBe(false)
+  })
+
+  it('sem conexão no navegador, o motivo é a internet', async () => {
+    vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false)
+    const store = useReviewStore()
+    store.cards = [card('a')]
+    apiMock.mockRejectedValue(networkError())
+    store.rate(3)
+    await flushPromises()
+    expect(useOfflineStore().offline).toBe(true)
+    expect(useOfflineStore().serverDown).toBe(false)
   })
 })

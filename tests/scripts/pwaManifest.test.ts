@@ -14,6 +14,7 @@ describe.skipIf(skipWithoutBuild)('manifest do PWA (build)', () => {
   it('abre em /hoje com a cor de página do tema claro', () => {
     const manifest = JSON.parse(readFileSync(join(PUBLIC_DIR, 'manifest.webmanifest'), 'utf8'))
     expect(manifest.start_url).toBe('/hoje')
+    expect(manifest.lang).toBe('pt-BR')
     expect(page.light).toBeTruthy()
     expect(manifest.theme_color.toUpperCase()).toBe(page.light)
     expect(manifest.background_color.toUpperCase()).toBe(page.light)

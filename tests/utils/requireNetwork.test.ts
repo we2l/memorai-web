@@ -9,7 +9,7 @@ const { toastShow } = vi.hoisted(() => ({ toastShow: vi.fn() }))
 mockNuxtImport('useToast', () => () => ({ show: toastShow, toasts: { value: [] }, dismiss: vi.fn() }))
 
 describe('requireNetwork', () => {
-  beforeEach(() => { setActivePinia(createPinia()); toastShow.mockReset() })
+  beforeEach(() => { setActivePinia(createPinia()); toastShow.mockReset(); vi.restoreAllMocks() })
 
   it('com rede segue sem aviso', () => {
     expect(requireNetwork()).toBe(true)
@@ -17,8 +17,16 @@ describe('requireNetwork', () => {
   })
 
   it('sem rede avisa e barra', () => {
+    vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false)
     useOfflineStore().markOffline()
     expect(requireNetwork()).toBe(false)
     expect(toastShow).toHaveBeenCalledWith('Isso precisa de internet. Sua revisão continua.', 'info')
+  })
+
+  it('servidor que não responde com o navegador online: não diz "sem internet" (QA M3)', () => {
+    vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(true)
+    useOfflineStore().markOffline()
+    expect(requireNetwork()).toBe(false)
+    expect(toastShow).toHaveBeenCalledWith('Isso precisa do servidor, que não respondeu agora. Sua revisão continua.', 'info')
   })
 })

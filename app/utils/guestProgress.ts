@@ -191,4 +191,3 @@ function dayText(d: number): string {
   const y = Math.round(d / 36.5) / 10
   return y === 1 ? '1 ano' : `${String(y).replace('.', ',')} anos`
 }
-

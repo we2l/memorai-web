@@ -48,14 +48,15 @@ export const useQuizStore = defineStore('quiz', {
   },
 
   actions: {
+    /** The whole history, every page (BUG-16): utils/quizHistory, on demand (the result's chunk is at its budget). */
     async fetchQuizzes(topicId?: string) {
       this.loading = true
       try {
         const { $api } = useNuxtApp()
-        const params = new URLSearchParams()
-        if (topicId) params.set('topic_id', topicId)
-        const res = await $api<any>(`/quizzes?${params}`)
-        this.quizzes = res.data
+        const { fetchQuizHistory } = await import('~/utils/quizHistory')
+        this.quizzes = await fetchQuizHistory(n => $api('/quizzes', {
+          params: { ...(topicId ? { topic_id: topicId } : {}), page: n },
+        }))
       } finally {
         this.loading = false
       }
@@ -132,19 +133,24 @@ export const useQuizStore = defineStore('quiz', {
       this.stopTimer()
       const { $api } = useNuxtApp()
       const timeSpent = this.getTimeSpent()
-      const res = await $api<any>(`/quizzes/${this.currentQuiz.id}/finish`, {
-        method: 'POST',
-        body: { time_spent: timeSpent },
-      })
+      const id = this.currentQuiz.id
+      let res: any
+      try {
+        res = await $api<any>(`/quizzes/${id}/finish`, {
+          method: 'POST',
+          body: { time_spent: timeSpent },
+        })
+      } catch (e) {
+        // Already finished (the Prova's timer a moment before the click) or no longer in progress: the server's
+        // state wins, no error; the caller opens the result when it is completed (API #177)
+        // The code read inline (no utils/quizConflict here: the result's chunk is at its budget of 19.5 KB)
+        const code = (e as { data?: { code?: string } } | null)?.data?.code
+        if (code === 'quiz_not_in_progress' || code === 'quiz_completed') return this.fetchQuiz(id)
+        throw e
+      }
       this.currentQuiz = res.data
       this.questions = res.data.questions ?? []
       return res.data as Quiz
-    },
-
-    async deleteQuiz(id: string) {
-      const { $api } = useNuxtApp()
-      await $api(`/quizzes/${id}`, { method: 'DELETE' })
-      this.quizzes = this.quizzes.filter((q) => q.id !== id)
     },
 
     async fetchStats(topicId?: string) {
@@ -208,7 +214,10 @@ export const useQuizStore = defineStore('quiz', {
           this.stopTimer()
           // Auto-finish in exam mode
           if (this.currentQuiz?.mode === 'exam') {
-            this.finishQuiz()
+            this.finishQuiz().catch(() => {
+              // intencional: the 409 of a finished quiz is handled inside; any other error leaves the quiz open
+              // with its "Finalizar" (no useApiAction here: this store is in the result's chunk, budget 19.5 KB)
+            })
           }
           return
         }

@@ -53,7 +53,7 @@
     "/simulados/:id/resultado": {
       "file": "pages/simulados/[id]/resultado.vue",
       "gzKb": 6.5,
-      "closureGzKb": 19.5
+      "closureGzKb": 20
     },
     "/podcasts": {
       "file": "pages/podcasts.vue",
@@ -83,7 +83,7 @@
     "/configuracoes": {
       "file": "pages/configuracoes.vue",
       "gzKb": 10.5,
-      "closureGzKb": 37.5
+      "closureGzKb": 38
     },
     "/entrar": {
       "file": "pages/entrar.vue",

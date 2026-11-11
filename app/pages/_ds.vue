@@ -235,6 +235,12 @@
               <UiRadioGroup v-model="form.mode" label="Modo da revisão" :options="RADIO" />
             </div>
             <UiRadioGroup v-model="form.mode" label="Modo (cartões)" :options="RADIO" variant="cards" :columns="3" class="mt-6" />
+            <!-- UiFieldGrid: side by side from sm, label / control / hint aligned row by row even when one wraps -->
+            <UiFieldGrid :cols="3" class="mt-6">
+              <UiInput v-model="form.examDate" label="Data da prova" type="date" />
+              <UiInput v-model="form.cards" label="Quantos cards você quer dominar até a prova?" type="number" inputmode="numeric" hint="Conte 2 ou 3 por página de resumo" />
+              <UiSelect v-model="form.hour" label="Horário" :options="HOURS" placeholder="Escolha" />
+            </UiFieldGrid>
           </UiSection>
 
           <!-- Sobreposições -->
@@ -409,7 +415,7 @@ const MENU = [
   { label: 'Excluir', icon: Trash2, tone: 'danger' as const, onSelect: () => toast.show('Excluir', 'warning') },
 ]
 const form = reactive({
-  name: '', search: '', email: 'rafael@', note: '', hour: '', voice: '7',
+  name: '', search: '', email: 'rafael@', note: '', hour: '', voice: '7', examDate: '', cards: '600',
   terms: true, weak: false, reminder: true, sound: false, mode: 'normal',
 })
 </script>

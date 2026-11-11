@@ -5,8 +5,11 @@
       <span v-if="optional" class="font-normal text-fg-muted">(opcional)</span>
     </label>
     <slot :id="fieldId" :describedby="describedBy" :invalid="!!error" />
-    <p v-if="hint" :id="hintId" class="text-meta text-fg-muted">{{ hint }}</p>
-    <p v-if="error" :id="errorId" role="alert" class="text-meta font-medium text-danger">{{ error }}</p>
+    <!-- Hint and error in one block: the field is label / control / messages, three rows that UiFieldGrid lines up -->
+    <div v-if="hint || error" class="flex flex-col gap-1.5">
+      <p v-if="hint" :id="hintId" class="text-meta text-fg-muted">{{ hint }}</p>
+      <p v-if="error" :id="errorId" role="alert" class="text-meta font-medium text-danger">{{ error }}</p>
+    </div>
   </div>
 </template>
 

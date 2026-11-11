@@ -4,7 +4,7 @@
     <h2 :id="titleId" class="mb-1 text-section text-fg-strong" :class="!embedded && 'sr-only'">Calculadora do esquecimento</h2>
     <p v-if="embedded" class="mb-5 text-meta text-fg-muted">Quanto você ainda deve lembrar de algo que estudou, e quando revisar.</p>
 
-    <div class="grid gap-4 sm:grid-cols-2">
+    <UiFieldGrid>
       <UiInput
         id="forgetting-days"
         :model-value="daysText"
@@ -26,7 +26,7 @@
         hint="Se testar = tentar lembrar antes de olhar a resposta"
         data-testid="tool-forgetting-times"
       />
-    </div>
+    </UiFieldGrid>
 
     <div class="mt-6" aria-live="polite">
       <p class="num-m text-fg-strong" data-testid="tool-forgetting-percent">{{ percentNow }}%</p>
@@ -55,7 +55,7 @@
     </p>
 
     <div v-if="!embedded" class="mt-6 flex flex-col items-start gap-2">
-      <UiButton variant="primary" :href="ctaHref" data-testid="tool-forgetting-cta" @click="onCta">Revisar no dia certo: comece com 6 cards</UiButton>
+      <UiButton variant="primary" :href="ctaHref" class="w-full sm:w-auto" data-testid="tool-forgetting-cta" @click="onCta">Revisar no dia certo: comece com 6 cards</UiButton>
       <p class="text-meta text-fg-muted">Sem conta e sem cartão. Você escolhe a área e revisa 6 cards prontos.</p>
     </div>
   </section>

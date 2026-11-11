@@ -11,7 +11,7 @@
     </header>
 
     <!-- Links to the #category: without JS they jump to its list in "Por assunto"; with JS they filter the grid in place -->
-    <nav aria-label="Categorias" class="mt-8 max-w-full overflow-x-auto pb-1">
+    <nav aria-label="Categorias" class="-mx-gutter mt-8 overflow-x-auto px-gutter pb-1">
       <ul class="inline-flex gap-1 rounded-chip bg-soft p-1">
         <li v-for="f in filters" :key="f.id">
           <a

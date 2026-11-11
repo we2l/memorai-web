@@ -212,12 +212,14 @@ export function parseArticle(source: string, file: string, slug: string): BlogAr
         const style = (i: number) => (align[i] ? ` style="text-align:${align[i]}"` : '')
         const labels = header.map(h => escapeHtml(plainText(h.tokens).trim()))
         const head = header.map((h, i) => `<th scope="col"${style(i)}>${cell(h)}</th>`).join('')
+        // A 2-column "name: value" table (Item | O que diz o edital) needs no label on the phone: the row title says it
+        const keyValue = header.length === 2 && rows.every(r => !/\d/.test(plainText(r[0]?.tokens)))
         const body = rows.map(row => `<tr>${row.map((c, i) => {
           const text = plainText(c.tokens).trim()
           const cls = [i === 0 ? 'blog-row-title' : '', isFigure(text) ? 'nw' : ''].filter(Boolean).join(' ')
           // On the phone each row is a card and each cell shows its column above it; the row title only when it is a
           // number ("1 e 2" alone says nothing, "Vagas" does)
-          const label = i > 0 || isFigure(text) ? ` data-label="${labels[i]}"` : ''
+          const label = (i > 0 && !keyValue) || (i === 0 && isFigure(text)) ? ` data-label="${labels[i]}"` : ''
           const tag = i === 0 ? 'th scope="row"' : 'td'
           // Dates inside a longer cell ("De 28/10 a 10/12/2026") never break in the middle
           const html = cls.includes('nw') ? cell(c) : cell(c).replace(/\b\d{1,2}\/\d{1,2}(?:\/\d{2,4})?\b/g, '<span class="nw">$&</span>')

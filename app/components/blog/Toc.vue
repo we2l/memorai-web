@@ -36,16 +36,17 @@ let observer: IntersectionObserver | null = null
 onMounted(() => {
   const headings = props.items.map(s => document.getElementById(s.id)).filter((h): h is HTMLElement => !!h)
   if (!headings.length || typeof IntersectionObserver === 'undefined') return
+  // The root runs from far above the page down to the top third of the screen: a heading "intersects" once it has
+  // crossed that line, so even a jump (a click in the contents, Home/End) changes its state and fires
   const above = new Set<string>()
   observer = new IntersectionObserver((entries) => {
     for (const e of entries) {
-      // Above the line (top third) = already reached; below it = not yet
-      if (e.boundingClientRect.top < (e.rootBounds?.top ?? 0) + window.innerHeight / 3) above.add(e.target.id)
+      if (e.isIntersecting) above.add(e.target.id)
       else above.delete(e.target.id)
     }
     const reached = props.items.filter(s => above.has(s.id))
     active.value = reached.length ? reached[reached.length - 1]!.id : props.items[0]!.id
-  }, { rootMargin: '0px 0px -66% 0px', threshold: [0, 1] })
+  }, { rootMargin: '100000px 0px -66% 0px' })
   for (const h of headings) observer.observe(h)
 })
 

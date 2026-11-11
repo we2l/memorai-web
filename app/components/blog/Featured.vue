@@ -20,7 +20,7 @@
           <BlogAuthorMark v-if="author" :author="author" />
           <span>{{ author?.name }} · <time :datetime="article.updated">{{ formatBlogDateShort(article.updated) }}</time> · {{ article.readingMinutes }} min</span>
         </p>
-        <UiButton variant="primary" :to="href" :icon-right="ArrowRight" data-testid="blog-featured-cta">Ler o guia</UiButton>
+        <UiButton variant="primary" :to="href" data-testid="blog-featured-cta">Ler o guia</UiButton>
       </div>
     </div>
   </article>
@@ -29,7 +29,6 @@
 <script setup lang="ts">
 // The highlight of /blog (prd-blog-v2 RF-V1): the `featured` article or the newest. The cover on the left, the text on
 // the right; "Ler o guia" is the one purple of the page.
-import { ArrowRight } from 'lucide-vue-next'
 import { authors } from '#blog/index'
 import type { BlogMeta } from '~~/modules/blog/types'
 import { categoryLabel, formatBlogDateShort } from '~/utils/blog'

@@ -53,26 +53,21 @@ export function bucket(n: number, edges: number[]): string {
   return `${edges[edges.length - 1]}+`
 }
 
-
-
-export function personJsonLd(author: BlogAuthor) {
-  return {
-    '@type': 'Person',
-    'name': author.name,
-    'jobTitle': 'Desenvolvedor de software',
-    'knowsAbout': author.knowsAbout,
-    'url': absoluteUrl(author.page),
-    ...(author.photo ? { image: absoluteUrl(`${author.photo}.webp`) } : {}),
-    ...(author.sameAs.length ? { sameAs: author.sameAs } : {}),
-  }
-}
-
 export function breadcrumbJsonLd(items: { name: string, path: string }[]) {
   return {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     'itemListElement': items.map((item, i) => ({ '@type': 'ListItem', 'position': i + 1, 'name': item.name, 'item': absoluteUrl(item.path) })),
   }
+}
+
+/**
+ * The author of an article in the structured data (prd-blog-v2 RF-A3): the brand is the same Organization as the
+ * publisher (with url and logo); no Person in the blog. A person author (none today) would need a Person here.
+ */
+export function authorJsonLd(author: BlogAuthor) {
+  if (author.mascot) return PUBLISHER
+  return { '@type': 'Person', 'name': author.name, 'url': absoluteUrl(author.page) }
 }
 
 export function articleJsonLd(article: BlogArticle, author: BlogAuthor) {
@@ -86,7 +81,7 @@ export function articleJsonLd(article: BlogArticle, author: BlogAuthor) {
     'inLanguage': 'pt-BR',
     'mainEntityOfPage': absoluteUrl(`/blog/${article.slug}`),
     'image': article.image ? absoluteUrl(article.image) : DEFAULT_OG_IMAGE,
-    'author': personJsonLd(author),
+    'author': authorJsonLd(author),
     'publisher': PUBLISHER,
   }
 }

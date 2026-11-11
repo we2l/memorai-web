@@ -11,7 +11,7 @@ description: Um teste.
 summary: Resposta curta.
 category: concurso
 area: concurso
-author: weslley
+author: baigi
 published: 2026-11-08
 tags: lei, inss
 ---

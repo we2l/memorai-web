@@ -5,7 +5,7 @@ description: Plano de 30 dias para a 1ª fase da OAB 48 (10/01/2027): o que cort
 summary: Faltando um mês para a 1ª fase do 48º Exame de Ordem (10 de janeiro de 2027), o objetivo é fazer 40 acertos em 80 questões, e não ver a matéria toda de novo. Pare de estudar matéria nova, use três simulados completos para descobrir onde você erra, transforme cada erro em card e revise todo dia. Na última semana, só revisão e a logística do dia da prova.
 category: oab
 area: oab
-author: weslley
+author: baigi
 published: 2026-11-10
 updated: 2026-11-10
 pillar: curva-do-esquecimento

@@ -5,7 +5,7 @@ description: Comparação honesta entre o Anki e as alternativas: o que o Anki f
 summary: O Anki continua sendo a melhor escolha para quem gosta de montar e ajustar os próprios baralhos, e é grátis no computador, no Android e no navegador. Vale procurar uma alternativa quando o problema é o trabalho de criar os cards, a fila que acumula ou o pagamento do app no iPhone.
 category: comparacao
 area: medicina
-author: weslley
+author: baigi
 published: 2026-11-08
 updated: 2026-11-10
 pillar: curva-do-esquecimento
@@ -19,11 +19,11 @@ tags: Anki, alternativa ao Anki, flashcards, repetição espaçada
 
 Ele também tem coisas que poucos concorrentes têm: um catálogo grande de complementos (add-ons) e de baralhos compartilhados pela comunidade no AnkiWeb, oclusão de imagem embutida desde a 23.10 (ótima para anatomia) e controle fino sobre as opções de revisão.
 
-Eu uso o mesmo FSRS no Baigi, o app que eu fiz. Então este texto não vai dizer que o algoritmo do Anki é ruim, porque ele é bom. O que interessa aqui é por que tanta gente baixa o Anki e larga pouco depois.
+O Baigi usa o mesmo FSRS. Então este texto não vai dizer que o algoritmo do Anki é ruim, porque ele é bom. O que interessa aqui é por que tanta gente baixa o Anki e larga pouco depois.
 
 ## Por que tanta gente desiste do Anki?
 
-Na minha leitura de fóruns e comunidades de estudo (é uma impressão, não uma pesquisa), quatro queixas se repetem.
+Na nossa leitura de fóruns e comunidades de estudo (é uma impressão, não uma pesquisa), quatro queixas se repetem.
 
 1. **Criar os cards dá trabalho.** É a mais comum. Passar uma apostila inteira para flashcards leva horas, e muita gente desiste antes de começar. O Anki é uma ferramenta de revisão; quem escreve o conteúdo é você.
 2. **A fila acumula.** Três dias sem abrir e aparecem centenas de cards vencidos. Esse número grande assusta, e a pessoa evita o app justamente quando mais precisa.
@@ -61,7 +61,7 @@ Vale quando o que trava você é um dos problemas da lista acima, e não o algor
 
 ## Comparação: Anki e Baigi
 
-Comparo com o Baigi porque é a ferramenta que eu conheço por dentro. Para outros apps, use a mesma tabela como checklist.
+A comparação é com o Baigi porque é a ferramenta que conhecemos por dentro. Para outros apps, use a mesma tabela como checklist.
 
 | Critério | Anki | Baigi |
 |---|---|---|

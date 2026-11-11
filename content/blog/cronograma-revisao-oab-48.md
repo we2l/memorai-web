@@ -5,7 +5,7 @@ description: Plano semana a semana até a 1ª fase do 48º Exame de Ordem, em 10
 summary: A 1ª fase do 48º Exame de Ordem está marcada para 10 de janeiro de 2027, com 80 questões e aprovação a partir de 40 acertos. Com cerca de 8 semanas, vale estudar as matérias em blocos nas seis primeiras, transformar cada questão errada em card e deixar as duas últimas para simulados e revisão. Comece por Ética, que tem pelo menos 15% da prova somada a Direitos Humanos e Filosofia.
 category: oab
 area: oab
-author: weslley
+author: baigi
 published: 2026-11-09
 updated: 2026-11-10
 pillar: curva-do-esquecimento
@@ -68,7 +68,7 @@ Dentro de cada semana, a rotina é a mesma:
 2. **Cada erro vira um card.** Uma pergunta curta, a resposta e o artigo. Nada de copiar o artigo inteiro no verso.
 3. **Revisão diária dos cards antigos.** Os cards das semanas anteriores continuam voltando. É isso que impede o Constitucional da semana 2 de sumir até janeiro.
 
-Sem o terceiro passo, o plano vira um calendário de leitura. Pelo modelo de revisão que usamos (FSRS, parâmetros padrão), um card que você acertou uma vez tem chance estimada de 67% de ser lembrado 30 dias depois, e ela continua caindo até janeiro. Revisando no dia certo, o card volta antes de essa chance ficar abaixo de 90%. Expliquei a conta no [guia da curva do esquecimento](/blog/curva-do-esquecimento).
+Sem o terceiro passo, o plano vira um calendário de leitura. Pelo modelo de revisão que usamos (FSRS, parâmetros padrão), um card que você acertou uma vez tem chance estimada de 67% de ser lembrado 30 dias depois, e ela continua caindo até janeiro. Revisando no dia certo, o card volta antes de essa chance ficar abaixo de 90%. Explicamos a conta no [guia da curva do esquecimento](/blog/curva-do-esquecimento).
 
 ## Como transformar Ética em cards
 

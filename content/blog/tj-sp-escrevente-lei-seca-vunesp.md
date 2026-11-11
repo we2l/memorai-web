@@ -5,7 +5,7 @@ description: O que o edital do TJ-SP 2026 cobra em Direito, como a Vunesp pergun
 summary: O concurso de Escrevente do TJ-SP (edital nº 02/2026, Vunesp) tem prova prevista para 14 de março de 2027, com 70 questões e redação. O bloco de Direito vale 30 questões e é quase todo lei seca, com uma lista fechada de artigos. Para dar conta, troque a releitura por cards curtos de cada artigo da lista, transforme cada questão errada em card e revise todo dia até a prova.
 category: concurso
 area: concurso
-author: weslley
+author: baigi
 published: 2026-11-09
 updated: 2026-11-09
 pillar: curva-do-esquecimento
@@ -95,7 +95,7 @@ Contando da semana de 23 de novembro, são 16 semanas até a prova prevista. A i
 | 14 e 15 | 22/2 a 7/3 | Simulados completos e redação |
 | 16 | 8/3 a 14/3 | Só revisão; prova no dia 14 |
 
-Em todas as semanas, revise os cards antigos todo dia. Sem isso, a Constituição de novembro some até março. Expliquei a conta no [guia da curva do esquecimento](/blog/curva-do-esquecimento). O mesmo método vale para outras leis: escrevi sobre ele usando a [lei seca do INSS](/blog/como-revisar-lei-seca-inss).
+Em todas as semanas, revise os cards antigos todo dia. Sem isso, a Constituição de novembro some até março. Explicamos a conta no [guia da curva do esquecimento](/blog/curva-do-esquecimento). O mesmo método vale para outras leis, como mostra o guia da [lei seca do INSS](/blog/como-revisar-lei-seca-inss).
 
 ## Quantos cards por dia até a prova?
 

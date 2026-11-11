@@ -5,7 +5,7 @@ description: O que a curva do esquecimento de Ebbinghaus mostra de verdade, quan
 summary: A curva do esquecimento mostra que a memória cai rápido nos primeiros dias e depois desacelera. Cada vez que você se testa e acerta, a queda seguinte fica mais lenta. Por isso revisar em intervalos crescentes rende mais do que reler tudo de novo.
 category: metodo
 area: faculdade
-author: weslley
+author: baigi
 published: 2026-11-08
 updated: 2026-11-08
 related: como-revisar-lei-seca-inss, alternativa-ao-anki
@@ -114,7 +114,7 @@ Duas saídas que funcionam:
 
 No Baigi, você pode mandar o PDF e a IA propõe os cards a partir do seu material (há uma prévia grátis). Você revisa e corrige o que ela criou, porque nenhuma IA acerta tudo. Revisar os cards é grátis, e a fila é organizada pelo mesmo FSRS desta página.
 
-Para lei seca, que é o caso clássico de decorar prazos e percentuais, escrevi um guia específico: [como revisar lei seca para o INSS](/blog/como-revisar-lei-seca-inss). Se você já usa o Anki, veja [quando vale ou não vale trocar o Anki](/blog/alternativa-ao-anki).
+Para lei seca, que é o caso clássico de decorar prazos e percentuais, há um guia específico: [como revisar lei seca para o INSS](/blog/como-revisar-lei-seca-inss). Se você já usa o Anki, veja [quando vale ou não vale trocar o Anki](/blog/alternativa-ao-anki).
 
 ```quiz
 {"area": "faculdade", "title": "Teste rápido: o que ficou deste texto?", "cards": [

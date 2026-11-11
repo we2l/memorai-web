@@ -15,9 +15,9 @@
       <p v-if="article.summary" class="blog-lead mb-5 text-fg-strong" data-testid="blog-summary">{{ article.summary }}</p>
 
       <div class="mb-6 flex items-center gap-3 border-y border-line py-3">
-        <BlogAuthorPhoto v-if="author.photo" :photo="author.photo" :alt="`${firstName}, criador do Baigi`" :size="40" eager />
+        <BlogAuthorMark :author="author" />
         <p class="text-meta text-fg-muted">
-          Por <UiLink :to="author.page" variant="action">{{ author.name }}</UiLink>
+          Por <UiLink :to="author.page" variant="action" class="font-semibold">{{ author.name }}</UiLink>
           · Atualizado em <time :datetime="article.updated">{{ formatBlogDate(article.updated) }}</time>
           · {{ article.readingMinutes }} min de leitura
         </p>
@@ -29,7 +29,7 @@
       <BlogArticleBody :slug="article.slug" :segments="article.segments" />
 
       <p class="mx-auto mt-10 max-w-article text-meta text-fg-muted">
-        Escrito com apoio de IA na pesquisa e na revisão do texto. Os fatos e as fontes foram conferidos por {{ firstName }}.
+        Escrito com apoio de IA na pesquisa e na revisão do texto. Os fatos foram conferidos nas fontes do fim (edital, lei, estudos).
         Achou um erro? Escreva para <UiLink :href="`mailto:${contactEmail}`" variant="muted" class="underline">{{ contactEmail }}</UiLink>.
       </p>
 
@@ -67,7 +67,6 @@ if (!load) throw createError({ statusCode: 404, statusMessage: 'Artigo não enco
 
 const article = (await load()).default
 const author = authors[article.author]!
-const firstName = author.name.split(' ')[0]
 const related = relatedArticles(article, articles)
 const contactEmail = useRuntimeConfig().public.contactEmail
 

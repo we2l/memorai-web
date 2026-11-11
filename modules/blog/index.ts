@@ -24,6 +24,8 @@ export const SITE_URL = 'https://baigi.com.br'
  * wrong, and Google ignores lastmod that is not consistently accurate.
  */
 const STATIC_PAGES = ['/', '/planos', '/quem-faz', '/ajuda']
+/** Pages of the blog that are not articles (app/pages/blog/*.vue): reserved slugs, prerendered and in the sitemap */
+const BLOG_PAGES = ['sobre']
 /** Internal paths an article may link to besides /blog/** and /ferramentas/** */
 const LINKABLE = /^\/(|planos|ajuda|quem-faz|criar-conta|entrar|comecar(\/(concurso|enem|medicina|oab|ingles|faculdade))?)$/
 
@@ -35,6 +37,9 @@ export function loadArticles(dir: string): BlogArticle[] {
   const files = readdirSync(dir).filter(f => f.endsWith('.md')).sort()
   const articles = files.map(f => parseArticle(readFileSync(join(dir, f), 'utf8'), `content/blog/${f}`, basename(f, '.md')))
   const slugs = new Set(articles.map(a => a.slug))
+  for (const reserved of BLOG_PAGES) {
+    if (slugs.has(reserved)) throw new Error(`content/blog/${reserved}.md: o slug "${reserved}" é de uma página do blog (/blog/${reserved})`)
+  }
   const tools = new Set<string>(BLOG_TOOLS)
   for (const a of articles) {
     if (!BLOG_AUTHORS[a.author]) throw new Error(`content/blog/${a.slug}.md: autor desconhecido "${a.author}" (modules/blog/authors.ts)`)
@@ -44,7 +49,7 @@ export function loadArticles(dir: string): BlogArticle[] {
     for (const link of a.links) {
       const blog = link.match(/^\/blog\/([a-z0-9-]+)$/)
       const tool = link.match(/^\/ferramentas\/([a-z0-9-]+)$/)
-      const ok = link === '/blog' || link === '/ferramentas' || (blog && slugs.has(blog[1]!)) || (tool && tools.has(tool[1]!)) || LINKABLE.test(link)
+      const ok = link === '/blog' || (blog && BLOG_PAGES.includes(blog[1]!)) || link === '/ferramentas' || (blog && slugs.has(blog[1]!)) || (tool && tools.has(tool[1]!)) || LINKABLE.test(link)
       if (!ok) throw new Error(`content/blog/${a.slug}.md: link interno quebrado "${link}"`)
     }
   }
@@ -54,6 +59,7 @@ export function loadArticles(dir: string): BlogArticle[] {
 export function blogRoutes(articles: BlogArticle[]): string[] {
   return [
     '/blog',
+    ...BLOG_PAGES.map(p => `/blog/${p}`),
     ...articles.map(a => `/blog/${a.slug}`),
     '/ferramentas',
     ...BLOG_TOOLS.map(t => `/ferramentas/${t}`),

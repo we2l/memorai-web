@@ -5,7 +5,7 @@ description: Um método para revisar a Lei 8.213/1991 do concurso do INSS com pe
 summary: Para revisar lei seca do INSS, troque a releitura por perguntas curtas sobre o que a prova cobra (prazos, carências e percentuais) e revise cada pergunta em intervalos que crescem. Comece pelos artigos de benefícios da Lei 8.213/1991 e transforme cada questão errada em um card.
 category: concurso
 area: concurso
-author: weslley
+author: baigi
 published: 2026-11-08
 updated: 2026-11-08
 pillar: curva-do-esquecimento
@@ -19,7 +19,7 @@ Porque ela é feita de detalhe. Carência de 12 ou de 180 contribuições, 120 d
 
 Ler o artigo cinco vezes dá a sensação de que ele entrou. Mas a sensação vem da familiaridade com o texto, não da capacidade de lembrar o número quando a banca pergunta. Uma semana depois, o "eu já vi isso" continua, e o número sumiu.
 
-O que segura detalhe é o contrário de reler: **tentar lembrar sem olhar** e conferir logo depois. Esse é o efeito do teste: num experimento clássico, quem se testou lembrava de 61% de um texto uma semana depois, contra 40% de quem só releu (explico a curva e os estudos no [guia da curva do esquecimento](/blog/curva-do-esquecimento)).
+O que segura detalhe é o contrário de reler: **tentar lembrar sem olhar** e conferir logo depois. Esse é o efeito do teste: num experimento clássico, quem se testou lembrava de 61% de um texto uma semana depois, contra 40% de quem só releu (explicamos a curva e os estudos no [guia da curva do esquecimento](/blog/curva-do-esquecimento)).
 
 ## O concurso do INSS já tem edital?
 
@@ -107,7 +107,7 @@ No papel ou no Anki, você escreve cada card à mão. No Baigi, você manda a ap
 
 A IA erra. Antes de revisar, confira cada card com o texto compilado da lei: em lei seca, um número trocado no card é pior do que não ter o card. E ele não substitui as questões da banca.
 
-Se você já tem baralhos no Anki, dá para importar o arquivo .apkg. Escrevi sobre [quando vale trocar o Anki e quando não vale](/blog/alternativa-ao-anki).
+Se você já tem baralhos no Anki, dá para importar o arquivo .apkg. Explicamos [quando vale trocar o Anki e quando não vale](/blog/alternativa-ao-anki).
 
 ```quiz
 {"area": "concurso", "title": "Teste: você lembra da Lei 8.213?", "cards": [

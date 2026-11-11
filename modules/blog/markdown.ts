@@ -87,6 +87,23 @@ function parseEmbed(lang: string, text: string, file: string): BlogSegment {
   return { kind: 'card', q: String(data.q), a: String(data.a), source: data.source as string | undefined }
 }
 
+const SOURCES = /^fontes$/i
+
+/** "https://www.planalto.gov.br/ccivil_03/..." -> "planalto.gov.br": shown small next to each source */
+export function sourceDomain(href: string): string {
+  return new URL(href).hostname.replace(/^www\./, '')
+}
+
+/** A link whose text is a URL or a bare domain path ("https://...", "www.x.com/y") instead of the name of the source */
+function isUrlText(text: string): boolean {
+  return /^(https?:\/\/|www\.)/i.test(text) || /^[\w-]+(\.[\w-]+)+\/\S+$/.test(text)
+}
+
+/** A short cell that is a date, a range or a number ("23/11 a 6/12", "1 e 2", "R$ 81,00"): kept on one line */
+function isFigure(text: string): boolean {
+  return text.length <= 24 && /\d/.test(text) && /^[\d\s/.,:%ºª°R$hx+–-]*(?:\s(?:a|e|até|de)\s[\d\s/.,:%ºª°R$hx+–-]*)*$/.test(text)
+}
+
 const EMBEDS = new Set(['quiz', 'cta', 'tool', 'card', 'shot'])
 const MARKER = (i: number) => `<!--blog-embed:${i}-->`
 
@@ -106,6 +123,8 @@ export function parseArticle(source: string, file: string, slug: string): BlogAr
   const toc: BlogArticle['toc'] = []
   const links: string[] = []
   const usedIds = new Set<string>()
+  /** The ## section being rendered: inside "Fontes" a link must name the source and gets its domain (prd-blog-v2 RF-L2) */
+  let inSources = false
 
   const marked = new Marked({
     gfm: true,
@@ -116,7 +135,10 @@ export function parseArticle(source: string, file: string, slug: string): BlogAr
         for (let n = 2; usedIds.has(id); n++) id = `${slugify(text)}-${n}`
         usedIds.add(id)
         if (depth === 1) throw new Error(`${file}: o título (H1) vem do front matter; use ## no texto`)
-        if (depth === 2) toc.push({ id, title: text })
+        if (depth === 2) {
+          toc.push({ id, title: text })
+          inSources = SOURCES.test(text)
+        }
         return `<h${depth} id="${id}">${this.parser.parseInline(tokens)}</h${depth}>\n`
       },
       code({ text, lang }: Tokens.Code) {
@@ -133,9 +155,33 @@ export function parseArticle(source: string, file: string, slug: string): BlogAr
           links.push(href.split('#')[0]!.split('?')[0]!)
           return `<a href="${escapeHtml(href)}"${t}>${inner}</a>`
         }
-        if (/^https?:\/\//.test(href)) return `<a href="${escapeHtml(href)}"${t} rel="noopener" target="_blank">${inner}</a>`
+        if (/^https?:\/\//.test(href)) {
+          const a = `<a href="${escapeHtml(href)}"${t} rel="noopener" target="_blank">${inner}</a>`
+          if (!inSources) return a
+          const label = plainText(tokens).trim()
+          if (isUrlText(label)) throw new Error(`${file}: nas Fontes, o link "${href}" mostra a própria URL; escreva o nome da fonte: [Lei nº 8.213/1991](url)`)
+          return `${a}<span class="blog-src-domain"> · ${escapeHtml(sourceDomain(href))}</span>`
+        }
         if (href.startsWith('#')) return `<a href="${escapeHtml(href)}"${t}>${inner}</a>`
         throw new Error(`${file}: link "${href}" sem / nem https://`)
+      },
+      table({ header, rows, align }: Tokens.Table) {
+        const cell = (c: Tokens.TableCell) => this.parser.parseInline(c.tokens)
+        const style = (i: number) => (align[i] ? ` style="text-align:${align[i]}"` : '')
+        const labels = header.map(h => escapeHtml(plainText(h.tokens).trim()))
+        const head = header.map((h, i) => `<th scope="col"${style(i)}>${cell(h)}</th>`).join('')
+        const body = rows.map(row => `<tr>${row.map((c, i) => {
+          const text = plainText(c.tokens).trim()
+          const cls = [i === 0 ? 'blog-row-title' : '', isFigure(text) ? 'nw' : ''].filter(Boolean).join(' ')
+          // On the phone each row is a card and each cell shows its column above it; the row title only when it is a
+          // number ("1 e 2" alone says nothing, "Vagas" does)
+          const label = i > 0 || isFigure(text) ? ` data-label="${labels[i]}"` : ''
+          const tag = i === 0 ? 'th scope="row"' : 'td'
+          // Dates inside a longer cell ("De 28/10 a 10/12/2026") never break in the middle
+          const html = cls.includes('nw') ? cell(c) : cell(c).replace(/\b\d{1,2}\/\d{1,2}(?:\/\d{2,4})?\b/g, '<span class="nw">$&</span>')
+          return `<${tag}${cls ? ` class="${cls}"` : ''}${label}${style(i)}>${html}</${tag.split(' ')[0]}>`
+        }).join('')}</tr>`).join('\n')
+        return `<div class="blog-table"><table>\n<thead><tr>${head}</tr></thead>\n<tbody>\n${body}\n</tbody></table></div>\n`
       },
       html() {
         throw new Error(`${file}: HTML cru no Markdown não é aceito (use os blocos quiz, cta, tool e card)`)
@@ -145,8 +191,9 @@ export function parseArticle(source: string, file: string, slug: string): BlogAr
 
   const tokens = marked.lexer(body)
   const faq = extractFaq(tokens)
-  const html = marked.parser(tokens)
-  const words = html.replace(/<[^>]+>/g, ' ').split(/\s+/).filter(Boolean).length
+  // The list of sources gets its own class (simple list, the name as the link and the domain beside it)
+  const html = marked.parser(tokens).replace(/(<h2 id="fontes">[\s\S]*?<\/h2>\s*)<ol>/, '$1<ol class="blog-sources">')
+  const words = html.replace(/<span class="blog-src-domain">[^<]*<\/span>/g, '').replace(/<[^>]+>/g, ' ').split(/\s+/).filter(Boolean).length
     + embeds.reduce((n, e) => n + (e.kind === 'quiz' ? e.cards.length * 25 : 0), 0)
 
   const segments: BlogSegment[] = []

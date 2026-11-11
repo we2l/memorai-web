@@ -139,13 +139,13 @@ Depende da ferramenta nova. Exporte o .apkg com o agendamento, importe e confira
 
 ## Fontes
 
-1. Notas da versão 23.10 do Anki (FSRS e oclusão de imagem embutidos). [https://github.com/ankitects/anki/releases/tag/23.10](https://github.com/ankitects/anki/releases/tag/23.10)
-2. Notas da versão 25.07 do Anki (FSRS-6). [https://github.com/ankitects/anki/releases/tag/25.07](https://github.com/ankitects/anki/releases/tag/25.07)
-3. Manual do Anki, opções do baralho ("Difícil" no lugar de "De novo" com o FSRS). [https://docs.ankiweb.net/manual/deck-options](https://docs.ankiweb.net/manual/deck-options)
-4. Manual do Anki, estudo (o que cada botão quer dizer). [https://docs.ankiweb.net/manual/studying](https://docs.ankiweb.net/manual/studying)
-5. Manual do Anki, exportação de baralhos. [https://docs.ankiweb.net/manual/exporting](https://docs.ankiweb.net/manual/exporting)
-6. Manual do Anki, sincronização com o AnkiWeb (conta grátis e estudo online). [https://docs.ankiweb.net/manual/syncing](https://docs.ankiweb.net/manual/syncing)
-7. Site oficial do Anki, com as versões para cada plataforma. [https://apps.ankiweb.net/](https://apps.ankiweb.net/)
-8. AnkiMobile Flashcards na App Store do Brasil (R$ 149,90, consultado em 8 de novembro de 2026). [https://apps.apple.com/br/app/id373493387](https://apps.apple.com/br/app/id373493387)
-9. Licença do Anki (AGPL). [https://github.com/ankitects/anki/blob/main/LICENSE](https://github.com/ankitects/anki/blob/main/LICENSE)
-10. FSRS: conjunto de 727 milhões de revisões do benchmark. [https://github.com/open-spaced-repetition/srs-benchmark](https://github.com/open-spaced-repetition/srs-benchmark)
+1. [Notas da versão 23.10 do Anki](https://github.com/ankitects/anki/releases/tag/23.10) (FSRS e oclusão de imagem embutidos).
+2. [Notas da versão 25.07 do Anki](https://github.com/ankitects/anki/releases/tag/25.07) (FSRS-6).
+3. [Manual do Anki, opções do baralho](https://docs.ankiweb.net/manual/deck-options) ("Difícil" no lugar de "De novo" com o FSRS).
+4. [Manual do Anki, estudo](https://docs.ankiweb.net/manual/studying) (o que cada botão quer dizer).
+5. [Manual do Anki, exportação de baralhos](https://docs.ankiweb.net/manual/exporting).
+6. [Manual do Anki, sincronização com o AnkiWeb](https://docs.ankiweb.net/manual/syncing) (conta grátis e estudo online).
+7. [Site oficial do Anki](https://apps.ankiweb.net/), com as versões para cada plataforma.
+8. [AnkiMobile Flashcards na App Store do Brasil](https://apps.apple.com/br/app/id373493387) (R$ 149,90, consultado em 8 de novembro de 2026).
+9. [Licença do Anki (AGPL)](https://github.com/ankitects/anki/blob/main/LICENSE).
+10. [FSRS: conjunto de 727 milhões de revisões do benchmark](https://github.com/open-spaced-repetition/srs-benchmark).

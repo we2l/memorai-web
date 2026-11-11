@@ -147,13 +147,13 @@ Serve para ver o estilo da Vunesp na letra da lei. Mas a proporção mudou: a pr
 
 ## Fontes
 
-1. Tribunal de Justiça de São Paulo, Edital de Abertura nº 02/2026, Escrevente Técnico Judiciário (Vunesp), de 14 de outubro de 2026, publicado no Diário da Justiça Eletrônico, edição 4542, caderno 10, de 19 de outubro de 2026 (abertura na p. 125; conteúdo programático no Anexo VIII). [https://www.tjsp.jus.br/atc/dejesp/consultaSimples.do?cdVolume=4542&nuDiario=4542&cdCaderno=10&nuSeqpagina=125](https://www.tjsp.jus.br/atc/dejesp/consultaSimples.do?cdVolume=4542&nuDiario=4542&cdCaderno=10&nuSeqpagina=125)
-2. TJ-SP, notícia da abertura dos concursos de Escrevente e Oficial de Justiça (19 de outubro de 2026). [https://www.tjsp.jus.br/Noticias/Noticia?codigoNoticia=115772](https://www.tjsp.jus.br/Noticias/Noticia?codigoNoticia=115772)
-3. TJ-SP, notícia do concurso de Escrevente da Capital de 2025, o primeiro com 70 questões, redação e sem digitação. [https://www.tjsp.jus.br/Noticias/Noticia?codigoNoticia=108814](https://www.tjsp.jus.br/Noticias/Noticia?codigoNoticia=108814)
-4. Vunesp, caderno de questões TJSP2201/001, Escrevente Técnico Judiciário (2023), questão 41. Cópia do PDF original da banca hospedada por terceiro, porque o site da Vunesp não abriu na consulta: [https://cdn.direcaoconcursos.com.br/uploads/2023/05/Caderno-de-questoes_TJ-SP.pdf](https://cdn.direcaoconcursos.com.br/uploads/2023/05/Caderno-de-questoes_TJ-SP.pdf)
-5. Código de Processo Civil, Lei nº 13.105/2015 (arts. 231, IX, 335 e 382, §§ 2º e 4º). [https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13105.htm](https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13105.htm)
-6. Código Penal, Decreto-Lei nº 2.848/1940 (arts. 312 e 317). [https://www.planalto.gov.br/ccivil_03/decreto-lei/del2848compilado.htm](https://www.planalto.gov.br/ccivil_03/decreto-lei/del2848compilado.htm)
-7. Lei nº 9.099/1995, Juizados Especiais Cíveis e Criminais (arts. 3º, I, 9º e 61). [https://www.planalto.gov.br/ccivil_03/leis/l9099.htm](https://www.planalto.gov.br/ccivil_03/leis/l9099.htm)
-8. Lei nº 12.153/2009, Juizados Especiais da Fazenda Pública (art. 2º). [https://www.planalto.gov.br/ccivil_03/_ato2007-2010/2009/lei/l12153.htm](https://www.planalto.gov.br/ccivil_03/_ato2007-2010/2009/lei/l12153.htm)
-9. Lei nº 14.230/2021, que alterou a Lei de Improbidade Administrativa (Lei nº 8.429/1992). [https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14230.htm](https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14230.htm)
-10. FSRS, algoritmo de repetição espaçada de código aberto usado pelo Baigi e pelo Anki. [https://github.com/open-spaced-repetition/awesome-fsrs/wiki/The-Algorithm](https://github.com/open-spaced-repetition/awesome-fsrs/wiki/The-Algorithm)
+1. [Edital de Abertura nº 02/2026, Escrevente Técnico Judiciário (Vunesp)](https://www.tjsp.jus.br/atc/dejesp/consultaSimples.do?cdVolume=4542&nuDiario=4542&cdCaderno=10&nuSeqpagina=125), Tribunal de Justiça de São Paulo, de 14 de outubro de 2026, publicado no Diário da Justiça Eletrônico, edição 4542, caderno 10, de 19 de outubro de 2026 (abertura na p. 125; conteúdo programático no Anexo VIII).
+2. [TJ-SP, notícia da abertura dos concursos de Escrevente e Oficial de Justiça](https://www.tjsp.jus.br/Noticias/Noticia?codigoNoticia=115772) (19 de outubro de 2026).
+3. [TJ-SP, notícia do concurso de Escrevente da Capital de 2025](https://www.tjsp.jus.br/Noticias/Noticia?codigoNoticia=108814), o primeiro com 70 questões, redação e sem digitação.
+4. [Vunesp, caderno de questões TJSP2201/001, Escrevente Técnico Judiciário (2023)](https://cdn.direcaoconcursos.com.br/uploads/2023/05/Caderno-de-questoes_TJ-SP.pdf), questão 41. Cópia do PDF original da banca hospedada por terceiro, porque o site da Vunesp não abriu na consulta.
+5. [Código de Processo Civil, Lei nº 13.105/2015](https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2015/lei/l13105.htm) (arts. 231, IX, 335 e 382, §§ 2º e 4º).
+6. [Código Penal, Decreto-Lei nº 2.848/1940](https://www.planalto.gov.br/ccivil_03/decreto-lei/del2848compilado.htm) (arts. 312 e 317).
+7. [Lei nº 9.099/1995, Juizados Especiais Cíveis e Criminais](https://www.planalto.gov.br/ccivil_03/leis/l9099.htm) (arts. 3º, I, 9º e 61).
+8. [Lei nº 12.153/2009, Juizados Especiais da Fazenda Pública](https://www.planalto.gov.br/ccivil_03/_ato2007-2010/2009/lei/l12153.htm) (art. 2º).
+9. [Lei nº 14.230/2021, que alterou a Lei de Improbidade Administrativa (Lei nº 8.429/1992)](https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14230.htm).
+10. [FSRS, algoritmo de repetição espaçada de código aberto](https://github.com/open-spaced-repetition/awesome-fsrs/wiki/The-Algorithm) usado pelo Baigi e pelo Anki.

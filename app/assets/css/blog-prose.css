@@ -91,29 +91,113 @@
   padding: 0;
   background: none;
 }
-/* Tables scroll on their own on the phone instead of widening the page */
+/* Tables (prd-blog-v2 RF-L4; the HTML comes from modules/blog: div.blog-table > table, the first cell of a row is a th,
+   every cell after it has data-label = its column). Desktop and tablet: a plain table. Phone: each row is a card with the
+   column above each value; dates and numbers (.nw) never break in the middle. */
+.blog-prose .blog-table {
+  margin-bottom: 1.25rem;
+}
 .blog-prose table {
-  display: block;
-  max-width: 100%;
-  overflow-x: auto;
+  width: 100%;
   border-collapse: collapse;
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
 }
 .blog-prose th,
 .blog-prose td {
-  padding: 0.5rem 0.75rem;
+  padding: 0.625rem 0.75rem;
   border-bottom: 1px solid var(--line);
   text-align: left;
   vertical-align: top;
 }
-.blog-prose th {
-  color: var(--fg-strong);
+.blog-prose thead th {
+  color: var(--fg-muted);
   font-weight: 600;
   white-space: nowrap;
+  border-bottom-color: var(--line-strong);
+}
+.blog-prose tbody th {
+  color: var(--fg-strong);
+  font-weight: 600;
+}
+.blog-prose .nw {
+  white-space: nowrap;
+}
+@media (max-width: 47.99rem) {
+  .blog-prose table,
+  .blog-prose tbody,
+  .blog-prose tr,
+  .blog-prose th,
+  .blog-prose td {
+    display: block;
+  }
+  /* The header row stays for screen readers only (each cell repeats its column) */
+  .blog-prose thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .blog-prose tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .blog-prose tr {
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-row);
+    background: var(--surface-soft);
+  }
+  .blog-prose tbody th,
+  .blog-prose td {
+    padding: 0;
+    border: 0;
+  }
+  .blog-prose tbody th {
+    margin-bottom: 0.25rem;
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+  }
+  .blog-prose td + td,
+  .blog-prose th + td {
+    margin-top: 0.375rem;
+  }
+  .blog-prose [data-label]::before {
+    content: attr(data-label);
+    display: block;
+    color: var(--fg-muted);
+    font-size: var(--text-label);
+    line-height: var(--text-label--line-height);
+    font-weight: 500;
+    white-space: normal;
+  }
 }
 .blog-prose hr {
   margin: 2rem 0;
   border: 0;
   border-top: 1px solid var(--line);
+}
+/* Sources (prd-blog-v2 RF-L2): a simple list, the name of the source is the link, the domain small beside it */
+.blog-prose .blog-sources {
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
+  color: var(--fg-muted);
+}
+.blog-prose .blog-sources li {
+  margin-bottom: 0.75rem;
+}
+.blog-prose .blog-sources a {
+  color: var(--fg-strong);
+  font-weight: 600;
+  text-decoration-color: var(--line-strong);
+  overflow-wrap: normal;
+}
+.blog-prose .blog-sources a:hover {
+  text-decoration-color: currentColor;
+}
+.blog-prose .blog-src-domain {
+  color: var(--fg-muted);
+  white-space: nowrap;
 }

@@ -22,6 +22,28 @@ function doc(body: string, front = FRONT) {
 }
 
 describe('parseArticle (prd-blog-seo RF-B1..B4)', () => {
+  it('Fontes: o link mostra o nome da fonte, ganha o domínio ao lado e a lista ganha a classe própria (prd-blog-v2 RF-L2)', () => {
+    const a = parseArticle(doc(`Texto com [site](https://www.exemplo.com/a) fora das fontes.
+
+## Fontes
+
+1. [Lei nº 8.213/1991](https://www.planalto.gov.br/ccivil_03/leis/l8213cons.htm) (art. 86).
+`), 'x.md', 'fontes')
+    const html = a.segments.map(s => (s.kind === 'html' ? s.html : '')).join('')
+    expect(html).toContain('<ol class="blog-sources">')
+    expect(html).toContain('Lei nº 8.213/1991</a><span class="blog-src-domain"> · planalto.gov.br</span>')
+    // Outside the sources, no domain
+    expect(html.match(/blog-src-domain/g)).toHaveLength(1)
+  })
+
+  it('Fontes: link com a própria URL como texto reprova o build', () => {
+    for (const label of ['https://www.planalto.gov.br/l8213.htm', 'www.planalto.gov.br/l8213.htm', 'planalto.gov.br/ccivil_03/l8213.htm']) {
+      expect(() => parseArticle(doc(`## Fontes\n\n1. Lei. [${label}](https://www.planalto.gov.br/l8213.htm)\n`), 'x.md', 'fontes')).toThrow(/mostra a própria URL/)
+    }
+    // A raw URL outside the sources is still accepted (it is the author's choice there)
+    expect(() => parseArticle(doc('Veja [https://exemplo.com](https://exemplo.com).\n'), 'x.md', 'fora')).not.toThrow()
+  })
+
   it('lê o front matter, monta o sumário pelos ## e o FAQ pela seção de perguntas', () => {
     const a = parseArticle(doc(`Intro.
 

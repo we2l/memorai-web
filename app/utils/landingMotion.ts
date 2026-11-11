@@ -5,8 +5,19 @@
  * nothing is hidden, nothing counts and no video downloads (posters only, `preload="none"`).
  * Returns the cleanup for onBeforeUnmount.
  */
+/** The same test as LANDING_MESSAGE_SCRIPT: motion unless the system asks for reduced motion. */
+function systemAllowsMotion(): boolean {
+  try {
+    return !(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+  }
+  catch {
+    return false
+  }
+}
+
 export function motionAllowed(): boolean {
-  return document.documentElement.classList.contains('lp-motion')
+  // Not the class itself: children mount before the page turns html.lp-motion on (client-side navigation)
+  return systemAllowsMotion() && 'IntersectionObserver' in window
 }
 
 /** One IntersectionObserver per call; `once` stops observing after the first time in view. */
@@ -48,10 +59,15 @@ export function playClip(video: HTMLVideoElement) {
 
 export function startLandingMotion(root: HTMLElement): () => void {
   ;(window as unknown as { __lpReady?: boolean }).__lpReady = true
-  if (!motionAllowed() || !('IntersectionObserver' in window)) {
-    document.documentElement.classList.remove('lp-motion')
+  const html = document.documentElement
+  // On a client-side navigation to / (logo of the blog, "Início") the head script runs after onMounted, so
+  // html.lp-motion is not there yet: decide here with the same rule instead of trusting the class. Otherwise motion
+  // started "off" and the late class hid every [data-reveal] for good (owner's print, 11/11: only the purple bands).
+  if (!systemAllowsMotion() || !('IntersectionObserver' in window)) {
+    html.classList.remove('lp-motion')
     return () => {}
   }
+  html.classList.add('lp-motion')
   const observers: IntersectionObserver[] = []
 
   observers.push(watch(root.querySelectorAll('[data-reveal]'), (el, inView) => {

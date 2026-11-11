@@ -5,10 +5,13 @@ description: O que a curva do esquecimento de Ebbinghaus mostra de verdade, quan
 summary: A curva do esquecimento mostra que a memória cai rápido nos primeiros dias e depois desacelera. Cada vez que você se testa e acerta, a queda seguinte fica mais lenta. Por isso revisar em intervalos crescentes rende mais do que reler tudo de novo.
 category: metodo
 area: faculdade
-author: weslley
+author: baigi
 published: 2026-11-08
 updated: 2026-11-08
 related: como-revisar-lei-seca-inss, alternativa-ao-anki
+context: Ebbinghaus e FSRS
+cover: {"value": "94,7%", "label": "de chance de lembrar 1 dia depois de acertar"}
+facts: [{"value": "80,8%", "label": "depois de 7 dias", "icon": "chart"}, {"value": "66,8%", "label": "depois de 30 dias", "icon": "chart"}]
 tags: curva do esquecimento, Ebbinghaus, repetição espaçada, revisão
 ---
 
@@ -114,7 +117,7 @@ Duas saídas que funcionam:
 
 No Baigi, você pode mandar o PDF e a IA propõe os cards a partir do seu material (há uma prévia grátis). Você revisa e corrige o que ela criou, porque nenhuma IA acerta tudo. Revisar os cards é grátis, e a fila é organizada pelo mesmo FSRS desta página.
 
-Para lei seca, que é o caso clássico de decorar prazos e percentuais, escrevi um guia específico: [como revisar lei seca para o INSS](/blog/como-revisar-lei-seca-inss). Se você já usa o Anki, veja [quando vale ou não vale trocar o Anki](/blog/alternativa-ao-anki).
+Para lei seca, que é o caso clássico de decorar prazos e percentuais, há um guia específico: [como revisar lei seca para o INSS](/blog/como-revisar-lei-seca-inss). Se você já usa o Anki, veja [quando vale ou não vale trocar o Anki](/blog/alternativa-ao-anki).
 
 ```quiz
 {"area": "faculdade", "title": "Teste rápido: o que ficou deste texto?", "cards": [
@@ -145,10 +148,10 @@ Não. Dá para fazer com cartões de papel e caixas separadas por intervalo. O a
 
 ## Fontes
 
-1. Murre, J. M. J. e Dros, J. (2015). Replication and Analysis of Ebbinghaus' Forgetting Curve. PLoS ONE 10(7): e0120644. [https://doi.org/10.1371/journal.pone.0120644](https://doi.org/10.1371/journal.pone.0120644)
-2. Roediger, H. L. e Karpicke, J. D. (2006). Test-Enhanced Learning: Taking Memory Tests Improves Long-Term Retention. Psychological Science 17(3), 249-255 (experimento 2, figura 2). [https://doi.org/10.1111/j.1467-9280.2006.01693.x](https://doi.org/10.1111/j.1467-9280.2006.01693.x)
-3. Rowland, C. A. (2014). The effect of testing versus restudy on retention: a meta-analytic review of the testing effect. Psychological Bulletin 140(6), 1432-1463. [https://doi.org/10.1037/a0037559](https://doi.org/10.1037/a0037559)
-4. Cepeda, N. J. e colegas (2006). Distributed practice in verbal recall tasks: a review and quantitative synthesis. Psychological Bulletin 132(3), 354-380. [https://doi.org/10.1037/0033-2909.132.3.354](https://doi.org/10.1037/0033-2909.132.3.354)
-5. FSRS, algoritmo de repetição espaçada de código aberto: fórmulas da versão 6 e definição de estabilidade ([https://github.com/open-spaced-repetition/awesome-fsrs/wiki/The-Algorithm](https://github.com/open-spaced-repetition/awesome-fsrs/wiki/The-Algorithm)), parâmetros padrão do FSRS-6 ([https://github.com/open-spaced-repetition/py-fsrs](https://github.com/open-spaced-repetition/py-fsrs)) e o conjunto de 727 milhões de revisões ([https://github.com/open-spaced-repetition/srs-benchmark](https://github.com/open-spaced-repetition/srs-benchmark)). Os números de 1, 7 e 30 dias e os intervalos de 2, 12, 50 e 170 dias são contas nossas com esses parâmetros.
-6. Notas da versão 23.10 do Anki, com o FSRS embutido. [https://github.com/ankitects/anki/releases/tag/23.10](https://github.com/ankitects/anki/releases/tag/23.10)
-7. Manual do Anki, opções do baralho (uso do botão "Difícil" com o FSRS). [https://docs.ankiweb.net/manual/deck-options](https://docs.ankiweb.net/manual/deck-options)
+1. [Murre, J. M. J. e Dros, J. (2015). Replication and Analysis of Ebbinghaus' Forgetting Curve](https://doi.org/10.1371/journal.pone.0120644). PLoS ONE 10(7): e0120644.
+2. [Roediger, H. L. e Karpicke, J. D. (2006). Test-Enhanced Learning: Taking Memory Tests Improves Long-Term Retention](https://doi.org/10.1111/j.1467-9280.2006.01693.x). Psychological Science 17(3), 249-255 (experimento 2, figura 2).
+3. [Rowland, C. A. (2014). The effect of testing versus restudy on retention: a meta-analytic review of the testing effect](https://doi.org/10.1037/a0037559). Psychological Bulletin 140(6), 1432-1463.
+4. [Cepeda, N. J. e colegas (2006). Distributed practice in verbal recall tasks: a review and quantitative synthesis](https://doi.org/10.1037/0033-2909.132.3.354). Psychological Bulletin 132(3), 354-380.
+5. FSRS, algoritmo de repetição espaçada de código aberto: [fórmulas da versão 6 e definição de estabilidade](https://github.com/open-spaced-repetition/awesome-fsrs/wiki/The-Algorithm), [parâmetros padrão do FSRS-6](https://github.com/open-spaced-repetition/py-fsrs) e o [conjunto de 727 milhões de revisões](https://github.com/open-spaced-repetition/srs-benchmark). Os números de 1, 7 e 30 dias e os intervalos de 2, 12, 50 e 170 dias são contas nossas com esses parâmetros.
+6. [Notas da versão 23.10 do Anki](https://github.com/ankitects/anki/releases/tag/23.10), com o FSRS embutido.
+7. [Manual do Anki, opções do baralho](https://docs.ankiweb.net/manual/deck-options) (uso do botão "Difícil" com o FSRS).

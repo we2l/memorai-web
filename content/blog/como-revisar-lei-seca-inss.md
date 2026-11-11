@@ -5,11 +5,13 @@ description: Um método para revisar a Lei 8.213/1991 do concurso do INSS com pe
 summary: Para revisar lei seca do INSS, troque a releitura por perguntas curtas sobre o que a prova cobra (prazos, carências e percentuais) e revise cada pergunta em intervalos que crescem. Comece pelos artigos de benefícios da Lei 8.213/1991 e transforme cada questão errada em um card.
 category: concurso
 area: concurso
-author: weslley
+author: baigi
 published: 2026-11-08
 updated: 2026-11-08
 pillar: curva-do-esquecimento
 related: alternativa-ao-anki
+context: INSS · Lei 8.213/1991
+cover: {"value": "50%", "label": "do salário de benefício: o auxílio-acidente"}
 tags: INSS, lei seca, Lei 8.213, concurso, revisão
 ---
 
@@ -19,7 +21,7 @@ Porque ela é feita de detalhe. Carência de 12 ou de 180 contribuições, 120 d
 
 Ler o artigo cinco vezes dá a sensação de que ele entrou. Mas a sensação vem da familiaridade com o texto, não da capacidade de lembrar o número quando a banca pergunta. Uma semana depois, o "eu já vi isso" continua, e o número sumiu.
 
-O que segura detalhe é o contrário de reler: **tentar lembrar sem olhar** e conferir logo depois. Esse é o efeito do teste: num experimento clássico, quem se testou lembrava de 61% de um texto uma semana depois, contra 40% de quem só releu (explico a curva e os estudos no [guia da curva do esquecimento](/blog/curva-do-esquecimento)).
+O que segura detalhe é o contrário de reler: **tentar lembrar sem olhar** e conferir logo depois. Esse é o efeito do teste: num experimento clássico, quem se testou lembrava de 61% de um texto uma semana depois, contra 40% de quem só releu (explicamos a curva e os estudos no [guia da curva do esquecimento](/blog/curva-do-esquecimento)).
 
 ## O concurso do INSS já tem edital?
 
@@ -107,7 +109,7 @@ No papel ou no Anki, você escreve cada card à mão. No Baigi, você manda a ap
 
 A IA erra. Antes de revisar, confira cada card com o texto compilado da lei: em lei seca, um número trocado no card é pior do que não ter o card. E ele não substitui as questões da banca.
 
-Se você já tem baralhos no Anki, dá para importar o arquivo .apkg. Escrevi sobre [quando vale trocar o Anki e quando não vale](/blog/alternativa-ao-anki).
+Se você já tem baralhos no Anki, dá para importar o arquivo .apkg. Explicamos [quando vale trocar o Anki e quando não vale](/blog/alternativa-ao-anki).
 
 ```quiz
 {"area": "concurso", "title": "Teste: você lembra da Lei 8.213?", "cards": [
@@ -139,9 +141,9 @@ Na prática, sim: a Lei 8.213/1991 ainda usa o nome antigo, e a Constituição, 
 
 ## Fontes
 
-1. Lei nº 8.213, de 24 de julho de 1991, texto compilado (arts. 15, 24, 25, 26, 44, 71 e 86). [https://www.planalto.gov.br/ccivil_03/leis/l8213cons.htm](https://www.planalto.gov.br/ccivil_03/leis/l8213cons.htm)
-2. Emenda Constitucional nº 103, de 12 de novembro de 2019 (reforma da Previdência; nova redação do art. 201, I, da Constituição). [https://www.planalto.gov.br/ccivil_03/constituicao/emendas/emc/emc103.htm](https://www.planalto.gov.br/ccivil_03/constituicao/emendas/emc/emc103.htm)
-3. STF, ADI 2110 e ADI 2111, julgadas em 21 de março de 2024 (carência do salário-maternidade). Andamento: [https://portal.stf.jus.br/processos/listarProcessos.asp?classe=ADI&numeroProcesso=2110](https://portal.stf.jus.br/processos/listarProcessos.asp?classe=ADI&numeroProcesso=2110). Notícia do STF: [https://noticias.stf.jus.br/?p=75093](https://noticias.stf.jus.br/?p=75093)
-4. INSS, Edital nº 1 – INSS, de 12 de setembro de 2022 (Técnico do Seguro Social, Cebraspe): disciplinas no item 14.2 e 1.000 vagas no Anexo I. [https://cdn.cebraspe.org.br/concursos/INSS_22/arquivos/ED_1_INSS_22_ABERTURA.PDF](https://cdn.cebraspe.org.br/concursos/INSS_22/arquivos/ED_1_INSS_22_ABERTURA.PDF)
-5. Roediger, H. L. e Karpicke, J. D. (2006). Test-Enhanced Learning. Psychological Science 17(3), 249-255 (experimento 2). [https://doi.org/10.1111/j.1467-9280.2006.01693.x](https://doi.org/10.1111/j.1467-9280.2006.01693.x)
-6. FSRS, algoritmo de repetição espaçada de código aberto: fórmulas da versão 6 ([https://github.com/open-spaced-repetition/awesome-fsrs/wiki/The-Algorithm](https://github.com/open-spaced-repetition/awesome-fsrs/wiki/The-Algorithm)) e parâmetros padrão ([https://github.com/open-spaced-repetition/py-fsrs](https://github.com/open-spaced-repetition/py-fsrs)). Os intervalos de 2, 12, 50 e 170 dias são contas nossas com esses parâmetros.
+1. [Lei nº 8.213, de 24 de julho de 1991, texto compilado](https://www.planalto.gov.br/ccivil_03/leis/l8213cons.htm) (arts. 15, 24, 25, 26, 44, 71 e 86).
+2. [Emenda Constitucional nº 103, de 12 de novembro de 2019](https://www.planalto.gov.br/ccivil_03/constituicao/emendas/emc/emc103.htm) (reforma da Previdência; nova redação do art. 201, I, da Constituição).
+3. STF, ADI 2110 e ADI 2111, julgadas em 21 de março de 2024 (carência do salário-maternidade): [andamento da ADI 2110](https://portal.stf.jus.br/processos/listarProcessos.asp?classe=ADI&numeroProcesso=2110) e [notícia do STF](https://noticias.stf.jus.br/?p=75093).
+4. [INSS, Edital nº 1 – INSS, de 12 de setembro de 2022](https://cdn.cebraspe.org.br/concursos/INSS_22/arquivos/ED_1_INSS_22_ABERTURA.PDF) (Técnico do Seguro Social, Cebraspe): disciplinas no item 14.2 e 1.000 vagas no Anexo I.
+5. [Roediger, H. L. e Karpicke, J. D. (2006). Test-Enhanced Learning](https://doi.org/10.1111/j.1467-9280.2006.01693.x). Psychological Science 17(3), 249-255 (experimento 2).
+6. FSRS, algoritmo de repetição espaçada de código aberto: [fórmulas da versão 6](https://github.com/open-spaced-repetition/awesome-fsrs/wiki/The-Algorithm) e [parâmetros padrão](https://github.com/open-spaced-repetition/py-fsrs). Os intervalos de 2, 12, 50 e 170 dias são contas nossas com esses parâmetros.

@@ -61,6 +61,7 @@ const EXPECTED: Record<string, string | null> = {
   // Blog, free tools and "Quem faz" (prd-blog-seo): public pages, no place
   '/blog': null,
   '/blog/:slug': null,
+  '/blog/sobre': null,
   '/ferramentas': null,
   '/ferramentas/calculadora-do-esquecimento': null,
   '/ferramentas/plano-ate-a-prova': null,

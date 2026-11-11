@@ -3,6 +3,11 @@ export const PUBLIC_ROUTES = ['/', '/entrar', '/criar-conta', '/esqueci-senha', 
 /** Blog and free tools (prd-blog-seo): every path under them is public */
 const PUBLIC_PREFIXES = ['/blog', '/ferramentas']
 
+/** Reading pages (blog, tools, /quem-faz): the consent banner is the thin bar there (prd-blog-v2 RF-L1) */
+export function isReadingRoute(path: string): boolean {
+  return path === '/quem-faz' || PUBLIC_PREFIXES.some(p => path === p || path.startsWith(`${p}/`))
+}
+
 export function isPublicRoute(path: string): boolean {
   return PUBLIC_ROUTES.includes(path) || path.startsWith('/auth/') || path === '/_ds' || isGuestOnboardingRoute(path)
     || PUBLIC_PREFIXES.some(p => path === p || path.startsWith(`${p}/`))

@@ -15,12 +15,11 @@
     </div>
     <p class="break-words text-section text-fg-strong" data-testid="blog-example-question">{{ q }}</p>
 
-    <!-- The answer is in the HTML from the start (readers without JS and search engines); with JS it waits for the try -->
+    <!-- The answer is in the HTML from the start (search engines read it); it shows after the try -->
     <div v-show="state !== 'front'" class="mt-4 border-t border-line pt-4" data-testid="blog-example-answer">
       <p class="mb-1 text-label text-fg-muted">Resposta</p>
       <p class="break-words text-body text-fg">{{ a }}</p>
     </div>
-    <noscript><p class="mt-4 border-t border-line pt-4 text-body text-fg">{{ a }}</p></noscript>
 
     <div class="mt-5">
       <ReviewFeedback v-if="feedback" ref="band" compact :feedback="feedback" @continue="finish" />

@@ -202,3 +202,10 @@ describe('UiFieldGrid (controles alinhados)', () => {
     expect(await axeViolations(w.element)).toEqual([])
   })
 })
+
+describe('UiSelect: opção vazia de verdade', () => {
+  it('"Todos os cadernos" (valor vazio) aparece como escolha, não como placeholder', async () => {
+    const w = await mountSuspended(Select, { props: { modelValue: '', options: [{ value: '', label: 'Todos os cadernos' }, { value: 'a', label: 'TRF' }], label: 'Escopo' } })
+    expect(w.get('select').classes()).toContain('text-fg-strong')
+  })
+})

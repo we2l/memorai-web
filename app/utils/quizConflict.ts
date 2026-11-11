@@ -14,10 +14,3 @@ export function quizConflict(e: unknown): QuizConflict | null {
   const code = err?.data?.code ?? err?.response?._data?.code
   return CODES.includes(code as QuizConflict) ? code as QuizConflict : null
 }
-
-/** What the screen says when the quiz is not finished yet (a finished one opens the result, no message). */
-export function quizConflictMessage(code: QuizConflict): string {
-  if (code === 'question_already_graded') return 'Esta questão já foi corrigida: no Treino a resposta não muda depois da correção.'
-  if (code === 'quiz_completed') return 'Este simulado já foi finalizado.'
-  return 'Este simulado não está mais em andamento.'
-}

@@ -85,7 +85,8 @@ import { ArrowLeft } from 'lucide-vue-next'
 import { cadernoPath } from '~/utils/scope'
 import { distributionLabel } from '~/utils/quizDistribution'
 import { formatAnswer } from '~/utils/quizAnswer'
-import { quizConflict, quizConflictMessage } from '~/utils/quizConflict'
+import { quizConflict } from '~/utils/quizConflict'
+import { quizConflictMessage } from '~/utils/quizConflictMessage'
 
 definePageMeta({ chrome: 'focus' })
 useHead({ title: 'Questões · Baigi' })

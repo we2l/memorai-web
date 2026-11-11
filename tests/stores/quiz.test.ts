@@ -2,7 +2,8 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { mockNuxtImport } from '@nuxt/test-utils/runtime'
 import { useQuizStore } from '~/stores/quiz'
-import { quizConflict, quizConflictMessage } from '~/utils/quizConflict'
+import { quizConflict } from '~/utils/quizConflict'
+import { quizConflictMessage } from '~/utils/quizConflictMessage'
 
 // API #177: the 409 of a simulado. Finishing one the Prova's timer already finished opens the result, no error
 const { apiMock } = vi.hoisted(() => ({ apiMock: vi.fn() }))

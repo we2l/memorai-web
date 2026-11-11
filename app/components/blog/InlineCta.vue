@@ -1,5 +1,5 @@
 <template>
-  <aside class="flex flex-col gap-3 rounded-card bg-soft px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6" aria-label="Teste no Baigi">
+  <aside class="flex flex-col gap-3 rounded-card bg-soft px-5 py-4 sm:flex-row sm:items-center sm:justify-between blog-inline-cta" aria-label="Teste no Baigi">
     <p class="text-body text-fg-strong">{{ text }}</p>
     <UiButton variant="secondary" size="sm" :href="href" class="shrink-0" data-testid="blog-inline-cta" @click="onClick">
       Revisar 6 cards de {{ AREA_LABEL[area] }}

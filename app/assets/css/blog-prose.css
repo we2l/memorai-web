@@ -201,3 +201,75 @@
   color: var(--fg-muted);
   white-space: nowrap;
 }
+
+/* Layout of the blog v2 (prd-blog-v2): the blog's own classes live here, in the blog-* chunk out of the precache, so
+   entry.css does not grow (PRD §5). Unlayered on purpose (see the top of the file): they win over the utilities. */
+.blog-answer {
+  border-left: 4px solid var(--fg-strong);
+  padding-left: 1rem;
+}
+@media (min-width: 40rem) {
+  .blog-answer { padding-left: 1.25rem; }
+}
+/* Article: one column below 1024 px; from 1024 the text column on the left and the cover + sticky contents on the right */
+@media (min-width: 64rem) {
+  .blog-article {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 16rem;
+    column-gap: 3rem;
+  }
+  .blog-article-header { grid-column: 1; grid-row: 1; margin-inline: 0; }
+  .blog-article-side { grid-column: 2; grid-row: 1 / span 2; margin: 0; max-width: none; padding-top: 3rem; }
+  .blog-article-body { grid-column: 1; grid-row: 2; margin-inline: 0; }
+  .blog-article-related { grid-column: 1 / -1; grid-row: 3; }
+  .blog-toc-sticky { position: sticky; top: 1.5rem; }
+}
+@media (min-width: 80rem) {
+  .blog-article { grid-template-columns: minmax(0, 1fr) 18rem; column-gap: 5rem; }
+}
+/* Table of contents from 1024: a line on the left, the current section with a darker one */
+.blog-toc-list { border-left: 1px solid var(--line-strong); }
+.blog-toc-link {
+  display: flex;
+  margin-left: -1px;
+  padding: 0.375rem 0 0.375rem 1rem;
+  border-left: 2px solid transparent;
+  color: var(--fg-muted);
+}
+.blog-toc-link:hover { color: var(--fg-strong); }
+.blog-toc-link[aria-current] { border-left-color: var(--fg-strong); color: var(--fg-strong); font-weight: 600; }
+.blog-toc-link:focus-visible,
+.blog-filter-link:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+/* Titles that are links: a soft underline on hover */
+.blog-title-link:hover,
+.group:hover .blog-title-link {
+  text-decoration: underline;
+  text-decoration-color: var(--line-strong);
+  text-underline-offset: 4px;
+}
+.blog-card-link:focus-visible { outline: none; }
+.blog-card-link:focus-visible::after { outline: 2px solid var(--focus-ring); outline-offset: 4px; }
+/* Covers of the index: gray surface, the number at the bottom */
+.blog-card-cover { height: 8rem; }
+@media (min-width: 40rem) {
+  .blog-card-cover { height: 9rem; }
+}
+.blog-featured-cover { min-height: 11rem; }
+.blog-featured-cover-label { max-width: 14rem; }
+@media (min-width: 48rem) {
+  .blog-featured { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); }
+  .blog-featured-cover { min-height: 18rem; }
+}
+/* The filter scrolls sideways on the phone up to the screen's edge, never the page */
+.blog-filter-scroll {
+  margin-inline: calc(var(--gutter) * -1);
+  padding-inline: var(--gutter);
+}
+/* The two calls side by side from 640 px */
+@media (min-width: 40rem) {
+  .blog-inline-cta { gap: 1.5rem; }
+  .blog-end-cta { gap: 2rem; }
+}

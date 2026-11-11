@@ -5,17 +5,16 @@
         Neste artigo <span class="font-normal text-fg-muted">{{ items.length }} seções</span>
       </summary>
       <ol class="flex list-decimal flex-col gap-1 pb-4 pl-5 text-meta text-fg">
-        <li v-for="s in items" :key="s.id"><UiLink :href="`#${s.id}`" variant="muted" class="inline-flex min-h-6 items-center">{{ s.title }}</UiLink></li>
+        <li v-for="s in items" :key="s.id"><UiLink :href="`#${s.id}`" variant="muted">{{ s.title }}</UiLink></li>
       </ol>
     </details>
     <nav aria-label="Neste artigo" class="hidden lg:block" data-testid="blog-toc">
       <p class="mb-3 text-label font-semibold text-fg-strong">Neste artigo</p>
-      <ol class="flex flex-col border-l border-line-strong text-meta">
+      <ol class="blog-toc-list flex flex-col text-meta">
         <li v-for="s in items" :key="s.id">
           <a
             :href="`#${s.id}`"
-            class="-ml-px flex min-h-6 border-l-2 py-1.5 pl-4 hover:text-fg-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-            :class="active === s.id ? 'border-fg-strong font-semibold text-fg-strong' : 'border-transparent text-fg-muted'"
+            class="blog-toc-link"
             :aria-current="active === s.id ? 'location' : undefined"
           >{{ s.title }}</a>
         </li>

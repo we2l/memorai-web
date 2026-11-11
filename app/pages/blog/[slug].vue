@@ -1,8 +1,8 @@
 <template>
   <!-- One column below 1024 px (header, cover, collapsible contents, text). From 1024 px: the text column (max-w-article,
        ~70 characters a line) on the left, and on the right the cover and the sticky table of contents (prd-blog-v2) -->
-  <article v-if="article" class="mx-auto max-w-page px-gutter pt-6 lg:grid lg:grid-cols-[minmax(0,1fr)_16rem] lg:gap-x-12 lg:pt-10 xl:grid-cols-[minmax(0,1fr)_18rem] xl:gap-x-20" data-testid="blog-article">
-    <header class="mx-auto max-w-article lg:col-start-1 lg:row-start-1 lg:mx-0">
+  <article v-if="article" class="blog-article mx-auto max-w-page px-gutter pt-6 lg:pt-10" data-testid="blog-article">
+    <header class="blog-article-header mx-auto max-w-article">
       <nav aria-label="Caminho" class="mb-5 text-meta text-fg-muted">
         <ol class="flex flex-wrap gap-1">
           <li><UiLink to="/blog" variant="muted">Blog</UiLink> ›</li>
@@ -12,7 +12,7 @@
 
       <BlogCategoryLabel :category="article.category" :extra="article.context ? [article.context] : []" class="mb-3" />
       <h1 class="mb-5 text-display text-fg-strong">{{ article.title }}</h1>
-      <p v-if="article.summary" class="blog-lead mb-6 border-l-4 border-fg-strong pl-4 text-fg-strong sm:pl-5" data-testid="blog-summary">{{ article.summary }}</p>
+      <p v-if="article.summary" class="blog-answer blog-lead mb-6 text-fg-strong" data-testid="blog-summary">{{ article.summary }}</p>
 
       <div class="mb-6 flex items-center gap-3" data-testid="blog-byline">
         <BlogAuthorMark :author="author" />
@@ -23,12 +23,12 @@
       </div>
     </header>
 
-    <aside v-if="hasSide" class="mx-auto mb-8 max-w-article lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mx-0 lg:mb-0 lg:max-w-none lg:pt-12" :aria-label="article.cover || article.facts.length ? 'O artigo em números e o sumário' : 'Sumário'">
-      <BlogCover v-if="article.cover || article.facts.length" :cover="article.cover" :facts="article.facts" class="mb-6 lg:mb-10" />
-      <BlogToc v-if="hasToc" :items="article.toc" class="lg:sticky lg:top-6" />
+    <aside v-if="hasSide" class="blog-article-side mx-auto mb-8 max-w-article" :aria-label="article.cover || article.facts.length ? 'O artigo em números e o sumário' : 'Sumário'">
+      <BlogCover v-if="article.cover || article.facts.length" :cover="article.cover" :facts="article.facts" class="mb-8" />
+      <BlogToc v-if="hasToc" :items="article.toc" class="blog-toc-sticky" />
     </aside>
 
-    <div class="mx-auto min-w-0 max-w-article lg:col-start-1 lg:row-start-2 lg:mx-0">
+    <div class="blog-article-body mx-auto min-w-0 max-w-article">
       <BlogArticleBody :slug="article.slug" :segments="article.segments" />
 
       <p class="mt-10 text-meta text-fg-muted" data-testid="blog-method">
@@ -39,7 +39,7 @@
       <BlogEndCta :slug="article.slug" :area="article.area" class="mt-10" />
     </div>
 
-    <section v-if="related.length" class="mt-14 lg:col-span-2 lg:row-start-3" aria-labelledby="h-related">
+    <section v-if="related.length" class="blog-article-related mt-12" aria-labelledby="h-related">
       <h2 id="h-related" class="mb-5 text-section text-fg-strong">Leia também</h2>
       <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
         <BlogArticleCard v-for="r in related" :key="r.slug" :article="r" />

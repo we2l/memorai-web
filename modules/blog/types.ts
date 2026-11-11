@@ -37,7 +37,7 @@ export const BLOG_SHOTS = {
 export type BlogShot = keyof typeof BLOG_SHOTS
 
 /** Icons of the article's facts (prd-blog-v2 RF-V2): app/components/blog/Cover.vue maps each one to a lucide icon and a tone */
-export const BLOG_FACT_ICONS = ['calendar', 'questions', 'target', 'clock', 'money', 'chart'] as const
+export const BLOG_FACT_ICONS = ['calendar', 'questions', 'target', 'chart'] as const
 export type BlogFactIcon = typeof BLOG_FACT_ICONS[number]
 /** The number of the cover: only a number written in the article itself (checked by the module) */
 export interface BlogCover { value: string, label: string }

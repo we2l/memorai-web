@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto max-w-page px-gutter pt-8 lg:pt-14">
+  <div class="mx-auto max-w-page px-gutter pt-8 lg:pt-12">
     <header class="flex items-center justify-between gap-8">
       <div class="max-w-article">
         <h1 class="mb-3 text-display text-fg-strong">Blog do Baigi</h1>
@@ -11,12 +11,12 @@
     </header>
 
     <!-- Links to the #category: without JS they jump to its list in "Por assunto"; with JS they filter the grid in place -->
-    <nav aria-label="Categorias" class="-mx-gutter mt-8 overflow-x-auto px-gutter pb-1">
+    <nav aria-label="Categorias" class="blog-filter-scroll mt-8 overflow-x-auto pb-1">
       <ul class="inline-flex gap-1 rounded-chip bg-soft p-1">
         <li v-for="f in filters" :key="f.id">
           <a
             :href="f.id ? `#${f.id}` : '#'"
-            class="inline-flex min-h-10 items-center gap-1.5 whitespace-nowrap rounded-chip px-4 text-meta focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+            class="blog-filter-link inline-flex min-h-10 items-center gap-1.5 whitespace-nowrap rounded-chip px-4 text-meta"
             :class="selected === f.id ? 'bg-raised font-semibold text-fg-strong shadow-1' : 'text-fg hover:text-fg-strong'"
             :aria-current="selected === f.id ? 'true' : undefined"
             :data-testid="`blog-filter-${f.id || 'all'}`"
@@ -32,26 +32,26 @@
 
     <section class="mt-12" aria-labelledby="h-recentes">
       <h2 id="h-recentes" class="mb-5 text-section text-fg-strong">{{ selected ? categoryLabel(selected) : 'Mais recentes' }}</h2>
-      <div class="grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3" data-testid="blog-grid">
+      <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-3" data-testid="blog-grid">
         <BlogArticleCard v-for="a in grid" :key="a.slug" :article="a" />
       </div>
     </section>
 
-    <section class="mt-16" aria-labelledby="h-ferramentas">
+    <section class="mt-12" aria-labelledby="h-ferramentas">
       <h2 id="h-ferramentas" class="mb-5 text-section text-fg-strong">Ferramentas grátis</h2>
       <div class="grid gap-4 sm:grid-cols-2">
         <UiListRow v-for="t in TOOLS" :key="t.path" :to="t.path" :title="t.title" :meta="t.description" class="rounded-card bg-raised shadow-1" />
       </div>
     </section>
 
-    <section class="mt-16" aria-labelledby="h-assunto">
+    <section class="mt-12" aria-labelledby="h-assunto">
       <h2 id="h-assunto" class="mb-5 text-section text-fg-strong">Por assunto</h2>
-      <div class="grid gap-x-12 gap-y-10 md:grid-cols-2">
+      <div class="grid gap-8 md:grid-cols-2">
         <div v-for="c in categories" :id="c" :key="c" class="scroll-mt-6">
           <h3 class="mb-2"><BlogCategoryLabel :category="c" /></h3>
           <ul>
             <li v-for="a in byCategory(c)" :key="a.slug" class="border-b border-line">
-              <NuxtLink :to="`/blog/${a.slug}`" class="flex min-h-touch items-baseline justify-between gap-4 py-3 text-body text-fg-strong hover:underline hover:decoration-line-strong hover:underline-offset-4">
+              <NuxtLink :to="`/blog/${a.slug}`" class="blog-title-link flex min-h-touch items-baseline justify-between gap-4 py-3 text-body text-fg-strong">
                 <span>{{ a.title }}</span>
                 <span class="shrink-0 text-meta text-fg-muted">{{ a.readingMinutes }} min</span>
               </NuxtLink>

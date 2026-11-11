@@ -1,5 +1,5 @@
 <template>
-  <aside class="flex flex-col gap-5 rounded-hero bg-tinted p-6 sm:flex-row sm:items-center sm:gap-8 sm:p-8" aria-labelledby="blog-end-cta">
+  <aside class="flex flex-col gap-5 rounded-hero bg-tinted p-6 sm:flex-row sm:items-center sm:p-8 blog-end-cta" aria-labelledby="blog-end-cta">
     <UiBaigiMascot :size="112" state="celebrating" class="shrink-0 self-center" />
     <div>
       <h2 id="blog-end-cta" class="mb-2 text-section text-fg-strong">Comece pelo que você já estudou</h2>

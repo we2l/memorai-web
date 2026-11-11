@@ -1,18 +1,18 @@
 <template>
-  <article class="grid overflow-hidden rounded-hero bg-raised shadow-1 md:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]" data-testid="blog-featured">
-    <div class="flex min-h-44 flex-col justify-center bg-soft p-6 sm:p-8 md:min-h-72" aria-hidden="true">
+  <article class="blog-featured grid overflow-hidden rounded-hero bg-raised shadow-1" data-testid="blog-featured">
+    <div class="blog-featured-cover flex flex-col justify-center bg-soft p-6 sm:p-8" aria-hidden="true">
       <template v-if="article.cover">
         <UiNumber :value="article.cover.value" size="xl" />
-        <span class="mt-3 max-w-56 text-body text-fg-muted">{{ article.cover.label }}</span>
+        <span class="blog-featured-cover-label mt-3 text-body text-fg-muted">{{ article.cover.label }}</span>
       </template>
       <span v-else class="text-page-title text-fg-muted">{{ categoryLabel(article.category) }}</span>
     </div>
-    <div class="flex flex-col gap-4 p-6 sm:p-8 lg:p-10">
+    <div class="flex flex-col gap-4 p-6 sm:p-8">
       <p class="flex flex-wrap items-center gap-2 text-label text-fg-muted">
         <span>Em destaque</span><span aria-hidden="true">·</span><BlogCategoryLabel :category="article.category" class="inline-flex" />
       </p>
       <h2 class="text-page-title text-fg-strong">
-        <NuxtLink :to="href" class="hover:underline hover:decoration-line-strong hover:underline-offset-4">{{ article.title }}</NuxtLink>
+        <NuxtLink :to="href" class="blog-title-link">{{ article.title }}</NuxtLink>
       </h2>
       <p class="text-body text-fg">{{ article.description }}</p>
       <div class="mt-auto flex flex-wrap items-center justify-between gap-4 pt-2">

@@ -4,7 +4,7 @@
     <h2 :id="titleId" class="mb-1 text-section text-fg-strong" :class="!embedded && 'sr-only'">Plano até a prova</h2>
     <p v-if="embedded" class="mb-5 text-meta text-fg-muted">Quanto revisar por dia para chegar à prova lembrando do que estudou.</p>
 
-    <div class="grid gap-4 sm:grid-cols-3">
+    <UiFieldGrid :cols="3">
       <UiInput
         id="plan-date"
         :model-value="date"
@@ -41,24 +41,25 @@
         data-testid="tool-plan-studied"
         @update:model-value="onStudied"
       />
-    </div>
+    </UiFieldGrid>
 
     <div v-if="plan" class="mt-6" aria-live="polite" data-testid="tool-plan-result">
-      <dl class="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <div>
-          <dt class="text-label text-fg-muted">Cards novos por dia</dt>
+      <!-- Each figure is a two-row subgrid: a label that wraps sits right above its number and the numbers stay in line -->
+      <dl class="grid grid-cols-2 gap-x-4 gap-y-5 sm:grid-cols-4">
+        <div class="row-span-2 grid grid-rows-subgrid gap-1">
+          <dt class="self-end text-meta text-fg-muted">Cards novos por dia</dt>
           <dd class="num-m text-fg-strong" data-testid="tool-plan-new">{{ plan.newPerDay }}</dd>
         </div>
-        <div>
-          <dt class="text-label text-fg-muted">Revisões por dia (média)</dt>
+        <div class="row-span-2 grid grid-rows-subgrid gap-1">
+          <dt class="self-end text-meta text-fg-muted">Revisões por dia (média)</dt>
           <dd class="num-m text-fg-strong" data-testid="tool-plan-reviews">{{ plan.reviewsAvg }}</dd>
         </div>
-        <div>
-          <dt class="text-label text-fg-muted">Minutos por dia (média)</dt>
+        <div class="row-span-2 grid grid-rows-subgrid gap-1">
+          <dt class="self-end text-meta text-fg-muted">Minutos por dia (média)</dt>
           <dd class="num-m text-fg-strong" data-testid="tool-plan-minutes">{{ plan.minutesAvg }}</dd>
         </div>
-        <div>
-          <dt class="text-label text-fg-muted">Lembrança no dia da prova</dt>
+        <div class="row-span-2 grid grid-rows-subgrid gap-1">
+          <dt class="self-end text-meta text-fg-muted">Lembrança no dia da prova</dt>
           <dd class="num-m text-fg-strong" data-testid="tool-plan-recall">{{ Math.round(plan.recallOnExam * 100) }}%</dd>
         </div>
       </dl>
@@ -75,7 +76,7 @@
     </div>
 
     <div v-if="!embedded" class="mt-6 flex flex-col items-start gap-2">
-      <UiButton variant="primary" :href="ctaHref" data-testid="tool-plan-cta" @click="onCta">Montar este plano no Baigi</UiButton>
+      <UiButton variant="primary" :href="ctaHref" class="w-full sm:w-auto" data-testid="tool-plan-cta" @click="onCta">Montar este plano no Baigi</UiButton>
       <p class="text-meta text-fg-muted">Comece com 6 cards prontos, sem conta. Com a conta, você marca a data da prova e o Baigi divide os lotes do dia.</p>
     </div>
   </section>

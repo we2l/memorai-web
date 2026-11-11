@@ -218,7 +218,10 @@ export const useQuizStore = defineStore('quiz', {
           this.stopTimer()
           // Auto-finish in exam mode
           if (this.currentQuiz?.mode === 'exam') {
-            this.finishQuiz().catch((e: unknown) => reportApiError(e, { silent: true }))
+            this.finishQuiz().catch(() => {
+              // intencional: the 409 of a finished quiz is handled inside; any other error leaves the quiz open
+              // with its "Finalizar" (no useApiAction here: this store is in the result's chunk, budget 19.5 KB)
+            })
           }
           return
         }

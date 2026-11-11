@@ -8,6 +8,16 @@ export function isPublicRoute(path: string): boolean {
     || PUBLIC_PREFIXES.some(p => path === p || path.startsWith(`${p}/`))
 }
 
+/**
+ * Whether the boot asks GET /me (plugins/auth.client): always with the session hint (cookie baigi_logged_in); without
+ * it, only on a private route. A path no page matches (the 404) is not private (QA 2026-11 M6): a visitor there
+ * would only get a 401 in the console.
+ */
+export function bootNeedsMe(path: string, opts: { known: boolean, hasHint: boolean }): boolean {
+  if (opts.hasHint) return true
+  return opts.known && !isPublicRoute(path)
+}
+
 /** The visitor's onboarding (prd-onboarding-v4 RF-F6): /comecar and /comecar/{area}; /comecar/pronto needs the account. */
 export function isGuestOnboardingRoute(path: string): boolean {
   const p = path.replace(/\/+$/, '') || '/'

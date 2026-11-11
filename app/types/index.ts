@@ -1014,7 +1014,7 @@ export interface CatalogCheckout {
   gateway?: string
   /** Public by design: the browser tokenizes the card with it */
   public_key?: string | null
-  seller?: { name: string | null; document: string | null; email: string | null }
+  seller?: { name: string | null; email: string | null }
   statement_descriptor?: string
   refund_window_days?: number
 }

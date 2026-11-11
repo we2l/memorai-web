@@ -111,9 +111,7 @@ export function remainingLabel(expiresAt: string | null | undefined, now: number
   return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`
 }
 
-/** "123.***.***-09": the seller's CPF as the Termos and the checkout show it (Decreto 7.962 asks for the number). */
+/** The seller's name as the checkout shows it: name only, never a document (the owner's CPF is not published). */
 export function sellerLine(catalog: PlanCatalog | null | undefined): string {
-  const seller = catalog?.checkout?.seller
-  if (!seller?.name) return ''
-  return seller.document ? `${seller.name}, CPF ${seller.document}` : seller.name
+  return catalog?.checkout?.seller?.name || ''
 }

@@ -1,4 +1,4 @@
-import { test, expect, gotoApp } from './support/fixtures'
+import { test, expect, gotoApp, isApiUrl } from './support/fixtures'
 import type { Page } from '@playwright/test'
 
 /**
@@ -13,7 +13,7 @@ const KEEP = /\/api\/(me|subscription|usage|settings|plans)(\?|$)/
 
 async function breakApi(page: Page, mode: 'http500' | 'offline') {
   const state = { broken: true, hits: 0 }
-  await page.route(url => url.pathname.startsWith('/api/') && url.port === '8037', async (route) => {
+  await page.route(isApiUrl, async (route) => {
     const req = route.request()
     if (!state.broken || req.method() !== 'GET' || KEEP.test(req.url())) return route.fallback()
     state.hits++

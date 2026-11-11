@@ -1,42 +1,48 @@
 <template>
-  <div class="border border-line-strong rounded-control overflow-hidden bg-soft">
-    <div v-if="editor" class="flex items-center gap-0.5 px-2 py-1.5 border-b border-line-strong">
-      <button
-        v-for="btn in toolbar"
-        :key="btn.label"
-        type="button"
-        class="rounded-tag p-1 text-meta transition-colors"
-        :class="btn.active() ? 'bg-action-subtle text-action-fg' : 'text-fg-muted hover:bg-line'"
-        :title="btn.label"
-        @click="btn.action"
-       :aria-label="btn.label">
-        <component :is="btn.icon" :size="14" />
-      </button>
+  <div class="flex flex-col gap-1.5">
+    <span v-if="label" :id="labelId" class="text-meta font-semibold text-fg-strong" :class="hideLabel && 'sr-only'" @click="editor?.commands.focus()">{{ label }}</span>
+    <div class="rich-input-box overflow-hidden rounded-control border border-line-input bg-raised transition-colors duration-fast">
+      <div v-if="editor" class="flex flex-wrap items-center gap-0.5 border-b border-hairline px-1.5 py-1">
+        <button
+          v-for="btn in toolbar"
+          :key="btn.label"
+          type="button"
+          class="inline-flex size-8 items-center justify-center rounded-row transition-colors duration-fast"
+          :class="btn.active() ? 'bg-action-subtle text-action-fg' : 'text-fg-muted hover:bg-soft hover:text-fg-strong'"
+          :title="btn.label"
+          :aria-label="btn.label"
+          :aria-pressed="btn.toggle ? (btn.active() ? 'true' : 'false') : undefined"
+          @click="btn.action"
+        >
+          <component :is="btn.icon" class="size-4" aria-hidden="true" />
+        </button>
 
-      <div class="w-px h-4 bg-line mx-1" />
+        <span class="mx-1 h-4 w-px bg-line" aria-hidden="true" />
 
-      <!-- Mic -->
-      <button
-        type="button"
-        class="rounded-tag p-1 text-meta transition-colors"
-        :class="recording ? 'bg-danger/15 text-danger' : 'text-fg-muted hover:bg-line'"
-        :title="recording ? 'Parar gravação' : 'Gravar áudio'"
-        @click="toggleRecording"
-       :aria-label="recording ? 'Parar gravação' : 'Gravar áudio'">
-        <Mic :size="14" aria-hidden="true" />
-      </button>
-      <span v-if="recording" class="text-label text-danger animate-pulse ml-1">● {{ recordingTime }}s</span>
-    </div>
+        <!-- Mic -->
+        <button
+          type="button"
+          class="inline-flex size-8 items-center justify-center rounded-row transition-colors duration-fast"
+          :class="recording ? 'bg-danger-subtle text-danger' : 'text-fg-muted hover:bg-soft hover:text-fg-strong'"
+          :title="recording ? 'Parar gravação' : 'Gravar áudio'"
+          :aria-label="recording ? 'Parar gravação' : 'Gravar áudio'"
+          @click="toggleRecording"
+        >
+          <Mic class="size-4" aria-hidden="true" />
+        </button>
+        <span v-if="recording" class="ml-1 animate-pulse text-label text-danger">● {{ recordingTime }}s</span>
+      </div>
 
-    <EditorContent
-      :editor="editor"
-      class="rich-input overflow-y-auto px-3 py-2 text-body text-fg-strong"
-      :style="{ minHeight: minHeight + 'px', maxHeight: maxHeight + 'px' }"
-    />
+      <EditorContent
+        :editor="editor"
+        class="rich-input overflow-y-auto px-3 py-2.5 text-body text-fg-strong"
+        :style="{ minHeight: minHeight + 'px', maxHeight: maxHeight + 'px' }"
+      />
 
-    <!-- Audio preview -->
-    <div v-if="localAudioUrl" class="px-3 py-2 border-t border-line-strong">
-      <UiAudioPlayer :src="localAudioUrl" removable @remove="removeAudio" />
+      <!-- Audio preview -->
+      <div v-if="localAudioUrl" class="border-t border-hairline px-3 py-2">
+        <UiAudioPlayer :src="localAudioUrl" removable @remove="removeAudio" />
+      </div>
     </div>
   </div>
 </template>
@@ -55,6 +61,9 @@ const props = withDefaults(defineProps<{
   maxHeight?: number
   enableImage?: boolean
   enableCloze?: boolean
+  /** Visible label of the field, also the accessible name of the editor (the UiField look) */
+  label?: string
+  hideLabel?: boolean
 }>(), {
   modelValue: '',
   audioBlob: null,
@@ -64,7 +73,10 @@ const props = withDefaults(defineProps<{
   maxHeight: 200,
   enableImage: true,
   enableCloze: false,
+  label: undefined,
 })
+
+const labelId = useId()
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: string): void
@@ -94,6 +106,14 @@ const editor = useEditor({
   ],
   onUpdate: ({ editor }) => {
     emit('update:modelValue', toStorageContent(editor.getHTML()))
+  },
+  // The editable area is a multi-line text box named by the label (a contenteditable takes no <label for>)
+  editorProps: {
+    attributes: {
+      'role': 'textbox',
+      'aria-multiline': 'true',
+      ...(props.label ? { 'aria-labelledby': labelId } : {}),
+    },
   },
   onFocus: () => {
     emit('focus')
@@ -126,17 +146,17 @@ const toolbar = computed(() => {
   if (!editor.value) return []
   const e = editor.value
   const items = [
-    { label: 'Negrito', icon: Bold, active: () => e.isActive('bold'), action: () => e.chain().focus().toggleBold().run() },
-    { label: 'Itálico', icon: Italic, active: () => e.isActive('italic'), action: () => e.chain().focus().toggleItalic().run() },
-    { label: 'Sublinhado', icon: UnderlineIcon, active: () => e.isActive('underline'), action: () => e.chain().focus().toggleUnderline().run() },
-    { label: 'Lista', icon: List, active: () => e.isActive('bulletList'), action: () => e.chain().focus().toggleBulletList().run() },
-    { label: 'Lista numerada', icon: ListOrdered, active: () => e.isActive('orderedList'), action: () => e.chain().focus().toggleOrderedList().run() },
+    { label: 'Negrito', icon: Bold, toggle: true, active: () => e.isActive('bold'), action: () => e.chain().focus().toggleBold().run() },
+    { label: 'Itálico', icon: Italic, toggle: true, active: () => e.isActive('italic'), action: () => e.chain().focus().toggleItalic().run() },
+    { label: 'Sublinhado', icon: UnderlineIcon, toggle: true, active: () => e.isActive('underline'), action: () => e.chain().focus().toggleUnderline().run() },
+    { label: 'Lista', icon: List, toggle: true, active: () => e.isActive('bulletList'), action: () => e.chain().focus().toggleBulletList().run() },
+    { label: 'Lista numerada', icon: ListOrdered, toggle: true, active: () => e.isActive('orderedList'), action: () => e.chain().focus().toggleOrderedList().run() },
   ]
   if (props.enableImage) {
-    items.push({ label: 'Imagem', icon: ImagePlus, active: () => false, action: () => triggerImageUpload() })
+    items.push({ label: 'Imagem', icon: ImagePlus, toggle: false, active: () => false, action: () => triggerImageUpload() })
   }
   if (props.enableCloze) {
-    items.push({ label: 'Lacuna (Ctrl+Shift+C)', icon: Brackets, active: () => e.isActive('clozeMarker'), action: (event: MouseEvent) => insertCloze(event) })
+    items.push({ label: 'Lacuna (Ctrl+Shift+C)', icon: Brackets, toggle: true, active: () => e.isActive('clozeMarker'), action: (event: MouseEvent) => insertCloze(event) })
   }
   return items
 })
@@ -260,6 +280,12 @@ onBeforeUnmount(() => {
 <style>
 .rich-input .tiptap {
   outline: none;
+}
+/* The ring of UiInput around the whole box while the text is being edited (the toolbar buttons keep their own) */
+.rich-input-box:has(.tiptap:focus) {
+  border-color: var(--focus-ring);
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
 }
 .rich-input .tiptap p {
   margin: 0.25em 0;

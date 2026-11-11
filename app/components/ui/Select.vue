@@ -12,7 +12,7 @@
         :class="[
           field.invalid ? 'border-danger' : 'border-line-input focus:border-focus',
           disabled ? 'bg-soft opacity-60' : 'bg-raised',
-          modelValue ? 'text-fg-strong' : 'text-fg-muted',
+          modelValue || hasEmptyOption ? 'text-fg-strong' : 'text-fg-muted',
         ]"
         @change="emit('update:modelValue', ($event.target as HTMLSelectElement).value)"
       >
@@ -30,7 +30,8 @@
 // Select (raio-X §D, rewritten): native <select>. Keyboard, screen readers and the phone picker come
 // from the browser, and the list never fights a Modal for the z-index (the old one was z-50 inside z-50).
 // Same API as before (modelValue, options, placeholder, disabled, id for an outside <label for>) plus
-// label/hint/error. Listeners stay on the root: a disabled <select> gets no click, its parent does.
+// label/hint/error. Only the placeholder is muted: an option whose value is '' ("Todos os cadernos") is a real
+// choice and reads like any other. Listeners stay on the root: a disabled <select> gets no click, its parent does.
 import { ChevronDown } from 'lucide-vue-next'
 
 defineOptions({ inheritAttrs: false })

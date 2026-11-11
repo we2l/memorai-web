@@ -41,6 +41,27 @@
     touch-action: manipulation;
   }
 
+  /* Campo numérico sem as setinhas do navegador (as setas do teclado seguem valendo) */
+  input[type='number'] {
+    appearance: textfield;
+  }
+
+  input[type='number']::-webkit-inner-spin-button,
+  input[type='number']::-webkit-outer-spin-button {
+    appearance: none;
+    margin: 0;
+  }
+
+  /* Data e hora: o ícone do calendário no tom dos ícones dos outros campos; no iOS o valor fica à esquerda */
+  input::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: 0.6;
+  }
+
+  input::-webkit-date-and-time-value {
+    text-align: left;
+  }
+
   /* Outline, não box-shadow: btn-* e shadow-* usam box-shadow e esconderiam o anel */
   :focus-visible {
     outline: 2px solid var(--focus-ring);

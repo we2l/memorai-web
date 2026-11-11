@@ -199,10 +199,10 @@ async function confirmDelete() {
 const { run: runDownload } = useApiAction()
 async function download(p: Podcast) {
   const { $api } = useNuxtApp()
-  const res = await runDownload(() => $api<{ url: string }>(`/podcasts/${p.id}/download`), { error: 'Não foi possível baixar o áudio.' })
+  const res = await runDownload(() => $api<{ data: { url: string } }>(`/podcasts/${p.id}/download`), { error: 'Não foi possível baixar o áudio.' })
   if (!res) return
   const a = document.createElement('a')
-  a.href = res.url
+  a.href = res.data.url
   a.download = `${p.title || 'podcast'}.mp3`
   a.click()
 }

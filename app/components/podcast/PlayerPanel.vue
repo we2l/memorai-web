@@ -145,9 +145,9 @@ async function download() {
   downloading.value = true
   try {
     const { $api } = useNuxtApp()
-    const { url } = await $api<{ url: string }>(`/podcasts/${p.id}/download`)
+    const res = await $api<{ data: { url: string } }>(`/podcasts/${p.id}/download`)
     const a = document.createElement('a')
-    a.href = url
+    a.href = res.data.url
     a.download = `${p.title || 'podcast'}.mp3`
     a.click()
   } catch (e) {

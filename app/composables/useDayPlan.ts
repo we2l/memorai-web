@@ -43,6 +43,12 @@ export interface DayPlanInput {
   recentNote: RecentNote | null
   /** /me.default_learning_mode: `language` hides Questões (D11) */
   learningMode?: string | null
+  /**
+   * The review of the day lives in the goal block (A2, prd-visual-a2 RF-2.4): drop the Revisar step when there is
+   * something due today, and then no step carries the primary (the goal block does). The "Recuperar o atraso" step
+   * (nothing due, only the backlog) stays, since the goal block does not offer it.
+   */
+  withoutReview?: boolean
   now?: Date
 }
 
@@ -192,11 +198,33 @@ function materialStep(input: DayPlanInput, now: Date): DayPlanStep | null {
 
 export function buildDayPlan(input: DayPlanInput): DayPlanStep[] {
   const now = input.now ?? new Date()
-  const steps = [reviewStep(input), quizStep(input), listenStep(input, now), materialStep(input, now)]
+  const dueToday = (input.stats?.due_today ?? 0) > 0
+  const review = input.withoutReview && dueToday ? null : reviewStep(input)
+  const steps = [review, quizStep(input), listenStep(input, now), materialStep(input, now)]
     .filter((s): s is DayPlanStep => s !== null)
     .slice(0, 4)
-  if (steps[0]) steps[0].primary = true
+  if (steps[0] && !(input.withoutReview && dueToday)) steps[0].primary = true
   return steps
+}
+
+/**
+ * The subjects with cards for today (A2, prd-visual-a2 RF-2.2): "45 cards de Direito Constitucional, Língua
+ * Portuguesa e mais 2". The session of the day has no per-subject split in the API, so it reads /topics/progress:
+ * each caderno with a session gives its subjects with a session (or itself when it has none), most cards first.
+ */
+export function daySubjects(progress: TopicProgress[]): string[] {
+  const live = progress.filter(t => (t.session_count ?? 0) > 0)
+  const picked = live.filter(t => !t.parent_id).flatMap((root) => {
+    const children = live.filter(t => t.parent_id === root.id)
+    return children.length ? children : [root]
+  })
+  return picked.sort((a, b) => (b.session_count ?? 0) - (a.session_count ?? 0)).map(t => t.name)
+}
+
+/** "Direito Constitucional e Língua Portuguesa", "A, B e mais 3"; empty without subjects. */
+export function subjectsText(names: string[], max = 2): string {
+  if (names.length <= max) return names.length === 2 ? `${names[0]} e ${names[1]}` : names[0] ?? ''
+  return `${names.slice(0, max).join(', ')} e mais ${names.length - max}`
 }
 
 /** Minutes of the greeting sentence: review + 10 for Questões + the episode (§5.1). */

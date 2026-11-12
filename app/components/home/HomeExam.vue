@@ -19,8 +19,9 @@
       </p>
 
       <ul v-if="subjects.length" class="mt-4 flex flex-col gap-2.5" aria-label="Domínio por matéria">
-        <li v-for="s in subjects" :key="s.id" class="grid grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_auto] items-center gap-3 text-meta">
-          <span class="truncate text-fg">{{ s.name }}</span>
+        <li v-for="s in subjects" :key="s.id" class="grid grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_auto] items-center gap-3 text-meta">
+          <!-- The whole name, wrapping to 2 lines on the phone (never "Direito Constitu…", A2 §3.2.6 rule 8) -->
+          <span class="break-words text-fg">{{ s.name }}</span>
           <span class="h-1.5 overflow-hidden rounded-full bg-raised" role="progressbar" :aria-label="`Domínio de ${s.name}`" aria-valuemin="0" aria-valuemax="100" :aria-valuenow="s.mastery">
             <span class="block h-full rounded-full" :class="SUBJECT_BG[s.tone - 1]" :style="{ width: `${s.mastery}%` }" />
           </span>

@@ -14,7 +14,7 @@ test.describe('Dashboard (/hoje)', () => {
   })
 
   test('exibe CTA de revisão ou estado vazio', async ({ page }) => {
-    const cta = page.getByTestId('plan-step-review').getByRole('link', { name: 'Começar' })
+    const cta = page.getByTestId('home-goal-start')
     const empty = page.getByText(/Tudo em dia|Que bom ter você aqui/i).first()
     await expect(cta.or(empty)).toBeVisible()
   })

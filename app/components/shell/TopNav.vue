@@ -2,7 +2,7 @@
   <header class="topnav sticky top-0 z-nav hidden h-topnav md:block">
     <div class="mx-auto flex h-full max-w-page items-center gap-4 px-gutter lg:gap-6">
       <NuxtLink to="/hoje" class="hit-touch flex shrink-0 items-center rounded-row" aria-label="Baigi, ir para Hoje">
-        <UiLogo :icon-size="28" text-class="hidden text-section text-fg-strong lg:inline" />
+        <UiLogo :icon-size="28" text-class="hidden text-section text-action-fg lg:inline" />
       </NuxtLink>
 
       <nav aria-label="Navegação principal" data-tour="nav-places" class="min-w-0 flex-1">

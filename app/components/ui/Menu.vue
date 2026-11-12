@@ -10,7 +10,7 @@
       data-menu-panel
     >
       <slot name="header" />
-      <div :id="menuId" ref="menu" role="menu" :aria-labelledby="triggerId" @keydown="onMenuKeydown">
+      <div :id="menuId" ref="menu" role="menu" tabindex="-1" class="outline-none" :aria-labelledby="triggerId" @keydown="onMenuKeydown">
         <template v-for="(entry, e) in entries" :key="e">
           <div v-if="entry.separator" role="separator" class="mx-1 my-1 h-px bg-line" />
           <div v-if="entry.group" role="group" :aria-labelledby="`${menuId}-g${e}`">
@@ -101,10 +101,12 @@ function focusItem(index: number | 'last') {
   list[i]!.focus()
 }
 
-async function show(focus: number | 'last' = 0) {
+/** `null` (opened by pointer): focus the menu itself, so no item shows the keyboard ring; arrows still move. */
+async function show(focus: number | 'last' | null = 0) {
   open.value = true
   await nextTick()
-  focusItem(focus)
+  if (focus === null) menu.value?.focus()
+  else focusItem(focus)
 }
 
 function hide(returnFocus = true) {
@@ -115,7 +117,7 @@ function hide(returnFocus = true) {
 
 function toggle() {
   if (open.value) hide()
-  else show()
+  else show(null)
 }
 
 function onTriggerKeydown(e: KeyboardEvent) {

@@ -14,8 +14,9 @@
     @click="emit('choose', item, $event)"
   >
     <component :is="item.icon" v-if="item.icon" class="size-4.5 shrink-0" :class="item.tone === 'danger' ? '' : 'text-fg-muted'" aria-hidden="true" />
-    <span class="min-w-0 flex-1 break-words">{{ item.label }}</span>
-    <span v-if="item.meta" class="shrink-0 text-meta text-fg-muted">{{ item.meta }}</span>
+    <span class="min-w-32 flex-1 break-words">{{ item.label }}</span>
+    <!-- A long meta wraps on its own side; the label never shrinks to one letter per line -->
+    <span v-if="item.meta" class="min-w-0 max-w-1/2 py-1 text-right text-meta text-fg-muted">{{ item.meta }}</span>
     <Check v-if="radio && item.checked" class="size-4.5 shrink-0 text-action-fg" aria-hidden="true" />
   </component>
 </template>

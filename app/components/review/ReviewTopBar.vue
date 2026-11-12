@@ -6,7 +6,7 @@
       </UiLink>
       <!-- First review of the onboarding: the logo and the step, no scope (prd-4g RF-F5) -->
       <div v-if="onboarding" class="flex min-w-0 flex-1 items-center gap-3" data-testid="review-onboarding">
-        <UiLogo :icon-size="24" text-class="text-body text-fg-strong max-sm:hidden" />
+        <UiLogo :icon-size="24" text-class="text-body text-action-fg max-sm:hidden" />
         <span class="text-meta whitespace-nowrap text-fg-muted" data-testid="review-step">{{ stepLabel }}</span>
       </div>
       <p v-else-if="scopeText" class="order-last w-full truncate text-label text-fg-muted sm:order-none sm:w-auto sm:min-w-0 sm:flex-1 sm:text-meta" data-testid="review-scope">

@@ -38,7 +38,7 @@
     "/revisar": {
       "file": "pages/revisar.vue",
       "gzKb": 16.6,
-      "closureGzKb": 57
+      "closureGzKb": 57.2
     },
     "/praticar": {
       "file": "pages/praticar.vue",

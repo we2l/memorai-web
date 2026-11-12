@@ -59,7 +59,7 @@ O que isso muda no estudo:
 
 - **Leia o artigo com o detalhe em mente.** Prazo, número, "salvo", "somente", "totalmente". É ali que a banca mexe.
 - **Faça cards do detalhe, não do artigo inteiro.** Uma pergunta por informação.
-- **Erro em questão vira card no mesmo dia.** A troca que te pegou uma vez tende a pegar de novo.
+- **Erro em questão vira card no mesmo dia.** A troca que te pegou uma vez tende a pegar de novo. O passo a passo está no guia do [caderno de erros digital](/blog/caderno-de-erros-digital).
 
 ## Como transformar um artigo da lista em cards?
 

@@ -105,7 +105,7 @@ test.describe('blog e ferramentas', () => {
   test('telas para conferência visual', async ({ page }) => {
     test.skip(!SHOTS, 'BLOG_SHOTS=pasta para gravar')
     test.setTimeout(120_000)
-    for (const path of ['/blog', '/blog/sobre', '/blog/tj-sp-escrevente-lei-seca-vunesp', '/blog/curva-do-esquecimento', '/blog/como-revisar-lei-seca-inss', '/blog/alternativa-ao-anki', '/ferramentas/calculadora-do-esquecimento', '/ferramentas/plano-ate-a-prova', '/quem-faz']) {
+    for (const path of ['/blog', '/blog/sobre', '/blog/caderno-de-erros-digital', '/blog/tj-sp-escrevente-lei-seca-vunesp', '/blog/curva-do-esquecimento', '/blog/como-revisar-lei-seca-inss', '/blog/alternativa-ao-anki', '/ferramentas/calculadora-do-esquecimento', '/ferramentas/plano-ate-a-prova', '/quem-faz']) {
       for (const width of [390, 768, 1024, 1280, 1440]) {
         for (const theme of ['light', 'dark']) {
           await page.setViewportSize({ width, height: 900 })

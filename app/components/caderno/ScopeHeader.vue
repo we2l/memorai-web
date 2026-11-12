@@ -21,20 +21,28 @@
     <div class="mt-2 flex items-start gap-3">
       <UiSubjectMark v-if="!isRoot" :color="markColor" :index="markIndex" size="lg" class="mt-2.5 lg:mt-3" />
       <h1 class="min-w-0 flex-1 text-page-title break-words text-fg-strong">{{ summary.topic.name }}</h1>
-      <UiTag v-if="summary.topic.is_sample" class="mt-1.5" data-testid="sample-tag">Exemplo</UiTag>
-      <UiMenu :items="moreItems" :label="`Mais ações de ${summary.topic.name}`" />
+      <!-- One line of the title tall (h-lh in its font): the tag and the ⋯ sit on the middle of the FIRST line (A2 RF-3.1) -->
+      <div class="flex h-lh shrink-0 items-center gap-2 text-page-title">
+        <UiTag v-if="summary.topic.is_sample" data-testid="sample-tag">Exemplo</UiTag>
+        <UiMenu :items="moreItems" :label="`Mais ações de ${summary.topic.name}`" />
+      </div>
     </div>
 
-    <p v-if="contextLine" class="mt-1 text-meta text-fg-muted" data-testid="scope-context">{{ contextLine }}</p>
-    <p v-if="empty" class="mt-1 text-body text-fg-muted">Comece adicionando o que você vai estudar.</p>
+    <ul v-if="chips.length" class="mt-4 flex flex-wrap gap-2" aria-label="Sobre este escopo" data-testid="scope-context">
+      <li v-for="chip in chips" :key="chip.key">
+        <UiTag tone="raised" size="lg" :icon="chip.icon">{{ chip.label }}</UiTag>
+      </li>
+    </ul>
+    <p v-if="empty" class="mt-2 text-body text-fg-muted">Comece adicionando o que você vai estudar.</p>
   </header>
 </template>
 
 <script setup lang="ts">
 // Header of the scope (prd-4b-caderno-v3 RF-F3; E2 RF-4.2): path with the caderno switch, the title (with the dot of
 // its color below a caderno), the context line (exam, pace, mode, cards) and the ⋯. The numbers and the actions live
-// in CadernoScopeStats, the side of the hub.
-import { ChevronDown, ChevronRight } from 'lucide-vue-next'
+// in CadernoScopeStats, the side of the hub. A2 (RF-3.1): the facts as chips and the ⋯ on the first line of the title.
+import type { Component } from 'vue'
+import { CalendarDays, ChevronDown, ChevronRight, FileText, GraduationCap, Layers, ListTree } from 'lucide-vue-next'
 import type { MenuItem } from '~/components/ui/Menu.vue'
 import type { ScopeSummary } from '~/types'
 import { learningModeLabel } from '~/utils/learningModes'
@@ -63,24 +71,24 @@ const hasCards = computed(() => props.summary.counts.cards > 0)
 const empty = computed(() => !hasCards.value && props.summary.counts.materials === 0)
 const mode = computed(() => props.summary.topic.learning_mode)
 
-const contextLine = computed(() => {
-  const parts: string[] = []
+/**
+ * The facts of the scope as chips (A2 RF-3.1): the exam (the hub has no other exam block: one object, one place), cards,
+ * materials, the assuntos of a matéria and the mode of a caderno. The readiness and the pace live in /progresso.
+ */
+const chips = computed(() => {
+  const out: { key: string; label: string; icon: Component }[] = []
   const exam = props.summary.exam
   if (exam) {
-    parts.push(exam.days_remaining === 0 ? 'Prova hoje' : `Prova em ${exam.days_remaining} ${exam.days_remaining === 1 ? 'dia' : 'dias'}`)
-    if (exam.cards_per_day) parts.push(`${exam.cards_per_day} ${exam.cards_per_day === 1 ? 'card' : 'cards'} por dia`)
-    // The readiness for the exam (prd-prontidao-prova; was the projection of prd-4f-progresso-v3 RF-F10)
-    if (exam.readiness?.score != null) parts.push(`prontidão ${exam.readiness.score} de 100`)
+    const days = exam.days_remaining
+    out.push({ key: 'exam', label: days === 0 ? 'Prova hoje' : `Prova em ${fmt(days)} ${days === 1 ? 'dia' : 'dias'}`, icon: CalendarDays })
   }
+  const { cards, materials, subjects } = props.summary.counts
+  if (cards) out.push({ key: 'cards', label: `${fmt(cards)} ${cards === 1 ? 'card' : 'cards'}`, icon: Layers })
+  if (materials) out.push({ key: 'materials', label: `${fmt(materials)} ${materials === 1 ? 'material' : 'materiais'}`, icon: FileText })
+  if (!isRoot.value && subjects) out.push({ key: 'subjects', label: `${fmt(subjects)} ${subjects === 1 ? 'assunto' : 'assuntos'}`, icon: ListTree })
   const label = learningModeLabel(mode.value)
-  if (label && isRoot.value) parts.push(label)
-  if (hasCards.value) parts.push(`${fmt(props.summary.counts.cards)} ${props.summary.counts.cards === 1 ? 'card' : 'cards'}`)
-  if (!isRoot.value) {
-    const { subjects, materials } = props.summary.counts
-    if (subjects) parts.push(`${subjects} ${subjects === 1 ? 'assunto' : 'assuntos'}`)
-    if (materials) parts.push(`${materials} ${materials === 1 ? 'material' : 'materiais'}`)
-  }
-  return parts.join(' · ')
+  if (label && isRoot.value) out.push({ key: 'mode', label, icon: GraduationCap })
+  return out
 })
 
 const moreItems = computed<MenuItem[]>(() => {

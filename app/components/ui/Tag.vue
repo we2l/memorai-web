@@ -13,7 +13,7 @@
 // review. Practice tones (quiz, listen) stay neutral with a small colored dot (ADR-035 §1, color only small).
 import type { Component } from 'vue'
 
-export type TagTone = 'neutral' | 'action' | 'brand' | 'streak' | 'goal' | 'success' | 'warning' | 'danger' | 'info' | 'quiz' | 'listen'
+export type TagTone = 'neutral' | 'raised' | 'action' | 'brand' | 'streak' | 'goal' | 'success' | 'warning' | 'danger' | 'info' | 'quiz' | 'listen'
 
 withDefaults(defineProps<{ tone?: TagTone; icon?: Component; size?: 'sm' | 'md' | 'lg' }>(), { tone: 'neutral', icon: undefined, size: 'md' })
 
@@ -22,6 +22,8 @@ const SIZES = { sm: 'min-h-6 px-2 text-label', md: 'min-h-7 px-2.75 text-label',
 
 const TONES: Record<TagTone, string> = {
   neutral: 'bg-soft text-fg-muted',
+  // A2 (ADR-037): a chip of facts on the tinted page (the hub header: exam, cards, materials, mode)
+  raised: 'bg-raised text-fg shadow-1',
   action: 'bg-action-subtle text-action-fg',
   brand: 'bg-action-subtle text-action-fg',
   streak: 'bg-metric-streak-bg text-metric-streak-fg',
@@ -33,5 +35,5 @@ const TONES: Record<TagTone, string> = {
   quiz: 'bg-soft text-fg',
   listen: 'bg-soft text-fg',
 }
-const ICON_TONES: Partial<Record<TagTone, string>> = { streak: 'text-metric-streak fill-metric-streak', goal: 'text-metric-goal' }
+const ICON_TONES: Partial<Record<TagTone, string>> = { raised: 'text-fg-muted', streak: 'text-metric-streak fill-metric-streak', goal: 'text-metric-goal' }
 </script>

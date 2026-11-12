@@ -50,17 +50,35 @@ function summary(over: Partial<ScopeSummary> = {}, topic: Partial<ScopeSummary['
 const primaries = (el: Element) => el.querySelectorAll('.bg-action.text-on-action').length
 
 describe('CadernoScopeHeader (prd-4b-caderno-v3 RF-F3)', () => {
-  it('um número de sessão: "Revisar hoje · 45" é o único primário; domínio e acerto são contexto', async () => {
+  it('um número de sessão: "Revisar hoje · 45 cards" é o único primário; domínio e acerto são contexto', async () => {
     const w = await mountSuspended(ScopeStats, { props: { summary: summary() } })
-    expect(w.get('[data-testid="scope-review"]').text()).toBe('Revisar hoje · 45')
+    expect(w.get('[data-testid="scope-review"]').text()).toBe('Revisar hoje · 45 cards')
     expect(w.get('[data-testid="scope-review"]').attributes('href')).toBe('/revisar?topic_id=root')
     expect(primaries(w.element)).toBe(1)
-    expect(w.text()).toContain('41%')
-    expect(w.text()).toContain('domínio · 902 de 2.200 em dia')
-    expect(w.text()).toContain('acerto em 120 questões')
+    // The block's number is the button's (session.count), with the batches of 20 and ~15 s a card
+    const today = w.get('[data-testid="scope-today"]')
+    expect(today.get('.num-l').text()).toBe('45')
+    expect(today.text()).toContain('cards · 3 lotes · 11\u00A0min')
+    expect(w.get('[data-testid="scope-stats"]').classes()).toContain('shadow-2')
+    const mastery = w.get('[data-testid="scope-mastery"]').text()
+    expect(mastery).toContain('41%')
+    expect(mastery).toContain('902 de 2.200 em dia')
+    expect(mastery).toContain('em 120 questões')
     expect(w.get('[data-testid="scope-overdue"]').text()).toContain('893 atrasados')
+  })
+
+  it('cabeçalho A2: os fatos em chips (prova, cards, materiais, modo) e nenhum outro bloco da prova', async () => {
     const head = await mountSuspended(ScopeHeader, { props: { summary: summary(), roots: [{ id: 'root', name: 'TRF 4ª Região' }, { id: 'b', name: 'Inglês' }] } })
-    expect(head.get('[data-testid="scope-context"]').text()).toMatch(/^Prova em 45 dias · 60 cards por dia · Concurso ou OAB · [\d.]+ cards$/)
+    expect(head.findAll('[data-testid="scope-context"] li').map(li => li.text())).toEqual(['Prova em 45 dias', '2.200 cards', '14 materiais', 'Concurso ou OAB'])
+    expect(head.findAll('[data-testid="scope-context"] svg')).toHaveLength(4)
+    const subj = summary({ path: [{ id: 'root', name: 'TRF 4ª Região' }], exam: null }, { id: 'm1', name: 'Constitucional', depth: 1, parent_id: 'root', color: null })
+    const sub = await mountSuspended(ScopeHeader, { props: { summary: subj, roots: [] } })
+    expect(sub.findAll('[data-testid="scope-context"] li').map(li => li.text())).toEqual(['2.200 cards', '14 materiais', '2 assuntos'])
+  })
+
+  it('acerto sem 10 questões: o que falta, no lugar do número', async () => {
+    const w = await mountSuspended(ScopeStats, { props: { summary: summary({ questions: { answered: 4, correct: 2, accuracy: null } }) } })
+    expect(w.get('[data-testid="scope-accuracy-empty"]').text()).toBe('4 de 10 questões')
   })
 
   it('modo concurso: Questões no cabeçalho, ao lado de Revisar; outro modo: só Ouvir', async () => {
@@ -133,6 +151,10 @@ describe('CadernoSubjectTable (RF-F5)', () => {
     expect(rows.map(r => r.attributes('href'))).toEqual(['/cadernos/Portugu%C3%AAs', '/cadernos/Constitucional'])
     expect(rows[1]!.attributes('aria-label')).toBe('Constitucional, ponto fraco, domínio 48%, acerto em questões 58%, 5 para hoje')
     expect(rows[0]!.attributes('aria-label')).toContain('acerto em questões: faça 10 questões')
+    // The hint sits in the accuracy column (the bar's place), "Hoje" in Inter, never the Fraunces
+    expect(rows[0]!.findAll(':scope > span')[3]!.text()).toBe('faça 10 questões')
+    expect(rows[0]!.findAll(':scope > span')[4]!.text()).toBe('5')
+    expect(w.find('.num-s, .num-m').exists()).toBe(false)
     expect(w.text()).toContain('ponto fraco')
     expect(w.get('h2').text()).toBe('Matérias')
     expect(w.get('[data-testid="scope-add-subject"]').text()).toBe('Matéria')
@@ -232,6 +254,9 @@ describe('CadernoPracticeRow (RF-F7)', () => {
     expect(w.text()).toContain('Simulado cronometrado')
     expect(w.text()).toContain('Revise 5 cards para liberar · faltam 3')
     expect(w.text()).toContain('Todos os cards (2.200)')
+    // Four equal tiles; none comes with the purple of the action
+    expect(links.every(a => a.classes().includes('bg-raised') && a.classes().includes('shadow-1'))).toBe(true)
+    expect(w.find('.ring-action, .border-action').exists()).toBe(false)
     expect(await axeViolations(w.element)).toEqual([])
     document.documentElement.classList.add('dark')
     expect(await axeViolations(w.element)).toEqual([])

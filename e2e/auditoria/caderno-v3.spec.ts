@@ -43,12 +43,12 @@ test.describe('Um número de sessão (seed pesado)', () => {
 
     await gotoApp(page, `/cadernos/${heavy.id}`)
     const cta = page.getByTestId('scope-review')
-    const hub = num(await cta.innerText(), /· (\d+)/)
+    const hub = num(await cta.innerText(), /· ([\d.]+)/)
 
     const phone = await ctx.newPage()
     await phone.setViewportSize({ width: 390, height: 844 })
     await gotoApp(phone, `/cadernos/${heavy.id}`)
-    const bar = num(await phone.getByTestId('scope-review-bar').innerText(), /· (\d+)/)
+    const bar = num(await phone.getByTestId('scope-review-bar').innerText(), /· ([\d.]+)/)
     await expect(phone.getByTestId('scope-review')).toBeHidden()
 
     const session = page.waitForResponse(r => r.url().includes('/api/review/session?'))
@@ -88,7 +88,7 @@ test.describe('Um número de sessão (seed pesado)', () => {
     await expect(page.getByTestId('scope-subjects').getByRole('heading', { name: 'Assuntos' })).toBeVisible()
     const subTotal = num(await page.getByTestId('scope-materials').getByRole('heading').innerText(), /\((\d+)\)/)
     expect(subTotal).toBeLessThan(rootTotal)
-    expect(num(await page.getByTestId('scope-review').innerText(), /· (\d+)/)).toBe(today)
+    expect(num(await page.getByTestId('scope-review').innerText(), /· ([\d.]+)/)).toBe(today)
     await expect(page.getByTestId('scope-stats')).toContainText(`já inclui estes ${today}`)
     await ctx.close()
   })

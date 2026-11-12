@@ -31,7 +31,7 @@
           :key="s.value"
           type="button"
           class="min-h-9.5 rounded-chip px-3.5 text-meta font-semibold transition-colors duration-fast"
-          :class="filters.state.includes(s.value) ? 'bg-action-subtle text-action-fg ring-1 ring-inset ring-action' : 'bg-soft text-fg hover:bg-sunk'"
+          :class="filters.state.includes(s.value) ? 'bg-action-subtle text-action-fg ring-1 ring-inset ring-action' : 'bg-soft text-fg hover:bg-hover'"
           :aria-pressed="filters.state.includes(s.value) ? 'true' : 'false'"
           :data-testid="`card-state-${s.value}`"
           @click="toggleState(s.value)"

@@ -29,9 +29,9 @@ describe('UiButton', () => {
 
   it.each([
     ['primary', ['bg-action', 'text-on-action', 'shadow-action', 'hover:bg-action-hover', 'active:scale-97']],
-    ['secondary', ['bg-soft', 'text-fg-strong', 'hover:bg-sunk']],
+    ['secondary', ['bg-soft', 'text-fg-strong', 'hover:bg-hover']],
     ['outline', ['bg-raised', 'text-fg-strong', 'shadow-1']],
-    ['ghost', ['text-fg-strong', 'hover:bg-soft']],
+    ['ghost', ['text-fg-strong', 'hover:bg-hover']],
     ['danger', ['bg-danger-subtle', 'text-danger']],
   ] as const)('variante %s usa os tokens dela', async (variant, classes) => {
     const w = await mountSuspended(Button, { props: { variant }, slots: label('Ok') })

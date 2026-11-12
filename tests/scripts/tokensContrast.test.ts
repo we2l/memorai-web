@@ -37,6 +37,10 @@ const pairs: Pair[] = [
   ...['quiz', 'listen'].flatMap(m => [`--practice-${m}-bg`, '--surface-raised', '--surface-page'].map(bg => ({ fg: `--practice-${m}`, bg, min: 3 }))),
   // Subject dots next to the name
   ...SUBJECTS.flatMap(fg => ['--surface-raised', '--surface-page'].map(bg => ({ fg, bg, min: 3 }))),
+  // A2 (ADR-037): the initials of a notebook cover are card-colored text on the subject tone
+  ...SUBJECTS.map(bg => ({ fg: '--surface-raised', bg, min: 4.5 })),
+  // The hover of a row or menu item has to show on a card (the sweep of 12/11 measured 1.05-1.20)
+  { fg: '--surface-hover', bg: '--surface-raised', min: 1.15 },
   // E2 (ADR-035 §7): the chip text of a metric on its tile, and the icon (non-text) on the tile and on the card
   ...METRICS.map(m => ({ fg: `--metric-${m}-fg`, bg: `--metric-${m}-bg`, min: 4.5 })),
   ...METRICS.flatMap(m => [`--metric-${m}-bg`, '--surface-raised'].map(bg => ({ fg: `--metric-${m}`, bg, min: 3 }))),
@@ -82,10 +86,12 @@ describe('tokens.css: contraste dos pares (WCAG 2)', () => {
 })
 
 describe('tokens.css: regras do ADR-027 e do ADR-035', () => {
-  it('página branca pura no claro e um degrau abaixo do cartão no escuro (ADR-035 §7)', () => {
-    expect(resolveHex(tokens.light, '--surface-page')).toBe('#FFFFFF')
-    expect(resolveHex(tokens.dark, '--surface-page')).toBe('#0F0D14')
-    expect(resolveHex(tokens.dark, '--surface-raised')).toBe('#19161F')
+  it('página tingida sob o cartão branco no claro e um degrau abaixo do cartão no escuro (ADR-037)', () => {
+    // A2 (ADR-037): tinted page under white cards; in the dark the card is a step above the page
+    expect(resolveHex(tokens.light, '--surface-page')).toBe('#F4F3F8')
+    expect(resolveHex(tokens.light, '--surface-raised')).toBe('#FFFFFF')
+    expect(resolveHex(tokens.dark, '--surface-page')).toBe('#0B0A0F')
+    expect(resolveHex(tokens.dark, '--surface-raised')).toBe('#1A1722')
   })
 
   it('os ponteiros v3 saíram na Fase 6 (ADR-035 §7): conquista e sequência só nas métricas', () => {

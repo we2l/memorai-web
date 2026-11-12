@@ -32,7 +32,7 @@
       :is="step.action.to ? NuxtLink : 'button'"
       v-else
       v-bind="step.action.to ? { to: step.action.to } : { type: 'button' }"
-      class="flex w-full items-center gap-3.5 rounded-row px-2 py-3.5 text-left transition-colors duration-fast hover:bg-soft"
+      class="flex w-full items-center gap-3.5 rounded-row px-2 py-3.5 text-left transition-colors duration-fast hover:bg-hover"
       @click="$emit('act', step)"
     >
       <UiIconTile :icon="icon" :tone="tone" />

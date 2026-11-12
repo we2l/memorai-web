@@ -118,7 +118,7 @@ describe('ShellBottomNav', () => {
 })
 
 describe('ShellAccountMenu', () => {
-  it('nome e e-mail, plano, itens do RF-3 com âncoras; Aparência troca o tema; sem violação de axe', async () => {
+  it('nome e e-mail, plano, itens do RF-3 com âncoras; Tema (sol e lua) troca o tema; sem violação de axe', async () => {
     const w = await mountSuspended(AccountMenu, { attachTo: document.body })
     const trigger = w.get('button[aria-haspopup="menu"]')
     expect(trigger.attributes('aria-label')).toBe('Menu da conta')
@@ -131,10 +131,11 @@ describe('ShellAccountMenu', () => {
     const items = w.findAll('[role^="menuitem"]')
     expect(items.map(i => i.text())).toEqual([
       'Plano IntensivoGerenciar', 'Conta e segurança', 'Estudo e lembretes', 'Uso de IA no mês',
-      'Sistema', 'Claro', 'Escuro', 'Exportar meus dados', 'Ajuda e atalhos?', 'Sair',
+      'Igual ao sistema', 'Claro', 'Escuro', 'Exportar meus dados', 'Ajuda e atalhos?', 'Sair',
     ])
     expect(items[1]!.attributes('href')).toBe('/configuracoes#conta')
     expect(items[7]!.attributes('href')).toBe('/configuracoes#dados')
+    expect(document.getElementById(w.get('[role="group"]').attributes('aria-labelledby')!)?.textContent).toBe('Tema')
     expect(w.get('[role="group"]').findAll('[role="menuitemradio"]').map(r => r.attributes('aria-checked'))).toEqual(['true', 'false', 'false'])
     expect(await axeViolations(w.element)).toEqual([])
     await items[6]!.trigger('click')

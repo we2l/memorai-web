@@ -1,5 +1,5 @@
 <template>
-  <NuxtLink :to="cadernoPath(topic.id)" class="flex min-h-touch items-center gap-3 rounded-row px-2 py-3 transition-colors duration-fast hover:bg-soft">
+  <NuxtLink :to="cadernoPath(topic.id)" class="flex min-h-touch items-center gap-3 rounded-row px-2 py-3 transition-colors duration-fast hover:bg-hover">
     <UiSubjectMark :color="topic.color" class="mt-0.5 self-start" />
     <span class="-mt-1 min-w-0 flex-1">
       <span class="block font-semibold break-words text-fg-strong">

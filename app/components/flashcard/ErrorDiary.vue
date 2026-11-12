@@ -10,7 +10,7 @@
         type="button"
         class="inline-flex min-h-touch items-center gap-1.5 rounded-control border px-3 text-meta font-medium transition-colors duration-fast"
         :aria-pressed="selected === opt.value"
-        :class="selected === opt.value ? 'border-action bg-action-subtle text-action-fg' : 'border-line-strong bg-raised text-fg hover:bg-soft'"
+        :class="selected === opt.value ? 'border-action bg-action-subtle text-action-fg' : 'border-line-strong bg-raised text-fg hover:bg-hover'"
         @click="selected = opt.value"
       >
         <component :is="opt.icon" class="size-3.5" aria-hidden="true" /> {{ opt.label }}

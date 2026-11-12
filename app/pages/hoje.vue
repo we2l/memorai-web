@@ -1,6 +1,6 @@
 <template>
   <!-- Keyed by the loading state: the content replaces the skeleton instead of pushing it (no layout shift) -->
-  <div :key="loading ? 'loading' : 'ready'" class="hoje-page mx-auto flex flex-col gap-5 px-gutter pt-2 pb-6 md:pt-8" :aria-busy="loading ? 'true' : undefined">
+  <div :key="loading ? 'loading' : 'ready'" class="mx-auto flex max-w-page flex-col gap-5 px-gutter pt-2 pb-6 md:pt-8" :aria-busy="loading ? 'true' : undefined">
     <HomeGreeting :stats="stats" :user-name="auth.user?.name" :minutes="minutes" :loading="loading" :error="statsError" :returning="showBacklog" />
 
     <!-- E2 (ADR-035 §9): two columns from 1024 px, the main one fluid and a side of 400; on the phone the left one
@@ -188,8 +188,6 @@ watch(useBacklogPlan().changed, () => loadData())
 </script>
 
 <style scoped>
-/* E2 (ADR-035 §9): up to 1.240 px, the main column fluid and a side of 400 */
-.hoje-page { max-width: 77.5rem; }
 .hoje-grid {
   display: grid;
   gap: 1.25rem;

@@ -16,12 +16,14 @@
 :root {
   color-scheme: light;
 
-  /* Superfícies (ADR-035 §7): página branca pura, cartão branco com sombra em camadas, `soft` para azulejo e
-     apoio, `sunk` para trilho; um bloco lilás por tela */
-  --surface-page: #FFFFFF;
+  /* Superfícies (ADR-037, A2): página tingida e cartão branco, para o cartão existir pela superfície e não só pela
+     sombra; `soft` para azulejo e apoio, `sunk` para trilho, `hover` para o que está sob o mouse (>= 1,25 sobre
+     raised); um bloco lilás por tela */
+  --surface-page: #F4F3F8;
   --surface-raised: #FFFFFF;
-  --surface-soft: #F5F4F8;
-  --surface-sunk: #EFEDF3;
+  --surface-soft: #EEECF4;
+  --surface-sunk: #E7E5EE;
+  --surface-hover: #F1ECFF;
   --surface-tinted: #F1ECFF;
   --surface-float: #FFFFFF;
   /* Fundo do QR Code do Pix: branco nos dois temas, senão o leitor do banco não enxerga */
@@ -66,13 +68,13 @@
   /* Métricas (ADR-035 §1): a única cor fora do roxo, sempre pequena e com rótulo. Forma (ícone), azulejo (-bg) e
      texto do chip (-fg). Número nunca colorido */
   --metric-streak: #DD5F0C;
-  --metric-streak-bg: #FFF1E6;
+  --metric-streak-bg: #FFEBDB;
   --metric-streak-fg: #9A3F06;
   --metric-goal: #0F9654;
-  --metric-goal-bg: #E6F6EE;
+  --metric-goal-bg: #DDF3E7;
   --metric-goal-fg: #0B6B3D;
   --metric-accuracy: #2F6FEB;
-  --metric-accuracy-bg: #EAF1FE;
+  --metric-accuracy-bg: #E1EBFE;
   --metric-accuracy-fg: #1D4FB8;
   /* Ponteiros v3 enquanto houver uso (somem na Fase 6): o amarelo de conquista saiu */
 
@@ -88,9 +90,9 @@
 
   /* Modos de prática: cor só no ícone, num azulejo tingido (Revisar usa --action) */
   --practice-quiz: #C26A00;
-  --practice-quiz-bg: #FFF4E2;
+  --practice-quiz-bg: #FFF0D9;
   --practice-listen: #0B7A8C;
-  --practice-listen-bg: #E3F5F7;
+  --practice-listen-bg: #DCF2F5;
 
   /* Matérias: ponto pequeno; a barra de domínio é --action para todas */
   --subject-1: #6D28D9;
@@ -110,8 +112,10 @@
      0 = só o anel; 1 = cartão; 2 = card da revisão, plano em destaque; float = folha, painel, menu;
      action = realce interno + sombra roxa do botão principal; glow = brilho do anel e do arco (só no escuro) */
   --elev-0: 0 0 0 1px var(--hairline);
-  --elev-1: 0 0 0 1px rgb(20 18 26 / 0.06), 0 1px 2px rgb(20 18 26 / 0.04), 0 8px 24px -12px rgb(20 18 26 / 0.16);
-  --elev-2: 0 0 0 1px rgb(20 18 26 / 0.06), 0 2px 4px rgb(20 18 26 / 0.04), 0 18px 40px -18px rgb(20 18 26 / 0.26);
+  /* A2 (ADR-037): 1 = cartão secundário (anel e 1 px de sombra: a página tingida já separa), 2 = o bloco principal
+     da tela, com sombra funda */
+  --elev-1: 0 0 0 1px rgb(20 18 26 / 0.06), 0 1px 2px rgb(20 18 26 / 0.04);
+  --elev-2: 0 0 0 1px rgb(20 18 26 / 0.05), 0 2px 4px rgb(20 18 26 / 0.04), 0 24px 48px -20px rgb(20 18 26 / 0.28);
   --elev-float: 0 0 0 1px rgb(20 18 26 / 0.06), 0 24px 56px -16px rgb(20 18 26 / 0.3);
   --elev-action: inset 0 1px 0 rgb(255 255 255 / 0.18), 0 6px 16px -8px rgb(111 63 245 / 0.55);
   --glow: none;
@@ -132,8 +136,8 @@
   --dur-moment: 700ms;
 
   /* Escala responsiva (ADR-035 §2): o tamanho muda a partir de 960 px; theme.css lê daqui */
-  --type-display: 1.875rem;
-  --type-page-title: 1.625rem;
+  --type-display: 2.125rem;
+  --type-page-title: 1.875rem;
   --type-section: 1.25rem;
 
   /* Camadas: popover acima de overlay (Select dentro de Modal) */
@@ -190,9 +194,9 @@
 
 @media (min-width: 960px) {
   :root {
-    --type-display: 2.25rem;
-    --type-page-title: 1.875rem;
-    --type-section: 1.3125rem;
+    --type-display: 2.75rem;
+    --type-page-title: 2.375rem;
+    --type-section: 1.25rem;
   }
 }
 
@@ -208,10 +212,11 @@
   color-scheme: dark;
 
   /* A superfície elevada fica um degrau mais clara que a página (ADR-035 §3) */
-  --surface-page: #0F0D14;
-  --surface-raised: #19161F;
-  --surface-soft: #221E2B;
-  --surface-sunk: #0B0A0F;
+  --surface-page: #0B0A0F;
+  --surface-raised: #1A1722;
+  --surface-soft: #231F2C;
+  --surface-sunk: #08070B;
+  --surface-hover: #2A2340;
   --surface-tinted: #221A3A;
   --surface-float: #1E1A26;
   --surface-scrim: rgb(0 0 0 / 0.62);
@@ -247,13 +252,13 @@
   --state-info-bg: #1A2433;
 
   --metric-streak: #FF8A3D;
-  --metric-streak-bg: #33200F;
+  --metric-streak-bg: #3A2412;
   --metric-streak-fg: #FFB27A;
   --metric-goal: #3CCB85;
-  --metric-goal-bg: #11291D;
+  --metric-goal-bg: #122E20;
   --metric-goal-fg: #7BE0A8;
   --metric-accuracy: #6EA0FF;
-  --metric-accuracy-bg: #14213A;
+  --metric-accuracy-bg: #172642;
   --metric-accuracy-fg: #A9C6FF;
 
   --fb-ok-bg: #10281C;
@@ -264,9 +269,9 @@
   --fb-again-strong: #FF9A55;
 
   --practice-quiz: #F5A524;
-  --practice-quiz-bg: #2E2412;
+  --practice-quiz-bg: #332814;
   --practice-listen: #3CC2D4;
-  --practice-listen-bg: #0F2A2E;
+  --practice-listen-bg: #112F33;
 
   --subject-1: #A78BFA;
   --subject-2: #60A5FA;
@@ -281,8 +286,8 @@
   --progress-neutral: #5C5866;
 
   /* No escuro a profundidade vem da luz de cima (borda interna clara) e da sombra preta forte */
-  --elev-1: inset 0 1px 0 rgb(255 255 255 / 0.05), 0 0 0 1px rgb(255 255 255 / 0.06), 0 10px 28px -14px rgb(0 0 0 / 0.7);
-  --elev-2: inset 0 1px 0 rgb(255 255 255 / 0.06), 0 0 0 1px rgb(255 255 255 / 0.07), 0 22px 48px -18px rgb(0 0 0 / 0.8);
+  --elev-1: inset 0 1px 0 rgb(255 255 255 / 0.04), 0 0 0 1px rgb(255 255 255 / 0.07);
+  --elev-2: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 0 0 1px rgb(255 255 255 / 0.1), 0 24px 50px -18px rgb(0 0 0 / 0.85);
   --elev-float: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 0 0 1px rgb(255 255 255 / 0.14), 0 28px 64px -16px rgb(0 0 0 / 0.85);
   --elev-action: inset 0 1px 0 rgb(255 255 255 / 0.22), 0 8px 24px -8px rgb(132 82 245 / 0.7);
   --glow: drop-shadow(0 0 10px rgb(132 82 245 / 0.55));

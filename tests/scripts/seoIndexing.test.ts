@@ -43,6 +43,15 @@ describe.skipIf(skipWithoutBuild)('indexação das páginas (build)', () => {
     }
   })
 
+  it('cada artigo compartilha a própria imagem (og:image, twitter:image e o JSON-LD), não a genérica', () => {
+    const html = readFileSync(join(PUBLIC_DIR, 'blog/caderno-de-erros-digital/index.html'), 'utf8')
+    const image = 'https://baigi.com.br/blog/capas/caderno-de-erros-digital.jpg'
+    expect(html).toContain(`<meta property="og:image" content="${image}"`)
+    expect(html).toContain(`<meta name="twitter:image" content="${image}"`)
+    expect(html).toContain(`"image":"${image}"`)
+    expect(existsSync(join(PUBLIC_DIR, 'blog/capas/caderno-de-erros-digital.jpg'))).toBe(true)
+  })
+
   it('a landing tem um título só, descrição curta e o JSON-LD da home', () => {
     const html = readFileSync(join(PUBLIC_DIR, 'index.html'), 'utf8')
     const h1 = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/)![1]!.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()

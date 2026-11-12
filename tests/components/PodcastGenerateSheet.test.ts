@@ -60,7 +60,9 @@ describe('PodcastGenerateSheet (prd-caderno-f1-pontes RF-F5, prd-4e-praticar-v3 
     await mountSuspended(GenerateSheet, { props: { modelValue: true }, attachTo: document.body })
     await flushPromises()
     const options = [...document.querySelectorAll('select option')].map(o => o.textContent?.trim())
-    expect(options).toEqual(['Escolha o caderno ou o assunto', 'Inglês (Anki)', '— Vocabulary', 'Português'])
+    // Depth is a non-breaking-space indent now (trim drops it); the option keeps it
+    expect(options).toEqual(['Escolha o caderno ou o assunto', 'Inglês (Anki)', 'Vocabulary', 'Português'])
+    expect(document.querySelectorAll('select option')[2]!.textContent).toBe('\u00A0\u00A0\u00A0\u00A0Vocabulary')
   })
 
   it('o episódio é sempre o curto: o tempo do catálogo e a cota antes, e o POST manda short (prd-planos-lancamento RF-B15)', async () => {

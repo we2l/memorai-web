@@ -4,7 +4,7 @@
       <div class="flex flex-wrap items-center gap-2 text-label text-fg-muted">
         <UiTag v-if="card.suspended_at" data-testid="card-paused">Pausado</UiTag>
         <UiTag v-else :tone="state.tone">{{ state.label }}</UiTag>
-        <span v-if="due">{{ due }}</span>
+        <span v-if="due && state.standing !== 'today'">{{ due }}</span>
         <span v-if="card.lapses > 0">· errou {{ card.lapses }} {{ card.lapses === 1 ? 'vez' : 'vezes' }}</span>
         <span v-if="card.topic_name">· {{ card.topic_name }}</span>
       </div>
@@ -24,7 +24,8 @@
       <UiButton variant="ghost" class="mr-auto" @click="$emit('delete', card!)">Excluir</UiButton>
       <!-- A card paused in the review (prd-revisao-v5-fase-b RF-F8): back to the sessions -->
       <UiButton v-if="card?.suspended_at" :loading="resuming" data-testid="card-resume" @click="resume">Retomar</UiButton>
-      <UiButton variant="primary" @click="$emit('edit', card!)">Editar</UiButton>
+      <!-- The first focus goes to Editar, not to Excluir (sweep of 12/11/2026) -->
+      <UiButton variant="primary" autofocus @click="$emit('edit', card!)">Editar</UiButton>
     </template>
   </UiDialog>
 </template>

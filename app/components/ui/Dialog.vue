@@ -13,10 +13,10 @@
           aria-modal="true"
           :aria-labelledby="titleId"
           :aria-describedby="description ? descriptionId : undefined"
-          class="flex w-full flex-col overflow-hidden bg-float text-fg shadow-float"
+          class="flex w-full flex-col overflow-hidden bg-float text-fg shadow-float outline-none"
           :class="[LAYOUT[placement].panel, placement === 'right' ? 'sm:max-w-md' : SIZES[size]]"
         >
-          <span v-if="placement === 'bottom'" class="mx-auto mt-2 h-1.5 w-10 shrink-0 rounded-full bg-line-strong" aria-hidden="true" />
+          <span v-if="placement === 'bottom'" class="mx-auto mt-2 h-1.5 w-10 shrink-0 rounded-full bg-line-strong md:hidden" aria-hidden="true" />
           <div class="flex items-start gap-3 px-5 pb-3 pt-4 sm:px-6 sm:pt-5">
             <div class="min-w-0 flex-1">
               <h2 :id="titleId" class="text-section text-fg-strong">{{ title }}</h2>

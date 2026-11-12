@@ -5,8 +5,9 @@
     </slot>
     <div
       v-if="open"
-      class="absolute top-full z-popover mt-1 min-w-56 rounded-control bg-float py-1 shadow-float"
-      :class="align === 'end' ? 'right-0 w-max max-w-80' : 'left-0'"
+      ref="panel"
+      class="absolute z-popover min-w-56 rounded-control bg-float py-1 shadow-float"
+      :class="[align === 'end' ? 'right-0 w-max max-w-80' : 'left-0', up ? 'bottom-full mb-1' : 'top-full mt-1']"
       data-menu-panel
     >
       <slot name="header" />
@@ -66,6 +67,9 @@ const props = withDefaults(defineProps<{
 const open = ref(false)
 const root = ref<HTMLElement | null>(null)
 const menu = ref<HTMLElement | null>(null)
+const panel = ref<HTMLElement | null>(null)
+/** Opens upward when the panel would end below the viewport and fits above the trigger (sweep of 12/11/2026). */
+const up = ref(false)
 const uid = useId()
 const triggerId = `${uid}-trigger`
 const menuId = `${uid}-menu`
@@ -103,8 +107,12 @@ function focusItem(index: number | 'last') {
 
 /** `null` (opened by pointer): focus the menu itself, so no item shows the keyboard ring; arrows still move. */
 async function show(focus: number | 'last' | null = 0) {
+  up.value = false
   open.value = true
   await nextTick()
+  const box = panel.value?.getBoundingClientRect()
+  const trigger = root.value?.getBoundingClientRect()
+  if (box && trigger && box.bottom > window.innerHeight - 8 && trigger.top - box.height - 8 > 0) up.value = true
   if (focus === null) menu.value?.focus()
   else focusItem(focus)
 }

@@ -3,7 +3,7 @@
     <UiSwitch
       :model-value="on"
       label="Episódio da manhã"
-      :description="isPro ? 'Quando houver erros de ontem, um episódio curto fica pronto às 7h. Usa 1 dos seus 5 do mês.' : `No ${proName}: um episódio curto dos seus erros de ontem, pronto às 7h.`"
+      :description="isPro ? 'Quando houver erros de ontem, um episódio curto fica pronto às 7h. Usa 1 episódio da sua cota do mês.' : `No ${proName}: um episódio curto dos seus erros de ontem, pronto às 7h.`"
       :disabled="!isPro || loading || pending"
       @update:model-value="toggle"
     />

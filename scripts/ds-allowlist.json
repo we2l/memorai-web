@@ -27,6 +27,16 @@
       "match": "fill=\"#4285F4\"",
       "motivo": "Logo do Google no botão de login e cadastro: cores oficiais da marca.",
       "prazo": "permanente"
+    },
+    {
+      "path": "app/components/ui/Logo.vue",
+      "rules": [
+        "arbitrary",
+        "inline-style"
+      ],
+      "match": "WORDMARK|0\\.72em",
+      "motivo": "Wordmark da landing (Bricolage 700, ADR-028) como máscara sobre a cor do texto (public/brand/baigi-wordmark.svg): o tamanho acompanha a fonte de quem chama (em) e a máscara não tem utility; fora do JS e do entry.css (revisão do dono em 12/11/2026).",
+      "prazo": "permanente"
     }
   ],
   "fasesConcluidas": [

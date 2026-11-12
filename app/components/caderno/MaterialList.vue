@@ -127,7 +127,7 @@ const subjectOptions = computed(() => {
   const depth = props.summary?.topic.depth ?? 0
   return [
     { value: '', label: depth === 0 ? 'Todas as matérias' : 'Todos os assuntos' },
-    ...subjects.map(s => ({ value: s.id, label: `${s.depth - depth > 1 ? '— ' : ''}${s.name}` })),
+    ...subjects.map(s => ({ value: s.id, label: `${s.depth - depth > 1 ? '\u00A0'.repeat(4) : ''}${s.name}` })),
   ]
 })
 

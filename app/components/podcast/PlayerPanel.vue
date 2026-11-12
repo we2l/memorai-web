@@ -20,7 +20,7 @@
         :max="duration || 1"
         step="1"
         :value="Math.min(player.currentTime, duration || 0)"
-        class="-my-3.5 h-11 w-full cursor-pointer accent-action"
+        class="player-seek -my-3.5 h-11 w-full cursor-pointer"
         aria-label="Posição no episódio"
         :aria-valuetext="`${formatTime(player.currentTime)} de ${formatTime(duration)}`"
         @input="onSeek"
@@ -157,3 +157,14 @@ async function download() {
   }
 }
 </script>
+
+<style scoped>
+/* The seek bar with the DS tokens: the bare accent-color drew a bright white track in the dark theme (sweep 12/11/2026) */
+.player-seek { appearance: none; background: transparent; }
+.player-seek::-webkit-slider-runnable-track { height: 6px; border-radius: 999px; background: var(--color-line-strong); }
+.player-seek::-moz-range-track { height: 6px; border-radius: 999px; background: var(--color-line-strong); }
+.player-seek::-moz-range-progress { height: 6px; border-radius: 999px; background: var(--color-action); }
+.player-seek::-webkit-slider-thumb { appearance: none; width: 16px; height: 16px; margin-top: -5px; border-radius: 50%; background: var(--color-action); }
+.player-seek::-moz-range-thumb { width: 16px; height: 16px; border: 0; border-radius: 50%; background: var(--color-action); }
+.player-seek:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 3px var(--color-focus, var(--color-action)); }
+</style>

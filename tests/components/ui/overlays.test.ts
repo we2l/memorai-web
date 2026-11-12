@@ -165,6 +165,9 @@ describe('UiMenu', () => {
     expect(entries[1]!.attributes('aria-disabled')).toBe('true')
     expect(entries[2]!.attributes('href')).toBe('/cadernos')
     expect(entries[3]!.classes()).toContain('text-danger')
+    // Opened by pointer: the menu takes the focus, so no item shows the keyboard ring (owner's review of 12/11/2026)
+    expect(document.activeElement).toBe(menu.element)
+    press('ArrowDown', menu.element)
     expect(document.activeElement).toBe(entries[0]!.element)
     expect(await axeViolations(w.element)).toEqual([])
   })
@@ -250,6 +253,7 @@ describe('UiMenu', () => {
     expect(menu.findAll('[role="separator"]')).toHaveLength(1)
     // Arrows walk across the group like any item
     const label = () => document.activeElement?.textContent?.trim()
+    press('ArrowDown', menu.element)
     expect(label()).toBe('Conta e segurança')
     press('ArrowDown', document.activeElement!)
     expect(label()).toBe('Sistema')

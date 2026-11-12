@@ -25,7 +25,7 @@
           >
             <span class="flex min-w-0 items-center gap-2.5" :class="row.level === 2 && 'pl-5'">
               <UiSubjectMark v-if="row.level === 1" :color="row.s.color" :index="row.index" />
-              <span class="min-w-0 truncate" :class="row.level === 1 ? 'font-semibold text-fg-strong' : 'text-fg'">{{ row.s.name }}</span>
+              <span class="min-w-0 line-clamp-2 break-words" :class="row.level === 1 ? 'font-semibold text-fg-strong' : 'text-fg'">{{ row.s.name }}</span>
               <UiTag v-if="row.s.weak" tone="warning" class="shrink-0">ponto fraco</UiTag>
               <span class="ml-auto font-semibold tabular-nums text-fg-strong md:hidden" aria-hidden="true">{{ row.s.session_count }}</span>
             </span>

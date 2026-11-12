@@ -15,7 +15,7 @@
 
       <li v-if="forecast.streak.current >= 1" class="px-3 py-3" data-testid="tomorrow-streak">
         <p v-if="forecast.streak.current === 1" class="text-meta text-fg">
-          1º dia. Volte amanhã para começar uma sequência.
+          Volte amanhã para chegar a 2 dias seguidos.
         </p>
         <template v-else>
           <p class="flex items-center gap-1.5 text-meta text-fg">

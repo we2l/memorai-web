@@ -327,6 +327,7 @@ export default defineNuxtConfig({
         // Follow the OS until THEME_SCRIPT syncs them with the app theme (light, dark or system)
         { name: 'theme-color', content: THEME_COLOR.light, media: '(prefers-color-scheme: light)' },
         { name: 'theme-color', content: THEME_COLOR.dark, media: '(prefers-color-scheme: dark)' },
+        { name: 'mobile-web-app-capable', content: 'yes' },
         { name: 'apple-mobile-web-app-capable', content: 'yes' },
         // default, not black-translucent: the installed app starts below the status bar (translucent drew the page under
         // the clock, with white text over the light page; prd-responsividade RF-4)

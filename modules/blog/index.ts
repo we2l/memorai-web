@@ -7,9 +7,9 @@
  * - `#blog/index`: metadata of every article (no HTML) + authors, for /blog, the author page and related links;
  * - `#blog/articles`: { slug: () => import(article.md) }, one chunk per article (`once-*`, out of the precache);
  * - prerender routes for /blog/**, /ferramentas/** and the author pages; sitemap.xml and /blog/rss.xml.
- * A broken internal link, an unknown author or a bad front matter fails the build.
+ * A broken internal link, an unknown author, a bad front matter or a missing share image fails the build.
  */
-import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { basename, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { addTypeTemplate, addVitePlugin, defineNuxtModule } from '@nuxt/kit'
@@ -26,6 +26,8 @@ export const SITE_URL = 'https://baigi.com.br'
 const STATIC_PAGES = ['/', '/planos', '/quem-faz', '/ajuda']
 /** Pages of the blog that are not articles (app/pages/blog/*.vue): reserved slugs, prerendered and in the sitemap */
 const BLOG_PAGES = ['sobre']
+/** Folders of public/blog (the share images): an article with this slug would collide with them */
+const BLOG_ASSET_DIRS = ['capas']
 /** Internal paths an article may link to besides /blog/** and /ferramentas/** */
 const LINKABLE = /^\/(|planos|ajuda|quem-faz|criar-conta|entrar|comecar(\/(concurso|enem|medicina|oab|ingles|faculdade))?)$/
 
@@ -33,11 +35,28 @@ function xml(text: string): string {
   return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 }
 
+/**
+ * The share image of each article (og:image, twitter:image, Article JSON-LD): public/blog/capas/<slug>.jpg, 1200×675,
+ * made by scripts/blog-capas.mjs and committed (Google asks Discover for a large image that is not generic). An
+ * `image:` in the front matter wins; an article with neither fails the build, so a new article never ships with
+ * the generic image of the site.
+ */
+export function attachShareImages(articles: BlogArticle[], publicDir: string): void {
+  for (const a of articles) {
+    if (a.image) continue
+    const rel = `/blog/capas/${a.slug}.jpg`
+    if (!existsSync(join(publicDir, rel))) {
+      throw new Error(`content/blog/${a.slug}.md: falta a imagem de compartilhamento public${rel}. Rode: node scripts/blog-capas.mjs ${a.slug}`)
+    }
+    a.image = rel
+  }
+}
+
 export function loadArticles(dir: string): BlogArticle[] {
   const files = readdirSync(dir).filter(f => f.endsWith('.md')).sort()
   const articles = files.map(f => parseArticle(readFileSync(join(dir, f), 'utf8'), `content/blog/${f}`, basename(f, '.md')))
   const slugs = new Set(articles.map(a => a.slug))
-  for (const reserved of BLOG_PAGES) {
+  for (const reserved of [...BLOG_PAGES, ...BLOG_ASSET_DIRS]) {
     if (slugs.has(reserved)) throw new Error(`content/blog/${reserved}.md: o slug "${reserved}" é de uma página do blog (/blog/${reserved})`)
   }
   const tools = new Set<string>(BLOG_TOOLS)
@@ -98,6 +117,8 @@ export default defineNuxtModule({
   setup(_options, nuxt) {
     const contentDir = resolve(nuxt.options.rootDir, 'content/blog')
     const articles = loadArticles(contentDir)
+    const publicDir = resolve(nuxt.options.rootDir, 'public')
+    attachShareImages(articles, publicDir)
     const metas = articles.map(toMeta)
 
     // Prerender: the routes are known at build time (no crawler guessing)
@@ -133,6 +154,7 @@ export default defineNuxtModule({
       transform(code, id) {
         if (!id.startsWith(contentDir) || !id.endsWith('.md')) return
         const article = parseArticle(code, `content/blog/${basename(id)}`, basename(id, '.md'))
+        attachShareImages([article], publicDir)
         return { code: `export default ${JSON.stringify(article)}\n`, map: null }
       },
     })

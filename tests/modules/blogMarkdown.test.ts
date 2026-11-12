@@ -3,7 +3,10 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import { parseArticle, slugify } from '../../modules/blog/markdown'
-import { blogRoutes, loadArticles, rssXml, sitemapXml } from '../../modules/blog/index'
+import { attachShareImages, blogRoutes, loadArticles, rssXml, sitemapXml } from '../../modules/blog/index'
+import { BLOG_CATEGORIES } from '../../modules/blog/types'
+// @ts-ignore plain .mjs script, no types
+import { CATEGORY_LABELS } from '../../scripts/blog-capas.mjs'
 
 const FRONT = `---
 title: Como revisar lei seca
@@ -152,5 +155,25 @@ describe('loadArticles, sitemap e RSS', () => {
     expect(sitemap).toContain('<loc>https://baigi.com.br/quem-faz</loc>')
     expect(sitemap).toContain('<loc>https://baigi.com.br/ferramentas/calculadora-do-esquecimento</loc>')
     expect(blogRoutes(articles)).toContain('/ferramentas/plano-ate-a-prova')
+  })
+
+  it('cada artigo do repo tem a sua imagem de compartilhamento (public/blog/capas)', () => {
+    const articles = loadArticles(resolve(__dirname, '../../content/blog'))
+    attachShareImages(articles, resolve(__dirname, '../../public'))
+    for (const a of articles) expect(a.image).toBe(`/blog/capas/${a.slug}.jpg`)
+  })
+
+  it('sem imagem de compartilhamento o build reprova; image: no front matter vale', () => {
+    dir = mkdtempSync(join(resolve(__dirname, '../../.nuxt'), 'blog-test-'))
+    writeFileSync(join(dir, 'a.md'), doc('Texto.'))
+    const [a] = loadArticles(dir)
+    expect(() => attachShareImages([a!], dir)).toThrow(/blog-capas\.mjs a/)
+    a!.image = '/x.jpg'
+    attachShareImages([a!], dir)
+    expect(a!.image).toBe('/x.jpg')
+  })
+
+  it('o gerador de capas usa os mesmos rótulos de categoria do blog', () => {
+    expect(CATEGORY_LABELS).toEqual(BLOG_CATEGORIES)
   })
 })

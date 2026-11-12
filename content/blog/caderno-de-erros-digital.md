@@ -84,7 +84,7 @@ Qualquer um serve se tiver duas coisas: a resposta escondida até você tentar l
 | Ferramenta | Onde ajuda | Onde atrapalha |
 |---|---|---|
 | Caderno de papel ou fichas | Nada para instalar; ficha com divisória por data funciona como agenda | Não tem busca; atualizar uma lei mudada é reescrever |
-| Notion | Organiza por matéria, assunto e banca, com filtros e busca | A resposta fica à vista; a data da próxima revisão é você que calcula; há quem reclame da edição no celular |
+| Notion | Organiza por matéria, assunto e banca, com filtros e busca | A resposta fica à vista; a data da próxima revisão é você que calcula |
 | Excel ou Google Sheets | Bom para contar erros por matéria e por motivo | A linha mostra pergunta e resposta juntas; revisar no celular, em pé no ônibus, é ruim |
 | Anki | Esconde a resposta e agenda cada card sozinho; grátis no computador, no Android e no navegador | Montar o card é com você; o app do iPhone é pago |
 | App que aceita questão colada | Separa enunciado, alternativas e gabarito e agenda a revisão | Você depende do app; confira o que ele separou antes de salvar |

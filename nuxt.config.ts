@@ -51,7 +51,8 @@ const SESSION_HINT_SCRIPT = `(function(){var d=document.documentElement,p=locati
 
 // Page color of the DS v3 (--surface-page in app/assets/css/tokens.css, light and dark): the manifest and
 // the theme-color metas need the literal. tests/scripts/pwaManifest.test.ts keeps both in sync with tokens.css.
-const THEME_COLOR = { light: '#FFFFFF', dark: '#0F0D14' }
+// The status bar takes the color of the top bars (white in A2, ADR-037), not of the tinted page
+const THEME_COLOR = { light: '#FFFFFF', dark: '#1A1722' }
 
 // Theme before the first paint (prd-ds-v3-fundacao RF-1.4): localStorage['color-mode'] is light | dark |
 // system (missing = system, the key the E2E set). .dark goes on <html> and color-scheme inline paints the
@@ -208,7 +209,7 @@ export default defineNuxtConfig({
       // index.html + _nuxt/index.*.css + landing/** (title font, clips, screens, sample: prd-landing-d RF-D14/D15): the
       // landing (prd-landing-v4 RF-L14), online like the rest of the marketing; the
       // installed app starts at /hoje and navigateFallback is null, so nothing offline ever served it
-      globIgnores: ['index.html', 'landing/**', 'termos/**', 'privacidade/**', 'planos/**', 'ajuda/**', 'entrar/**', 'criar-conta/**', 'esqueci-senha/**', '_nuxt/email-*.js', '_nuxt/analytics-*.js', '_nuxt/consent-*.js', '_nuxt/once-*.js', '_nuxt/dev-*.js', '_nuxt/index.*.css', '_nuxt/baigi-it-*.woff2', 'blog/**', 'ferramentas/**', 'quem-faz/**', 'sitemap.xml', '_nuxt/blog-*.css'],
+      globIgnores: ['index.html', 'landing/**', 'fonts/**', 'termos/**', 'privacidade/**', 'planos/**', 'ajuda/**', 'entrar/**', 'criar-conta/**', 'esqueci-senha/**', '_nuxt/email-*.js', '_nuxt/analytics-*.js', '_nuxt/consent-*.js', '_nuxt/once-*.js', '_nuxt/dev-*.js', '_nuxt/index.*.css', '_nuxt/baigi-it-*.woff2', '_nuxt/baigi-num-400*.woff2', 'blog/**', 'ferramentas/**', 'quem-faz/**', 'sitemap.xml', '_nuxt/blog-*.css'],
       // Heavy on-demand chunks (pdf.js ~330 KB) stay out of the install download;
       // maximumFileSizeToCacheInBytes would fail the build instead of skipping.
       manifestTransforms: [
@@ -342,6 +343,10 @@ export default defineNuxtConfig({
       ],
       style: [
         { innerHTML: 'html.baigi-session body{visibility:hidden}' },
+        // Title face of the app (ADR-037): Bricolage 700 subset, out of the precache (the woff2 ratchet has 4 KB left),
+        // swap with a metric fallback so a title does not jump when the font arrives. In the head, not in entry.css
+        // (13 KB ceiling).
+        { innerHTML: "@font-face{font-family:'Baigi Display';src:url(/fonts/bricolage-700-app.woff2) format('woff2');font-weight:700;font-display:swap}@font-face{font-family:'Baigi Display Fallback';src:local('Arial Bold'),local('Arial'),local('Helvetica Neue'),local('Liberation Sans');font-weight:700;size-adjust:90.8%;ascent-override:102.4%;descent-override:29.7%;line-gap-override:0%}" },
       ],
       link: [
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },

@@ -9,7 +9,7 @@
         class="flex cursor-pointer items-start gap-3 has-disabled:cursor-not-allowed"
         :class="[
           variant === 'cards'
-            ? 'rounded-tile bg-raised p-3.5 shadow-1 transition-colors duration-fast hover:bg-soft has-checked:bg-action-subtle has-checked:ring-2 has-checked:ring-action'
+            ? 'rounded-tile bg-raised p-3.5 shadow-1 transition-colors duration-fast hover:bg-hover has-checked:bg-action-subtle has-checked:ring-2 has-checked:ring-action'
             : 'min-h-touch py-2.5',
           !opt.disabled && 'has-disabled:opacity-60',
           LEVELS[opt.level ?? 0],

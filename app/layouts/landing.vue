@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-dvh bg-page">
+  <div class="min-h-dvh bg-raised">
     <slot />
     <ShellToastHost />
   </div>

@@ -1,7 +1,7 @@
 <template>
   <li :data-testid="`plan-step-${step.key}`">
     <!-- A row with a control inside (the primary, the backlog line, "Desligar"): text and button wrap on one line -->
-    <div v-if="!asRow" class="flex items-start gap-3.5 px-2 py-3.5">
+    <div v-if="!asRow" class="flex items-start gap-3.5 px-3 py-3.5">
       <UiIconTile :icon="icon" :tone="tone" />
       <div class="flex min-w-0 flex-1 items-center justify-between gap-x-3 gap-y-2" :class="step.primary ? '' : 'flex-wrap'">
         <div class="min-w-0">
@@ -32,7 +32,7 @@
       :is="step.action.to ? NuxtLink : 'button'"
       v-else
       v-bind="step.action.to ? { to: step.action.to } : { type: 'button' }"
-      class="flex w-full items-center gap-3.5 rounded-row px-2 py-3.5 text-left transition-colors duration-fast hover:bg-soft"
+      class="plan-row flex w-full items-center gap-3.5 rounded-icon px-3 py-3.5 text-left transition-colors duration-fast hover:bg-hover"
       @click="$emit('act', step)"
     >
       <UiIconTile :icon="icon" :tone="tone" />
@@ -40,7 +40,7 @@
         <span class="block font-semibold break-words text-fg-strong">{{ step.title }}</span>
         <span class="block text-meta text-fg-muted">{{ step.detail }}</span>
       </span>
-      <ChevronRight class="size-4.5 shrink-0 text-fg-muted" aria-hidden="true" />
+      <ChevronRight class="plan-chevron size-4.5 shrink-0 text-fg-muted" aria-hidden="true" />
     </component>
   </li>
 </template>
@@ -69,3 +69,14 @@ const icon = computed(() => (props.step.mode ? MODES[props.step.mode].icon : Fil
 const tone = computed<IconTileTone>(() => (props.step.mode ? MODES[props.step.mode].tone : 'neutral'))
 const asRow = computed(() => !props.step.primary && !props.step.backlog && !props.step.survival && !props.step.overdue)
 </script>
+
+<style scoped>
+/* The chevron walks 4 px under the mouse (A2 RF-1.5); with reduced motion only the color changes */
+.plan-chevron { transition: transform var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out); }
+@media (hover: hover) {
+  .plan-row:hover .plan-chevron { color: var(--action-fg); }
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .plan-row:hover .plan-chevron { transform: translateX(4px); }
+}
+</style>

@@ -5,13 +5,14 @@ import { describe, expect, it } from 'vitest'
 import { PUBLIC_DIR, skipWithoutBuild } from './buildOutput'
 import { readTokens, resolveHex } from './tokensFile'
 
-// The manifest and the theme-color metas carry the page color as a literal (nuxt.config.ts THEME_COLOR):
-// it must stay equal to --surface-page of tokens.css (DS v3, prd-ds-v3-fundacao RF-1.6)
+// The manifest and the theme-color metas carry the color of the top bars as a literal (nuxt.config.ts THEME_COLOR):
+// it must stay equal to --surface-raised of tokens.css (A2, ADR-037: white bars over the tinted page; before, the
+// page color, prd-ds-v3-fundacao RF-1.6)
 const tokens = readTokens()
-const page = { light: resolveHex(tokens.light, '--surface-page'), dark: resolveHex(tokens.dark, '--surface-page') }
+const page = { light: resolveHex(tokens.light, '--surface-raised'), dark: resolveHex(tokens.dark, '--surface-raised') }
 
 describe.skipIf(skipWithoutBuild)('manifest do PWA (build)', () => {
-  it('abre em /hoje com a cor de página do tema claro', () => {
+  it('abre em /hoje com a cor das barras do tema claro', () => {
     const manifest = JSON.parse(readFileSync(join(PUBLIC_DIR, 'manifest.webmanifest'), 'utf8'))
     expect(manifest.start_url).toBe('/hoje')
     expect(manifest.lang).toBe('pt-BR')
@@ -20,7 +21,7 @@ describe.skipIf(skipWithoutBuild)('manifest do PWA (build)', () => {
     expect(manifest.background_color.toUpperCase()).toBe(page.light)
   })
 
-  it('metas theme-color claro e escuro com a cor de página de cada tema', () => {
+  it('metas theme-color claro e escuro com a cor das barras de cada tema', () => {
     const html = readFileSync(join(PUBLIC_DIR, 'entrar/index.html'), 'utf8')
     const metas = [...html.matchAll(/<meta name="theme-color" content="([^"]+)" media="\(prefers-color-scheme: (light|dark)\)">/g)]
     expect(Object.fromEntries(metas.map(m => [m[2], m[1]!.toUpperCase()]))).toEqual(page)

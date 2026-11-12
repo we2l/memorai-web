@@ -87,7 +87,7 @@ test.describe('Mock: Sessão de revisão com cards', () => {
 })
 
 test.describe('Mock: Backlog grande (atraso no plano do dia)', () => {
-  test('o passo Revisar mostra o atraso e leva a "Recuperar atraso" em /praticar', async ({ page }) => {
+  test('a meta do dia mostra o atraso e leva a "Recuperar atraso" em /praticar', async ({ page }) => {
     await login(page)
 
     await page.route(/\/api\/stats$/, route => route.fulfill(json({ data: {
@@ -99,8 +99,9 @@ test.describe('Mock: Backlog grande (atraso no plano do dia)', () => {
     await page.route(/\/api\/settings$/, route => route.fulfill(json({ data: { survival_mode: false } })))
 
     await page.goto('/hoje')
-    const review = page.getByTestId('plan-step-review')
-    await expect(review).toContainText('Revisar 40 cards')
+    // A2 (prd-visual-a2 RF-2.2): the review of the day is the goal block, with what the Revisar step carried
+    const review = page.getByTestId('home-goal-card')
+    await expect(review).toContainText('Começar · 40 cards')
     await expect(review).toContainText('150 atrasados')
     await expect(review.getByRole('link', { name: 'Recuperar atraso' })).toHaveAttribute('href', '/praticar')
   })

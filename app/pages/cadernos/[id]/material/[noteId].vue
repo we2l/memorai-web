@@ -126,11 +126,11 @@
           </template>
           <template v-if="neighbors.previous || neighbors.next" #footer>
             <nav aria-label="Outras partes" class="mt-10 grid max-w-prose gap-3 sm:grid-cols-2" data-testid="part-nav">
-              <NuxtLink v-if="neighbors.previous" :to="cadernoPath(id, { note: neighbors.previous.note_id })" class="flex min-h-touch flex-col rounded-tile bg-soft px-4 py-3 transition-colors duration-fast hover:bg-sunk" aria-keyshortcuts="[" data-testid="part-previous" @click="onPartNav('previous')">
+              <NuxtLink v-if="neighbors.previous" :to="cadernoPath(id, { note: neighbors.previous.note_id })" class="flex min-h-touch flex-col rounded-tile bg-soft px-4 py-3 transition-colors duration-fast hover:bg-hover" aria-keyshortcuts="[" data-testid="part-previous" @click="onPartNav('previous')">
                 <span class="text-label text-fg-muted">‹ Parte {{ neighbors.previous.index }}</span>
                 <span class="font-semibold break-words text-fg-strong">{{ neighbors.previous.title }}</span>
               </NuxtLink>
-              <NuxtLink v-if="neighbors.next" :to="cadernoPath(id, { note: neighbors.next.note_id })" class="flex min-h-touch flex-col rounded-tile bg-soft px-4 py-3 text-right transition-colors duration-fast hover:bg-sunk sm:col-start-2" aria-keyshortcuts="]" data-testid="part-next" @click="onPartNav('next')">
+              <NuxtLink v-if="neighbors.next" :to="cadernoPath(id, { note: neighbors.next.note_id })" class="flex min-h-touch flex-col rounded-tile bg-soft px-4 py-3 text-right transition-colors duration-fast hover:bg-hover sm:col-start-2" aria-keyshortcuts="]" data-testid="part-next" @click="onPartNav('next')">
                 <span class="text-label text-fg-muted">Parte {{ neighbors.next.index }} ›</span>
                 <span class="font-semibold break-words text-fg-strong">{{ neighbors.next.title }}</span>
               </NuxtLink>

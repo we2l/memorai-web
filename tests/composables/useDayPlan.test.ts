@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildDayPlan, dayMinutes, type DayPlanInput } from '~/composables/useDayPlan'
+import { buildDayPlan, dayMinutes, daySubjects, subjectsText, type DayPlanInput } from '~/composables/useDayPlan'
 import type { Podcast, RecentNote, Stats, TopicProgress } from '~/types'
 
 const NOW = new Date('2026-11-02T12:00:00Z')
@@ -162,5 +162,43 @@ describe('buildDayPlan (prd-4a-hoje-v3 §5.2)', () => {
     expect(quiz.title).toBe('Questões de Controle')
     expect(quiz.detail).toBe('Acerto de 50% em 12 questões')
     expect(quiz.action.to).toBe('/simulados?topic_id=sub')
+  })
+
+  it('withoutReview (A2 RF-2.4): sem o Revisar e sem primário enquanto há cards hoje (o bloco da meta leva o primário)', () => {
+    const steps = buildDayPlan(input({ withoutReview: true }))
+    expect(steps.map(s => s.key)).toEqual(['quiz', 'listen', 'material'])
+    expect(steps.filter(s => s.primary)).toHaveLength(0)
+    // Nothing due today: the goal block has no button, so the first step carries the primary
+    const done = buildDayPlan(input({ withoutReview: true, stats: stats({ due_today: 0 }) }))
+    expect(done[0]!.key).toBe('quiz')
+    expect(done.filter(s => s.primary).map(s => s.key)).toEqual(['quiz'])
+    // Only the backlog left: "Recuperar o atraso" stays (the goal block does not offer it)
+    const backlog = { overdue: 50, pending: 50, threshold: 40, active: true, new_paused: false, pause_new: true, plan: null }
+    const late = buildDayPlan(input({ withoutReview: true, stats: stats({ due_today: 0, backlog }) }))
+    expect(late[0]!.title).toBe('Recuperar o atraso')
+    expect(late[0]!.primary).toBe(true)
+  })
+})
+
+describe('daySubjects e subjectsText (A2 RF-2.2)', () => {
+  it('as matérias com cards hoje, das que têm mais primeiro; caderno sem matéria com sessão entra por inteiro', () => {
+    const progress = [
+      topic({ id: 'trf', name: 'TRF', session_count: 13 }),
+      topic({ id: 'const', parent_id: 'trf', name: 'Direito Constitucional', session_count: 8 }),
+      topic({ id: 'ctrl', parent_id: 'const', name: 'Controle', session_count: 8 }),
+      topic({ id: 'port', parent_id: 'trf', name: 'Língua Portuguesa', session_count: 5 }),
+      topic({ id: 'adm', parent_id: 'trf', name: 'Administrativo', session_count: 0 }),
+      topic({ id: 'ing', name: 'Inglês', session_count: 6 }),
+      topic({ id: 'off', name: 'Parado', session_count: 0 }),
+    ]
+    expect(daySubjects(progress)).toEqual(['Direito Constitucional', 'Inglês', 'Língua Portuguesa'])
+    expect(daySubjects([])).toEqual([])
+  })
+
+  it('até 2 nomes, depois "e mais N"', () => {
+    expect(subjectsText([])).toBe('')
+    expect(subjectsText(['A'])).toBe('A')
+    expect(subjectsText(['A', 'B'])).toBe('A e B')
+    expect(subjectsText(['A', 'B', 'C', 'D'])).toBe('A, B e mais 2')
   })
 })

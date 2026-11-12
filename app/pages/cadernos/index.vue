@@ -31,7 +31,7 @@
         <CadernoNotebookCard :topic="t" class="w-full" />
       </li>
       <li class="flex">
-        <button type="button" class="flex min-h-40 w-full flex-col items-center justify-center gap-1.5 rounded-card bg-soft p-5 text-center transition-colors duration-fast hover:bg-sunk" data-testid="notebook-new" @click="openCreate">
+        <button type="button" class="flex min-h-40 w-full flex-col items-center justify-center gap-1.5 rounded-card bg-soft p-5 text-center transition-colors duration-fast hover:bg-hover" data-testid="notebook-new" @click="openCreate">
           <Plus class="size-5 text-fg-muted" aria-hidden="true" />
           <span class="font-semibold text-fg-strong">Novo caderno</span>
           <span class="text-meta text-fg-muted">PDF, nota, Anki ou questões coladas</span>

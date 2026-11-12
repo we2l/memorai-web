@@ -3,7 +3,7 @@
     class="fixed inset-x-0 bottom-[calc(var(--nav-h)+var(--miniplayer-h))] z-sticky flex gap-2 border-t border-hairline bg-raised px-gutter-safe py-3 short:py-1.5 md:hidden"
     data-testid="scope-review-bar"
   >
-    <UiButton variant="primary" block :to="reviewPath(topicId)" class="flex-1">Revisar hoje · {{ count }}</UiButton>
+    <UiButton variant="primary" block :to="reviewPath(topicId)" class="flex-1">Revisar hoje · {{ count.toLocaleString('pt-BR') }} {{ count === 1 ? 'card' : 'cards' }}</UiButton>
     <UiIconButton :icon="Zap" label="Relâmpago: 5 minutos, os mais urgentes" variant="subtle" :to="`/revisar?mode=blitz&topic_id=${topicId}`" />
   </div>
 </template>

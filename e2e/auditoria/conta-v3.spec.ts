@@ -80,7 +80,7 @@ test.describe('Configurações (Free)', () => {
     expect((await apiCall(page, 'GET', '/stats')).data.goal.target_batches).toBe(2)
 
     await gotoApp(page, '/hoje')
-    await expect(page.getByTestId('home-goal').locator('[role=text]')).toHaveAttribute('aria-label', /\/ 2 lotes/)
+    await expect(page.getByTestId('home-goal')).toContainText(/de 2 lotes feitos/)
   })
 
   test('o tamanho do lote salva sozinho e muda a meta do /stats e o lote da revisão', async ({ page }) => {

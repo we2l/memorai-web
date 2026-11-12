@@ -16,7 +16,7 @@
       <li v-for="(line, i) in lines" :key="i" :data-line="i">
         <button
           type="button"
-          class="w-full rounded-row px-2 py-1.5 text-left text-body transition-colors duration-fast hover:bg-soft"
+          class="w-full rounded-row px-2 py-1.5 text-left text-body transition-colors duration-fast hover:bg-hover"
           :class="i === active ? 'bg-action-subtle text-fg-strong' : 'text-fg'"
           :aria-current="i === active ? 'true' : undefined"
           @click="seek(line)"

@@ -11,7 +11,7 @@
         <UiTabs v-model="kind" :tabs="tabs" label="Como mandar o edital">
           <div v-if="kind === 'pdf'" class="flex flex-col gap-3">
             <label
-              class="flex min-h-32 cursor-pointer flex-col items-center justify-center gap-1 rounded-tile bg-soft p-5 text-center transition-colors duration-fast hover:bg-sunk has-focus-visible:outline-2 has-focus-visible:outline-focus"
+              class="flex min-h-32 cursor-pointer flex-col items-center justify-center gap-1 rounded-tile bg-soft p-5 text-center transition-colors duration-fast hover:bg-hover has-focus-visible:outline-2 has-focus-visible:outline-focus"
               data-testid="edital-file"
             >
               <FileText class="size-6 text-fg-muted" aria-hidden="true" />
@@ -72,7 +72,7 @@
             :meta="alt.pages ? `Páginas ${alt.pages.from} a ${alt.pages.to}` : undefined"
             :disabled="reading"
             data-testid="edital-alternative"
-            @click="chooseAlternative(alt.pages)"
+            @click="chooseAlternative(alt)"
           />
         </li>
       </ul>
@@ -88,9 +88,16 @@
         <p class="mt-1 text-body text-fg-muted">{{ countsText }}. Renomeie, tire ou acrescente o que quiser: nada existe até você criar.</p>
       </div>
       <EditalProposalEditor v-model="draft" :source="readResult.source" :had-date="!!originalProposal?.exam_date" />
-      <p v-if="applyError" class="text-meta text-danger" role="alert">{{ applyError }}</p>
+      <div v-if="nameTaken" role="alert" class="rounded-tile bg-warning-subtle p-4" data-testid="edital-name-taken">
+        <p class="text-body text-fg-strong">Já existe um caderno com esse nome: {{ nameTaken.name }}.</p>
+        <div class="mt-3 flex flex-wrap gap-2">
+          <UiButton variant="outline" size="sm" :to="cadernoPath(nameTaken.id)" data-testid="edital-open-existing">Abrir o existente</UiButton>
+          <UiButton variant="outline" size="sm" :loading="applying" data-testid="edital-create-anyway" @click="applyProposal(true)">Criar outro mesmo assim</UiButton>
+        </div>
+      </div>
+      <p v-else-if="applyError" class="text-meta text-danger" role="alert">{{ applyError }}</p>
       <div class="flex flex-wrap items-center gap-3">
-        <UiButton variant="primary" :loading="applying" :disabled="!canApply" data-testid="edital-apply" @click="applyProposal">Criar o caderno · {{ countsText }}</UiButton>
+        <UiButton variant="primary" :loading="applying" :disabled="!canApply" data-testid="edital-apply" @click="applyProposal()">Criar o caderno · {{ countsText }}</UiButton>
         <UiButton variant="ghost" :disabled="applying" @click="restart">Começar de novo</UiButton>
       </div>
     </template>
@@ -104,6 +111,8 @@
 // the next step (pages or paste).
 import { FileText } from 'lucide-vue-next'
 import type { EditalProposal, EditalReadResult } from '~/types'
+import { getErrorStatus } from '~/utils/apiErrors'
+import { EDITAL_NAME_TAKEN } from '~/composables/useEditalReader'
 import { editalCountsLabel, isEditalEdited, toEditalDraft, editalPayload, editalTopicsCount, EDITAL_LIMITS, type EditalDraft } from '~/utils/editalProposal'
 
 useHead({ title: 'Montar pelo edital · Baigi' })
@@ -138,6 +147,8 @@ const draft = ref<EditalDraft | null>(null)
 
 const applying = ref(false)
 const applyError = ref('')
+/** 409 caderno_name_taken: the live caderno with the same name (open it or create another) */
+const nameTaken = ref<{ id: string; name: string } | null>(null)
 
 const pages = computed(() => {
   const from = Number(pageFrom.value)
@@ -153,6 +164,8 @@ const canApply = computed(() => {
 })
 
 watch(stage, () => { void nextTick(() => heading.value?.focus()) })
+// A new name answers the warning about the twin caderno
+watch(() => draft.value?.name, () => { nameTaken.value = null })
 
 async function onFile(e: Event) {
   const input = e.target as HTMLInputElement
@@ -170,15 +183,17 @@ function openPages() {
   void nextTick(() => pageFromRef.value?.focus())
 }
 
-async function readEdital(chosen: { from: number; to: number } | null = null) {
+async function readEdital(chosen: Alternative | null = null) {
   if (reading.value) return
   reading.value = true
   readError.value = ''
-  const range = chosen ?? pages.value
-  track('edital_started', { source: kind.value, manual_pages: !!range })
+  // A pick from the list goes back as its section (the exact part the API found); old results without it, as pages
+  const section = chosen?.section ?? null
+  const range = section === null ? (chosen?.pages ?? pages.value) : null
+  track('edital_started', { source: kind.value, manual_pages: !chosen && !!range })
   try {
     const { jobId: id, result } = await reader.read(kind.value === 'pdf'
-      ? { file: file.value, pageFrom: range?.from, pageTo: range?.to }
+      ? { file: file.value, pageFrom: range?.from, pageTo: range?.to, section }
       : { text: text.value })
     jobId.value = id
     readResult.value = result
@@ -202,9 +217,11 @@ async function readEdital(chosen: { from: number; to: number } | null = null) {
   }
 }
 
-function chooseAlternative(range: { from: number; to: number } | null) {
-  if (!range) return
-  void readEdital(range)
+type Alternative = NonNullable<EditalReadResult['alternatives']>[number]
+
+function chooseAlternative(alt: Alternative) {
+  if (alt.section == null && !alt.pages) return
+  void readEdital(alt)
 }
 
 function restart() {
@@ -213,13 +230,15 @@ function restart() {
   draft.value = null
   readError.value = ''
   applyError.value = ''
+  nameTaken.value = null
 }
 
-async function applyProposal() {
+async function applyProposal(allowDuplicate = false) {
   if (!draft.value || !canApply.value) return
   applying.value = true
   applyError.value = ''
-  const body = editalPayload(draft.value)
+  nameTaken.value = null
+  const body = { ...editalPayload(draft.value), ...(allowDuplicate ? { allow_duplicate: true } : {}) }
   try {
     const res = await reader.apply(jobId.value, body)
     track('edital_applied', {
@@ -233,6 +252,11 @@ async function applyProposal() {
     if (res.exam_skipped === 'exam_limit_reached') toast.show('A prova não entrou: o Grátis tem até 2 provas ativas.', 'info')
     await navigateTo(cadernoPath(res.topic.id))
   } catch (e) {
+    const data = (e as { data?: { code?: string; topic?: { id: string; name: string } } }).data
+    if (getErrorStatus(e) === 409 && data?.code === EDITAL_NAME_TAKEN && data.topic) {
+      nameTaken.value = data.topic
+      return
+    }
     track('edital_failed', { stage: 'apply' })
     applyError.value = (e as { data?: { message?: string } }).data?.message || 'Não foi possível criar o caderno. Tente de novo.'
     reportApiError(e, { silent: true })

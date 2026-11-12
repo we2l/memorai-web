@@ -106,7 +106,7 @@ test.describe('Caderno raiz do Anki (cards só nos assuntos)', () => {
     await expect(page.getByTestId('scope-stats')).toContainText('0 de 3 em dia')
     await expect(page.getByTestId('subject-row').filter({ hasText: 'Vocabulary' })).toHaveAttribute('aria-label', /3 para hoje/)
     const cta = reviewCta(page)
-    await expect(cta).toHaveText('Revisar hoje · 3')
+    await expect(cta).toHaveText('Revisar hoje · 3 cards')
 
     const session = page.waitForResponse(r => r.url().includes(`/api/review/session?topic_id=${root.id}`))
     await cta.click()

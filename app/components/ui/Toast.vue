@@ -13,7 +13,7 @@
     <button
       v-if="action"
       type="button"
-      class="min-h-touch shrink-0 rounded-row px-3 font-semibold text-action-fg -outline-offset-2 hover:bg-soft"
+      class="min-h-touch shrink-0 rounded-row px-3 font-semibold text-action-fg -outline-offset-2 hover:bg-hover"
       @click="emit('action')"
     >
       {{ action.label }}

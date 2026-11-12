@@ -1,5 +1,5 @@
 <template>
-  <div class="flex items-center gap-3 rounded-row px-3 py-3" data-testid="material-row" :data-kind="row.kind">
+  <div class="flex items-center gap-3 rounded-icon px-3 py-3 transition-colors duration-fast hover:bg-hover" data-testid="material-row" :data-kind="row.kind">
     <UiIconTile :icon="row.kind === 'pdf' ? FileText : NotebookText" :tone="row.kind === 'pdf' ? 'action' : 'neutral'" class="self-start" />
 
     <div class="min-w-0 flex-1">

@@ -80,9 +80,9 @@ const ariaDisabled = computed(() => (inert.value && (isLink.value || props.loadi
 const PRESS = 'active:scale-97 motion-reduce:active:scale-100'
 const VARIANTS: Record<ButtonVariant, { rest: string; live: string }> = {
   primary: { rest: 'bg-action text-on-action shadow-action', live: `hover:bg-action-hover ${PRESS}` },
-  secondary: { rest: 'bg-soft text-fg-strong', live: `hover:bg-sunk ${PRESS}` },
-  outline: { rest: 'bg-raised text-fg-strong shadow-1', live: `hover:bg-soft ${PRESS}` },
-  ghost: { rest: 'text-fg-strong', live: `hover:bg-soft ${PRESS}` },
+  secondary: { rest: 'bg-soft text-fg-strong', live: `hover:bg-hover ${PRESS}` },
+  outline: { rest: 'bg-raised text-fg-strong shadow-1', live: `hover:bg-hover ${PRESS}` },
+  ghost: { rest: 'text-fg-strong', live: `hover:bg-hover ${PRESS}` },
   danger: { rest: 'bg-danger-subtle text-danger', live: `hover:shadow-1 ${PRESS}` },
 }
 const SIZES: Record<ButtonSize, string> = {

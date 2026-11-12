@@ -1,5 +1,5 @@
 <template>
-  <span class="inline-flex items-baseline text-fg-strong" :class="SIZES[size]" :aria-label="unit ? `${value} ${unit}` : undefined" :role="unit ? 'text' : undefined">
+  <span class="inline-flex items-baseline text-fg-strong" :class="[SIZES[size], weight === 'normal' && 'n-normal']" :aria-label="unit ? `${value} ${unit}` : undefined" :role="unit ? 'text' : undefined">
     <span :aria-hidden="unit ? 'true' : undefined">{{ value }}</span>
     <span v-if="unit" data-unit aria-hidden="true">{{ unit }}</span>
   </span>
@@ -12,14 +12,25 @@
 withDefaults(defineProps<{
   value: string | number
   unit?: string
-  /** xl 76 · l 52 · m 38 · s 28 px */
-  size?: 'xl' | 'l' | 'm' | 's'
-}>(), { unit: undefined, size: 'm' })
+  /** xl 76 · hero 56 · l 52 · m 38 · s 28 px */
+  size?: 'xl' | 'hero' | 'l' | 'm' | 's'
+  /** normal: the Fraunces 400 of a secondary number beside the main one (A2, ADR-037: domínio and acerto of the hub) */
+  weight?: 'semibold' | 'normal'
+}>(), { unit: undefined, size: 'm', weight: 'semibold' })
 
-const SIZES = { xl: 'num-xl', l: 'num-l', m: 'num-m', s: 'num-s' } as const
+// hero (A2, the "Revisar hoje" of the hub): num-l at 56 px, in the scoped style (no new utility in entry.css)
+const SIZES = { xl: 'num-xl', hero: 'num-l n-hero', l: 'num-l', m: 'num-m', s: 'num-s' } as const
 </script>
 
 <style scoped>
+.n-hero {
+  font-size: 3.5rem;
+}
+
+.n-normal {
+  font-weight: 400;
+}
+
 [data-unit] {
   font-family: var(--font-sans);
   font-size: max(0.42em, 0.875rem);

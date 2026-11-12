@@ -7,7 +7,7 @@
         <button
           v-if="showAiHint"
           type="button"
-          class="flex w-full items-center gap-2 rounded-row bg-action-subtle px-3 py-2.5 text-left transition-colors duration-fast hover:bg-soft"
+          class="flex w-full items-center gap-2 rounded-row bg-action-subtle px-3 py-2.5 text-left transition-colors duration-fast hover:bg-hover"
           @click="openUpgrade"
         >
           <Lightbulb class="size-4 text-action-fg" aria-hidden="true" />

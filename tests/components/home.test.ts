@@ -8,6 +8,7 @@ import HomeBacklog from '~/components/home/HomeBacklog.vue'
 import HomePlan from '~/components/home/HomePlan.vue'
 import HomeExam from '~/components/home/HomeExam.vue'
 import HomeNotebooks from '~/components/home/HomeNotebooks.vue'
+import HomeMetrics from '~/components/home/HomeMetrics.vue'
 import ActivationChecklist from '~/components/ui/ActivationChecklist.vue'
 import { buildDayPlan } from '~/composables/useDayPlan'
 import type { ExamUpcoming, Stats, TopicProgress } from '~/types'
@@ -57,8 +58,11 @@ describe('HomeGreeting', () => {
   it('com plano: "Bom dia, Ana", data com os minutos e o chip da sequência; sem lilás (a prova é o bloco lilás)', async () => {
     const w = await mountSuspended(HomeGreeting, { props: { stats: stats(), userName: 'Rafael Souza', minutes: 34 }, attachTo: document.body })
     expect(w.get('h1').text()).toMatch(/^(Bom dia|Boa tarde|Boa noite), Rafael$/)
-    expect(w.get('[data-testid="hero-subline"]').text()).toBe('uns 35 minutos hoje')
+    expect(w.get('[data-testid="hero-subline"]').text()).toBe('uns 35 min hoje')
+    // A2 RF-2.1: the chip on the date line, the mascot beside the two lines
     expect(w.get('[data-testid="hero-streak"]').text()).toBe('6 dias seguidos de estudo')
+    expect(w.get('h1 + p').find('[data-testid="hero-streak"]').exists()).toBe(true)
+    expect(w.get('picture img').attributes('alt')).toBe('')
     expect(w.findAll('.bg-tinted')).toHaveLength(0)
     expect(apiMock).not.toHaveBeenCalled()
     expect(await axeViolations(w.element)).toEqual([])
@@ -116,6 +120,17 @@ describe('HomeGreeting', () => {
     useState('plans').value = null
   })
 
+  it('o golfinho entra com fade só na 1ª visita do dia neste aparelho (RN-5); sem storage, sem fade', async () => {
+    const first = await mountSuspended(HomeGreeting, { props: { stats: stats(), userName: 'Ana' } })
+    expect(first.get('picture').attributes('data-fade')).toBeDefined()
+    expect(localStorage.getItem(`baigi-greet-${studyDay()}`)).toBe('1')
+    const again = await mountSuspended(HomeGreeting, { props: { stats: stats(), userName: 'Ana' } })
+    expect(again.get('picture').attributes('data-fade')).toBeUndefined()
+    vi.stubGlobal('localStorage', { getItem: () => { throw new Error('blocked') }, setItem: () => { throw new Error('blocked') } })
+    const blocked = await mountSuspended(HomeGreeting, { props: { stats: stats(), userName: 'Ana' } })
+    expect(blocked.get('picture').attributes('data-fade')).toBeUndefined()
+  })
+
   it('carregando: skeleton', async () => {
     const w = await mountSuspended(HomeGreeting, { props: { stats: null, loading: true } })
     expect(w.find('[data-testid="skeleton"]').exists()).toBe(true)
@@ -126,35 +141,92 @@ describe('HomeGreeting', () => {
 describe('HomeGoal', () => {
   const history = (dates: string[]) => ({ from: dates[0] ?? '', to: '', days: dates.map(date => ({ date, reviews: 10 })), max: 10 })
 
-  it('anel com "1 / 3 lotes", minutos, a semana com hoje no fim e o anel desenhado uma vez por dia', async () => {
+  it('bloco principal: anel "1/3 lotes", "Falta 2 lotes, cerca de 10 min" sem "min" sozinho, as matérias e o único primário "Começar · N cards"', async () => {
     const today = studyDay()
     const yesterday = studyDay(new Date(Date.now() - 86_400_000))
-    const w = await mountSuspended(HomeGoal, { props: { stats: stats(), history: history([yesterday]) }, attachTo: document.body })
-    expect(w.get('[data-testid="home-goal"] [role="text"]').attributes('aria-label')).toBe('1 / 3 lotes')
-    expect(w.text()).toContain('Meta de hoje · cerca de 10 min')
+    const w = await mountSuspended(HomeGoal, {
+      props: { stats: stats(), history: history([yesterday]), subjects: ['Direito Constitucional', 'Língua Portuguesa', 'Inglês'] },
+      attachTo: document.body,
+    })
+    expect(w.get('section').classes()).toContain('shadow-2')
+    expect(w.get('[data-testid="home-goal"]').text()).toContain('1 de 3 lotes feitos')
+    expect(w.text()).toContain('Meta de hoje')
+    expect(w.get('h2').text()).toBe('Falta 2\u00A0lotes, cerca de 10\u00A0min')
+    expect(w.get('[data-testid="home-goal-subjects"]').text()).toBe('45 cards de Direito Constitucional, Língua Portuguesa e mais 1')
+    const start = w.get('[data-testid="home-goal-start"]')
+    expect(start.text()).toBe('Começar · 45 cards')
+    expect(start.attributes('href')).toBe('/revisar')
+    expect(w.findAll('.bg-action.shadow-action')).toHaveLength(1)
+    expect(w.text()).not.toContain('Lembrei segue sozinho')
     const days = w.findAll('[data-testid="ui-week-strip"] li')
     expect(days).toHaveLength(7)
     expect(days[6]!.attributes('data-state')).toBe('today')
     expect(days[5]!.attributes('data-state')).toBe('done')
     expect(w.get('[data-part="prog"]').attributes('data-draw')).toBeDefined()
     expect(localStorage.getItem(`baigi-ring-drawn-${today}`)).toBe('1')
+    await start.trigger('click')
+    expect(w.emitted('start')).toHaveLength(1)
+    expect(await axeViolations(w.element)).toEqual([])
+    document.documentElement.classList.add('dark')
     expect(await axeViolations(w.element)).toEqual([])
     const again = await mountSuspended(HomeGoal, { props: { stats: stats(), history: null } })
     expect(again.get('[data-part="prog"]').attributes('data-draw')).toBeUndefined()
     expect(again.find('[data-testid="ui-week-strip"]').exists()).toBe(false)
+    expect(again.get('[data-testid="home-goal-subjects"]').text()).toBe('45 cards para hoje')
   })
 
-  it('meta cumprida celebra uma vez por dia neste aparelho e registra o evento', async () => {
+  it('meta feita: "Meta de hoje feita", "Revisar mais um lote" se ainda há cards, sem botão se não há; celebra uma vez por dia', async () => {
     const met = stats({ due_today: 0, goal: { batch_size: 20, target_batches: 3, done_batches: 3, met: true, minutes_left: 0 } })
     const first = await mountSuspended(HomeGoal, { props: { stats: met, history: null } })
     await flushPromises()
-    expect(first.text()).toContain('Meta de hoje cumprida')
+    expect(first.get('h2').text()).toBe('Meta de hoje feita')
+    expect(first.find('[data-testid="home-goal-start"]').exists()).toBe(false)
     expect(first.find('[role="status"]').text()).toContain('Meta cumprida')
     expect(trackMock).toHaveBeenCalledWith('home_goal_met', { target_batches: 3 })
     first.unmount()
-    const again = await mountSuspended(HomeGoal, { props: { stats: met, history: null } })
-    expect(again.find('[role="status"]').exists()).toBe(false)
+    const more = await mountSuspended(HomeGoal, { props: { stats: { ...met, due_today: 12 }, history: null } })
+    expect(more.get('[data-testid="home-goal-start"]').text()).toBe('Revisar mais um lote')
+    expect(more.get('[data-testid="home-goal-subjects"]').text()).toBe('12 cards ainda para hoje')
+    expect(more.find('[role="status"]').exists()).toBe(false)
     expect(trackMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('o que o passo Revisar levava vem junto: atraso, "Recuperar atraso" e o modo recuperação com "Desligar"', async () => {
+    const review = { key: 'review', mode: 'review', title: '', detail: '', action: { label: 'Começar', to: '/revisar' }, primary: false, minutes: 12, overdue: 893, survival: undefined } as never
+    const w = await mountSuspended(HomeGoal, { props: { stats: stats(), review } })
+    expect(w.get('a[href="/praticar"]').text()).toBe('Recuperar atraso')
+    const survival = await mountSuspended(HomeGoal, { props: { stats: stats(), review: { ...(review as object), survival: true } as never } })
+    await survival.findAll('button').find(b => b.text() === 'Desligar')!.trigger('click')
+    expect(survival.emitted('survival-off')).toHaveLength(1)
+  })
+
+  it('com o cartão do atraso como principal: cartão secundário sem botão; carregando: o formato do bloco', async () => {
+    const side = await mountSuspended(HomeGoal, { props: { stats: stats(), primary: false } })
+    expect(side.get('section').classes()).toContain('shadow-1')
+    expect(side.find('[data-testid="home-goal-start"]').exists()).toBe(false)
+    const loading = await mountSuspended(HomeGoal, { props: { stats: null, loading: true } })
+    expect(loading.get('section').attributes('aria-busy')).toBe('true')
+    expect(loading.find('[data-testid="skeleton"]').exists()).toBe(true)
+  })
+})
+
+describe('HomeMetrics', () => {
+  it('3 métricas soltas: sequência, dias estudados na semana e lembrados em 30 dias', async () => {
+    const history = { from: '', to: '', days: [{ date: '2026-11-10', reviews: 3 }, { date: '2026-11-11', reviews: 0 }, { date: '2026-11-12', reviews: 9 }], max: 9 }
+    const w = await mountSuspended(HomeMetrics, { props: { stats: stats({ streak: 3 }), history, retention: 81 }, attachTo: document.body })
+    expect(w.get('[data-testid="home-metric-streak"]').text()).toContain('3dias seguidos')
+    expect(w.get('[data-testid="home-metric-week"]').text()).toContain('2dias estudados na semana')
+    expect(w.get('[data-testid="home-metric-retention"]').text()).toContain('81%lembrados em 30 dias')
+    expect(w.findAll('.bg-raised, .shadow-1')).toHaveLength(0)
+    expect(await axeViolations(w.element)).toEqual([])
+  })
+
+  it('métrica sem dado some (nunca "0" nem "0%"); nenhuma = nada', async () => {
+    const one = await mountSuspended(HomeMetrics, { props: { stats: stats({ streak: 1 }), history: null, retention: null } })
+    expect(one.findAll('li')).toHaveLength(1)
+    expect(one.text()).toContain('1dia seguido')
+    const none = await mountSuspended(HomeMetrics, { props: { stats: stats({ streak: 0 }), history: { from: '', to: '', days: [], max: 0 }, retention: 0 } })
+    expect(none.find('ul').exists()).toBe(false)
   })
 })
 
@@ -271,7 +343,7 @@ describe('HomeNotebooks', () => {
     const topics = [
       t({ id: 'a', session_count: 3 }),
       t({ id: 'sub', parent_id: 'a', session_count: 99 }),
-      t({ id: 'b', session_count: 45, color: 'purple' }),
+      t({ id: 'b', name: 'Banco do Brasil', session_count: 45, color: 'purple' }),
       t({ id: 'c', last_reviewed_at: '2026-11-01T10:00:00Z' }),
       t({ id: 'd', flashcards_count: 0 }),
       t({ id: 'e', flashcards_count: 500 }),
@@ -282,16 +354,19 @@ describe('HomeNotebooks', () => {
     expect(rows.map(r => r.attributes('href'))).toEqual(['b', 'a', 'c', 'e', 'f'].map(id => `/cadernos/${id}`))
     expect(w.text()).not.toContain('sub')
     expect(w.text()).toContain('Ver todos (6)')
-    expect(rows[0]!.text()).toContain('1 material · 45 para hoje')
-    expect(rows[2]!.text()).toContain('em dia')
-    expect(rows[0]!.get('[role="progressbar"]').attributes('aria-label')).toBe('Domínio de b: 41%')
+    expect(rows[0]!.get('[data-testid="notebook-meta"]').text()).toBe('45 para hoje · 41% de domínio')
+    expect(rows[2]!.get('[data-testid="notebook-meta"]').text()).toBe('em dia · 41% de domínio')
+    // The cover with the initials, decorative (the name sits beside it)
+    expect(rows[0]!.get('span.text-raised').text()).toBe('BB')
+    expect(rows[0]!.get('[role="progressbar"]').attributes('aria-label')).toBe('Domínio de Banco do Brasil: 41%')
     expect(await axeViolations(w.element)).toEqual([])
   })
 
-  it('caderno sem cards é "novo"; erro tem "Tentar de novo"', async () => {
-    const w = await mountSuspended(HomeNotebooks, { props: { topics: [t({ id: 'x', flashcards_count: 0, progress: 0 })] } })
-    expect(w.text()).toContain('novo')
-    expect(w.text()).toContain('1 material · 0 cards')
+  it('caderno sem cards ou sem domínio está "começando", sem barra; erro tem "Tentar de novo"', async () => {
+    const w = await mountSuspended(HomeNotebooks, { props: { topics: [t({ id: 'x', flashcards_count: 0, progress: 0 }), t({ id: 'y', progress: 0, session_count: 8 })] } })
+    const metas = w.findAll('[data-testid="notebook-meta"]').map(m => m.text())
+    expect(metas).toEqual(['8 para hoje · começando', '1 material · começando'])
+    expect(w.findAll('[role="progressbar"]')).toHaveLength(1)
     expect(w.get('a[href="/cadernos"]').text()).toBe('Ver todos')
     const err = await mountSuspended(HomeNotebooks, { props: { topics: [], error: true } })
     expect(err.text()).toContain('Não foi possível carregar seus cadernos')

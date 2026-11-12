@@ -10,7 +10,7 @@
     <div v-if="loading">
       <UiSkeleton v-for="i in 3" :key="i" variant="row" />
     </div>
-    <ul v-else class="-mx-2 -my-1.5 divide-y divide-hairline">
+    <ul v-else class="-mx-3 -my-1.5 divide-y divide-hairline">
       <HomePlanStep
         v-for="step in steps"
         :key="step.key"
@@ -25,7 +25,8 @@
 
 <script setup lang="ts">
 // "Plano do dia", E2 (prd-visual-e2 RF-3.4): a list of modes from buildDayPlan, each with the icon of its mode, split
-// by the hairline. Only the first step carries the primary button; the others are whole-row links. Loading keeps the
+// by the hairline. Only the first step carries the primary button; the others are whole-row links. A2 (RF-2.4): under
+// the goal block it is "Também para hoje", without the Revisar step and usually without a primary. Loading keeps the
 // footprint (3 rows); an error of /stats never turns into "Tudo em dia" (RN-UX-03).
 import type { DayPlanStep } from '~/composables/useDayPlan'
 

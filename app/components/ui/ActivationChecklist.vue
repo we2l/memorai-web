@@ -34,7 +34,7 @@
           :is="item.to ? NuxtLink : 'button'"
           v-else
           v-bind="item.to ? { to: item.to } : { type: 'button' }"
-          class="flex min-h-touch w-full items-center gap-3 rounded-row px-2 py-2 text-left transition-colors duration-fast hover:bg-soft"
+          class="flex min-h-touch w-full items-center gap-3 rounded-row px-2 py-2 text-left transition-colors duration-fast hover:bg-hover"
           @click="select(item.key)"
         >
           <span class="size-6 shrink-0 rounded-tag bg-soft" aria-hidden="true" />

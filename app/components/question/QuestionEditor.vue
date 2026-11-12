@@ -82,7 +82,7 @@
           :key="r.value"
           type="button"
           class="inline-flex min-h-touch items-center rounded-control border px-3 text-meta font-medium transition-colors duration-fast"
-          :class="q.error_reason === r.value ? 'border-action bg-action-subtle text-action-fg' : 'border-line-strong bg-raised text-fg hover:bg-soft'"
+          :class="q.error_reason === r.value ? 'border-action bg-action-subtle text-action-fg' : 'border-line-strong bg-raised text-fg hover:bg-hover'"
           :aria-pressed="q.error_reason === r.value"
           :data-testid="`question-reason-${r.value}`"
           @click="set({ error_reason: q.error_reason === r.value ? '' : r.value })"

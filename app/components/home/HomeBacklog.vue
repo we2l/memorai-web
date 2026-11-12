@@ -1,5 +1,5 @@
 <template>
-  <UiSection data-testid="home-backlog" aria-label="Cards atrasados">
+  <UiSection variant="primary" data-testid="home-backlog" aria-label="Cards atrasados">
     <div class="flex items-center gap-3.5">
       <UiIconTile :icon="Hourglass" tone="streak" size="lg" />
       <div class="min-w-0">

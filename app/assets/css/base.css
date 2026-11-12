@@ -21,6 +21,11 @@
     color: var(--fg-strong);
   }
 
+  /* Title scale in Bricolage (ADR-037); everything else stays Inter */
+  .text-display, .text-page-title, .text-section {
+    font-family: var(--font-display);
+  }
+
   body {
     background-color: var(--surface-page);
     /* dvh: o 100vh do Safari do iOS conta as barras recolhidas e deixa a página curta rolando */

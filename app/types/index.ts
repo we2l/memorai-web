@@ -1057,10 +1057,10 @@ export interface EditalTopicDraft { name: string; description: string | null }
 export interface EditalSubjectDraft { name: string; topics: EditalTopicDraft[] }
 export interface EditalProposal { name: string; exam_date: string | null; subjects: EditalSubjectDraft[] }
 export interface EditalReadResult {
-  /** choose = a Diário with more than one edital: read again with the pages of one */
+  /** choose = a Diário with more than one edital: read again with the `section` of one */
   status: 'ready' | 'choose'
   proposal: EditalProposal | null
-  alternatives?: { label: string; pages: { from: number; to: number } | null }[]
+  alternatives?: { section?: number; label: string; pages: { from: number; to: number } | null }[]
   source: { kind: 'pdf' | 'text'; pages: { from: number; to: number } | null; total_pages: number | null; found: 'heading' | 'whole' | 'manual' | 'text'; truncated: boolean }
   counts: { subjects: number; topics: number }
   applied_topic_id: string | null

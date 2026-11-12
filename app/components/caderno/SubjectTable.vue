@@ -8,7 +8,7 @@
 
     <template v-else>
       <!-- Column names (desktop); each row says its own numbers to a screen reader -->
-      <div class="hidden grid-cols-[minmax(0,1fr)_8.5rem_8.5rem_3rem] gap-4 pb-2 pl-2 pr-13 text-label text-fg-muted md:grid" aria-hidden="true">
+      <div class="hidden grid-cols-[minmax(0,1fr)_8.5rem_8.5rem_3rem] gap-4 pb-2 pl-2 text-label text-fg-muted md:grid" :class="hasToggles ? 'pr-41' : 'pr-13'" aria-hidden="true">
         <span>{{ depthLabel }}</span>
         <span>Domínio dos cards</span>
         <span>Acerto em questões</span>
@@ -48,6 +48,21 @@
             </span>
             <span class="hidden text-right font-semibold tabular-nums text-fg-strong md:block" aria-hidden="true">{{ row.s.session_count }}</span>
           </NuxtLink>
+          <!-- Same slot on every row, so the columns line up with the header -->
+          <span v-if="hasToggles" class="flex w-12 shrink-0 justify-end md:w-28">
+            <button
+              v-if="row.level === 1 && childCount(row.s) > 0"
+              type="button"
+              class="flex min-h-touch items-center gap-1 rounded-row px-2 text-meta text-fg-muted transition-colors duration-fast hover:bg-soft"
+              :aria-expanded="isOpen(row.s)"
+              :aria-label="`${childCount(row.s)} ${childCount(row.s) === 1 ? 'assunto' : 'assuntos'} de ${row.s.name}`"
+              data-testid="subject-toggle"
+              @click="toggle(row.s)"
+            >
+              <span class="tabular-nums">{{ childCount(row.s) }}</span><span class="hidden md:inline">{{ childCount(row.s) === 1 ? 'assunto' : 'assuntos' }}</span>
+              <ChevronDown class="size-4 shrink-0 transition-transform duration-fast" :class="isOpen(row.s) && 'rotate-180'" aria-hidden="true" />
+            </button>
+          </span>
           <UiMenu :items="menuOf(row.s)" :label="`Mais ações de ${row.s.name}`" />
         </li>
       </ul>
@@ -59,8 +74,9 @@
 // Matérias e assuntos of the scope (prd-4b-caderno-v3 RF-F5): up to 2 levels below it, each with the
 // mastery of its cards (purple bar), the accuracy in questions (neutral bar, only with ≥ 10 answered) and
 // "Hoje" (its session, a black number). The row is a link to the same hub with the smaller scope, with a ⋯ beside
-// it (Mover para…, Excluir); on the phone the numbers go to a second line (no horizontal scroll).
-import { Plus } from 'lucide-vue-next'
+// it (Mover para…, Excluir); on the phone the numbers go to a second line (no horizontal scroll). The assuntos of a
+// matéria stay closed behind "N assuntos" (aria-expanded) until opened.
+import { ChevronDown, Plus } from 'lucide-vue-next'
 import type { MenuItem } from '~/components/ui/Menu.vue'
 import type { ScopeSubject } from '~/types'
 
@@ -79,13 +95,22 @@ const title = computed(() => (props.scopeDepth === 0 ? 'Matérias' : 'Assuntos')
 const depthLabel = computed(() => (props.scopeDepth === 0 ? 'Matéria e assunto' : 'Assunto'))
 const addLabel = computed(() => (props.scopeDepth === 0 ? 'Matéria' : 'Assunto'))
 
-/** Each first-level subject followed by its children, in the API order (position). */
+const kids = (s: ScopeSubject) => props.subjects.filter(c => c.parent_id === s.id)
+const childCount = (s: ScopeSubject) => kids(s).length
+const hasToggles = computed(() => props.subjects.some(s => s.depth === props.scopeDepth + 2))
+
+/** Assuntos closed by default (an edital brings dozens); a matéria with a weak assunto starts open */
+const opened = ref<Record<string, boolean>>({})
+const isOpen = (s: ScopeSubject) => opened.value[s.id] ?? kids(s).some(c => c.weak)
+const toggle = (s: ScopeSubject) => { opened.value = { ...opened.value, [s.id]: !isOpen(s) } }
+
+/** Each first-level subject followed by its children when open, in the API order (position). */
 const rows = computed(() => {
   const top = props.subjects.filter(s => s.depth === props.scopeDepth + 1)
   const out: { s: ScopeSubject; level: 1 | 2; index: number }[] = []
   top.forEach((s, index) => {
     out.push({ s, level: 1, index })
-    for (const child of props.subjects) if (child.parent_id === s.id) out.push({ s: child, level: 2, index })
+    if (isOpen(s)) for (const child of kids(s)) out.push({ s: child, level: 2, index })
   })
   return out
 })

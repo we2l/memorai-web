@@ -28,6 +28,7 @@
 // utils/navigation.ts (anchors of /configuracoes); Aparência is the theme composable of the Fase 1
 // (Sistema/Claro/Escuro, radio items); Sair runs the single logout flow. Replaces the sidebar footer,
 // the "Mais" sheet and their theme toggles.
+import { Monitor, Moon, Sun } from 'lucide-vue-next'
 import type { MenuItem } from '~/components/ui/Menu.vue'
 import { accountItems } from '~/utils/navigation'
 import { formatBillingDayMonth } from '~/utils/billing'
@@ -62,10 +63,11 @@ const planItem = computed<MenuItem>(() => {
   return { label, meta: 'Gerenciar', to: '/configuracoes#plano' }
 })
 
+// "Tema" with the sun and moon (the owner did not find the dark mode under "Aparência", 12/11/2026; ADR-037)
 const THEMES = [
-  { value: 'system', label: 'Sistema' },
-  { value: 'light', label: 'Claro' },
-  { value: 'dark', label: 'Escuro' },
+  { value: 'system', label: 'Igual ao sistema', icon: Monitor },
+  { value: 'light', label: 'Claro', icon: Sun },
+  { value: 'dark', label: 'Escuro', icon: Moon },
 ] as const
 
 const items = computed<MenuItem[]>(() => {
@@ -73,7 +75,7 @@ const items = computed<MenuItem[]>(() => {
   for (const item of accountItems) {
     if (item.key === 'aparencia') {
       for (const t of THEMES) {
-        out.push({ label: t.label, group: item.label, checked: preference.value === t.value, onSelect: () => set(t.value) })
+        out.push({ label: t.label, icon: t.icon, group: 'Tema', checked: preference.value === t.value, onSelect: () => set(t.value) })
       }
     } else if (item.key === 'sair') {
       out.push({ label: item.label, tone: 'danger', onSelect: () => { void logout() } })

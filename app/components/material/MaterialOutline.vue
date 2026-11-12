@@ -24,7 +24,7 @@
         <li v-for="h in headings" :key="h.index">
           <button
             type="button"
-            class="flex min-h-touch w-full items-center rounded-row py-1.5 pr-3 text-left text-meta transition-colors duration-fast hover:bg-soft"
+            class="flex min-h-touch w-full items-center rounded-row py-1.5 pr-3 text-left text-meta transition-colors duration-fast hover:bg-hover"
             :class="[INDENT[h.level], h.index === active ? 'font-semibold text-action-fg' : 'text-fg']"
             :aria-current="h.index === active ? 'location' : undefined"
             data-testid="outline-heading"

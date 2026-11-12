@@ -19,7 +19,7 @@
           <NuxtLink
             :to="cadernoPath(row.s.id)"
             :aria-label="accessibleName(row.s)"
-            class="block min-h-touch min-w-0 flex-1 rounded-row px-2 py-3 transition-colors duration-fast hover:bg-soft md:grid md:grid-cols-[minmax(0,1fr)_8.5rem_8.5rem_3rem] md:items-center md:gap-4"
+            class="block min-h-touch min-w-0 flex-1 rounded-row px-2 py-3 transition-colors duration-fast hover:bg-hover md:grid md:grid-cols-[minmax(0,1fr)_8.5rem_8.5rem_3rem] md:items-center md:gap-4"
             data-testid="subject-row"
             @click="$emit('open', row.s)"
           >

@@ -1,5 +1,5 @@
 <template>
-  <span class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-chip font-semibold" :class="[TONES[tone], size === 'lg' ? 'min-h-8.5 px-3 text-body-sm' : 'min-h-7 px-2.75 text-label']">
+  <span class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-chip font-semibold" :class="[TONES[tone], SIZES[size]]">
     <span v-if="tone === 'quiz' || tone === 'listen'" class="size-1.5 shrink-0 rounded-full" :class="tone === 'quiz' ? 'bg-quiz' : 'bg-listen'" aria-hidden="true" />
     <component :is="icon" v-if="icon" class="size-4 shrink-0" :class="ICON_TONES[tone]" aria-hidden="true" />
     <slot />
@@ -15,7 +15,10 @@ import type { Component } from 'vue'
 
 export type TagTone = 'neutral' | 'action' | 'brand' | 'streak' | 'goal' | 'success' | 'warning' | 'danger' | 'info' | 'quiz' | 'listen'
 
-withDefaults(defineProps<{ tone?: TagTone; icon?: Component; size?: 'md' | 'lg' }>(), { tone: 'neutral', icon: undefined, size: 'md' })
+withDefaults(defineProps<{ tone?: TagTone; icon?: Component; size?: 'sm' | 'md' | 'lg' }>(), { tone: 'neutral', icon: undefined, size: 'md' })
+
+/** sm (A2, ADR-037): 24 px beside a big number, on its baseline ("78 de 100 · Bem preparado"); text stays 13 px */
+const SIZES = { sm: 'min-h-6 px-2 text-label', md: 'min-h-7 px-2.75 text-label', lg: 'min-h-8.5 px-3 text-body-sm' }
 
 const TONES: Record<TagTone, string> = {
   neutral: 'bg-soft text-fg-muted',

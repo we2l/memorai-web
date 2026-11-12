@@ -8,7 +8,7 @@
           :key="btn.label"
           type="button"
           class="inline-flex size-8 items-center justify-center rounded-row transition-colors duration-fast"
-          :class="btn.active() ? 'bg-action-subtle text-action-fg' : 'text-fg-muted hover:bg-soft hover:text-fg-strong'"
+          :class="btn.active() ? 'bg-action-subtle text-action-fg' : 'text-fg-muted hover:bg-sunk hover:text-fg-strong'"
           :title="btn.label"
           :aria-label="btn.label"
           :aria-pressed="btn.toggle ? (btn.active() ? 'true' : 'false') : undefined"
@@ -23,7 +23,7 @@
         <button
           type="button"
           class="inline-flex size-8 items-center justify-center rounded-row transition-colors duration-fast"
-          :class="recording ? 'bg-danger-subtle text-danger' : 'text-fg-muted hover:bg-soft hover:text-fg-strong'"
+          :class="recording ? 'bg-danger-subtle text-danger' : 'text-fg-muted hover:bg-sunk hover:text-fg-strong'"
           :title="recording ? 'Parar gravação' : 'Gravar áudio'"
           :aria-label="recording ? 'Parar gravação' : 'Gravar áudio'"
           @click="toggleRecording"

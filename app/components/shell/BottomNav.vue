@@ -39,14 +39,15 @@ function track(item: PlaceKey) {
 </script>
 
 <style scoped>
+/* White bar over the tinted page (A2, ADR-037); 96% so the page text does not read through the labels (sweep 12/11) */
 .bottomnav {
-  background: var(--surface-page);
+  background: var(--surface-raised);
   box-shadow: 0 -1px 0 var(--hairline);
 }
 @supports (backdrop-filter: blur(1px)) {
   @media (prefers-reduced-transparency: no-preference) {
     .bottomnav {
-      background: color-mix(in srgb, var(--surface-page) 88%, transparent);
+      background: color-mix(in srgb, var(--surface-raised) 96%, transparent);
       backdrop-filter: blur(16px) saturate(1.4);
     }
   }

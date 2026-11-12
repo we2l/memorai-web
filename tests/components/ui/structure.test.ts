@@ -87,7 +87,7 @@ describe('UiListRow', () => {
     })
     expect(w.element.tagName).toBe('A')
     expect(w.attributes('href')).toBe('/cadernos/1')
-    expect(w.classes()).toEqual(expect.arrayContaining(['min-h-touch', 'hover:bg-soft']))
+    expect(w.classes()).toEqual(expect.arrayContaining(['min-h-touch', 'hover:bg-hover']))
     expect(w.text()).toContain('Português')
     expect(w.text()).toContain('12 hoje')
     expect(w.text()).toContain('62%')
@@ -111,7 +111,7 @@ describe('UiListRow', () => {
     expect(onClick).toHaveBeenCalled()
     const div = await mountSuspended(ListRow, { props: { title: 'Fixa' } })
     expect(div.element.tagName).toBe('DIV')
-    expect(div.classes()).not.toContain('hover:bg-soft')
+    expect(div.classes()).not.toContain('hover:bg-hover')
   })
 })
 

@@ -14,7 +14,7 @@
 
     <button
       type="button"
-      class="mt-3 flex min-h-touch w-full items-center justify-between gap-2 rounded-row px-2 text-left text-meta font-medium text-fg-strong transition-colors duration-fast hover:bg-soft"
+      class="mt-3 flex min-h-touch w-full items-center justify-between gap-2 rounded-row px-2 text-left text-meta font-medium text-fg-strong transition-colors duration-fast hover:bg-hover"
       :aria-expanded="open"
       :aria-controls="listId"
       data-testid="edital-subject-toggle"

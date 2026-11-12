@@ -3,9 +3,9 @@
     :is="tag"
     v-bind="bindings"
     :aria-current="active ? (isLink ? 'page' : 'true') : undefined"
-    class="flex w-full min-h-touch items-center gap-3 rounded-row px-3 py-3 text-left"
+    class="flex w-full min-h-touch items-center gap-3 rounded-icon px-3 py-3 text-left"
     :class="[
-      active ? 'bg-action-subtle' : interactive && 'hover:bg-soft',
+      active ? 'bg-action-subtle' : interactive && 'hover:bg-hover',
       interactive && 'transition-colors duration-fast',
     ]"
   >

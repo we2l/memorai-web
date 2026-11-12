@@ -19,12 +19,14 @@
 // (shadow-1, radius 20) on the white page, no border; at most one `tinted` block (lilac, radius 24, an inner ring
 // in the dark) per screen (dev warning); `tile` is the soft square of a metric or a support block (radius 16);
 // `plain` has no surface. Inside, rows split with the hairline. Replaces `card`, `card-base` and hand-made boxes.
+// A2 (ADR-037): the page is tinted, so `raised` is the secondary card (ring + 1 px shadow, padding 20) and
+// `primary` is the one main block of a screen (radius 24, deep shadow, padding 24; dev warning past one).
 const props = withDefaults(defineProps<{
   title?: string
   /** Small label above the title (12/600) */
   label?: string
   description?: string
-  variant?: 'raised' | 'tinted' | 'tile' | 'plain'
+  variant?: 'primary' | 'raised' | 'tinted' | 'tile' | 'plain'
   /** Heading level of the title */
   level?: 2 | 3 | 4
   as?: string
@@ -48,10 +50,12 @@ const surfaceClass = computed(() => {
     tinted: 'bg-tinted shadow-tinted rounded-hero',
     tile: 'bg-soft rounded-tile',
     raised: 'bg-raised shadow-1 rounded-card',
+    primary: 'bg-raised shadow-2 rounded-hero',
   }[props.variant]
-  const pad = props.variant === 'tile' ? 'p-4' : 'p-5 sm:p-6'
+  const pad = { tile: 'p-4', raised: 'p-5', primary: 'p-5 sm:p-6', tinted: 'p-5 sm:p-6' }[props.variant]
   return `${surface} ${props.flush ? '' : pad}`
 })
 
 useScopedLimit('UiSection variant="tinted"', () => root.value, () => props.variant === 'tinted')
+useScopedLimit('UiSection variant="primary"', () => root.value, () => props.variant === 'primary')
 </script>

@@ -41,7 +41,7 @@
           <div class="flex items-center gap-1">
             <button
               type="button"
-              class="flex min-h-touch min-w-0 flex-1 items-center gap-2 rounded-row px-1 text-left hover:bg-soft"
+              class="flex min-h-touch min-w-0 flex-1 items-center gap-2 rounded-row px-1 text-left hover:bg-hover"
               :aria-expanded="expanded === i"
               :aria-controls="`question-panel-${i}`"
               :data-testid="`question-row-${i}`"

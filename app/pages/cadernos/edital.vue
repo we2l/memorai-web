@@ -11,7 +11,7 @@
         <UiTabs v-model="kind" :tabs="tabs" label="Como mandar o edital">
           <div v-if="kind === 'pdf'" class="flex flex-col gap-3">
             <label
-              class="flex min-h-32 cursor-pointer flex-col items-center justify-center gap-1 rounded-tile bg-soft p-5 text-center transition-colors duration-fast hover:bg-sunk has-focus-visible:outline-2 has-focus-visible:outline-focus"
+              class="flex min-h-32 cursor-pointer flex-col items-center justify-center gap-1 rounded-tile bg-soft p-5 text-center transition-colors duration-fast hover:bg-hover has-focus-visible:outline-2 has-focus-visible:outline-focus"
               data-testid="edital-file"
             >
               <FileText class="size-6 text-fg-muted" aria-hidden="true" />

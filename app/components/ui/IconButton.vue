@@ -52,7 +52,7 @@ const classes = computed(() => [
   props.size === 'sm' ? 'size-9 before:absolute before:-inset-1' : 'size-touch',
   props.variant === 'subtle' ? 'bg-soft text-fg-strong' : 'text-fg-muted',
   props.pressed ? 'bg-action-subtle text-action-fg' : '',
-  props.disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-line hover:text-fg-strong',
+  props.disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-hover hover:text-fg-strong',
 ])
 
 function onClick(event: MouseEvent) {

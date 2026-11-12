@@ -29,6 +29,8 @@
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
   /* <code>/<kbd> do preflight: a pilha padrão do Tailwind tem 7 fontes; o app não mostra código */
   --font-mono: ui-monospace, monospace;
+  /* Titles of the app (ADR-037): the @font-face is in nuxt.config head */
+  --font-display: 'Baigi Display', 'Baigi Display Fallback', var(--font-sans);
   /* Números grandes (ADR-035 §2): Fraunces 600 só nos dígitos, "%", "+", "−", vírgula, ponto, espaço e "º"
      (unicode-range do @font-face "Baigi Num" em tokens.css); as letras ("de", "dias") caem na Inter sozinhas */
   --font-num: 'Baigi Num', var(--font-sans);
@@ -46,11 +48,11 @@
   /* Texto (ADR-035 §2): piso de 13 px; informação que a pessoa lê fica em 14 px ou mais. display, page-title e
      section crescem a partir de 960 px (--type-* em tokens.css) */
   --text-display: var(--type-display);
-  --text-display--line-height: 1.12;
-  --text-display--letter-spacing: -0.022em;
+  --text-display--line-height: 1.05;
+  --text-display--letter-spacing: -0.02em;
   --text-display--font-weight: 700;
   --text-page-title: var(--type-page-title);
-  --text-page-title--line-height: 1.18;
+  --text-page-title--line-height: 1.08;
   --text-page-title--letter-spacing: -0.02em;
   --text-page-title--font-weight: 700;
   --text-section: var(--type-section);
@@ -90,7 +92,8 @@
   /* Alvo de toque (min-h-touch, size-touch) */
   --spacing-touch: 2.75rem;
 
-  --container-page: 70rem;
+  /* A2 (ADR-037): one width for the shell and every page (the TopNav edge meets the content edge) */
+  --container-page: 77.5rem;
   --container-prose: 42rem;
   /* Blog (prd-blog-seo, ajustes do dono): coluna de leitura de ~700 px (60–75 caracteres a 18 px) e blocos
      embutidos (quiz, ferramenta, print) um pouco mais largos */
@@ -128,6 +131,7 @@
   --color-raised: var(--surface-raised);
   --color-soft: var(--surface-soft);
   --color-sunk: var(--surface-sunk);
+  --color-hover: var(--surface-hover);
   --color-tinted: var(--surface-tinted);
   --color-float: var(--surface-float);
   --color-scrim: var(--surface-scrim);

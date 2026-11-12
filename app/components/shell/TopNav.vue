@@ -11,7 +11,7 @@
             <NuxtLink
               :to="place.to"
               class="hit-touch inline-flex min-h-9.5 items-center gap-2 rounded-chip px-3.5 text-body-sm font-semibold transition-colors duration-fast"
-              :class="active === place.key ? 'bg-action-subtle text-action-fg' : 'text-fg-muted hover:bg-soft hover:text-fg-strong'"
+              :class="active === place.key ? 'bg-action-subtle text-action-fg' : 'text-fg-muted hover:bg-hover hover:text-fg-strong'"
               :aria-current="active === place.key ? 'page' : undefined"
               :data-tour="place.key === 'praticar' ? 'review-link' : undefined"
               @click="track(place.key)"
@@ -25,7 +25,7 @@
       <div class="flex shrink-0 items-center gap-2">
         <button
           type="button"
-          class="hit-touch inline-flex min-h-10 items-center gap-1.5 rounded-chip bg-soft px-3.5 text-meta font-semibold text-fg-strong transition-colors duration-fast hover:bg-sunk"
+          class="hit-touch inline-flex min-h-10 items-center gap-1.5 rounded-chip bg-soft px-3.5 text-meta font-semibold text-fg-strong transition-colors duration-fast hover:bg-hover"
           aria-haspopup="dialog"
           @click="addSheet.show('topnav')"
         >
@@ -34,7 +34,7 @@
         </button>
         <button
           type="button"
-          class="hit-touch inline-flex min-h-10 items-center gap-2.5 rounded-chip bg-soft px-3.5 text-meta font-medium text-fg-muted transition-colors duration-fast hover:bg-sunk hover:text-fg-strong lg:w-65"
+          class="hit-touch inline-flex min-h-10 items-center gap-2.5 rounded-chip bg-soft px-3.5 text-meta font-medium text-fg-muted transition-colors duration-fast hover:bg-hover hover:text-fg-strong lg:w-65"
           aria-haspopup="dialog"
           :aria-keyshortcuts="isMac ? 'Meta+K' : 'Control+K'"
           @click="openSearch"
@@ -76,13 +76,13 @@ function openSearch() {
 
 <style scoped>
 .topnav {
-  background: var(--surface-page);
+  background: var(--surface-raised);
   box-shadow: 0 1px 0 var(--hairline);
 }
 @supports (backdrop-filter: blur(1px)) {
   @media (prefers-reduced-transparency: no-preference) {
     .topnav {
-      background: color-mix(in srgb, var(--surface-page) 86%, transparent);
+      background: color-mix(in srgb, var(--surface-raised) 94%, transparent);
       backdrop-filter: blur(16px) saturate(1.4);
     }
   }

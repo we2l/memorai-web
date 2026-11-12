@@ -14,7 +14,7 @@
         :key="btn.label"
         type="button"
         class="flex size-8 items-center justify-center rounded-row transition-colors duration-fast"
-        :class="btn.active?.() ? 'bg-action-subtle text-action-fg' : 'text-fg hover:bg-soft hover:text-fg-strong'"
+        :class="btn.active?.() ? 'bg-action-subtle text-action-fg' : 'text-fg hover:bg-sunk hover:text-fg-strong'"
         :title="btn.label"
         :aria-label="btn.label"
         :aria-pressed="btn.active?.() ? 'true' : 'false'"
@@ -48,7 +48,7 @@
           role="option"
           :aria-selected="index === slashMenu.selectedIndex ? 'true' : 'false'"
           class="flex w-full items-center gap-3 rounded-row px-3 py-2 text-left"
-          :class="index === slashMenu.selectedIndex ? 'bg-action-subtle' : 'hover:bg-soft'"
+          :class="index === slashMenu.selectedIndex ? 'bg-action-subtle' : 'hover:bg-sunk'"
           @mousedown.prevent="selectSlashItem(item)"
           @mouseenter="slashMenu.selectedIndex = index"
         >

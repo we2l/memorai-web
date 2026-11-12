@@ -1,5 +1,5 @@
 <template>
-  <div class="flex min-h-dvh flex-col bg-page">
+  <div class="flex min-h-dvh flex-col bg-raised">
     <UiPublicHeader :quiet-cta="!!route.meta.quietHeaderCta" />
     <main class="w-full flex-1">
       <slot />

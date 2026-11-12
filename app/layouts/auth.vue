@@ -2,7 +2,7 @@
   <div class="flex min-h-dvh flex-col bg-page">
     <header class="mx-auto w-full px-gutter pt-8 pb-6" :class="wide ? 'max-w-page' : 'flex max-w-108 justify-center'">
       <NuxtLink to="/" class="inline-flex min-h-touch items-center rounded-control" aria-label="Baigi: ir para o início">
-        <UiLogo :icon-size="32" text-class="text-section text-fg-strong" />
+        <UiLogo :icon-size="32" text-class="text-section text-action-fg" />
       </NuxtLink>
     </header>
 

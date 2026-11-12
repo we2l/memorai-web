@@ -6,6 +6,15 @@ const FOCUSABLE = [
   '[tabindex]:not([tabindex="-1"])',
 ].join(',')
 
+/** How the last interaction happened: a layer opened by pointer does not put the keyboard ring on a button. */
+let lastPointer = false
+if (typeof document !== 'undefined') {
+  document.addEventListener('pointerdown', () => { lastPointer = true }, true)
+  document.addEventListener('keydown', () => { lastPointer = false }, true)
+}
+
+const TEXT_ENTRY = 'input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]), textarea, select, [contenteditable="true"]'
+
 export function getFocusable(root: HTMLElement): HTMLElement[] {
   return Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE))
     .filter(el => !el.hasAttribute('inert') && !el.closest('[aria-hidden="true"]') && !el.closest('[hidden]'))
@@ -53,8 +62,11 @@ export function useFocusTrap(container: Ref<HTMLElement | null | undefined>, opt
       ?? root.querySelector<HTMLElement>('[autofocus]')
       ?? getFocusable(root).find(el => !el.dataset.modalClose)
       ?? root
-    if (target === root && !root.hasAttribute('tabindex')) root.setAttribute('tabindex', '-1')
-    target.focus({ preventScroll: true })
+    // Opened by pointer: a text field still takes the focus (typing), anything else leaves it on the panel so no
+    // ring shows on a tab or a button (owner's review of 12/11/2026); Tab and the arrows start from there.
+    const focusTarget = lastPointer && target !== root && !target.matches(TEXT_ENTRY) ? root : target
+    if (focusTarget === root && !root.hasAttribute('tabindex')) root.setAttribute('tabindex', '-1')
+    focusTarget.focus({ preventScroll: true })
   }
 
   function deactivate() {

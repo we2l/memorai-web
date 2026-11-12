@@ -5,7 +5,7 @@
 
     <div class="flex flex-wrap justify-center gap-6" data-testid="session-stats">
       <UiStat :value="summary.size" :label="summary.size === 1 ? 'card revisado' : 'cards revisados'" />
-      <UiStat :value="summary.far" :label="summary.far === 1 ? 'só volta daqui a 1 semana ou mais' : 'só voltam daqui a 1 semana ou mais'" data-testid="session-far" />
+      <UiStat v-if="summary.far > 0" :value="summary.far" :label="summary.far === 1 ? 'só volta daqui a 1 semana ou mais' : 'só voltam daqui a 1 semana ou mais'" data-testid="session-far" />
       <UiStat :value="`${summary.minutes} min`" label="de foco" />
     </div>
 
@@ -59,5 +59,6 @@ const props = defineProps<{
 }>()
 
 const title = computed(() => (props.scopeLabel ? `${props.scopeLabel} em dia` : 'Revisão de hoje concluída'))
-const lead = computed(() => `Você lembrou ${props.summary.remembered} de ${props.summary.size}.`)
+// Owner's review of 12/11/2026: "0 de 2" alone read as a failure; say what happens to the ones missed.
+const lead = computed(() => `Você lembrou ${props.summary.remembered} de ${props.summary.size}.${props.summary.remembered < props.summary.size ? ' Os erros voltam logo.' : ''}`)
 </script>

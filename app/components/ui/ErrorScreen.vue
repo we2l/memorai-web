@@ -1,7 +1,7 @@
 <template>
   <div class="flex min-h-dvh flex-col items-center bg-page px-gutter py-8">
     <NuxtLink :to="logged ? '/hoje' : '/'" class="inline-flex min-h-touch items-center rounded-control" aria-label="Baigi: ir para o início" @click="leave">
-      <UiLogo :icon-size="32" text-class="text-section text-fg-strong" />
+      <UiLogo :icon-size="32" text-class="text-section text-action-fg" />
     </NuxtLink>
 
     <main class="flex w-full max-w-prose flex-1 flex-col items-center justify-center gap-3 py-8 text-center">

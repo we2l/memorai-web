@@ -45,7 +45,7 @@ describe('SessionTomorrow', () => {
 
   it('primeiro dia tem texto próprio e sem barra', async () => {
     const w = await mountSuspended(SessionTomorrow, { props: { forecast: forecast({}, { current: 1, next_milestone: 3 }), loading: false } })
-    expect(w.text()).toContain('1º dia. Volte amanhã para começar uma sequência.')
+    expect(w.text()).toContain('Volte amanhã para chegar a 2 dias seguidos.')
     expect(w.find('[role="progressbar"]').exists()).toBe(false)
   })
 

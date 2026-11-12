@@ -8,7 +8,7 @@ area: faculdade
 author: baigi
 published: 2026-11-08
 updated: 2026-11-08
-related: como-revisar-lei-seca-inss, alternativa-ao-anki
+related: como-revisar-lei-seca-inss, alternativa-ao-anki, revisoes-acumuladas
 context: Ebbinghaus e FSRS
 cover: {"value": "94,7%", "label": "de chance de lembrar 1 dia depois de acertar"}
 facts: [{"value": "80,8%", "label": "depois de 7 dias", "icon": "chart"}, {"value": "66,8%", "label": "depois de 30 dias", "icon": "chart"}]
@@ -99,6 +99,8 @@ Na prática, o que derruba quem tenta revisar é a pilha: você fica três dias 
 - **Revise um pouco todo dia.** Lotes curtos, como 20 cards, cabem no ônibus ou na fila. O número 20 é uma escolha prática, não um resultado de pesquisa: o lote serve para começar sem preguiça.
 - **Transforme erro em card.** Errou uma questão? A dúvida daquela questão vira um card e volta antes da prova.
 - **Não comece tudo de uma vez.** Limite quantos cards novos entram por dia, para as revisões dos próximos dias continuarem cabendo.
+
+Se a fila já acumulou, veja [o que fazer com as revisões acumuladas](/blog/revisoes-acumuladas): dividir o atraso em alguns dias e começar pelo que você está mais perto de esquecer.
 
 Se você estuda para uma prova com data, dá para planejar ao contrário: quantos cards novos por dia cabem até lá e quanto você deve lembrar no dia. A ferramenta [plano até a prova](/ferramentas/plano-ate-a-prova) faz essa conta.
 

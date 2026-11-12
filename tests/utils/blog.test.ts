@@ -27,6 +27,7 @@ describe('utils/blog', () => {
     const ld = articleJsonLd(a, BLOG_AUTHORS.baigi!)
     expect(ld.author).toMatchObject({ '@type': 'Organization', 'name': 'Baigi', 'url': 'https://baigi.com.br/' })
     expect(ld.author).toEqual(ld.publisher)
+    expect(ld.publisher.sameAs).toContain('https://www.instagram.com/baigi.oficial/')
     expect(JSON.stringify(ld)).not.toContain('Person')
     expect(Object.keys(BLOG_AUTHORS)).toEqual(['baigi'])
     expect(ld.dateModified).toBe('2026-11-08')

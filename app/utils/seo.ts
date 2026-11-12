@@ -13,12 +13,23 @@ export function jsonLdScript(data: object): string {
   return JSON.stringify(data).replace(/</g, '\\u003c')
 }
 
+/**
+ * The brand's own profiles, for `sameAs` (diretorios-perfis.md §9): only profiles that are live. The Facebook Page
+ * waits for its username (decision of 11/11); LinkedIn does not exist yet.
+ */
+export const BRAND_PROFILES = [
+  'https://www.instagram.com/baigi.oficial/',
+  'https://www.tiktok.com/@baigi.oficial',
+  'https://www.youtube.com/@BaigiOficial',
+] as const
+
 export const PUBLISHER = {
   '@type': 'Organization',
   '@id': `${SITE_URL}/#organization`,
   'name': SITE_NAME,
   'url': `${SITE_URL}/`,
   'logo': { '@type': 'ImageObject', 'url': `${SITE_URL}/pwa-512x512.png` },
+  'sameAs': [...BRAND_PROFILES],
 }
 /**
  * The home page's JSON-LD (Organization, WebSite and the app): only what the prerendered page shows. The free plan

@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto flex max-w-page flex-col gap-5 px-gutter pt-2 pb-6 md:pt-8" :aria-busy="loading ? 'true' : undefined">
+  <div class="mx-auto flex max-w-page flex-col gap-6 px-gutter pt-2 pb-6 md:pt-8" :aria-busy="loading ? 'true' : undefined">
     <!-- 404: the caderno does not exist (or is not the person's) -->
     <LazyUiEmptyState v-if="store.notFound" title="Caderno não encontrado" description="Se você o excluiu, ele fica na lixeira por 30 dias." mascot="subtle">
       <template #action>
@@ -49,15 +49,6 @@
           <template v-if="hasSide" #side>
             <CadernoScopeStats v-if="!isEmpty" :summary="summary" :first-material="store.materials[0] ?? null" @listen="listen" />
             <CadernoNextStep v-if="showNextStep" :step="summary.next_step!" @go="kind => track('next_step_click', { kind })" />
-            <UiSection v-if="summary.exam" aria-label="Prova" data-testid="scope-exam">
-              <div class="flex items-center gap-3.5">
-                <UiIconTile :icon="CalendarDays" tone="action" />
-                <div class="min-w-0">
-                  <p class="font-semibold text-fg-strong">{{ summary.exam.title }} · {{ summary.exam.days_remaining === 0 ? 'hoje' : `em ${summary.exam.days_remaining} ${summary.exam.days_remaining === 1 ? 'dia' : 'dias'}` }}</p>
-                  <p class="text-meta text-fg-muted" data-testid="scope-exam-readiness">{{ examReadinessLine }}</p>
-                </div>
-              </div>
-            </UiSection>
           </template>
 
           <template v-for="block in blocks" :key="block">
@@ -122,13 +113,11 @@
 </template>
 
 <script setup lang="ts">
-import { readinessMissingText } from '~/utils/readinessMissing'
 // Hub of a scope (prd-4b-caderno-v3 RF-F3…RF-F12): the same page for a caderno, a matéria and an assunto,
-// organized by the study cycle. Header with ONE number of review, Próximo passo, Matérias e assuntos,
+// organized by the study cycle (A2: prd-visual-a2 §3.2.3). Header with ONE number of review, Próximo passo, Matérias e assuntos,
 // Materiais and Praticar, in the order of the mode (D11). Opening it asks only the summary and the first
 // page of materials, in parallel (§6 rule 6: no note content, no card list). The editor, the card library
 // and the map live on their own routes. "+ Adicionar" writes here (RF-F10).
-import { CalendarDays } from 'lucide-vue-next'
 import type { Document, MaterialRow, Podcast, ScopeSubject } from '~/types'
 import type { TopicDialogMode, TopicDialogTarget } from '~/components/caderno/TopicDialog.vue'
 import type { TrashItem } from '~/components/caderno/TrashDialog.vue'
@@ -152,11 +141,6 @@ const roots = computed(() => topicStore.tree.map(t => ({ id: t.id, name: t.name 
 
 const hasCards = computed(() => (summary.value?.counts.cards ?? 0) > 0)
 // A material just added here (its line is on top) ends the empty state before the summary counts it
-// The exam of the scope (prd-prontidao-prova): the readiness of the Hoje, or what is left before it shows
-const examReadinessLine = computed(() => {
-  const r = summary.value?.exam?.readiness
-  return r?.score != null ? `Prontidão ${r.score} de 100 · ${r.band?.label ?? ''}`.replace(/ · $/, '') : readinessMissingText(r)
-})
 const isEmpty = computed(() => !!summary.value && !hasCards.value && summary.value.counts.materials === 0 && !store.materials.length)
 
 /** Blocks in the order of the mode (RF-F8): Matérias before Materiais, except in the faculdade mode. */
@@ -178,7 +162,8 @@ const showNextStep = computed(() => {
   return !(step.kind === 'generate_cards' && !hasCards.value)
 })
 
-const hasSide = computed(() => !!summary.value && (!isEmpty.value || showNextStep.value || !!summary.value.exam))
+// The exam is a chip of the header (A2 RF-3.2: one object, one place); "Definir prova" stays in the ⋯
+const hasSide = computed(() => !!summary.value && (!isEmpty.value || showNextStep.value))
 
 const showBar = computed(() => (summary.value?.session.count ?? 0) > 0)
 useStickyActionHeight(showBar)

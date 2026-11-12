@@ -21,3 +21,14 @@
   font-style: italic;
   font-display: swap;
 }
+
+/* "Baigi Num" 400 (A2, ADR-037): the same glyphs in the normal weight, for a secondary number (UiNumber weight="normal",
+   domínio and acerto of the hub). Out of the precache (globIgnores): only the hub uses it, and the hub is online. */
+@font-face {
+  font-family: 'Baigi Num';
+  src: url('../fonts/baigi-num-400.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0020, U+0025, U+002B, U+002C, U+002E, U+0030-0039, U+00BA, U+2212;
+}

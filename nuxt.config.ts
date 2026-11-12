@@ -209,7 +209,7 @@ export default defineNuxtConfig({
       // index.html + _nuxt/index.*.css + landing/** (title font, clips, screens, sample: prd-landing-d RF-D14/D15): the
       // landing (prd-landing-v4 RF-L14), online like the rest of the marketing; the
       // installed app starts at /hoje and navigateFallback is null, so nothing offline ever served it
-      globIgnores: ['index.html', 'landing/**', 'fonts/**', 'termos/**', 'privacidade/**', 'planos/**', 'ajuda/**', 'entrar/**', 'criar-conta/**', 'esqueci-senha/**', '_nuxt/email-*.js', '_nuxt/analytics-*.js', '_nuxt/consent-*.js', '_nuxt/once-*.js', '_nuxt/dev-*.js', '_nuxt/index.*.css', '_nuxt/baigi-it-*.woff2', 'blog/**', 'ferramentas/**', 'quem-faz/**', 'sitemap.xml', '_nuxt/blog-*.css'],
+      globIgnores: ['index.html', 'landing/**', 'fonts/**', 'termos/**', 'privacidade/**', 'planos/**', 'ajuda/**', 'entrar/**', 'criar-conta/**', 'esqueci-senha/**', '_nuxt/email-*.js', '_nuxt/analytics-*.js', '_nuxt/consent-*.js', '_nuxt/once-*.js', '_nuxt/dev-*.js', '_nuxt/index.*.css', '_nuxt/baigi-it-*.woff2', '_nuxt/baigi-num-400*.woff2', 'blog/**', 'ferramentas/**', 'quem-faz/**', 'sitemap.xml', '_nuxt/blog-*.css'],
       // Heavy on-demand chunks (pdf.js ~330 KB) stay out of the install download;
       // maximumFileSizeToCacheInBytes would fail the build instead of skipping.
       manifestTransforms: [

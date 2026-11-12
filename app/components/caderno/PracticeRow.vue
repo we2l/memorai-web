@@ -1,27 +1,35 @@
 <template>
-  <UiSection title="Praticar" :level="2" data-testid="scope-practice">
-    <ul class="-mx-3 grid gap-x-2 sm:grid-cols-2">
-      <li v-for="item in items" :key="item.key">
-        <UiListRow :to="item.to" :title="item.label" :meta="item.meta" :data-testid="`practice-${item.key}`">
-          <template #leading>
-            <UiPracticeIcon v-if="item.mode" :mode="item.mode" size="sm" />
-            <span v-else class="flex size-7.5 items-center justify-center rounded-row bg-soft text-fg-muted" aria-hidden="true">
-              <component :is="item.icon" class="size-3.5" />
-            </span>
-          </template>
-        </UiListRow>
+  <!-- Plain (no card), A2 RF-3.5: four equal tiles; none comes purple, the focus ring is the only purple -->
+  <UiSection variant="plain" title="Praticar" :level="2" data-testid="scope-practice">
+    <ul class="grid auto-rows-fr gap-4 sm:grid-cols-2">
+      <li v-for="item in items" :key="item.key" class="flex">
+        <NuxtLink
+          :to="item.to"
+          class="flex min-h-touch w-full items-center gap-3 rounded-card bg-raised p-4 shadow-1 transition-colors duration-fast hover:bg-hover"
+          :data-testid="`practice-${item.key}`"
+        >
+          <UiPracticeIcon v-if="item.mode" :mode="item.mode" size="lg" />
+          <span v-else class="flex size-10 shrink-0 items-center justify-center rounded-control bg-soft text-fg-muted" aria-hidden="true">
+            <component :is="item.icon" class="size-5" />
+          </span>
+          <span class="min-w-0 flex-1">
+            <span class="block font-medium break-words text-fg-strong">{{ item.label }}</span>
+            <span class="block text-meta text-fg-muted">{{ item.meta }}</span>
+          </span>
+          <ChevronRight class="size-4 shrink-0 text-fg-muted" aria-hidden="true" />
+        </NuxtLink>
       </li>
     </ul>
   </UiSection>
 </template>
 
 <script setup lang="ts">
-// Praticar of the scope (prd-4b-caderno-v3 RF-F7): four shortcuts always visible, each saying what is
+// Praticar of the scope (prd-4b-caderno-v3 RF-F7; A2 RF-3.5 as four equal tiles): four shortcuts always visible, each saying what is
 // missing instead of disappearing (estudo §5.1). Questões (or the timed quiz in the exam mode, where
 // Questões already sits in the header), Ouvir (episodes of the scope), the map and the card library. In
 // the language mode a loose card takes the place of the map (D11). Gates come from the summary.
 import type { Component } from 'vue'
-import { Layers, Network, PenLine } from 'lucide-vue-next'
+import { ChevronRight, Layers, Network, PenLine } from 'lucide-vue-next'
 import type { PracticeMode } from '~/components/ui/PracticeIcon.vue'
 import type { ScopeSummary } from '~/types'
 import { requirementText } from '~/utils/studyRequirement'

@@ -4,7 +4,9 @@
 Uso: python3 scripts/fonts/build-num-font.py [--roman Fraunces.ttf] [--italic Fraunces-Italic.ttf]
 Sem os arquivos, baixa as fontes variáveis do google/fonts (URL fixa) e confere o sha256.
 Requer fonttools e brotli (pip install fonttools brotli). Licença: OFL 1.1 (scripts/fonts/OFL-Fraunces.txt).
-Saída: app/assets/fonts/baigi-num-600.woff2 (dígitos e "% + − , . º", no precache) e
+Saída: app/assets/fonts/baigi-num-600.woff2 (dígitos e "% + − , . º", no precache),
+       app/assets/fonts/baigi-num-400.woff2 (os mesmos glifos no peso normal, o número secundário do hub, ADR-037;
+       fora do precache, globIgnores) e
        app/assets/fonts/baigi-it-500.woff2 (minúsculas, acentos e pontuação; fora do precache, globIgnores).
 """
 import argparse
@@ -63,7 +65,9 @@ def main() -> None:
     parser.add_argument('--roman')
     parser.add_argument('--italic')
     args = parser.parse_args()
-    build(load('roman', args.roman), 600, NUM_UNICODES, 'tnum,lnum,kern', OUT / 'baigi-num-600.woff2')
+    roman = load('roman', args.roman)
+    build(roman, 600, NUM_UNICODES, 'tnum,lnum,kern', OUT / 'baigi-num-600.woff2')
+    build(roman, 400, NUM_UNICODES, 'tnum,lnum,kern', OUT / 'baigi-num-400.woff2')
     build(load('italic', args.italic), 500, IT_UNICODES, 'kern,liga', OUT / 'baigi-it-500.woff2')
 
 

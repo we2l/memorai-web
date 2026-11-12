@@ -9,7 +9,7 @@ author: baigi
 published: 2026-11-08
 updated: 2026-11-10
 pillar: curva-do-esquecimento
-related: como-revisar-lei-seca-inss
+related: como-revisar-lei-seca-inss, revisoes-acumuladas
 context: Anki e alternativas
 cover: {"value": "R$ 149,90", "label": "o AnkiMobile no iPhone"}
 tags: Anki, alternativa ao Anki, flashcards, repetição espaçada
@@ -28,7 +28,7 @@ O Baigi usa o mesmo FSRS. Então este texto não vai dizer que o algoritmo do An
 Na nossa leitura de fóruns e comunidades de estudo (é uma impressão, não uma pesquisa), quatro queixas se repetem.
 
 1. **Criar os cards dá trabalho.** É a mais comum. Passar uma apostila inteira para flashcards leva horas, e muita gente desiste antes de começar. O Anki é uma ferramenta de revisão; quem escreve o conteúdo é você.
-2. **A fila acumula.** Três dias sem abrir e aparecem centenas de cards vencidos. Esse número grande assusta, e a pessoa evita o app justamente quando mais precisa.
+2. **A fila acumula.** Três dias sem abrir e aparecem centenas de cards vencidos. Esse número grande assusta, e a pessoa evita o app justamente quando mais precisa. (O que fazer com a fila que já acumulou está em [revisões acumuladas no Anki](/blog/revisoes-acumuladas).)
 3. **Os quatro botões confundem.** "De novo", "Difícil", "Bom" e "Fácil" parecem simples, mas usar "Difícil" quando esqueceu é um hábito comum o bastante para o manual do Anki alertar contra ele: com o FSRS, "Difícil" conta como resposta certa, e usá-lo para erro deixa todos os intervalos altos demais.
 4. **No iPhone, o app é pago.** O AnkiMobile é o app oficial para iPhone e iPad e custa R$ 149,90 na App Store do Brasil (preço de novembro de 2026); a venda ajuda a financiar o desenvolvimento do Anki. Para quem estuda pelo celular, isso pesa.
 

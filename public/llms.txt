@@ -22,6 +22,7 @@ Idioma: português do Brasil. Site: https://baigi.com.br
 - [Cronograma de revisão para a OAB 48](https://baigi.com.br/blog/cronograma-revisao-oab-48)
 - [OAB faltando 1 mês: plano de 30 dias](https://baigi.com.br/blog/oab-faltando-1-mes)
 - [TJ-SP Escrevente 2027: lei seca da Vunesp](https://baigi.com.br/blog/tj-sp-escrevente-lei-seca-vunesp)
+- [Revisões acumuladas no Anki](https://baigi.com.br/blog/revisoes-acumuladas): o que fazer com cards atrasados, dividindo o atraso em 3 a 14 dias e começando pelo que está mais perto de ser esquecido
 - [Caderno de erros digital: como fazer, com modelo](https://baigi.com.br/blog/caderno-de-erros-digital): cada questão errada vira uma pergunta curta com o motivo do erro, revisada em intervalos
 - [Como revisar lei seca para o INSS](https://baigi.com.br/blog/como-revisar-lei-seca-inss)
 - [Alternativa ao Anki](https://baigi.com.br/blog/alternativa-ao-anki)

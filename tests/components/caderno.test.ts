@@ -130,7 +130,7 @@ describe('CadernoSubjectTable (RF-F5)', () => {
     const s = summary()
     const w = await mountSuspended(SubjectTable, { props: { subjects: s.subjects, scopeDepth: 0, canAdd: true }, attachTo: document.body })
     const rows = w.findAll('[data-testid="subject-row"]')
-    expect(rows.map(r => r.attributes('href'))).toEqual(['/cadernos/Portugu%C3%AAs', '/cadernos/Constitucional', '/cadernos/Controle'])
+    expect(rows.map(r => r.attributes('href'))).toEqual(['/cadernos/Portugu%C3%AAs', '/cadernos/Constitucional'])
     expect(rows[1]!.attributes('aria-label')).toBe('Constitucional, ponto fraco, domínio 48%, acerto em questões 58%, 5 para hoje')
     expect(rows[0]!.attributes('aria-label')).toContain('acerto em questões: faça 10 questões')
     expect(w.text()).toContain('ponto fraco')
@@ -142,7 +142,7 @@ describe('CadernoSubjectTable (RF-F5)', () => {
   it('⋯ de cada linha fora do link: Mover para… e Excluir emitem a matéria (prd-4b RF-F15)', async () => {
     const s = summary()
     const w = await mountSuspended(SubjectTable, { props: { subjects: s.subjects, scopeDepth: 0, canAdd: true }, attachTo: document.body })
-    const trigger = w.findAll('li').at(1)!.find('button')
+    const trigger = w.findAll('li').at(1)!.find('button[aria-label^="Mais ações"]')
     expect(trigger.attributes('aria-label')).toBe('Mais ações de Constitucional')
     expect(w.findAll('a').at(1)!.find('button').exists()).toBe(false)
     await trigger.trigger('click')
@@ -150,6 +150,27 @@ describe('CadernoSubjectTable (RF-F5)', () => {
     expect(items.map(i => i.text())).toEqual(['Mover para…', 'Excluir'])
     await items[0]!.trigger('click')
     expect((w.emitted('move')![0]![0] as ScopeSubject).id).toBe('Constitucional')
+  })
+
+  it('assuntos fechados atrás de "N assuntos" (aria-expanded); clique abre e fecha; assunto fraco abre a matéria', async () => {
+    const s = summary()
+    const w = await mountSuspended(SubjectTable, { props: { subjects: s.subjects, scopeDepth: 0, canAdd: true }, attachTo: document.body })
+    expect(w.findAll('[data-testid="subject-toggle"]')).toHaveLength(1)
+    const toggle = w.get('[data-testid="subject-toggle"]')
+    expect(toggle.attributes('aria-expanded')).toBe('false')
+    expect(toggle.attributes('aria-label')).toBe('1 assunto de Constitucional')
+    expect(toggle.element.tagName).toBe('BUTTON')
+    await toggle.trigger('click')
+    expect(toggle.attributes('aria-expanded')).toBe('true')
+    expect(w.findAll('[data-testid="subject-row"]').map(r => r.attributes('href'))).toEqual(['/cadernos/Portugu%C3%AAs', '/cadernos/Constitucional', '/cadernos/Controle'])
+    expect(await axeViolations(w.element)).toEqual([])
+    await toggle.trigger('click')
+    expect(w.findAll('[data-testid="subject-row"]')).toHaveLength(2)
+
+    const weak = summary({ subjects: [subject('Constitucional'), subject('Controle', { depth: 2, parent_id: 'Constitucional', weak: true })] })
+    const open = await mountSuspended(SubjectTable, { props: { subjects: weak.subjects, scopeDepth: 0, canAdd: true } })
+    expect(open.get('[data-testid="subject-toggle"]').attributes('aria-expanded')).toBe('true')
+    expect(open.findAll('[data-testid="subject-row"]')).toHaveLength(2)
   })
 
   it('na matéria: "Assuntos"; no 2º nível, sem "+ Assunto"', async () => {

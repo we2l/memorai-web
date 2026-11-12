@@ -9,7 +9,12 @@ export interface EditalSource {
   text?: string
   pageFrom?: number | null
   pageTo?: number | null
+  /** The edital picked in the "choose" list (alternatives[].section): the API rereads that exact section */
+  section?: number | null
 }
+
+/** POST /editais/{id}/apply 409: a live caderno already has this name */
+export const EDITAL_NAME_TAKEN = 'caderno_name_taken'
 
 export function useEditalReader() {
   const { $api } = useNuxtApp()
@@ -20,7 +25,9 @@ export function useEditalReader() {
     const form = new FormData()
     if (source.file) {
       form.append('file', source.file)
-      if (source.pageFrom && source.pageTo) {
+      if (source.section != null) {
+        form.append('section', String(source.section))
+      } else if (source.pageFrom && source.pageTo) {
         form.append('page_from', String(source.pageFrom))
         form.append('page_to', String(source.pageTo))
       }

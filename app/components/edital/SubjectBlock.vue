@@ -20,8 +20,10 @@
       data-testid="edital-subject-toggle"
       @click="open = !open"
     >
-      <span>{{ subject.topics.length }} {{ subject.topics.length === 1 ? 'assunto' : 'assuntos' }}</span>
-      <ChevronDown class="size-4 text-fg-muted transition-transform duration-fast" :class="open ? 'rotate-180' : ''" aria-hidden="true" />
+      <span class="min-w-0">
+        {{ subject.topics.length }} {{ subject.topics.length === 1 ? 'assunto' : 'assuntos' }}<span v-if="preview" class="font-normal text-fg-muted" data-testid="edital-subject-preview">: {{ preview }}</span>
+      </span>
+      <ChevronDown class="size-4 shrink-0 text-fg-muted transition-transform duration-fast" :class="open ? 'rotate-180' : ''" aria-hidden="true" />
     </button>
 
     <div v-if="open" :id="listId" class="mt-2">
@@ -35,7 +37,7 @@
               :maxlength="EDITAL_LIMITS.name"
               data-testid="edital-topic-name"
             />
-            <p v-if="topic.description" class="mt-1 line-clamp-2 px-1 text-meta text-fg-muted">{{ topic.description }}</p>
+            <p v-if="topic.description" class="mt-1 px-1 text-meta break-words text-fg-muted" data-testid="edital-topic-description">{{ topic.description }}</p>
           </div>
           <UiIconButton :icon="X" :label="`Tirar o assunto ${topic.name || i + 1}`" @click="subject.topics.splice(i, 1)" />
         </li>
@@ -58,7 +60,8 @@
 
 <script setup lang="ts">
 // One matéria of the edital's proposal (prd-edital-caderno RF-F1): name, its assuntos (collapsed: an edital can
-// bring 400 of them), the item of the edital under each assunto, and remove/add within config/edital.php.
+// bring 400 of them), the item of the edital under each assunto (the articles of a law, whole), and remove/add within
+// config/edital.php.
 import { ChevronDown, Plus, Trash2, X } from 'lucide-vue-next'
 import { EDITAL_LIMITS, newEditalTopic, type DraftSubject } from '~/utils/editalProposal'
 
@@ -67,6 +70,11 @@ const subject = defineModel<DraftSubject>({ required: true })
 const emit = defineEmits<{ (e: 'remove'): void }>()
 
 const open = ref(!!props.startOpen)
+/** Closed, a matéria of 1-2 assuntos says which ("1 assunto: Código Penal"): one law is one assunto, not a mistake */
+const preview = computed(() => {
+  const names = subject.value.topics.map(t => t.name.trim()).filter(Boolean)
+  return names.length > 0 && names.length <= 2 && names.length === subject.value.topics.length ? names.join(' e ') : ''
+})
 const listId = useId()
 
 function addTopic() {

@@ -90,7 +90,7 @@
 // runtimeConfig (NUXT_PUBLIC_CONTACT_EMAIL).
 import { absoluteUrl, breadcrumbJsonLd } from '~/utils/blog'
 import { FOUNDER, founderJsonLd } from '~/utils/founder'
-import { SITE_URL } from '~/utils/seo'
+import { BRAND_PROFILES, SITE_URL } from '~/utils/seo'
 import '~/assets/css/blog-prose.css'
 
 // The page has its own primary call: the header's "Criar conta grátis" goes quiet (one highlight per screen, ADR-027 §6)
@@ -117,10 +117,12 @@ useBlogSeo({
     {
       '@context': 'https://schema.org',
       '@type': 'Organization',
+      '@id': `${SITE_URL}/#organization`,
       'name': 'Baigi',
       'url': `${SITE_URL}/`,
       'logo': `${SITE_URL}/pwa-512x512.png`,
       'email': contactEmail,
+      'sameAs': [...BRAND_PROFILES],
       'founder': founderJsonLd(),
     },
     breadcrumbJsonLd([{ name: 'Início', path: '/' }, { name: 'Quem faz o Baigi', path: '/quem-faz' }]),

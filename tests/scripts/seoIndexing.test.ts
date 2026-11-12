@@ -51,5 +51,7 @@ describe.skipIf(skipWithoutBuild)('indexação das páginas (build)', () => {
     expect(description.length).toBeLessThanOrEqual(160)
     const graph = JSON.parse(html.match(/<script type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/)![1]!)['@graph']
     expect(graph.map((n: { '@type': string }) => n['@type'])).toEqual(['Organization', 'WebSite', 'SoftwareApplication'])
+    // sameAs: only the brand's live profiles, never a person's (diretorios-perfis.md §9)
+    expect(graph[0].sameAs).toEqual(['https://www.instagram.com/baigi.oficial/', 'https://www.tiktok.com/@baigi.oficial', 'https://www.youtube.com/@BaigiOficial'])
   })
 })

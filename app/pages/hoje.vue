@@ -1,23 +1,39 @@
 <template>
   <!-- Keyed by the loading state: the content replaces the skeleton instead of pushing it (no layout shift) -->
-  <div :key="loading ? 'loading' : 'ready'" class="mx-auto flex max-w-page flex-col gap-5 px-gutter pt-2 pb-6 md:pt-8" :aria-busy="loading ? 'true' : undefined">
+  <div :key="loading ? 'loading' : 'ready'" class="mx-auto flex max-w-page flex-col gap-6 px-gutter pt-4 pb-6 md:pt-8" :aria-busy="loading ? 'true' : undefined">
     <HomeGreeting :stats="stats" :user-name="auth.user?.name" :minutes="minutes" :loading="loading" :error="statsError" :returning="showBacklog" />
 
     <!-- E2 (ADR-035 §9): two columns from 1024 px, the main one fluid and a side of 400; on the phone the left one
          comes first (the first action, the goal and the plan), then the exam and the cadernos -->
+    <!-- A2 (prd-visual-a2 §3.2.2): two columns from 1024 px, the main one fluid and a side of 400; on the phone the
+         left one comes first (the primary block, the metrics, the rest of the day), then the exam and the cadernos -->
     <div class="hoje-grid">
-      <div class="flex min-w-0 flex-col gap-5">
-        <!-- Hoje without cards (B5): one action that leads to the first cards; the first steps become support -->
+      <div class="flex min-w-0 flex-col gap-4">
+        <!-- The one primary block: the first action (no cards, B5), the backlog card (no plan yet) or the goal -->
         <LazyHomeFirstAction v-if="firstAction" :topic="firstAction" :roots-with-material="rootsWithMaterial" />
         <LazyHomeBacklog v-else-if="showBacklog" :backlog="backlogState!" :due-today="stats?.due_today ?? 0" />
 
-        <HomeGoal v-if="!loading && showGoal" :stats="stats!" :history="history" />
+        <HomeGoal
+          v-if="loading || showGoal"
+          :loading="loading"
+          :stats="stats"
+          :history="history"
+          :subjects="subjects"
+          :review="reviewStep"
+          :primary="!showBacklog"
+          :survival-busy="survivalBusy"
+          @start="reviewStep && onStep(reviewStep)"
+          @survival-off="turnSurvivalOff"
+        />
+
+        <HomeMetrics v-if="!loading && !statsError && !noCards" :stats="stats" :history="history" :retention="retention" class="py-2" />
 
         <!-- Account without cards and without material: the first steps take the place of the plan and carry the primary -->
         <LazyHomeChecklist v-if="!loading && noCards" :stats="stats" :roots="roots" :primary="!firstAction" />
         <HomePlan
           v-else-if="!showBacklog"
-          :steps="steps"
+          :steps="planSteps"
+          :title="showGoal ? 'Também para hoje' : 'Plano do dia'"
           :loading="loading"
           :error="statsError"
           :survival-busy="survivalBusy"
@@ -29,7 +45,7 @@
         <LazyHomeChecklist v-if="!loading && !noCards" :stats="stats" :roots="roots" />
       </div>
 
-      <div class="flex min-w-0 flex-col gap-5">
+      <div class="flex min-w-0 flex-col gap-4">
         <HomeExam v-if="!loading" :exams="examStore.upcoming" :performance="performance" :progress="progress" />
         <HomePlan
           v-if="showBacklog && sideSteps.length"
@@ -47,12 +63,13 @@
 </template>
 
 <script setup lang="ts">
-// Hoje, E2 (prd-visual-e2 Fase 3, ADR-035): the greeting, the goal with the week, the plan of the day as a list of
-// modes, the exam as the one lilac block and the cadernos. Three states: with a plan; without cards (B5: one action,
-// "Gere os cards de X e faça a 1ª revisão hoje"); and with a backlog (the plan of 3/7/14 days before anything else).
-// Nine requests in parallel; the screen renders once they settle, so no block pushes another (CLS).
-import type { BacklogStats, PendingAction, RecentNote, Stats, StudyHistory, TopicPerformance, TopicProgress, UserSettings } from '~/types'
-import type { DayPlanStep } from '~/composables/useDayPlan'
+// Hoje, A2 (prd-visual-a2 §3.2.2, ADR-037 over the E2): the greeting with the mascot, the goal as the one primary
+// block ("Começar · N cards", N = /stats.due_today), the loose metrics, "Também para hoje" (the plan without the
+// review), the exam as the one lilac block and the cadernos with their covers. Three states: with a goal; without
+// cards (B5: the first action is the primary block); and with a backlog (the plan of 3/7/14 days is the primary).
+// Eleven requests in parallel; the screen renders once they settle, so no block pushes another (CLS).
+import type { BacklogStats, PendingAction, ProgressSummaryData, RecentNote, Stats, StudyHistory, TopicPerformance, TopicProgress, UserSettings } from '~/types'
+import type { DayPlanInput, DayPlanStep } from '~/composables/useDayPlan'
 
 const auth = useAuthStore()
 const examStore = useExamStore()
@@ -68,6 +85,7 @@ const survivalMode = ref(false)
 const pendingActions = ref<PendingAction[]>([])
 const recentNote = ref<RecentNote | null>(null)
 const history = ref<StudyHistory | null>(null)
+const retention = ref<number | null>(null)
 
 const loading = ref(true)
 const statsError = ref(false)
@@ -91,9 +109,9 @@ const showBacklog = computed(() => !loading.value && !statsError.value && !!back
 
 const showGoal = computed(() => !statsError.value && !!stats.value && !noCards.value && (stats.value.goal?.target_batches ?? 0) > 0)
 
-const steps = computed<DayPlanStep[]>(() => (statsError.value || !stats.value
-  ? []
-  : buildDayPlan({
+const planInput = computed<DayPlanInput | null>(() => (statsError.value || !stats.value
+  ? null
+  : {
       stats: stats.value,
       backlog: backlog.value,
       survivalMode: survivalMode.value,
@@ -103,7 +121,12 @@ const steps = computed<DayPlanStep[]>(() => (statsError.value || !stats.value
       podcasts: podcastStore.podcasts,
       recentNote: recentNote.value,
       learningMode: auth.user?.default_learning_mode,
-    })))
+    }))
+const steps = computed<DayPlanStep[]>(() => (planInput.value ? buildDayPlan(planInput.value) : []))
+// The review lives in the goal block (RF-2.4): its step carries the backlog line, survival mode and the overdue link
+const reviewStep = computed(() => ((stats.value?.due_today ?? 0) > 0 ? steps.value.find(s => s.key === 'review') ?? null : null))
+const planSteps = computed<DayPlanStep[]>(() => (showGoal.value && planInput.value ? buildDayPlan({ ...planInput.value, withoutReview: true }) : steps.value))
+const subjects = computed(() => daySubjects(progress.value))
 // With the backlog card, the rest of the day goes to the side, without a primary (the card carries it)
 const sideSteps = computed(() => steps.value
   .filter(s => !(s.key === 'review' && (stats.value?.due_today ?? 0) <= 0))
@@ -115,7 +138,7 @@ let loadSeq = 0
 async function loadData() {
   const seq = ++loadSeq
   loading.value = true
-  const [statsRes, backlogRes, progressRes, settingsRes, actionsRes, recentRes, podcastsRes, , performanceRes, historyRes] = await Promise.allSettled([
+  const [statsRes, backlogRes, progressRes, settingsRes, actionsRes, recentRes, podcastsRes, , performanceRes, historyRes, summaryRes] = await Promise.allSettled([
     $api<{ data: Stats }>('/stats'),
     $api<{ data: BacklogStats }>('/review/backlog-stats'),
     $api<{ data: TopicProgress[] }>('/topics/progress'),
@@ -126,6 +149,8 @@ async function loadData() {
     examStore.fetchUpcoming(),
     $api<{ data: TopicPerformance[] }>('/topics/performance'),
     $api<{ data: StudyHistory }>('/stats/history', { params: { days: 7 } }),
+    // "lembrados em 30 dias" (cached on the server, progress.v2.all)
+    $api<{ data: ProgressSummaryData }>('/stats/progress'),
   ])
   if (seq !== loadSeq) return
 
@@ -145,7 +170,8 @@ async function loadData() {
   recentNote.value = recentRes.status === 'fulfilled' ? recentRes.value.data[0] ?? null : null
   performance.value = performanceRes.status === 'fulfilled' ? performanceRes.value.data : []
   history.value = historyRes.status === 'fulfilled' ? historyRes.value.data : null
-  for (const r of [settingsRes, actionsRes, recentRes, podcastsRes, performanceRes, historyRes]) if (r.status === 'rejected') reportApiError(r.reason, { silent: true })
+  retention.value = summaryRes.status === 'fulfilled' ? summaryRes.value.data.retention_30d : null
+  for (const r of [settingsRes, actionsRes, recentRes, podcastsRes, performanceRes, historyRes, summaryRes]) if (r.status === 'rejected') reportApiError(r.reason, { silent: true })
 
   loading.value = false
 }
@@ -190,7 +216,7 @@ watch(useBacklogPlan().changed, () => loadData())
 <style scoped>
 .hoje-grid {
   display: grid;
-  gap: 1.25rem;
+  gap: 1rem;
   align-items: start;
 }
 @media (min-width: 64rem) {

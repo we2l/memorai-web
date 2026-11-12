@@ -40,9 +40,11 @@ test('atraso: fora do "Revisar hoje", plano de 7 dias e os mesmos números no Ho
   await expect(page).toHaveURL(/\/revisar$/)
   await gotoApp(page, '/hoje')
   await expect(page.getByTestId('home-backlog')).toHaveCount(0)
-  await expect(step.getByTestId('backlog-line-plan')).toHaveText('Recuperando o atraso · dia 1 de 7')
-  await expect(step.getByTestId('backlog-line-paused')).toBeVisible()
-  await expect(step).toContainText('Revisar 12 cards')
+  // With a plan, the review of the day is the goal block (A2 RF-2.2), carrying the backlog line
+  const goal = page.getByTestId('home-goal-card')
+  await expect(goal.getByTestId('backlog-line-plan')).toHaveText('Recuperando o atraso · dia 1 de 7')
+  await expect(goal.getByTestId('backlog-line-paused')).toBeVisible()
+  await expect(goal.getByTestId('home-goal-start')).toHaveText('Começar · 12 cards')
 
   const stats = (await apiCall(page, 'GET', '/stats')).data
   const session = await apiCall(page, 'GET', '/review/session')

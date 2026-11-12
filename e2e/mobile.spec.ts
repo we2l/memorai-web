@@ -37,7 +37,7 @@ test.describe('Mobile — Dashboard', () => {
     await page.goto('/hoje')
     await page.waitForLoadState('domcontentloaded')
     await page.waitForTimeout(2000)
-    const cta = page.getByTestId('plan-step-review').getByRole('link', { name: 'Começar' })
+    const cta = page.getByTestId('home-goal-start')
     const empty = page.getByText(/Tudo em dia|Que bom ter você aqui/i).first()
     await expect(cta.or(empty)).toBeVisible()
   })

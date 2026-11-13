@@ -9,7 +9,7 @@ author: baigi
 published: 2026-11-11
 updated: 2026-11-11
 pillar: curva-do-esquecimento
-related: como-revisar-lei-seca-inss, tj-sp-escrevente-lei-seca-vunesp, curva-do-esquecimento
+related: como-revisar-lei-seca-inss, tj-sp-escrevente-lei-seca-vunesp, curva-do-esquecimento, o-que-e-edital-verticalizado
 context: Questões erradas viram cards
 cover: {"value": "4", "label": "campos em cada entrada do caderno"}
 tags: caderno de erros, caderno de erros digital, concurso, questões, revisão espaçada, flashcards

@@ -52,7 +52,7 @@ export interface FrontEventProps {
   blog_quiz_started: { slug: string, area: string }
   blog_quiz_done: { slug: string, remembered: number, total: number }
   blog_quiz_cta_clicked: { slug: string, area: string }
-  tool_used: { tool: 'calculadora-do-esquecimento' | 'plano-ate-a-prova', input: string }
+  tool_used: { tool: 'calculadora-do-esquecimento' | 'plano-ate-a-prova' | 'edital', input: string }
   /** Conta e onboarding v3 (prd-4g-conta-onboarding-v3 RF-F16) */
   onboarding_step: { step: 1 | 2 | 3, mode: string | null }
   onboarding_path: { path: OnboardingPath }
@@ -160,6 +160,15 @@ export interface FrontEventProps {
   edital_failed: { stage: 'read' | 'apply' }
   edital_applied: { subjects: number, topics: number, edited: boolean, exam: boolean }
   material_auto_placed: { by: 'file_name' }
+  /** Edital verticalizado grátis (prd-edital-verticalizado-publico §3.2) */
+  edital_public_ready: { subjects: number, topics: number, cached: boolean }
+  edital_public_failed: { code: string }
+  edital_public_choose: Record<string, never>
+  edital_public_check: { pct_bucket: string }
+  edital_public_export: { format: 'csv' | 'pdf' }
+  edital_public_share: Record<string, never>
+  edital_public_apply_clicked: { logged_in: boolean }
+  edital_public_applied: Record<string, never>
   /** Prontidão para a prova (prd-prontidao-prova RF-F5) */
   readiness_explain_open: Record<string, never>
   readiness_action_clicked: { kind: string; origin: 'home' | 'progress' }

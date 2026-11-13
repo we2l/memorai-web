@@ -65,6 +65,8 @@ const EXPECTED: Record<string, string | null> = {
   '/ferramentas': null,
   '/ferramentas/calculadora-do-esquecimento': null,
   '/ferramentas/plano-ate-a-prova': null,
+  '/ferramentas/edital-verticalizado': null,
+  '/ferramentas/edital-verticalizado/r/:id': null,
   '/quem-faz': null,
 }
 

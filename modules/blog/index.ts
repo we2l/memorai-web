@@ -28,6 +28,8 @@ const STATIC_PAGES = ['/', '/planos', '/quem-faz', '/ajuda']
 const BLOG_PAGES = ['sobre']
 /** Folders of public/blog (the share images): an article with this slug would collide with them */
 const BLOG_ASSET_DIRS = ['capas']
+/** Tools that are not in an article (no embed): their page lives in app/pages/ferramentas, prerendered and in the sitemap */
+const STANDALONE_TOOLS = ['edital-verticalizado']
 /** Internal paths an article may link to besides /blog/** and /ferramentas/** */
 const LINKABLE = /^\/(|planos|ajuda|quem-faz|criar-conta|entrar|comecar(\/(concurso|enem|medicina|oab|ingles|faculdade))?)$/
 
@@ -59,7 +61,7 @@ export function loadArticles(dir: string): BlogArticle[] {
   for (const reserved of [...BLOG_PAGES, ...BLOG_ASSET_DIRS]) {
     if (slugs.has(reserved)) throw new Error(`content/blog/${reserved}.md: o slug "${reserved}" é de uma página do blog (/blog/${reserved})`)
   }
-  const tools = new Set<string>(BLOG_TOOLS)
+  const tools = new Set<string>([...BLOG_TOOLS, ...STANDALONE_TOOLS])
   const featured = articles.filter(a => a.featured)
   if (featured.length > 1) throw new Error(`featured: true em mais de um artigo (${featured.map(a => a.slug).join(', ')}); o destaque do /blog é um só`)
   for (const a of articles) {
@@ -83,7 +85,7 @@ export function blogRoutes(articles: BlogArticle[]): string[] {
     ...BLOG_PAGES.map(p => `/blog/${p}`),
     ...articles.map(a => `/blog/${a.slug}`),
     '/ferramentas',
-    ...BLOG_TOOLS.map(t => `/ferramentas/${t}`),
+    ...[...BLOG_TOOLS, ...STANDALONE_TOOLS].map(t => `/ferramentas/${t}`),
   ]
 }
 

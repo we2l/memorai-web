@@ -135,7 +135,7 @@ export function relatedArticles(article: Pick<BlogMeta, 'slug' | 'pillar' | 'rel
   return picked
 }
 
-export const BLOG_TOOL_PAGES: { tool: BlogTool, path: string, title: string, description: string }[] = [
+export const BLOG_TOOL_PAGES: { tool: BlogTool | 'edital-verticalizado', path: string, title: string, description: string }[] = [
   {
     tool: 'calculadora-do-esquecimento',
     path: '/ferramentas/calculadora-do-esquecimento',
@@ -147,5 +147,11 @@ export const BLOG_TOOL_PAGES: { tool: BlogTool, path: string, title: string, des
     path: '/ferramentas/plano-ate-a-prova',
     title: 'Plano até a prova',
     description: 'Com a data e o volume, quantos cards novos e quantas revisões por dia você precisa.',
+  },
+  {
+    tool: 'edital-verticalizado',
+    path: '/ferramentas/edital-verticalizado',
+    title: 'Edital verticalizado grátis',
+    description: 'Envie o edital e receba as matérias e os assuntos numa lista para marcar o que já estudou.',
   },
 ]

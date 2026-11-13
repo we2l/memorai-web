@@ -3,7 +3,7 @@ import { isReadingRoute, bootNeedsMe, isPublicRoute } from '~/utils/routes'
 
 describe('isPublicRoute', () => {
   it('blog, ferramentas e quem-faz abrem sem conta (prd-blog-seo); o app não', () => {
-    for (const p of ['/blog', '/blog/curva-do-esquecimento', '/ferramentas', '/ferramentas/plano-ate-a-prova', '/quem-faz']) expect(isPublicRoute(p), p).toBe(true)
+    for (const p of ['/blog', '/blog/curva-do-esquecimento', '/ferramentas', '/ferramentas/plano-ate-a-prova', '/ferramentas/edital-verticalizado', '/ferramentas/edital-verticalizado/r/01JD0000000000000000000ABC', '/quem-faz']) expect(isPublicRoute(p), p).toBe(true)
     for (const p of ['/hoje', '/blogs', '/ferramentasx', '/cadernos']) expect(isPublicRoute(p), p).toBe(false)
   })
 })
@@ -26,7 +26,7 @@ describe('bootNeedsMe (QA M6)', () => {
 
 describe('isReadingRoute (prd-blog-v2 RF-L1)', () => {
   it('blog, ferramentas e quem-faz leem com a barra fina de cookies', () => {
-    for (const p of ['/blog', '/blog/sobre', '/blog/curva-do-esquecimento', '/ferramentas/plano-ate-a-prova', '/quem-faz']) expect(isReadingRoute(p)).toBe(true)
+    for (const p of ['/blog', '/blog/sobre', '/blog/curva-do-esquecimento', '/ferramentas/plano-ate-a-prova', '/ferramentas/edital-verticalizado', '/quem-faz']) expect(isReadingRoute(p)).toBe(true)
     for (const p of ['/', '/planos', '/hoje', '/blogs', '/ferramentasx']) expect(isReadingRoute(p)).toBe(false)
   })
 })

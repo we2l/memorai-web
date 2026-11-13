@@ -155,6 +155,9 @@ describe('loadArticles, sitemap e RSS', () => {
     expect(sitemap).toContain('<loc>https://baigi.com.br/quem-faz</loc>')
     expect(sitemap).toContain('<loc>https://baigi.com.br/ferramentas/calculadora-do-esquecimento</loc>')
     expect(blogRoutes(articles)).toContain('/ferramentas/plano-ate-a-prova')
+    expect(blogRoutes(articles)).toContain('/ferramentas/edital-verticalizado')
+    expect(sitemap).toContain('<loc>https://baigi.com.br/ferramentas/edital-verticalizado</loc>')
+    expect(sitemap).not.toContain('/r/')
   })
 
   it('cada artigo do repo tem a sua imagem de compartilhamento (public/blog/capas)', () => {

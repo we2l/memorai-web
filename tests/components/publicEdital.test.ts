@@ -122,6 +122,20 @@ describe('EditalPublicResult', () => {
     expect(navigateToMock).toHaveBeenCalledWith('/cadernos/t9')
   })
 
+  it('conta nova (onboarding pendente): o apply conclui o onboarding no usuário antes de abrir o caderno', async () => {
+    const auth = useAuthStore()
+    auth.user = { id: 'u1', name: 'Ana', email: 'a@x.com', plan: 'free', onboarding_completed: false } as any
+    localStorage.setItem(EDITAL_INTENT_KEY, ID)
+    route.query = { aplicar: '1' }
+    let doneWhenNavigated: boolean | undefined
+    navigateToMock.mockImplementation(() => { doneWhenNavigated = auth.user?.onboarding_completed })
+    apiMock.mockResolvedValue({ data: { topic: { id: 't9', name: 'PM-PE' }, counts: { subjects: 2, topics: 3 }, exam: null, exam_skipped: null } })
+    await mount()
+    await tick()
+    expect(navigateToMock).toHaveBeenCalledWith('/cadernos/t9')
+    expect(doneWhenNavigated).toBe(true)
+  })
+
   it('?aplicar=1 sem a intenção desta leitura não cria nada', async () => {
     useAuthStore().user = { id: 'u1', name: 'Ana', email: 'a@x.com', plan: 'free', onboarding_completed: true } as any
     route.query = { aplicar: '1' }

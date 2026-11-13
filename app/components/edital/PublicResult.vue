@@ -173,6 +173,9 @@ async function apply(allowDuplicate = false, auto = false) {
     clearEditalIntent()
     track('edital_public_applied', {})
     void useTopicStore().fetchTree()
+    // The API concludes the onboarding with the apply: without this the middleware sends a new account to /comecar
+    // and the caderno it just made never opens
+    if (auth.user && !auth.user.onboarding_completed) auth.setUser({ ...auth.user, onboarding_completed: true })
     toast.show(`Caderno pronto: ${editalCountsLabel(res.counts.subjects, res.counts.topics)}.`, 'success')
     if (res.exam_skipped === 'exam_limit_reached') toast.show('A prova não entrou: o Grátis tem até 2 provas ativas.', 'info')
     else if ((res.exam_skipped as string | null) === 'exam_date_past') toast.show('A data da prova já passou, então ela não entrou.', 'info')

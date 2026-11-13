@@ -120,6 +120,10 @@ export default defineNuxtConfig({
   fonts: {
     families: [
       { name: 'Inter', weights: ['400 700'], styles: ['normal'], subsets: ['latin'], provider: 'google' },
+      // Baigi Num / Baigi It have their own @font-face in assets/css/fraunces.css (out of entry.css). Without this,
+      // @nuxt/fonts finds baigi-num-400.woff2 on its own and writes another @font-face into entry.css (+0,06 KB gz)
+      { name: 'Baigi Num', provider: 'none' },
+      { name: 'Baigi It', provider: 'none' },
     ],
   },
 

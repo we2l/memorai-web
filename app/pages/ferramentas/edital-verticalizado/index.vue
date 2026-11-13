@@ -77,6 +77,7 @@
         <li><strong>Marque.</strong> Passe o que já estudou. O progresso fica neste aparelho, e cada pessoa da turma marca o seu.</li>
         <li><strong>Revise.</strong> Para guardar o que estudou, crie o caderno no Baigi: a lista vira matérias e assuntos prontos, com a data da prova.</li>
       </ol>
+      <p>Quer fazer à mão, em planilha? Veja <NuxtLink to="/blog/o-que-e-edital-verticalizado">o que é edital verticalizado e como montar o seu</NuxtLink>.</p>
     </section>
 
     <UiSection title="Perguntas rápidas" flush class="mx-auto mt-8 mb-4 max-w-article px-5 pt-5 pb-1 sm:px-6 sm:pt-6">
@@ -107,7 +108,7 @@ import '~/assets/css/blog-prose.css'
 // The page has its own primary call: the header's "Criar conta grátis" goes quiet (one highlight per screen, ADR-027 §6)
 definePageMeta({ layout: 'public', quietHeaderCta: true })
 
-const TITLE = 'Edital verticalizado grátis: envie o edital e marque o que já estudou'
+const TITLE = 'Edital verticalizado grátis: lista para marcar, planilha e PDF'
 const DESCRIPTION = 'Envie o PDF do edital ou cole o texto e receba as matérias e os assuntos numa lista para marcar o que já estudou. Baixe em planilha e PDF. Grátis, sem cadastro.'
 useBlogSeo({
   title: TITLE,
@@ -120,6 +121,8 @@ useBlogSeo({
 })
 
 const FAQS = [
+  { q: 'O que é edital verticalizado?', a: 'É o conteúdo programático do edital em lista, com uma linha por assunto, agrupada por matéria, para você marcar o que já estudou e revisou. Quem verticaliza o edital sabe o que cai, o que já viu e o que falta.' },
+  { q: 'Posso baixar o edital verticalizado em planilha ou PDF?', a: 'Sim. A planilha sai em CSV, que abre no Excel e no Google Planilhas, e o PDF sai pronto para imprimir, com caixas para marcar à mão.' },
   { q: 'É grátis mesmo?', a: 'Sim. Verticalizar, marcar, baixar a planilha e o PDF e mandar o link à turma não custam nada nem pedem cadastro. Só criar o caderno no Baigi pede uma conta.' },
   { q: 'Vocês guardam meu PDF?', a: 'Não. O arquivo é apagado depois da leitura. Fica só a lista de matérias e assuntos, no link do resultado.' },
   { q: 'Confere com o edital oficial?', a: 'Use como guia e confira no edital oficial. A leitura é automática e pode errar um item ou outro.' },

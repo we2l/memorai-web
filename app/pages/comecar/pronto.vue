@@ -55,6 +55,8 @@
 
         <div v-else class="flex flex-col gap-2 sm:flex-row" data-testid="saved-next">
           <UiButton variant="primary" data-testid="saved-material" @click="openContent">Agora com o seu material</UiButton>
+          <!-- "Estudar isso no Baigi" pressed before the account: the lote came first, the edital waits here -->
+          <UiButton v-if="editalIntent" variant="outline" :to="`${publicEditalResultPath(editalIntent)}?aplicar=1`" data-testid="saved-edital">Criar o caderno do edital</UiButton>
           <UiButton variant="ghost" to="/hoje" data-testid="saved-home">Ver o Hoje</UiButton>
         </div>
       </template>
@@ -95,6 +97,7 @@ import { areaName, clearGuestProgress, loadGuestProgress } from '~/utils/guestPr
 import { guestExamSkipped, guestExamSkippedText, guestImportBody, guestImportFailure, type GuestExamSkipped, type GuestImportFailure } from '~/utils/guestImport'
 import { markFirstMaterialPending } from '~/utils/firstMaterial'
 import { reviewPath } from '~/utils/reviewScope'
+import { pendingEditalIntent, publicEditalResultPath } from '~/utils/editalIntent'
 
 definePageMeta({ layout: 'auth', wide: true })
 useHead({ title: 'Progresso salvo · Baigi' })
@@ -111,6 +114,8 @@ const failMessage = ref('')
 const failKind = ref<GuestImportFailure>('network')
 const saved = ref<SavedLote | null>(null)
 const title = ref<HTMLElement | null>(null)
+const editalIntent = ref<string | null>(null)
+onMounted(() => { editalIntent.value = pendingEditalIntent() })
 const tomorrow = ref<TomorrowForecast | null>(null)
 const tomorrowLoading = ref(true)
 const tomorrowFailed = ref(false)

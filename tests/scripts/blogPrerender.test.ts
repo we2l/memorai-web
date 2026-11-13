@@ -6,7 +6,7 @@ import { PUBLIC_DIR, skipWithoutBuild } from './buildOutput'
 
 // prd-blog-seo RF-B5, RF-S1, RF-P1: the blog is HTML with the text, not an SPA shell, and stays out of the precache
 const ARTICLES = ['curva-do-esquecimento', 'como-revisar-lei-seca-inss', 'alternativa-ao-anki']
-const PAGES = ['blog', 'blog/sobre', ...ARTICLES.map(a => `blog/${a}`), 'ferramentas', 'ferramentas/calculadora-do-esquecimento', 'ferramentas/plano-ate-a-prova', 'quem-faz']
+const PAGES = ['blog', 'blog/sobre', ...ARTICLES.map(a => `blog/${a}`), 'ferramentas', 'ferramentas/calculadora-do-esquecimento', 'ferramentas/plano-ate-a-prova', 'ferramentas/edital-verticalizado', 'quem-faz']
 const read = (page: string) => readFileSync(join(PUBLIC_DIR, page, 'index.html'), 'utf8')
 const jsonLd = (html: string) => [...html.matchAll(/<script type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g)].map(m => JSON.parse(m[1]!))
 

@@ -75,7 +75,7 @@ const CONSENT_CHUNK = /\/components\/ui\/Consent(Banner|Modal)\.vue/
 // the shortcuts offline too.
 const ONE_SHOT_PAGE_CHUNK = /\/(pages\/(index|comecar(\/(index|pronto|\[area\]))?|entrar|criar-conta|esqueci-senha|checkout\/(sucesso|index)|auth\/google\/callback|redefinir-senha|termos|privacidade|planos|importar|cadernos\/(lixeira|edital))|layouts\/(auth|landing)|components\/review\/ReviewOnboardingEnd|components\/caderno\/(MaterialCardsState|MoveDialog|TrashDialog))\.vue/
 // Pieces shared only by those pages: a shared chunk has no facade module, so it goes by what is inside it.
-const ONE_SHOT_SHARED = /\/(components\/auth\/|components\/edital\/|components\/onboarding\/|components\/checkout\/|utils\/(editalProposal|mercadoPago|checkoutState|authMessages|organization|moveTargets|ankiMapping|guestProgress|postAuthRedirect)|composables\/(useTrashBatch|useEditalReader))/
+const ONE_SHOT_SHARED = /\/(components\/auth\/|components\/edital\/|components\/onboarding\/|components\/checkout\/|utils\/(editalProposal|editalIntent|editalCsv|publicEdital|mercadoPago|checkoutState|authMessages|organization|moveTargets|ankiMapping|guestProgress|postAuthRedirect)|composables\/(useTrashBatch|useEditalReader|usePublicEdital))/
 // Blog and free tools (prd-blog-seo RF-B9): marketing read online, like the landing. Pages, their components, the
 // articles (one chunk per content/blog/*.md) and the tools' math go to once-* chunks, out of the install download.
 const BLOG_CHUNK = /\/(pages\/(blog|ferramentas)\/|pages\/quem-faz\.vue|components\/blog\/|content\/blog\/|utils\/(blog|forgetting|examPlan)\.ts|composables\/(useBlogSeo|useAreaQuery)\.ts|modules\/blog\/)|^\0#blog\//
@@ -261,6 +261,9 @@ export default defineNuxtConfig({
     '/ferramentas': { ssr: true, prerender: true },
     // "Quem faz o Baigi": the author of the articles and the seller identification the checkout links to
     '/quem-faz': { ssr: true, prerender: true },
+    // Result of a public reading (prd-edital-verticalizado-publico): an id nobody can guess, read in the browser,
+    // never prerendered. More specific than /ferramentas/**, so it overrides ssr and prerender
+    '/ferramentas/edital-verticalizado/r/**': { ssr: false, prerender: false },
     '/ferramentas/**': { ssr: true, prerender: true },
     '/redefinir-senha': { ssr: false },
     // The empty app shell (prd-revisao-offline RF-F1): precached, served by the service worker for /hoje and /revisar

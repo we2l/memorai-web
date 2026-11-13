@@ -23,7 +23,7 @@
             >
               <FileText class="size-6 text-fg-muted" aria-hidden="true" />
               <span class="font-semibold text-fg-strong">{{ file ? file.name : 'Arraste o PDF ou escolha o arquivo' }}</span>
-              <span class="text-meta text-fg-muted">{{ file ? `${(file.size / MB).toFixed(1)} MB` : `Até ${edital.limits.fileMb} MB. O edital inteiro serve: achamos o conteúdo programático.` }}</span>
+              <span class="text-meta text-fg-muted">{{ file ? `${(file.size / MB).toFixed(1)} MB. Toque para trocar o arquivo.` : `Até ${edital.limits.fileMb} MB. O edital inteiro serve: achamos o conteúdo programático.` }}</span>
               <input type="file" accept=".pdf,application/pdf" class="sr-only" @change="onFile">
             </label>
             <p v-if="fileError" class="text-meta text-danger" role="alert">{{ fileError }}</p>
@@ -31,7 +31,7 @@
             <template v-if="!showPages">
               <p class="text-meta text-fg-muted">
                 O PDF tem vários editais?
-                <button type="button" class="font-medium text-action-fg underline" data-testid="edital-pages-open" @click="openPages">Dizer as páginas</button>
+                <button type="button" class="inline-block py-1 font-medium text-action-fg underline" data-testid="edital-pages-open" @click="openPages">Dizer as páginas</button>
               </p>
             </template>
             <fieldset v-else class="min-w-0">

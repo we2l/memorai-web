@@ -29,7 +29,7 @@
       </div>
       <!-- Turnstile for the second POST -->
       <div ref="captchaHost" class="contents" data-testid="edital-captcha" />
-      <UiButton variant="ghost" class="mt-3" to="/ferramentas/edital-verticalizado">Enviar outro edital</UiButton>
+      <UiButton variant="outline" class="mt-3" to="/ferramentas/edital-verticalizado">Enviar outro edital</UiButton>
     </UiSection>
 
     <!-- The reading failed: the message, the way on, the input kept -->
@@ -37,9 +37,9 @@
       <h1 ref="heading" tabindex="-1" class="text-title font-semibold text-fg-strong outline-none">Não deu para ler o edital</h1>
       <p role="alert" class="mt-2 text-body text-fg" data-testid="edital-failed-message">{{ failure?.message }}</p>
       <div class="mt-4 flex flex-wrap gap-2">
-        <UiButton v-if="failure?.next === 'pages'" variant="outline" data-testid="edital-fix-pages" @click="fix('pages')">Dizer as páginas</UiButton>
-        <UiButton v-if="failure?.next === 'text' || failure?.next === 'pages'" variant="outline" data-testid="edital-fix-text" @click="fix('text')">Colar o texto</UiButton>
-        <UiButton variant="ghost" to="/ferramentas/edital-verticalizado" data-testid="edital-fix-again">Enviar outro edital</UiButton>
+        <UiButton v-if="failure?.next === 'pages'" variant="primary" data-testid="edital-fix-pages" @click="fix('pages')">Dizer as páginas</UiButton>
+        <UiButton v-if="failure?.next === 'text' || failure?.next === 'pages'" :variant="failure?.next === 'text' ? 'primary' : 'outline'" data-testid="edital-fix-text" @click="fix('text')">Colar o texto</UiButton>
+        <UiButton :variant="failure?.next ? 'outline' : 'primary'" to="/ferramentas/edital-verticalizado" data-testid="edital-fix-again">Enviar outro edital</UiButton>
       </div>
     </UiSection>
 
@@ -49,7 +49,7 @@
       <p role="status" class="mt-2 text-body text-fg">{{ goneText }}</p>
       <div class="mt-4 flex flex-wrap gap-2">
         <UiButton v-if="stage !== 'gone'" variant="outline" data-testid="edital-retry" @click="begin">Tentar de novo</UiButton>
-        <UiButton :variant="stage === 'gone' ? 'primary' : 'ghost'" to="/ferramentas/edital-verticalizado">Verticalizar um edital</UiButton>
+        <UiButton :variant="stage === 'gone' ? 'primary' : 'outline'" to="/ferramentas/edital-verticalizado">Verticalizar um edital</UiButton>
       </div>
     </UiSection>
 

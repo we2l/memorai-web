@@ -5,7 +5,7 @@
       <h1 ref="heading" tabindex="-1" class="break-words text-page-title text-fg-strong outline-none" data-testid="edital-result-title">{{ proposal.name }}</h1>
       <p v-if="exam" class="text-body text-fg" data-testid="edital-result-exam">{{ exam }}</p>
       <p class="text-body text-fg-muted" data-testid="edital-result-counts">{{ countsLine(proposal.subjects.length, total) }}</p>
-      <UiProgressBar :value="studied" :max="Math.max(total, 1)" label="Assuntos estudados" :value-text="`${studied} de ${total} estudados`" show-value size="md" data-testid="edital-result-progress" />
+      <UiProgressBar class="edital-noprint" :value="studied" :max="Math.max(total, 1)" label="Assuntos estudados" :value-text="`${studied} de ${total} estudados`" show-value size="md" data-testid="edital-result-progress" />
     </header>
 
     <div class="edital-noprint flex flex-col gap-3">
@@ -13,13 +13,13 @@
         <UiButton variant="primary" :loading="applying" data-testid="edital-apply" @click="apply()">Estudar isso no Baigi</UiButton>
         <UiButton variant="outline" :icon-left="Download" data-testid="edital-csv" @click="exportCsv">Baixar planilha</UiButton>
         <UiButton variant="outline" :icon-left="Printer" data-testid="edital-pdf" @click="exportPdf">Baixar PDF</UiButton>
-        <UiButton variant="ghost" :icon-left="Link2" data-testid="edital-share" @click="share">Copiar link para a turma</UiButton>
+        <UiButton variant="outline" :icon-left="Link2" data-testid="edital-share" @click="share">Copiar link para a turma</UiButton>
       </div>
       <p class="text-meta text-fg-muted">
         <template v-if="auth.user">O Baigi cria o caderno com as matérias e os assuntos, e marca a prova se o edital trouxer a data.</template>
         <template v-else>
           Cria uma conta grátis e já abre o caderno com as matérias e os assuntos.
-          <button type="button" class="font-medium text-action-fg underline" data-testid="edital-login" @click="goLogin">Já tenho conta</button>
+          <button type="button" class="inline-block py-1 font-medium text-action-fg underline" data-testid="edital-login" @click="goLogin">Já tenho conta</button>
         </template>
       </p>
       <div v-if="nameTaken" role="alert" class="rounded-tile bg-warning-subtle p-4" data-testid="edital-name-taken">
@@ -54,7 +54,7 @@
       <p v-if="curatedLine" data-testid="edital-curated">{{ curatedLine.before }}<a v-if="curatedLine.url" :href="curatedLine.url" rel="noopener noreferrer nofollow" target="_blank" class="text-action-fg underline">edital oficial</a><template v-else>edital oficial</template>{{ curatedLine.after }}</p>
       <p v-else data-testid="edital-notice">Gerado automaticamente a partir de um edital enviado por um visitante. Confira no edital oficial.</p>
       <p class="edital-noprint">
-        <button type="button" class="underline" data-testid="edital-report-open" @click="reporting = true">Denunciar</button>
+        <button type="button" class="inline-flex min-h-touch items-center underline" data-testid="edital-report-open" @click="reporting = true">Denunciar</button>
       </p>
     </footer>
 

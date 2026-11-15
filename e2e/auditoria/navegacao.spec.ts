@@ -93,10 +93,10 @@ test.describe('Navegação v3 — mapa de destinos', () => {
       await expect(page.locator('#dados a[href="/termos"]')).toBeVisible()
     })
 
-    await test.step('"Modo escuro" da sidebar → conta › Aparência (Sistema/Claro/Escuro)', async () => {
+    await test.step('"Modo escuro" da sidebar → conta › Tema (Igual ao sistema/Claro/Escuro)', async () => {
       await gotoApp(page, '/hoje')
       await openAccount(page)
-      await expect(page.getByRole('group', { name: 'Aparência' }).getByRole('menuitemradio')).toHaveText(['Sistema', 'Claro', 'Escuro'])
+      await expect(page.getByRole('group', { name: 'Tema' }).getByRole('menuitemradio')).toHaveText(['Igual ao sistema', 'Claro', 'Escuro'])
       await page.getByRole('menuitemradio', { name: 'Escuro' }).click()
       await expect(page.locator('html')).toHaveClass(/dark/)
       await openAccount(page)

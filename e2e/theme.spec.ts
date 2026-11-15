@@ -70,7 +70,8 @@ test('a barra do navegador (theme-color) segue o tema do app, não só o do sist
   const metas = await page.locator('meta[name="theme-color"]').evaluateAll(ms => ms.map(m => [m.getAttribute('content'), m.getAttribute('media')]))
   expect(metas.length).toBeGreaterThan(0)
   for (const [content, media] of metas) {
-    expect(content?.toUpperCase()).toBe('#0F0D14')
+    // After the app boots, useColorMode writes --surface-page of the theme applied (the dark of A2: #0B0A0F)
+    expect(content?.toUpperCase()).toBe('#0B0A0F')
     expect(media).toBeNull()
   }
   await ctx.close()

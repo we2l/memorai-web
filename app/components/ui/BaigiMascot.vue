@@ -1,48 +1,32 @@
 <template>
   <div class="baigi-mascot" :class="[`baigi--${state}`, { 'baigi--visible': visible }]">
-    <picture class="baigi-art">
-      <source :srcset="art.avif" type="image/avif">
-      <img
-        :src="art.webp"
-        alt=""
-        aria-hidden="true"
-        :width="width"
-        :height="size"
-        decoding="async"
-        :loading="priority ? 'eager' : 'lazy'"
-        draggable="false"
-        class="baigi-img"
-      >
-    </picture>
+    <img
+      :src="`/mascote/${art}.svg`"
+      alt=""
+      aria-hidden="true"
+      :width="width"
+      :height="size"
+      decoding="async"
+      :loading="priority ? 'eager' : 'lazy'"
+      draggable="false"
+      class="baigi-img"
+    >
   </div>
 </template>
 
 <script setup lang="ts">
-// The official mascot (app/assets/mascots, the same art of UiLogo and the landing) in place of the old SVG dolphin.
-// Each state picks a pose; `size` is the HEIGHT of the art (the poses are portrait, so the width is smaller than the
-// old square box and no caller grows sideways):
-//   idle, subtle -> mascot-baigi (the standing one with the light bulb; subtle is only quieter)
-//   thinking     -> mascot-baigi-thinking (fin on the chin)
-//   celebrating  -> mascot-baigi-celebrating
-//   pose="podcast" (optional, the mini-player) -> mascot-baigi-podcast, whatever the state
-// The images are never inlined (nuxt.config assetsInlineLimit) nor precached (no avif/webp in globPatterns).
-import standingAvif from '~/assets/mascots/mascot-baigi.avif'
-import standingWebp from '~/assets/mascots/mascot-baigi.webp'
-import thinkingAvif from '~/assets/mascots/mascot-baigi-thinking.avif'
-import thinkingWebp from '~/assets/mascots/mascot-baigi-thinking.webp'
-import celebratingAvif from '~/assets/mascots/mascot-baigi-celebrating.avif'
-import celebratingWebp from '~/assets/mascots/mascot-baigi-celebrating.webp'
-import podcastAvif from '~/assets/mascots/mascot-baigi-podcast.avif'
-import podcastWebp from '~/assets/mascots/mascot-baigi-podcast.webp'
+// The mascot: one static SVG per expression (public/mascote/<estado>.svg), drawn from the rig in app/assets/mascote by
+// scripts/mascote-svgs.mjs. An <img>: no script, no clash of ids between two dolphins on a page, sharp at any size,
+// outside the route budgets and the precache (globIgnores mascote/**). `size` is the HEIGHT of the art; the width
+// comes from the expression's own box (estados.json).
+//   idle, subtle -> neutro (subtle is only quieter)
+//   thinking     -> pensando
+//   celebrating  -> confete (comemorando below 80 px, where the confetti would shrink the dolphin)
+//   pose="podcast" (the mini-player) -> ouvindo, whatever the state
+//   expression   -> any expression of the rig (feliz, preocupado, acenando…), over the state
+import sizes from '~/assets/mascote/estados.json'
 
-type Pose = 'standing' | 'thinking' | 'celebrating' | 'podcast'
-
-const POSES: Record<Pose, { avif: string, webp: string, w: number, h: number }> = {
-  standing: { avif: standingAvif, webp: standingWebp, w: 256, h: 400 },
-  thinking: { avif: thinkingAvif, webp: thinkingWebp, w: 192, h: 311 },
-  celebrating: { avif: celebratingAvif, webp: celebratingWebp, w: 224, h: 262 },
-  podcast: { avif: podcastAvif, webp: podcastWebp, w: 224, h: 263 },
-}
+export type MascotExpression = keyof typeof sizes
 
 const props = withDefaults(defineProps<{
   size?: number
@@ -50,6 +34,8 @@ const props = withDefaults(defineProps<{
   visible?: boolean
   /** Overrides the pose of the state (the mini-player shows the one with headphones) */
   pose?: 'podcast'
+  /** Any expression of the rig, over the state and the pose */
+  expression?: MascotExpression
   /** Above the fold on its screen: load right away instead of lazily */
   priority?: boolean
 }>(), {
@@ -57,16 +43,18 @@ const props = withDefaults(defineProps<{
   state: 'idle',
   visible: true,
   pose: undefined,
+  expression: undefined,
   priority: false,
 })
 
-const art = computed(() => {
-  if (props.pose) return POSES[props.pose]
-  if (props.state === 'thinking') return POSES.thinking
-  if (props.state === 'celebrating') return POSES.celebrating
-  return POSES.standing
+const art = computed<MascotExpression>(() => {
+  if (props.expression) return props.expression
+  if (props.pose === 'podcast') return 'ouvindo'
+  if (props.state === 'thinking') return 'pensando'
+  if (props.state === 'celebrating') return props.size >= 80 ? 'confete' : 'comemorando'
+  return 'neutro'
 })
-const width = computed(() => Math.round(props.size * art.value.w / art.value.h))
+const width = computed(() => Math.round(props.size * sizes[art.value].w / sizes[art.value].h))
 </script>
 
 <style scoped>
@@ -79,10 +67,6 @@ const width = computed(() => Math.round(props.size * art.value.w / art.value.h))
 .baigi-mascot.baigi--visible {
   opacity: 1;
   transform: translateY(0);
-}
-
-.baigi-art {
-  display: block;
 }
 
 .baigi-img {

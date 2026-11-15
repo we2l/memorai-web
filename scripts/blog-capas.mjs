@@ -79,7 +79,7 @@ h1 { margin-top: 32px; font: 700 58px/1.08 'Bricolage'; letter-spacing: -.01em; 
   </div>
   <div class="side${cover ? '' : ' no-cover'}">
     ${cover ? `<div class="cover"><div class="v${cover.value.length > 6 ? ' long' : ''}">${escape(cover.value)}</div><div class="l">${escape(cover.label)}</div></div>` : ''}
-    <img class="mascot" src="${asset('public/landing/mascote/mascot-baigi.webp')}" alt="">
+    <img class="mascot" src="${asset('public/mascote/neutro.svg')}" alt="">
   </div>
 </div></body></html>`
 }

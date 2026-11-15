@@ -40,10 +40,9 @@
       <!-- E2 (prd-visual-e2 Fase 2b): the end of a lote of the review, with the dolphin, the arc and the streak chip -->
       <div v-else-if="phase === 'result' && summary" class="mx-auto flex w-full max-w-xl flex-col gap-6 px-gutter pt-8 pb-8" data-testid="guest-result">
         <div class="flex flex-col items-center text-center" data-testid="guest-remembered">
-          <picture class="guest-mascot" aria-hidden="true">
-            <source :srcset="celebratingAvif" type="image/avif">
-            <img :src="celebratingWebp" alt="" width="104" height="104" decoding="async">
-          </picture>
+          <span class="guest-mascot" aria-hidden="true">
+            <img :src="'/mascote/confete.svg'" alt="" width="104" height="104" decoding="async">
+          </span>
           <h1 class="mt-2 text-display text-fg-strong outline-none" tabindex="-1" data-celebration-title>Você lembrou {{ summary.remembered }} de {{ summary.total }}</h1>
           <LazyUiTag class="guest-chip mt-3" tone="streak" :icon="Flame" size="lg">Dia 1 da sequência</LazyUiTag>
           <LazyUiArc class="mt-4" :got="summary.remembered" :of="summary.total" animate>
@@ -132,8 +131,6 @@
 import type { CardOrigin, Flashcard } from '~/types'
 import type { RatingFeedback } from '~/components/review/ReviewFeedback.vue'
 import { Flame } from 'lucide-vue-next'
-import celebratingAvif from '~/assets/mascots/mascot-baigi-celebrating.avif'
-import celebratingWebp from '~/assets/mascots/mascot-baigi-celebrating.webp'
 import {
   GUEST_GOALS, guestSummary, isGuestArea, loadGuestProgress, nextGuestCard, returnText, saveGuestProgress,
   type GuestArea, type GuestDeck, type GuestGoal, type GuestProgress, type GuestRating,

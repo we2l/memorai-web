@@ -2,10 +2,7 @@
   <div v-if="podcast" class="flex min-h-0 flex-col gap-5" data-testid="player-panel">
     <div class="flex items-center gap-4">
       <span class="flex size-18 shrink-0 items-center justify-center rounded-card bg-soft" aria-hidden="true">
-        <picture class="contents">
-          <source srcset="~/assets/mascots/mascot-baigi-podcast.avif" type="image/avif">
-          <img src="~/assets/mascots/mascot-baigi-podcast.webp" alt="" class="size-15 object-contain" width="60" height="60" loading="lazy" decoding="async">
-        </picture>
+        <img :src="'/mascote/ouvindo.svg'" alt="" class="size-15 object-contain" width="60" height="60" loading="lazy" decoding="async">
       </span>
       <div class="min-w-0">
         <component :is="titleTag" class="text-section break-words text-fg-strong">{{ podcast.title }}</component>

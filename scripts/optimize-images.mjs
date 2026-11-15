@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-// One-shot mascot conversion (prd-performance-frontend RF-06).
+// One-shot mascot conversion (prd-performance-frontend RF-06). Since 15/11/2026 only the bust of the logo is a
+// raster: the full mascot is one SVG per expression (public/mascote, scripts/mascote-svgs.mjs).
 // Source PNGs were removed from app/assets after conversion (recover them from git
 // history: `git show 03d84dc:app/assets/<name>.png`) and passed with --src; outputs WebP + AVIF at 2x the largest displayed width into app/assets/mascots/.
 // Usage: npm run images -- --src <dir-with-original-pngs>
@@ -9,10 +10,6 @@ import sharp from 'sharp'
 
 // name → output width in px (2x the largest use in the app)
 const TARGETS = {
-  'mascot-baigi': 256, //            landing/HeroPipeline.vue sm:w-32 (128 px); home/HomeGreeting.vue 88 px tall
-  'mascot-baigi-celebrating': 224, // pages/revisar.vue w-28 (112 px); home/HomeGreeting.vue (goal met)
-  'mascot-baigi-podcast': 224, //     pages/podcasts.vue w-28 (112 px)
-  'mascot-baigi-thinking': 192, //    pages/simulados/index.vue, EmptyStateOnboarding w-24 (96 px)
   'mascot-baigi-bust-64': 64, //      ui/Logo.vue, landing/LogoLanding.vue (22–36 px)
 }
 const SOURCE_OF = { 'mascot-baigi-bust-64': 'mascot-baigi-bust' }

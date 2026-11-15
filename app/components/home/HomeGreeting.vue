@@ -7,10 +7,9 @@
   <header v-else class="greet" :data-testid="state === 'done' ? 'hero-up-to-date' : undefined">
     <!-- The official mascot, static (ADR-037 §7), centered on the two lines of the title and the date. It fades in
          only on the first visit of the day on this device, never with reduced motion (RN-5) -->
-    <picture class="greet-mascot" :data-fade="fade || undefined" aria-hidden="true">
-      <source :srcset="mascotAvif" type="image/avif">
-      <img :src="mascotWebp" alt="" width="41" height="64" decoding="async">
-    </picture>
+    <span class="greet-mascot" :data-fade="fade || undefined" aria-hidden="true">
+      <img :src="'/mascote/neutro.svg'" alt="" width="43" height="64" decoding="async">
+    </span>
 
     <div class="greet-text min-w-0">
       <h1 class="text-display text-fg-strong">{{ headline }}</h1>
@@ -47,8 +46,6 @@
 // any more: the one lilac block of Hoje is the exam (ADR-035 §1). Everything done: "Tudo em dia" with tomorrow.
 // The numbers failed to load: the salutation alone (never "Tudo em dia").
 import { Flame } from 'lucide-vue-next'
-import mascotAvif from '~/assets/mascots/mascot-baigi.avif'
-import mascotWebp from '~/assets/mascots/mascot-baigi.webp'
 import type { Stats, TomorrowForecast } from '~/types'
 import type { GreetingState } from '~/utils/greeting'
 

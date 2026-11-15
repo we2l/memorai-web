@@ -297,8 +297,8 @@
   & .lp-hero-cta { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin-top: 22px; }
   & .lp-scene { position: relative; height: 380px; margin-top: 8px; }
   & .lp-scene .lp-phone { position: absolute; width: 200px; right: 4%; top: 30px; transform: rotate(7deg); }
-  & .lp-scene .lp-hero-m { position: absolute; width: 200px; left: -28px; bottom: -6px; z-index: 2; }
-  & .lp-scene .lp-hero-m img { clip-path: inset(22% 0 0 0); }
+  /* The SVG mascot (15/11/2026) has no light bulb to hide: no clip; narrower so it stands as tall as the old one did */
+  & .lp-scene .lp-hero-m { position: absolute; width: 170px; left: -18px; bottom: -6px; z-index: 2; }
   & .lp-scene .lp-bubble { left: 0; top: 70px; max-width: 180px; font-size: 14px; --tail: 84px; }
 }
 
@@ -320,7 +320,7 @@
     & .lp-hero .lp-lead { margin-top: 18px; max-width: 33ch; }
     & .lp-scene { height: 600px; }
     & .lp-scene .lp-phone { width: 280px; right: 0; top: 10px; }
-    & .lp-scene .lp-hero-m { width: 300px; left: -96px; bottom: 0; }
+    & .lp-scene .lp-hero-m { width: 250px; left: -80px; bottom: 0; }
     & .lp-scene .lp-bubble { left: -70px; top: 150px; max-width: 230px; font-size: 15px; --tail: 120px; }
   }
 }

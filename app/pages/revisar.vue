@@ -141,7 +141,7 @@
       <!-- The card -->
       <div v-else-if="held || review.currentCard" class="review-grid mx-auto w-full px-gutter py-6">
         <!-- The page has a title while a card is on screen (the empty and end states bring their own h1) -->
-        <h1 class="sr-only">{{ scopeText ? `Revisando ${scopeText}` : 'Revisão' }}</h1>
+        <h1 class="sr-only">Revisão</h1>
         <div class="flex min-w-0 flex-col gap-4">
         <ReviewCard
           :key="shownCard?.id"

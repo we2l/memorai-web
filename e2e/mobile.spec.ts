@@ -38,8 +38,9 @@ test.describe('Mobile — Dashboard', () => {
     await page.waitForLoadState('domcontentloaded')
     await page.waitForTimeout(2000)
     const cta = page.getByTestId('home-goal-start')
-    const empty = page.getByText(/Tudo em dia|Que bom ter você aqui/i).first()
-    await expect(cta.or(empty)).toBeVisible()
+    // No cards yet: the first steps (A2); cards and nothing due: "Tudo em dia"
+    const empty = page.getByText(/Tudo em dia|Primeiros passos/i).first()
+    await expect(cta.or(empty).first()).toBeVisible()
   })
 })
 
@@ -112,6 +113,8 @@ test.describe('Mobile — Planos', () => {
     await page.waitForLoadState('networkidle')
 
     await expect(page.getByRole('main').getByRole('heading', { name: 'Grátis' })).toBeVisible()
+    // /planos opens on the annual, where a Pro without it sees the offer ("Assinar anual"); its plan is marked on the monthly
+    await page.getByRole('radio', { name: 'Mensal' }).check()
     await expect(page.getByRole('main').getByText('Seu plano').first()).toBeVisible()
   })
 })
@@ -216,7 +219,8 @@ test.describe('Mobile — todas as rotas por toque (RF-F1, navegação v3)', () 
     await page.getByRole('button', { name: 'Adicionar' }).click()
     const sheet = page.getByRole('dialog', { name: 'Adicionar' })
     await sheet.getByRole('button', { name: /Importar do Anki/ }).or(sheet.getByRole('link', { name: 'Importar do Anki' })).click()
-    await page.waitForURL('**/importar')
+    // With a caderno in the tree the link carries it (?topic_id=)
+    await page.waitForURL(/\/importar(\?|$)/)
     await expectNoHorizontalOverflow(page)
 
     // Sair

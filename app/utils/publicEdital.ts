@@ -9,7 +9,10 @@ export type PublicEditalStatus = 'pending' | 'processing' | 'choose' | 'ready' |
 export type PublicEditalErrorCode = 'edital_not_found' | 'pdf_image' | 'no_subjects' | 'pages_out_of_range'
 
 export interface PublicEditalAlternative {
-  section: number
+  /** The edital of a Diário (null when the PDF has one) */
+  section: number | null
+  /** The cargo of an edital with many (choose: 'cargo') */
+  cargo?: number | null
   label: string
   /** "154-156" (or {from, to}) */
   pages?: string | { from: number, to: number } | null
@@ -20,6 +23,8 @@ export interface PublicEditalReading {
   status: PublicEditalStatus
   cached?: boolean
   proposal?: EditalProposal | null
+  /** What the list of alternatives is: the editais of a Diário or the cargos of one edital */
+  choose?: 'edital' | 'cargo'
   alternatives?: PublicEditalAlternative[]
   error?: { code: string, message?: string } | null
   counts?: { subjects: number, topics: number }
@@ -206,4 +211,12 @@ export function examLine(iso: string | null | undefined, now: Date = new Date())
   if (days === 0) return `${date} · é hoje`
   if (days === 1) return `${date} · falta 1 dia`
   return `${date} · faltam ${days} dias`
+}
+
+/** The filter of a long list of cargos: every word typed, without accents or case ("analista adm" finds "Analista Judiciário – Área Administrativa"). */
+export function alternativeMatches(label: string, query: string): boolean {
+  const fold = (t: string) => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+  const words = fold(query).split(/\s+/).filter(Boolean)
+  const target = fold(label)
+  return words.every(w => target.includes(w))
 }

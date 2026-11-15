@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { EditalProposal } from '~/types'
 import {
+  alternativeMatches,
   alternativePages, checkedKey, claimCheckEvent, countsLine, daysToExam, examLine, failedReading, loadChecked, pctBucket, saveChecked,
   studiedCount, subjectStudied, submitFailure, topicKey, topicsTotal,
 } from '~/utils/publicEdital'
@@ -125,5 +126,14 @@ describe('publicEdital: mensagens', () => {
   it('contagem', () => {
     expect(countsLine(1, 1)).toBe('1 matéria · 1 assunto')
     expect(countsLine(12, 148)).toBe('12 matérias · 148 assuntos')
+  })
+})
+
+describe('publicEdital: filtro da lista de cargos', () => {
+  it('acha por todas as palavras digitadas, sem acento nem caixa', () => {
+    expect(alternativeMatches('03 – Analista Judiciário – Área Administrativa', 'analista adm')).toBe(true)
+    expect(alternativeMatches('03 – Analista Judiciário – Área Administrativa', 'AREA judic')).toBe(true)
+    expect(alternativeMatches('Técnico Judiciário', 'analista')).toBe(false)
+    expect(alternativeMatches('Qualquer um', '  ')).toBe(true)
   })
 })

@@ -11,6 +11,8 @@ export interface EditalSource {
   pageTo?: number | null
   /** The edital picked in the "choose" list (alternatives[].section): the API rereads that exact section */
   section?: number | null
+  /** The cargo picked in the "choose" list of cargos (alternatives[].cargo), with the same source as before */
+  cargo?: number | null
 }
 
 /** POST /editais/{id}/apply 409: a live caderno already has this name */
@@ -34,6 +36,7 @@ export function useEditalReader() {
     } else {
       form.append('text', source.text ?? '')
     }
+    if (source.cargo != null) form.append('cargo', String(source.cargo))
     const res = await $api<{ data: AiJob<EditalReadResult> }>('/editais', { method: 'POST', body: form })
     const job = res.data
     if (job.status === 'failed') throw new AiJobError(job.error || 'Não foi possível ler o edital agora. Tente de novo.')

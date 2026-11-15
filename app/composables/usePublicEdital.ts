@@ -1,7 +1,7 @@
 /**
  * Edital verticalizado grátis (prd-edital-verticalizado-publico RF-F1): POST /public/editais (PDF or text + Turnstile),
  * then the page /r/{id} polls GET /public/editais/{id}. The source stays in the memory of the page (module scope,
- * client only) so "choose" can send the same file again with `section`, and a failed reading keeps it for the fix.
+ * client only) so "choose" can send the same source again with `section` and `cargo`, and a failed reading keeps it.
  * Own state: nothing is shared with useEditalReader (the logged-in flow of the app).
  * Call in setup (useTurnstile and $api need the instance).
  */
@@ -17,6 +17,8 @@ export interface PublicEditalSource {
   pageTo?: number | null
   /** The edital picked in the "choose" list (alternatives[].section) */
   section?: number | null
+  /** The cargo picked in the "choose" list of cargos (alternatives[].cargo) */
+  cargo?: number | null
 }
 
 /** What the person was sending, for the "choose" and for the retry after a failure */
@@ -60,6 +62,7 @@ export function usePublicEdital() {
     } else {
       body.append('text', source.text ?? '')
     }
+    if (source.cargo != null) body.append('cargo', String(source.cargo))
     if (token) body.append('captcha_token', token)
     return body
   }
@@ -69,8 +72,8 @@ export function usePublicEdital() {
     const token = await captchaToken()
     try {
       const res = await $api<{ data: { id: string, status: PublicEditalReading['status'], cached?: boolean } }>('/public/editais', { method: 'POST', body: form(source, token) })
-      rememberSource({ ...source, section: null })
-      if (source.section == null) track('tool_used', { tool: 'edital', input: source.file ? 'pdf' : 'text' })
+      rememberSource({ ...source, section: null, cargo: null })
+      if (source.section == null && source.cargo == null) track('tool_used', { tool: 'edital', input: source.file ? 'pdf' : 'text' })
       return { id: res.data.id, status: res.data.status, cached: !!res.data.cached }
     } finally {
       // The token is single use
@@ -78,11 +81,11 @@ export function usePublicEdital() {
     }
   }
 
-  /** Sends the same source again to read the edital picked in "choose" */
-  async function choose(section: number) {
+  /** Sends the same source again to read the edital or the cargo picked in "choose" */
+  async function choose(alternative: { section: number | null, cargo?: number | null }) {
     const source = lastSource
-    if (!source?.file) throw new Error('no_source')
-    return await submit({ ...source, section })
+    if (!source?.file && !source?.text) throw new Error('no_source')
+    return await submit({ ...source, section: alternative.section, cargo: alternative.cargo ?? null })
   }
 
   async function fetchReading(id: string, signal?: AbortSignal): Promise<PublicEditalReading> {

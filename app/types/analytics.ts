@@ -156,14 +156,14 @@ export interface FrontEventProps {
   /** Edital vira caderno (prd-edital-caderno RF-F4) */
   edital_started: { source: 'pdf' | 'text', manual_pages: boolean }
   edital_read: { subjects: number, topics: number, found: EditalFound }
-  edital_choose: { editais: number }
+  edital_choose: { editais: number, kind?: 'edital' | 'cargo' }
   edital_failed: { stage: 'read' | 'apply' }
   edital_applied: { subjects: number, topics: number, edited: boolean, exam: boolean }
   material_auto_placed: { by: 'file_name' }
   /** Edital verticalizado grátis (prd-edital-verticalizado-publico §3.2) */
   edital_public_ready: { subjects: number, topics: number, cached: boolean }
   edital_public_failed: { code: string }
-  edital_public_choose: Record<string, never>
+  edital_public_choose: { kind: 'edital' | 'cargo', count: number }
   edital_public_check: { pct_bucket: string }
   edital_public_export: { format: 'csv' | 'pdf' }
   edital_public_share: Record<string, never>

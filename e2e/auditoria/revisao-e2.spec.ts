@@ -52,7 +52,7 @@ for (const width of [390, 1440]) {
     await page.getByTestId('rate-3').click()
     const band = page.getByTestId('review-feedback')
     await expect(band).toHaveAttribute('data-kind', 'ok')
-    await expect(band.locator('img')).toHaveAttribute('src', /celebrating/)
+    await expect(band.locator('[data-expression]')).toHaveAttribute('data-expression', 'comemorando')
     await expect(page.getByTestId('review-why')).toHaveCount(0)
     await expect(front).toHaveText(first) // the rated card stays under the band
     await expect(band).toHaveCount(0, { timeout: 2500 })
@@ -63,7 +63,7 @@ for (const width of [390, 1440]) {
     await page.getByTestId('review-show').click()
     await page.getByTestId('rate-1').click()
     await expect(band).toHaveAttribute('data-kind', 'again')
-    await expect(band.locator('img')).toHaveAttribute('src', /thinking/)
+    await expect(band.locator('[data-expression]')).toHaveAttribute('data-expression', 'pensando')
     await page.waitForTimeout(1600)
     await expect(band).toBeVisible()
     await page.keyboard.press('p')

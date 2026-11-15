@@ -82,9 +82,19 @@ async function expectOnlyB(page: Page, nameA: string, nameB: string) {
   await page.keyboard.press('Escape')
 }
 
-async function expireSession(context: BrowserContext) {
-  await context.clearCookies({ name: SESSION_COOKIE })
-  await context.clearCookies({ name: /^remember_web_/ })
+/**
+ * Every answer of the API sets the session cookie again: one still on its way (the search of useAsA, a block of the
+ * page) brings the session back right after the cookie is cleared, and the test then waits for a 401 that never
+ * comes (A still signed in on /progresso). So: wait for the page to go quiet, clear, and only go on once the API
+ * really answers 401 to this context.
+ */
+async function expireSession(page: Page, context: BrowserContext) {
+  await page.waitForLoadState('networkidle')
+  await expect.poll(async () => {
+    await context.clearCookies({ name: SESSION_COOKIE })
+    await context.clearCookies({ name: /^remember_web_/ })
+    return apiCall(page, 'GET', '/me').then(() => 200, e => (/→ 401 /.test(String(e)) ? 401 : 0))
+  }).toBe(401)
 }
 
 test.describe('Troca de conta na mesma aba', () => {
@@ -120,7 +130,7 @@ test.describe('Troca de conta na mesma aba', () => {
     try {
       await useAsA(page, nameA)
 
-      await expireSession(context)
+      await expireSession(page, context)
       // Any request now answers 401: the plugin sends the person to /entrar?redirect=…
       await nav(page).getByRole('link', { name: 'Progresso' }).click()
       await page.waitForURL('**/entrar?redirect=**')

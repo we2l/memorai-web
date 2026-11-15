@@ -1,9 +1,8 @@
 <template>
   <div class="mx-auto flex w-full max-w-xl flex-col items-center px-gutter pb-6 pt-2 text-center lg:pt-10" data-testid="review-batch-end" :data-kind="goalMet ? 'goal' : 'batch'">
-    <picture class="be-mascot" aria-hidden="true">
-      <source :srcset="celebratingAvif" type="image/avif">
-      <img :src="celebratingWebp" alt="" width="128" height="128" decoding="async">
-    </picture>
+    <span class="be-mascot" aria-hidden="true">
+      <img :src="'/mascote/confete.svg'" alt="" width="128" height="128" decoding="async">
+    </span>
 
     <h1 class="mt-2 text-display text-fg-strong" tabindex="-1" data-celebration-title>{{ title }}</h1>
     <p class="mt-1 text-meta text-fg-muted">{{ subtitle }}</p>
@@ -73,8 +72,6 @@
 // arc draws from 120 ms (800 ms) with the number counting along, the tiles enter at 320/380 ms and the chip at 760 ms.
 // prefers-reduced-motion: opacity only (160 ms), the arc and the number ready.
 import { Check, Clock, Flame } from 'lucide-vue-next'
-import celebratingAvif from '~/assets/mascots/mascot-baigi-celebrating.avif'
-import celebratingWebp from '~/assets/mascots/mascot-baigi-celebrating.webp'
 import type { BatchSummary } from '~/composables/useReviewBatches'
 
 export interface GoalInfo { batch_size: number; target_batches: number; done_batches: number; met: boolean }

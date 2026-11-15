@@ -62,7 +62,7 @@ describe('HomeGreeting', () => {
     // A2 RF-2.1: the chip on the date line, the mascot beside the two lines
     expect(w.get('[data-testid="hero-streak"]').text()).toBe('6 dias seguidos de estudo')
     expect(w.get('h1 + p').find('[data-testid="hero-streak"]').exists()).toBe(true)
-    expect(w.get('picture img').attributes('alt')).toBe('')
+    expect(w.get('.greet-mascot img').attributes('alt')).toBe('')
     expect(w.findAll('.bg-tinted')).toHaveLength(0)
     expect(apiMock).not.toHaveBeenCalled()
     expect(await axeViolations(w.element)).toEqual([])
@@ -122,13 +122,13 @@ describe('HomeGreeting', () => {
 
   it('o golfinho entra com fade só na 1ª visita do dia neste aparelho (RN-5); sem storage, sem fade', async () => {
     const first = await mountSuspended(HomeGreeting, { props: { stats: stats(), userName: 'Ana' } })
-    expect(first.get('picture').attributes('data-fade')).toBeDefined()
+    expect(first.get('.greet-mascot').attributes('data-fade')).toBeDefined()
     expect(localStorage.getItem(`baigi-greet-${studyDay()}`)).toBe('1')
     const again = await mountSuspended(HomeGreeting, { props: { stats: stats(), userName: 'Ana' } })
-    expect(again.get('picture').attributes('data-fade')).toBeUndefined()
+    expect(again.get('.greet-mascot').attributes('data-fade')).toBeUndefined()
     vi.stubGlobal('localStorage', { getItem: () => { throw new Error('blocked') }, setItem: () => { throw new Error('blocked') } })
     const blocked = await mountSuspended(HomeGreeting, { props: { stats: stats(), userName: 'Ana' } })
-    expect(blocked.get('picture').attributes('data-fade')).toBeUndefined()
+    expect(blocked.get('.greet-mascot').attributes('data-fade')).toBeUndefined()
   })
 
   it('carregando: skeleton', async () => {

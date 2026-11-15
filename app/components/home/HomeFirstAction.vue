@@ -2,10 +2,9 @@
   <UiSection variant="primary" data-testid="home-first-action">
     <div class="fa-grid">
       <!-- The dolphin in the place of the goal ring (A2 RF-2.7); static, an empty state with an action (ADR-035 §5) -->
-      <picture class="fa-mascot" aria-hidden="true">
-        <source :srcset="thinkingAvif" type="image/avif">
-        <img :src="thinkingWebp" alt="" width="64" height="104" decoding="async">
-      </picture>
+      <span class="fa-mascot" aria-hidden="true">
+        <img :src="'/mascote/pensando.svg'" alt="" width="77" height="104" decoding="async">
+      </span>
       <div class="fa-head min-w-0">
         <UiTag tone="action" :icon="Sparkles">Seu próximo passo</UiTag>
         <h2 class="fa-title mt-3 text-page-title text-fg-strong">Gere os cards de {{ topic.name }} e faça a 1ª revisão hoje</h2>
@@ -29,8 +28,6 @@
 // action (ADR-035 §5).
 import { Clock, Sparkles } from 'lucide-vue-next'
 import type { TopicProgress } from '~/types'
-import thinkingAvif from '~/assets/mascots/mascot-baigi-thinking.avif'
-import thinkingWebp from '~/assets/mascots/mascot-baigi-thinking.webp'
 
 const props = defineProps<{ topic: TopicProgress; rootsWithMaterial: number }>()
 

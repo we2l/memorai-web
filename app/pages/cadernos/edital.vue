@@ -62,21 +62,23 @@
 
     <!-- Um Diário com mais de um edital -->
     <UiSection v-else-if="stage === 'choose'" data-testid="edital-choose-step">
-      <h2 ref="heading" tabindex="-1" class="text-title font-semibold text-fg-strong outline-none">Este PDF tem mais de um edital</h2>
-      <p class="mt-1 text-body text-fg-muted">Escolha o seu. Esta busca não gastou leitura; ler o escolhido usa 1.</p>
+      <h2 ref="heading" tabindex="-1" class="text-title font-semibold text-fg-strong outline-none">{{ byCargo ? 'Qual é o seu cargo?' : 'Este PDF tem mais de um edital' }}</h2>
+      <p class="mt-1 text-body text-fg-muted">{{ byCargo ? 'Cada cargo tem conhecimentos próprios: o caderno sai só com as matérias do seu. Escolher não gastou leitura; ler o cargo usa 1.' : 'Escolha o seu. Esta busca não gastou leitura; ler o escolhido usa 1.' }}</p>
+      <UiInput v-if="alternatives.length > 8" v-model="filter" class="mt-4" type="search" :label="byCargo ? 'Buscar o cargo' : 'Buscar o edital'" data-testid="edital-choose-filter" />
       <ul class="mt-4 flex flex-col divide-y divide-hairline">
-        <li v-for="(alt, i) in alternatives" :key="i">
+        <li v-for="alt in shownAlternatives" :key="`${alt.section ?? ''}:${alt.cargo ?? ''}:${alt.label}`">
           <UiListRow
             as="button"
             :title="alt.label"
-            :meta="alt.pages ? `Páginas ${alt.pages.from} a ${alt.pages.to}` : undefined"
+            :meta="!byCargo && alt.pages ? `Páginas ${alt.pages.from} a ${alt.pages.to}` : undefined"
             :disabled="reading"
             data-testid="edital-alternative"
             @click="chooseAlternative(alt)"
           />
         </li>
       </ul>
-      <p v-if="reading" class="mt-3 flex items-center gap-2 text-body text-fg-muted" role="status"><UiSpinner size="sm" />Lendo o edital escolhido…</p>
+      <p v-if="!shownAlternatives.length" class="mt-3 text-body text-fg-muted" role="status">Nenhum {{ byCargo ? 'cargo' : 'edital' }} com esse nome.</p>
+      <p v-if="reading" class="mt-3 flex items-center gap-2 text-body text-fg-muted" role="status"><UiSpinner size="sm" />{{ byCargo ? 'Lendo as matérias do cargo escolhido…' : 'Lendo o edital escolhido…' }}</p>
       <p v-if="readError" class="mt-3 text-meta text-danger" role="alert">{{ readError }}</p>
       <UiButton variant="ghost" class="mt-3" @click="restart">Mandar outro edital</UiButton>
     </UiSection>
@@ -113,6 +115,8 @@ import { FileText } from 'lucide-vue-next'
 import type { EditalProposal, EditalReadResult } from '~/types'
 import { getErrorStatus } from '~/utils/apiErrors'
 import { EDITAL_NAME_TAKEN } from '~/composables/useEditalReader'
+import type { EditalSource } from '~/composables/useEditalReader'
+import { alternativeMatches } from '~/utils/publicEdital'
 import { editalCountsLabel, isEditalEdited, toEditalDraft, editalPayload, editalTopicsCount, EDITAL_LIMITS, type EditalDraft } from '~/utils/editalProposal'
 
 useHead({ title: 'Montar pelo edital · Baigi' })
@@ -142,6 +146,11 @@ const readError = ref('')
 const jobId = ref('')
 const readResult = ref<EditalReadResult | null>(null)
 const alternatives = computed(() => readResult.value?.alternatives ?? [])
+const byCargo = computed(() => readResult.value?.choose === 'cargo')
+const filter = ref('')
+const shownAlternatives = computed(() => alternatives.value.filter(a => alternativeMatches(a.label, filter.value)))
+/** The last source sent: a cargo goes back with exactly it (the API maps the cargos of that same text) */
+let lastSent: EditalSource | null = null
 const originalProposal = ref<EditalProposal | null>(null)
 const draft = ref<EditalDraft | null>(null)
 
@@ -187,18 +196,25 @@ async function readEdital(chosen: Alternative | null = null) {
   if (reading.value) return
   reading.value = true
   readError.value = ''
-  // A pick from the list goes back as its section (the exact part the API found); old results without it, as pages
-  const section = chosen?.section ?? null
-  const range = section === null ? (chosen?.pages ?? pages.value) : null
-  track('edital_started', { source: kind.value, manual_pages: !chosen && !!range })
+  let source: EditalSource
+  if (chosen?.cargo != null && lastSent) {
+    // A cargo: the same request as the list came from, plus the cargo
+    source = { ...lastSent, cargo: chosen.cargo }
+  } else {
+    // A pick from the list goes back as its section (the exact part the API found); old results without it, as pages
+    const section = chosen?.section ?? null
+    const range = section === null ? (chosen?.pages ?? pages.value) : null
+    source = kind.value === 'pdf' ? { file: file.value, pageFrom: range?.from, pageTo: range?.to, section } : { text: text.value }
+  }
+  track('edital_started', { source: kind.value, manual_pages: !chosen && !!(source.pageFrom && source.pageTo) })
   try {
-    const { jobId: id, result } = await reader.read(kind.value === 'pdf'
-      ? { file: file.value, pageFrom: range?.from, pageTo: range?.to, section }
-      : { text: text.value })
+    const { jobId: id, result } = await reader.read(source)
+    lastSent = { ...source, cargo: null }
     jobId.value = id
     readResult.value = result
     if (result.status === 'choose') {
-      track('edital_choose', { editais: result.alternatives?.length ?? 0 })
+      filter.value = ''
+      track('edital_choose', { editais: result.alternatives?.length ?? 0, kind: result.choose ?? 'edital' })
       stage.value = 'choose'
       return
     }
@@ -220,7 +236,7 @@ async function readEdital(chosen: Alternative | null = null) {
 type Alternative = NonNullable<EditalReadResult['alternatives']>[number]
 
 function chooseAlternative(alt: Alternative) {
-  if (alt.section == null && !alt.pages) return
+  if (alt.section == null && alt.cargo == null && !alt.pages) return
   void readEdital(alt)
 }
 

@@ -13,17 +13,21 @@
       <UiSkeleton v-for="i in 3" :key="i" variant="block" />
     </section>
 
-    <!-- A Diário with more than one edital -->
+    <!-- A Diário with more than one edital, or an edital with many cargos -->
     <UiSection v-else-if="stage === 'choose'" class="mx-auto max-w-article" data-testid="edital-choose-step">
-      <h1 ref="heading" tabindex="-1" class="text-title font-semibold text-fg-strong outline-none">Este PDF tem mais de um edital</h1>
-      <p class="mt-1 text-body text-fg-muted">Escolha o seu. Esta busca não conta como leitura; ler o escolhido, sim.</p>
-      <p v-if="!canChoose" class="mt-3 text-body text-fg" role="status">O arquivo não está mais nesta página. Envie o PDF de novo para escolher.</p>
-      <ul v-else class="mt-4 flex flex-col divide-y divide-hairline">
-        <li v-for="alt in reading?.alternatives ?? []" :key="alt.section">
-          <UiListRow as="button" :title="alt.label" :meta="alternativePages(alt.pages) ?? undefined" :disabled="choosing" data-testid="edital-alternative" @click="pick(alt.section)" />
-        </li>
-      </ul>
-      <p v-if="choosing" class="mt-3 flex items-center gap-2 text-body text-fg-muted" role="status"><UiSpinner size="sm" />Lendo o edital escolhido…</p>
+      <h1 ref="heading" tabindex="-1" class="text-title font-semibold text-fg-strong outline-none">{{ byCargo ? 'Qual é o seu cargo?' : 'Este PDF tem mais de um edital' }}</h1>
+      <p class="mt-1 text-body text-fg-muted">{{ byCargo ? 'Cada cargo tem conhecimentos próprios. O resultado sai só com as matérias do seu. Escolher não conta como outra leitura.' : 'Escolha o seu. Esta busca não conta como leitura; ler o escolhido, sim.' }}</p>
+      <p v-if="!canChoose" class="mt-3 text-body text-fg" role="status">O arquivo não está mais nesta página. Envie o edital de novo para escolher.</p>
+      <template v-else>
+        <UiInput v-if="alternatives.length > 8" v-model="filter" class="mt-4" type="search" :label="byCargo ? 'Buscar o cargo' : 'Buscar o edital'" data-testid="edital-choose-filter" />
+        <ul class="mt-4 flex flex-col divide-y divide-hairline">
+          <li v-for="alt in shownAlternatives" :key="`${alt.section ?? ''}:${alt.cargo ?? ''}`">
+            <UiListRow as="button" :title="alt.label" :meta="byCargo ? undefined : alternativePages(alt.pages) ?? undefined" :disabled="choosing" data-testid="edital-alternative" @click="pick(alt)" />
+          </li>
+        </ul>
+        <p v-if="!shownAlternatives.length" class="mt-3 text-body text-fg-muted" role="status">Nenhum {{ byCargo ? 'cargo' : 'edital' }} com esse nome.</p>
+      </template>
+      <p v-if="choosing" class="mt-3 flex items-center gap-2 text-body text-fg-muted" role="status"><UiSpinner size="sm" />{{ byCargo ? 'Lendo as matérias do cargo escolhido…' : 'Lendo o edital escolhido…' }}</p>
       <div v-if="problem" role="alert" class="mt-3 rounded-tile bg-warning-subtle p-4" data-testid="edital-choose-error">
         <p class="text-body text-fg-strong">{{ problem.message }}</p>
       </div>
@@ -61,7 +65,7 @@
 // /ferramentas/edital-verticalizado/r/{id} (prd-edital-verticalizado-publico RF-F2, RF-F3): client only (ssr false and
 // no prerender in routeRules), never indexed (RF-F6, R5.6). Polls GET /public/editais/{id} every 2 s for up to 3 min:
 // reading → choose | failed | ready. The id is the link to send to the class.
-import { alternativePages, failedReading, submitFailure, topicsTotal, type PublicEditalMessage, type PublicEditalReading } from '~/utils/publicEdital'
+import { alternativePages, alternativeMatches, failedReading, submitFailure, topicsTotal, type PublicEditalAlternative, type PublicEditalMessage, type PublicEditalReading } from '~/utils/publicEdital'
 import { PUBLIC_EDITAL_PATH, publicEditalResultPath } from '~/utils/editalIntent'
 import { setRetryHint, takeLastSource } from '~/composables/usePublicEdital'
 import { getErrorStatus } from '~/utils/apiErrors'
@@ -89,7 +93,11 @@ const slowStep = ref(false)
 
 const id = computed(() => String(route.params.id ?? ''))
 const ready = computed(() => (reading.value?.proposal ? reading.value as PublicEditalReading & { proposal: NonNullable<PublicEditalReading['proposal']> } : null))
-const canChoose = computed(() => !!takeLastSource()?.file)
+const canChoose = computed(() => !!(takeLastSource()?.file || takeLastSource()?.text))
+const byCargo = computed(() => reading.value?.choose === 'cargo')
+const alternatives = computed(() => reading.value?.alternatives ?? [])
+const filter = ref('')
+const shownAlternatives = computed(() => alternatives.value.filter(a => alternativeMatches(a.label, filter.value)))
 const failure = computed(() => (reading.value?.status === 'failed' ? failedReading(reading.value.error, takeLastSource()?.file ? 'pdf' : takeLastSource()?.text ? 'text' : 'pdf') : null))
 const readingText = computed(() => (slowStep.value ? 'Lendo as matérias e os assuntos…' : 'Achando o conteúdo programático…'))
 const goneTitle = computed(() => (stage.value === 'gone' ? 'Este resultado não está mais aqui' : stage.value === 'slow' ? 'Está demorando mais que o normal' : 'Não conseguimos abrir o resultado'))
@@ -122,7 +130,7 @@ function handle(r: Answer) {
   const key = `${r.id}:${r.status}`
   if (handled === key) return
   handled = key
-  if (r.status === 'choose') track('edital_public_choose', {})
+  if (r.status === 'choose') track('edital_public_choose', { kind: r.choose ?? 'edital', count: r.alternatives?.length ?? 0 })
   else if (r.status === 'failed') track('edital_public_failed', { code: r.error?.code ?? 'unknown' })
   else if (r.status === 'ready' && r.proposal) {
     track('edital_public_ready', { subjects: r.counts?.subjects ?? r.proposal.subjects.length, topics: r.counts?.topics ?? topicsTotal(r.proposal), cached: !!r.cached })
@@ -161,12 +169,12 @@ function begin() {
   poll.start()
 }
 
-async function pick(section: number) {
+async function pick(alternative: PublicEditalAlternative) {
   if (choosing.value) return
   choosing.value = true
   problem.value = null
   try {
-    const res = await edital.choose(section)
+    const res = await edital.choose(alternative)
     await navigateTo(publicEditalResultPath(res.id), { replace: true })
   } catch (e) {
     const captchaMessage = (e as { captchaMessage?: string }).captchaMessage

@@ -1060,7 +1060,9 @@ export interface EditalReadResult {
   /** choose = a Diário with more than one edital: read again with the `section` of one */
   status: 'ready' | 'choose'
   proposal: EditalProposal | null
-  alternatives?: { section?: number; label: string; pages: { from: number; to: number } | null }[]
+  /** What the list is: the editais of a Diário or the cargos of one edital */
+  choose?: 'edital' | 'cargo'
+  alternatives?: { section?: number | null; cargo?: number | null; label: string; pages: { from: number; to: number } | null }[]
   source: { kind: 'pdf' | 'text'; pages: { from: number; to: number } | null; total_pages: number | null; found: 'heading' | 'whole' | 'manual' | 'text'; truncated: boolean }
   counts: { subjects: number; topics: number }
   applied_topic_id: string | null

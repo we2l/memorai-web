@@ -75,6 +75,30 @@ describe('Página do edital', () => {
     expect(w.find('[data-testid="edital-exam-date"]').exists()).toBe(true)
   })
 
+  it('a escolha do cargo reenvia o mesmo pedido da lista, só com o cargo, e filtra uma lista longa', async () => {
+    const cargos: EditalReadResult = {
+      ...choose,
+      choose: 'cargo',
+      alternatives: Array.from({ length: 12 }, (_, i) => ({ section: null, cargo: i, label: i === 3 ? '03 – Analista Judiciário – Área Administrativa' : `Cargo ${i}`, pages: { from: 60, to: 93 } })),
+    }
+    readMock.mockResolvedValueOnce({ jobId: 'j1', result: cargos }).mockResolvedValueOnce({ jobId: 'j2', result: ready })
+    const w = await mountSuspended(EditalPage)
+    await pickPdf(w)
+    await w.get('form').trigger('submit')
+    await flushPromises()
+    expect(w.get('[data-testid="edital-choose-step"] h2').text()).toBe('Qual é o seu cargo?')
+    await w.get('input[data-testid="edital-choose-filter"], [data-testid="edital-choose-filter"] input').setValue('analista adm')
+    const alts = w.findAll('[data-testid="edital-alternative"]')
+    expect(alts.map(a => a.text())).toEqual([expect.stringContaining('Área Administrativa')])
+    await alts[0]!.trigger('click')
+    await flushPromises()
+    const first = readMock.mock.calls[0]![0]
+    const second = readMock.mock.calls[1]![0]
+    // Never the pages of the section: the same request as the list, plus the cargo
+    expect(second).toEqual({ ...first, cargo: 3 })
+    expect(second.pageFrom).toBeUndefined()
+  })
+
   it('409 caderno_name_taken: avisa, abre o existente ou cria outro com allow_duplicate', async () => {
     readMock.mockResolvedValueOnce({ jobId: 'j2', result: ready })
     applyMock.mockRejectedValueOnce({ status: 409, data: { code: 'caderno_name_taken', message: 'Já existe um caderno com esse nome.', topic: { id: 't9', name: 'TJ-SP · Oficial de Justiça' } } })

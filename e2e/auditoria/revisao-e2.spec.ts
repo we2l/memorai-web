@@ -72,7 +72,11 @@ for (const width of [390, 1440]) {
     await expect(page.getByTestId('review-why-sources')).toContainText('Apostila.pdf, p. 12')
     expect(whyBodies).toEqual([expect.objectContaining({ intent: 'why' })])
     if (width >= 1024) await expect(page.getByTestId('review-why-panel')).toBeVisible()
-    else await page.keyboard.press('Escape')
+    else {
+      await page.keyboard.press('Escape')
+      // The sheet leaves with a fade: axe in the middle of it reads half-transparent text as low contrast
+      await expect(page.getByTestId('review-why-text')).toBeHidden()
+    }
     expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze()).violations.map(v => v.id)).toEqual([])
     await expect(front).toHaveText(second)
     await page.getByTestId('review-continue').click()

@@ -26,6 +26,8 @@
 
       <!-- The mini-lote: the review's own card, ratings and origin -->
       <div v-else-if="phase === 'review' && current !== null" class="mx-auto flex w-full max-w-3xl flex-col gap-4 px-gutter py-6">
+        <!-- The page has a title while a card is on screen (the other phases bring their own h1) -->
+        <h1 class="sr-only">Revisão de exemplo</h1>
         <p v-if="isRepeat" class="text-center text-meta text-fg-muted" data-testid="guest-repeat">Voltou no fim do lote: tente lembrar de novo.</p>
         <ReviewCard :card="currentCard" :flipped="flipped" :label="deck!.topic_name.replace(/^Exemplo · /, '')" @flip="flip">
           <template #origin>

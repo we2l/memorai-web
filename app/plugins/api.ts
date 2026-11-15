@@ -14,6 +14,12 @@ export default defineNuxtPlugin(() => {
       if (xsrf) headers.set('X-XSRF-TOKEN', xsrf)
       options.headers = headers
     },
+    onRequestError({ error }) {
+      // No answer at all (no network, server unreachable): the offline bar shows on any screen, not only in the
+      // review, and the next answer of the server takes it away (onResponse). A request the page itself cancelled
+      // (leaving the screen, a newer search) is not a lost connection.
+      if (import.meta.client && error?.name !== 'AbortError') useOfflineStore().markOffline()
+    },
     onResponse({ request, options, response }) {
       // Any answer of the server (even an error) means there is network again (prd-revisao-offline D10)
       if (import.meta.client) useOfflineStore().markOnline()

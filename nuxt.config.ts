@@ -300,7 +300,7 @@ export default defineNuxtConfig({
       // Result page after the exam (prd-retencao-lembretes RF-F09). Placeholders until defined:
       // testimonial card is hidden while empty; referral program is Futuro.
       testimonialUrl: process.env.NUXT_PUBLIC_TESTIMONIAL_URL || '',
-      referralUrl: process.env.NUXT_PUBLIC_REFERRAL_URL || '/criar-conta?ref=placeholder',
+      referralUrl: process.env.NUXT_PUBLIC_REFERRAL_URL || '/criar-conta',
       // Product analytics (prd-analytics-posthog). Empty key = plugin does nothing.
       posthogKey: process.env.NUXT_PUBLIC_POSTHOG_KEY || '',
       posthogHost: process.env.NUXT_PUBLIC_POSTHOG_HOST || '/ingest',

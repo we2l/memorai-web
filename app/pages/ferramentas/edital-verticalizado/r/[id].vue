@@ -63,7 +63,7 @@
 
 <script setup lang="ts">
 // /ferramentas/edital-verticalizado/r/{id} (prd-edital-verticalizado-publico RF-F2, RF-F3): client only (ssr false and
-// no prerender in routeRules), never indexed (RF-F6, R5.6). Polls GET /public/editais/{id} every 2 s for up to 3 min:
+// no prerender in routeRules), never indexed (RF-F6, R5.6). Polls GET /public/editais/{id} every 2 s for up to 5 min:
 // reading → choose | failed | ready. The id is the link to send to the class.
 import { alternativePages, alternativeMatches, failedReading, submitFailure, topicsTotal, type PublicEditalAlternative, type PublicEditalMessage, type PublicEditalReading } from '~/utils/publicEdital'
 import { PUBLIC_EDITAL_PATH, publicEditalResultPath } from '~/utils/editalIntent'
@@ -150,7 +150,8 @@ const poll = usePoll<Answer>(async (signal) => {
   return answer
 }, {
   interval: 2000,
-  timeout: 180_000,
+  // ReadPublicEditalJob may run 270 s (the map of cargos + the reading in parts)
+  timeout: 300_000,
   until: a => 'gone' in a || !['pending', 'processing'].includes(a.status),
   onTimeout: () => { stage.value = 'slow' },
   // The poll retries with backoff; with nothing on screen yet the person sees why

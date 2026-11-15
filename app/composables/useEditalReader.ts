@@ -18,6 +18,9 @@ export interface EditalSource {
 /** POST /editais/{id}/apply 409: a live caderno already has this name */
 export const EDITAL_NAME_TAKEN = 'caderno_name_taken'
 
+/** ReadEditalJob may run 270 s (the map of cargos + the reading in parts): the page waits past it, never less */
+const EDITAL_WAIT = 5 * 60_000
+
 export function useEditalReader() {
   const { $api } = useNuxtApp()
   const { wait } = useAiJob()
@@ -40,7 +43,7 @@ export function useEditalReader() {
     const res = await $api<{ data: AiJob<EditalReadResult> }>('/editais', { method: 'POST', body: form })
     const job = res.data
     if (job.status === 'failed') throw new AiJobError(job.error || 'Não foi possível ler o edital agora. Tente de novo.')
-    const result = job.status === 'done' ? (job.result as EditalReadResult) : await wait<EditalReadResult>(job.id)
+    const result = job.status === 'done' ? (job.result as EditalReadResult) : await wait<EditalReadResult>(job.id, EDITAL_WAIT)
     return { jobId: job.id, result }
   }
 

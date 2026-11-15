@@ -26,7 +26,7 @@ export function useAiJob() {
   const { $api } = useNuxtApp()
 
   /** Follows a job until it ends. Timing out does not stop the job: the error carries its id. */
-  async function wait<T>(id: string): Promise<T> {
+  async function wait<T>(id: string, timeout: number = POLL_TIMEOUT): Promise<T> {
     let job: AiJob<T>
     try {
       job = await pollUntil(async (signal) => {
@@ -35,7 +35,7 @@ export function useAiJob() {
       }, {
         interval: POLL_INTERVAL,
         immediate: false,
-        timeout: POLL_TIMEOUT,
+        timeout,
         until: j => j.status === 'done' || j.status === 'failed',
       })
     } catch (e) {

@@ -38,11 +38,13 @@ export function useColorMode() {
     const root = document.documentElement
     root.classList.toggle('dark', mode === 'dark')
     root.style.colorScheme = mode
-    // Browser bar follows the app theme, not only the OS: the page color of the theme just applied
-    const page = getComputedStyle(root).getPropertyValue('--surface-page').trim()
-    if (!page) return
+    // Browser bar follows the app theme, not only the OS: the color of the top bars of the theme just applied
+    // (--surface-raised, white in A2, ADR-037), the same the <head> script and the manifest use (nuxt.config.ts
+    // THEME_COLOR); before 15/11/2026 this wrote the tinted page color and the bar changed color after the boot
+    const bars = getComputedStyle(root).getPropertyValue('--surface-raised').trim()
+    if (!bars) return
     for (const meta of document.querySelectorAll('meta[name="theme-color"]')) {
-      meta.setAttribute('content', page)
+      meta.setAttribute('content', bars)
       meta.removeAttribute('media')
     }
   }

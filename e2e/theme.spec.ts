@@ -70,8 +70,9 @@ test('a barra do navegador (theme-color) segue o tema do app, não só o do sist
   const metas = await page.locator('meta[name="theme-color"]').evaluateAll(ms => ms.map(m => [m.getAttribute('content'), m.getAttribute('media')]))
   expect(metas.length).toBeGreaterThan(0)
   for (const [content, media] of metas) {
-    // After the app boots, useColorMode writes --surface-page of the theme applied (the dark of A2: #0B0A0F)
-    expect(content?.toUpperCase()).toBe('#0B0A0F')
+    // The color of the top bars of the theme applied (--surface-raised, ADR-037): the dark of A2 is #1A1722, the
+    // same the <head> script writes before the boot (nuxt.config.ts THEME_COLOR), so the bar never changes color
+    expect(content?.toUpperCase()).toBe('#1A1722')
     expect(media).toBeNull()
   }
   await ctx.close()

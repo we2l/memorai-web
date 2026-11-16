@@ -54,6 +54,8 @@ export interface ScheduleSubjectInput {
   /** Points of the matéria (edital or the person's); null/undefined = by size */
   points?: number | null
   source?: 'edital' | 'manual' | null
+  /** The edital's points, kept beside a manual weight ("Seu peso · no edital: 20 pontos") */
+  editalPoints?: number | null
   level?: ScheduleLevel | null
 }
 
@@ -121,6 +123,7 @@ export interface ScheduleSubjectSummary {
   weight: number
   points: number | null
   source: ScheduleWeightSource
+  editalPoints: number | null
   level: ScheduleLevel
   topics: number
   seen: number
@@ -254,6 +257,7 @@ interface Subject {
   weight: number
   points: number | null
   source: ScheduleWeightSource
+  editalPoints: number | null
   level: ScheduleLevel
 }
 
@@ -332,7 +336,8 @@ function subjectsOf(input: StudyScheduleInput): Subject[] {
     const points = typeof s.points === 'number' && Number.isFinite(s.points) && s.points >= 0 ? s.points : null
     const level: ScheduleLevel = s.level && s.level in LEVEL_FACTOR ? s.level : 'studied'
     const source: ScheduleWeightSource = points === null ? 'size' : s.source === 'edital' ? 'edital' : 'manual'
-    return { id: s.id, name: s.name, order, units, weight: 0, points, source, level }
+    const editalPoints = typeof s.editalPoints === 'number' && Number.isFinite(s.editalPoints) ? s.editalPoints : null
+    return { id: s.id, name: s.name, order, units, weight: 0, points, source, editalPoints, level }
   })
   // Without points, the size; next to matérias with points, the size in the same scale (their points per assunto)
   const known = list.filter(s => s.points !== null)
@@ -537,6 +542,7 @@ export function buildStudySchedule(input: StudyScheduleInput): StudySchedule {
     weight: Math.round(s.weight * 10) / 10,
     points: s.points,
     source: s.source,
+    editalPoints: s.editalPoints,
     level: s.level,
     topics: s.units.length,
     seen: s.units.filter(u => stateOf(u, 1) === 'done').length,
@@ -611,7 +617,8 @@ export interface StudyScheduleResource {
   levels: Record<string, ScheduleLevel> | null
   weights: Record<string, { points: number, source: 'edital' | 'manual' }> | null
   exam: { id: string, title: string, date: string } | null
-  subjects: { id: string, name: string, topics: { id: string, name: string, cards: number, reviewed: number, accuracy: number | null }[] }[]
+  /** edital_points: the edital's points even when the person's weight wins (null = the edital had none) */
+  subjects: { id: string, name: string, edital_points?: number | null, topics: { id: string, name: string, cards: number, reviewed: number, accuracy: number | null }[] }[]
   progress: ScheduleProgressInput[]
   review: { daily_goal_batches: number, review_batch_size: number } | null
   created_at: string | null
@@ -638,6 +645,7 @@ export function scheduleInputFromResource(res: StudyScheduleResource, today: str
       topics: s.topics,
       points: res.weights?.[s.id]?.points ?? null,
       source: res.weights?.[s.id]?.source ?? null,
+      editalPoints: editalPointsOf(res, s.id),
       level: res.levels?.[s.id] ?? null,
     })),
     hoursByWeekday: settings.hours,
@@ -749,6 +757,8 @@ export function draftOf(res: StudyScheduleResource): ScheduleDraft {
 
 /** Points the edital gave a matéria (the person's own weight hides it: the API keeps one value) */
 export function editalPointsOf(res: StudyScheduleResource, subjectId: string): number | null {
+  const fromSubject = res.subjects.find(s => s.id === subjectId)?.edital_points
+  if (typeof fromSubject === 'number') return fromSubject
   const w = res.weights?.[subjectId]
   return w?.source === 'edital' ? w.points : null
 }

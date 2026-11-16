@@ -2,7 +2,10 @@ import { describe, expect, it } from 'vitest'
 import {
   addDays,
   buildStudySchedule,
+  draftOf,
+  editalPointsOf,
   FINAL_DAYS,
+  inputWithDraft,
   reviewMinutesOf,
   scheduleInputFromResource,
   todaySessions,
@@ -232,5 +235,34 @@ describe('scheduleInputFromResource', () => {
     expect(i.reviewMinutes).toBe(15)
     expect(i.subjects[0]).toMatchObject({ points: 20, source: 'edital', level: 'beginner' })
     expect(i.examDate).toBe('2027-02-09')
+  })
+
+  it('keeps the edital points beside a manual weight (edital_points of the matéria)', () => {
+    const res: StudyScheduleResource = {
+      configured: true,
+      topic: { id: 'root', name: 'TJ-SP' },
+      hours_by_weekday: [0, 2, 2, 2, 2, 2, 3],
+      start_times: null,
+      session_minutes: 60,
+      levels: {},
+      weights: { lp: { points: 30, source: 'manual' } },
+      exam: null,
+      subjects: [
+        { id: 'lp', name: 'LP', edital_points: 20, topics: [{ id: 't', name: 'Crase', cards: 0, reviewed: 0, accuracy: null }] },
+        { id: 'dp', name: 'DP', edital_points: null, topics: [] },
+      ],
+      progress: [],
+      review: null,
+      created_at: null,
+      updated_at: null,
+    }
+    expect(editalPointsOf(res, 'lp')).toBe(20)
+    expect(editalPointsOf(res, 'dp')).toBeNull()
+    const summary = buildStudySchedule(scheduleInputFromResource(res, TODAY)).bySubject
+    expect(summary[0]).toMatchObject({ points: 30, source: 'manual', editalPoints: 20 })
+    // Clearing the manual weight in the sheet brings the edital's points back, not the size
+    const draft = draftOf(res)
+    delete draft.weights.lp
+    expect(inputWithDraft(res, draft, TODAY).subjects[0]).toMatchObject({ points: 20, source: 'edital' })
   })
 })

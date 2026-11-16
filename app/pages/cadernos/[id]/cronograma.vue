@@ -41,6 +41,7 @@
       <UiSplit v-else side-label="Hoje no cronograma">
         <template #side>
           <ScheduleToday
+            ref="todayBlock"
             :sessions="todayList"
             :next="next"
             :today="today"
@@ -80,6 +81,9 @@
                 <UiButton variant="outline" size="sm" :icon-left="Download" data-testid="schedule-csv" @click="exportCsv">Planilha</UiButton>
               </div>
               <p v-if="summary!.calendar" class="mt-2 text-meta text-fg-muted">A agenda é uma foto do plano: baixe de novo quando replanejar.</p>
+            </div>
+            <div class="border-t border-hairline pt-3">
+              <UiButton variant="ghost" size="sm" :icon-left="Trash2" data-testid="schedule-delete" @click="deleteOpen = true">Apagar cronograma</UiButton>
             </div>
           </UiSection>
         </template>
@@ -128,6 +132,16 @@
     </UiSheet>
 
     <SchedulePrint v-if="printer.printing.value && schedule && res" :schedule="schedule" :title="res.topic.name" :subtitle="printSubtitle" />
+    <LazyUiConfirmModal
+      v-if="deleteLoaded"
+      v-model="deleteOpen"
+      title="Apagar o cronograma?"
+      message="As horas, os pesos e o que você marcou como feito saem. O caderno, os materiais e os cards continuam."
+      confirm-label="Apagar"
+      loading-label="Apagando…"
+      :loading="deleting"
+      @confirm="removeSchedule"
+    />
     <LazyExamDialog v-if="examLoaded" v-model="examOpen" :topic-ids="[id]" origin="scope" @saved="load" />
   </div>
 </template>
@@ -138,7 +152,7 @@
 // the delay as a neutral line, the week by week, the matérias and the downloads (PDF by print, .ics, CSV). The first
 // visit opens on the setup with the defaults. Everything is computed in the browser (utils/studySchedule); the API
 // keeps the inputs and the progress.
-import { CalendarPlus, Download, Printer } from 'lucide-vue-next'
+import { CalendarPlus, Download, Printer, Trash2 } from 'lucide-vue-next'
 import { getErrorStatus } from '~/utils/apiErrors'
 import { studyDay } from '~/utils/greeting'
 import { downloadScheduleCsv, downloadScheduleIcs } from '~/utils/scheduleExport'
@@ -273,11 +287,15 @@ async function save() {
 
 /* ---- Feito / Pular ---- */
 
+const todayBlock = ref<{ keepFocus: () => void } | null>(null)
+
 function onMark(session: StudySession, status: 'done' | 'skipped') {
   const r = res.value
   if (!r) return
   void marking.mark({ scheduleTopicId: r.topic.id, topicId: session.topicId, pass: session.pass, label: session.unit ? session.subjectName : session.topicName }, status, (next) => {
     if (res.value) res.value = { ...res.value, progress: withProgress(res.value.progress, session.topicId, session.pass, next, new Date().toISOString()) }
+    // The session left the week or the Hoje block: the keyboard focus does not fall to the page
+    todayBlock.value?.keepFocus()
   })
 }
 
@@ -304,4 +322,22 @@ function exportCsv() {
 
 const examOpen = ref(false)
 const examLoaded = useLoadedOnce(() => examOpen.value)
+
+/* ---- delete: back to the setup with the defaults ---- */
+
+const deleteOpen = ref(false)
+const deleteLoaded = useLoadedOnce(() => deleteOpen.value)
+const deleting = ref(false)
+
+async function removeSchedule() {
+  deleting.value = true
+  const ok = await run(async () => { await api.remove(id.value); return true }, {
+    success: 'Cronograma apagado',
+    error: 'Não foi possível apagar o cronograma. Tente de novo.',
+  })
+  deleting.value = false
+  if (!ok) return
+  deleteOpen.value = false
+  await load()
+}
 </script>

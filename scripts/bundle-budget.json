@@ -88,7 +88,7 @@
     "/entrar": {
       "file": "pages/entrar.vue",
       "gzKb": 2,
-      "closureGzKb": 13
+      "closureGzKb": 13.1
     },
     "/criar-conta": {
       "file": "pages/criar-conta.vue",

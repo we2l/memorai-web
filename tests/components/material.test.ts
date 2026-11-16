@@ -31,6 +31,23 @@ const card = (id: string, extra: Partial<LibraryCard> = {}) => ({
 }) as LibraryCard
 
 describe('"Cards desta parte" (prd-4c-material-v3 RF-F4, RF-F8)', () => {
+  it('assinante no teto de custo de IA: o aviso do limite com a data, não a cota (prd-teto-custo-assinante RF-W2)', async () => {
+    const usage = {
+      usage: ref({ cost_cap: { reached: true, resets_at: '2026-12-01T03:00:00Z' } }),
+      preview: computed(() => false),
+      nearLimit: () => false,
+      atLimit: () => false,
+    } as any
+    const w = await mountSuspended(MaterialCardsPanel, { props: { context: context(), cards: [], topicId: 't1', noteId: NOTE, primary: 'generate', usage } })
+    // The test app's boot may clear the store: the subscriber is set after the mount
+    useAuthStore().user = { id: 'u', plan: 'pro' } as any
+    await nextTick()
+    expect(w.find('[data-testid=panel-cost-cap]').text()).toBe('Limite de IA do mês atingido · volta em 1º/dez')
+    expect(w.text()).not.toContain('Usa 1 das suas')
+    expect(w.find('[data-testid=panel-generate]').attributes('disabled')).toBeDefined()
+    useAuthStore().user = null
+  })
+
   it('sem cards: convite com a cota dita antes e o primário "Gerar"', async () => {
     const w = await mountSuspended(MaterialCardsPanel, { attachTo: document.body, props: { context: context(), cards: [], topicId: 't1', noteId: NOTE, primary: 'generate' } })
     expect(w.text()).toContain('Esta parte ainda não tem cards')

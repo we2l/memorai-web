@@ -43,7 +43,7 @@ const hours = (minutes: number) => fmt(Math.round((minutes / 60) * 10) / 10)
 function sourceText(s: ScheduleSubjectSummary): string {
   const level = s.level === 'beginner' ? ' · do zero' : s.level === 'mastered' ? ' · domina' : ''
   if (s.source === 'edital') return `Peso do edital${level}`
-  if (s.source === 'manual') return `Seu peso${level}`
+  if (s.source === 'manual') return s.editalPoints !== null ? `Seu peso · no edital: ${fmt(s.editalPoints)} ${s.editalPoints === 1 ? 'ponto' : 'pontos'}${level}` : `Seu peso${level}`
   return `Peso pelo tamanho${level}`
 }
 </script>

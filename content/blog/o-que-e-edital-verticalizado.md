@@ -7,7 +7,7 @@ category: concurso
 area: concurso
 author: baigi
 published: 2026-11-13
-updated: 2026-11-13
+updated: 2026-11-16
 pillar: curva-do-esquecimento
 related: curva-do-esquecimento, caderno-de-erros-digital, tj-sp-escrevente-lei-seca-vunesp
 context: Edital verticalizado

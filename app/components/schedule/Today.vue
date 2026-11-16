@@ -1,6 +1,6 @@
 <template>
   <UiSection variant="primary" :aria-labelledby="headingId" class="flex flex-col gap-4" data-testid="schedule-today">
-    <p :id="headingId" class="text-label font-semibold uppercase tracking-logo text-fg-muted">{{ heading }}</p>
+    <p :id="headingId" tabindex="-1" class="text-label outline-none font-semibold uppercase tracking-logo text-fg-muted">{{ heading }}</p>
 
     <template v-if="first">
       <div>
@@ -12,8 +12,9 @@
       </div>
       <div class="flex flex-wrap items-center gap-2">
         <UiButton variant="primary" :to="cadernoPath(first.subjectId)" data-testid="schedule-study" @click="$emit('study', first)">Estudar agora</UiButton>
-        <UiButton variant="outline" :loading="busy" data-testid="schedule-done" @click="$emit('mark', first, 'done')">Feito</UiButton>
-        <UiButton variant="ghost" :disabled="busy" data-testid="schedule-skip" @click="$emit('mark', first, 'skipped')">Pular</UiButton>
+        <!-- loading (aria-disabled) and not disabled: the focus stays on the button while the answer comes -->
+        <UiButton variant="outline" :loading="busy && last === 'done'" :aria-disabled="busy ? 'true' : undefined" data-testid="schedule-done" @click="mark('done')">Feito</UiButton>
+        <UiButton variant="ghost" :loading="busy && last === 'skipped'" :aria-disabled="busy ? 'true' : undefined" data-testid="schedule-skip" @click="mark('skipped')">Pular</UiButton>
       </div>
       <p v-if="after" class="text-meta text-fg-muted" data-testid="schedule-today-after">{{ afterText }}</p>
     </template>
@@ -44,12 +45,29 @@ const props = defineProps<{
   busy?: boolean
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
   (e: 'mark', session: StudySession, status: 'done' | 'skipped'): void
   (e: 'study', session: StudySession): void
 }>()
 
 const headingId = useId()
+const last = ref<'done' | 'skipped' | null>(null)
+
+function mark(status: 'done' | 'skipped') {
+  if (props.busy || !first.value) return
+  last.value = status
+  emit('mark', first.value, status)
+}
+
+/** After Feito/Pular (or Desfazer) the block changes: a focus that lost its button comes back to the heading. */
+function keepFocus() {
+  void nextTick(() => {
+    const active = document.activeElement
+    if (!active || active === document.body || !active.isConnected) document.getElementById(headingId)?.focus()
+  })
+}
+watch(() => props.sessions[0]?.id ?? null, keepFocus)
+defineExpose({ keepFocus })
 const first = computed(() => props.sessions[0] ?? null)
 const after = computed(() => props.sessions[1] ?? (first.value ? null : props.next))
 const heading = computed(() => (props.calendar ? `Hoje · ${weekdayShort(props.today)} ${dayMonth(props.today)}` : 'Próxima sessão'))

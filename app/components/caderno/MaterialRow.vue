@@ -22,6 +22,8 @@
           <span>{{ blockedText }}</span>
           <button v-if="(reason === 'feature_limit' || auth.onTrial) && !paid" type="button" class="min-h-touch font-medium text-action-fg underline underline-offset-2" @click="openPlans">Ver planos</button>
         </template>
+        <!-- The subscriber's monthly AI cost cap (prd-teto-custo-assinante RF-W2): no button, only the day it comes back -->
+        <span v-else-if="reason === 'cost_cap'" data-testid="material-cost-cap">Limite de IA do mês atingido · volta em {{ costCapBackLabel() }}</span>
         <template v-else>
           <span>Resumo ainda não gerado</span>
           <button type="button" class="min-h-touch font-medium text-action-fg underline underline-offset-2" @click="$emit('retry', row)">Gerar resumo</button>

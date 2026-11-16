@@ -4,23 +4,23 @@
 import type { EditalProposal } from '~/types'
 import { topicKey } from '~/utils/publicEdital'
 
-const BOM = '﻿'
+export const CSV_BOM = '﻿'
 const HEADER = ['Matéria', 'Assunto', 'Item do edital', 'Estudado']
 
-function cell(value: string | null | undefined): string {
+export function csvCell(value: string | null | undefined): string {
   let v = (value ?? '').replace(/\r\n?/g, '\n')
   if (/^[=+@\t]|^-(?=\S)/.test(v)) v = `'${v}`
   return /[";\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v
 }
 
 export function buildEditalCsv(proposal: EditalProposal, checked: ReadonlySet<string>): string {
-  const rows = [HEADER.map(cell).join(';')]
+  const rows = [HEADER.map(csvCell).join(';')]
   proposal.subjects.forEach((s, si) => {
     s.topics.forEach((t, ti) => {
-      rows.push([s.name, t.name, t.description ?? '', checked.has(topicKey(si, ti)) ? 'sim' : 'não'].map(cell).join(';'))
+      rows.push([s.name, t.name, t.description ?? '', checked.has(topicKey(si, ti)) ? 'sim' : 'não'].map(csvCell).join(';'))
     })
   })
-  return `${BOM}${rows.join('\r\n')}\r\n`
+  return `${CSV_BOM}${rows.join('\r\n')}\r\n`
 }
 
 /** edital-verticalizado-pm-pe-2026-soldado.csv */

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { isAtLimit, isNearLimit, limitReachedRoute } from '~/utils/usageLimit'
 import { limitReachedText, usageNotice, usageNoticeShort } from '~/utils/usageNotice'
-import { nextMonthStartLabel } from '~/utils/billing'
+import { costCapBackLabel, nextMonthStartLabel } from '~/utils/billing'
 
 const RESETS = '2026-12-01T00:00:00-03:00'
 const label = 'gerações de cards com IA'
@@ -74,5 +74,22 @@ describe('limitReachedRoute (RF-F4, RN-3)', () => {
     expect(limitReachedRoute({ feature: 'cards_ai', planRequired: null })).toBe('toast')
     expect(limitReachedRoute({ feature: 'cards_ai', planRequired: 'pro' })).toBe('modal')
     expect(limitReachedRoute({ feature: 'cards_ai' })).toBe('modal')
+  })
+
+  it('teto de custo do assinante (prd-teto-custo-assinante RF-W1): modal mesmo com plan_required null', () => {
+    expect(limitReachedRoute({ feature: 'agent_chat', planRequired: null, code: 'cost_cap_reached' })).toBe('modal')
+  })
+})
+
+describe('costCapBackLabel (prd-teto-custo-assinante RF-W1)', () => {
+  it('o dia em que a IA volta, pelo resets_at no fuso de Brasília', () => {
+    expect(costCapBackLabel(RESETS)).toBe('1º/dez')
+    expect(costCapBackLabel('2027-01-01T00:00:00-03:00')).toBe('1º/jan')
+  })
+
+  it('sem resets_at: o dia 1º do mês seguinte, virando o ano', () => {
+    expect(costCapBackLabel(null, new Date('2026-11-20T12:00:00Z'))).toBe('1º/dez')
+    expect(costCapBackLabel(undefined, new Date('2026-12-31T23:30:00-03:00'))).toBe('1º/jan')
+    expect(costCapBackLabel('lixo', new Date('2026-05-10T12:00:00Z'))).toBe('1º/jun')
   })
 })

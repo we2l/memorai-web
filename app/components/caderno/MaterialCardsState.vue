@@ -19,12 +19,19 @@ const props = defineProps<{ row: MaterialRow }>()
 const store = useScopeStore()
 const { run, pending } = useApiAction()
 
+// A paid line skipped for quota may be the monthly AI cost cap (prd-teto-custo-assinante RF-W2): /usage tells
+const auth = useAuthStore()
+const usage = useFeatureUsage()
+const paidSkipped = computed(() => props.row.auto_cards_status === 'skipped_quota' && !props.row.cards && auth.user?.plan === 'pro' && !auth.onTrial)
+onMounted(() => { if (paidSkipped.value) void usage.fetchUsage() })
+
 const busy = computed(() => props.row.auto_cards_status === 'pending' || props.row.auto_cards_status === 'generating')
 const problem = computed<{ text: string; action?: string } | null>(() => {
   if (props.row.cards) return null
   if (props.row.auto_cards_status === 'skipped_quota') {
-    const auth = useAuthStore()
     // The paid plan at its monthly limit: the day it starts again, never "Ver planos" (prd-uso-justo RN-3)
+    const cap = usage.usage.value?.cost_cap
+    if (paidSkipped.value && cap?.reached) return { text: `Limite de IA do mês atingido · volta em ${costCapBackLabel(cap.resets_at)}` }
     if (auth.user?.plan === 'pro' && !auth.onTrial) return { text: `Sem gerações de cards este mês. A contagem recomeça em ${nextMonthStartLabel()}` }
     const preview = auth.user?.plan !== 'pro' && !auth.onTrial && !!usePlans().plans.value?.preview
     return { text: preview ? 'Prévia grátis de cards usada' : `Sem gerações de cards ${auth.onTrial ? 'no teste' : 'este mês'}`, action: 'Ver planos' }

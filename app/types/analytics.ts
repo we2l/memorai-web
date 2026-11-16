@@ -27,7 +27,7 @@ export type PracticeMode = 'review' | 'quiz' | 'listen'
 export type PracticeEntry = 'main' | 'blitz' | 'errors_only' | 'backlog' | 'one_subject' | 'new_quiz' | 'history' | 'continue' | 'generate' | 'library'
 export type MiniplayerAction = 'play' | 'pause' | 'expand' | 'close'
 /** Hoje v3 (prd-4a-hoje-v3 RF-F8) */
-export type HomePlanStepKey = 'review' | 'quiz' | 'listen' | 'material'
+export type HomePlanStepKey = 'review' | 'study' | 'quiz' | 'listen' | 'material'
 export type HomeChecklistItem = 'topic' | 'material' | 'cards' | 'review' | 'streak'
 
 /** Landing (prd-landing-v4 RF-L13, prd-landing-d RF-D18): `?m=` of the video and where the click happened */
@@ -169,6 +169,11 @@ export interface FrontEventProps {
   edital_public_share: Record<string, never>
   edital_public_apply_clicked: { logged_in: boolean }
   edital_public_applied: Record<string, never>
+  /** E-mail before the PDF or the .ics of the free tool (prd-cronograma RF-W5); `marketing` = the box ticked */
+  edital_public_lead: { tool: 'pdf' | 'ics', marketing: boolean }
+
+  /** Cronograma de estudos (prd-cronograma RF-B6): the download happens in the browser */
+  schedule_export: { format: 'pdf' | 'ics' | 'csv', origin: 'app' | 'public' }
   /** Prontidão para a prova (prd-prontidao-prova RF-F5) */
   readiness_explain_open: Record<string, never>
   readiness_action_clicked: { kind: string; origin: 'home' | 'progress' }

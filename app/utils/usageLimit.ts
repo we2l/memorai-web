@@ -19,10 +19,15 @@ export function isAtLimit(f: FeatureData | null | undefined): boolean {
   return (f.remaining ?? Math.max(0, f.limit - f.used)) <= 0
 }
 
+/** The 402 of the subscriber's monthly AI cost cap (prd-teto-custo-assinante): every AI action waits for the 1st. */
+export const COST_CAP_CODE = 'cost_cap_reached'
+
 /**
  * The 402 of a paid account (plan_required null) is a toast, never the upgrade modal (RF-F4, RN-3). Free and
- * trial (plan_required "pro", or absent: the old payload) keep the modal.
+ * trial (plan_required "pro", or absent: the old payload) keep the modal. The cost cap stops all the AI, not one
+ * quota: the modal, with its own text and only "Entendi" (prd-teto-custo-assinante RF-W1).
  */
 export function limitReachedRoute(detail: Partial<FeatureLimitDetail>): 'toast' | 'modal' {
+  if (detail.code === COST_CAP_CODE) return 'modal'
   return detail.planRequired === null ? 'toast' : 'modal'
 }

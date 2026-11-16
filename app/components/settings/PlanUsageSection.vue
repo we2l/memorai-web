@@ -28,6 +28,10 @@
         <p v-if="renews && !auth.onTrial" class="text-meta text-fg-muted" data-testid="usage-renews">a contagem recomeça em {{ renews }}</p>
       </div>
 
+      <!-- The subscriber's monthly AI cost cap (prd-teto-custo-assinante RF-W3): only when reached, never the amount -->
+      <p v-if="costCap?.reached" class="mb-3 rounded-control bg-warning-subtle px-3 py-2 text-meta text-warning" role="status" data-testid="usage-cost-cap">
+        Limite de IA do mês atingido · volta em {{ costCapBackLabel(costCap.resets_at) }}. Revisar, estudar e organizar continuam normais.
+      </p>
       <UiSkeleton v-if="loading" variant="text" :lines="4" />
       <p v-else-if="!rows.length" class="text-meta text-fg-muted">Não foi possível carregar o uso agora.</p>
       <ul v-else class="divide-y divide-hairline">
@@ -60,6 +64,7 @@ const hasLoaded = ref(false)
 const isFree = computed(() => (auth.user?.plan ?? 'free') === 'free')
 const proName = useProName()
 const trialInvite = useTrialInvite()
+const costCap = computed(() => featureUsage.usage.value?.cost_cap)
 const onPreview = computed(() => featureUsage.usage.value?.period === 'lifetime')
 const freeLine = computed(() => (plans.value?.preview ? 'Sem cobrança, com uma prévia grátis da IA.' : `Sem cobrança. A IA é do ${proName.value}.`))
 

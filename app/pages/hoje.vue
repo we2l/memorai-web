@@ -75,6 +75,7 @@
 // settle, so no block pushes another (CLS), and a failure of a decorative one only hides its step.
 import type { BacklogStats, PendingAction, ProgressSummaryData, RecentNote, Stats, StudyHistory, TopicPerformance, TopicProgress, UserSettings } from '~/types'
 import type { DayPlanInput, DayPlanStep, DayStudy } from '~/composables/useDayPlan'
+import type { StudyScheduleResource } from '~/utils/studySchedule'
 
 const auth = useAuthStore()
 const examStore = useExamStore()
@@ -188,12 +189,9 @@ async function loadData() {
   loading.value = false
 }
 
-// --- Estudar (prd-cronograma RF-W4): GET /schedule and the pure function, loaded with it (out of Hoje's chunk) ---
-const scheduleApi = useScheduleApi()
-const scheduleMark = useScheduleMark()
-
+// --- Estudar (prd-cronograma RF-W4): GET /schedule; the pure function and the "Feito" load on use (out of Hoje's chunk) ---
 async function loadStudy(): Promise<DayStudy | null> {
-  const res = await scheduleApi.latest()
+  const res = (await $api<{ data: StudyScheduleResource | null }>('/schedule')).data
   if (!res?.configured || !res.subjects.length) return null
   const { buildStudySchedule, scheduleInputFromResource, todaySessions } = await import('~/utils/studySchedule')
   const day = studyDay()
@@ -223,7 +221,12 @@ async function refreshStudy() {
 function onStudyMark(step: DayPlanStep, status: 'done' | 'skipped') {
   const s = step.study
   if (!s) return
-  void scheduleMark.mark({ scheduleTopicId: s.scheduleTopicId, topicId: s.topicId, pass: s.pass, label: s.topicName ?? s.subjectName }, status, () => { void refreshStudy() })
+  void import('~/utils/scheduleMark').then(({ markScheduleSession }) => markScheduleSession(
+    { api: (url, opts) => $api(url, opts), run, toast },
+    { scheduleTopicId: s.scheduleTopicId, topicId: s.topicId, pass: s.pass, label: s.topicName ?? s.subjectName },
+    status,
+    () => { void refreshStudy() },
+  ))
 }
 
 function onStep(step: DayPlanStep) {

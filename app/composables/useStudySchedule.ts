@@ -3,6 +3,9 @@
  * session, with "Desfazer" in the toast. The schedule itself is computed in the browser (utils/studySchedule).
  */
 import type { SchedulePass, StudyScheduleResource } from '~/utils/studySchedule'
+import { markScheduleSession, type MarkTarget } from '~/utils/scheduleMark'
+
+export type { MarkTarget }
 
 export interface ScheduleSaveBody {
   hours_by_weekday: number[]
@@ -26,37 +29,14 @@ export function useScheduleApi() {
   }
 }
 
-export interface MarkTarget {
-  /** The caderno (root) of the schedule */
-  scheduleTopicId: string
-  topicId: string
-  pass: SchedulePass
-  /** "Crase" (the toast) */
-  label: string
-}
-
-/** "Feito" / "Pular": POST, then a toast with "Desfazer" (DELETE). `onChange(status | null)` after each answer. */
+/** "Feito" / "Pular" with "Desfazer" (utils/scheduleMark, shared with the Hoje). */
 export function useScheduleMark() {
-  const api = useScheduleApi()
+  const { $api } = useNuxtApp()
   const toast = useToast()
   const { run, pending } = useApiAction()
 
-  async function mark(target: MarkTarget, status: 'done' | 'skipped', onChange: (status: 'done' | 'skipped' | null) => void) {
-    const ok = await run(() => api.mark(target.scheduleTopicId, { topic_id: target.topicId, pass: target.pass, status }).then(() => true), {
-      error: status === 'done' ? 'Não foi possível marcar como feito. Tente de novo.' : 'Não foi possível pular. Tente de novo.',
-    })
-    if (!ok) return
-    onChange(status)
-    toast.show(status === 'done' ? `Feito: ${target.label}` : `${target.label} foi para o fim da rodada`, 'success', {
-      action: {
-        label: 'Desfazer',
-        onClick: () => {
-          void run(() => api.unmark(target.scheduleTopicId, { topic_id: target.topicId, pass: target.pass }).then(() => true), {
-            error: 'Não foi possível desfazer. Tente de novo.',
-          }).then((undone) => { if (undone) onChange(null) })
-        },
-      },
-    })
+  function mark(target: MarkTarget, status: 'done' | 'skipped', onChange: (status: 'done' | 'skipped' | null) => void) {
+    return markScheduleSession({ api: (url, opts) => $api(url, opts), run, toast }, target, status, onChange)
   }
 
   return { mark, pending }

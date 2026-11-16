@@ -4,7 +4,7 @@
       <legend class="mb-1 text-body font-semibold text-fg-strong">Quantas horas por dia?</legend>
       <p class="mb-3 text-meta text-fg-muted">{{ reviewMinutes ? `A revisão dos cards (${reviewMinutes} min por dia) sai dessas horas.` : 'Conte só o tempo de estudo do dia.' }}</p>
       <ul class="flex flex-col divide-y divide-hairline">
-        <li v-for="wd in ORDER" :key="wd" class="grid grid-cols-[minmax(0,1fr)_7.5rem] items-center gap-x-3 py-2" :class="withStart && 'sm:grid-cols-[minmax(0,1fr)_7.5rem_8rem]'">
+        <li v-for="wd in ORDER" :key="wd" class="hours-row grid items-center gap-x-3 py-2" :class="withStart && 'hours-row--start'">
           <span :id="`${uid}-d${wd}`" class="text-body text-fg-strong">{{ WEEKDAY_NAMES[wd] }}</span>
           <UiSelect
             :model-value="String(model.hours[wd] ?? 0)"
@@ -38,7 +38,7 @@
       <legend class="mb-1 text-body font-semibold text-fg-strong">Peso das matérias</legend>
       <p class="mb-3 text-meta text-fg-muted">Quem pesa mais aparece mais vezes. Mude o peso se o edital diz outra coisa{{ withLevels ? ', e diga de onde você parte em cada matéria' : '' }}.</p>
       <ul class="flex flex-col divide-y divide-hairline">
-        <li v-for="s in subjects" :key="s.id" class="grid gap-x-3 gap-y-2 py-3" :class="withLevels ? 'grid-cols-[minmax(0,1fr)_6rem] sm:grid-cols-[minmax(0,1fr)_6rem_10rem]' : 'grid-cols-[minmax(0,1fr)_6rem]'">
+        <li v-for="s in subjects" :key="s.id" class="grid gap-x-3 gap-y-2 py-3" :class="withLevels ? 'subject-row subject-row--levels' : 'subject-row'">
           <div class="min-w-0">
             <p :id="`${uid}-s${s.id}`" class="break-words text-body text-fg-strong">{{ s.name }}</p>
             <p class="text-meta text-fg-muted">{{ originText(s) }}</p>
@@ -152,3 +152,13 @@ function originText(s: ScheduleFormSubject): string {
 }
 
 </script>
+
+<style scoped>
+/* Grids of the form, here and not as arbitrary utilities: they stay in the once-* chunk, out of entry.css */
+.hours-row { grid-template-columns: minmax(0, 1fr) 7.5rem; }
+.subject-row { grid-template-columns: minmax(0, 1fr) 6rem; }
+@media (min-width: 640px) {
+  .hours-row--start { grid-template-columns: minmax(0, 1fr) 7.5rem 8rem; }
+  .subject-row--levels { grid-template-columns: minmax(0, 1fr) 6rem 10rem; }
+}
+</style>

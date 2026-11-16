@@ -1,8 +1,8 @@
 {
-  "entryLayoutGzKb": 120,
+  "entryLayoutGzKb": 120.5,
   "largestChunkGzKb": 150,
   "precacheKb": 1536,
-  "entryCssGzKb": 13,
+  "entryCssGzKb": 13.2,
   "precacheFontsKb": 54,
   "routes": {
     "/cadernos": {
@@ -32,13 +32,13 @@
     },
     "/hoje": {
       "file": "pages/hoje.vue",
-      "gzKb": 12.8,
-      "closureGzKb": 31.3
+      "gzKb": 13.4,
+      "closureGzKb": 31.8
     },
     "/revisar": {
       "file": "pages/revisar.vue",
       "gzKb": 16.6,
-      "closureGzKb": 57.3
+      "closureGzKb": 57.5
     },
     "/praticar": {
       "file": "pages/praticar.vue",

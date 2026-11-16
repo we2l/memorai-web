@@ -26,7 +26,7 @@
             {{ step.action.label }}
           </UiButton>
           <!-- The cronograma's session: Feito and Pular in the ⋯ (prd-cronograma RF-W4) -->
-          <UiMenu v-if="step.study" :items="studyItems" :label="`Mais ações: ${step.title}`" />
+          <LazyUiMenu v-if="step.study" :items="studyItems" :label="`Mais ações: ${step.title}`" />
         </div>
       </div>
     </div>

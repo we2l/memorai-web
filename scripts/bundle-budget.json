@@ -33,12 +33,12 @@
     "/hoje": {
       "file": "pages/hoje.vue",
       "gzKb": 13.4,
-      "closureGzKb": 31.8
+      "closureGzKb": 32.5
     },
     "/revisar": {
       "file": "pages/revisar.vue",
       "gzKb": 16.6,
-      "closureGzKb": 57.5
+      "closureGzKb": 58
     },
     "/praticar": {
       "file": "pages/praticar.vue",
@@ -68,7 +68,7 @@
     "/comecar": {
       "file": "pages/comecar/index.vue",
       "gzKb": 2.5,
-      "closureGzKb": 8
+      "closureGzKb": 9
     },
     "/comecar/:area": {
       "file": "pages/comecar/[area].vue",

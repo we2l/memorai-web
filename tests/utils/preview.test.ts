@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { catalogPreview, hasPreview, previewIncludes, previewNotice } from '~/utils/preview'
+import { catalogPreview, hasPreview, previewIncludes, previewMaterialLine, previewNotice } from '~/utils/preview'
 import { checkoutAvailable } from '~/utils/checkout'
 import { landingAiLine, landingFaqs, landingPlansLead, landingPodcastLine, landingTrialTerms } from '~/utils/landing'
 import type { PlanCatalog } from '~/types'
@@ -52,5 +52,20 @@ describe('prévia grátis (prd-uso-justo §9)', () => {
     expect(landingPodcastLine(c)).toBe('No Intensivo: 8 episódios por mês, de até 8 min. No Grátis, uma prévia de 30 s.')
     expect(landingFaqs(c)[0]!.a).toContain(TEXT)
     expect(JSON.stringify([landingTrialTerms(c), landingPlansLead(c), landingFaqs(c)])).not.toMatch(/teste de \d+ dias|7 dias/)
+  })
+})
+
+describe('previewMaterialLine (prd-ativacao-material-proprio H7)', () => {
+  const preview = { lifetime: true, requires_verified_email: true, limits: { pdf_to_note: 1, cards_ai: 10 }, pdf_pages: 50, quiz_max_questions: 10, quiz_short_answer: false, podcast_seconds: 30, text: '' }
+
+  it('os números vêm do catálogo, com singular e plural', () => {
+    expect(previewMaterialLine(preview)).toBe('Na prévia grátis: 1 PDF de até 50 páginas e 10 gerações de cards.')
+    expect(previewMaterialLine({ ...preview, limits: { pdf_to_note: 2, cards_ai: 1 } })).toBe('Na prévia grátis: 2 PDFs de até 50 páginas e 1 geração de cards.')
+    expect(previewMaterialLine({ ...preview, limits: { pdf_to_note: 0, cards_ai: 10 } })).toBe('Na prévia grátis: 10 gerações de cards.')
+  })
+
+  it('sem prévia ou sem números, nada (nunca um número escrito à mão)', () => {
+    expect(previewMaterialLine(null)).toBeNull()
+    expect(previewMaterialLine({ ...preview, limits: {} })).toBeNull()
   })
 })

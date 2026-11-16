@@ -20,6 +20,8 @@
     <ReviewStreakLine v-if="streak && streak.current > 0" :streak="streak" data-testid="session-streak" />
 
     <div class="flex w-full flex-col gap-3">
+      <!-- The first lote with the person's own cards (prd-ativacao-material-proprio H8) -->
+      <LazyReviewOwnReceipt v-if="receipt" :curve="receipt" />
       <slot name="tomorrow" />
       <!-- The backlog left out of today (prd-revisao-v5-fase-b RF-F4) -->
       <LazyBacklogLine v-if="backlog" :backlog="backlog" origin="review_end" class="items-center" />
@@ -39,6 +41,7 @@
 // {escopo}" (the primary) and "Reforçar erros (N)" in the same slice.
 import type { BacklogState } from '~/types'
 import type { BatchSummary } from '~/composables/useReviewBatches'
+import type { ForgettingCurve } from '~/utils/guestProgress'
 import type { GoalInfo, StreakInfo } from '~/components/review/ReviewBatchEnd.vue'
 
 const props = defineProps<{
@@ -56,6 +59,8 @@ const props = defineProps<{
   retention?: boolean
   /** /stats.backlog after the session (prd-revisao-v5-fase-b RF-F4) */
   backlog?: BacklogState | null
+  /** The curve of the receipt of the first own lote (prd-ativacao-material-proprio H8); null = no receipt */
+  receipt?: ForgettingCurve | null
 }>()
 
 const title = computed(() => (props.scopeLabel ? `${props.scopeLabel} em dia` : 'Revisão de hoje concluída'))

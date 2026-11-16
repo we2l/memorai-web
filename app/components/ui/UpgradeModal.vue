@@ -24,6 +24,8 @@ const props = withDefaults(defineProps<{
   resetsAt?: string | null
   /** The Free's preview is spent (prd-uso-justo §9): it never resets */
   lifetime?: boolean
+  /** The subscriber's monthly AI cost cap (prd-teto-custo-assinante RF-W1): no upgrade, only the day it comes back */
+  costCap?: boolean
 }>(), {
   feature: '',
   used: null,
@@ -31,6 +33,7 @@ const props = withDefaults(defineProps<{
   planRequired: 'pro',
   resetsAt: null,
   lifetime: false,
+  costCap: false,
 })
 
 const open = defineModel<boolean>({ required: true })
@@ -45,13 +48,14 @@ watch(open, (value) => {
 
 const catalogFeature = computed(() => plans.feature(props.feature))
 const label = computed(() => catalogFeature.value?.label ?? 'usos com IA')
-const canUpgrade = computed(() => props.planRequired === 'pro')
+const canUpgrade = computed(() => props.planRequired === 'pro' && !props.costCap)
 
 // After the trial the Free has no AI (limit 0): "Seu teste do Intensivo acabou" (prd-planos-lancamento RF-F5).
 // In the trial the counts are of its 7 days, not of the month.
 const trialOver = computed(() => props.limit === 0 && props.feature !== 'podcast' && auth.trialEnded)
 
 const title = computed(() => {
+  if (props.costCap) return 'Você chegou ao limite de uso de IA deste mês'
   if (props.lifetime) return `Você usou a prévia grátis de ${label.value}`
   if (trialOver.value) return `Seu teste do ${proName.value} acabou`
   if (props.limit === 0) return `${capitalize(label.value)} fazem parte do ${proName.value}`
@@ -62,6 +66,8 @@ const title = computed(() => {
 })
 
 const body = computed(() => {
+  // Never the amount in R$ (RN-5): only the day it comes back
+  if (props.costCap) return `Volta em ${costCapBackLabel(props.resetsAt)}. Revisar, estudar e organizar continuam normais.`
   if (!canUpgrade.value) {
     const date = formatResetDate(props.resetsAt)
     return date ? `A contagem recomeça em ${date}.` : 'A contagem recomeça no início do próximo mês.'

@@ -79,11 +79,11 @@ describe('guestProgress: storage', () => {
 })
 
 describe('landing: the call of each area', () => {
-  it('starts the mini-lote of the area, or the choice for medicina e faculdade', async () => {
+  it('starts the mini-lote of the area, or the grid of areas (/comecar/areas) for medicina e faculdade', async () => {
     const { areaStartPath } = await import('~/utils/landing')
     expect(areaStartPath('idiomas')).toBe('/comecar/ingles?from=landing')
     expect(areaStartPath('oab')).toBe('/comecar/oab?from=landing')
-    expect(areaStartPath('faculdade')).toBe('/comecar')
+    expect(areaStartPath('faculdade')).toBe('/comecar/areas?from=landing')
   })
 })
 

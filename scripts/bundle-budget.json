@@ -67,8 +67,8 @@
     },
     "/comecar": {
       "file": "pages/comecar/index.vue",
-      "gzKb": 2.5,
-      "closureGzKb": 9
+      "gzKb": 10.5,
+      "closureGzKb": 17
     },
     "/comecar/:area": {
       "file": "pages/comecar/[area].vue",

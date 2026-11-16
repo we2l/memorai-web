@@ -1,83 +1,121 @@
 <template>
-  <div class="mx-auto flex w-full max-w-4xl flex-col gap-6" data-testid="area-step">
-    <div>
-      <h1 class="text-page-title text-fg-strong">Para o que você estuda?</h1>
-      <!-- With an account (prd-ativacao-material-proprio H4): "Sem criar conta" is wrong for who just made one -->
-      <p class="mt-1 text-body text-fg-muted">{{ loggedIn ? 'Revise 6 cards de exemplo ou comece pelo seu material.' : 'Escolha e revise 6 cards agora. Sem criar conta.' }}</p>
-    </div>
-
-    <!-- E2 (prd-visual-e2 RF-5.7): the areas in a grid (3 × 2 on the desktop), each with the icon of its area -->
-    <ul class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3" aria-label="Áreas">
-      <li v-for="a in GUEST_AREAS" :key="a.key" class="flex">
-        <NuxtLink
-          :to="`/comecar/${a.key}`"
-          class="flex w-full items-center gap-3.5 rounded-card bg-raised p-4 shadow-1 transition-shadow duration-fast hover:shadow-2 sm:flex-col sm:items-start sm:p-5"
-          :data-testid="`area-${a.key}`"
-          @click="choose(a.key)"
-        >
-          <UiIconTile :icon="AREA_ICON[a.key].icon" :tone="AREA_ICON[a.key].tone" />
-          <span class="min-w-0 flex-1">
-            <span class="block font-semibold text-fg-strong">{{ a.name }}</span>
-            <span class="block text-meta text-fg-muted">{{ a.hint }}</span>
-            <span v-if="saved?.area === a.key" class="mt-1 block text-label font-semibold text-action-fg">em andamento</span>
-          </span>
-          <ChevronRight class="size-4 shrink-0 text-fg-muted sm:hidden" aria-hidden="true" />
-        </NuxtLink>
-      </li>
-    </ul>
-
-    <div v-if="loggedIn">
-      <UiButton variant="ghost" :loading="skipping" class="max-sm:w-full" data-testid="area-skip" @click="skip">Começar pelo meu material</UiButton>
-    </div>
-    <p v-else class="text-meta text-fg-muted">
-      Já tem conta? <UiLink :to="loginTo" class="underline">Entrar</UiLink>
-    </p>
+  <LazyOnboardingAreaPicker v-if="loggedIn" :logged-in="true" />
+  <div v-else class="entrada-page" data-testid="entry">
+    <main>
+      <EntradaTour
+        v-if="step !== null"
+        ref="tour"
+        :step="step"
+        :catalog="catalog"
+        :failed="failed"
+        :flow="consent === null"
+        @go="go"
+        @retry="fetchPlans"
+      />
+      <EntradaHome v-else :catalog="catalog" :login-to="loginTo" @start="start" />
+    </main>
   </div>
 </template>
 
 <script setup lang="ts">
-// Onboarding v4 (prd-onboarding-v4 RF-F1): one question before any value, one tap to the mini-lote. Prerendered:
-// the first screen of the flow opens without waiting for the app. A lote left on this device shows on its row.
-import { Briefcase, BookOpen, ChevronRight, Globe, GraduationCap, Scale, Stethoscope } from 'lucide-vue-next'
-import type { Component } from 'vue'
-import type { IconTileTone } from '~/components/ui/IconTile.vue'
-import { GUEST_AREAS, loadGuestProgress, pendingGuestProgress, type GuestArea, type GuestProgress } from '~/utils/guestProgress'
+// /comecar (prd-entrada-comecar): the visitor gets the entry, in the skin of the landing D (ADR-028), with the tour of
+// 7 steps in `?passo=1..7`; the account that has not finished the onboarding keeps the choice of the area (RF-F2, the
+// grid and "Começar pelo meu material" of the web #271). Prerendered for the visitor: with an account the layout turns
+// into `auth` after mounting, and ENTRY_HOLD_SCRIPT keeps the entry hidden meanwhile for who has the session hint.
+// Out of the precache: once-* chunks and its CSS is _nuxt/index.*.css (nuxt.config). The grid is lazy (only the account
+// needs it); the tour stays in the page's chunk, so the entry's pieces never form a shared chunk of the precache.
+import '~/components/entrada/entrada.css'
+import type { EntryStepProp } from '~/types/analytics'
+import { ENTRY_STEPS, entryStepOf } from '~/utils/entrada'
+import { pendingGuestProgress } from '~/utils/guestProgress'
 
-definePageMeta({ layout: 'auth', wide: true })
+definePageMeta({ layout: 'landing', wide: true })
 
-// The color of each area only identifies it, on its small tile (ADR-035 §1); the name says what it is
-const AREA_ICON: Record<GuestArea, { icon: Component; tone: IconTileTone }> = {
-  concurso: { icon: Briefcase, tone: 'action' },
-  enem: { icon: GraduationCap, tone: 'accuracy' },
-  medicina: { icon: Stethoscope, tone: 'streak' },
-  oab: { icon: Scale, tone: 'quiz' },
-  ingles: { icon: Globe, tone: 'listen' },
-  faculdade: { icon: BookOpen, tone: 'goal' },
-}
-useHead({ title: 'Começar · Baigi' })
+/**
+ * Runs in the <head> before the first paint: with the session hint the entry waits hidden (html.ec-hold, entrada.css)
+ * until the page knows who it is, 4 s at most if the JS never runs. Also keeps the query of the first load, which Nuxt
+ * takes out of the route while it hydrates a prerendered page.
+ */
+const ENTRY_HOLD_SCRIPT = `(function(){var d=document.documentElement;window.__baigiEntryQuery=location.search;if(/(?:^|;\\s*)baigi_logged_in=1/.test(document.cookie)){d.classList.add('ec-hold');setTimeout(function(){d.classList.remove('ec-hold')},4000)}})()`
 
-const saved = ref<GuestProgress | null>(null)
-const loginTo = ref('/entrar')
-// Read after hydration: the page is prerendered for the visitor
-const loggedIn = ref(false)
-onMounted(() => {
-  loggedIn.value = !!useAuthStore().user
-  saved.value = loadGuestProgress()
-  if (pendingGuestProgress()) loginTo.value = '/entrar?redirect=/comecar/pronto'
+useHead({
+  title: 'Conheça o Baigi',
+  meta: [{ name: 'description', content: 'Revisão espaçada com IA: veja em um minuto como o Baigi lembra você de revisar antes de esquecer. Revisar é grátis.' }],
+  script: [{ innerHTML: ENTRY_HOLD_SCRIPT, tagPosition: 'head' }],
 })
 
-/** An account made straight on /criar-conta can go to its own material without the sample (no lote, no cards). */
-const { run, pending: skipping } = useApiAction()
-async function skip() {
-  const ok = await run(() => useNuxtApp().$api('/onboarding/complete', { method: 'POST' }), { error: 'Não conseguimos seguir agora. Tente de novo.' })
-  if (ok === undefined) return
-  const auth = useAuthStore()
-  if (auth.user) auth.user.onboarding_completed = true
-  useAnalytics().track('onboarding_path', { path: 'skip' })
-  await navigateTo('/comecar/pronto', { replace: true })
+const nuxtApp = useNuxtApp()
+const auth = useAuthStore()
+const route = useRoute()
+const router = useRouter()
+
+// Out of hydration (an SPA navigation, or the remount when the layout turns into auth) the account is known at once
+const loggedIn = ref(import.meta.client && !nuxtApp.isHydrating && !!auth.user)
+if (loggedIn.value) setPageLayout('auth')
+
+const { plans: catalog, failed, fetchPlans } = usePlans()
+const { analytics: consent } = useConsent()
+const { track } = useAnalytics()
+
+const loginTo = ref('/entrar')
+const step = computed(() => entryStepOf(route.query.passo))
+const tour = ref<{ focusHeading: () => void } | null>(null)
+
+/** The step in the URL (Voltar of the browser = one step back); the campaign of the query stays. */
+function go(target: number | null) {
+  const query = { ...route.query, passo: target === null ? undefined : String(target + 1) }
+  const back = (window.history.state as { back?: string | null } | null)?.back
+  const resolved = router.resolve({ path: route.path, query }).fullPath
+  // Voltar to where the person came from pops the history instead of stacking it
+  if (back && back === resolved) router.back()
+  else router.push({ query })
 }
 
-function choose(area: GuestArea) {
-  useAnalytics().track('onboarding_area_chosen', { area, source: 'comecar' })
+let origin: 'hero' | 'feature' | 'link' = 'link'
+let started = false
+function start(target: number, from: 'hero' | 'feature') {
+  origin = from
+  go(target)
 }
+
+watch(step, async (now) => {
+  if (now === null || loggedIn.value) return
+  const name = ENTRY_STEPS[now] as EntryStepProp
+  if (!started) {
+    started = true
+    track('entry_tour_started', { origin, step: name })
+  }
+  track('entry_step_viewed', { step: name, index: now + 1 })
+  window.scrollTo({ top: 0 })
+  await nextTick()
+  tour.value?.focusHeading()
+})
+
+function releaseHold() {
+  document.documentElement.classList.remove('ec-hold')
+}
+
+onMounted(() => {
+  if (auth.user) {
+    // The grid of today (RF-F2) in the auth layout: after the hydration, never during it (it would apply to the next route)
+    if (nuxtApp.isHydrating) onNuxtReady(() => { setPageLayout('auth'); loggedIn.value = true; releaseHold() })
+    else { setPageLayout('auth'); loggedIn.value = true; releaseHold() }
+    return
+  }
+  releaseHold()
+  fetchPlans()
+  if (pendingGuestProgress()) loginTo.value = '/entrar?redirect=/comecar/pronto'
+  const kept = new URLSearchParams((window as unknown as { __baigiEntryQuery?: string }).__baigiEntryQuery ?? window.location.search)
+  const utm = (key: string) => kept.get(key)?.slice(0, 100) || null
+  track('entry_viewed', { utm_source: utm('utm_source'), utm_medium: utm('utm_medium'), utm_campaign: utm('utm_campaign'), utm_content: utm('utm_content') })
+  // A step opened straight from the address (a shared link): shown once the route has its query back
+  if (step.value !== null) {
+    started = true
+    const name = ENTRY_STEPS[step.value] as EntryStepProp
+    track('entry_tour_started', { origin: 'link', step: name })
+    track('entry_step_viewed', { step: name, index: step.value + 1 })
+  }
+})
+
+onBeforeUnmount(releaseHold)
 </script>

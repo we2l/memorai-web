@@ -96,6 +96,8 @@ const CALLS: [testId: string, path: string][] = [
   ['landing-cta-projection', '/comecar'],
   ['landing-cta-podcast-signup', '/comecar'],
   ['landing-cta-areas-concurso', '/comecar/concurso?from=landing'],
+  // Medicina e faculdade has no deck of its own: the grid of areas, since /comecar became the entry (prd-entrada-comecar)
+  ['landing-cta-areas-faculdade', '/comecar/areas?from=landing'],
   ['landing-cta-plans_free', '/comecar'],
   // With the trial in the catalog the paid card sells the plan; without it, /comecar (LandingPlans)
   ['landing-cta-plans_pro', '/planos'],

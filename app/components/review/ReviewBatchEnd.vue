@@ -17,6 +17,8 @@
       <span class="sr-only" data-testid="batch-remembered">Você lembrou {{ summary.remembered }} de {{ summary.size }}</span>
     </UiArc>
     <p class="mt-1 max-w-md text-body text-fg" data-testid="batch-lead">{{ lead }}</p>
+    <!-- The first lote with the person's own cards (prd-ativacao-material-proprio H8) -->
+    <LazyReviewOwnReceipt v-if="receipt" :curve="receipt" class="mt-4" />
 
     <div class="mt-5 grid w-full grid-cols-2 gap-2.5 text-left" data-testid="batch-stats">
       <UiMetricTile
@@ -73,6 +75,7 @@
 // prefers-reduced-motion: opacity only (160 ms), the arc and the number ready.
 import { Check, Clock, Flame } from 'lucide-vue-next'
 import type { BatchSummary } from '~/composables/useReviewBatches'
+import type { ForgettingCurve } from '~/utils/guestProgress'
 
 export interface GoalInfo { batch_size: number; target_batches: number; done_batches: number; met: boolean }
 /** `rest`: the weekly rest of the streak (/stats.streak_rest_available; null on older API builds) */
@@ -91,6 +94,8 @@ const props = defineProps<{
   language?: boolean
   /** First name for the title ("Bom trabalho, Ana!") */
   name?: string | null
+  /** The curve of the receipt of the first own lote (H8); null = no receipt */
+  receipt?: ForgettingCurve | null
 }>()
 defineEmits<{ (e: 'next'): void; (e: 'stop'): void }>()
 

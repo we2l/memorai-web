@@ -37,6 +37,11 @@ export type LandingCtaPosition = 'header' | 'hero' | 'curve' | 'story_edital' | 
 /** The tab of the areas whose call was clicked (position `areas`) */
 export type LandingAreaProp = 'concurso' | 'faculdade' | 'oab' | 'enem' | 'idiomas'
 
+/** The entry of /comecar (prd-entrada-comecar RF-F21): its steps and where a call was clicked */
+export type EntryStepProp = 'card' | 'material' | 'revisar' | 'simulado' | 'podcast' | 'prova' | 'planos'
+export type EntryCtaPosition = 'hero_tour' | 'hero_login' | 'feature' | 'tool_edital' | 'tool_calculadora' | 'final_signup'
+  | 'card_areas' | 'plans_signup' | 'plans_areas'
+
 export interface FrontEventProps {
   /** Landing (prd-landing-v4 RF-L13, prd-landing-d RF-D18) */
   landing_viewed: { message: LandingMessageProp, utm_source: string | null, utm_medium: string | null, utm_campaign: string | null, utm_content: string | null }
@@ -45,6 +50,14 @@ export interface FrontEventProps {
   landing_sample_played: { message: LandingMessageProp }
   /** First play of the podcast sample on the paywall of the app (Free and trial; PodcastSample) */
   podcast_sample_played: { source: 'generate_sheet' | 'praticar' | 'upgrade_modal' }
+  /** Entry of /comecar for who does not know the Baigi yet (prd-entrada-comecar RF-F21) */
+  entry_viewed: { utm_source: string | null, utm_medium: string | null, utm_campaign: string | null, utm_content: string | null }
+  entry_tour_started: { origin: 'hero' | 'feature' | 'link', step: EntryStepProp }
+  entry_step_viewed: { step: EntryStepProp, index: number }
+  entry_tour_skipped: { from: EntryStepProp }
+  entry_card_rated: { rating: 'remembered' | 'forgot' }
+  entry_sample_played: Record<string, never>
+  entry_cta_clicked: { position: EntryCtaPosition }
   /** Blog and free tools (prd-blog-seo RF-A1): `input` is a bucket, never the exact number (RN-6) */
   blog_viewed: { slug: string, category: string }
   blog_cta_clicked: { slug: string, position: 'inline' | 'end' | 'tool', area: string | null }

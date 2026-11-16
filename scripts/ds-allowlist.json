@@ -11,12 +11,12 @@
       "prazo": "permanente"
     },
     {
-      "path": "app/components/landing/landing.css",
+      "path": "app/components/landing/landing-tokens.css",
       "rules": [
         "hex"
       ],
       "match": "^\\s*--palette-[\\w-]+:\\s*#[0-9A-Fa-f]{6};",
-      "motivo": "Primitivos da landing D (ADR-028), congelada na pele v4: saíram do entry.css com a E2 (ADR-035 §7, teto de 13 KB gz) e ficam só no CSS dela.",
+      "motivo": "Primitivos da landing D (ADR-028), congelada na pele v4: saíram do entry.css com a E2 (ADR-035 §7, teto de 13 KB gz) e ficam só no CSS dela, compartilhado com a entrada do /comecar (prd-entrada-comecar RF-F19; azul, verde e laranja = os valores claros dos ícones de métrica, sobre o quadrado branco da faixa violeta).",
       "prazo": "permanente"
     },
     {

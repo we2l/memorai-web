@@ -781,3 +781,9 @@ export function saveBodyOf(draft: ScheduleDraft) {
     weights: { ...draft.weights } as Record<string, number | null>,
   }
 }
+
+/** 0 to 8 h in half hours, for a <select>: "Folga", "30 min", "1 h", "1 h 30" … */
+export const HOUR_OPTIONS: { value: string, label: string }[] = Array.from({ length: 17 }, (_, i) => ({
+  value: String(i / 2),
+  label: i === 0 ? 'Folga' : durationLabel(i * 30),
+}))

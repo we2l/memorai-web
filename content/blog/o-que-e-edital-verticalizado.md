@@ -52,7 +52,7 @@ Um exemplo inventado, só para mostrar o formato:
 | Língua Portuguesa | 2. Pontuação | Não | |
 | Direito Constitucional | 1. Direitos e garantias fundamentais | Não | |
 
-Em edital grande, esse trabalho leva muito tempo à mão. Foi por isso que fizemos uma [ferramenta grátis de edital verticalizado](/ferramentas/edital-verticalizado): você envia o PDF ou cola o texto e recebe a lista pronta, sem cadastro.
+Em edital grande, esse trabalho leva muito tempo à mão. Foi por isso que fizemos uma [ferramenta grátis de edital verticalizado](/ferramentas/edital-verticalizado): você envia o PDF ou cola o texto e recebe a lista pronta, grátis.
 
 ```cta
 {"area": "concurso", "text": "Já tem a lista? Revise 6 cards de exemplo da sua área, sem criar conta."}

@@ -8,10 +8,16 @@
 <script setup lang="ts">
 // "Continuar com Google" of /entrar and /criar-conta (prd-4g-conta-onboarding-v3 RF-F12, F13). The OAuth state
 // lives in the API session, so the CSRF cookie comes first. The logo keeps Google's colors (ds-allowlist).
+const props = defineProps<{
+  /** Runs before leaving for Google (the free tool keeps the reading's intent on the device) */
+  beforeRedirect?: () => void
+}>()
+
 const { $api } = useNuxtApp()
 const loading = ref(false)
 
 async function go() {
+  props.beforeRedirect?.()
   loading.value = true
   try {
     await ensureCsrfCookie()

@@ -9,16 +9,16 @@
       </div>
     </div>
 
-    <ol class="week-grid mt-4" :aria-label="`Sessões de ${rangeLabel}`">
+    <ol class="week-grid mt-4" :class="grid && 'is-grid'" :aria-label="`Sessões de ${rangeLabel}`">
       <li
         v-for="d in days"
         :key="d.date"
-        class="week-day flex min-w-0 gap-3 py-3 lg:flex-col lg:gap-2 lg:rounded-tile lg:p-3"
-        :class="[d.date === today ? 'lg:bg-action-subtle' : 'lg:bg-soft']"
+        class="week-day flex min-w-0 gap-3 py-3"
+        :class="grid && 'lg:flex-col lg:gap-2 lg:rounded-tile lg:bg-soft lg:p-3'"
         :aria-current="d.date === today ? 'date' : undefined"
         :data-testid="`schedule-day-${d.date}`"
       >
-        <p class="w-14 shrink-0 text-meta lg:w-auto">
+        <p class="w-14 shrink-0 text-meta" :class="grid && 'lg:w-auto'">
           <span class="font-semibold text-fg-strong">{{ weekdayShort(d.date) }}</span>
           <span class="text-fg-muted"> {{ dayMonth(d.date) }}</span>
           <span v-if="d.date === today" class="block text-label font-semibold text-action-fg">hoje</span>
@@ -49,7 +49,7 @@
             </li>
           </ul>
         </div>
-        <p v-if="d.day?.minutes" class="shrink-0 text-meta text-fg-muted lg:mt-auto">{{ durationLabel(d.day.minutes) }}</p>
+        <p v-if="d.day?.minutes" class="shrink-0 text-meta text-fg-muted" :class="grid && 'lg:mt-auto'">{{ durationLabel(d.day.minutes) }}</p>
       </li>
     </ol>
   </UiSection>
@@ -70,7 +70,9 @@ const props = withDefaults(defineProps<{
   today: string
   /** Feito / Pular / Abrir a matéria on each session (the caderno) */
   interactive?: boolean
-}>(), { interactive: false })
+  /** 7 columns from 1024 px (the caderno); false keeps the list (the free tool's reading column) */
+  grid?: boolean
+}>(), { interactive: false, grid: true })
 
 const emit = defineEmits<{ (e: 'mark', session: StudySession, status: 'done' | 'skipped'): void }>()
 
@@ -126,8 +128,8 @@ const SessionText = defineComponent({
 /* A list split by hairlines on the phone; 7 equal columns from 1024 px (the hub's breakpoint) */
 .week-grid > li + li { border-top: 1px solid var(--hairline); }
 @media (min-width: 64rem) {
-  .week-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 0.5rem; }
-  .week-grid > li + li { border-top: 0; }
-  .week-day { min-height: 10rem; }
+  .week-grid.is-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 0.5rem; }
+  .week-grid.is-grid > li + li { border-top: 0; }
+  .week-grid.is-grid .week-day { min-height: 10rem; }
 }
 </style>

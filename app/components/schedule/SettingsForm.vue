@@ -76,7 +76,7 @@
 // half hours, Monday first), an optional start time per day (the .ics hour), the session of 30/60/90 min and, per
 // matéria, the weight with its origin ("do edital: 20 pontos" or "pelo tamanho") and the optional level. The same
 // form serves the sheet of the caderno and the free tool (without the level there).
-import { WEEKDAY_NAMES, type ScheduleDraft, type ScheduleLevel } from '~/utils/studySchedule'
+import { HOUR_OPTIONS, WEEKDAY_NAMES, type ScheduleDraft, type ScheduleLevel } from '~/utils/studySchedule'
 
 export interface ScheduleFormSubject {
   id: string
@@ -97,11 +97,6 @@ const model = defineModel<ScheduleDraft>({ required: true })
 
 const uid = useId()
 const ORDER = [1, 2, 3, 4, 5, 6, 0] as const
-const HOUR_OPTIONS = Array.from({ length: 17 }, (_, i) => {
-  const h = i / 2
-  const whole = Math.floor(h)
-  return { value: String(h), label: h === 0 ? 'Folga' : `${whole ? `${whole} h` : ''}${h % 1 ? `${whole ? ' ' : ''}30${whole ? '' : ' min'}` : ''}` }
-})
 const SESSION_LABELS = [{ value: 30, label: '30 min' }, { value: 60, label: '1 h' }, { value: 90, label: '1 h 30' }]
 const LEVEL_OPTIONS = [
   { value: 'studied', label: 'Já estudei' },

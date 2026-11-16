@@ -1070,7 +1070,11 @@ export interface EditalReadResult {
   source: { kind: 'pdf' | 'text'; pages: { from: number; to: number } | null; total_pages: number | null; found: 'heading' | 'whole' | 'manual' | 'text'; truncated: boolean }
   counts: { subjects: number; topics: number }
   applied_topic_id: string | null
+  /** Points of each matéria read in the edital's table of the exam (prd-cronograma RF-B1); null/absent = none */
+  weights?: EditalWeight[] | null
 }
+/** One matéria's points, by its name in the proposal */
+export interface EditalWeight { subject: string; points: number; source: 'edital' }
 export interface EditalApplied {
   topic: { id: string; name: string; color: string | null; learning_mode: string | null }
   counts: { subjects: number; topics: number }

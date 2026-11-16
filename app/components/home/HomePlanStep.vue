@@ -15,15 +15,19 @@
             <UiButton variant="ghost" size="sm" :loading="busy" @click="$emit('survival-off')">Desligar</UiButton>
           </p>
         </div>
-        <UiButton
-          :variant="step.primary ? 'primary' : 'secondary'"
-          :size="step.primary ? undefined : 'sm'"
-          :to="step.action.to"
-          :aria-describedby="titleId"
-          @click="$emit('act', step)"
-        >
-          {{ step.action.label }}
-        </UiButton>
+        <div class="flex shrink-0 items-center gap-1">
+          <UiButton
+            :variant="step.primary ? 'primary' : 'secondary'"
+            :size="step.primary ? undefined : 'sm'"
+            :to="step.action.to"
+            :aria-describedby="titleId"
+            @click="$emit('act', step)"
+          >
+            {{ step.action.label }}
+          </UiButton>
+          <!-- The cronograma's session: Feito and Pular in the ⋯ (prd-cronograma RF-W4) -->
+          <LazyUiMenu v-if="step.study" :items="studyItems" :label="`Mais ações: ${step.title}`" />
+        </div>
       </div>
     </div>
 
@@ -50,12 +54,17 @@
 // (Revisar purple, Questões amber, Ouvir petrol, Continuar neutral), the title and one support line. The first step
 // carries the primary; the others are whole-row links with a chevron (named by their title and line). A step with a
 // control of its own (the backlog line, "Desligar") keeps a small button instead (no control inside a link).
-import { ChevronRight, CircleHelp, FileText, Headphones, Layers } from 'lucide-vue-next'
+import { BookOpen, ChevronRight, CircleHelp, FileText, Headphones, Layers } from 'lucide-vue-next'
+import type { MenuItem } from '~/components/ui/Menu.vue'
 import type { DayPlanStep } from '~/composables/useDayPlan'
 import type { IconTileTone } from '~/components/ui/IconTile.vue'
 
 const props = defineProps<{ step: DayPlanStep; busy?: boolean }>()
-defineEmits<{ (e: 'act', step: DayPlanStep): void; (e: 'survival-off'): void }>()
+const emit = defineEmits<{
+  (e: 'act', step: DayPlanStep): void
+  (e: 'survival-off'): void
+  (e: 'study-mark', step: DayPlanStep, status: 'done' | 'skipped'): void
+}>()
 
 const NuxtLink = resolveComponent('NuxtLink')
 const titleId = useId()
@@ -65,9 +74,13 @@ const MODES = {
   quiz: { icon: CircleHelp, tone: 'quiz' },
   listen: { icon: Headphones, tone: 'listen' },
 } as const
-const icon = computed(() => (props.step.mode ? MODES[props.step.mode].icon : FileText))
+const icon = computed(() => (props.step.mode ? MODES[props.step.mode].icon : props.step.study ? BookOpen : FileText))
 const tone = computed<IconTileTone>(() => (props.step.mode ? MODES[props.step.mode].tone : 'neutral'))
-const asRow = computed(() => !props.step.primary && !props.step.backlog && !props.step.survival && !props.step.overdue)
+const asRow = computed(() => !props.step.primary && !props.step.backlog && !props.step.survival && !props.step.overdue && !props.step.study)
+const studyItems = computed<MenuItem[]>(() => [
+  { label: 'Feito', onSelect: () => emit('study-mark', props.step, 'done') },
+  { label: 'Pular', meta: 'vai para o fim da rodada', onSelect: () => emit('study-mark', props.step, 'skipped') },
+])
 </script>
 
 <style scoped>

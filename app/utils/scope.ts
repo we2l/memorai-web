@@ -12,7 +12,7 @@ export function canAddSubtopic(depth: number): boolean {
 }
 
 /** Views of a scope that live on their own route (prd-4b-caderno-v3 §3.2): the card library and the map. */
-export type ScopeView = 'cards' | 'mapa'
+export type ScopeView = 'cards' | 'mapa' | 'cronograma'
 
 export interface CadernoPathExtra {
   /** Material open (`/cadernos/{id}/material/{note}`) */
@@ -33,6 +33,7 @@ export function cadernoPath(topicId?: string | null, extra: CadernoPathExtra = {
   if (extra.note) return `${base}/material/${encodeURIComponent(extra.note)}`
   if (extra.view === 'cards') return extra.sourceNoteId ? `${base}/cards?source_note_id=${encodeURIComponent(extra.sourceNoteId)}` : `${base}/cards`
   if (extra.view === 'mapa') return `${base}/mapa`
+  if (extra.view === 'cronograma') return `${base}/cronograma`
   return base
 }
 

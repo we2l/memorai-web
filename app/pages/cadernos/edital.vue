@@ -90,6 +90,19 @@
         <p class="mt-1 text-body text-fg-muted">{{ countsText }}. Renomeie, tire ou acrescente o que quiser: nada existe até você criar.</p>
       </div>
       <EditalProposalEditor v-model="draft" :source="readResult.source" :had-date="!!originalProposal?.exam_date" />
+
+      <!-- Last, optional step (prd-cronograma RF-W3): with the hours, the caderno is born with its cronograma -->
+      <UiSection data-testid="edital-hours">
+        <h3 class="text-title font-semibold text-fg-strong">Quantas horas por dia? <span class="text-body font-normal text-fg-muted">(opcional)</span></h3>
+        <p class="mt-1 text-body text-fg-muted">Com as horas, o caderno já nasce com o cronograma: o que estudar em cada dia{{ draft.examDate ? ' até a prova' : '' }}. Dá para pular e montar depois.</p>
+        <UiCheckbox v-model="withSchedule" class="mt-3" label="Montar o cronograma junto" data-testid="edital-hours-toggle" />
+        <div v-if="withSchedule" class="mt-3 grid gap-3 sm:grid-cols-3">
+          <UiSelect v-model="weekdayHours" :options="HOUR_OPTIONS" label="Segunda a sexta" data-testid="edital-hours-weekday" />
+          <UiSelect v-model="saturdayHours" :options="HOUR_OPTIONS" label="Sábado" />
+          <UiSelect v-model="sundayHours" :options="HOUR_OPTIONS" label="Domingo" />
+        </div>
+        <p v-if="withSchedule && weightsLine" class="mt-3 text-meta text-fg-muted" data-testid="edital-weights">{{ weightsLine }}</p>
+      </UiSection>
       <div v-if="nameTaken" role="alert" class="rounded-tile bg-warning-subtle p-4" data-testid="edital-name-taken">
         <p class="text-body text-fg-strong">Já existe um caderno com esse nome: {{ nameTaken.name }}.</p>
         <div class="mt-3 flex flex-wrap gap-2">
@@ -118,6 +131,7 @@ import { EDITAL_NAME_TAKEN } from '~/composables/useEditalReader'
 import type { EditalSource } from '~/composables/useEditalReader'
 import { alternativeMatches } from '~/utils/publicEdital'
 import { editalCountsLabel, isEditalEdited, toEditalDraft, editalPayload, editalTopicsCount, EDITAL_LIMITS, type EditalDraft } from '~/utils/editalProposal'
+import { DEFAULT_HOURS, DEFAULT_SESSION_MINUTES, HOUR_OPTIONS } from '~/utils/studySchedule'
 
 useHead({ title: 'Montar pelo edital · Baigi' })
 
@@ -171,6 +185,33 @@ const canApply = computed(() => {
   if (!d || applying.value || !d.name.trim() || !d.subjects.some(s => s.name.trim())) return false
   return editalTopicsCount(d) <= EDITAL_LIMITS.topics && d.subjects.every(s => s.name.trim() !== '')
 })
+
+// --- The optional hours: PUT /topics/{novo}/schedule after the apply (the API copies the edital's weights) ---
+const withSchedule = ref(false)
+const weekdayHours = ref(String(DEFAULT_HOURS[1]))
+const saturdayHours = ref(String(DEFAULT_HOURS[6]))
+const sundayHours = ref(String(DEFAULT_HOURS[0]))
+const weightsLine = computed(() => {
+  const w = readResult.value?.weights ?? []
+  if (!w.length) return ''
+  const shown = w.slice(0, 4).map(x => `${x.subject} ${x.points.toLocaleString('pt-BR')}`).join(', ')
+  return `Peso do edital: ${shown}${w.length > 4 ? ` e mais ${w.length - 4}` : ''}. Dá para mudar no cronograma.`
+})
+
+/** The cronograma of the new caderno; false when it did not go (the caderno exists anyway) */
+async function createSchedule(topicId: string): Promise<boolean> {
+  const wk = Number(weekdayHours.value)
+  try {
+    await useScheduleApi().save(topicId, {
+      hours_by_weekday: [Number(sundayHours.value), wk, wk, wk, wk, wk, Number(saturdayHours.value)],
+      session_minutes: DEFAULT_SESSION_MINUTES,
+    })
+    return true
+  } catch (e) {
+    reportApiError(e, { silent: true })
+    return false
+  }
+}
 
 watch(stage, () => { void nextTick(() => heading.value?.focus()) })
 // A new name answers the warning about the twin caderno
@@ -264,9 +305,13 @@ async function applyProposal(allowDuplicate = false) {
       exam: !!res.exam,
     })
     void useTopicStore().fetchTree()
-    toast.show(`Caderno criado com ${editalCountsLabel(res.counts.subjects, res.counts.topics)}. Envie o material da primeira.`, 'success')
+    const scheduled = withSchedule.value ? await createSchedule(res.topic.id) : false
+    const counts = editalCountsLabel(res.counts.subjects, res.counts.topics)
+    if (scheduled) toast.show(`Caderno criado com ${counts}, e o cronograma está pronto.`, 'success')
+    else toast.show(`Caderno criado com ${counts}. Envie o material da primeira.`, 'success')
+    if (withSchedule.value && !scheduled) toast.show('O cronograma não foi criado. Monte pelo caderno.', 'info')
     if (res.exam_skipped === 'exam_limit_reached') toast.show('A prova não entrou: o Grátis tem até 2 provas ativas.', 'info')
-    await navigateTo(cadernoPath(res.topic.id))
+    await navigateTo(cadernoPath(res.topic.id, scheduled ? { view: 'cronograma' } : {}))
   } catch (e) {
     const data = (e as { data?: { code?: string; topic?: { id: string; name: string } } }).data
     if (getErrorStatus(e) === 409 && data?.code === EDITAL_NAME_TAKEN && data.topic) {

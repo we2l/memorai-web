@@ -26,6 +26,7 @@ const EXPECTED: Record<string, string | null> = {
   '/cadernos/lixeira': 'cadernos',
   '/cadernos/:id/cards': 'cadernos',
   '/cadernos/:id/mapa': 'cadernos',
+  '/cadernos/:id/cronograma': 'cadernos',
   '/cadernos/:id/material/:noteId': 'cadernos',
   '/importar': 'cadernos',
   '/praticar': 'praticar',

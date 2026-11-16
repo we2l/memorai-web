@@ -1,7 +1,7 @@
 <template>
   <div class="mx-auto max-w-article px-gutter pt-8 lg:pt-12">
     <h1 class="mb-3 text-page-title text-fg-strong">Ferramentas grátis para estudar</h1>
-    <p class="mb-8 text-body text-fg">Contas e listas que ajudam a decidir o que estudar e quando revisar. Sem cadastro.</p>
+    <p class="mb-8 text-body text-fg">Contas e listas que ajudam a decidir o que estudar e quando revisar. Grátis.</p>
     <div class="grid gap-4">
       <UiListRow v-for="t in BLOG_TOOL_PAGES" :key="t.path" :to="t.path" :title="t.title" :meta="t.description" class="rounded-card bg-raised shadow-1" />
     </div>
@@ -33,7 +33,7 @@ definePageMeta({ layout: 'public' })
 
 useBlogSeo({
   title: 'Ferramentas grátis para estudar',
-  description: 'Edital verticalizado, calculadora do esquecimento e plano até a prova: organize o edital, veja quanto você ainda lembra e quanto revisar por dia. Grátis, sem cadastro.',
+  description: 'Edital verticalizado, calculadora do esquecimento e plano até a prova: organize o edital, veja quanto você ainda lembra e quanto revisar por dia. Grátis.',
   path: '/ferramentas',
   jsonLd: [breadcrumbJsonLd([{ name: 'Início', path: '/' }, { name: 'Ferramentas', path: '/ferramentas' }])],
 })

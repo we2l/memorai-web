@@ -18,6 +18,7 @@
         :busy="survivalBusy"
         @act="$emit('act', $event)"
         @survival-off="$emit('survival-off')"
+        @study-mark="(step, status) => $emit('study-mark', step, status)"
       />
     </ul>
   </UiSection>
@@ -42,5 +43,6 @@ defineEmits<{
   (e: 'act', step: DayPlanStep): void
   (e: 'survival-off'): void
   (e: 'retry'): void
+  (e: 'study-mark', step: DayPlanStep, status: 'done' | 'skipped'): void
 }>()
 </script>

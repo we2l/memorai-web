@@ -204,28 +204,55 @@ test.describe('Plano do dia (e2e-hoje)', () => {
 test.describe('Conta nova (e2e-hoje-new)', () => {
   test.use({ auditUser: 'hojeNew' })
 
-  test('boas-vindas e primeiros passos clicáveis, com o primário no 1º pendente', async ({ page }) => {
+  test('boas-vindas e primeiros passos do material próprio; o 1º material cria o caderno (prd-ativacao-material-proprio H2/H3)', async ({ page }) => {
     await gotoApp(page, '/hoje')
     await expect(main(page).getByTestId('hero-subline')).toHaveText('boas-vindas ao Baigi')
     const checklist = main(page).getByTestId('home-checklist')
     await expect(checklist.getByRole('heading', { name: 'Primeiros passos' })).toBeVisible()
+    await expect(checklist.getByText('0 de 4 concluídos')).toBeVisible()
+    await expect(checklist.getByText('Criar um caderno')).toHaveCount(0)
     await expect(main(page).getByTestId('home-plan')).toHaveCount(0)
     await expect(main(page).getByTestId('home-notebooks')).toHaveCount(0)
     await expect(primaries(page)).toHaveCount(1)
-    const create = checklist.getByRole('link', { name: 'Criar caderno' })
-    await expect(create).toHaveClass(/shadow-action/)
-    await create.click()
-    // /cadernos?action=new-notebook opens the create dialog (and drops the param)
-    await expect(page).toHaveURL(/\/cadernos/)
-    await expect(page.getByRole('dialog')).toBeVisible()
+    const add = checklist.getByRole('button', { name: 'Adicionar' })
+    await expect(add).toHaveClass(/shadow-action/)
+    await add.click()
 
-    // With a caderno, the next pending step ("Adicionar material") takes the primary and opens "+ Adicionar"
-    await apiCall(page, 'POST', '/topics', { name: `Primeiro ${uid()}` })
+    // No caderno yet: the usual menu, no "Gravar em"; the text makes "Meu caderno"
+    const sheet = page.getByRole('dialog', { name: 'Adicionar' })
+    await expect(sheet).toContainText('Cria um caderno com o que você adicionar')
+    await expect(sheet.getByLabel('Gravar em')).toHaveCount(0)
+    await sheet.getByRole('button', { name: /Colar texto/ }).click()
+    await page.getByRole('dialog', { name: 'Colar texto' }).getByLabel('Texto').fill(`Controle difuso ${uid()}\nQualquer juiz declara no caso concreto.`)
+    const created = page.waitForResponse(r => r.url().endsWith('/api/topics') && r.request().method() === 'POST')
+    await page.getByRole('button', { name: 'Salvar nota' }).click()
+    expect((await created).request().postDataJSON()).toMatchObject({ name: 'Meu caderno' })
+    await expect(page.getByText(/Nota salva em Meu caderno/)).toBeVisible()
+
     await gotoApp(page, '/hoje')
-    await expect(checklist.getByText('1 de 5 concluídos')).toBeVisible()
+    await expect(checklist.getByText('1 de 4 concluídos')).toBeVisible()
     await expect(primaries(page)).toHaveCount(1)
-    await checklist.getByRole('button', { name: 'Adicionar' }).click()
-    await expect(page.getByRole('dialog', { name: 'Adicionar' })).toBeVisible()
+  })
+})
+
+test.describe('Só o exemplo, H1 (e2e-hoje-sample)', () => {
+  test.use({ auditUser: 'hojeSample' })
+
+  test('o exemplo não conta: "Agora com o seu material" é o bloco principal e o "+ Adicionar" não grava no exemplo', async ({ page }) => {
+    await gotoApp(page, '/hoje')
+    await apiCall(page, 'POST', '/onboarding/sample', { mode: 'exam' })
+    await apiCall(page, 'PUT', '/settings', { default_learning_mode: 'exam' })
+    await gotoApp(page, '/hoje')
+    const action = main(page).getByTestId('home-first-action')
+    await expect(action).toHaveAttribute('data-variant', 'own')
+    await expect(action.getByRole('heading', { level: 2 })).toHaveText('Agora com o seu material')
+    await expect(primaries(page)).toHaveCount(1)
+    await expect(main(page).getByTestId('home-goal-start')).toHaveCount(0)
+    await expect(main(page).getByTestId('home-checklist').getByText('0 de 4 concluídos')).toBeVisible()
+    await action.getByRole('button', { name: 'Adicionar meu material' }).click()
+    const sheet = page.getByRole('dialog', { name: 'Adicionar' })
+    await expect(sheet.getByLabel('Gravar em')).toHaveValue('__new__')
+    await expect(sheet.getByRole('button', { name: /Mandar o edital/ })).toBeVisible()
   })
 })
 

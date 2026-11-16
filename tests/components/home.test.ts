@@ -374,20 +374,31 @@ describe('HomeNotebooks', () => {
 })
 
 describe('UiActivationChecklist (Hoje)', () => {
-  const props = { hasTopics: true, hasMaterial: false, hasCards: false, hasReviewed: false, streak: 0, topicId: 't1' }
+  const props = { hasMaterial: false, hasCards: false, hasReviewed: false, streak: 0, topicId: 't1' }
 
-  it('com primary, o 1º passo pendente é o único primário; "Adicionar material" abre o "+ Adicionar"', async () => {
+  it('quatro passos do material próprio; com primary, o 1º pendente é o único primário e abre o "+ Adicionar" (H2)', async () => {
     const w = await mountSuspended(ActivationChecklist, { props: { ...props, primary: true }, attachTo: document.body })
-    expect(w.text()).toContain('1 de 5 concluídos')
-    expect(w.get('[role="progressbar"]').element.children).toHaveLength(5)
+    expect(w.text()).toContain('0 de 4 concluídos')
+    expect(w.text()).not.toContain('Criar um caderno')
+    expect(w.get('[role="progressbar"]').element.children).toHaveLength(4)
     const primary = w.findAll('.bg-action.shadow-action')
     expect(primary).toHaveLength(1)
     expect(primary[0]!.text()).toBe('Adicionar')
     await primary[0]!.trigger('click')
     expect(showAddMock).toHaveBeenCalledWith('checklist')
     expect(w.emitted('select')![0]).toEqual(['material'])
-    expect(w.get('a[href="/cadernos/t1/cards"]').text()).toContain('Gerar ou criar cards')
+    expect(w.text()).toContain('Adicionar seu material (PDF, texto ou questão)')
+    expect(w.get('a[href="/cadernos/t1/cards"]').text()).toContain('Gerar seus cards')
+    expect(w.text()).toContain('Revisar o 1º lote seu')
     expect(await axeViolations(w.element)).toEqual([])
+  })
+
+  it('sem caderno próprio, "Gerar seus cards" abre o "+ Adicionar"', async () => {
+    showAddMock.mockClear()
+    const w = await mountSuspended(ActivationChecklist, { props: { ...props, topicId: null, hasMaterial: true } })
+    const row = w.findAll('button').find(b => b.text().includes('Gerar seus cards'))!
+    await row.trigger('click')
+    expect(showAddMock).toHaveBeenCalledWith('checklist')
   })
 
   it('o convite do teste fica sob "Adicionar material" enquanto ele está pendente (RF-F2)', async () => {

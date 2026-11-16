@@ -163,8 +163,25 @@ const provisionedMarker = (email: string) => path.join(AUTH_DIR, `${email}.run-$
 function provision(key: UserKey) {
   ensureAuthDir()
   const spec = USERS[key]
-  if (fs.existsSync(provisionedMarker(spec.email))) return
-  fs.writeFileSync(provisionedMarker(spec.email), runProvision([spec]))
+  const marker = provisionedMarker(spec.email)
+  // With 2+ workers, two spec files of the same user ask for it at once: only one recreates the user (a lock file
+  // made with `wx`), the others wait for its marker. Two tinkers deleting and creating the same e-mail fail.
+  const lock = `${marker}.lock`
+  const deadline = Date.now() + 120_000
+  while (!fs.existsSync(marker)) {
+    try {
+      fs.writeFileSync(lock, String(process.pid), { flag: 'wx' })
+    } catch {
+      if (Date.now() > deadline) throw new Error(`provision(${spec.email}): outro worker não terminou em 120 s (${lock})`)
+      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 250)
+      continue
+    }
+    try {
+      if (!fs.existsSync(marker)) fs.writeFileSync(marker, runProvision([spec]))
+    } finally {
+      fs.rmSync(lock, { force: true })
+    }
+  }
 }
 
 const apiHeaders = (xsrf?: string) => ({
@@ -188,7 +205,17 @@ export async function apiLoginState(browser: Browser, email: string, password: s
   const context = await browser.newContext({ baseURL: WEB, storageState: baseState })
   try {
     await context.request.get(`${API_ORIGIN}/sanctum/csrf-cookie`, { headers: apiHeaders() })
-    const res = await context.request.post(`${API}/login`, { headers: apiHeaders(await xsrfOf(context)), data: { email, password } })
+    const post = async () => context.request.post(`${API}/login`, { headers: apiHeaders(await xsrfOf(context)), data: { email, password } })
+    let res = await post()
+    // The login throttle (5/min per e-mail, 30/min per IP: every user of a run logs in from the same one). The API
+    // says how long in Retry-After: wait it once, with the time added to the test that asked for the session
+    if (res.status() === 429) {
+      const wait = (Math.min(Number(res.headers()['retry-after']) || 60, 60) + 1) * 1000
+      console.log(`[e2e] login de ${email} barrado pelo throttle (429): esperando ${wait / 1000} s`)
+      try { base.info().setTimeout(base.info().timeout + wait) } catch { /* intencional: fora de um teste (beforeAll de outro runner) */ }
+      await new Promise(r => setTimeout(r, wait))
+      res = await post()
+    }
     if (res.status() !== 200) throw new Error(`login API ${email}: ${res.status()} ${await res.text()}`)
     // Front-end hint cookie (stores/auth.ts) so the client calls /me on boot
     await context.addCookies([{ name: 'baigi_logged_in', value: '1', domain: 'localhost', path: '/', sameSite: 'Lax' }])

@@ -15,8 +15,9 @@ test.describe('Dashboard (/hoje)', () => {
 
   test('exibe CTA de revisão ou estado vazio', async ({ page }) => {
     const cta = page.getByTestId('home-goal-start')
-    const empty = page.getByText(/Tudo em dia|Que bom ter você aqui/i).first()
-    await expect(cta.or(empty)).toBeVisible()
+    // No cards yet: the first steps (A2); cards and nothing due: "Tudo em dia"
+    const empty = page.getByText(/Tudo em dia|Primeiros passos/i).first()
+    await expect(cta.or(empty).first()).toBeVisible()
   })
 })
 
@@ -137,7 +138,9 @@ test.describe('Planos (/planos)', () => {
   })
 
   test('mostra plano atual como desabilitado', async ({ page }) => {
-    await expect(page.getByText('Seu plano')).toBeVisible()
+    // /planos opens on the annual, where a Pro without it sees the offer ("Assinar anual"); its plan is marked on the monthly
+    await page.getByRole('radio', { name: 'Mensal' }).check()
+    await expect(page.getByRole('main').getByText('Seu plano')).toBeVisible()
   })
 })
 

@@ -1,6 +1,6 @@
 /**
- * Plan of the day on Hoje (prd-4a-hoje-v3 RF-F3, §5.2): up to 4 steps in a fixed order (Revisar,
- * Questões, Ouvir, Continuar material), each one only when there is data for it. A pure function of the
+ * Plan of the day on Hoje (prd-4a-hoje-v3 RF-F3, §5.2): up to 4 steps in a fixed order (Revisar, Estudar
+ * (the cronograma, prd-cronograma RF-W4), Questões, Ouvir, Continuar material), each one only when there is data for it. A pure function of the
  * API answers, so the rules are tested without the screen. The first visible step carries the only
  * primary button of the screen.
  */
@@ -9,7 +9,7 @@ import { cadernoPath } from '~/utils/scope'
 import { REVIEW_BATCH, SECONDS_PER_CARD } from '~/utils/reviewBatch'
 import { openedLabel, plural } from '~/utils/greeting'
 
-export type DayPlanKey = 'review' | 'quiz' | 'listen' | 'material'
+export type DayPlanKey = 'review' | 'study' | 'quiz' | 'listen' | 'material'
 
 export interface DayPlanStep {
   key: DayPlanKey
@@ -27,6 +27,22 @@ export interface DayPlanStep {
   backlog?: BacklogState
   /** Minutes this step adds to the day (sentence of the greeting) */
   minutes: number
+  /** Estudar: the session of the cronograma (Feito and Pular in its ⋯) */
+  study?: DayStudy
+}
+
+/** Today's first session of the latest cronograma (GET /schedule computed by utils/studySchedule) */
+export interface DayStudy {
+  /** The caderno of the schedule */
+  scheduleTopicId: string
+  rootName: string
+  subjectId: string
+  subjectName: string
+  topicId: string
+  /** null when the matéria itself is the unit */
+  topicName: string | null
+  pass: 1 | 2
+  minutes: number
 }
 
 export interface DayPlanInput {
@@ -41,6 +57,8 @@ export interface DayPlanInput {
   /** /podcasts page 1 */
   podcasts: Podcast[]
   recentNote: RecentNote | null
+  /** The cronograma's session of today (prd-cronograma RF-W4); null = no step */
+  study?: DayStudy | null
   /** /me.default_learning_mode: `language` hides Questões (D11) */
   learningMode?: string | null
   /**
@@ -106,6 +124,26 @@ function reviewStep(input: DayPlanInput): DayPlanStep | null {
     survival: input.survivalMode || undefined,
     backlog: backlogShown ? state! : undefined,
     minutes,
+  }
+}
+
+/** "Estudar: Direito Administrativo · Atos administrativos", "1 h · cronograma de TJ-SP": opens the matéria's hub */
+function studyStep(input: DayPlanInput): DayPlanStep | null {
+  const s = input.study
+  if (!s) return null
+  const h = Math.floor(s.minutes / 60)
+  const m = s.minutes % 60
+  const length = h ? (m ? `${h} h ${m}` : `${h} h`) : `${m} min`
+  return {
+    key: 'study',
+    mode: null,
+    title: `Estudar: ${s.subjectName}${s.topicName ? ` · ${s.topicName}` : ''}`,
+    detail: `${length}${s.pass === 2 ? ' · reforço' : ''} · cronograma de ${s.rootName}`,
+    action: { label: 'Estudar', to: cadernoPath(s.subjectId) },
+    primary: false,
+    study: s,
+    // Out of the greeting's minutes, like the material: the hours of the cronograma are the person's own
+    minutes: 0,
   }
 }
 
@@ -200,7 +238,7 @@ export function buildDayPlan(input: DayPlanInput): DayPlanStep[] {
   const now = input.now ?? new Date()
   const dueToday = (input.stats?.due_today ?? 0) > 0
   const review = input.withoutReview && dueToday ? null : reviewStep(input)
-  const steps = [review, quizStep(input), listenStep(input, now), materialStep(input, now)]
+  const steps = [review, studyStep(input), quizStep(input), listenStep(input, now), materialStep(input, now)]
     .filter((s): s is DayPlanStep => s !== null)
     .slice(0, 4)
   if (steps[0] && !(input.withoutReview && dueToday)) steps[0].primary = true

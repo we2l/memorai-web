@@ -19,6 +19,13 @@ const AI_CARDS = [
   { front: 'O controle pressupõe o quê?', back: 'Supremacia formal e rigidez constitucional.' },
   { front: 'Quem faz o controle de constitucionalidade?', back: 'O Judiciário, o Legislativo e o Executivo, cada um a seu modo.' },
 ]
+// The cards of the selection are its own: accept-cards is idempotent (an equal card of the last 10 minutes gives back
+// the same id), so reusing AI_CARDS[0], already accepted by the "Gerar com IA" test, would create 2 cards, not 3
+const SELECTION_CARDS = [
+  { front: 'O que o trecho selecionado define?', back: 'O controle de constitucionalidade.' },
+  { front: 'O trecho fala de qual compatibilidade?', back: 'Das leis com a Constituição.' },
+  { front: 'Qual é o parâmetro do controle no trecho?', back: 'A Constituição.' },
+]
 
 let seed: MaterialSeed
 const pdfUrl = () => `/cadernos/${seed.subjectId}/material/${seed.pdfNoteId}`
@@ -159,7 +166,7 @@ test('seleção → "Criar card": o card nasce com a origem da nota', async ({ p
 })
 
 test('seleção → "Gerar 3 cards com IA": manda o trecho e os 3 cards entram com a origem', async ({ page }) => {
-  const posts = await mockAiJob(page)
+  const posts = await mockAiJob(page, SELECTION_CARDS)
   const before = (await noteCards(page)).length
   await gotoApp(page, pdfUrl())
   await selectText(page, PDF_TEXT)

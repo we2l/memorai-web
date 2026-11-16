@@ -10,9 +10,12 @@
 
     <div class="edital-noprint flex flex-col gap-3">
       <div class="flex flex-wrap items-center gap-2">
-        <UiButton variant="primary" :loading="applying" data-testid="edital-apply" @click="apply()">Estudar isso no Baigi</UiButton>
-        <UiButton variant="outline" :icon-left="Download" data-testid="edital-csv" @click="exportCsv">Baixar planilha</UiButton>
-        <UiButton variant="outline" :icon-left="Printer" data-testid="edital-pdf" @click="exportPdf">Baixar PDF</UiButton>
+        <!-- In the Cronograma tab the invite carries the primary (one per screen) -->
+        <UiButton :variant="tab === 'subjects' ? 'primary' : 'outline'" :loading="applying" data-testid="edital-apply" @click="apply()">Estudar isso no Baigi</UiButton>
+        <template v-if="tab === 'subjects'">
+          <UiButton variant="outline" :icon-left="Download" data-testid="edital-csv" @click="exportCsv">Baixar planilha</UiButton>
+          <UiButton variant="outline" :icon-left="Printer" data-testid="edital-pdf" @click="exportPdf">Baixar PDF</UiButton>
+        </template>
         <UiButton variant="outline" :icon-left="Link2" data-testid="edital-share" @click="share">Copiar link para a turma</UiButton>
       </div>
       <p class="text-meta text-fg-muted">
@@ -32,23 +35,37 @@
       <p v-else-if="applyError" role="alert" class="text-meta text-danger" data-testid="edital-apply-error">{{ applyError }}</p>
     </div>
 
-    <section aria-label="Matérias e assuntos">
-      <div class="edital-noprint mb-1 flex justify-end">
-        <UiButton variant="ghost" size="sm" data-testid="edital-toggle-all" @click="toggleAll">{{ allOpen ? 'Recolher todas' : 'Abrir todas' }}</UiButton>
-      </div>
-      <ol class="edital-list rounded-card bg-raised px-4 shadow-1">
-        <EditalPublicSubject
-          v-for="(subject, si) in proposal.subjects"
-          :key="si"
-          :subject="subject"
-          :index="si"
-          :open="opened.has(si)"
-          :checked="checked"
-          @toggle="toggle(si)"
-          @check="setChecked"
-        />
-      </ol>
-    </section>
+    <UiTabs v-model="tab" :tabs="TABS" label="Edital verticalizado" class="edital-noprint-tabs">
+      <section v-if="tab === 'subjects'" aria-label="Matérias e assuntos">
+        <div class="edital-noprint mb-1 flex justify-end">
+          <UiButton variant="ghost" size="sm" data-testid="edital-toggle-all" @click="toggleAll">{{ allOpen ? 'Recolher todas' : 'Abrir todas' }}</UiButton>
+        </div>
+        <ol class="edital-list rounded-card bg-raised px-4 shadow-1">
+          <EditalPublicSubject
+            v-for="(subject, si) in proposal.subjects"
+            :key="si"
+            :subject="subject"
+            :index="si"
+            :open="opened.has(si)"
+            :checked="checked"
+            @toggle="toggle(si)"
+            @check="setChecked"
+          />
+        </ol>
+      </section>
+      <EditalPublicSchedule
+        v-else
+        :reading-id="reading.id"
+        :proposal="proposal"
+        :weights="reading.weights"
+        :checked="checked"
+        :logged-in="!!auth.user"
+        :applying="applying"
+        :gate="gate"
+        @apply="apply()"
+        @google="saveEditalIntent(reading.id)"
+      />
+    </UiTabs>
 
     <footer class="flex flex-col gap-2 border-t border-hairline pt-4 text-meta text-fg-muted">
       <p v-if="curatedLine" data-testid="edital-curated">{{ curatedLine.before }}<a v-if="curatedLine.url" :href="curatedLine.url" rel="noopener noreferrer nofollow" target="_blank" class="text-action-fg underline">edital oficial</a><template v-else>edital oficial</template>{{ curatedLine.after }}</p>
@@ -58,14 +75,32 @@
       </p>
     </footer>
 
+    <!-- On paper (the list's PDF): the invite on the foot of each page and on the last one -->
+    <p class="edital-print-only edital-print-footer text-label text-fg-muted">Estude este edital no Baigi, grátis: {{ inviteUrl }}</p>
+    <section class="edital-print-only edital-print-last">
+      <h2 class="text-section text-fg-strong">Estude este edital no Baigi e lembre do que estudou</h2>
+      <p class="mt-3 text-body text-fg">O Hoje diz o que estudar, os cards de cada assunto já vêm prontos e a revisão cuida da memória até a prova.</p>
+      <p class="mt-3 text-body font-semibold text-fg-strong">Crie a conta grátis: {{ inviteUrl }}</p>
+    </section>
+
     <LazyEditalPublicReportDialog v-if="reporting" v-model="reporting" :reading-id="reading.id" />
+    <LazyEditalPublicLeadDialog
+      v-if="leadLoaded"
+      v-model="leadOpen"
+      :reading-id="reading.id"
+      :tool="leadTool"
+      :what="leadWhat"
+      @download="onLeadDownload"
+      @google="saveEditalIntent(reading.id)"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 // Result of a public reading (prd-edital-verticalizado-publico RF-F3, RF-F4, RF-F5, RF-F6): the header with the exam
 // countdown and the "X de M estudados" bar, the list to mark (state on this device), the exports, the link for the
-// class and "Estudar isso no Baigi". Text from the API is always interpolated, never v-html.
+// class and "Estudar isso no Baigi". Text from the API is always interpolated, never v-html. The Cronograma tab and
+// the e-mail before the PDF and the .ics (the list's and the cronograma's) come from prd-cronograma RF-W5.
 import { Download, Link2, Printer } from 'lucide-vue-next'
 import type { EditalApplied } from '~/types'
 import { getErrorStatus } from '~/utils/apiErrors'
@@ -75,6 +110,7 @@ import { pendingEditalIntent, publicEditalResultPath } from '~/utils/editalInten
 import { editalCountsLabel } from '~/utils/editalProposal'
 import { claimCheckEvent, clearEditalIntent, countsLine, examLine, loadChecked, pctBucket, saveChecked, saveEditalIntent, studiedCount, topicsTotal, type PublicEditalReading } from '~/utils/publicEdital'
 import { cadernoPath } from '~/utils/scope'
+import { PDF_INVITE_PATH, rememberedLeadEmail } from '~/utils/publicSchedule'
 
 const props = defineProps<{ reading: PublicEditalReading & { proposal: NonNullable<PublicEditalReading['proposal']> } }>()
 
@@ -133,8 +169,44 @@ function exportCsv() {
 }
 
 function exportPdf() {
-  track('edital_public_export', { format: 'pdf' })
-  window.print()
+  gate('pdf', () => {
+    track('edital_public_export', { format: 'pdf' })
+    // After the dialog's leave transition, so the page prints alone
+    setTimeout(() => window.print(), 250)
+  }, 'edital')
+}
+
+/* ---- Cronograma tab and the e-mail before the PDF and the .ics (prd-cronograma RF-W5) ---- */
+
+const TABS = [{ key: 'subjects', label: 'Matérias' }, { key: 'schedule', label: 'Cronograma' }]
+const tab = ref<'subjects' | 'schedule'>('subjects')
+const inviteUrl = computed(() => (import.meta.client ? `${window.location.origin}${PDF_INVITE_PATH}` : PDF_INVITE_PATH))
+
+const leadOpen = ref(false)
+const leadLoaded = useLoadedOnce(() => leadOpen.value)
+const leadTool = ref<'pdf' | 'ics'>('pdf')
+const leadWhat = ref<'edital' | 'schedule'>('edital')
+let pendingDownload: (() => void) | null = null
+
+/** The e-mail once per visit: given already, the download goes now (the lead's last download is told to the API) */
+function gate(tool: 'pdf' | 'ics', download: () => void, what: 'edital' | 'schedule' = 'schedule') {
+  const known = rememberedLeadEmail()
+  if (known) {
+    void $api(`/public/editais/${encodeURIComponent(props.reading.id)}/lead`, { method: 'POST', body: { email: known, tool, marketing: false } })
+      .catch((e: unknown) => reportApiError(e, { silent: true }))
+    download()
+    return
+  }
+  leadTool.value = tool
+  leadWhat.value = what
+  pendingDownload = download
+  leadOpen.value = true
+}
+
+function onLeadDownload() {
+  const run = pendingDownload
+  pendingDownload = null
+  run?.()
 }
 
 async function share() {
@@ -221,8 +293,13 @@ onBeforeUnmount(() => document.documentElement.classList.remove('print-edital'))
 .edital-closed { display: none; }
 
 /* "Baixar PDF" = the browser's print: only the header and the list, boxes empty to tick by hand */
+.edital-print-only { display: none; }
 @media print {
-  .edital-noprint { display: none; }
+  .edital-noprint, .edital-noprint-tabs [role="tablist"] { display: none; }
+  html.print-edital .edital-print-only { display: block; }
+  html.print-edital .edital-print-footer { position: fixed; bottom: 0; left: 0; right: 0; text-align: center; }
+  html.print-edital .edital-print-last { break-before: page; padding-top: 2rem; }
+  html.print-edital .edital-print { padding-bottom: 1.5rem; }
   .edital-closed { display: block; }
   html.print-edital header:not(.edital-print header),
   html.print-edital footer:not(.edital-print footer),

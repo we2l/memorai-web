@@ -315,6 +315,24 @@ test.describe('Revisão rápida (RF-F2.1–F2.4)', () => {
 
   test.beforeEach(async () => {
     await page.unrouteAll({ behavior: 'ignoreErrors' })
+    // Revisão offline (ADR-036): ratings wait in IndexedDB until the API answers, and a session leaves out the
+    // cards still in that queue. The tests here share one page and leave ratings unanswered on purpose, so each
+    // one starts with the queue and the saved lot of the device empty.
+    await page.evaluate(async () => {
+      if (!(await indexedDB.databases()).some(d => d.name === 'baigi-offline')) return
+      await new Promise<void>((resolve) => {
+        const open = indexedDB.open('baigi-offline')
+        open.onerror = () => resolve()
+        open.onsuccess = () => {
+          const db = open.result
+          const stores = ['queue', 'session'].filter(n => db.objectStoreNames.contains(n))
+          if (!stores.length) { db.close(); return resolve() }
+          const tx = db.transaction(stores, 'readwrite')
+          for (const n of stores) tx.objectStore(n).clear()
+          tx.oncomplete = tx.onerror = tx.onabort = () => { db.close(); resolve() }
+        }
+      })
+    })
     await page.route('**/api/settings', r => r.fulfill(json({ data: { survival_mode: false, session_time_limit: null, error_diary_mode: 'never' } })))
     await page.route('**/api/review/session*', r => r.fulfill(json({ data: [1, 2, 3, 4, 5, 6, 7].map(mkCard), total: 7 })))
   })
@@ -332,6 +350,9 @@ test.describe('Revisão rápida (RF-F2.1–F2.4)', () => {
     for (let i = 0; i < 5; i++) {
       await page.keyboard.press('Space')
       await page.keyboard.press('3')
+      // E2 (prd-visual-e2 RF-2.4): the rated card stays under the answer band; Espaço is "Continuar"
+      await expect(page.getByTestId('review-feedback')).toBeVisible()
+      await page.keyboard.press('Space')
     }
     await expect(page.getByText('Pergunta 6')).toBeVisible()
     expect(Date.now() - t0).toBeLessThan(1000)
@@ -352,22 +373,28 @@ test.describe('Revisão rápida (RF-F2.1–F2.4)', () => {
     await page.keyboard.press('3')
     await expect(page.getByText('Pergunta 2')).toBeVisible()
 
-    const banner = page.getByRole('alert').filter({ hasText: /não enviada/ })
-    await expect(banner).toBeVisible({ timeout: 15_000 })
+    // Revisão offline (ADR-036): the rating waits on the device and the bar of the shell says so. The browser is
+    // online and the API does not answer, so it is the "servidor" line, with "Tentar de novo"
+    const bar = page.getByTestId('offline-bar')
+    await expect(bar.getByTestId('offline-server')).toBeVisible({ timeout: 15_000 })
+    await expect(bar.getByTestId('offline-pending')).toHaveText('1 avaliação para enviar.')
 
     online = true
-    await banner.getByRole('button', { name: 'Tentar de novo' }).click()
-    await expect(banner).toBeHidden()
+    await bar.getByTestId('offline-retry').click()
+    await expect(bar).toBeHidden()
   })
 
   test('U desfaz localmente enquanto o envio está na fila', async () => {
     await page.route(/\/api\/review$/, () => { /* never answers */ })
     await page.goto('/revisar')
     await expect(page.getByText('Pergunta 1')).toBeVisible()
-    await page.keyboard.press('Space')
-    await page.keyboard.press('4')
-    await page.keyboard.press('Space')
-    await page.keyboard.press('4')
+    for (let i = 0; i < 2; i++) {
+      await page.keyboard.press('Space')
+      await page.keyboard.press('4')
+      // E2: the rated card stays under the answer band; Espaço is "Continuar"
+      await expect(page.getByTestId('review-feedback')).toBeVisible()
+      await page.keyboard.press('Space')
+    }
     await expect(page.getByText('Pergunta 3')).toBeVisible()
     await page.keyboard.press('u')
     await expect(page.getByText('Pergunta 2')).toBeVisible()

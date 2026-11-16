@@ -48,6 +48,8 @@
         <UiSplit side-label="Resumo do caderno">
           <template v-if="hasSide" #side>
             <CadernoScopeStats v-if="!isEmpty" :summary="summary" :first-material="store.materials[0] ?? null" @listen="listen" />
+            <!-- The cronograma of a caderno with matérias (prd-cronograma RF-W3): its own GET, after the summary -->
+            <LazyCadernoScheduleLine v-if="hasSchedule" :topic-id="id" />
             <CadernoNextStep v-if="showNextStep" :step="summary.next_step!" @go="kind => track('next_step_click', { kind })" />
           </template>
 
@@ -163,7 +165,9 @@ const showNextStep = computed(() => {
 })
 
 // The exam is a chip of the header (A2 RF-3.2: one object, one place); "Definir prova" stays in the ⋯
-const hasSide = computed(() => !!summary.value && (!isEmpty.value || showNextStep.value))
+const hasSchedule = computed(() => summary.value?.topic.depth === 0 && summary.value.subjects.length > 0)
+// A caderno with matérias keeps the side even when empty: the cronograma line lives there (prd-cronograma RF-W3)
+const hasSide = computed(() => !!summary.value && (!isEmpty.value || showNextStep.value || hasSchedule.value))
 
 const showBar = computed(() => (summary.value?.session.count ?? 0) > 0)
 useStickyActionHeight(showBar)

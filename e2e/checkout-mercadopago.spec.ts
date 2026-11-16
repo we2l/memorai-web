@@ -28,13 +28,18 @@ function payment(over: Record<string, unknown> = {}) {
 /** The catalog of the local API with the gateway fields of this PRD (the local API may still be on develop). */
 async function withCatalog(page: Page) {
   await page.route('**/api/plans', async (route) => {
-    const res = await route.fetch()
-    const body = await res.json()
-    const pro = body.data.plans.find((p: any) => p.key === 'pro')
-    pro.prices.monthly = { amount_cents: 3490, label: 'R$ 34,90/mês', methods: ['card', 'pix'], pix_days: 30 }
-    pro.prices.annual = { amount_cents: 23990, label: 'R$ 239,90/ano', monthly_equivalent_cents: 1999, installments_max: 12, installments_interest_free: 3, installments_interest: 'payer', savings_cents: 17890, methods: ['card', 'pix'], pix: { amount_cents: 22790, label: 'R$ 227,90/ano', discount_percent: 5, savings_cents: 1200 } }
-    body.data.checkout = { available: true, gateway: 'mercadopago', public_key: process.env.MP_PUBLIC_KEY || null, seller: { name: 'Fulano de Tal', email: 'contato@baigi.com.br' }, statement_descriptor: 'BAIGI', refund_window_days: 7 }
-    await route.fulfill({ response: res, json: body })
+    // A short test may end (and close the page) while the catalog is still on its way: then there is nobody to answer
+    try {
+      const res = await route.fetch()
+      const body = await res.json()
+      const pro = body.data.plans.find((p: any) => p.key === 'pro')
+      pro.prices.monthly = { amount_cents: 3490, label: 'R$ 34,90/mês', methods: ['card', 'pix'], pix_days: 30 }
+      pro.prices.annual = { amount_cents: 23990, label: 'R$ 239,90/ano', monthly_equivalent_cents: 1999, installments_max: 12, installments_interest_free: 3, installments_interest: 'payer', savings_cents: 17890, methods: ['card', 'pix'], pix: { amount_cents: 22790, label: 'R$ 227,90/ano', discount_percent: 5, savings_cents: 1200 } }
+      body.data.checkout = { available: true, gateway: 'mercadopago', public_key: process.env.MP_PUBLIC_KEY || null, seller: { name: 'Fulano de Tal', email: 'contato@baigi.com.br' }, statement_descriptor: 'BAIGI', refund_window_days: 7 }
+      await route.fulfill({ response: res, json: body })
+    } catch {
+      await route.abort().catch(() => undefined)
+    }
   })
 }
 

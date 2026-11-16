@@ -1,5 +1,5 @@
 <template>
-  <span class="baigi-live" :style="{ height: `${size}px`, width: `${width}px` }" aria-hidden="true">
+  <span class="baigi-live" :style="{ height: `${size}px`, width: `${width}px` }" :data-expression="expression" aria-hidden="true">
     <!-- The static picture of the expression until the rig loads, and for good with reduced motion -->
     <img v-if="!html" :src="`/mascote/${expression}.svg`" alt="" :width="width" :height="size" decoding="async" class="baigi-live-img">
     <span v-else ref="host" class="baigi-live-svg" v-html="html" />

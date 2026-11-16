@@ -1,7 +1,7 @@
 /* CSS da landing D (prd-landing-d; protótipo docs/research/assets/landing-prototipo/d.html): só o que a landing usa
    e o app não, fora do entry.css e do precache (once-*, globIgnores). Tudo no escopo .landing-page, para nada daqui
    alcançar o app quando se navega da landing para /entrar. Cor só por token: os primitivos estão em tokens.css (o
-   único arquivo com cor literal) e os semânticos --lp-* ficam aqui, em claro e escuro.
+   único arquivo com cor literal) e os semânticos --lp-* ficam em landing-tokens.css, em claro e escuro.
    Movimento: só transform e opacity; o script do <head> (utils/landing.ts) liga html.lp-motion quando o sistema não
    pede movimento reduzido, e utils/landingMotion.ts revela, conta e toca os vídeos. Sem lp-motion, tudo parado e
    visível. */
@@ -9,6 +9,8 @@
 
 @import 'tailwindcss/theme.css' layer(theme);
 @reference '../../assets/css/theme.css';
+/* Primitivos e semânticos (claro e escuro), também usados pela entrada do /comecar */
+@import './landing-tokens.css';
 
 @source '../../pages/index.vue';
 @source './*.vue';
@@ -28,126 +30,6 @@
   src: url('/landing/bricolage-700.woff2') format('woff2');
   font-weight: 700;
   font-display: swap;
-}
-
-/* ── Primitivos da landing (ADR-028): saíram do entry.css com a E2 (ADR-035 §7) e ficam só aqui ── */
-.landing-page {
-  --palette-amber-200: #F3D9B1;
-  --palette-amber-300: #F5B266;
-  --palette-amber-50: #FFF4E5;
-  --palette-amber-900: #5C3A00;
-  --palette-amber-950: #2E2416;
-  --palette-black: #000000;
-  --palette-ink-800: #37352F;
-  --palette-ink-900: #1F1E1B;
-  --palette-lilac-100: #EDE8FA;
-  --palette-lilac-200: #DCD3F5;
-  --palette-mist-25: #FAFAFB;
-  --palette-mist-50: #F6F5F8;
-  --palette-mist-600: #5F5E66;
-  --palette-night-100: #F1F1EF;
-  --palette-night-200: #D4D4D2;
-  --palette-night-400: #A09DA8;
-  --palette-night-600: #5C5866;
-  --palette-night-750: #3A3542;
-  --palette-night-850: #26222E;
-  --palette-night-900: #1E1B24;
-  --palette-night-950: #141218;
-  --palette-petrol-700: #0B7A8C;
-  --palette-tangerine-300: #F5A524;
-  --palette-tangerine-700: #C26A00;
-  --palette-violet-100: #F1ECFF;
-  --palette-violet-200: #DCD0FF;
-  --palette-violet-300: #B39DFF;
-  --palette-violet-500: #6F3FF5;
-  --palette-violet-550: #7A44F5;
-  --palette-violet-600: #5A2EE6;
-  --palette-violet-700: #4B22C9;
-  --palette-violet-800: #4C338B;
-  --palette-violet-900: #2A2140;
-  --palette-white: #FFFFFF;
-}
-
-/* ── A landing fica na pele v4 (ADR-028) enquanto o app passa à E2 (ADR-035): os semânticos do app que ela lê
-   voltam aos valores de antes, só dentro de .landing-page ── */
-.landing-page {
-  --surface-page: var(--palette-mist-25);
-  --surface-subtle: var(--palette-mist-50);
-  --fg-strong: var(--palette-ink-900);
-  --fg: var(--palette-ink-800);
-  --fg-muted: var(--palette-mist-600);
-  --action-hover: var(--palette-violet-600);
-  --action-fg: var(--palette-violet-500);
-  --elev-card: 0 1px 2px color-mix(in srgb, var(--palette-ink-900) 5%, transparent), 0 4px 16px color-mix(in srgb, var(--palette-ink-900) 4%, transparent);
-  /* O "volume" do botão v3 (o app passou à sombra roxa, --elev-action) */
-  --elev-press: 0 3px 0 var(--action-press);
-}
-
-.dark .landing-page {
-  --surface-page: var(--palette-night-950);
-  --surface-raised: var(--palette-night-900);
-  --surface-subtle: var(--palette-night-850);
-  --surface-float: var(--palette-night-900);
-  --fg-strong: var(--palette-night-100);
-  --fg: var(--palette-night-200);
-  --fg-muted: var(--palette-night-400);
-  --action-hover: var(--palette-violet-550);
-  --action-fg: var(--palette-violet-300);
-  --focus-ring: var(--palette-violet-300);
-  --action-press: var(--palette-violet-700);
-  --elev-card: 0 1px 2px color-mix(in srgb, var(--palette-black) 40%, transparent), 0 4px 16px color-mix(in srgb, var(--palette-black) 20%, transparent);
-}
-
-/* ── Semânticos da landing ── */
-.landing-page {
-  --lp-display: 'Bricolage Grotesque', var(--font-sans);
-  --lp-ease: cubic-bezier(.16, 1, .3, 1);
-  --lp-header-h: 64px;
-  --lp-white: var(--palette-white);
-
-  /* Faixas de cor: iguais nos dois temas (texto branco; contrastes no README do protótipo) */
-  --lp-curve: var(--palette-violet-800);
-  --lp-curve-fg: var(--palette-lilac-100);
-  --lp-curve-muted: var(--palette-lilac-200);
-  --lp-curve-forget: var(--palette-tangerine-300);
-  --lp-curve-review: var(--palette-violet-300);
-  --lp-pod: var(--palette-petrol-700);
-  --lp-final: var(--palette-violet-500);
-  --lp-final-muted: var(--palette-violet-100);
-  --lp-final-press: var(--palette-violet-700);
-
-  /* Âmbar claro dos simulados (escuro: o âmbar do app) */
-  --lp-quiz: var(--palette-amber-50);
-  --lp-quiz-fg: var(--palette-ink-900);
-  --lp-quiz-muted: var(--palette-amber-900);
-  --lp-quiz-track: var(--palette-amber-200);
-  --lp-quiz-bar: var(--palette-tangerine-700);
-
-  /* Grifo de "peixe", etiqueta, balão e celular */
-  --lp-grifo: var(--palette-violet-200);
-  --lp-grifo-fg: var(--palette-ink-900);
-  --lp-tag: var(--palette-petrol-700);
-  --lp-bubble: var(--surface-float);
-  --lp-bubble-shadow: 0 14px 30px -14px color-mix(in srgb, var(--palette-violet-900) 45%, transparent);
-  --lp-device: var(--palette-black);
-  --lp-device-ring: var(--palette-night-750);
-  --lp-device-shadow: 0 30px 60px -20px color-mix(in srgb, var(--palette-night-950) 55%, transparent), 0 12px 24px -12px color-mix(in srgb, var(--palette-night-950) 40%, transparent);
-  --lp-band-btn-shadow: 0 3px 0 color-mix(in srgb, var(--palette-black) 28%, transparent);
-
-  background: var(--surface-page);
-  color: var(--fg);
-}
-
-.dark .landing-page {
-  --lp-quiz: var(--palette-amber-950);
-  --lp-quiz-fg: var(--palette-night-100);
-  --lp-quiz-muted: var(--palette-amber-300);
-  --lp-quiz-track: var(--palette-night-750);
-  --lp-quiz-bar: var(--palette-tangerine-300);
-  --lp-grifo: var(--palette-violet-700);
-  --lp-grifo-fg: var(--palette-white);
-  --lp-bubble-shadow: 0 14px 30px -14px color-mix(in srgb, var(--palette-black) 70%, transparent);
-  --lp-device-ring: var(--palette-night-600);
 }
 
 /* ── Base ── */

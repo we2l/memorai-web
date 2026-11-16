@@ -224,11 +224,11 @@ export type LandingArea = typeof AREAS[number]['key']
 
 /**
  * Where the call of an area starts the visitor's mini-lote (prd-onboarding-v4 RF-F7): straight to the area's cards;
- * "Medicina e faculdade" covers two of them, so it opens the choice.
+ * "Medicina e faculdade" covers two of them, so it opens the grid of areas (/comecar/areas; /comecar is the entry).
  */
 export function areaStartPath(key: LandingArea): string {
   const area = { concurso: 'concurso', oab: 'oab', enem: 'enem', idiomas: 'ingles', faculdade: null }[key]
-  return area ? `/comecar/${area}?from=landing` : '/comecar'
+  return `/comecar/${area ?? 'areas'}?from=landing`
 }
 
 /**

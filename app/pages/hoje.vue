@@ -40,6 +40,7 @@
           @act="onStep"
           @survival-off="turnSurvivalOff"
           @retry="loadData"
+          @study-mark="onStudyMark"
         />
 
         <LazyHomeChecklist v-if="!loading && !noCards" :stats="stats" :roots="roots" />
@@ -55,6 +56,7 @@
           data-testid="home-also"
           @act="onStep"
           @survival-off="turnSurvivalOff"
+          @study-mark="onStudyMark"
         />
         <HomeNotebooks :topics="progress" :loading="loading" :error="progressError" @retry="loadData" />
       </div>
@@ -67,9 +69,10 @@
 // block ("Começar · N cards", N = /stats.due_today), the loose metrics, "Também para hoje" (the plan without the
 // review), the exam as the one lilac block and the cadernos with their covers. Three states: with a goal; without
 // cards (B5: the first action is the primary block); and with a backlog (the plan of 3/7/14 days is the primary).
-// Eleven requests in parallel; the screen renders once they settle, so no block pushes another (CLS).
+// Twelve requests in parallel (the last, GET /schedule, gives the "Estudar" step); the screen renders once they
+// settle, so no block pushes another (CLS), and a failure of a decorative one only hides its step.
 import type { BacklogStats, PendingAction, ProgressSummaryData, RecentNote, Stats, StudyHistory, TopicPerformance, TopicProgress, UserSettings } from '~/types'
-import type { DayPlanInput, DayPlanStep } from '~/composables/useDayPlan'
+import type { DayPlanInput, DayPlanStep, DayStudy } from '~/composables/useDayPlan'
 
 const auth = useAuthStore()
 const examStore = useExamStore()
@@ -86,6 +89,7 @@ const pendingActions = ref<PendingAction[]>([])
 const recentNote = ref<RecentNote | null>(null)
 const history = ref<StudyHistory | null>(null)
 const retention = ref<number | null>(null)
+const study = ref<DayStudy | null>(null)
 
 const loading = ref(true)
 const statsError = ref(false)
@@ -121,6 +125,7 @@ const planInput = computed<DayPlanInput | null>(() => (statsError.value || !stat
       podcasts: podcastStore.podcasts,
       recentNote: recentNote.value,
       learningMode: auth.user?.default_learning_mode,
+      study: study.value,
     }))
 const steps = computed<DayPlanStep[]>(() => (planInput.value ? buildDayPlan(planInput.value) : []))
 // The review lives in the goal block (RF-2.4): its step carries the backlog line, survival mode and the overdue link
@@ -138,7 +143,7 @@ let loadSeq = 0
 async function loadData() {
   const seq = ++loadSeq
   loading.value = true
-  const [statsRes, backlogRes, progressRes, settingsRes, actionsRes, recentRes, podcastsRes, , performanceRes, historyRes, summaryRes] = await Promise.allSettled([
+  const [statsRes, backlogRes, progressRes, settingsRes, actionsRes, recentRes, podcastsRes, , performanceRes, historyRes, summaryRes, studyRes] = await Promise.allSettled([
     $api<{ data: Stats }>('/stats'),
     $api<{ data: BacklogStats }>('/review/backlog-stats'),
     $api<{ data: TopicProgress[] }>('/topics/progress'),
@@ -151,6 +156,8 @@ async function loadData() {
     $api<{ data: StudyHistory }>('/stats/history', { params: { days: 7 } }),
     // "lembrados em 30 dias" (cached on the server, progress.v2.all)
     $api<{ data: ProgressSummaryData }>('/stats/progress'),
+    // The cronograma's session of today (prd-cronograma RF-W4): null = no step
+    loadStudy(),
   ])
   if (seq !== loadSeq) return
 
@@ -171,9 +178,48 @@ async function loadData() {
   performance.value = performanceRes.status === 'fulfilled' ? performanceRes.value.data : []
   history.value = historyRes.status === 'fulfilled' ? historyRes.value.data : null
   retention.value = summaryRes.status === 'fulfilled' ? summaryRes.value.data.retention_30d : null
-  for (const r of [settingsRes, actionsRes, recentRes, podcastsRes, performanceRes, historyRes, summaryRes]) if (r.status === 'rejected') reportApiError(r.reason, { silent: true })
+  study.value = studyRes.status === 'fulfilled' ? studyRes.value : null
+  for (const r of [settingsRes, actionsRes, recentRes, podcastsRes, performanceRes, historyRes, summaryRes, studyRes]) if (r.status === 'rejected') reportApiError(r.reason, { silent: true })
 
   loading.value = false
+}
+
+// --- Estudar (prd-cronograma RF-W4): GET /schedule and the pure function, loaded with it (out of Hoje's chunk) ---
+const scheduleApi = useScheduleApi()
+const scheduleMark = useScheduleMark()
+
+async function loadStudy(): Promise<DayStudy | null> {
+  const res = await scheduleApi.latest()
+  if (!res?.configured || !res.subjects.length) return null
+  const { buildStudySchedule, scheduleInputFromResource, todaySessions } = await import('~/utils/studySchedule')
+  const day = studyDay()
+  const first = todaySessions(buildStudySchedule(scheduleInputFromResource(res, day)), day)[0]
+  if (!first) return null
+  return {
+    scheduleTopicId: res.topic.id,
+    rootName: res.topic.name,
+    subjectId: first.subjectId,
+    subjectName: first.subjectName,
+    topicId: first.topicId,
+    topicName: first.unit ? null : first.topicName,
+    pass: first.pass,
+    minutes: first.minutes,
+  }
+}
+
+async function refreshStudy() {
+  try {
+    study.value = await loadStudy()
+  } catch (e) {
+    study.value = null
+    reportApiError(e, { silent: true })
+  }
+}
+
+function onStudyMark(step: DayPlanStep, status: 'done' | 'skipped') {
+  const s = step.study
+  if (!s) return
+  void scheduleMark.mark({ scheduleTopicId: s.scheduleTopicId, topicId: s.topicId, pass: s.pass, label: s.topicName ?? s.subjectName }, status, () => { void refreshStudy() })
 }
 
 function onStep(step: DayPlanStep) {

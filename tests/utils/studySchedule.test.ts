@@ -151,6 +151,13 @@ describe('buildStudySchedule', () => {
     expect(s.done).toHaveLength(1)
   })
 
+  it('what was done today takes today\'s time', () => {
+    const s = buildStudySchedule(input({ hoursByWeekday: [0, 3, 3, 3, 3, 3, 3], progress: [{ topic_id: 'lp1', pass: 1, status: 'done', done_at: `${TODAY}T22:30:00Z` }] }))
+    const without = buildStudySchedule(input({ hoursByWeekday: [0, 3, 3, 3, 3, 3, 3] }))
+    expect(s.summary.doneToday).toBe(1)
+    expect(s.days[0]!.sessions.length).toBe(without.days[0]!.sessions.length - 1)
+  })
+
   it('skipped sessions go to the end of their round, in the order of done_at', () => {
     const s = buildStudySchedule(input({
       examDate: null,

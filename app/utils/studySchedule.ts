@@ -151,6 +151,8 @@ export interface ScheduleSummary {
   lastStudyDay: string | null
   /** Sessions behind what the plan placed since it was made */
   behind: number
+  /** Sessions marked done today (they take today's time) */
+  doneToday: number
   reviewMinutes: number
   /** Declared hours of the week, in minutes */
   weeklyMinutes: number
@@ -194,6 +196,13 @@ export function daysBetween(from: string, to: string): number {
 
 export function weekdayOf(iso: string): number {
   return new Date(toTime(iso)).getUTCDay()
+}
+
+/** The study day (São Paulo, UTC−3 without daylight saving since 2019) of an ISO instant; a bare date stays as is */
+export function spDay(iso: string): string {
+  if (!/T\d{2}:/.test(iso)) return iso.slice(0, 10)
+  const t = Date.parse(iso)
+  return Number.isNaN(t) ? iso.slice(0, 10) : new Date(t - 3 * 3_600_000).toISOString().slice(0, 10)
 }
 
 /** `daily_goal_batches × review_batch_size × 15 s`, in whole minutes (the same sum as Hoje) */
@@ -380,6 +389,7 @@ export function buildStudySchedule(input: StudyScheduleInput): StudySchedule {
     doneAt.set(`${p.topic_id}:${p.pass}`, p.done_at ?? '')
   }
   const stateOf = (u: Unit, pass: SchedulePass) => status.get(`${u.id}:${pass}`) ?? 'pending'
+  const doneToday = (input.progress ?? []).filter(p => p.status === 'done' && p.done_at && spDay(p.done_at) === today).length
 
   // Calendar: today .. the eve of the exam; the last FINAL_DAYS are the final stretch
   const examDate = input.examDate && ISO_DATE.test(input.examDate) ? input.examDate.slice(0, 10) : null
@@ -480,7 +490,8 @@ export function buildStudySchedule(input: StudyScheduleInput): StudySchedule {
       return placed
     }
     studyDates.forEach((date, i) => {
-      const placed = fill(date, caps[i]!, false, false)
+      // What was done today already used part of today's time
+      const placed = fill(date, i === 0 ? Math.max(0, caps[0]! - doneToday) : caps[i]!, false, false)
       sessions.push(...placed)
       days.push({ date, weekday: weekdayOf(date), phase: 'study', sessions: placed, minutes: placed.length * len })
     })
@@ -580,6 +591,7 @@ export function buildStudySchedule(input: StudyScheduleInput): StudySchedule {
       finalStart: calendar ? finalDates[0] ?? null : null,
       lastStudyDay: studyDates.at(-1) ?? null,
       behind,
+      doneToday,
       reviewMinutes: review,
       weeklyMinutes: hours.reduce((n, h) => n + h * 60, 0),
       calendar,
@@ -692,4 +704,80 @@ export function todaySessions(schedule: StudySchedule, today: string): StudySess
 /** The next session after today (for "depois: …" and the hub line on a free day) */
 export function nextSession(schedule: StudySchedule, today: string): StudySession | null {
   return schedule.sessions.find(s => !s.late && (s.date === null || s.date >= today)) ?? null
+}
+
+/** The progress with one (assunto, round) set or cleared, as the API keeps it (POST is idempotent, DELETE undoes) */
+export function withProgress(progress: readonly ScheduleProgressInput[], topicId: string, pass: SchedulePass, status: 'done' | 'skipped' | null, at: string): ScheduleProgressInput[] {
+  const rest = progress.filter(p => !(p.topic_id === topicId && p.pass === pass))
+  return status ? [...rest, { topic_id: topicId, pass, status, done_at: at }] : rest
+}
+
+/** "seg a sex 2 h, sáb 3 h" (Monday first, days off left out); "nenhuma hora" when all are 0 */
+export function hoursSummary(hours: readonly number[]): string {
+  const order = [1, 2, 3, 4, 5, 6, 0]
+  const runs: { from: number, to: number, h: number }[] = []
+  for (const wd of order) {
+    const h = hours[wd] ?? 0
+    const last = runs.at(-1)
+    if (last && last.h === h && order.indexOf(last.to) === order.indexOf(wd) - 1) last.to = wd
+    else runs.push({ from: wd, to: wd, h })
+  }
+  const parts = runs.filter(r => r.h > 0).map((r) => {
+    const days = r.from === r.to ? WEEKDAYS_SHORT[r.from] : `${WEEKDAYS_SHORT[r.from]} a ${WEEKDAYS_SHORT[r.to]}`
+    return `${days} ${durationLabel(Math.round(r.h * 60))}`
+  })
+  return parts.length ? parts.join(', ') : 'nenhuma hora'
+}
+
+/* ---- the form (hours, session, the person's weights and levels) ---- */
+
+export interface ScheduleDraft {
+  hours: number[]
+  startTimes: (string | null)[] | null
+  sessionMinutes: number
+  /** The person's weights only (absent = the origin: edital or size) */
+  weights: Record<string, number>
+  levels: Record<string, ScheduleLevel>
+}
+
+export function draftOf(res: StudyScheduleResource): ScheduleDraft {
+  const settings = scheduleSettingsOf(res)
+  const weights: Record<string, number> = {}
+  for (const [id, w] of Object.entries(res.weights ?? {})) if (w.source === 'manual') weights[id] = w.points
+  return { hours: settings.hours, startTimes: settings.startTimes, sessionMinutes: settings.sessionMinutes, weights, levels: { ...(res.levels ?? {}) } }
+}
+
+/** Points the edital gave a matéria (the person's own weight hides it: the API keeps one value) */
+export function editalPointsOf(res: StudyScheduleResource, subjectId: string): number | null {
+  const w = res.weights?.[subjectId]
+  return w?.source === 'edital' ? w.points : null
+}
+
+/** The input of buildStudySchedule with the form applied (the live preview of the sheet, and the first setup) */
+export function inputWithDraft(res: StudyScheduleResource, draft: ScheduleDraft, today: string): StudyScheduleInput {
+  const base = scheduleInputFromResource(res, today, { hours: draft.hours, startTimes: draft.startTimes, sessionMinutes: draft.sessionMinutes })
+  return {
+    ...base,
+    subjects: base.subjects.map((s) => {
+      const manual = draft.weights[s.id]
+      const edital = editalPointsOf(res, s.id)
+      return {
+        ...s,
+        points: manual ?? edital,
+        source: manual !== undefined ? 'manual' as const : edital !== null ? 'edital' as const : null,
+        level: draft.levels[s.id] ?? null,
+      }
+    }),
+  }
+}
+
+/** PUT body: levels and weights are the person's edits only */
+export function saveBodyOf(draft: ScheduleDraft) {
+  return {
+    hours_by_weekday: draft.hours,
+    start_times: draft.startTimes,
+    session_minutes: draft.sessionMinutes,
+    levels: { ...draft.levels } as Record<string, string>,
+    weights: { ...draft.weights } as Record<string, number | null>,
+  }
 }

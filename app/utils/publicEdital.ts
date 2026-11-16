@@ -1,6 +1,6 @@
 // Edital verticalizado grátis (prd-edital-verticalizado-publico): types of the API (§4), the messages of its
 // errors with the next step, the "estudado" state kept on the device and the exam countdown.
-import type { EditalProposal } from '~/types'
+import type { EditalProposal, EditalWeight } from '~/types'
 import { getErrorStatus } from '~/utils/apiErrors'
 import { studyDay } from '~/utils/greeting'
 import { EDITAL_INTENT_KEY } from '~/utils/editalIntent'
@@ -23,6 +23,8 @@ export interface PublicEditalReading {
   status: PublicEditalStatus
   cached?: boolean
   proposal?: EditalProposal | null
+  /** Points of each matéria from the edital (prd-cronograma RF-B1) */
+  weights?: EditalWeight[] | null
   /** What the list of alternatives is: the editais of a Diário or the cargos of one edital */
   choose?: 'edital' | 'cargo'
   alternatives?: PublicEditalAlternative[]

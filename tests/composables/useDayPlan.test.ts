@@ -180,6 +180,36 @@ describe('buildDayPlan (prd-4a-hoje-v3 §5.2)', () => {
   })
 })
 
+describe('passo Estudar do cronograma (prd-cronograma RF-W4)', () => {
+  const study = { scheduleTopicId: 'trf', rootName: 'TRF 4ª Região', subjectId: 'da', subjectName: 'Direito Administrativo', topicId: 'atos', topicName: 'Atos administrativos', pass: 1 as const, minutes: 60 }
+
+  it('vem depois de Revisar, abre o hub da matéria e não leva o primário', () => {
+    const steps = buildDayPlan(input({ study }))
+    expect(steps.map(s => s.key)).toEqual(['review', 'study', 'quiz', 'listen'])
+    const step = steps[1]!
+    expect(step.title).toBe('Estudar: Direito Administrativo · Atos administrativos')
+    expect(step.detail).toBe('1 h · cronograma de TRF 4ª Região')
+    expect(step.action.to).toBe('/cadernos/da')
+    expect(step.primary).toBe(false)
+    expect(step.study).toEqual(study)
+  })
+
+  it('sem revisão no dia, o primário é o estudo; sem sessão, nada', () => {
+    const steps = buildDayPlan(input({ study, stats: stats({ due_today: 0 }) }))
+    expect(steps[0]!.key).toBe('study')
+    expect(steps[0]!.primary).toBe(true)
+    expect(buildDayPlan(input({ study: null })).some(s => s.key === 'study')).toBe(false)
+    // Under the goal block (withoutReview) with cards today, no step carries the primary
+    expect(buildDayPlan(input({ study, withoutReview: true })).filter(s => s.primary)).toHaveLength(0)
+  })
+
+  it('a matéria sem assunto aparece sozinha', () => {
+    const steps = buildDayPlan(input({ study: { ...study, topicName: null, minutes: 90 } }))
+    expect(steps[1]!.title).toBe('Estudar: Direito Administrativo')
+    expect(steps[1]!.detail).toBe('1 h 30 · cronograma de TRF 4ª Região')
+  })
+})
+
 describe('daySubjects e subjectsText (A2 RF-2.2)', () => {
   it('as matérias com cards hoje, das que têm mais primeiro; caderno sem matéria com sessão entra por inteiro', () => {
     const progress = [

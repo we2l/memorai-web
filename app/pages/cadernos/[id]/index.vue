@@ -48,6 +48,8 @@
         <UiSplit side-label="Resumo do caderno">
           <template v-if="hasSide" #side>
             <CadernoScopeStats v-if="!isEmpty" :summary="summary" :first-material="store.materials[0] ?? null" @listen="listen" />
+            <!-- The cronograma of a caderno with matérias (prd-cronograma RF-W3): its own GET, after the summary -->
+            <LazyCadernoScheduleLine v-if="summary.topic.depth === 0 && summary.subjects.length" :topic-id="id" />
             <CadernoNextStep v-if="showNextStep" :step="summary.next_step!" @go="kind => track('next_step_click', { kind })" />
           </template>
 

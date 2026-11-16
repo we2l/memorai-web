@@ -26,6 +26,12 @@ const PUBLIC = [
   { name: 'criar-conta', url: '/criar-conta', consent: true },
   { name: 'esqueci-senha', url: '/esqueci-senha', consent: true },
   { name: 'termos', url: '/termos', consent: true },
+  // The entry of /comecar (prd-entrada-comecar): with the cookie bar, a step of the tour, the plans and the areas
+  { name: 'comecar', url: '/comecar', consent: false },
+  { name: 'comecar-card', url: '/comecar?passo=1', consent: false },
+  { name: 'comecar-podcast', url: '/comecar?passo=5', consent: true },
+  { name: 'comecar-planos', url: '/comecar?passo=7', consent: true },
+  { name: 'comecar-areas', url: '/comecar/areas', consent: true },
 ]
 
 // Below 24 px on purpose: the cells of the 26-week heatmap (role=grid, arrows move; the day also opens in a list)

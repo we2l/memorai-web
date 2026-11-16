@@ -66,7 +66,8 @@ test.describe('Visitante até a conta', () => {
       if (AI_ROUTE.test(new URL(r.url()).pathname) && r.method() === 'POST') aiCalls.push(r.url())
     })
 
-    await page.goto('/comecar')
+    // The visitor's /comecar is the entry with the tour (prd-entrada-comecar); the areas live on /comecar/areas
+    await page.goto('/comecar/areas')
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Para o que você estuda?')
     await page.getByTestId('area-oab').click()
     await page.waitForURL('**/comecar/oab')
@@ -198,8 +199,8 @@ test.describe('Quem já tem conta', () => {
 })
 
 test.describe('Teclado e axe', () => {
-  test('/comecar e o resultado do lote só no teclado, 1 h1 e sem violação séria', async ({ page }) => {
-    await page.goto('/comecar')
+  test('/comecar/areas e o resultado do lote só no teclado, 1 h1 e sem violação séria', async ({ page }) => {
+    await page.goto('/comecar/areas')
     expect((await new AxeBuilder({ page }).analyze()).violations.filter(v => ['serious', 'critical'].includes(v.impact ?? ''))).toEqual([])
     await expect(page.locator('h1')).toHaveCount(1)
     // Tab reaches the 1st area and Enter opens it

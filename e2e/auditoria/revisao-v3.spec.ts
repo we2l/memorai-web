@@ -121,7 +121,7 @@ test('celebração ≤ 700 ms; com movimento reduzido, nenhuma animação', asyn
   await gotoApp(page, `/revisar?topic_id=${topicId}`)
   for (let i = 0; i < 20; i++) await rate(page, '3')
   // The dolphin leads the gesture (ADR-035 §6: 520 ms)
-  const mascot = page.getByTestId('review-batch-end').locator('picture').first()
+  const mascot = page.getByTestId('review-batch-end').locator('.be-mascot').first()
   const ms = await mascot.evaluate(el => parseFloat(getComputedStyle(el).animationDuration) * 1000)
   expect(ms).toBeGreaterThan(0)
   expect(ms).toBeLessThanOrEqual(700)

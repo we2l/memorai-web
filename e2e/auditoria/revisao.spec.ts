@@ -212,8 +212,22 @@ test.describe('Revisar do caderno com volume (seed perf@audit.test, prd-performa
     const heavy = ((await apiCall(page, 'GET', '/topics')).data as any[]).find(t => t.name === 'Direito — TRF (pesado)')
     test.skip(!heavy, 'seed pesado ausente')
 
-    const n = Number((await page.getByTestId('home-goal-start').innerText()).match(/Começar · (\d+)/)?.[1])
-    expect(n).toBe((await apiCall(page, 'GET', '/stats')).data.due_today)
+    // The seed ages: once its overdue cards pass the threshold, Hoje leads with the backlog card (no plan yet) and
+    // the review of the day goes to "Também para hoje" as "Revisar N cards"; without a backlog, the goal block has it
+    const stats = (await apiCall(page, 'GET', '/stats')).data
+    const backlogCard = !!stats.backlog?.active && stats.backlog.overdue > 0 && !stats.backlog.plan
+    test.skip(stats.due_today === 0, 'seed pesado sem cards para hoje (só atraso): não há "Revisar N" para comparar')
+    let label: string
+    if (backlogCard) {
+      await expect(page.getByTestId('home-backlog')).toBeVisible()
+      await expect(page.getByTestId('home-goal-start')).toHaveCount(0)
+      label = await page.getByTestId('home-also').getByTestId('plan-step-review').innerText()
+    } else {
+      label = await page.getByTestId('home-goal-start').innerText()
+    }
+    const n = Number(label.match(/(?:Começar ·|Revisar) (\d+) cards?/)?.[1])
+    test.info().annotations.push({ type: 'evidência', description: `hoje=${n} stats=${stats.due_today} atraso=${backlogCard ? stats.backlog.overdue : 'não'}` })
+    expect(n).toBe(stats.due_today)
     const session = page.waitForResponse(r => r.url().includes('/api/review/session'))
     await gotoApp(page, '/revisar')
     expect((await (await session).json()).session_count).toBe(n)

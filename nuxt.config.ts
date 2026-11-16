@@ -49,8 +49,8 @@ const CSP = [
 // 401 clears it; only `/`, so an API down never bounces /entrar and /hoje into a loop.
 const SESSION_HINT_SCRIPT = `(function(){var d=document.documentElement,p=location.pathname.replace(/\\/$/,'')||'/';if(['/','/entrar','/criar-conta','/planos','/ajuda'].indexOf(p)<0)return;if(!/(?:^|;\\s*)baigi_logged_in=1/.test(document.cookie))return;d.classList.add('baigi-session');if(p==='/'){location.replace('/hoje');return}setTimeout(function(){d.classList.remove('baigi-session')},4000)})()`
 
-// Page color of the DS v3 (--surface-page in app/assets/css/tokens.css, light and dark): the manifest and
-// the theme-color metas need the literal. tests/scripts/pwaManifest.test.ts keeps both in sync with tokens.css.
+// Color of the top bars (--surface-raised in app/assets/css/tokens.css, light and dark): the manifest and
+// the theme-color metas need the literal; composables/useColorMode.ts writes the same token after the boot. tests/scripts/pwaManifest.test.ts keeps both in sync with tokens.css.
 // The status bar takes the color of the top bars (white in A2, ADR-037), not of the tinted page
 const THEME_COLOR = { light: '#FFFFFF', dark: '#1A1722' }
 

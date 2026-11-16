@@ -208,7 +208,14 @@ test.describe('Escopo do usuário (e2e-hub)', () => {
     const row = page.getByTestId('subject-row').filter({ hasText: 'Constitucional' })
     await expect(row).toHaveAttribute('aria-label', /acerto em questões 50%/)
     await expect(row).toContainText('ponto fraco')
-    await expect(page.getByTestId('scope-stats')).toContainText('acerto em 12 questões')
+    // A2: domínio and acerto sit in their own block under "Revisar hoje"
+    const mastery = page.getByTestId('scope-mastery')
+    await expect(mastery).toContainText('em 12 questões')
+    await expect(mastery.getByRole('progressbar', { name: /^Acerto de / })).toHaveAttribute('aria-valuenow', '50')
+    // The assuntos of a matéria stay closed behind "N assuntos" (edital vira caderno) unless one of them is weak
+    const toggle = page.getByRole('button', { name: '1 assunto de Constitucional' })
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    await toggle.click()
     await expect(page.getByTestId('subject-row').filter({ hasText: 'Controle' })).toHaveAttribute('aria-label', /faça 10 questões/)
   })
 

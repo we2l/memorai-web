@@ -9,10 +9,29 @@ import type { Browser, BrowserContext, Page } from '@playwright/test'
 
 const nav = (page: Page) => page.getByRole('navigation', { name: 'Navegação principal' })
 
+/**
+ * The form of /entrar. The login throttle (5/min per e-mail, 30/min per IP) can catch this spec, which logs the same
+ * account in three times: the form then says "Muitas tentativas. Tente de novo em N segundos." and stays there.
+ * Wait what it says and send once more, instead of waiting for a redirect that will not come.
+ */
 async function loginViaForm(page: Page, email: string) {
   await page.locator('#email').fill(email)
   await page.locator('#password').fill(AUDIT_PASSWORD)
-  await page.locator('button[type="submit"]').click()
+  const submit = page.locator('button[type="submit"]')
+  await submit.click()
+  const throttled = page.getByRole('alert').filter({ hasText: 'Muitas tentativas' })
+  const outcome = await Promise.race([
+    page.waitForURL(url => url.pathname !== '/entrar').then(() => 'in' as const, () => null),
+    // The one that loses the race ends with the page: never an unhandled rejection
+    throttled.waitFor().then(() => 'throttled' as const, () => null),
+  ])
+  if (outcome !== 'throttled') return
+  const [, n, unit] = (await throttled.innerText()).match(/em (\d+) (segundo|minuto)/) ?? []
+  const wait = (Math.min(Number(n || 60) * (unit === 'minuto' ? 60 : 1), 60) + 1) * 1000
+  console.log(`[troca de conta] login de ${email} barrado pelo throttle: esperando ${wait / 1000} s`)
+  test.setTimeout(test.info().timeout + wait)
+  await page.waitForTimeout(wait)
+  await submit.click()
 }
 
 /** A caderno with a name no other account has, created by that account's own session (5 logins/min per e-mail). */
@@ -63,9 +82,19 @@ async function expectOnlyB(page: Page, nameA: string, nameB: string) {
   await page.keyboard.press('Escape')
 }
 
-async function expireSession(context: BrowserContext) {
-  await context.clearCookies({ name: SESSION_COOKIE })
-  await context.clearCookies({ name: /^remember_web_/ })
+/**
+ * Every answer of the API sets the session cookie again: one still on its way (the search of useAsA, a block of the
+ * page) brings the session back right after the cookie is cleared, and the test then waits for a 401 that never
+ * comes (A still signed in on /progresso). So: wait for the page to go quiet, clear, and only go on once the API
+ * really answers 401 to this context.
+ */
+async function expireSession(page: Page, context: BrowserContext) {
+  await page.waitForLoadState('networkidle')
+  await expect.poll(async () => {
+    await context.clearCookies({ name: SESSION_COOKIE })
+    await context.clearCookies({ name: /^remember_web_/ })
+    return apiCall(page, 'GET', '/me').then(() => 200, e => (/→ 401 /.test(String(e)) ? 401 : 0))
+  }).toBe(401)
 }
 
 test.describe('Troca de conta na mesma aba', () => {
@@ -101,7 +130,7 @@ test.describe('Troca de conta na mesma aba', () => {
     try {
       await useAsA(page, nameA)
 
-      await expireSession(context)
+      await expireSession(page, context)
       // Any request now answers 401: the plugin sends the person to /entrar?redirect=…
       await nav(page).getByRole('link', { name: 'Progresso' }).click()
       await page.waitForURL('**/entrar?redirect=**')

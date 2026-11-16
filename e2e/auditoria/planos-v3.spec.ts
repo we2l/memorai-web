@@ -242,7 +242,7 @@ test.describe('Páginas públicas', () => {
       await page.goto(path)
       await page.waitForLoadState('networkidle')
       expect(await page.evaluate(() => document.documentElement.classList.contains('dark')), path).toBe(true)
-      expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor), path).toBe('rgb(15, 13, 20)')
+      expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor), path).toBe('rgb(11, 10, 15)') // --surface-page do escuro (#0B0A0F)
     }
     await ctx.close()
   })

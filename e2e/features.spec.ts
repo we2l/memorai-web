@@ -228,7 +228,9 @@ test.describe('Planos e pagamento', () => {
     await page.goto('/planos')
     await page.waitForLoadState('networkidle')
 
-    await expect(page.getByText('Seu plano')).toBeVisible()
+    // /planos opens on the annual, where a Pro without it sees the offer ("Assinar anual"); its plan is marked on the monthly
+    await page.getByRole('radio', { name: 'Mensal' }).check()
+    await expect(page.getByRole('main').getByText('Seu plano')).toBeVisible()
   })
 
   test('features do Pro listadas', async ({ page }) => {

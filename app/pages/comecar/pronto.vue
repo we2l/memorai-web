@@ -48,16 +48,24 @@
           :busy="busy"
           :error="error"
           :name-error="nameError"
+          :preview-line="previewLine"
+          :show-edital="showEdital"
           @submit="start"
           @file="startPdf"
           @back="step = 'choice'"
         />
 
-        <div v-else class="flex flex-col gap-2 sm:flex-row" data-testid="saved-next">
-          <UiButton variant="primary" data-testid="saved-material" @click="openContent">Agora com o seu material</UiButton>
-          <!-- "Estudar isso no Baigi" pressed before the account: the lote came first, the edital waits here -->
-          <UiButton v-if="editalIntent" variant="outline" :to="`${publicEditalResultPath(editalIntent)}?aplicar=1`" data-testid="saved-edital">Criar o caderno do edital</UiButton>
-          <UiButton variant="ghost" to="/hoje" data-testid="saved-home">Ver o Hoje</UiButton>
+        <div v-else class="flex flex-col gap-3" data-testid="saved-next">
+          <div class="flex flex-col gap-2 sm:flex-row">
+            <UiButton variant="primary" data-testid="saved-material" @click="openContent">Agora com o seu material</UiButton>
+            <!-- "Estudar isso no Baigi" pressed before the account: the lote came first, the edital waits here -->
+            <UiButton v-if="editalIntent" variant="outline" :to="`${publicEditalResultPath(editalIntent)}?aplicar=1`" data-testid="saved-edital">Criar o caderno do edital</UiButton>
+          </div>
+          <!-- The Hoje is no longer a way on beside the primary (prd-ativacao-material-proprio H5) -->
+          <p class="text-meta text-fg-muted">
+            {{ saved ? 'Sem material seu, o Hoje só tem o exemplo.' : 'Seu Hoje fica vazio até ter cards seus.' }}
+            <UiLink to="/hoje" data-testid="saved-home">Ver o Hoje</UiLink>
+          </p>
         </div>
       </template>
 
@@ -79,7 +87,7 @@
 
 <script lang="ts">
 interface GuestImport { data: { card_ids: string[], reviews_applied: number, created: boolean, exam_id?: string | null, exam_skipped?: GuestExamSkipped | null } }
-interface SavedLote { cards: number, reviews: number, topicName: string, examSkipped: GuestExamSkipped | null }
+interface SavedLote { cards: number, reviews: number, topicName: string, examSkipped: GuestExamSkipped | null, area: GuestArea }
 /** Module scope: one POST per lote even when the page mounts twice on the way in (a 2nd would apply nothing). */
 let inflight: Promise<GuestImport> | null = null
 let lastSaved: SavedLote | null = null
@@ -93,7 +101,7 @@ let lastSaved: SavedLote | null = null
 import type { ContentPath } from '~/components/onboarding/ContentStep.vue'
 import type { Flashcard, TomorrowForecast } from '~/types'
 import { AiJobError } from '~/composables/useAiJob'
-import { areaName, clearGuestProgress, loadGuestProgress } from '~/utils/guestProgress'
+import { areaName, clearGuestProgress, loadGuestProgress, type GuestArea } from '~/utils/guestProgress'
 import { guestExamSkipped, guestExamSkippedText, guestImportBody, guestImportFailure, type GuestExamSkipped, type GuestImportFailure } from '~/utils/guestImport'
 import { markFirstMaterialPending } from '~/utils/firstMaterial'
 import { reviewPath } from '~/utils/reviewScope'
@@ -135,6 +143,13 @@ const retryFinish = ref<(() => void) | null>(null)
 
 // The Free preview runs before the e-mail is confirmed (prd-revisao-v5-fase-a RF-F11); a paid tier still asks for it
 const aiReady = computed(() => auth.isVerified || !auth.hasProAccess)
+
+// prd-ativacao-material-proprio: the size of the Free preview from the catalog (H7) and the edital for Concurso and
+// OAB, or an account in the exam mode without a lote (H6)
+const { plans: catalog, fetchPlans } = usePlans()
+onMounted(() => { void fetchPlans() })
+const previewLine = computed(() => (hasPreview(catalog.value, auth.user) ? previewMaterialLine(catalogPreview(catalog.value)) : null))
+const showEdital = computed(() => (saved.value ? saved.value.area === 'concurso' || saved.value.area === 'oab' : auth.user?.default_learning_mode === 'exam'))
 watch(text, (t) => { if (!nameTouched.value) notebookName.value = smartTitle(t, 40) })
 
 async function save(opts: { withoutExam?: boolean } = {}) {
@@ -166,6 +181,7 @@ async function save(opts: { withoutExam?: boolean } = {}) {
       cards: res.data.card_ids.length,
       reviews: res.data.reviews_applied,
       topicName: areaName(lote.area),
+      area: lote.area,
       // The API leaves the exam out by itself (exam_skipped, #179: past date or the Free's limit); without the
       // field, our own check of the date
       examSkipped: guestExamSkipped(res.data.exam_skipped, examDropped),
@@ -230,6 +246,7 @@ async function start() {
   nameError.value = ''
   track('onboarding_path', { path: path.value })
   if (path.value === 'text') await startText()
+  else if (path.value === 'edital') await navigateTo('/cadernos/edital?from=onboarding')
   else if (path.value === 'anki') await navigateTo('/importar')
   else if (path.value === 'question') {
     await navigateTo('/hoje')

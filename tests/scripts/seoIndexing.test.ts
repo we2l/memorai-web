@@ -11,7 +11,7 @@ import { PUBLIC_DIR, skipWithoutBuild } from './buildOutput'
  * indexable ones.
  */
 const PUBLIC = ['index.html', 'planos/index.html', 'ajuda/index.html', 'termos/index.html', 'privacidade/index.html', 'quem-faz/index.html', 'blog/index.html', 'ferramentas/index.html']
-const PRIVATE = ['entrar/index.html', 'criar-conta/index.html', 'esqueci-senha/index.html', 'comecar/index.html']
+const PRIVATE = ['entrar/index.html', 'criar-conta/index.html', 'esqueci-senha/index.html', 'comecar/index.html', 'comecar/areas/index.html']
 
 const robots = (html: string) => [...html.matchAll(/<meta name="robots" content="([^"]*)"/g)].map(m => m[1])
 

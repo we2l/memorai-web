@@ -57,6 +57,7 @@ export default defineNuxtPlugin(() => {
             planRequired: data?.plan_required ?? null,
             resetsAt: data?.resets_at ?? null,
             lifetime: data?.lifetime === true,
+            code: data?.code ?? null,
           },
         }))
       }

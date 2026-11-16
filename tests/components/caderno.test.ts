@@ -7,6 +7,7 @@ import ScopeStats from '~/components/caderno/ScopeStats.vue'
 import NextStep from '~/components/caderno/NextStep.vue'
 import SubjectTable from '~/components/caderno/SubjectTable.vue'
 import MaterialRow from '~/components/caderno/MaterialRow.vue'
+import MaterialCardsState from '~/components/caderno/MaterialCardsState.vue'
 import PracticeRow from '~/components/caderno/PracticeRow.vue'
 import EmptyScope from '~/components/caderno/EmptyScope.vue'
 import type { MaterialRow as Row, ScopeSubject, ScopeSummary } from '~/types'
@@ -242,6 +243,25 @@ describe('CadernoMaterialRow (RF-F6)', () => {
     useAuthStore().user = { plan: 'free', trial: { status: 'active', started_at: null, ends_at: null } } as any
     await nextTick()
     expect(blocked.text()).toContain('Limite do teste atingido')
+    useAuthStore().user = null
+  })
+
+  it('teto de custo do mês (prd-teto-custo-assinante RF-W2): o motivo e a volta, sem botão nem valor', async () => {
+    useAuthStore().user = { plan: 'pro' } as any
+    const capped = await mountSuspended(MaterialRow, { props: { row: row({ status: 'blocked', note_id: null, blocked_reason: 'cost_cap' }), scopeId: 'root' } })
+    expect(capped.get('[data-testid="material-cost-cap"]').text()).toMatch(/^Limite de IA do mês atingido · volta em 1º\/[a-z]{3}$/)
+    expect(capped.text()).not.toContain('Ver planos')
+    expect(capped.text()).not.toContain('Gerar resumo')
+    useAuthStore().user = null
+  })
+
+  it('cards automáticos pulados no teto de custo (RF-W2): /usage diz que é o teto, não a cota', async () => {
+    useAuthStore().user = { plan: 'pro' } as any
+    apiMock.mockResolvedValue({ data: { features: {}, cost_cap: { reached: true, resets_at: '2026-12-01T00:00:00-03:00' } } })
+    const w = await mountSuspended(MaterialCardsState, { props: { row: row({ cards: 0, auto_cards_status: 'skipped_quota' }) } })
+    await flushPromises()
+    expect(apiMock).toHaveBeenCalledWith('/usage')
+    expect(w.text()).toBe('Limite de IA do mês atingido · volta em 1º/dez')
     useAuthStore().user = null
   })
 })

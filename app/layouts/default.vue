@@ -34,6 +34,7 @@
       :plan-required="upgradeDetail.planRequired"
       :resets-at="upgradeDetail.resetsAt"
       :lifetime="upgradeDetail.lifetime"
+      :cost-cap="upgradeCostCap"
     />
   </div>
 </template>
@@ -77,6 +78,7 @@ onBeforeUnmount(() => {
 
 const showUpgrade = ref(false)
 const upgradeDetail = ref<FeatureLimitDetail>({ feature: '' })
+const upgradeCostCap = computed(() => upgradeDetail.value.code === COST_CAP_CODE)
 
 const chat = useChatStore()
 const paletteOpen = useCommandPaletteOpen()
@@ -126,8 +128,11 @@ onMounted(() => {
       planRequired: detail.planRequired === undefined ? 'pro' : detail.planRequired,
       resetsAt: detail.resetsAt ?? null,
       lifetime: detail.lifetime === true,
+      code: detail.code ?? null,
     }
     showUpgrade.value = true
+    // The cost cap is no paywall: the subscriber already pays (prd-teto-custo-assinante RF-W1)
+    if (detail.code === COST_CAP_CODE) return
     useAnalytics().track('paywall_viewed', {
       feature: upgradeDetail.value.feature || null,
       source: 'limit_402',

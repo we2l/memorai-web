@@ -30,6 +30,8 @@
 
         <!-- Account without cards and without material: the first steps take the place of the plan and carry the primary -->
         <LazyHomeChecklist v-if="!loading && noCards" :stats="stats" :roots="roots" :primary="!firstAction" />
+        <!-- A caderno made by the edital has a cronograma before any card: its session stays under the first steps -->
+        <HomePlan v-if="!loading && noCards && studyOnly.length" title="Também para hoje" :steps="studyOnly" @act="onStep" @study-mark="onStudyMark" />
         <HomePlan
           v-else-if="!showBacklog"
           :steps="planSteps"
@@ -137,6 +139,8 @@ const sideSteps = computed(() => steps.value
   .filter(s => !(s.key === 'review' && (stats.value?.due_today ?? 0) <= 0))
   .map(s => ({ ...s, primary: false, backlog: undefined })))
 const minutes = computed(() => dayMinutes(steps.value))
+// Without cards the checklist takes the plan's place (and its primary); the cronograma's step goes on below it
+const studyOnly = computed(() => steps.value.filter(s => s.key === 'study').map(s => ({ ...s, primary: false })))
 
 let loadSeq = 0
 

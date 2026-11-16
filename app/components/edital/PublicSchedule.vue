@@ -42,7 +42,7 @@
             <span class="w-6 shrink-0 text-right text-meta tabular-nums text-fg-muted">{{ i + 1 }}</span>
             <span class="min-w-0 flex-1">
               <span class="block break-words text-body text-fg-strong">{{ s.subjectName }}</span>
-              <span class="block text-meta text-fg-muted">{{ sessionTopicLabel(s) }} · {{ durationLabel(s.minutes) }}{{ s.pass === 2 ? ' · reforço' : '' }}</span>
+              <span class="block text-meta text-fg-muted">{{ sessionTopicLabel(s) }} · {{ durationLabel(s.minutes) }}{{ s.pass === 2 && !s.unit ? ' · reforço' : '' }}</span>
             </span>
           </li>
         </ol>

@@ -25,7 +25,7 @@
       </UiSection>
 
       <!-- First time: the setup opens with the defaults, and the preview below follows each change -->
-      <div v-else-if="!res.configured" class="flex max-w-reading flex-col gap-6" data-testid="schedule-setup">
+      <div v-else-if="!res.configured" class="flex max-w-prose flex-col gap-6" data-testid="schedule-setup">
         <UiSection>
           <h2 class="text-title font-semibold text-fg-strong">Monte o cronograma</h2>
           <p class="mt-1 text-body text-fg-muted">Diga quanto tempo você tem. O Baigi distribui os assuntos {{ res.exam ? 'até a prova' : 'numa fila' }}, com mais tempo para o que pesa mais.</p>
@@ -103,7 +103,7 @@
               <UiSubjectMark :index="Math.max(0, subjectOrder.indexOf(s.subjectId))" class="mt-1.5" />
               <span class="min-w-0 flex-1">
                 <span class="block break-words text-body text-fg-strong">{{ s.subjectName }}</span>
-                <span class="block text-meta text-fg-muted">{{ sessionTopicLabel(s) }} · {{ durationLabel(s.minutes) }}{{ s.pass === 2 ? ' · reforço' : '' }}</span>
+                <span class="block text-meta text-fg-muted">{{ sessionTopicLabel(s) }} · {{ durationLabel(s.minutes) }}{{ s.pass === 2 && !s.unit ? ' · reforço' : '' }}</span>
               </span>
             </li>
           </ol>

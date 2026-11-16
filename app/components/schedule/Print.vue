@@ -65,7 +65,7 @@ const weeks = computed(() => {
       week!.rows.push({
         key: s.id,
         day: i === 0 ? `${weekdayShort(d.date)} ${dayMonth(d.date)}` : '',
-        text: `${s.subjectName} · ${sessionTopicLabel(s)}${s.pass === 2 ? ' (reforço)' : ''}`,
+        text: `${s.subjectName} · ${sessionTopicLabel(s)}${s.pass === 2 && !s.unit ? ' (reforço)' : ''}`,
         length: [s.start, durationLabel(s.minutes)].filter(Boolean).join(' · '),
         session: true,
       })

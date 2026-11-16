@@ -14,13 +14,13 @@
         v-for="d in days"
         :key="d.date"
         class="week-day flex min-w-0 gap-3 py-3"
-        :class="grid && 'lg:flex-col lg:gap-2 lg:rounded-tile lg:bg-soft lg:p-3'"
+        :class="grid && 'lg:flex-col lg:gap-2 lg:rounded-tile lg:bg-soft lg:p-2'"
         :aria-current="d.date === today ? 'date' : undefined"
         :data-testid="`schedule-day-${d.date}`"
       >
         <p class="w-14 shrink-0 text-meta" :class="grid && 'lg:w-auto'">
           <span class="font-semibold text-fg-strong">{{ weekdayShort(d.date) }}</span>
-          <span class="text-fg-muted"> {{ dayMonth(d.date) }}</span>
+          <span class="text-fg-muted">{{ ` ${dayMonth(d.date)}` }}</span>
           <span v-if="d.date === today" class="block text-label font-semibold text-action-fg">hoje</span>
         </p>
         <div class="min-w-0 flex-1">
@@ -37,13 +37,13 @@
                     class="flex w-full min-h-touch items-start gap-2 rounded-row px-1 py-1 text-left transition-colors duration-fast hover:bg-hover"
                     :aria-label="`${s.subjectName}, ${sessionTopicLabel(s)}, ${durationLabel(s.minutes)}${s.start ? ` às ${s.start}` : ''}. Opções`"
                   >
-                    <UiSubjectMark :index="subjectIndex(s.subjectId)" class="mt-1.5" />
+                    <UiSubjectMark :index="subjectIndex(s.subjectId)" class="mt-1.5" :class="grid && 'lg:hidden'" />
                     <SessionText :s="s" />
                   </button>
                 </template>
               </UiMenu>
               <div v-else class="flex items-start gap-2 px-1 py-1">
-                <UiSubjectMark :index="subjectIndex(s.subjectId)" class="mt-1.5" />
+                <UiSubjectMark :index="subjectIndex(s.subjectId)" class="mt-1.5" :class="grid && 'lg:hidden'" />
                 <SessionText :s="s" />
               </div>
             </li>
@@ -112,7 +112,7 @@ function menuFor(s: StudySession): MenuItem[] {
 const SessionText = defineComponent({
   props: { s: { type: Object as () => StudySession, required: true } },
   setup(p) {
-    return () => h('span', { class: 'min-w-0 flex-1' }, [
+    return () => h('span', { class: 'min-w-0 flex-1 hyphens-auto' }, [
       h('span', { class: 'block break-words text-body-sm font-semibold text-fg-strong' }, p.s.subjectName),
       h('span', { class: 'block break-words text-meta text-fg-muted' }, [
         p.s.unit && p.s.parts === 1 ? durationLabel(p.s.minutes) : `${sessionTopicLabel(p.s)} · ${durationLabel(p.s.minutes)}`,

@@ -9,7 +9,7 @@ export type ReviewScope = 'topic' | 'deck' | 'none'
 export type ReviewScopeType = 'topic' | 'document' | 'note' | 'quiz' | 'podcast' | 'cards'
 /** `annual` = annual chosen before Stripe decides between Pix and card. */
 export type AnalyticsBilling = 'monthly' | 'annual' | 'annual_pix' | 'annual_card'
-export type OnboardingPath = 'sample' | 'pdf' | 'text' | 'anki' | 'skip' | 'question'
+export type OnboardingPath = 'sample' | 'pdf' | 'text' | 'anki' | 'skip' | 'question' | 'edital'
 /** Onboarding v4 (prd-onboarding-v4 RF-F8) */
 export type GuestAreaProp = 'concurso' | 'enem' | 'medicina' | 'oab' | 'ingles' | 'faculdade'
 export type OwnMaterialKind = 'pdf' | 'note' | 'anki' | 'question'
@@ -20,7 +20,7 @@ export type ReminderSource = 'settings' | 'session_end' | 'onboarding'
 /** Navegação v3 (prd-navegacao-v3 RF-12) */
 export type NavItem = 'hoje' | 'cadernos' | 'praticar' | 'progresso'
 export type NavSurface = 'top' | 'bottom'
-export type AddOpenOrigin = 'topnav' | 'header' | 'shortcut' | 'search' | 'checklist' | 'scope' | 'review'
+export type AddOpenOrigin = 'topnav' | 'header' | 'shortcut' | 'search' | 'checklist' | 'scope' | 'review' | 'home_first_action'
 export type SearchOpenOrigin = 'shortcut' | 'topnav' | 'header'
 export type PracticeMode = 'review' | 'quiz' | 'listen'
 /** Which entry of the mode card on /praticar */
@@ -99,7 +99,8 @@ export interface FrontEventProps {
   home_plan_step_click: { step: HomePlanStepKey, position: number }
   home_goal_met: { target_batches: number }
   home_checklist_click: { item: HomeChecklistItem }
-  home_first_action_click: { notes: number }
+  /** variant (prd-ativacao-material-proprio H1): `cards` = "Gere os cards de…", `own_material` = "Agora com o seu material" */
+  home_first_action_click: { notes: number; variant?: 'cards' | 'own_material' }
   home_exam_click: Record<string, never>
   scope_open: { depth: number, mode: string | null }
   next_step_click: { kind: 'generate_cards' | 'review_errors' | 'quiz' | 'continue' }
@@ -154,7 +155,10 @@ export interface FrontEventProps {
   exam_create: { origin: 'progress' | 'scope' | 'hoje' }
   exam_export: { kind: 'ics' | 'google' }
   /** Edital vira caderno (prd-edital-caderno RF-F4) */
-  edital_started: { source: 'pdf' | 'text', manual_pages: boolean }
+  /** from (prd-ativacao-material-proprio H6): the entry that led to the edital; absent from /cadernos */
+  edital_started: { source: 'pdf' | 'text', manual_pages: boolean, from?: 'onboarding' | 'add_sheet' }
+  /** The caderno made with the first own material in "+ Adicionar" (prd-ativacao-material-proprio H3) */
+  notebook_auto_created: { kind: 'pdf' | 'text' | 'question' | 'photo' | 'note' }
   edital_read: { subjects: number, topics: number, found: EditalFound }
   edital_choose: { editais: number, kind?: 'edital' | 'cargo' }
   edital_failed: { stage: 'read' | 'apply' }

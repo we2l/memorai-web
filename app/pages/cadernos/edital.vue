@@ -247,7 +247,7 @@ async function readEdital(chosen: Alternative | null = null) {
     const range = section === null ? (chosen?.pages ?? pages.value) : null
     source = kind.value === 'pdf' ? { file: file.value, pageFrom: range?.from, pageTo: range?.to, section } : { text: text.value }
   }
-  track('edital_started', { source: kind.value, manual_pages: !chosen && !!(source.pageFrom && source.pageTo) })
+  track('edital_started', { source: kind.value, manual_pages: !chosen && !!(source.pageFrom && source.pageTo), ...editalEntry() })
   try {
     const { jobId: id, result } = await reader.read(source)
     lastSent = { ...source, cargo: null }
@@ -324,5 +324,12 @@ async function applyProposal(allowDuplicate = false) {
   } finally {
     applying.value = false
   }
+}
+
+/** The entry that led here (prd-ativacao-material-proprio H6): the onboarding or "+ Adicionar"; absent from /cadernos */
+const entryFrom = useRoute().query.from
+function editalEntry(): { from?: 'onboarding' | 'add_sheet' } {
+  const from = entryFrom
+  return from === 'onboarding' || from === 'add_sheet' ? { from } : {}
 }
 </script>

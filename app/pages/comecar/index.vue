@@ -2,7 +2,8 @@
   <div class="mx-auto flex w-full max-w-4xl flex-col gap-6" data-testid="area-step">
     <div>
       <h1 class="text-page-title text-fg-strong">Para o que você estuda?</h1>
-      <p class="mt-1 text-body text-fg-muted">Escolha e revise 6 cards agora. Sem criar conta.</p>
+      <!-- With an account (prd-ativacao-material-proprio H4): "Sem criar conta" is wrong for who just made one -->
+      <p class="mt-1 text-body text-fg-muted">{{ loggedIn ? 'Revise 6 cards de exemplo ou comece pelo seu material.' : 'Escolha e revise 6 cards agora. Sem criar conta.' }}</p>
     </div>
 
     <!-- E2 (prd-visual-e2 RF-5.7): the areas in a grid (3 × 2 on the desktop), each with the icon of its area -->
@@ -25,10 +26,9 @@
       </li>
     </ul>
 
-    <p v-if="loggedIn" class="text-meta text-fg-muted">
-      Prefere começar pelo seu material?
-      <button type="button" class="hit-touch font-semibold text-action-fg underline" :disabled="skipping" data-testid="area-skip" @click="skip">Pular o exemplo</button>
-    </p>
+    <div v-if="loggedIn">
+      <UiButton variant="ghost" :loading="skipping" class="max-sm:w-full" data-testid="area-skip" @click="skip">Começar pelo meu material</UiButton>
+    </div>
     <p v-else class="text-meta text-fg-muted">
       Já tem conta? <UiLink :to="loginTo" class="underline">Entrar</UiLink>
     </p>

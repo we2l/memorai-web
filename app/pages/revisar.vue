@@ -81,6 +81,7 @@
         :back-to="backTo"
         :back-label="backLabel"
         :language="language"
+        :receipt="ownReceipt"
         @next="nextBatch"
         @stop="stopAtBatch"
       />
@@ -100,6 +101,7 @@
           :errors-count="errorsCount"
           :retention="!isBlitz && !isErrorsOnly"
           :backlog="statsNow?.backlog ?? null"
+          :receipt="ownReceipt"
         >
           <template v-if="!tomorrowFailed" #tomorrow>
             <LazyReviewSessionTomorrow :forecast="tomorrow" :loading="tomorrowLoading" :enabling="enablingReminder" @enable-reminder="enableReminder" />
@@ -305,6 +307,7 @@ import { cadernoPath, markScopeCleared } from '~/utils/scope'
 import { reviewPath, scopeBackPath, scopeOf, scopeQuery, sessionScopeFromQuery } from '~/utils/reviewScope'
 import { batchSummary, goalAfterBatch, studyDayEnd } from '~/composables/useReviewBatches'
 import type { StreakInfo } from '~/components/review/ReviewBatchEnd.vue'
+import type { ForgettingCurve } from '~/utils/guestProgress'
 import { MessageCircle } from 'lucide-vue-next'
 import { reviewButtonsOf, reviewKeysHint } from '~/utils/reviewButtons'
 import { feedbackTitle, feedbackWhen, isOkKind, type FeedbackKind } from '~/utils/reviewFeedback'
@@ -495,12 +498,23 @@ watch(() => review.finished, (done) => {
   tomorrowFailed.value = false
 })
 
-// Activation = the first batch concluded, whatever the way in (prd-4g RF-B3): the server records it once
-watch(() => !isBlitz.value && review.pendingCount === 0 && !!auth.user && !auth.user.first_batch_at
-  && (!!batchEndIndex.value || onboardingEnd.value || (review.finished && review.totalRated > 0)), (reached) => {
+// Activation = the first batch concluded, whatever the way in (prd-4g RF-B3): the server records it once. And the first
+// batch with the person's own cards (prd-ativacao-material-proprio RF-B2): asked at each batch end until it exists; the
+// server decides (the sample never counts) and, that one time, sends the curve of the receipt (H8).
+const ownReceipt = ref<ForgettingCurve | null>(null)
+interface FirstBatchResult { data: { first_batch_at: string | null, first_own_batch_at: string | null, own_batch_now: boolean, forgetting_curve: ForgettingCurve | null } }
+watch(() => !isBlitz.value && review.pendingCount === 0 && !!auth.user && (!auth.user.first_batch_at || !auth.user.first_own_batch_at)
+  && (!!batchEndIndex.value || onboardingEnd.value || (review.finished && review.totalRated > 0)), async (reached) => {
   if (!reached || !auth.user) return
-  auth.user.first_batch_at = new Date().toISOString()
-  $api('/onboarding/first-batch', { method: 'POST' }).catch((e: unknown) => reportApiError(e, { silent: true }))
+  const user = auth.user
+  user.first_batch_at ??= new Date().toISOString()
+  try {
+    const res = await $api<FirstBatchResult>('/onboarding/first-batch', { method: 'POST' })
+    user.first_own_batch_at = res?.data?.first_own_batch_at ?? null
+    if (res?.data?.own_batch_now && res.data.forgetting_curve) ownReceipt.value = res.data.forgetting_curve
+  } catch (e) {
+    reportApiError(e, { silent: true })
+  }
 })
 
 const { run: runReminder, pending: enablingReminder } = useApiAction()

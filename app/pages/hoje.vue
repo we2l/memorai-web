@@ -9,8 +9,10 @@
          left one comes first (the primary block, the metrics, the rest of the day), then the exam and the cadernos -->
     <div class="hoje-grid">
       <div class="flex min-w-0 flex-col gap-4">
-        <!-- The one primary block: the first action (no cards, B5), the backlog card (no plan yet) or the goal -->
+        <!-- The one primary block: the first action (own material without cards, B5), the own material (only the
+             onboarding sample so far, prd-ativacao-material-proprio H1), the backlog card (no plan yet) or the goal -->
         <LazyHomeFirstAction v-if="firstAction" :topic="firstAction" :roots-with-material="rootsWithMaterial" />
+        <LazyHomeFirstAction v-else-if="ownFirst" />
         <LazyHomeBacklog v-else-if="showBacklog" :backlog="backlogState!" :due-today="stats?.due_today ?? 0" />
 
         <HomeGoal
@@ -20,7 +22,7 @@
           :history="history"
           :subjects="subjects"
           :review="reviewStep"
-          :primary="!showBacklog"
+          :primary="!showBacklog && !leadBlock"
           :survival-busy="survivalBusy"
           @start="reviewStep && onStep(reviewStep)"
           @survival-off="turnSurvivalOff"
@@ -101,14 +103,22 @@ const progressError = ref(false)
 const roots = computed(() => progress.value.filter(t => !t.parent_id))
 const noCards = computed(() => !statsError.value && (stats.value?.total_cards ?? 0) === 0)
 
-// B5: the subject with the most material and no card yet (a subject before its caderno)
+// The onboarding sample never counts as the person's progress (prd-ativacao-material-proprio RN-1)
+const sampleIds = computed(() => sampleTopicIds(progress.value))
+const noOwnCards = computed(() => !statsError.value && !!stats.value && ownCards(stats.value) === 0)
+
+// B5: the subject with the most own material and no card yet (a subject before its caderno)
 const firstAction = computed(() => {
-  if (loading.value || !noCards.value) return null
+  if (loading.value || !noOwnCards.value) return null
   return [...progress.value]
-    .filter(t => (t.notes_count ?? 0) > 0 && t.flashcards_count === 0)
+    .filter(t => (t.notes_count ?? 0) > 0 && t.flashcards_count === 0 && !sampleIds.value.has(t.id))
     .sort((a, b) => Number(!a.parent_id) - Number(!b.parent_id) || (b.notes_count ?? 0) - (a.notes_count ?? 0))[0] ?? null
 })
-const rootsWithMaterial = computed(() => roots.value.filter(t => (t.notes_count ?? 0) > 0).length)
+const rootsWithMaterial = computed(() => roots.value.filter(t => (t.notes_count ?? 0) > 0 && !t.is_sample).length)
+// H1: only the sample so far, so "Agora com o seu material" leads the Hoje
+const ownFirst = computed(() => !loading.value && !statsError.value && !firstAction.value && needsOwnMaterial(stats.value))
+// RN-3: with one of them on screen, neither the goal nor the plan carries a primary
+const leadBlock = computed(() => !!firstAction.value || ownFirst.value)
 
 // The backlog without a plan yet (prd-revisao-v5-fase-b): the card of 3/7/14 days comes first; with a plan, it is a line
 const backlogState = computed(() => stats.value?.backlog ?? backlog.value?.backlog ?? null)
@@ -133,7 +143,11 @@ const planInput = computed<DayPlanInput | null>(() => (statsError.value || !stat
 const steps = computed<DayPlanStep[]>(() => (planInput.value ? buildDayPlan(planInput.value) : []))
 // The review lives in the goal block (RF-2.4): its step carries the backlog line, survival mode and the overdue link
 const reviewStep = computed(() => ((stats.value?.due_today ?? 0) > 0 ? steps.value.find(s => s.key === 'review') ?? null : null))
-const planSteps = computed<DayPlanStep[]>(() => (showGoal.value && planInput.value ? buildDayPlan({ ...planInput.value, withoutReview: true }) : steps.value))
+const planSteps = computed<DayPlanStep[]>(() => {
+  // A lead block (H1, B5): the goal shows without its button, so the Revisar step stays in the plan; nothing is primary
+  if (leadBlock.value) return steps.value.map(s => ({ ...s, primary: false }))
+  return showGoal.value && planInput.value ? buildDayPlan({ ...planInput.value, withoutReview: true }) : steps.value
+})
 const subjects = computed(() => daySubjects(progress.value))
 // With the backlog card, the rest of the day goes to the side, without a primary (the card carries it)
 const sideSteps = computed(() => steps.value

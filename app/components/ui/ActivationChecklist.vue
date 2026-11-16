@@ -51,20 +51,19 @@
 
 <script setup lang="ts">
 // Activation checklist of a new account (prd-4a-hoje-v3 RF-F5; E2 support skin, prd-visual-e2 RF-3.6: the count, the
-// segments and the list): five first steps, each pending one leads
-// to its action; "Adicionar material" opens the "+ Adicionar" sheet of the shell (it writes into the first
-// caderno when no other is open). With `primary`, the first pending step is the main action of the screen.
+// segments and the list): four first steps of the person's own material (prd-ativacao-material-proprio H2; "Criar um
+// caderno" left: the caderno is made with the first material, H3), each pending one leads to its action; "Adicionar"
+// opens the "+ Adicionar" sheet of the shell. With `primary`, the first pending step is the main action of the screen.
 import { Check, ChevronRight } from 'lucide-vue-next'
 
 export type ChecklistItem = 'topic' | 'material' | 'cards' | 'review' | 'streak'
 
 const props = defineProps<{
-  hasTopics: boolean
   hasMaterial: boolean
   hasCards: boolean
   hasReviewed: boolean
   streak: number
-  /** First caderno: "cards" opens it. Without one, /cadernos offers to create it. */
+  /** First own caderno: "cards" opens its library. Without one, "cards" opens the "+ Adicionar" sheet. */
   topicId?: string | null
   /** The first pending step gets the primary button (account without cards: it replaces the plan) */
   primary?: boolean
@@ -81,10 +80,9 @@ const uid = useId()
 const notebook = (view?: 'cards') => cadernoPath(props.topicId, view ? { view } : {})
 
 const items = computed<{ key: ChecklistItem; label: string; cta: string; done: boolean; to?: string; hint?: string | null }[]>(() => [
-  { key: 'topic', label: 'Criar um caderno', cta: 'Criar caderno', done: props.hasTopics, to: '/cadernos?action=new-notebook' },
-  { key: 'material', label: 'Adicionar material (nota ou PDF)', cta: 'Adicionar', done: props.hasMaterial, hint: props.materialHint },
-  { key: 'cards', label: 'Gerar ou criar cards', cta: 'Criar cards', done: props.hasCards, to: notebook('cards') },
-  { key: 'review', label: 'Fazer a primeira revisão', cta: 'Revisar', done: props.hasReviewed, to: '/revisar' },
+  { key: 'material', label: 'Adicionar seu material (PDF, texto ou questão)', cta: 'Adicionar', done: props.hasMaterial, hint: props.materialHint },
+  { key: 'cards', label: 'Gerar seus cards', cta: 'Gerar cards', done: props.hasCards, to: props.topicId ? notebook('cards') : undefined },
+  { key: 'review', label: 'Revisar o 1º lote seu', cta: 'Revisar', done: props.hasReviewed, to: '/revisar' },
   { key: 'streak', label: 'Estudar 3 dias seguidos', cta: 'Revisar', done: props.streak >= 3, to: '/revisar' },
 ])
 
@@ -94,6 +92,6 @@ const firstPending = computed(() => items.value.find(i => !i.done)?.key)
 
 function select(item: ChecklistItem) {
   emit('select', item)
-  if (item === 'material') addSheet.show('checklist')
+  if (item === 'material' || (item === 'cards' && !props.topicId)) addSheet.show('checklist')
 }
 </script>

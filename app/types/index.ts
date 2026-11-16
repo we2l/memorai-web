@@ -13,6 +13,8 @@ export interface User {
   created_at?: string
   /** First batch of the account concluded: the activation (prd-4g-conta-onboarding-v3 RF-B3) */
   first_batch_at?: string | null
+  /** First batch with the person's own cards, not the onboarding sample (prd-ativacao-material-proprio RF-B4) */
+  first_own_batch_at?: string | null
   /** Cards per batch, 10 | 20 | 30 (Configurações → Estudo); older API builds omit it (20) */
   review_batch_size?: number
   /** "Não lembrei / Lembrei" (two) or the 4 Anki buttons (prd-revisao-v5-fase-a RF-B1); absent = two */
@@ -127,6 +129,16 @@ export interface Stats {
   }
   /** Goal of the day in batches of the user's size (prd-4a-hoje-v3 RF-B1); older API builds omit it. */
   goal?: DayGoal
+  /** What is the person's own, outside the onboarding sample (prd-ativacao-material-proprio RF-B5); older API builds omit it */
+  own?: OwnProgress
+}
+
+/** GET /stats → own: live materials (PDF, manual note, pasted question) and cards outside the sample cadernos */
+export interface OwnProgress {
+  materials: number
+  cards: number
+  /** A live sample caderno (topics.is_sample) exists */
+  sample: boolean
 }
 
 /** GET /stats → goal. With nothing due today the API reports the goal as met (done = target). */
@@ -173,6 +185,8 @@ export interface Topic {
   position: number
   color: string | null
   learning_mode: string | null
+  /** The sample caderno of the onboarding (a root) */
+  is_sample?: boolean
   target_language: string | null
   source_language: string | null
   language_level: string | null

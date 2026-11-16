@@ -243,6 +243,59 @@ describe('ShellAddSheet', () => {
     usePasteQuestion().open.value = false
   })
 
+  it('só com o caderno de exemplo, "Caderno novo" é o padrão e nasce com o 1º material (prd-ativacao-material-proprio H3)', async () => {
+    useTopicStore().tree = [{ id: 'ex', name: 'Exemplo · Direito Constitucional', parent_id: null, is_sample: true, learning_mode: 'exam', children: [] }] as any
+    useAuthStore().user = { id: 'u1', name: 'Rafael', email: 'rafael@exemplo.com', plan: 'free', default_learning_mode: 'exam' } as any
+    localStorage.setItem('baigi-add-last-topic', 'ex')
+    apiMock.mockImplementation(async (url: string, opts?: { method?: string }) => {
+      if (url === '/topics' && opts?.method === 'POST') return { data: { id: 'novo', name: 'Meu caderno' } }
+      if (url === '/topics') return { data: [] }
+      return { data: { id: 'n1' } }
+    })
+    await openSheet()
+    const dialog = document.querySelector('[role="dialog"]') as HTMLElement
+    expect(dialog.textContent).toContain('Cria um caderno com o que você adicionar')
+    expect((dialog.querySelector('select') as HTMLSelectElement).value).toBe('__new__')
+    const rows = [...dialog.querySelectorAll('ul[aria-label="O que adicionar"] button .font-medium')].map(b => b.textContent?.trim())
+    // The account is in the exam mode: the edital comes right after the PDF (H6)
+    expect(rows).toEqual(['PDF', 'Mandar o edital', 'Colar texto', 'Questão que errei', 'Foto', 'Nota em branco', 'Importar do Anki'])
+    ;(dialog.querySelectorAll('ul[aria-label="O que adicionar"] button')[2] as HTMLButtonElement).click()
+    await tick()
+    const textarea = dialog.querySelector('textarea') as HTMLTextAreaElement
+    textarea.value = 'Controle difuso\nQualquer juiz declara no caso concreto.'
+    textarea.dispatchEvent(new Event('input'))
+    await tick()
+    ;(dialog.querySelector('form') as HTMLFormElement).dispatchEvent(new Event('submit'))
+    await tick()
+    expect(apiMock).toHaveBeenCalledWith('/topics', { method: 'POST', body: { name: 'Meu caderno', learning_mode: 'exam' } })
+    expect(apiMock).toHaveBeenCalledWith('/topics/novo/notes', expect.objectContaining({ method: 'POST' }))
+    expect(trackMock).toHaveBeenCalledWith('notebook_auto_created', { kind: 'text' })
+  })
+
+  it('sem nenhum caderno: o menu de sempre, sem o seletor; "Mandar o edital" só no modo prova', async () => {
+    useTopicStore().tree = []
+    useAuthStore().user = { id: 'u1', name: 'Rafael', email: 'rafael@exemplo.com', plan: 'free', default_learning_mode: 'general' } as any
+    apiMock.mockResolvedValue({ data: [] })
+    await openSheet()
+    const dialog = document.querySelector('[role="dialog"]') as HTMLElement
+    expect(dialog.querySelector('select')).toBeNull()
+    expect(dialog.textContent).not.toContain('Crie um caderno')
+    const rows = [...dialog.querySelectorAll('ul[aria-label="O que adicionar"] button .font-medium')].map(b => b.textContent?.trim())
+    expect(rows).toEqual(['PDF', 'Colar texto', 'Questão que errei', 'Foto', 'Nota em branco', 'Importar do Anki'])
+    expect(await axeViolations(dialog)).toEqual([])
+  })
+
+  it('caderno em modo prova: "Mandar o edital" leva à leitura do edital', async () => {
+    useTopicStore().tree = [{ id: 't9', name: 'TJ-SP', parent_id: null, learning_mode: 'exam', children: [] }] as any
+    setRoute('/cadernos/t9', { topic: 't9' })
+    await openSheet()
+    const dialog = document.querySelector('[role="dialog"]') as HTMLElement
+    ;(dialog.querySelectorAll('ul[aria-label="O que adicionar"] button')[1] as HTMLButtonElement).click()
+    await tick()
+    expect(navigateToMock).toHaveBeenCalledWith('/cadernos/edital?from=add_sheet')
+    expect(useAddSheet().open.value).toBe(false)
+  })
+
   it('Alt+N (preset note) abre direto na nota em branco do escopo', async () => {
     setRoute('/revisar', { topic_id: 't1' })
     await mountSuspended(AddSheet, { attachTo: document.body })

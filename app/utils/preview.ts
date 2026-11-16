@@ -36,3 +36,18 @@ export function previewNotice(f: FeatureData | null | undefined, label: string, 
   const invite = canSubscribe ? `No ${proName}, a IA tem cota todo mês.` : `No ${proName}, a IA tem cota todo mês; a assinatura abre em breve.`
   return { kind: 'spent', text: `Você usou a prévia grátis de ${label}. ${invite}` }
 }
+
+/**
+ * The size of the preview where the own material starts (prd-ativacao-material-proprio H7): "Na prévia grátis: 1 PDF
+ * de até 50 páginas e 10 gerações de cards." Numbers from GET /plans → preview only; null without them (never a
+ * number written by hand).
+ */
+export function previewMaterialLine(preview: CatalogPreview | null | undefined): string | null {
+  const pdfs = preview?.limits?.pdf_to_note ?? 0
+  const cards = preview?.limits?.cards_ai ?? 0
+  const pages = preview?.pdf_pages ?? 0
+  const parts: string[] = []
+  if (pdfs > 0 && pages > 0) parts.push(`${pdfs} ${pdfs === 1 ? 'PDF' : 'PDFs'} de até ${pages} páginas`)
+  if (cards > 0) parts.push(`${cards} ${cards === 1 ? 'geração' : 'gerações'} de cards`)
+  return parts.length ? `Na prévia grátis: ${parts.join(' e ')}.` : null
+}

@@ -10,6 +10,7 @@ import MaterialRow from '~/components/caderno/MaterialRow.vue'
 import MaterialCardsState from '~/components/caderno/MaterialCardsState.vue'
 import PracticeRow from '~/components/caderno/PracticeRow.vue'
 import EmptyScope from '~/components/caderno/EmptyScope.vue'
+import MaterialPdfPanel from '~/components/topic/MaterialPdfPanel.vue'
 import type { MaterialRow as Row, ScopeSubject, ScopeSummary } from '~/types'
 import { axeViolations } from './ui/axe'
 
@@ -262,6 +263,29 @@ describe('CadernoMaterialRow (RF-F6)', () => {
     await flushPromises()
     expect(apiMock).toHaveBeenCalledWith('/usage')
     expect(w.text()).toBe('Limite de IA do mês atingido · volta em 1º/dez')
+    useAuthStore().user = null
+  })
+
+  it('aviso do PDF no material pulado no teto de custo (RF-W2): a volta de /usage, sem "Sem gerações" nem botão', async () => {
+    useAuthStore().user = { plan: 'pro' } as any
+    apiMock.mockResolvedValue({ data: { features: {}, cost_cap: { reached: true, resets_at: '2026-12-01T00:00:00-03:00' } } })
+    const doc = { id: 'd1', auto_cards_status: 'skipped_quota' } as any
+    const w = await mountSuspended(MaterialPdfPanel, { props: { doc, topicId: 'root' } })
+    await flushPromises()
+    expect(apiMock).toHaveBeenCalledWith('/usage')
+    expect(w.get('[data-testid="material-pdf-cost-cap"]').text()).toBe('Limite de IA do mês atingido · volta em 1º/dez')
+    expect(w.text()).not.toContain('Sem gerações')
+    expect(w.find('button').exists()).toBe(false)
+    useAuthStore().user = null
+  })
+
+  it('aviso do PDF sem o teto: segue "Sem gerações de cards" com o botão', async () => {
+    useAuthStore().user = { plan: 'pro' } as any
+    apiMock.mockResolvedValue({ data: { features: {}, cost_cap: { reached: false, resets_at: '2026-12-01T00:00:00-03:00' } } })
+    const w = await mountSuspended(MaterialPdfPanel, { props: { doc: { id: 'd1', auto_cards_status: 'skipped_quota' } as any, topicId: 'root' } })
+    await flushPromises()
+    expect(w.text()).toContain('Sem gerações de cards este mês.')
+    expect(w.find('[data-testid="material-pdf-cost-cap"]').exists()).toBe(false)
     useAuthStore().user = null
   })
 })

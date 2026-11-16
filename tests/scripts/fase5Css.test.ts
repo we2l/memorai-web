@@ -9,7 +9,9 @@ const NUXT = join(PUBLIC_DIR, '_nuxt')
 const cssFiles = skipWithoutBuild ? [] : readdirSync(NUXT).filter(f => f.endsWith('.css'))
 const read = (f: string) => readFileSync(join(NUXT, f), 'utf8')
 const entryFile = cssFiles.find(f => f.startsWith('entry'))
-const landingFile = cssFiles.find(f => read(f).includes('.landing-page'))
+// The landing's and the entry of /comecar's (prd-entrada-comecar): both share the landing tokens (landing-tokens.css)
+const landingFile = cssFiles.find(f => read(f).includes('.landing-page .lp-'))
+const entradaFile = cssFiles.find(f => read(f).includes('.entrada-page .ec-'))
 
 describe.skipIf(skipWithoutBuild)('Fase 5: o que o build entrega', () => {
   it('o entry.css não tem paleta, tamanho, raio nem sombra padrão do Tailwind', () => {
@@ -39,10 +41,21 @@ describe.skipIf(skipWithoutBuild)('Fase 5: o que o build entrega', () => {
     expect(loose.map(m => m[0].slice(0, 80))).toEqual([])
   })
 
-  it('o CSS da landing fica fora do precache, e é o único index.*.css', () => {
+  it('o CSS da landing e o da entrada do /comecar ficam fora do precache, e são os únicos index.*.css', () => {
     const sw = readFileSync(join(PUBLIC_DIR, 'sw.js'), 'utf8')
     expect(sw).not.toContain(landingFile!)
-    expect(cssFiles.filter(f => f.startsWith('index.'))).toEqual([landingFile])
+    expect(sw).not.toContain(entradaFile!)
+    // Both pages are index.vue (/ and /comecar): globIgnores '_nuxt/index.*.css' covers the two
+    expect(cssFiles.filter(f => f.startsWith('index.')).sort()).toEqual([landingFile, entradaFile].sort())
+    expect(landingFile).not.toBe(entradaFile)
+  })
+
+  it('a entrada do /comecar fica leve e no próprio escopo, com a fonte de título da landing', () => {
+    const css = read(entradaFile!)
+    expect(gzipSync(css).length / 1024).toBeLessThan(6)
+    expect(css).toContain('/landing/bricolage-700.woff2')
+    expect(css).not.toContain('@layer utilities')
+    expect(read(landingFile!)).not.toContain('.entrada-page .ec-')
   })
 
   // Landing D (prd-landing-d): the composition of the prototype (phone, bubbles, bands, stage, player, motion) lives

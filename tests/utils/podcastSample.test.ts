@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { PODCAST_SAMPLE, sampleClock, sampleLineAt } from '~/utils/podcastSample'
 import { SAMPLE } from '~/utils/landing'
+import { ENTRY_SAMPLE } from '~/utils/entrada'
 
 describe('amostra do podcast (paywall e landing)', () => {
   it('a linha falada segue o tempo do arquivo', () => {
@@ -23,5 +24,13 @@ describe('amostra do podcast (paywall e landing)', () => {
     expect(rest).toEqual(PODCAST_SAMPLE)
     expect(peaks).toBeDefined()
     expect(SAMPLE.peaks).toHaveLength(120)
+  })
+
+  it('a entrada do /comecar toca a mesma amostra, com as barras tiradas da forma de onda da landing', () => {
+    // A copy in utils/entrada.ts too (prd-entrada-comecar RN-5); the 40 bars = the loudest of each 3 of the 120 peaks
+    const { bars, ...rest } = ENTRY_SAMPLE
+    expect(rest).toEqual(PODCAST_SAMPLE)
+    const expected = Array.from({ length: 40 }, (_, i) => Math.max(...SAMPLE.peaks.slice(i * 3, i * 3 + 3)))
+    expect(bars).toEqual(expected)
   })
 })

@@ -27,6 +27,25 @@ export const PIX_RENEWAL_PATH = '/checkout?plano=mensal&metodo=pix'
 
 const monthFormatter = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit' })
 
+const capDayFormatter = new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', day: 'numeric', month: 'short' })
+
+/**
+ * "1º/dez": the day the AI comes back after the subscriber's monthly cost cap (prd-teto-custo-assinante RF-W1), from
+ * `resets_at` of the 402 or of /usage; without it, the 1st of next month in Brasília.
+ */
+export function costCapBackLabel(resetsAt?: string | null, now: Date = new Date()): string {
+  let date = resetsAt ? new Date(resetsAt) : null
+  if (!date || Number.isNaN(date.getTime())) {
+    const [year = 0, month = 1] = monthFormatter.format(now).split('-').map(Number)
+    // Noon UTC of the 1st is still the 1st in Brasília
+    date = new Date(Date.UTC(month === 12 ? year + 1 : year, month === 12 ? 0 : month, 1, 12))
+  }
+  const parts = capDayFormatter.formatToParts(date)
+  const day = Number(parts.find(p => p.type === 'day')?.value)
+  const name = (parts.find(p => p.type === 'month')?.value ?? '').replace('.', '')
+  return `${day === 1 ? '1º' : day}/${name}`
+}
+
 /** "01/12": the 1st of next month in Brasília, the day the monthly count starts again (when /usage is not at hand). */
 export function nextMonthStartLabel(now: Date = new Date()): string {
   const [, month] = monthFormatter.format(now).split('-').map(Number)

@@ -458,6 +458,8 @@ export interface FeatureUsageData {
   features: Record<string, FeatureData>
   /** Pages of PDF read by the AI in the period (the trial's cap: 100) */
   pdf_pages?: FeatureData
+  /** Subscribers only (prd-teto-custo-assinante RF-B6): the monthly AI cost cap, never its amount */
+  cost_cap?: { reached: boolean; resets_at: string }
 }
 
 // Documents (PDF)
@@ -1028,12 +1030,14 @@ export interface FeatureLimitDetail {
   resetsAt?: string | null
   /** The Free's preview is spent: it never resets (prd-uso-justo §9) */
   lifetime?: boolean
+  /** `cost_cap_reached`: the subscriber's monthly AI cost cap (prd-teto-custo-assinante), not a quota */
+  code?: string | null
 }
 
 /** `auto_generation` of POST /documents (PRD §4.3) */
 export interface DocumentAutoGeneration {
   dispatched: boolean
-  blocked_reason: 'feature_limit' | 'pages_cap' | 'in_progress' | null
+  blocked_reason: 'feature_limit' | 'pages_cap' | 'in_progress' | 'cost_cap' | null
 }
 
 /** Laravel paginated resource collection */

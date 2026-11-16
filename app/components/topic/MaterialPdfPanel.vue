@@ -9,6 +9,9 @@
       <p v-if="doc.auto_cards_status === 'pending' || doc.auto_cards_status === 'generating'" class="flex items-center gap-2 text-meta text-fg" aria-live="polite">
         <UiSpinner size="sm" /> Nota pronta · criando os cards das primeiras partes…
       </p>
+      <p v-else-if="doc.auto_cards_status === 'skipped_quota' && costCap?.reached" class="text-meta text-fg" data-testid="material-pdf-cost-cap">
+        Limite de IA do mês atingido · volta em {{ costCapBackLabel(costCap.resets_at) }}
+      </p>
       <p v-else-if="doc.auto_cards_status === 'skipped_quota'" class="flex flex-wrap items-center gap-x-2 text-meta text-fg">
         Sem gerações de cards {{ auth.onTrial ? 'no teste' : 'este mês' }}.
         <UiButton size="sm" variant="ghost" :loading="retrying" @click="retryCards">Gerar cards</UiButton>
@@ -62,6 +65,12 @@ const partialNotice = computed(() => {
 onMounted(() => {
   if (partial.value && auth.user?.plan === 'pro') void fetchPlans()
 })
+// A paid PDF skipped for quota may be the monthly AI cost cap (prd-teto-custo-assinante RF-W2): /usage tells,
+// and the line says when the AI comes back instead of offering a retry that would only hit the cap again
+const usage = useFeatureUsage()
+const paidSkipped = computed(() => props.doc.auto_cards_status === 'skipped_quota' && auth.user?.plan === 'pro' && !auth.onTrial)
+const costCap = computed(() => (paidSkipped.value ? usage.usage.value?.cost_cap : undefined))
+onMounted(() => { if (paidSkipped.value) void usage.fetchUsage() })
 const modeChanged = computed(() => !!props.doc.learning_mode_used && !!props.topicLearningMode && props.doc.learning_mode_used !== props.topicLearningMode)
 const languageName = computed(() => TARGET_LANGUAGES.find(l => l.value === props.doc.source_language)?.label ?? 'outro idioma')
 const languageDismissed = ref(false)

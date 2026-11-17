@@ -4,12 +4,7 @@
 
     <p v-if="notice" role="status" class="rounded-control bg-warning-subtle px-3 py-2 text-meta text-fg-strong" data-testid="entrar-notice">{{ notice }}</p>
 
-    <div class="flex flex-col gap-2">
-      <AuthGoogleButton variant="outline" size="lg" />
-      <p class="au-meta">
-        Ao continuar você aceita os <UiLink to="/termos" class="underline">Termos</UiLink> e a <UiLink to="/privacidade" class="underline">Privacidade</UiLink>.
-      </p>
-    </div>
+    <AuthGoogleButton variant="outline" size="lg" />
 
     <p class="au-or" aria-hidden="true">ou com e-mail</p>
 
@@ -27,6 +22,11 @@
 
     <p class="au-switch">
       Ainda não tem conta? <UiLink to="/criar-conta" class="underline">Criar conta grátis</UiLink>
+    </p>
+
+    <!-- Google from here can create the account: the acceptance stays, below the form and only for that case -->
+    <p class="au-meta" data-testid="entrar-terms">
+      Se você ainda não tem conta, entrar com o Google cria uma e você aceita os <UiLink to="/termos" class="underline">Termos</UiLink> e a <UiLink to="/privacidade" class="underline">Privacidade</UiLink>.
     </p>
 
     <template #extra>

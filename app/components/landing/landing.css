@@ -215,6 +215,15 @@
   & .lp-curve-sec .lp-lead, & .lp-curve-sec .lp-legend, & .lp-curve-sec .lp-fine { color: var(--lp-curve-muted); }
   & .lp-curve-sec .lp-lead { max-width: 46ch; }
   & .lp-curve-sec .lp-link { color: var(--lp-white); }
+  /* P2: o card de exemplo que vira (BlogExampleCard com o selo "Exemplo"); o foco dentro do card volta à cor do DS */
+  & .lp-example { margin-top: 40px; max-width: 560px; }
+  & .lp-example h3 { font-family: var(--lp-display); font-weight: 700; font-size: clamp(24px, 2.4vw, 32px); line-height: 1.1; color: var(--lp-white); margin: 0 0 16px; }
+  & .lp-example figure { color: var(--fg); }
+  & .lp-example figure :focus-visible { outline-color: var(--focus-ring); }
+  & .lp-example .lp-fine { margin-top: 12px; }
+  /* A altura do card de frente (pergunta em 2 linhas no celular, 1 a partir de 640 px): nada se move quando ele chega */
+  & .lp-example-slot { min-height: 204px; }
+  @media (min-width: 640px) { & .lp-example-slot { min-height: 177px; } }
   & .lp-curve-m { position: absolute; width: 92px; right: 16px; top: 14px; }
   & .lp-curve { margin-top: 28px; }
   & .lp-curve svg { width: 100%; height: auto; overflow: visible; }
@@ -244,8 +253,13 @@
   & .lp-chap .n { font-family: var(--lp-display); font-weight: 700; font-size: 15px; color: var(--action-fg); }
   & .lp-chap h3 { font-family: var(--lp-display); font-weight: 700; font-size: clamp(32px, 3.6vw, 52px); line-height: 1; letter-spacing: -0.01em; max-width: 14ch; margin: 8px 0 0; color: var(--fg-strong); transition: color 500ms var(--lp-ease); }
   & .lp-chap .lp-lead { font-size: clamp(17px, 1.4vw, 19px); max-width: 38ch; margin-top: 14px; }
-  & .lp-chap .inline-media { margin-top: 28px; display: grid; justify-items: center; }
+  /* P1 (prd-landing-mostrar-produto): o golfinho apresenta a tela do capítulo, como o dos simulados. O celular vai para
+     a esquerda de uma faixa de 360 px e o golfinho fica ao lado, sem tampar a tela; o balão encosta na borda do celular */
+  & .lp-chap .inline-media { position: relative; margin: 28px auto 0; display: grid; justify-items: start; width: min(100%, 360px); }
   & .lp-chap .inline-media .lp-phone { width: min(270px, 72vw); }
+  & .lp-chap .lp-chap-m { position: absolute; width: 84px; right: 0; bottom: 0; }
+  & .lp-chap .lp-chap-say { right: 0; bottom: 136px; max-width: 150px; font-size: 14px; padding: 10px 12px; }
+  & .lp-chap .lp-chap-say::after { left: auto; right: 40px; }
   & .lp-sticky-col { display: none; }
 }
 
@@ -260,6 +274,9 @@
     & .lp-stage { position: sticky; top: var(--lp-header-h); height: calc(100vh - var(--lp-header-h)); display: grid; place-items: center; }
     & .lp-stage .lp-phone { width: min(330px, 36vh); }
     & .lp-stage .lp-guide { position: absolute; width: 140px; left: calc(50% + 140px); bottom: 10%; }
+    /* O balão do capítulo do meio da tela, acima do golfinho; quebra em 2 linhas no máximo */
+    & .lp-stage .lp-guide-say { right: 0; bottom: calc(10% + 215px); max-width: 230px; }
+    & .lp-stage .lp-guide-say::after { left: auto; right: 64px; }
   }
 }
 
@@ -484,6 +501,7 @@ html.lp-motion .landing-page {
   & .lp-float { animation: lp-float 6s ease-in-out infinite; }
   & .lp-bob { animation: lp-bob 1s ease-in-out infinite; }
   & .lp-pop { animation: lp-pop 700ms var(--lp-ease); }
+  & .lp-guide-say.lp-pop-in { transform-origin: 70% 100%; animation: lp-pop-in 500ms var(--lp-ease) 150ms both; }
 
   & [data-reveal] { opacity: 0; transform: translateY(28px); transition: opacity 700ms var(--lp-ease), transform 900ms var(--lp-ease); transition-delay: var(--d, 0ms); }
   & [data-reveal='scale'] { transform: scale(.94); }

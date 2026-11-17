@@ -20,6 +20,14 @@
           <span class="lp-fine">Ilustração da ideia, sem escala. A conta de verdade usa os seus cards.</span>
         </div>
       </div>
+      <!-- P2 (prd-landing-mostrar-produto): a card to turn, labeled "Exemplo"; its chunk only when the section nears -->
+      <div class="lp-example" data-testid="landing-example">
+        <h3>Teste agora com um card</h3>
+        <div ref="slot" class="lp-example-slot">
+          <LazyBlogExampleCard v-if="near" badge :q="EXAMPLE_CARD.q" :a="EXAMPLE_CARD.a" :source="EXAMPLE_CARD.source" />
+        </div>
+        <p class="lp-fine">Nada é salvo. No Baigi, o dia de cada card sai das suas respostas.</p>
+      </div>
       <div class="lp-act">
         <LandingCta to="/comecar" position="curve" tone="band" section>Começar a revisar grátis</LandingCta>
         <!-- Internal link to the free tool (SEO: the landing pointed to the blog and the tools only in the footer) -->
@@ -32,4 +40,26 @@
 <script setup lang="ts">
 // The villain (prd-landing-d RF-D3): the forgetting curve on the deep violet band, drawn when it shows up (a cover
 // that slides away, transform only), the thinking dolphin, and its own call. An illustration of the idea, no scale.
+// Below it, the blog's example card (P2): the visitor tries the "right day" the lead talks about.
+// The card's chunk (once-*, with ReviewFeedback) loads when the slot is 400 px from the screen; the slot keeps the
+// card's height, so nothing moves. (Not `hydrate-on-visible`: it pulls Vue's hydration strategies into the entry.)
+import { EXAMPLE_CARD } from '~/utils/landing'
+
+const slot = ref<HTMLElement | null>(null)
+const near = ref(false)
+let io: IntersectionObserver | null = null
+
+onMounted(() => {
+  if (!slot.value || !('IntersectionObserver' in window)) {
+    near.value = true
+    return
+  }
+  io = new IntersectionObserver(([e]) => {
+    if (!e?.isIntersecting) return
+    near.value = true
+    io?.disconnect()
+  }, { rootMargin: '400px 0px' })
+  io.observe(slot.value)
+})
+onBeforeUnmount(() => io?.disconnect())
 </script>

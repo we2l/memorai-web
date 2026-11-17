@@ -10,7 +10,8 @@
     @keydown="onKey"
   >
     <div class="mb-3 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-      <span class="text-label font-semibold text-fg-muted">Card de exemplo</span>
+      <UiTag v-if="badge" data-testid="example-badge">Exemplo</UiTag>
+      <span v-else class="text-label font-semibold text-fg-muted">Card de exemplo</span>
       <span v-if="source" class="text-label text-fg-muted">{{ source }}</span>
     </div>
     <p class="break-words text-section text-fg-strong" data-testid="blog-example-question">{{ q }}</p>
@@ -51,7 +52,8 @@ import type { RatingFeedback } from '~/components/review/ReviewFeedback.vue'
 import { FIRST_STABILITY, intervalFor } from '~/utils/forgetting'
 import { feedbackTitle, feedbackWhen } from '~/utils/reviewFeedback'
 
-const props = defineProps<{ q: string, a: string, source?: string }>()
+/** `badge`: the "Exemplo" pill in place of the quiet label (the landing, prd-landing-mostrar-produto RF-P2.1) */
+const props = defineProps<{ q: string, a: string, source?: string, badge?: boolean }>()
 
 /** Same intervals as the blog quiz: a new card the reader remembered comes back in ~2 days (FSRS-6 defaults) */
 const GOOD_DAYS = Math.round(intervalFor(FIRST_STABILITY, 0.9))

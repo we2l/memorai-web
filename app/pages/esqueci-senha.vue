@@ -1,8 +1,8 @@
 <template>
-  <div class="flex flex-col gap-5">
+  <AuthSplit headline="Acontece com todo mundo." sub="Seus cards e o seu progresso continuam guardados." mascot="piscadinha">
     <div>
-      <h1 class="text-page-title text-fg-strong">Esqueci a senha</h1>
-      <p v-if="!sent" class="mt-1 text-body text-fg-muted">Enviamos um link para você criar uma nova.</p>
+      <h1>Esqueci a <span class="au-grifo">senha.</span></h1>
+      <p v-if="!sent" class="au-lead">Enviamos um link para você criar uma nova.</p>
     </div>
 
     <!-- The same answer whether the account exists or not (RN 6) -->
@@ -15,22 +15,22 @@
       <!-- Turnstile (M4): invisible unless Cloudflare asks for a click -->
       <div ref="captchaEl" class="contents" data-testid="forgot-captcha" />
       <p v-if="captchaError" role="alert" class="text-meta font-medium text-danger" data-testid="forgot-captcha-error">{{ captchaError }}</p>
-      <UiButton variant="primary" type="submit" block :loading="loading">Enviar link</UiButton>
+      <UiButton variant="primary" size="lg" type="submit" block :loading="loading">Enviar link</UiButton>
     </form>
 
-    <p class="text-meta">
+    <p class="au-switch">
       <UiLink to="/entrar">Voltar para entrar</UiLink>
     </p>
-  </div>
+  </AuthSplit>
 </template>
 
 <script setup lang="ts">
-// "Esqueci a senha" v4 (prd-4g-conta-onboarding-v3 RF-F14). Prerendered.
+// "Esqueci a senha" v4 (prd-4g-conta-onboarding-v3 RF-F14) in the skin of the landing (components/auth/Split.vue). Prerendered.
 import { fieldErrors, retryAfterSeconds, waitLabel } from '~/utils/authMessages'
 import { getErrorStatus } from '~/utils/apiErrors'
 import { CAPTCHA_MESSAGES } from '~/utils/turnstile'
 
-definePageMeta({ layout: 'auth' })
+definePageMeta({ layout: 'auth-split' })
 useHead({ title: 'Esqueci a senha · Baigi' })
 
 const { $api } = useNuxtApp()

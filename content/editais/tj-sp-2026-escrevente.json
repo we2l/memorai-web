@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "id": "01m7mw12e5kqy3eey9j4p1g04w",
+  "id": "01m7n08sxzcg19wdnbhnns3pw5",
   "slug": "tj-sp-2026-escrevente",
   "group": "tj-sp-2026",
   "area": "concurso",
   "checked_at": "2026-11-17",
-  "exported_at": "2026-11-17T10:47:08-03:00",
+  "exported_at": "2026-11-17T12:00:08-03:00",
   "source_url": "https://www.tjsp.jus.br/atc/dejesp/consultaSimples.do?cdVolume=4542&nuDiario=4542&cdCaderno=10&nuSeqpagina=125",
   "proposal_sha256": "8f9349338805dc264acf1896f5120a110ba885991dc77f899f1da566684cb8a1",
   "proposal": {

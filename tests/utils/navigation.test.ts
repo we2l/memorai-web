@@ -69,6 +69,9 @@ const EXPECTED: Record<string, string | null> = {
   '/ferramentas/plano-ate-a-prova': null,
   '/ferramentas/edital-verticalizado': null,
   '/ferramentas/edital-verticalizado/r/:id': null,
+  // Conferred edital pages (prd-paginas-edital-publicas): public, no place
+  '/editais': null,
+  '/editais/:slug': null,
   '/quem-faz': null,
 }
 

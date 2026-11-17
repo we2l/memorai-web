@@ -20,6 +20,7 @@ Idioma: português do Brasil. Site: https://baigi.com.br
 ## Blog
 
 - [Curva do esquecimento](https://baigi.com.br/blog/curva-do-esquecimento): quanto se esquece e como revisar no dia certo
+- [De quanto em quanto tempo revisar a matéria](https://baigi.com.br/blog/de-quanto-em-quanto-tempo-revisar): os intervalos em dias (2, 11, 46 e 163), a regra de 24 horas, 7 e 30 dias e o que muda com a prova perto
 - [Cronograma de revisão para a OAB 48](https://baigi.com.br/blog/cronograma-revisao-oab-48)
 - [OAB faltando 1 mês: plano de 30 dias](https://baigi.com.br/blog/oab-faltando-1-mes)
 - [TJ-SP Escrevente 2027: lei seca da Vunesp](https://baigi.com.br/blog/tj-sp-escrevente-lei-seca-vunesp)

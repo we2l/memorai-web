@@ -16,13 +16,15 @@ export interface BlogSeoInput {
   published?: string
   modified?: string
   jsonLd?: object[]
+  /** Out of the index but followed (a conferred edital past its exam, prd-paginas-edital-publicas R5.4) */
+  noindex?: boolean
 }
 
 export function useBlogSeo(input: BlogSeoInput) {
   const url = absoluteUrl(input.path)
   const image = input.image ? absoluteUrl(input.image) : DEFAULT_OG_IMAGE
   const meta = [
-    { name: 'robots', content: INDEXABLE },
+    { name: 'robots', content: input.noindex ? 'noindex, follow' : INDEXABLE },
     { name: 'description', content: input.description },
     { property: 'og:title', content: input.title },
     { property: 'og:description', content: input.description },

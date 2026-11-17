@@ -8,7 +8,7 @@ area: faculdade
 author: baigi
 published: 2026-11-08
 updated: 2026-11-08
-related: como-revisar-lei-seca-inss, alternativa-ao-anki, revisoes-acumuladas
+related: de-quanto-em-quanto-tempo-revisar, como-revisar-lei-seca-inss, alternativa-ao-anki, revisoes-acumuladas
 context: Ebbinghaus e FSRS
 cover: {"value": "94,7%", "label": "de chance de lembrar 1 dia depois de acertar"}
 facts: [{"value": "80,8%", "label": "depois de 7 dias", "icon": "chart"}, {"value": "66,8%", "label": "depois de 30 dias", "icon": "chart"}]
@@ -84,6 +84,8 @@ A outra metade da resposta é o espaçamento. Estudar o mesmo conteúdo em sess�
 4. e depois para cerca de 170 dias.
 
 São estimativas de um modelo, não regra. Cards difíceis voltam mais cedo, e um erro encurta o intervalo. Mas o desenho mostra por que a revisão espaçada não "come o dia" quando é feita no tempo certo: os intervalos crescem rápido, e a maior parte dos cards antigos só aparece de vez em quando.
+
+Os dias de cada revisão no calendário, a regra de 24 horas, 7 e 30 dias e o que muda com a prova perto estão em [de quanto em quanto tempo revisar a matéria](/blog/de-quanto-em-quanto-tempo-revisar).
 
 ```shot
 {"shot": "revisao", "caption": "Tela real do Baigi, conta de demonstração: o card volta perto do dia em que você esqueceria."}

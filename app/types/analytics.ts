@@ -181,17 +181,20 @@ export interface FrontEventProps {
   edital_public_ready: { subjects: number, topics: number, cached: boolean }
   edital_public_failed: { code: string }
   edital_public_choose: { kind: 'edital' | 'cargo', count: number }
-  edital_public_check: { pct_bucket: string }
+  edital_public_check: { pct_bucket: string, origin?: 'page' }
   edital_public_export: { format: 'csv' | 'pdf' }
   edital_public_share: Record<string, never>
   /** origin (prd-landing-mostrar-produto P3): the reading started in the box of /comecar (?from=comecar) or on the tool */
-  edital_public_apply_clicked: { logged_in: boolean, origin: 'comecar' | 'tool' }
-  edital_public_applied: Record<string, never>
+  edital_public_apply_clicked: { logged_in: boolean, origin: 'comecar' | 'tool' | 'page' }
+  edital_public_applied: { origin?: 'page' }
   /** E-mail before the PDF or the .ics of the free tool (prd-cronograma RF-W5); `marketing` = the box ticked */
-  edital_public_lead: { tool: 'pdf' | 'ics', marketing: boolean }
+  edital_public_lead: { tool: 'pdf' | 'ics', marketing: boolean, origin?: 'page' }
 
   /** Cronograma de estudos (prd-cronograma RF-B6): the download happens in the browser */
-  schedule_export: { format: 'pdf' | 'ics' | 'csv', origin: 'app' | 'public' }
+  schedule_export: { format: 'pdf' | 'ics' | 'csv', origin: 'app' | 'public' | 'page' }
+  // Conferred edital pages (prd-paginas-edital-publicas RF-W13)
+  edital_page_viewed: { slug: string, status: string }
+  edital_page_cta_clicked: { slug: string, position: 'hero' | 'actions' | 'sticky' | 'footer' }
   /** Prontidão para a prova (prd-prontidao-prova RF-F5) */
   readiness_explain_open: Record<string, never>
   readiness_action_clicked: { kind: string; origin: 'home' | 'progress' }

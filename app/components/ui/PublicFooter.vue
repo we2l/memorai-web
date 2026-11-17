@@ -5,6 +5,8 @@
       <UiLink to="/planos" variant="muted" standalone class="underline">Planos e preços</UiLink>
       <UiLink to="/blog" variant="muted" standalone class="underline">Blog</UiLink>
       <UiLink to="/ferramentas" variant="muted" standalone class="underline">Ferramentas</UiLink>
+      <!-- From 5 conferred editais open on the build's day (prd-paginas-edital-publicas §8.2, decision 5) -->
+      <UiLink v-if="showEditaisLink" to="/editais" variant="muted" standalone class="underline">Editais conferidos</UiLink>
       <UiLink to="/quem-faz" variant="muted" standalone class="underline">Quem faz</UiLink>
       <UiLink to="/termos" variant="muted" standalone class="underline">Termos de Uso</UiLink>
       <UiLink to="/privacidade" variant="muted" standalone class="underline">Política de Privacidade</UiLink>
@@ -13,3 +15,7 @@
     </div>
   </footer>
 </template>
+
+<script setup lang="ts">
+import { showEditaisLink } from '#editais/footer'
+</script>

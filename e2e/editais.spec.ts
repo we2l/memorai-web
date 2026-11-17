@@ -41,7 +41,11 @@ test.describe('páginas de edital conferido', () => {
     // Only the session is mocked (who is logged in); the persistence route is left alone (CLAUDE.md, E2E)
     await page.route('**/api/me', r => r.fulfill(json({ data: { id: 1, name: 'E2E', email: 'e2e-editais@audit.test', email_verified_at: '2026-11-01T00:00:00Z', onboarding_completed: true, plan: 'free' } })))
     await page.route('**/sanctum/csrf-cookie', r => r.fulfill({ status: 204 }))
+    // the click only calls apply once the session is known; before that it goes to sign-up
+    const me = page.waitForResponse(res => res.url().includes('/api/me'))
     await page.goto(PATH)
+    await me
+    await expect(page.getByTestId('edital-apply')).toBeEnabled()
     const applied = page.waitForRequest(req => req.method() === 'POST' && req.url().includes('/editais/publicos/01JDTESTF1XTVRE0000000000A/apply'))
     await page.getByTestId('edital-apply').click()
     await applied

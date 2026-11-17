@@ -95,6 +95,15 @@ describe('card de exemplo com selo (prd-landing-mostrar-produto RF-P2.1)', () =>
     expect(plain.find('[data-testid="example-badge"]').exists()).toBe(false)
     expect(plain.text()).toContain('Card de exemplo')
   })
+
+  it('again: a landing diz "amanhã" no Não lembrei, como a entrada do /comecar', async () => {
+    const w = await mountSuspended(ExampleCard, { props: { q: 'P?', a: 'R', badge: true, again: 'amanhã' } })
+    await w.get('[data-testid="blog-example-reveal"]').trigger('click')
+    await w.get('[data-testid="blog-example-again"]').trigger('click')
+    expect(w.get('[data-testid="review-feedback"]').text()).toContain('Ele volta amanhã.')
+    await w.get('[data-testid="review-continue"]').trigger('click')
+    expect(w.text()).toContain('No Baigi, este card voltaria amanhã.')
+  })
 })
 
 describe('sumário (prd-blog-v2 RF-L3)', () => {

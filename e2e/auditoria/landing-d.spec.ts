@@ -300,7 +300,10 @@ test.describe('landing D', () => {
     await card.focus()
     await page.keyboard.press('Space')
     await page.keyboard.press('1')
-    await expect(card.getByTestId('review-feedback')).toContainText('Ele volta ainda hoje.')
+    // The landing's card says what the /comecar entry says: a miss comes back tomorrow
+    await expect(card.getByTestId('review-feedback')).toContainText('Ele volta amanhã.')
+    await card.getByTestId('review-continue').click()
+    await expect(card).toContainText('voltaria amanhã')
   })
 
   test('P2: o card só baixa quando a seção se aproxima, e o lugar dele não pula', async ({ page }) => {

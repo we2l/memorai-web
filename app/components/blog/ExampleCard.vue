@@ -52,12 +52,18 @@ import type { RatingFeedback } from '~/components/review/ReviewFeedback.vue'
 import { FIRST_STABILITY, intervalFor } from '~/utils/forgetting'
 import { feedbackTitle, feedbackWhen } from '~/utils/reviewFeedback'
 
-/** `badge`: the "Exemplo" pill in place of the quiet label (the landing, prd-landing-mostrar-produto RF-P2.1) */
-const props = defineProps<{ q: string, a: string, source?: string, badge?: boolean }>()
+/**
+ * `badge`: the "Exemplo" pill in place of the quiet label (the landing, prd-landing-mostrar-produto RF-P2.1).
+ * `again`: when a "Não lembrei" comes back; the blog keeps "ainda hoje" (the quiz's), the landing says "amanhã",
+ * like the /comecar entry card (utils/entrada.ts ENTRY_CARD_INTERVALS: the sample deck has no learning steps).
+ */
+const props = withDefaults(defineProps<{ q: string, a: string, source?: string, badge?: boolean, again?: string }>(), {
+  source: undefined,
+  again: 'ainda hoje',
+})
 
 /** Same intervals as the blog quiz: a new card the reader remembered comes back in ~2 days (FSRS-6 defaults) */
 const GOOD_DAYS = Math.round(intervalFor(FIRST_STABILITY, 0.9))
-const AGAIN_TEXT = 'ainda hoje'
 
 const root = ref<HTMLElement | null>(null)
 const state = ref<'front' | 'back' | 'done'>('front')
@@ -65,7 +71,7 @@ const remembered = ref(false)
 const feedback = ref<RatingFeedback | null>(null)
 const band = ref<{ cancel: (via: 'tap' | 'key' | 'why') => void } | null>(null)
 
-const doneText = computed(() => (remembered.value ? `No Baigi, este card voltaria em ${GOOD_DAYS} dias.` : `No Baigi, este card voltaria ${AGAIN_TEXT}.`))
+const doneText = computed(() => (remembered.value ? `No Baigi, este card voltaria em ${GOOD_DAYS} dias.` : `No Baigi, este card voltaria ${props.again}.`))
 
 async function reveal() {
   if (state.value !== 'front') return
@@ -82,7 +88,7 @@ function rate(ok: boolean) {
     id: Date.now(),
     kind,
     title: feedbackTitle(kind, props.q),
-    when: ok ? feedbackWhen('ok', `${GOOD_DAYS}d`) : `Ele volta ${AGAIN_TEXT}.`,
+    when: ok ? feedbackWhen('ok', `${GOOD_DAYS}d`) : `Ele volta ${props.again}.`,
     // One card: nothing comes next, so the band waits for "Continuar" on a hit too
     autoAdvance: false,
     canWhy: false,

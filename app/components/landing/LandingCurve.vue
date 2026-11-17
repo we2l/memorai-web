@@ -24,7 +24,7 @@
       <div class="lp-example" data-testid="landing-example">
         <h3>Teste agora com um card</h3>
         <div ref="slot" class="lp-example-slot">
-          <LazyBlogExampleCard v-if="near" badge :q="EXAMPLE_CARD.q" :a="EXAMPLE_CARD.a" :source="EXAMPLE_CARD.source" />
+          <LazyBlogExampleCard v-if="near" badge again="amanhã" :q="EXAMPLE_CARD.q" :a="EXAMPLE_CARD.a" :source="EXAMPLE_CARD.source" />
         </div>
         <p class="lp-fine">Nada é salvo. No Baigi, o dia de cada card sai das suas respostas.</p>
       </div>

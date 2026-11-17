@@ -39,7 +39,7 @@ export type LandingAreaProp = 'concurso' | 'faculdade' | 'oab' | 'enem' | 'idiom
 
 /** The entry of /comecar (prd-entrada-comecar RF-F21): its steps and where a call was clicked */
 export type EntryStepProp = 'card' | 'material' | 'revisar' | 'simulado' | 'podcast' | 'prova' | 'planos'
-export type EntryCtaPosition = 'hero_tour' | 'hero_login' | 'feature' | 'tool_edital' | 'tool_calculadora' | 'final_signup'
+export type EntryCtaPosition = 'hero_tour' | 'hero_login' | 'feature' | 'tool_edital' | 'tool_calculadora' | 'final_signup' | 'edital_box'
   | 'card_areas' | 'plans_signup' | 'plans_areas'
 
 export interface FrontEventProps {
@@ -184,7 +184,8 @@ export interface FrontEventProps {
   edital_public_check: { pct_bucket: string }
   edital_public_export: { format: 'csv' | 'pdf' }
   edital_public_share: Record<string, never>
-  edital_public_apply_clicked: { logged_in: boolean }
+  /** origin (prd-landing-mostrar-produto P3): the reading started in the box of /comecar (?from=comecar) or on the tool */
+  edital_public_apply_clicked: { logged_in: boolean, origin: 'comecar' | 'tool' }
   edital_public_applied: Record<string, never>
   /** E-mail before the PDF or the .ics of the free tool (prd-cronograma RF-W5); `marketing` = the box ticked */
   edital_public_lead: { tool: 'pdf' | 'ics', marketing: boolean }

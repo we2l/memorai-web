@@ -120,6 +120,11 @@
   & .ec-feat:hover { background: var(--ec-on-band-hover); }
   & .ec-feat-text { display: block; font-size: 15px; color: var(--lp-curve-muted); margin-top: 4px; }
 
+  /* P3: a caixa do edital, o formulário da ferramenta (Ui* do DS) num cartão claro sobre o fundo da entrada; a altura
+     mínima é a do formulário de PDF, que chega quando a caixa se aproxima da tela (nada se move) */
+  & .ec-sec.ec-edital { padding-top: 0; }
+  & .ec-edital .ec-lead { margin-top: 10px; }
+  & .ec-edital-box { margin-top: 20px; max-width: 680px; background: var(--surface-raised); box-shadow: var(--elev-card); border-radius: 24px; padding: 20px; min-height: 392px; }
   & .ec-tools { display: grid; gap: 12px; margin-top: 20px; }
   & .ec-row { display: flex; gap: 14px; align-items: center; background: var(--surface-raised); box-shadow: var(--elev-card); border-radius: 20px; padding: 16px; color: inherit; text-decoration: none; transition: box-shadow 150ms; }
   & .ec-row:hover { box-shadow: 0 0 0 2px var(--action-line), var(--elev-card); }
@@ -225,6 +230,7 @@
     & .ec-feats { grid-template-columns: repeat(3, 1fr); gap: 16px; }
     & .ec-feat { flex-direction: column; padding: 22px; }
     & .ec-tools { grid-template-columns: 1fr 1fr; }
+    & .ec-edital-box { padding: 28px; min-height: 343px; }
     & .ec-plans { grid-template-columns: 1fr 1fr; }
     & .ec-stage { padding-block: 32px 48px; }
   }

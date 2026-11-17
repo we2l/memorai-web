@@ -21,6 +21,19 @@
       </div>
     </div>
 
+    <!-- P3 (prd-landing-mostrar-produto): the edital first. The form of the free tool (same limits and strict captcha);
+         its chunk when the box nears the screen, the Turnstile on the first focus; the result page shows matérias and
+         assuntos and takes the reading to the sign-up -->
+    <section class="ec-sec ec-edital" aria-labelledby="ec-edital-title" data-testid="entry-edital">
+      <div class="ec-in">
+        <h2 id="ec-edital-title">Já tem o edital? Mande aqui</h2>
+        <p class="ec-lead">Em menos de um minuto você vê as matérias e os assuntos. Grátis, sem criar conta.</p>
+        <div ref="editalBox" class="ec-edital-box">
+          <LazyEditalPublicForm v-if="editalNear" from="comecar" @sent="cta('edital_box')" />
+        </div>
+      </div>
+    </section>
+
     <section class="ec-sec ec-band" aria-labelledby="ec-feats-title">
       <div class="ec-in">
         <h2 id="ec-feats-title">Tudo o que o Baigi faz pelo seu estudo</h2>
@@ -78,7 +91,8 @@
 
 <script setup lang="ts">
 // The entry of /comecar for who does not know the Baigi yet (prd-entrada-comecar RF-F6 to RF-F9): the hero with the
-// dolphin, the 6 things the Baigi does (each opens its step of the tour), the free tools and the final call.
+// dolphin, the box to send the edital (prd-landing-mostrar-produto P3), the 6 things the Baigi does (each opens its
+// step of the tour), the free tools and the final call.
 import { ChevronRight } from 'lucide-vue-next'
 import type { PlanCatalog } from '~/types'
 import type { EntryCtaPosition } from '~/types/analytics'
@@ -97,6 +111,25 @@ const { track } = useAnalytics()
 function cta(position: EntryCtaPosition) {
   track('entry_cta_clicked', { position })
 }
+
+// The form's chunk (once-*) when the box is 400 px from the screen; the box keeps the form's height, so nothing moves
+const editalBox = ref<HTMLElement | null>(null)
+const editalNear = ref(false)
+let io: IntersectionObserver | null = null
+
+onMounted(() => {
+  if (!editalBox.value || !('IntersectionObserver' in window)) {
+    editalNear.value = true
+    return
+  }
+  io = new IntersectionObserver(([e]) => {
+    if (!e?.isIntersecting) return
+    editalNear.value = true
+    io?.disconnect()
+  }, { rootMargin: '400px 0px' })
+  io.observe(editalBox.value)
+})
+onBeforeUnmount(() => io?.disconnect())
 
 function start(step: number, origin: 'hero' | 'feature') {
   cta(origin === 'hero' ? 'hero_tour' : 'feature')

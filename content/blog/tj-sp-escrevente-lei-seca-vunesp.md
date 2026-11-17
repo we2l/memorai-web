@@ -30,7 +30,7 @@ O Tribunal de Justiça de São Paulo publicou em 19 de outubro de 2026, no Diár
 | Objetiva | 70 questões de 5 alternativas |
 | Redação | Dissertativa-argumentativa, de 0 a 40 pontos, mínimo de 24 |
 
-As 70 questões se dividem em três blocos: Língua Portuguesa (16), Conhecimentos em Direito (30) e Conhecimentos Gerais (24), que juntam Atualidades, Matemática, Informática e Raciocínio Lógico. Para seguir no concurso é preciso acertar **pelo menos metade das questões de Português e metade das de Direito**, além de nota final 5 ou mais. Não há teste de digitação neste edital, ao contrário do concurso de 2024.
+As 70 questões se dividem em três blocos: Língua Portuguesa (16), Conhecimentos em Direito (30) e Conhecimentos Gerais (24), que juntam Atualidades, Matemática, Informática e Raciocínio Lógico. Para seguir no concurso é preciso acertar **pelo menos metade das questões de Português e metade das de Direito**, além de nota final 5 ou mais. Não há teste de digitação neste edital, ao contrário do concurso de 2024. A lista completa de matérias e assuntos, conferida com o Diário da Justiça, está no [edital verticalizado do TJ-SP 2026](/editais/tj-sp-2026-escrevente).
 
 Duas observações antes de planejar. A data de 14/03 está "prevista" no edital, então confira o site da Vunesp e o Diário da Justiça antes de fechar o calendário. E, como o edital é de cadastro de reserva, as nomeações dependem do fim da validade dos concursos anteriores da mesma região.
 

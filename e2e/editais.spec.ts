@@ -71,8 +71,8 @@ test.describe('páginas de edital conferido', () => {
 
   test('o índice lista o edital aberto e o cartão da ferramenta', async ({ page }) => {
     await page.goto('/editais')
-    await expect(page.getByTestId('editais-row')).toHaveCount(1)
-    await expect(page.getByTestId('editais-row')).toContainText('TEX 2026 · Analista de Teste')
+    // the fixture sits next to the real conferred editais of content/editais
+    await expect(page.getByTestId('editais-row').filter({ hasText: 'TEX 2026 · Analista de Teste' })).toHaveCount(1)
     await expect(page.getByTestId('editais-tool')).toHaveAttribute('href', '/ferramentas/edital-verticalizado')
   })
 

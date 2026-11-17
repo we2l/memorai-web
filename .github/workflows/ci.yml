@@ -95,8 +95,12 @@ jobs:
 
       - run: npm ci
 
+      # EDITAIS_FIXTURES=1: the fictitious edital of tests/fixtures/editais enters this build only (e2e/editais.spec.ts);
+      # modules/editais refuses it on Vercel
       - name: Build
         run: npm run build
+        env:
+          EDITAIS_FIXTURES: '1'
 
       - name: Start server
         run: |
@@ -114,6 +118,11 @@ jobs:
       - name: Responsiveness
         if: always()
         run: npx playwright test e2e/responsivo.spec.ts
+
+      # prd-paginas-edital-publicas RF-W11: every CTA of the conferred page goes to a route that exists
+      - name: Edital pages
+        if: always()
+        run: npx playwright test e2e/editais.spec.ts
 
       - name: Summary
         if: always()

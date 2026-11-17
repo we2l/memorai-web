@@ -15,6 +15,7 @@ import { fileURLToPath } from 'node:url'
 import { addTypeTemplate, addVitePlugin, defineNuxtModule } from '@nuxt/kit'
 import { BLOG_AUTHORS } from './authors'
 import { BLOG_CATEGORIES, BLOG_TOOLS, parseArticle, toMeta, type BlogArticle } from './markdown'
+import { editaisLinkable, editaisOfBuild, editaisSitemapEntries } from '../editais/index'
 
 export const SITE_URL = 'https://baigi.com.br'
 
@@ -54,7 +55,8 @@ export function attachShareImages(articles: BlogArticle[], publicDir: string): v
   }
 }
 
-export function loadArticles(dir: string): BlogArticle[] {
+/** `linkable`: other prerendered paths an article may link to (the conferred editais, prd-paginas-edital-publicas RF-W2) */
+export function loadArticles(dir: string, linkable: ReadonlySet<string> = new Set()): BlogArticle[] {
   const files = readdirSync(dir).filter(f => f.endsWith('.md')).sort()
   const articles = files.map(f => parseArticle(readFileSync(join(dir, f), 'utf8'), `content/blog/${f}`, basename(f, '.md')))
   const slugs = new Set(articles.map(a => a.slug))
@@ -72,7 +74,7 @@ export function loadArticles(dir: string): BlogArticle[] {
     for (const link of a.links) {
       const blog = link.match(/^\/blog\/([a-z0-9-]+)$/)
       const tool = link.match(/^\/ferramentas\/([a-z0-9-]+)$/)
-      const ok = link === '/blog' || (blog && BLOG_PAGES.includes(blog[1]!)) || link === '/ferramentas' || (blog && slugs.has(blog[1]!)) || (tool && tools.has(tool[1]!)) || LINKABLE.test(link)
+      const ok = link === '/blog' || (blog && BLOG_PAGES.includes(blog[1]!)) || link === '/ferramentas' || (blog && slugs.has(blog[1]!)) || (tool && tools.has(tool[1]!)) || LINKABLE.test(link) || linkable.has(link)
       if (!ok) throw new Error(`content/blog/${a.slug}.md: link interno quebrado "${link}"`)
     }
   }
@@ -89,12 +91,14 @@ export function blogRoutes(articles: BlogArticle[]): string[] {
   ]
 }
 
-export function sitemapXml(articles: BlogArticle[]): string {
+/** `extra`: entries of other prerendered sections (the conferred editais open on the day of the build) */
+export function sitemapXml(articles: BlogArticle[], extra: { path: string, lastmod?: string }[] = []): string {
   const latest = articles.map(a => a.updated).sort().pop()
   const byPath = new Map<string, string | undefined>()
   for (const p of STATIC_PAGES) byPath.set(p, undefined)
   for (const r of blogRoutes(articles)) byPath.set(r, r === '/blog' ? latest : undefined)
   for (const a of articles) byPath.set(`/blog/${a.slug}`, a.updated)
+  for (const e of extra) byPath.set(e.path, e.lastmod)
   const urls = [...byPath].map(([path, lastmod]) =>
     `  <url><loc>${SITE_URL}${path === '/' ? '/' : path}</loc>${lastmod ? `<lastmod>${lastmod}</lastmod>` : ''}</url>`)
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>\n`
@@ -118,7 +122,8 @@ export default defineNuxtModule({
   meta: { name: 'baigi-blog' },
   setup(_options, nuxt) {
     const contentDir = resolve(nuxt.options.rootDir, 'content/blog')
-    const articles = loadArticles(contentDir)
+    const editais = editaisOfBuild(nuxt.options.rootDir)
+    const articles = loadArticles(contentDir, editaisLinkable(editais.pages))
     const publicDir = resolve(nuxt.options.rootDir, 'public')
     attachShareImages(articles, publicDir)
     const metas = articles.map(toMeta)
@@ -131,7 +136,7 @@ export default defineNuxtModule({
     nuxt.hook('nitro:build:public-assets', (nitro) => {
       const dir = nitro.options.output.publicDir
       mkdirSync(join(dir, 'blog'), { recursive: true })
-      writeFileSync(join(dir, 'sitemap.xml'), sitemapXml(articles))
+      writeFileSync(join(dir, 'sitemap.xml'), sitemapXml(articles, editaisSitemapEntries(editais.pages, editais.today)))
       writeFileSync(join(dir, 'blog/rss.xml'), rssXml(articles))
     })
 

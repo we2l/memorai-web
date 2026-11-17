@@ -1,5 +1,5 @@
 {
-  "entryLayoutGzKb": 120.5,
+  "entryLayoutGzKb": 120.7,
   "largestChunkGzKb": 150,
   "precacheKb": 1536,
   "entryCssGzKb": 13.2,
@@ -94,6 +94,11 @@
       "file": "pages/criar-conta.vue",
       "gzKb": 2.2,
       "closureGzKb": 15.5
+    },
+    "/editais/:slug": {
+      "file": "pages/editais/[slug].vue",
+      "gzKb": 7,
+      "closureGzKb": 42
     }
   },
   "entryLayoutForbidden": {

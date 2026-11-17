@@ -1,0 +1,55 @@
+name: Rebuild diário dos editais
+
+# prd-paginas-edital-publicas RF-W9 e RF-W10. As páginas /editais/<slug> são pré-renderizadas: o estado (aberto,
+# prova realizada) é calculado no dia do build. Este workflow pede um build novo de produção todo dia às 03:15 de
+# São Paulo pelo Deploy Hook da Vercel (o Hobby aceita: 5 hooks por projeto, 100 deploys por dia, 60 disparos por hora).
+# Assim a página vencida ganha noindex e sai do sitemap no máximo 24 h depois da prova; a hidratação já mostra
+# "A prova foi em…" antes disso (utils/editalStatus.ts).
+#
+# Segredo do repositório: VERCEL_DEPLOY_HOOK (Vercel → Settings → Git → Deploy Hooks, branch master). Sem ele o job só
+# avisa. Workflows agendados rodam a partir do branch padrão (develop) e o GitHub os desliga depois de 60 dias sem
+# atividade no repositório: reative em Actions se o aviso chegar por e-mail.
+
+on:
+  schedule:
+    # 03:15 SP (06:15 UTC): rebuild + lista do que precisa reconferir
+    - cron: '15 6 * * *'
+    # Segunda 03:30 SP: checagem da produção (API e PDF oficial)
+    - cron: '30 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  rebuild:
+    if: github.event.schedule != '30 6 * * 1'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: master
+      - name: Pedir o build de produção
+        env:
+          HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo "::warning::Sem o segredo VERCEL_DEPLOY_HOOK: nenhum build pedido"
+            exit 0
+          fi
+          curl -fsS -X POST "$HOOK" > /dev/null && echo "Build pedido à Vercel"
+      - name: Páginas para reconferir (mais de 21 dias)
+        run: node scripts/check-editais.mjs --stale
+
+  check:
+    if: github.event.schedule == '30 6 * * 1' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: master
+      # Só leitura: GET da leitura pública (throttle 60/min) e HEAD do PDF oficial de cada página aberta
+      - name: API e PDF oficial das páginas abertas
+        run: node scripts/check-editais.mjs

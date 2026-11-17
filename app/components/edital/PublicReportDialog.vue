@@ -1,14 +1,14 @@
 <template>
-  <UiDialog :model-value="modelValue" title="Denunciar este resultado" description="Se não é um edital ou tem conteúdo que não deveria estar aqui, conte para a gente." size="sm" @update:model-value="emit('update:modelValue', $event)">
+  <UiDialog :model-value="modelValue" :title="initialReason ? 'Achou um erro na lista?' : 'Denunciar este resultado'" :description="initialReason ? 'Conte o que está diferente do edital oficial. A gente confere no PDF e corrige.' : 'Se não é um edital ou tem conteúdo que não deveria estar aqui, conte para a gente.'" size="sm" @update:model-value="emit('update:modelValue', $event)">
     <form id="edital-report-form" class="flex flex-col gap-4" novalidate @submit.prevent="send">
-      <UiRadioGroup v-model="reason" :options="REASONS" label="Motivo" />
-      <UiTextarea v-model="detail" label="Quer contar mais?" optional :rows="3" :maxlength="500" hint="Até 500 caracteres." />
+      <UiRadioGroup v-if="!initialReason" v-model="reason" :options="REASONS" label="Motivo" />
+      <UiTextarea v-model="detail" :label="initialReason ? 'O que está errado?' : 'Quer contar mais?'" optional :rows="3" :maxlength="500" hint="Até 500 caracteres." />
       <div ref="captchaEl" class="contents" data-testid="edital-report-captcha" />
       <p v-if="error" role="alert" class="text-meta text-danger" data-testid="edital-report-error">{{ error }}</p>
     </form>
     <template #footer="{ close }">
       <UiButton variant="ghost" :disabled="sending" @click="close">Cancelar</UiButton>
-      <UiButton variant="primary" type="submit" form="edital-report-form" :loading="sending" :disabled="!reason">Enviar denúncia</UiButton>
+      <UiButton variant="primary" type="submit" form="edital-report-form" :loading="sending" :disabled="!reason">{{ initialReason ? 'Enviar' : 'Enviar denúncia' }}</UiButton>
     </template>
   </UiDialog>
 </template>
@@ -19,7 +19,12 @@
 import { submitFailure } from '~/utils/publicEdital'
 import { CAPTCHA_MESSAGES } from '~/utils/turnstile'
 
-const props = defineProps<{ modelValue: boolean, readingId: string }>()
+const props = defineProps<{
+  modelValue: boolean
+  readingId: string
+  /** "Achou um erro?" of a conferred page opens with `outro` (prd-paginas-edital-publicas RF-W5 item 12) */
+  initialReason?: 'outro'
+}>()
 const emit = defineEmits<{ (e: 'update:modelValue', value: boolean): void }>()
 
 const REASONS = [
@@ -33,7 +38,7 @@ const { $api } = useNuxtApp()
 const toast = useToast()
 const captcha = useTurnstile()
 const captchaEl = ref<HTMLElement | null>(null)
-const reason = ref('')
+const reason = ref<string>(props.initialReason ?? '')
 const detail = ref('')
 const sending = ref(false)
 const error = ref('')

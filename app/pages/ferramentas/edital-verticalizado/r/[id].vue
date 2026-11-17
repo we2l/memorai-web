@@ -57,7 +57,13 @@
       </div>
     </UiSection>
 
-    <EditalPublicResult v-else-if="stage === 'ready' && ready" :reading="ready" />
+    <template v-else-if="stage === 'ready' && ready">
+      <!-- A curated reading has its canonical page (prd-paginas-edital-publicas RF-W12); this route stays noindex -->
+      <p v-if="conferredPath" class="mb-4 rounded-tile bg-soft p-4 text-body text-fg" data-testid="edital-conferred-link">
+        Esta lista tem uma página conferida: <UiLink :to="conferredPath" variant="action" class="font-semibold">abrir</UiLink>
+      </p>
+      <EditalPublicResult :reading="ready" />
+    </template>
   </div>
 </template>
 
@@ -70,6 +76,8 @@ import { PUBLIC_EDITAL_PATH, publicEditalResultPath } from '~/utils/editalIntent
 import { setRetryHint, takeLastSource } from '~/composables/usePublicEdital'
 import { getErrorStatus } from '~/utils/apiErrors'
 import { CAPTCHA_MESSAGES } from '~/utils/turnstile'
+import { editais } from '#editais/index'
+import { editalPagePath } from '~/utils/editalPage'
 
 definePageMeta({ layout: 'public', quietHeaderCta: true })
 // A visitor's page never goes to the index (the default head already says noindex; explicit here on purpose)
@@ -93,6 +101,11 @@ const slowStep = ref(false)
 
 const id = computed(() => String(route.params.id ?? ''))
 const ready = computed(() => (reading.value?.proposal ? reading.value as PublicEditalReading & { proposal: NonNullable<PublicEditalReading['proposal']> } : null))
+// Only a page this build published: a slug curated after the last deploy has no page yet
+const conferredPath = computed(() => {
+  const slug = reading.value?.curated?.slug
+  return slug && editais.some(m => m.slug === slug) ? editalPagePath(slug) : null
+})
 const canChoose = computed(() => !!(takeLastSource()?.file || takeLastSource()?.text))
 const byCargo = computed(() => reading.value?.choose === 'cargo')
 const alternatives = computed(() => reading.value?.alternatives ?? [])

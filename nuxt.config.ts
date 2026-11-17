@@ -78,7 +78,9 @@ const ONE_SHOT_PAGE_CHUNK = /\/(pages\/(index|comecar(\/(index|pronto|areas|\[ar
 const ONE_SHOT_SHARED = /\/(components\/auth\/|components\/edital\/|components\/entrada\/|components\/schedule\/|components\/onboarding\/|components\/checkout\/|utils\/(entrada|editalProposal|editalIntent|editalCsv|scheduleExport|publicSchedule|publicEdital|mercadoPago|checkoutState|authMessages|organization|moveTargets|ankiMapping|guestProgress|postAuthRedirect)|composables\/(useTrashBatch|useEditalReader|usePublicEdital))/
 // Blog and free tools (prd-blog-seo RF-B9): marketing read online, like the landing. Pages, their components, the
 // articles (one chunk per content/blog/*.md) and the tools' math go to once-* chunks, out of the install download.
-const BLOG_CHUNK = /\/(pages\/(blog|ferramentas)\/|pages\/quem-faz\.vue|components\/blog\/|content\/blog\/|utils\/(blog|forgetting|examPlan)\.ts|composables\/(useBlogSeo|useAreaQuery)\.ts|modules\/blog\/)|^\0#blog\//
+// The conferred edital pages (prd-paginas-edital-publicas RF-W3) go the same way: pages, components, one chunk per
+// content/editais/*.json (and the test fixture), the status and SEO helpers.
+const BLOG_CHUNK = /\/(pages\/(blog|ferramentas|editais)\/|pages\/quem-faz\.vue|components\/blog\/|content\/(blog|editais)\/|tests\/fixtures\/editais\/|utils\/(blog|forgetting|examPlan|editalStatus|editalPage)\.ts|composables\/(useBlogSeo|useAreaQuery|useEditalPageSeo)\.ts|modules\/(blog|editais)\/)|^\0#(blog|editais)\//
 // Reference page of the design system (prd-ds-v3-fundacao RF-2.5): only in `nuxt dev`. NUXT_DS_PAGE=1 keeps it
 // in a production build for screenshots; even then its chunk is `dev-*`, out of the precache.
 const DS_PAGE_FLAG = process.env.NUXT_DS_PAGE === '1'
@@ -102,6 +104,8 @@ export default defineNuxtConfig({
     '@nuxt/fonts',
     // Blog in Markdown, prerendered (prd-blog-seo, ADR-033): modules/blog
     '~~/modules/blog',
+    // Conferred edital pages, prerendered from content/editais/*.json (prd-paginas-edital-publicas §3.0): modules/editais
+    '~~/modules/editais',
     // /_ds exists in dev (or with NUXT_DS_PAGE=1): without the route its page and components never get bundled
     (_options, nuxt) => {
       nuxt.hook('pages:extend', (pages) => {
@@ -214,7 +218,7 @@ export default defineNuxtConfig({
       // index.html + _nuxt/index.*.css + landing/** (title font, clips, screens, sample: prd-landing-d RF-D14/D15): the
       // landing (prd-landing-v4 RF-L14), online like the rest of the marketing; the
       // installed app starts at /hoje and navigateFallback is null, so nothing offline ever served it
-      globIgnores: ['index.html', 'landing/**', 'mascote/**', 'fonts/**', 'termos/**', 'privacidade/**', 'planos/**', 'ajuda/**', 'entrar/**', 'criar-conta/**', 'comecar/**', 'esqueci-senha/**', '_nuxt/email-*.js', '_nuxt/analytics-*.js', '_nuxt/consent-*.js', '_nuxt/once-*.js', '_nuxt/dev-*.js', '_nuxt/index.*.css', '_nuxt/baigi-it-*.woff2', '_nuxt/baigi-num-400*.woff2', 'blog/**', 'ferramentas/**', 'quem-faz/**', 'sitemap.xml', '_nuxt/blog-*.css'],
+      globIgnores: ['index.html', 'landing/**', 'mascote/**', 'fonts/**', 'termos/**', 'privacidade/**', 'planos/**', 'ajuda/**', 'entrar/**', 'criar-conta/**', 'comecar/**', 'esqueci-senha/**', '_nuxt/email-*.js', '_nuxt/analytics-*.js', '_nuxt/consent-*.js', '_nuxt/once-*.js', '_nuxt/dev-*.js', '_nuxt/index.*.css', '_nuxt/baigi-it-*.woff2', '_nuxt/baigi-num-400*.woff2', 'blog/**', 'ferramentas/**', 'editais/**', 'quem-faz/**', 'sitemap.xml', '_nuxt/blog-*.css'],
       // Heavy on-demand chunks (pdf.js ~330 KB) stay out of the install download;
       // maximumFileSizeToCacheInBytes would fail the build instead of skipping.
       manifestTransforms: [

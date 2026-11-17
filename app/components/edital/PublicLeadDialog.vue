@@ -43,6 +43,8 @@ const props = defineProps<{
   tool: 'pdf' | 'ics'
   /** What the PDF is: the list of the edital or the cronograma */
   what: 'edital' | 'schedule'
+  /** Where the visitor is: a conferred page sends origin page in the event (prd-paginas-edital-publicas RF-W13) */
+  origin?: string
 }>()
 const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void
@@ -80,7 +82,7 @@ async function send() {
   }
   sending.value = true
   error.value = ''
-  track('edital_public_lead', { tool: props.tool, marketing: marketing.value })
+  track('edital_public_lead', { tool: props.tool, marketing: marketing.value, ...(props.origin === 'page' ? { origin: 'page' } : {}) })
   try {
     await $api(`/public/editais/${encodeURIComponent(props.readingId)}/lead`, { method: 'POST', body: { email: value, tool: props.tool, marketing: marketing.value } })
   } catch (e) {

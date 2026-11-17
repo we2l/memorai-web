@@ -106,7 +106,7 @@ import { downloadScheduleCsv, downloadScheduleIcs } from '~/utils/scheduleExport
 import { examLine } from '~/utils/publicEdital'
 import { addDays, buildStudySchedule, dayMonth, durationLabel, hoursSummary, HOUR_OPTIONS, sessionTopicLabel, type ScheduleDraft } from '~/utils/studySchedule'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   readingId: string
   proposal: EditalProposal
   weights?: EditalWeight[] | null
@@ -115,7 +115,9 @@ const props = defineProps<{
   applying?: boolean
   /** The e-mail before the PDF and the .ics: runs `download` right away when it was given in this visit */
   gate: (tool: 'pdf' | 'ics', download: () => void) => void
-}>()
+  /** origin of schedule_export: public = the tool, page = a conferred edital page */
+  origin?: 'public' | 'page'
+}>(), { weights: null, applying: false, origin: 'public' })
 const emit = defineEmits<{ (e: 'apply'): void, (e: 'google'): void }>()
 
 const { track } = useAnalytics()
@@ -182,18 +184,18 @@ const inviteUrl = computed(() => (import.meta.client ? `${window.location.origin
 const printSubtitle = computed(() => [examLine(props.proposal.exam_date ?? state.value.examDate), hoursSummary(state.value.hours), `sessão de ${durationLabel(state.value.sessionMinutes)}`].filter(Boolean).join(' · '))
 
 function printPdf() {
-  track('schedule_export', { format: 'pdf', origin: 'public' })
+  track('schedule_export', { format: 'pdf', origin: props.origin })
   // After the dialog's leave transition: the PDF shows only the cronograma
   setTimeout(() => { void printer.print() }, 250)
 }
 
 function exportIcs() {
-  track('schedule_export', { format: 'ics', origin: 'public' })
+  track('schedule_export', { format: 'ics', origin: props.origin })
   downloadScheduleIcs(schedule.value, { name: props.proposal.name, now: new Date(), url: `${window.location.origin}${PDF_INVITE_PATH}` })
 }
 
 function exportCsv() {
-  track('schedule_export', { format: 'csv', origin: 'public' })
+  track('schedule_export', { format: 'csv', origin: props.origin })
   downloadScheduleCsv(schedule.value, state.value.sessionMinutes, props.proposal.name)
 }
 

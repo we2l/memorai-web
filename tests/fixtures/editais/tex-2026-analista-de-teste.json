@@ -1,0 +1,178 @@
+{
+  "version": 1,
+  "id": "01JDTESTF1XTVRE0000000000A",
+  "slug": "tex-2026-analista-de-teste",
+  "group": null,
+  "area": "concurso",
+  "checked_at": "2026-11-16",
+  "exported_at": "2026-11-16T10:00:00-03:00",
+  "source_url": "https://example.com/edital-de-teste-01-2026.pdf",
+  "proposal_sha256": "aa6a2d680189c08407c7c6f0107b6a26566c29541f2f9a571f1447dcacb1bd4b",
+  "proposal": {
+    "name": "TEX 2026 · Analista de Teste",
+    "exam_date": "2099-03-14",
+    "subjects": [
+      {
+        "name": "Língua Portuguesa",
+        "topics": [
+          {
+            "name": "Compreensão e interpretação de textos",
+            "description": "1 Compreensão e interpretação de textos de gêneros variados."
+          },
+          {
+            "name": "Ortografia oficial",
+            "description": null
+          },
+          {
+            "name": "Concordância verbal e nominal",
+            "description": "4 Concordância verbal e nominal. Regência verbal e nominal."
+          },
+          {
+            "name": "Pontuação",
+            "description": null
+          }
+        ]
+      },
+      {
+        "name": "Direito Constitucional",
+        "topics": [
+          {
+            "name": "Direitos e garantias fundamentais",
+            "description": "Constituição Federal: Título II, arts. 5º a 17."
+          },
+          {
+            "name": "Organização do Estado",
+            "description": "Título III, arts. 18 a 43."
+          },
+          {
+            "name": "Poder Judiciário",
+            "description": "Título IV, Capítulo III, arts. 92 a 126."
+          }
+        ]
+      },
+      {
+        "name": "Direito Administrativo",
+        "topics": [
+          {
+            "name": "Atos administrativos",
+            "description": null
+          },
+          {
+            "name": "Lei de licitações (Lei nº 14.133/2021)",
+            "description": "Lei nº 14.133/2021: arts. 1º a 71."
+          },
+          {
+            "name": "Improbidade administrativa",
+            "description": "Lei nº 8.429/1992 e alterações."
+          }
+        ]
+      },
+      {
+        "name": "Raciocínio Lógico",
+        "topics": [
+          {
+            "name": "Proposições e conectivos",
+            "description": null
+          },
+          {
+            "name": "Porcentagem",
+            "description": null
+          }
+        ]
+      },
+      {
+        "name": "Noções de Informática",
+        "topics": [
+          {
+            "name": "Planilhas eletrônicas",
+            "description": null
+          },
+          {
+            "name": "Correio eletrônico",
+            "description": null
+          }
+        ]
+      }
+    ]
+  },
+  "weights": [
+    {
+      "subject": "Língua Portuguesa",
+      "points": 20,
+      "source": "edital"
+    },
+    {
+      "subject": "Direito Constitucional",
+      "points": 15,
+      "source": "edital"
+    },
+    {
+      "subject": "Direito Administrativo",
+      "points": 15,
+      "source": "edital"
+    },
+    {
+      "subject": "Raciocínio Lógico",
+      "points": 5,
+      "source": "edital"
+    },
+    {
+      "subject": "Noções de Informática",
+      "points": 5,
+      "source": "edital"
+    }
+  ],
+  "counts": {
+    "subjects": 5,
+    "topics": 14
+  },
+  "source": {
+    "pages": {
+      "from": 12,
+      "to": 14
+    },
+    "found": "heading",
+    "truncated": false,
+    "label": "Analista de Teste"
+  },
+  "edital": {
+    "orgao": "Tribunal de Exemplo (fictício, só para testes)",
+    "orgao_sigla": "TEX",
+    "cargo": "Analista de Teste",
+    "cargos_mesma_lista": [],
+    "banca": "Banca de Teste",
+    "banca_url": "https://example.com/concurso-tex-2026",
+    "numero": "Edital nº 01/2026",
+    "publicado_em": "2026-10-19",
+    "inscricoes_inicio": "2026-10-28",
+    "inscricoes_fim": "2099-01-10",
+    "taxa": "R$ 0,00 (fictício)",
+    "prova": "2099-03-14",
+    "prova_prevista": true,
+    "vagas": "10 vagas e cadastro reserva (fictício)",
+    "remuneracao": "R$ 1,00 (fictício)",
+    "paginas": {
+      "prova": 3,
+      "inscricoes": 2,
+      "taxa": 2,
+      "vagas": 1,
+      "remuneracao": 1,
+      "numero": 1,
+      "quadro": 11
+    }
+  },
+  "expires_on": null,
+  "status_override": null,
+  "status_date": null,
+  "next_slug": null,
+  "siblings": [],
+  "related_blog": [
+    "o-que-e-edital-verticalizado"
+  ],
+  "changes": [
+    {
+      "date": "2026-11-16",
+      "what": "retificação nº 1 (fictícia), data da prova"
+    }
+  ]
+}

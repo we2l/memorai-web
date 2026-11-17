@@ -1,9 +1,9 @@
 /** Routes reachable without a session (plus everything under /auth/ and /_ds, the dev-only DS reference). */
 export const PUBLIC_ROUTES = ['/', '/entrar', '/criar-conta', '/esqueci-senha', '/redefinir-senha', '/termos', '/privacidade', '/ajuda', '/planos', '/lembretes/desativado', '/provas/resultado', '/quem-faz']
-/** Blog and free tools (prd-blog-seo): every path under them is public */
-const PUBLIC_PREFIXES = ['/blog', '/ferramentas']
+/** Blog, free tools (prd-blog-seo) and the conferred editais (prd-paginas-edital-publicas): every path under them is public */
+const PUBLIC_PREFIXES = ['/blog', '/ferramentas', '/editais']
 
-/** Reading pages (blog, tools, /quem-faz): the consent banner is the thin bar there (prd-blog-v2 RF-L1) */
+/** Reading pages (blog, tools, editais, /quem-faz): the consent banner is the thin bar there (prd-blog-v2 RF-L1) */
 export function isReadingRoute(path: string): boolean {
   return path === '/quem-faz' || PUBLIC_PREFIXES.some(p => path === p || path.startsWith(`${p}/`))
 }

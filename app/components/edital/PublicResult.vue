@@ -1,17 +1,24 @@
 <template>
   <div class="edital-print flex flex-col gap-6">
+    <!-- On a conferred page (origin page) the page has the H1, the counts and the state: only the bar stays here -->
     <header class="flex flex-col gap-3">
-      <p class="text-label font-semibold text-fg-muted">Edital verticalizado</p>
-      <h1 ref="heading" tabindex="-1" class="break-words text-page-title text-fg-strong outline-none" data-testid="edital-result-title">{{ proposal.name }}</h1>
-      <p v-if="exam" class="text-body text-fg" data-testid="edital-result-exam">{{ exam }}</p>
-      <p class="text-body text-fg-muted" data-testid="edital-result-counts">{{ countsLine(proposal.subjects.length, total) }}</p>
+      <template v-if="!onPage">
+        <p class="text-label font-semibold text-fg-muted">Edital verticalizado</p>
+        <h1 ref="heading" tabindex="-1" class="break-words text-page-title text-fg-strong outline-none" data-testid="edital-result-title">{{ proposal.name }}</h1>
+        <p v-if="exam" class="text-body text-fg" data-testid="edital-result-exam">{{ exam }}</p>
+        <p class="text-body text-fg-muted" data-testid="edital-result-counts">{{ countsLine(proposal.subjects.length, total) }}</p>
+      </template>
+      <p v-else class="edital-print-only text-section text-fg-strong">{{ proposal.name }}</p>
       <UiProgressBar class="edital-noprint" :value="studied" :max="Math.max(total, 1)" label="Assuntos estudados" :value-text="`${studied} de ${total} estudados`" show-value size="md" data-testid="edital-result-progress" />
     </header>
 
-    <div class="edital-noprint flex flex-col gap-3">
+    <div class="edital-noprint flex flex-col gap-3" data-testid="edital-actions">
+      <p v-if="expired" class="text-body text-fg" data-testid="edital-expired-line">A prova já passou. A lista serve de base até o próximo edital.</p>
       <div class="flex flex-wrap items-center gap-2">
+        <!-- Past the exam the way on is the other conferred editais (prd-paginas-edital-publicas RF-W5 item 7) -->
+        <UiButton v-if="expired" :variant="tab === 'subjects' ? 'primary' : 'outline'" to="/editais" data-testid="edital-see-editais">Ver os editais conferidos</UiButton>
         <!-- In the Cronograma tab the invite carries the primary (one per screen) -->
-        <UiButton :variant="tab === 'subjects' ? 'primary' : 'outline'" :loading="applying" data-testid="edital-apply" @click="apply()">Estudar isso no Baigi</UiButton>
+        <UiButton :variant="tab === 'subjects' && !expired ? 'primary' : 'outline'" :loading="applying" data-testid="edital-apply" @click="apply()">Estudar isso no Baigi</UiButton>
         <template v-if="tab === 'subjects'">
           <UiButton variant="outline" :icon-left="Download" data-testid="edital-csv" @click="exportCsv">Baixar planilha</UiButton>
           <UiButton variant="outline" :icon-left="Printer" data-testid="edital-pdf" @click="exportPdf">Baixar PDF</UiButton>
@@ -53,7 +60,7 @@
           />
         </ol>
       </section>
-      <EditalPublicSchedule
+      <LazyEditalPublicSchedule
         v-else
         :reading-id="reading.id"
         :proposal="proposal"
@@ -62,12 +69,13 @@
         :logged-in="!!auth.user"
         :applying="applying"
         :gate="gate"
+        :origin="onPage ? 'page' : 'public'"
         @apply="apply()"
         @google="saveEditalIntent(reading.id)"
       />
     </UiTabs>
 
-    <footer class="flex flex-col gap-2 border-t border-hairline pt-4 text-meta text-fg-muted">
+    <footer v-if="!onPage" class="flex flex-col gap-2 border-t border-hairline pt-4 text-meta text-fg-muted">
       <p v-if="curatedLine" data-testid="edital-curated">{{ curatedLine.before }}<a v-if="curatedLine.url" :href="curatedLine.url" rel="noopener noreferrer nofollow" target="_blank" class="text-action-fg underline">edital oficial</a><template v-else>edital oficial</template>{{ curatedLine.after }}</p>
       <p v-else data-testid="edital-notice">Gerado automaticamente a partir de um edital enviado por um visitante. Confira no edital oficial.</p>
       <p class="edital-noprint">
@@ -90,6 +98,7 @@
       :reading-id="reading.id"
       :tool="leadTool"
       :what="leadWhat"
+      :origin="eventOrigin"
       @download="onLeadDownload"
       @google="saveEditalIntent(reading.id)"
     />
@@ -111,8 +120,19 @@ import { editalCountsLabel } from '~/utils/editalProposal'
 import { claimCheckEvent, clearEditalIntent, countsLine, examLine, loadChecked, pctBucket, saveChecked, saveEditalIntent, studiedCount, topicsTotal, type PublicEditalReading } from '~/utils/publicEdital'
 import { cadernoPath } from '~/utils/scope'
 import { PDF_INVITE_PATH, rememberedLeadEmail } from '~/utils/publicSchedule'
+import { editalPagePath, editalSignupPath, type EditalPageCtaPosition } from '~/utils/editalPage'
 
-const props = defineProps<{ reading: PublicEditalReading & { proposal: NonNullable<PublicEditalReading['proposal']> } }>()
+const props = withDefaults(defineProps<{
+  reading: PublicEditalReading & { proposal: NonNullable<PublicEditalReading['proposal']> }
+  /** tool = the result of a visitor's reading (/r/{id}); page = a conferred edital page (/editais/{slug}) */
+  origin?: 'tool' | 'page'
+  /** Slug of the conferred page: its link to share and the UTM of the sign-up */
+  slug?: string
+  /** The exam passed (editalStatus): "Ver os editais conferidos" is the primary */
+  expired?: boolean
+}>(), { origin: 'tool', slug: undefined, expired: false })
+const emit = defineEmits<{ (e: 'cta', position: EditalPageCtaPosition): void }>()
+const onPage = computed(() => props.origin === 'page')
 
 const { $api } = useNuxtApp()
 const auth = useAuthStore()
@@ -127,8 +147,9 @@ const studied = computed(() => studiedCount(proposal.value, checked.value))
 const exam = computed(() => examLine(proposal.value.exam_date))
 const heading = ref<HTMLElement | null>(null)
 
-// Few matérias open at once; many start closed (the 12 of a big edital would be a wall)
-const opened = ref<Set<number>>(new Set())
+// Few matérias open at once; many start closed (the 12 of a big edital would be a wall). A conferred page opens all of
+// them in the HTML: the list is what the page is for (RF-W5 item 5)
+const opened = ref<Set<number>>(props.origin === 'page' ? new Set(props.reading.proposal.subjects.map((_, i) => i)) : new Set())
 const allOpen = computed(() => opened.value.size === proposal.value.subjects.length)
 
 const curatedLine = computed(() => {
@@ -160,7 +181,7 @@ function setChecked(key: string, value: boolean) {
   else next.delete(key)
   checked.value = next
   saveChecked(props.reading.id, next)
-  if (value && claimCheckEvent()) track('edital_public_check', { pct_bucket: pctBucket(studiedCount(proposal.value, next), total.value) })
+  if (value && claimCheckEvent()) track('edital_public_check', { pct_bucket: pctBucket(studiedCount(proposal.value, next), total.value), ...(onPage.value ? { origin: 'page' } : {}) })
 }
 
 function exportCsv() {
@@ -210,7 +231,9 @@ function onLeadDownload() {
 }
 
 async function share() {
-  const link = `${window.location.origin}${publicEditalResultPath(props.reading.id)}?utm_source=edital&utm_medium=share`
+  const link = onPage.value && props.slug
+    ? `${window.location.origin}${editalPagePath(props.slug)}?utm_source=editais&utm_medium=share`
+    : `${window.location.origin}${publicEditalResultPath(props.reading.id)}?utm_source=edital&utm_medium=share`
   track('edital_public_share', {})
   try {
     await navigator.clipboard.writeText(link)
@@ -225,13 +248,19 @@ function goLogin() {
   void navigateTo('/entrar')
 }
 
-async function apply(allowDuplicate = false, auto = false) {
+const eventOrigin = computed<'page' | 'comecar' | 'tool'>(() => (onPage.value ? 'page' : route.query.from === 'comecar' ? 'comecar' : 'tool'))
+
+async function apply(allowDuplicate = false, auto = false, position: EditalPageCtaPosition = 'actions') {
   if (applying.value) return
-  if (!allowDuplicate && !auto) track('edital_public_apply_clicked', { logged_in: !!auth.user, origin: route.query.from === 'comecar' ? 'comecar' : 'tool' })
-  // No account yet: the intent waits on the device and the sign-up brings the person back here (postAuthRedirect)
+  if (!allowDuplicate && !auto) {
+    track('edital_public_apply_clicked', { logged_in: !!auth.user, origin: eventOrigin.value })
+    if (onPage.value) emit('cta', position)
+  }
+  // No account yet: the intent waits on the device and the sign-up brings the person back to the result of this
+  // reading, which applies it (postAuthRedirect); from a conferred page the UTM goes along to the sign-up
   if (!auth.user) {
     saveEditalIntent(props.reading.id)
-    await navigateTo('/criar-conta')
+    await navigateTo(onPage.value && props.slug ? editalSignupPath(props.slug, position) : '/criar-conta')
     return
   }
   applying.value = true
@@ -243,7 +272,7 @@ async function apply(allowDuplicate = false, auto = false) {
       body: allowDuplicate ? { allow_duplicate: true } : {},
     })).data
     clearEditalIntent()
-    track('edital_public_applied', {})
+    track('edital_public_applied', onPage.value ? { origin: 'page' } : {})
     void useTopicStore().fetchTree()
     // The API concludes the onboarding with the apply: without this the middleware sends a new account to /comecar
     // and the caderno it just made never opens
@@ -267,6 +296,8 @@ async function apply(allowDuplicate = false, auto = false) {
     applying.value = false
   }
 }
+
+defineExpose({ apply, applying })
 
 onMounted(() => {
   checked.value = loadChecked(props.reading.id)

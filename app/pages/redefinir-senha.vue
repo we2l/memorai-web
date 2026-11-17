@@ -1,37 +1,37 @@
 <template>
-  <div class="flex flex-col gap-5">
+  <AuthSplit v-bind="band">
     <!-- Invalid or used link: one way forward -->
-    <template v-if="!token || !email || expired">
+    <template v-if="invalid">
       <div>
-        <h1 class="text-page-title text-fg-strong">Este link expirou</h1>
-        <p class="mt-1 text-body text-fg-muted">O link vale por 60 minutos e só pode ser usado uma vez.</p>
+        <h1>Este link <span class="au-grifo">expirou.</span></h1>
+        <p class="au-lead">O link vale por 60 minutos e só pode ser usado uma vez.</p>
       </div>
-      <UiButton variant="primary" to="/esqueci-senha" block data-testid="reset-ask-again">Pedir outro</UiButton>
+      <UiButton variant="primary" size="lg" to="/esqueci-senha" block data-testid="reset-ask-again">Pedir outro</UiButton>
     </template>
 
     <template v-else>
-      <h1 class="text-page-title text-fg-strong">Criar nova senha</h1>
+      <h1>Crie uma nova <span class="au-grifo">senha.</span></h1>
       <form class="flex flex-col gap-4" novalidate @submit.prevent="submit">
         <UiInput id="email" :model-value="email" label="E-mail" type="email" autocomplete="username" readonly />
         <AuthPasswordInput id="password" v-model="password" label="Nova senha" autocomplete="new-password" :hint="errors.password ? undefined : hint" :error="errors.password" />
         <p v-if="errors.general" role="alert" class="text-meta font-medium text-danger">{{ errors.general }}</p>
-        <UiButton variant="primary" type="submit" block :loading="loading">Salvar nova senha</UiButton>
+        <UiButton variant="primary" size="lg" type="submit" block :loading="loading">Salvar nova senha</UiButton>
       </form>
     </template>
 
-    <p class="text-meta">
+    <p class="au-switch">
       <UiLink to="/entrar">Voltar para entrar</UiLink>
     </p>
-  </div>
+  </AuthSplit>
 </template>
 
 <script setup lang="ts">
-// Reset of the password v4 (prd-4g-conta-onboarding-v3 RF-F14): one field with show/hide. The API still asks
+// Reset of the password v4 (prd-4g-conta-onboarding-v3 RF-F14), in the skin of the landing (components/auth/Split.vue): one field with show/hide. The API still asks
 // for the confirmation, so the same value goes in both.
 import { MIN_PASSWORD, fieldErrors, passwordHint, retryAfterSeconds, waitLabel } from '~/utils/authMessages'
 import { getErrorStatus } from '~/utils/apiErrors'
 
-definePageMeta({ layout: 'auth' })
+definePageMeta({ layout: 'auth-split' })
 useHead({ title: 'Nova senha · Baigi' })
 
 const { $api } = useNuxtApp()
@@ -45,6 +45,10 @@ const loading = ref(false)
 const expired = ref(false)
 const errors = reactive<Record<string, string>>({})
 const hint = computed(() => passwordHint(password.value))
+const invalid = computed(() => !token.value || !email.value || expired.value)
+const band = computed(() => invalid.value
+  ? { headline: 'Um link novo resolve.', sub: 'Seus cards e o seu progresso continuam guardados.', mascot: 'piscadinha' as const }
+  : { headline: 'Quase lá.', sub: 'Com a senha nova, seus cards continuam onde estavam.', mascot: 'joinha' as const })
 
 async function submit() {
   for (const k of Object.keys(errors)) delete errors[k]

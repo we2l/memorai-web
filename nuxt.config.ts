@@ -73,9 +73,9 @@ const CONSENT_CHUNK = /\/components\/ui\/Consent(Banner|Modal)\.vue/
 // instead of in every install download (precache budget, prd-correcoes-experiencia Q2, prd-4g-conta-onboarding-v3,
 // prd-4b-caderno-v3 §10.2), and the landing (prd-landing-v4 RF-L14: marketing, online only). /ajuda stays: "?" opens
 // the shortcuts offline too.
-const ONE_SHOT_PAGE_CHUNK = /\/(pages\/(index|comecar(\/(index|pronto|areas|\[area\]))?|entrar|criar-conta|esqueci-senha|checkout\/(sucesso|index)|auth\/google\/callback|redefinir-senha|termos|privacidade|planos|importar|cadernos\/(lixeira|edital|\[id\]\/cronograma))|layouts\/(auth|landing)|components\/review\/ReviewOnboardingEnd|components\/onboarding\/AreaPicker|components\/caderno\/(MaterialCardsState|MoveDialog|TrashDialog))\.vue/
+const ONE_SHOT_PAGE_CHUNK = /\/(pages\/(index|comecar(\/(index|pronto|areas|\[area\]))?|entrar|criar-conta|esqueci-senha|checkout\/(sucesso|index)|auth\/google\/callback|redefinir-senha|termos|privacidade|planos|importar|cadernos\/(lixeira|edital|\[id\]\/cronograma))|layouts\/(auth|auth-split|landing)|components\/review\/ReviewOnboardingEnd|components\/onboarding\/AreaPicker|components\/caderno\/(MaterialCardsState|MoveDialog|TrashDialog))\.vue/
 // Pieces shared only by those pages: a shared chunk has no facade module, so it goes by what is inside it.
-const ONE_SHOT_SHARED = /\/(components\/auth\/|components\/edital\/|components\/entrada\/|components\/schedule\/|components\/onboarding\/|components\/checkout\/|utils\/(entrada|editalProposal|editalIntent|editalCsv|scheduleExport|publicSchedule|publicEdital|mercadoPago|checkoutState|authMessages|organization|moveTargets|ankiMapping|guestProgress|postAuthRedirect)|composables\/(useTrashBatch|useEditalReader|usePublicEdital))/
+const ONE_SHOT_SHARED = /\/(components\/auth\/|components\/edital\/|components\/entrada\/|components\/schedule\/|components\/onboarding\/|components\/checkout\/|utils\/(entrada|authBand|editalProposal|editalIntent|editalCsv|scheduleExport|publicSchedule|publicEdital|mercadoPago|checkoutState|authMessages|organization|moveTargets|ankiMapping|guestProgress|postAuthRedirect)|composables\/(useTrashBatch|useEditalReader|usePublicEdital))/
 // Blog and free tools (prd-blog-seo RF-B9): marketing read online, like the landing. Pages, their components, the
 // articles (one chunk per content/blog/*.md) and the tools' math go to once-* chunks, out of the install download.
 // The conferred edital pages (prd-paginas-edital-publicas RF-W3) go the same way: pages, components, one chunk per
@@ -215,10 +215,11 @@ export default defineNuxtConfig({
       globPatterns: ['**/*.{js,css,html,svg,ico,woff2}'],
       // Public/auth HTML only works online anyway (content or login): keep it out of the install download
       // comecar/** (the entry and the areas, prd-entrada-comecar RN-8): online-only like entrar/criar-conta
+      // _nuxt/auth-split.*.css: the landing skin of the 4 auth pages (layouts/auth-split.vue), online-only too
       // index.html + _nuxt/index.*.css + landing/** (title font, clips, screens, sample: prd-landing-d RF-D14/D15): the
       // landing (prd-landing-v4 RF-L14), online like the rest of the marketing; the
       // installed app starts at /hoje and navigateFallback is null, so nothing offline ever served it
-      globIgnores: ['index.html', 'landing/**', 'mascote/**', 'fonts/**', 'termos/**', 'privacidade/**', 'planos/**', 'ajuda/**', 'entrar/**', 'criar-conta/**', 'comecar/**', 'esqueci-senha/**', '_nuxt/email-*.js', '_nuxt/analytics-*.js', '_nuxt/consent-*.js', '_nuxt/once-*.js', '_nuxt/dev-*.js', '_nuxt/index.*.css', '_nuxt/baigi-it-*.woff2', '_nuxt/baigi-num-400*.woff2', 'blog/**', 'ferramentas/**', 'editais/**', 'quem-faz/**', 'sitemap.xml', '_nuxt/blog-*.css'],
+      globIgnores: ['index.html', 'landing/**', 'mascote/**', 'fonts/**', 'termos/**', 'privacidade/**', 'planos/**', 'ajuda/**', 'entrar/**', 'criar-conta/**', 'comecar/**', 'esqueci-senha/**', '_nuxt/email-*.js', '_nuxt/analytics-*.js', '_nuxt/consent-*.js', '_nuxt/once-*.js', '_nuxt/dev-*.js', '_nuxt/index.*.css', '_nuxt/auth-split.*.css', '_nuxt/baigi-it-*.woff2', '_nuxt/baigi-num-400*.woff2', 'blog/**', 'ferramentas/**', 'editais/**', 'quem-faz/**', 'sitemap.xml', '_nuxt/blog-*.css'],
       // Heavy on-demand chunks (pdf.js ~330 KB) stay out of the install download;
       // maximumFileSizeToCacheInBytes would fail the build instead of skipping.
       manifestTransforms: [

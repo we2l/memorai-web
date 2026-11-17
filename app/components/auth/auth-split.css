@@ -1,0 +1,95 @@
+/* CSS das telas de entrar, criar conta, esqueci e redefinir a senha (protótipo aprovado em 17/11): a pele da landing D
+   (ADR-028), como a entrada do /comecar. Importado só por layouts/auth-split.vue: sai no CSS do chunk do layout
+   (_nuxt/auth-split.*.css), fora do entry.css e do precache (globIgnores). Tudo no escopo .auth-page; primitivos e
+   semânticos --lp-* de landing-tokens.css. O layouts/auth.vue (onboarding, /comecar/areas) segue no DS do app.
+   Tela dividida a partir de 960 px: formulário à esquerda, faixa violeta à direita; abaixo disso, faixa curta no topo. */
+@import '../landing/landing-tokens.css';
+
+/* Fonte de título da landing (ADR-028): o mesmo arquivo da landing e da entrada, fora do precache */
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  src: url('/landing/bricolage-700.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}
+
+.auth-page {
+  /* A faixa: violeta da landing no claro, a mais escura no escuro */
+  --au-band: var(--palette-violet-800);
+  --au-band-fg: var(--palette-lilac-100);
+  --au-band-muted: var(--palette-lilac-200);
+  --au-ease: cubic-bezier(.16, 1, .3, 1);
+  /* O primário com o "volume" da landing (UiButton lê --elev-action) */
+  --elev-action: var(--elev-press);
+  --au-mock-shadow: 0 18px 40px -18px color-mix(in srgb, var(--palette-night-950) 55%, transparent);
+
+  min-height: 100dvh;
+  overflow-x: clip;
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.dark .auth-page {
+  --au-band: var(--palette-violet-900);
+  --au-mock-shadow: 0 18px 40px -18px color-mix(in srgb, var(--palette-black) 70%, transparent);
+}
+
+.auth-page {
+  & h1 { font-family: var(--lp-display); font-weight: 700; color: var(--fg-strong); margin: 0; text-wrap: balance; letter-spacing: -.015em; font-size: 34px; line-height: 1.05; }
+  & ::selection { background: var(--lp-grifo); color: var(--lp-grifo-fg); }
+
+  /* Grifo das últimas palavras do título, o da landing */
+  & .au-grifo { position: relative; z-index: 0; white-space: nowrap; color: var(--lp-grifo-fg); }
+  & .au-grifo::before { content: ''; position: absolute; z-index: -1; left: -.06em; right: -.08em; top: .2em; bottom: .02em; background: var(--lp-grifo); border-radius: .12em .2em .1em .25em; transform: rotate(-1.2deg); transform-origin: left; }
+
+  & .au-shell { display: grid; grid-template-rows: auto 1fr; min-height: 100dvh; }
+  & .au-main { display: flex; justify-content: center; padding-block: 24px 32px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  & .au-col { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 18px; }
+  & .au-logo { display: none; align-self: flex-start; align-items: center; min-height: 44px; border-radius: 14px; color: var(--fg-strong); }
+  & .au-lead { color: var(--fg-muted); margin-top: 10px; }
+  & .au-or { display: flex; align-items: center; gap: 12px; color: var(--fg-muted); font-size: 14px; }
+  & .au-or::before, & .au-or::after { content: ''; flex: 1; height: 1px; background: var(--line-strong); }
+  & .au-meta { font-size: 14px; color: var(--fg-muted); }
+  & .au-switch { font-size: 15px; color: var(--fg-muted); }
+  & .au-footer { display: flex; gap: 16px; justify-content: center; font-size: 14px; }
+
+  /* A faixa violeta: curta no topo no celular (sem os extras) */
+  & .au-band { order: -1; position: relative; overflow: hidden; background: var(--au-band); color: var(--au-band-fg); }
+  & .au-band-in { display: flex; gap: 14px; align-items: center; padding-block: 18px 20px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  & .au-band :is(img) { display: block; }
+  & .au-mascot { flex: none; }
+  & .au-mascot img { width: auto; height: 76px; }
+  & .au-headline { font-family: var(--lp-display); font-weight: 700; color: var(--lp-white); font-size: 22px; line-height: 1.15; text-wrap: balance; letter-spacing: -.015em; }
+  & .au-sub { color: var(--au-band-muted); font-size: 15px; margin-top: 4px; }
+  & .au-extra { display: none; }
+
+  /* Card de exemplo (decorativo, aria-hidden) */
+  & .au-mock { background: var(--surface-raised); color: var(--fg); border-radius: 24px; box-shadow: var(--au-mock-shadow); padding: 20px; display: flex; flex-direction: column; gap: 12px; max-width: 360px; }
+  & .au-mock-q { font-family: var(--lp-display); font-weight: 700; color: var(--fg-strong); font-size: 20px; line-height: 1.25; }
+  & .au-chip { align-self: flex-start; font-weight: 650; font-size: 14px; border-radius: 999px; padding: 6px 12px; background: var(--fb-ok-bg); color: var(--fb-ok-fg); }
+  & .au-chip-again { background: var(--fb-again-bg); color: var(--fb-again-fg); }
+
+  /* Os três itens do criar conta */
+  & .au-ticks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 16px; max-width: 30em; }
+  & .au-ticks li { display: flex; gap: 12px; align-items: flex-start; font-size: 17px; line-height: 1.35; color: var(--lp-white); }
+  & .au-ticks div span { display: block; color: var(--au-band-muted); font-size: 15px; margin-top: 2px; }
+  & .au-tick { flex: none; width: 28px; height: 28px; border-radius: 9px; display: grid; place-items: center; background: var(--lp-white); color: var(--palette-violet-500); margin-top: 1px; }
+  & .au-tick svg { width: 18px; height: 18px; }
+}
+
+@media (min-width: 960px) {
+  .auth-page {
+    & h1 { font-size: 40px; }
+    & .au-shell { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: none; }
+    & .au-main { align-items: center; padding-block: 40px; }
+    & .au-logo { display: inline-flex; }
+    & .au-band { order: 0; }
+    & .au-band-in { flex-direction: column; align-items: flex-start; justify-content: center; gap: 28px; min-height: 100%; padding: 56px 56px 200px; max-width: 600px; }
+    & .au-mascot { position: absolute; right: 40px; bottom: 32px; }
+    & .au-mascot img { height: 150px; }
+    & .au-headline { font-size: 42px; line-height: 1.05; }
+    & .au-sub { font-size: 18px; margin-top: 10px; max-width: 26em; }
+    & .au-extra { display: flex; flex-direction: column; }
+  }
+}

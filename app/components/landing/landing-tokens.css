@@ -1,10 +1,11 @@
-/* Tokens da pele v4 da landing D (ADR-028), compartilhados com a entrada do /comecar (prd-entrada-comecar RF-F19):
+/* Tokens da pele v4 da landing D (ADR-028), compartilhados com a entrada do /comecar (prd-entrada-comecar RF-F19) e
+   com as telas de entrar e criar conta (components/auth/auth-split.css):
    primitivos, os semânticos do app que voltam aos valores de antes e os --lp-*. Importado pelo landing.css e pelo
    components/entrada/entrada.css, cada um compila a sua cópia (fora do entry.css e do precache). Os primitivos
    azul, verde e laranja só pintam os ícones da entrada sobre o quadrado branco da faixa violeta, que não muda no
    escuro: são os valores claros de --metric-accuracy, --metric-goal e --metric-streak (tokens.css). */
 /* ── Primitivos da landing (ADR-028): saíram do entry.css com a E2 (ADR-035 §7) e ficam só aqui ── */
-:is(.landing-page, .entrada-page) {
+:is(.landing-page, .entrada-page, .auth-page) {
   --palette-amber-200: #F3D9B1;
   --palette-amber-300: #F5B266;
   --palette-amber-50: #FFF4E5;
@@ -46,7 +47,7 @@
 
 /* ── A landing fica na pele v4 (ADR-028) enquanto o app passa à E2 (ADR-035): os semânticos do app que ela lê
    voltam aos valores de antes, só dentro de .landing-page ── */
-:is(.landing-page, .entrada-page) {
+:is(.landing-page, .entrada-page, .auth-page) {
   --surface-page: var(--palette-mist-25);
   --surface-subtle: var(--palette-mist-50);
   --fg-strong: var(--palette-ink-900);
@@ -59,7 +60,7 @@
   --elev-press: 0 3px 0 var(--action-press);
 }
 
-.dark :is(.landing-page, .entrada-page) {
+.dark :is(.landing-page, .entrada-page, .auth-page) {
   --surface-page: var(--palette-night-950);
   --surface-raised: var(--palette-night-900);
   --surface-subtle: var(--palette-night-850);
@@ -75,7 +76,7 @@
 }
 
 /* ── Semânticos da landing ── */
-:is(.landing-page, .entrada-page) {
+:is(.landing-page, .entrada-page, .auth-page) {
   --lp-display: 'Bricolage Grotesque', var(--font-sans);
   --lp-ease: cubic-bezier(.16, 1, .3, 1);
   --lp-header-h: 64px;
@@ -114,7 +115,7 @@
   color: var(--fg);
 }
 
-.dark :is(.landing-page, .entrada-page) {
+.dark :is(.landing-page, .entrada-page, .auth-page) {
   --lp-quiz: var(--palette-amber-950);
   --lp-quiz-fg: var(--palette-night-100);
   --lp-quiz-muted: var(--palette-amber-300);

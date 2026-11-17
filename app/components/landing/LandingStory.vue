@@ -17,6 +17,9 @@
               <LandingScreen v-if="'screen' in s" :name="s.screen" />
               <LandingClip v-else :clip="s.clip" />
             </LandingPhone>
+            <!-- The dolphin presents the screen (P1): its line is real text here, in the flow of the chapter -->
+            <LandingMascot :pose="s.pose" class="lp-chap-m" />
+            <p class="lp-bubble lp-chap-say" data-testid="landing-story-bubble">{{ s.bubble }}</p>
           </div>
           <div class="lp-act">
             <LandingCta to="/comecar" :position="s.position" section>{{ s.cta }}</LandingCta>
@@ -33,7 +36,8 @@
               <LandingClip v-else :clip="s.clip" :auto="false" />
             </div>
           </LandingPhone>
-          <LandingMascot :pose="pose" class="lp-guide" :class="{ 'lp-pop': popKey > 0 }" :data-pop="popKey" />
+          <LandingMascot :key="`m-${popKey}`" :pose="pose" class="lp-guide" :class="{ 'lp-pop': popKey > 0 }" />
+          <p :key="`b-${popKey}`" class="lp-bubble lp-guide-say" :class="{ 'lp-pop-in': popKey > 0 }" data-testid="landing-stage-bubble">{{ bubble }}</p>
         </div>
       </div>
     </div>
@@ -45,7 +49,9 @@
 // 10/11), material and review (owner, 06/11), the
 // quiz and the podcast have their own sections. On the desktop the chapter in the middle of the screen picks the
 // layer of the fixed phone (and plays only that clip, with motion allowed) and the dolphin's pose; the other chapter
-// turns grey, never transparent (its text keeps 4.5:1).
+// turns grey, never transparent (its text keeps 4.5:1). The dolphin presents each screen with one line in first person
+// (prd-landing-mostrar-produto P1): above the stage's dolphin on the desktop (the stage is a visual copy, aria-hidden),
+// beside each chapter's phone below 1024 px.
 import type { PlanCatalog } from '~/types'
 import { STORY, landingAiLine } from '~/utils/landing'
 import { motionAllowed, playClip } from '~/utils/landingMotion'
@@ -54,7 +60,9 @@ defineProps<{ catalog: PlanCatalog | null }>()
 
 type StoryKey = typeof STORY[number]['key']
 const active = ref<StoryKey>(STORY[0].key)
-const pose = computed(() => STORY.find(s => s.key === active.value)!.pose)
+const chapter = computed(() => STORY.find(s => s.key === active.value)!)
+const pose = computed(() => chapter.value.pose)
+const bubble = computed(() => chapter.value.bubble)
 const popKey = ref(0)
 const chapters = ref<HTMLElement[]>([])
 const stage = ref<HTMLElement | null>(null)

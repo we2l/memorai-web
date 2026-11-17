@@ -1,6 +1,9 @@
 import AxeBuilder from '@axe-core/playwright'
 import { test, expect, type Page } from '@playwright/test'
 import { CONSENT_DECIDED } from '../helpers'
+import { AUDIT_PASSWORD, USERS, provisionUser, sql, tinker } from './support/fixtures'
+import fs from 'node:fs'
+import path from 'node:path'
 
 /**
  * Entrada do /comecar (prd-entrada-comecar): o visitante chega pelo atalho da bio (/ig), vê a entrada, faz o tour de 7
@@ -111,5 +114,57 @@ test.describe('entrada com o banner de cookies aberto', () => {
     await page.getByTestId('consent-reject').click()
     await expect(page.getByTestId('entry-tour')).toHaveAttribute('data-flow', 'false')
     expect(await page.getByTestId('entry-dock').evaluate(el => getComputedStyle(el).position)).toBe('fixed')
+  })
+})
+
+/**
+ * "Mande o seu edital" (prd-landing-mostrar-produto P3): the box of /comecar sends the edital to the free tool and the
+ * reading reaches the caderno after the login. The reading itself (Turnstile + AI) never runs here: a ready reading is
+ * created in the local database and only the POST that would start one is answered in the browser; the GET of the
+ * result, the login and the apply are real.
+ */
+test.describe('edital pela entrada do /comecar', () => {
+  test.use({ storageState: CONSENT_DECIDED })
+
+  test('caixa → matérias no resultado → Estudar isso no Baigi → Entrar → caderno criado', async ({ page }) => {
+    provisionUser('editalEntrada')
+    const php = fs.readFileSync(path.join(__dirname, 'support/public-edital.php'), 'utf8').replace(/^<\?php\s*/, '')
+    const id = /E2E_PUBLIC_EDITAL_ID=([0-9a-z]{26})/.exec(tinker(php))?.[1]
+    expect(id, 'leitura pública criada').toBeTruthy()
+
+    const started: string[] = []
+    await page.route(url => url.pathname === '/api/public/editais', async (route) => {
+      if (route.request().method() !== 'POST') return route.fallback()
+      started.push(route.request().headers()['content-type'] ?? '')
+      await route.fulfill({ status: 202, json: { data: { id, status: 'ready', cached: true } } })
+    })
+
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto('/comecar')
+    const box = page.getByTestId('entry-edital')
+    await box.scrollIntoViewIfNeeded()
+    await expect(box.getByRole('heading', { name: 'Já tem o edital? Mande aqui' })).toBeVisible()
+    await box.getByRole('tab', { name: 'Colar texto' }).click()
+    await box.getByLabel('Conteúdo programático').fill('CONTEÚDO PROGRAMÁTICO. LÍNGUA PORTUGUESA: 1 Crase. 2 Concordância verbal. '.repeat(4))
+    await box.getByTestId('edital-send').click()
+
+    await page.waitForURL(new RegExp(`/ferramentas/edital-verticalizado/r/${id}\\?from=comecar`))
+    expect(started).toHaveLength(1)
+    await expect(page.getByText('Língua Portuguesa').first()).toBeVisible()
+    await expect(page.getByText('Direito Constitucional').first()).toBeVisible()
+
+    await page.getByTestId('edital-apply').first().click()
+    await page.waitForURL(/\/criar-conta/)
+    await page.goto('/entrar')
+    await page.locator('#email').fill(USERS.editalEntrada.email)
+    await page.locator('#password').fill(AUDIT_PASSWORD)
+    await page.getByRole('button', { name: 'Entrar', exact: true }).click()
+
+    await page.waitForURL(/\/cadernos\/[0-9a-f-]{36}/, { timeout: 20_000 })
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('TRT E2E Entrada')
+    const subjects = sql(`select count(*) from topics t join users u on u.id = t.user_id where u.email = '${USERS.editalEntrada.email}' and t.parent_id is not null and t.deleted_at is null`)
+    expect(Number(subjects)).toBeGreaterThanOrEqual(2)
+    expect(await page.evaluate(() => localStorage.getItem('baigi-edital-intent'))).toBeNull()
+    tinker(`App\\Domain\\Topic\\Models\\PublicEditalReading::whereKey('${id}')->delete();`)
   })
 })

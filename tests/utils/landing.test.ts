@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { AREAS, HERO_VARIANTS, LANDING_MESSAGES, LANDING_MESSAGE_SCRIPT, SCREENS, catalogTrial, landingAiLine, landingFaqs, landingMessageOf, landingPlanLines, landingPlansLead, landingPodcastLine, landingSampleLine, landingTrialTerms, paidPlanName, titleParts } from '~/utils/landing'
+import { AREAS, EXAMPLE_CARD, HERO_VARIANTS, STORY, LANDING_MESSAGES, LANDING_MESSAGE_SCRIPT, SCREENS, catalogTrial, landingAiLine, landingFaqs, landingMessageOf, landingPlanLines, landingPlansLead, landingPodcastLine, landingSampleLine, landingTrialTerms, paidPlanName, titleParts } from '~/utils/landing'
 import type { PlanCatalog } from '~/types'
 
 const catalog = (over: Partial<PlanCatalog> = {}, proTrial?: object, proName = 'Pro'): PlanCatalog => ({
@@ -175,5 +175,22 @@ describe('landing D (prd-landing-d)', () => {
     expect(landingFaqs(null)[0]!.a).not.toMatch(/\d/)
     const all = JSON.stringify([landingFaqs(null), HERO_VARIANTS, AREAS, landingPlansLead(null), landingPodcastLine(null)])
     expect(all).not.toMatch(/R\$|\d+x de|grátis todo mês|podcast grátis|FSRS/i)
+  })
+})
+
+describe('mostrar o produto (prd-landing-mostrar-produto)', () => {
+  it('P1: cada capítulo tem o seu balão, curto, em 1ª pessoa e sem "app"', () => {
+    const lines = STORY.map(s => s.bubble)
+    expect(new Set(lines).size).toBe(STORY.length)
+    for (const line of lines) {
+      expect(line.length).toBeLessThanOrEqual(40)
+      expect(line).not.toMatch(/\b(app|aplicativo)\b/i)
+    }
+    expect(new Set(STORY.map(s => s.pose)).size).toBe(STORY.length)
+  })
+
+  it('P2: o card de exemplo traz a fonte da lei', () => {
+    expect(EXAMPLE_CARD.a).toBe('180 contribuições mensais.')
+    expect(EXAMPLE_CARD.source).toBe('Lei 8.213/91, art. 25, II')
   })
 })

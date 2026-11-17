@@ -11,7 +11,7 @@
 import sizes from '~/assets/mascote/estados.json'
 import type { MascotExpression } from '~/components/ui/BaigiMascot.vue'
 
-export type MascotPose = 'standing' | 'thinking' | 'podcast' | 'celebrating'
+export type MascotPose = 'standing' | 'thinking' | 'podcast' | 'celebrating' | 'reading' | 'pointing' | 'thumbs'
 
 defineProps<{ pose: MascotPose, eager?: boolean }>()
 
@@ -20,5 +20,8 @@ const POSES: Record<MascotPose, MascotExpression> = {
   thinking: 'pensando',
   podcast: 'ouvindo',
   celebrating: 'confete',
+  reading: 'lendo',
+  pointing: 'apontando',
+  thumbs: 'joinha',
 }
 </script>

@@ -95,7 +95,7 @@ describe('EditalPublicResult', () => {
     expect(localStorage.getItem(EDITAL_INTENT_KEY)).toBe(ID)
     expect(navigateToMock).toHaveBeenCalledWith('/criar-conta')
     expect(apiMock).not.toHaveBeenCalled()
-    expect(trackMock).toHaveBeenCalledWith('edital_public_apply_clicked', { logged_in: false })
+    expect(trackMock).toHaveBeenCalledWith('edital_public_apply_clicked', { logged_in: false, origin: 'tool' })
   })
 
   it('logada: cria o caderno, limpa a intenção e abre o hub', async () => {

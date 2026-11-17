@@ -227,7 +227,7 @@ function goLogin() {
 
 async function apply(allowDuplicate = false, auto = false) {
   if (applying.value) return
-  if (!allowDuplicate && !auto) track('edital_public_apply_clicked', { logged_in: !!auth.user })
+  if (!allowDuplicate && !auto) track('edital_public_apply_clicked', { logged_in: !!auth.user, origin: route.query.from === 'comecar' ? 'comecar' : 'tool' })
   // No account yet: the intent waits on the device and the sign-up brings the person back here (postAuthRedirect)
   if (!auth.user) {
     saveEditalIntent(props.reading.id)

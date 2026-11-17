@@ -336,7 +336,9 @@
   "status_override": null,
   "status_date": null,
   "next_slug": null,
-  "siblings": [],
+  "siblings": [
+    "tj-sp-2026-oficial-de-justica"
+  ],
   "related_blog": [
     "tj-sp-escrevente-lei-seca-vunesp"
   ],

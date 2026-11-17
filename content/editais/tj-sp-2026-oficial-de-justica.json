@@ -1,0 +1,346 @@
+{
+  "version": 1,
+  "id": "01m7n3zq83x669w17efhd053th",
+  "slug": "tj-sp-2026-oficial-de-justica",
+  "group": "tj-sp-2026",
+  "area": "concurso",
+  "checked_at": "2026-11-17",
+  "exported_at": "2026-11-17T13:05:21-03:00",
+  "source_url": "https://www.tjsp.jus.br/atc/dejesp/consultaSimples.do?cdVolume=4542&nuDiario=4542&cdCaderno=10&nuSeqpagina=95",
+  "proposal_sha256": "8f8a1c6dc83cd7e875e8e43b68f7086d18b1b97e5b692f5642d81ebd9131d5ff",
+  "proposal": {
+    "name": "TJ-SP 2026 · Oficial de Justiça",
+    "exam_date": "2027-03-14",
+    "subjects": [
+      {
+        "name": "Língua Portuguesa",
+        "topics": [
+          {
+            "name": "Análise, compreensão e interpretação de textos",
+            "description": "Análise, compreensão e interpretação de diversos tipos de textos verbais, não verbais, literários e não literários"
+          },
+          {
+            "name": "Informações literais e inferências possíveis",
+            "description": null
+          },
+          {
+            "name": "Ponto de vista do autor",
+            "description": null
+          },
+          {
+            "name": "Estruturação do texto: relações entre ideias; recursos de coesão",
+            "description": null
+          },
+          {
+            "name": "Significação contextual de palavras e expressões",
+            "description": null
+          },
+          {
+            "name": "Sinônimos e antônimos",
+            "description": null
+          },
+          {
+            "name": "Sentido próprio e figurado das palavras",
+            "description": null
+          },
+          {
+            "name": "Classes de palavras: emprego e sentido",
+            "description": "Emprego e sentido que imprimem às relações que estabelecem: substantivo, adjetivo, artigo, numeral, pronome, verbo, advérbio, preposição e conjunção"
+          },
+          {
+            "name": "Concordância verbal e nominal",
+            "description": null
+          },
+          {
+            "name": "Regência verbal e nominal",
+            "description": null
+          },
+          {
+            "name": "Colocação pronominal",
+            "description": null
+          },
+          {
+            "name": "Crase",
+            "description": null
+          },
+          {
+            "name": "Pontuação",
+            "description": null
+          }
+        ]
+      },
+      {
+        "name": "Direito Penal",
+        "topics": [
+          {
+            "name": "Código Penal",
+            "description": "artigos 1º a 12; 100 a 106; 107 a 121; 129; 150; 154; 293 a 305; 307; 308; 311-A; 312 a 317; 319 a 333; 336 e 337; 339 a 347; 357 e 359"
+          }
+        ]
+      },
+      {
+        "name": "Direito Processual Penal",
+        "topics": [
+          {
+            "name": "Código de Processo Penal",
+            "description": "artigos 24 a 42; 61 a 74; 112; 125 a 131; 156, 185; 202 a 204; 218 a 225; 240 a 250; 274; 283 a 303; 351 a 363; 370 a 372; 396 a 396-A; 406; 436 a 446; 485 a 487; 513 a 518; 563 a 570; 593; 647 a 654; 762 a 763; 792; 798 e 798-A"
+          },
+          {
+            "name": "Lei n.º 9.099 de 26.09.1995",
+            "description": "artigos 1º; 2º; 60 a 62; 66 a 68"
+          }
+        ]
+      },
+      {
+        "name": "Direito Processual Civil",
+        "topics": [
+          {
+            "name": "Código de Processo Civil",
+            "description": "artigos 1º a 11; 13 a 18; 21 a 27; 36; 42 a 53; 64 a 66; 70 a 85; 98 a 102; 110 a 111; 125 a 135; 139 a 143; 149 a 155; 159 a 161; 176 a 199; 203 a 259; 269 a 275; 447 a 449; 453 a 454; 502; 528; 535 a 536; 538; 554; 560 a 563; 626; 695; 751; 782; 795; 806 a 807; 827 a 846; 870 a 875; 994; 1.001; 1.003; 1.009; 1.010; 1.015; 1.022"
+          },
+          {
+            "name": "Lei n.º 9.099 de 26.09.1995",
+            "description": "artigos 8º; 9º; 18; 19"
+          }
+        ]
+      },
+      {
+        "name": "Direito Constitucional",
+        "topics": [
+          {
+            "name": "Constituição Federal",
+            "description": "artigos 1º a 16; 18; 37 a 41; 92 a 99; 125; 127; 134"
+          }
+        ]
+      },
+      {
+        "name": "Direito Administrativo",
+        "topics": [
+          {
+            "name": "Estatuto dos Funcionários Públicos Civis do Estado de São Paulo (Lei n.º 10.261/68)",
+            "description": "artigos 1º; 3º; 4º; 11; 13; 14; 46; 47; 57; 78; 110; 120; 127; 176; 241 a 243; 251"
+          },
+          {
+            "name": "Lei Federal n.º 8.429/92 (Lei de Improbidade Administrativa)",
+            "description": "artigos 9º e 13"
+          }
+        ]
+      },
+      {
+        "name": "Direito Civil",
+        "topics": [
+          {
+            "name": "Código Civil",
+            "description": "artigos 1º a 25; 40 a 45; 49 a 50; 53; 62; 70 a 103; 115 a 120; 138 a 159; 166 a 201; 212 a 215; 653 a 666; 1.169 a 1.173; 1.196 a 1.203; 1.431 a 1.432; 1.442; 1.444 a 1.447; 1.451; 1.461; 1.467 a 1.472; 1.728; 1.767; 1.775 a 1.778; 1.997"
+          },
+          {
+            "name": "Decreto-Lei n.º 4.657 de 04/09/1942",
+            "description": null
+          }
+        ]
+      },
+      {
+        "name": "Legislação Especial",
+        "topics": [
+          {
+            "name": "Lei n.º 6.830/1980",
+            "description": "artigos 1º; 2º; 7º; 8º; 11; 37"
+          },
+          {
+            "name": "Resolução n.º 354/2020 do Conselho Nacional de Justiça",
+            "description": "artigos 1º; 8º a 10"
+          },
+          {
+            "name": "Lei n.º 11.608, de 29/12/2003",
+            "description": null
+          },
+          {
+            "name": "Normas Judiciais da Corregedoria Geral da Justiça",
+            "description": "Tomo I – Capítulo I: (art. 1º a 4º); Tomo I – Capítulo III – Seção III: (art. 33); Tomo I – Capítulo III – Seção V: (art. 47; 49); Tomo I – Capítulo III – Seção XI: (arts. 105 a 110); Tomo I – Capítulo IV – Seção III: (art. 196, inciso XX); Tomo I – Capítulo IV – Seção IV: (art. 282. § 1º); Tomo I – Capítulo IV – Seção VI: (arts. 310; 315); Tomo I – Capítulo IV – Seção XII: (art. 410); Tomo I – Capítulo IV – Seção XIII: (arts. 436; 436-A); Tomo I – Capítulo IV – Seção XIV: (art. 439; 440; 440-A); Tomo I – Capítulo VII (art. 994 a 1.091-A); Tomo I – Capítulo X – Seção III (art. 1.137 a 1.139); Tomo I – Capítulo XI – Seção VII (art. 1.245; 1.247)"
+          }
+        ]
+      },
+      {
+        "name": "Atualidades",
+        "topics": [
+          {
+            "name": "Fatos políticos, econômicos, sociais e culturais, nacionais e internacionais",
+            "description": "Divulgados a partir do 1° semestre de 2026 na mídia local e/ou nacional"
+          },
+          {
+            "name": "Lei n.º 13.146/2015 – Estatuto da Pessoa com Deficiência",
+            "description": "Artigos 1º a 13; 34 a 38; 79 a 87, com as alterações vigentes até a publicação deste edital"
+          }
+        ]
+      },
+      {
+        "name": "Matemática e Raciocínio Lógico",
+        "topics": [
+          {
+            "name": "Operações com números reais",
+            "description": null
+          },
+          {
+            "name": "Mínimo múltiplo comum e máximo divisor comum",
+            "description": null
+          },
+          {
+            "name": "Razão e proporção",
+            "description": null
+          },
+          {
+            "name": "Porcentagem",
+            "description": null
+          },
+          {
+            "name": "Regra de três simples e composta",
+            "description": null
+          },
+          {
+            "name": "Média aritmética simples e ponderada",
+            "description": null
+          },
+          {
+            "name": "Juros simples",
+            "description": null
+          },
+          {
+            "name": "Equação do 1.º e 2.º graus",
+            "description": null
+          },
+          {
+            "name": "Sistema de equações do 1.º grau",
+            "description": null
+          },
+          {
+            "name": "Relação entre grandezas: tabelas e gráficos",
+            "description": null
+          },
+          {
+            "name": "Sistemas de medidas usuais",
+            "description": null
+          },
+          {
+            "name": "Noções de geometria",
+            "description": "Forma, perímetro, área, volume, ângulo, teorema de Pitágoras"
+          },
+          {
+            "name": "Resolução de situações-problema",
+            "description": null
+          },
+          {
+            "name": "Estrutura lógica das relações arbitrárias",
+            "description": "Relações entre pessoas, lugares, coisas, eventos fictícios; dedução de novas informações das relações fornecidas e avaliação das condições usadas para estabelecer a estrutura daquelas relações"
+          },
+          {
+            "name": "Regularidades de sequências numéricas ou figurais",
+            "description": "Identificação das regularidades de uma sequência, numérica ou figural, de modo a indicar qual é o elemento de uma dada posição"
+          },
+          {
+            "name": "Estruturas lógicas",
+            "description": null
+          },
+          {
+            "name": "Lógicas de argumentação",
+            "description": null
+          },
+          {
+            "name": "Diagramas lógicos",
+            "description": null
+          },
+          {
+            "name": "Sequências",
+            "description": null
+          }
+        ]
+      },
+      {
+        "name": "Informática",
+        "topics": [
+          {
+            "name": "MS-Windows 10 ou superior",
+            "description": "Conceito de pastas, diretórios, arquivos e atalhos, área de trabalho, área de transferência, manipulação de arquivos e pastas, uso dos menus, programas e aplicativos, interação com o conjunto de aplicativos do Microsoft-365"
+          },
+          {
+            "name": "MS-Word",
+            "description": "Estrutura básica dos documentos, edição e formatação de textos, cabeçalhos, parágrafos, fontes, colunas, marcadores simbólicos e numéricos, tabelas, impressão, controle de quebras e numeração de páginas, legendas, índices, inserção de objetos, campos predefinidos, caixas de texto"
+          },
+          {
+            "name": "MS-Excel",
+            "description": "Estrutura básica das planilhas, conceitos de células, linhas, colunas, pastas e gráficos, elaboração de tabelas e gráficos, uso de fórmulas"
+          },
+          {
+            "name": "MS-Teams",
+            "description": "Chats, chamadas de áudio e vídeo, criação de grupos, trabalho em equipe: Word, Excel, PowerPoint, SharePoint e OneNote, agendamento de reuniões e gravação"
+          },
+          {
+            "name": "OneDrive",
+            "description": "Armazenamento e compartilhamento de arquivos"
+          },
+          {
+            "name": "Correio Eletrônico",
+            "description": "Uso de correio eletrônico, preparo e envio de mensagens, anexação de arquivos"
+          },
+          {
+            "name": "Internet",
+            "description": "Navegação internet, conceitos de URL, links, sites, busca e impressão de páginas"
+          }
+        ]
+      }
+    ]
+  },
+  "weights": null,
+  "counts": {
+    "subjects": 11,
+    "topics": 55
+  },
+  "source": {
+    "pages": {
+      "from": 124,
+      "to": 125
+    },
+    "found": "heading",
+    "truncated": false,
+    "label": "Edital 01/2026 · Oficial de Justiça para a Comarca de São Paulo – Capital e para as Circunscrições Judiciárias"
+  },
+  "edital": {
+    "orgao": "Tribunal de Justiça do Estado de São Paulo",
+    "orgao_sigla": "TJ-SP",
+    "cargo": "Oficial de Justiça",
+    "cargos_mesma_lista": [],
+    "banca": "Fundação VUNESP",
+    "banca_url": null,
+    "numero": "Edital nº 01/2026",
+    "publicado_em": "2026-10-14",
+    "inscricoes_inicio": "2026-10-28",
+    "inscricoes_fim": "2026-12-10",
+    "taxa": "R$ 96,00 (pagamento até 11/12/2026)",
+    "prova": "2027-03-14",
+    "prova_prevista": true,
+    "vagas": "132 cargos e formação de cadastro de reserva",
+    "remuneracao": "R$ 9.856,95, valor referente a janeiro/2026, mais auxílios para alimentação, saúde e transporte",
+    "paginas": {
+      "orgao": 95,
+      "cargo": 95,
+      "banca": 95,
+      "numero": 95,
+      "publicado_em": 120,
+      "inscricoes": 100,
+      "taxa": 100,
+      "prova": 108,
+      "vagas": 95,
+      "remuneracao": 100
+    }
+  },
+  "expires_on": null,
+  "status_override": null,
+  "status_date": null,
+  "next_slug": null,
+  "siblings": [
+    "tj-sp-2026-escrevente"
+  ],
+  "related_blog": [
+    "o-que-e-edital-verticalizado"
+  ],
+  "changes": []
+}

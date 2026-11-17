@@ -1,21 +1,17 @@
 <template>
-  <div class="flex flex-col gap-5">
-    <h1 class="text-page-title text-fg-strong">Entrar no Baigi</h1>
+  <AuthSplit headline="Seus cards de hoje estão te esperando." sub="Um lote leva uns 5 minutos." mascot="acenando">
+    <h1>Bom te ver <span class="au-grifo">de novo.</span></h1>
 
     <p v-if="notice" role="status" class="rounded-control bg-warning-subtle px-3 py-2 text-meta text-fg-strong" data-testid="entrar-notice">{{ notice }}</p>
 
     <div class="flex flex-col gap-2">
-      <AuthGoogleButton />
-      <p class="text-label text-fg-muted">
+      <AuthGoogleButton variant="outline" size="lg" />
+      <p class="au-meta">
         Ao continuar você aceita os <UiLink to="/termos" class="underline">Termos</UiLink> e a <UiLink to="/privacidade" class="underline">Privacidade</UiLink>.
       </p>
     </div>
 
-    <div class="flex items-center gap-3" aria-hidden="true">
-      <span class="h-px flex-1 bg-line" />
-      <span class="text-label text-fg-muted">ou</span>
-      <span class="h-px flex-1 bg-line" />
-    </div>
+    <p class="au-or" aria-hidden="true">ou com e-mail</p>
 
     <form class="flex flex-col gap-4" novalidate @submit.prevent="submit">
       <UiInput id="email" v-model="form.email" label="E-mail" type="email" autocomplete="email" inputmode="email" :error="errors.email" />
@@ -26,21 +22,30 @@
 
       <p v-if="errors.general" role="alert" class="text-meta font-medium text-danger" data-testid="entrar-error">{{ errors.general }}</p>
 
-      <UiButton variant="primary" type="submit" block :loading="loading">Entrar</UiButton>
+      <UiButton variant="primary" size="lg" type="submit" block :loading="loading">Entrar</UiButton>
     </form>
 
-    <p class="text-meta text-fg-muted">
-      Ainda não tem conta? <UiLink to="/criar-conta" class="underline">Criar conta</UiLink>
+    <p class="au-switch">
+      Ainda não tem conta? <UiLink to="/criar-conta" class="underline">Criar conta grátis</UiLink>
     </p>
-  </div>
+
+    <template #extra>
+      <!-- An example of a card, not the person's: decorative -->
+      <div class="au-mock" aria-hidden="true">
+        <p class="au-meta">Direito Constitucional · Art. 5º</p>
+        <p class="au-mock-q">Qual o prazo do mandado de segurança?</p>
+        <span class="au-chip">Lembrei · volta em 11 dias</span>
+      </div>
+    </template>
+  </AuthSplit>
 </template>
 
 <script setup lang="ts">
-// Login v4 (prd-4g-conta-onboarding-v3 RF-F12). Prerendered: while hydrating, Nuxt takes the query out of the
+// Login v4 (prd-4g-conta-onboarding-v3 RF-F12) in the skin of the landing (components/auth/Split.vue, 17/11). Prerendered: while hydrating, Nuxt takes the query out of the
 // route and of the address and puts it back right after, so the notices follow the router (no flash, no mismatch).
 import { loginErrorMessage } from '~/utils/authMessages'
 
-definePageMeta({ layout: 'auth' })
+definePageMeta({ layout: 'auth-split' })
 useHead({ title: 'Entrar · Baigi' })
 
 const auth = useAuthStore()

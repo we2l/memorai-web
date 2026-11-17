@@ -153,7 +153,7 @@ test.describe('Auth', () => {
   test('/entrar: h1, 1 primário, mostrar senha com aria-pressed e o foco no campo', async ({ page }) => {
     await page.goto('/entrar')
     await page.waitForLoadState('networkidle')
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Entrar no Baigi')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Bom te ver de novo.')
     await expect(page.locator('.bg-action.text-on-action').filter({ visible: true })).toHaveCount(1)
     await expect(page.getByTestId('google-button')).toContainText('Continuar com Google')
     const input = page.locator('#password')
@@ -211,16 +211,16 @@ test.describe('Auth', () => {
     await expect(page.getByTestId('forgot-sent')).toContainText('Se houver uma conta com alguem@audit.test, enviamos um link (vale por 60 min).')
 
     await page.goto('/redefinir-senha')
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Este link expirou')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Este link expirou.')
     await expect(page.getByTestId('reset-ask-again')).toHaveAttribute('href', '/esqueci-senha')
 
     await page.route('**/api/reset-password', r => r.fulfill({ status: 422, headers: { 'Access-Control-Allow-Origin': WEB, 'Access-Control-Allow-Credentials': 'true' }, json: { message: 'x', errors: { email: ['token'] } } }))
     await page.goto('/redefinir-senha?token=abc&email=alguem%40audit.test')
     await page.waitForLoadState('networkidle')
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Criar nova senha')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Crie uma nova senha.')
     await page.locator('#password').fill('NovaSenha-123')
     await page.getByRole('button', { name: 'Salvar nova senha' }).click()
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Este link expirou')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Este link expirou.')
 
     // Link bom: volta para /entrar com o aviso (navegação no cliente, a query já vem no setup)
     await page.unroute('**/api/reset-password')
@@ -250,7 +250,7 @@ test.describe('Auth', () => {
 
   test('axe nas 4 telas de auth e no 404: claro e escuro, 390 e 1440', async ({ page }) => {
     test.setTimeout(180_000)
-    for (const [url, title] of [['/entrar', 'Entrar no Baigi'], ['/criar-conta', 'Criar sua conta'], ['/esqueci-senha', 'Esqueci a senha'], ['/redefinir-senha?token=a&email=a%40b.c', 'Criar nova senha'], ['/endereco-que-nao-existe', 'Página não encontrada']] as const) {
+    for (const [url, title] of [['/entrar', 'Bom te ver de novo.'], ['/criar-conta', 'Crie sua conta grátis.'], ['/esqueci-senha', 'Esqueci a senha.'], ['/redefinir-senha?token=a&email=a%40b.c', 'Crie uma nova senha.'], ['/endereco-que-nao-existe', 'Página não encontrada']] as const) {
       await axeEverywhere(page, url, async () => { await expect(page.getByRole('heading', { level: 1 })).toHaveText(title) })
     }
   })

@@ -109,8 +109,11 @@ test.describe('Visitante até a conta', () => {
     await result2.getByTestId('guest-signup').click()
     await page.waitForURL('**/criar-conta?salvar=1')
     expect(await page.evaluate(() => JSON.parse(localStorage.getItem('baigi-guest-progress') || 'null'))).toMatchObject({ goal_batches: 2, exam_date: examDate })
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Salve seu progresso')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Salve seu progresso.')
     await expect(page.getByTestId('signup-guest')).toContainText('OAB')
+    // The band says the lote's own numbers and, with the deck's intervals, when the cards come back
+    await expect(page.getByTestId('auth-band-headline')).toHaveText(/^Você lembrou \d de 6\.$/)
+    await expect(page.getByTestId('auth-band')).toContainText(/voltam? (no dia certo: \d|em \d|amanhã)/)
 
     const email = `e2e-v4-${uid()}@audit.test`
     // Lean sign-up (RF-F10): no name, no checkbox, one line of the Terms

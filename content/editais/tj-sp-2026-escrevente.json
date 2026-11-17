@@ -1,0 +1,344 @@
+{
+  "version": 1,
+  "id": "01m7n08sxzcg19wdnbhnns3pw5",
+  "slug": "tj-sp-2026-escrevente",
+  "group": "tj-sp-2026",
+  "area": "concurso",
+  "checked_at": "2026-11-17",
+  "exported_at": "2026-11-17T12:00:08-03:00",
+  "source_url": "https://www.tjsp.jus.br/atc/dejesp/consultaSimples.do?cdVolume=4542&nuDiario=4542&cdCaderno=10&nuSeqpagina=125",
+  "proposal_sha256": "8f9349338805dc264acf1896f5120a110ba885991dc77f899f1da566684cb8a1",
+  "proposal": {
+    "name": "TJ-SP 2026 · Escrevente Técnico Judiciário",
+    "exam_date": "2027-03-14",
+    "subjects": [
+      {
+        "name": "Língua Portuguesa",
+        "topics": [
+          {
+            "name": "Análise, compreensão e interpretação de textos",
+            "description": "Análise, compreensão e interpretação de diversos tipos de textos verbais, não verbais, literários e não literários"
+          },
+          {
+            "name": "Informações literais e inferências possíveis",
+            "description": null
+          },
+          {
+            "name": "Ponto de vista do autor",
+            "description": null
+          },
+          {
+            "name": "Estruturação do texto: relações entre ideias; recursos de coesão",
+            "description": null
+          },
+          {
+            "name": "Significação contextual de palavras e expressões",
+            "description": null
+          },
+          {
+            "name": "Sinônimos e antônimos",
+            "description": null
+          },
+          {
+            "name": "Sentido próprio e figurado das palavras",
+            "description": null
+          },
+          {
+            "name": "Classes de palavras: emprego e sentido",
+            "description": "Emprego e sentido que imprimem às relações que estabelecem: substantivo, adjetivo, artigo, numeral, pronome, verbo, advérbio, preposição e conjunção"
+          },
+          {
+            "name": "Concordância verbal e nominal",
+            "description": null
+          },
+          {
+            "name": "Regência verbal e nominal",
+            "description": null
+          },
+          {
+            "name": "Colocação pronominal",
+            "description": null
+          },
+          {
+            "name": "Crase",
+            "description": null
+          },
+          {
+            "name": "Pontuação",
+            "description": null
+          }
+        ]
+      },
+      {
+        "name": "Direito Penal",
+        "topics": [
+          {
+            "name": "Código Penal",
+            "description": "artigos 293 a 305; 307; 308; 311-A; 312 a 317; 319 a 333; 336 e 337; 339 a 347; 357 e 359"
+          }
+        ]
+      },
+      {
+        "name": "Direito Processual Penal",
+        "topics": [
+          {
+            "name": "Código de Processo Penal",
+            "description": "artigos 251 a 258; 261 a 267; 274; 351 a 372; 394 a 497; 531 a 538; 541 a 548; 574 a 667"
+          },
+          {
+            "name": "Lei n.º 9.099 de 26.09.1995",
+            "description": "artigos 60 a 83; 88 e 89"
+          }
+        ]
+      },
+      {
+        "name": "Direito Processual Civil",
+        "topics": [
+          {
+            "name": "Código de Processo Civil",
+            "description": "artigos 144 a 155; 188 a 275; 294 a 311 e do 318 a 538; 994 a 1026"
+          },
+          {
+            "name": "Lei n.º 9.099 de 26.09.1995",
+            "description": "artigos 3º ao 19"
+          },
+          {
+            "name": "Lei n.º 12.153 de 22/12/2009",
+            "description": null
+          }
+        ]
+      },
+      {
+        "name": "Direito Constitucional",
+        "topics": [
+          {
+            "name": "Constituição Federal",
+            "description": "Título II – Capítulos I, II e III; e Título III – Capítulo VII com Seções I e II; e também o artigo 92"
+          }
+        ]
+      },
+      {
+        "name": "Direito Administrativo",
+        "topics": [
+          {
+            "name": "Estatuto dos Funcionários Públicos Civis do Estado de São Paulo (Lei n.º 10.261/68)",
+            "description": "artigos 1º a 86; 171 a 175; 239 a 323"
+          },
+          {
+            "name": "Lei Federal n.º 8.429/92 (Lei de Improbidade Administrativa)",
+            "description": null
+          }
+        ]
+      },
+      {
+        "name": "Legislação Interna",
+        "topics": [
+          {
+            "name": "Resolução TJSP nº 850/2021",
+            "description": "Regulamenta o teletrabalho no âmbito do Tribunal de Justiça do Estado de São Paulo e dá outras providências"
+          },
+          {
+            "name": "Resolução TJSP nº 963/2025",
+            "description": "Dispõe sobre a governança e utilização do sistema eproc nas unidades do Poder Judiciário do Estado de São Paulo e dá outras providências"
+          },
+          {
+            "name": "Lei Complementar n° 1.111/ 2010",
+            "description": "Institui o Plano de Cargos e Carreiras dos servidores do Tribunal de Justiça do Estado de São Paulo e dá providências correlatas"
+          },
+          {
+            "name": "Regimento Interno do Tribunal de Justiça",
+            "description": null
+          },
+          {
+            "name": "Normas da Corregedoria Geral da Justiça",
+            "description": "Tomo I – Capítulo II: Seção I – subseções I e II; Tomo I – Capítulo III: Seções I, II, V, VI, VII; Tomo I – Capítulo III: Seção VIII – subseções I, II e III; Tomo I – Capítulo III: Seções IX a XIX; Tomo I – Capítulo XI: Seção I a VII"
+          }
+        ]
+      },
+      {
+        "name": "Atualidades",
+        "topics": [
+          {
+            "name": "Fatos políticos, econômicos, sociais e culturais nacionais e internacionais",
+            "description": "Ocorridos a partir do 1° semestre de 2026, divulgados na mídia local e/ou nacional"
+          },
+          {
+            "name": "Lei n.º 13.146/2015 – Estatuto da Pessoa com Deficiência",
+            "description": "Artigos 1º ao 13; 34 ao 38, com as alterações vigentes até a publicação deste edital"
+          }
+        ]
+      },
+      {
+        "name": "Matemática",
+        "topics": [
+          {
+            "name": "Operações com números reais",
+            "description": null
+          },
+          {
+            "name": "Mínimo múltiplo comum e máximo divisor comum",
+            "description": null
+          },
+          {
+            "name": "Razão e proporção",
+            "description": null
+          },
+          {
+            "name": "Porcentagem",
+            "description": null
+          },
+          {
+            "name": "Regra de três simples e composta",
+            "description": null
+          },
+          {
+            "name": "Média aritmética simples e ponderada",
+            "description": null
+          },
+          {
+            "name": "Juros simples",
+            "description": null
+          },
+          {
+            "name": "Equação do 1.º e 2.º graus",
+            "description": null
+          },
+          {
+            "name": "Sistema de equações do 1.º grau",
+            "description": null
+          },
+          {
+            "name": "Relação entre grandezas: tabelas e gráficos",
+            "description": null
+          },
+          {
+            "name": "Sistemas de medidas usuais",
+            "description": null
+          },
+          {
+            "name": "Noções de geometria",
+            "description": "Forma, perímetro, área, volume, ângulo, teorema de Pitágoras"
+          },
+          {
+            "name": "Resolução de situações-problema",
+            "description": null
+          }
+        ]
+      },
+      {
+        "name": "Informática",
+        "topics": [
+          {
+            "name": "MS-Windows 10 ou superior",
+            "description": "Conceito de pastas, diretórios, arquivos e atalhos, área de trabalho, área de transferência, manipulação de arquivos e pastas, uso dos menus, programas e aplicativos"
+          },
+          {
+            "name": "MS-Word",
+            "description": "Estrutura básica dos documentos, edição e formatação de textos, cabeçalhos, parágrafos, fontes, colunas, marcadores simbólicos e numéricos, tabelas, impressão, controle de quebras e numeração de páginas, legendas, índices, inserção de objetos, campos predefinidos, caixas de texto"
+          },
+          {
+            "name": "MS-Excel",
+            "description": "Estrutura básica das planilhas, conceitos de células, linhas, colunas, pastas e gráficos, elaboração de tabelas e gráficos, uso de fórmulas, funções e macros, impressão, inserção de objetos, campos predefinidos, controle de quebras e numeração de páginas, obtenção de dados externos, classificação de dados"
+          },
+          {
+            "name": "Correio Eletrônico",
+            "description": "Uso de correio eletrônico, preparo e envio de mensagens, anexação de arquivos"
+          },
+          {
+            "name": "Internet",
+            "description": "Navegação internet, conceitos de URL, links, sites, busca e impressão de páginas"
+          },
+          {
+            "name": "MS Teams",
+            "description": "Chats, chamadas de áudio e vídeo, criação de grupos, trabalho em equipe: Word, Excel, PowerPoint, SharePoint e OneNote, agendamento de reuniões e gravação"
+          },
+          {
+            "name": "OneDrive",
+            "description": "Armazenamento e compartilhamento de arquivos"
+          }
+        ]
+      },
+      {
+        "name": "Raciocínio Lógico",
+        "topics": [
+          {
+            "name": "Estrutura lógica das relações arbitrárias",
+            "description": "Relações entre pessoas, lugares, coisas, eventos fictícios; dedução de novas informações das relações fornecidas e avaliação das condições usadas para estabelecer a estrutura daquelas relações"
+          },
+          {
+            "name": "Regularidades de sequências numéricas ou figurais",
+            "description": "Identificação das regularidades de uma sequência, numérica ou figural, de modo a indicar qual é o elemento de uma dada posição"
+          },
+          {
+            "name": "Estruturas lógicas",
+            "description": null
+          },
+          {
+            "name": "Lógicas de argumentação",
+            "description": null
+          },
+          {
+            "name": "Diagramas lógicos",
+            "description": null
+          },
+          {
+            "name": "Sequências",
+            "description": null
+          }
+        ]
+      }
+    ]
+  },
+  "weights": null,
+  "counts": {
+    "subjects": 11,
+    "topics": 55
+  },
+  "source": {
+    "pages": {
+      "from": 154,
+      "to": 156
+    },
+    "found": "heading",
+    "truncated": false,
+    "label": "Edital 02/2026 · Escrevente Técnico Judiciário para as Circunscrições Judiciárias que Compõem a 2ª, 3ª, 4ª, 5ª, 6ª"
+  },
+  "edital": {
+    "orgao": "Tribunal de Justiça do Estado de São Paulo",
+    "orgao_sigla": "TJ-SP",
+    "cargo": "Escrevente Técnico Judiciário",
+    "cargos_mesma_lista": [],
+    "banca": "Fundação VUNESP",
+    "banca_url": null,
+    "numero": "Edital nº 02/2026",
+    "publicado_em": "2026-10-14",
+    "inscricoes_inicio": "2026-10-28",
+    "inscricoes_fim": "2026-12-10",
+    "taxa": "R$ 81,00 (pagamento até 11/12/2026)",
+    "prova": "2027-03-14",
+    "prova_prevista": true,
+    "vagas": "Formação de cadastro de reserva (C.R. em todas as comarcas)",
+    "remuneracao": "R$ 6.782,54, valor referente a março/2026, mais auxílios para alimentação, saúde e transporte",
+    "paginas": {
+      "orgao": 125,
+      "cargo": 125,
+      "banca": 125,
+      "numero": 125,
+      "publicado_em": 151,
+      "inscricoes": 130,
+      "taxa": 130,
+      "prova": 138,
+      "vagas": 126,
+      "remuneracao": 130
+    }
+  },
+  "expires_on": null,
+  "status_override": null,
+  "status_date": null,
+  "next_slug": null,
+  "siblings": [],
+  "related_blog": [
+    "tj-sp-escrevente-lei-seca-vunesp"
+  ],
+  "changes": []
+}

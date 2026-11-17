@@ -4,6 +4,7 @@ import { join, resolve } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import { parseArticle, slugify } from '../../modules/blog/markdown'
 import { attachShareImages, blogRoutes, loadArticles, rssXml, sitemapXml } from '../../modules/blog/index'
+import { editaisLinkable, editaisOfBuild } from '../../modules/editais/index'
 import { BLOG_CATEGORIES } from '../../modules/blog/types'
 // @ts-ignore plain .mjs script, no types
 import { CATEGORY_LABELS } from '../../scripts/blog-capas.mjs'
@@ -134,6 +135,9 @@ Meio.
   })
 })
 
+// the build validates article links against the conferred editais too (prd-paginas-edital-publicas RF-W2)
+const repoLinkable = () => editaisLinkable(editaisOfBuild(resolve(__dirname, '../..')).pages)
+
 describe('loadArticles, sitemap e RSS', () => {
   let dir = ''
   afterEach(() => dir && rmSync(dir, { recursive: true, force: true }))
@@ -145,7 +149,7 @@ describe('loadArticles, sitemap e RSS', () => {
   })
 
   it('os artigos do repo carregam e entram no sitemap, no RSS e nas rotas', () => {
-    const articles = loadArticles(resolve(__dirname, '../../content/blog'))
+    const articles = loadArticles(resolve(__dirname, '../../content/blog'), repoLinkable())
     expect(articles.length).toBeGreaterThanOrEqual(3)
     const sitemap = sitemapXml(articles)
     for (const a of articles) {
@@ -161,7 +165,7 @@ describe('loadArticles, sitemap e RSS', () => {
   })
 
   it('cada artigo do repo tem a sua imagem de compartilhamento (public/blog/capas)', () => {
-    const articles = loadArticles(resolve(__dirname, '../../content/blog'))
+    const articles = loadArticles(resolve(__dirname, '../../content/blog'), repoLinkable())
     attachShareImages(articles, resolve(__dirname, '../../public'))
     for (const a of articles) expect(a.image).toBe(`/blog/capas/${a.slug}.jpg`)
   })

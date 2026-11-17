@@ -25,7 +25,7 @@ export const isApiUrl = (url: URL) => url.origin === new URL(API_ORIGIN).origin 
 export const AUDIT_PASSWORD = 'Senha-Audit-2026'
 const CONTAINER = process.env.E2E_API_CONTAINER || 'baigi-app'
 
-export type UserKey = 'visual' | 'pro' | 'free' | 'quota' | 'unverified' | 'onboarding' | 'onboardingUnverified' | 'empty' | 'session' | 'logout' | 'account' | 'mobile' | 'legacy' | 'scope' | 'nav' | 'hoje' | 'hojeNew' | 'hojeSample' | 'hojeGoal' | 'recorte' | 'hub' | 'material' | 'library' | 'revisao' | 'revisaoEmpty' | 'praticar' | 'praticarFree' | 'progresso' | 'progressoNew' | 'onbText' | 'onbExit' | 'onbExam' | 'onbAnki' | 'onbSample' | 'onbKeyboard' | 'conta' | 'contaPro' | 'parts' | 'organizacao' | 'landingShots' | 'trialInvite' | 'trialUnverified' | 'trialActive' | 'trialTomorrow' | 'trialToday' | 'trialUsed' | 'questao' | 'preview' | 'binario' | 'faseB' | 'trocaA' | 'trocaB' | 'revisaoE2' | 'hojeBacklog' | 'offline'
+export type UserKey = 'visual' | 'pro' | 'free' | 'quota' | 'unverified' | 'onboarding' | 'onboardingUnverified' | 'empty' | 'session' | 'logout' | 'account' | 'mobile' | 'legacy' | 'scope' | 'nav' | 'hoje' | 'hojeNew' | 'hojeSample' | 'hojeGoal' | 'recorte' | 'hub' | 'material' | 'library' | 'revisao' | 'revisaoEmpty' | 'praticar' | 'praticarFree' | 'progresso' | 'progressoNew' | 'onbText' | 'onbExit' | 'onbExam' | 'onbAnki' | 'onbSample' | 'onbKeyboard' | 'conta' | 'contaPro' | 'parts' | 'organizacao' | 'landingShots' | 'trialInvite' | 'trialUnverified' | 'trialActive' | 'trialTomorrow' | 'trialToday' | 'trialUsed' | 'questao' | 'preview' | 'binario' | 'faseB' | 'trocaA' | 'trocaB' | 'revisaoE2' | 'hojeBacklog' | 'offline' | 'editalEntrada'
 
 type UserSpec = { email: string; plan: 'free' | 'pro'; verified: boolean; onboarded: boolean; reset: true; quota_exhausted?: Record<string, number>; name?: string; trial?: 'used' | 'active' | 'tomorrow' | 'today'; buttons?: 'two' | 'four' }
 
@@ -47,6 +47,9 @@ export const USERS: Record<UserKey, UserSpec> = {
   // Troca de conta na mesma aba (troca-de-conta.spec.ts): a conta B nunca pode ver os cadernos da A
   trocaA: { email: 'e2e-troca-a@audit.test', plan: 'free', verified: true, onboarded: true, reset: true },
   trocaB: { email: 'e2e-troca-b@audit.test', plan: 'free', verified: true, onboarded: true, reset: true },
+  // Edital pela entrada do /comecar (prd-landing-mostrar-produto P3): a fresh account that logs in through the form after
+  // "Estudar isso no Baigi", so the result page applies the reading by itself
+  editalEntrada: { email: 'e2e-edital-entrada@audit.test', plan: 'free', verified: true, onboarded: false, reset: true },
   unverified: { email: 'e2e-unverified@audit.test', plan: 'pro', verified: false, onboarded: true, reset: true },
   onboarding: { email: 'e2e-onboarding@audit.test', plan: 'free', verified: true, onboarded: false, reset: true },
   // Fresh e-mail sign-up: onboarding pending and e-mail not confirmed yet (verified mid-test)
@@ -183,6 +186,11 @@ function provision(key: UserKey) {
       fs.rmSync(lock, { force: true })
     }
   }
+}
+
+/** Provisions an audit user without logging in (specs that log in through the form, once per run). */
+export function provisionUser(key: UserKey) {
+  provision(key)
 }
 
 const apiHeaders = (xsrf?: string) => ({

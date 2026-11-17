@@ -116,6 +116,11 @@ export function titleParts(line: string): { text: string, mark: boolean }[] {
 }
 
 /** "Como funciona": the phone stays (desktop) and the screen changes, only material and review (owner, 06/11). */
+/**
+ * The chapters of "Como funciona". `bubble` is the dolphin's one line beside the real screen (prd-landing-mostrar-produto
+ * P1): first person, at most 40 characters, about what the screen shows; the title and the text stay in the brand's
+ * voice. The material chapter's line describes its clip (the part "Benefícios" of the demo account's apostila).
+ */
 export const STORY = [
   {
     key: 'edital',
@@ -126,7 +131,8 @@ export const STORY = [
     screen: 'edital',
     cta: 'Montar meu caderno pelo edital',
     position: 'story_edital',
-    pose: 'thinking',
+    pose: 'reading',
+    bubble: 'Eu acho as matérias no meio do edital.',
   },
   {
     key: 'material',
@@ -137,7 +143,8 @@ export const STORY = [
     clip: 'material',
     cta: 'Testar com meu PDF',
     position: 'story_material',
-    pose: 'thinking',
+    pose: 'pointing',
+    bubble: 'Esses cards saíram da parte Benefícios.',
   },
   {
     key: 'revisao',
@@ -148,9 +155,20 @@ export const STORY = [
     clip: 'revisao',
     cta: 'Fazer meu primeiro lote',
     position: 'story_review',
-    pose: 'standing',
+    pose: 'thumbs',
+    bubble: 'Um lote de cada vez. Eu conto o resto.',
   },
 ] as const
+
+/**
+ * The card to turn in the curve section (prd-landing-mostrar-produto P2), from the demo account's world (INSS).
+ * Checked in Lei 8.213/91, art. 25, II (planalto.gov.br, 16/11/2026): 180 contribuições mensais.
+ */
+export const EXAMPLE_CARD = {
+  q: 'Qual é a carência da aposentadoria por idade?',
+  a: '180 contribuições mensais.',
+  source: 'Lei 8.213/91, art. 25, II',
+} as const
 
 /** The areas, one open at a time: the pain, what the app does, a real screen and its own call. */
 export const AREAS = [

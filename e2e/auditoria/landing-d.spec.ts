@@ -263,6 +263,60 @@ test.describe('landing D', () => {
     expect([width, height]).toEqual([1200, 630])
   })
 
+  test('P1: cada capítulo do "Como funciona" tem o golfinho com a sua fala, ao lado da tela (celular)', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await open(page)
+    await expect(page.getByTestId('landing-story-bubble')).toHaveText([
+      'Eu acho as matérias no meio do edital.',
+      'Esses cards saíram da parte Benefícios.',
+      'Um lote de cada vez. Eu conto o resto.',
+    ])
+    for (const bubble of await page.getByTestId('landing-story-bubble').all()) {
+      await bubble.scrollIntoViewIfNeeded()
+      const box = (await bubble.boundingBox())!
+      expect(box.x).toBeGreaterThanOrEqual(0)
+      expect(box.x + box.width).toBeLessThanOrEqual(390)
+    }
+  })
+
+  test('P2: o card de exemplo da curva tem o selo, vira e diz quando volta (mouse e teclado)', async ({ page }) => {
+    await open(page)
+    const example = page.getByTestId('landing-example')
+    await example.scrollIntoViewIfNeeded()
+    const card = example.getByTestId('blog-example-card')
+    await expect(card.getByTestId('example-badge')).toHaveText('Exemplo')
+    await expect(card).toContainText('Qual é a carência da aposentadoria por idade?')
+    const axe = (await new AxeBuilder({ page }).include('.lp-example').analyze()).violations.filter(v => ['serious', 'critical'].includes(v.impact ?? ''))
+    expect(axe.map(v => v.id)).toEqual([])
+    await card.getByTestId('blog-example-reveal').click()
+    await expect(card).toContainText('180 contribuições mensais.')
+    await card.getByTestId('blog-example-ok').click()
+    await expect(card.getByTestId('review-feedback')).toContainText('Volta em 2 dias.')
+    await card.getByTestId('review-continue').click()
+    await expect(card).toContainText('voltaria em 2 dias')
+    // Keyboard: the focus is on "Testar de novo"; Espaço shows again, 1 = Não lembrei
+    await page.keyboard.press('Enter')
+    await expect(card).toHaveAttribute('data-state', 'front')
+    await card.focus()
+    await page.keyboard.press('Space')
+    await page.keyboard.press('1')
+    // The landing's card says what the /comecar entry says: a miss comes back tomorrow
+    await expect(card.getByTestId('review-feedback')).toContainText('Ele volta amanhã.')
+    await card.getByTestId('review-continue').click()
+    await expect(card).toContainText('voltaria amanhã')
+  })
+
+  test('P2: o card só baixa quando a seção se aproxima, e o lugar dele não pula', async ({ page }) => {
+    await open(page)
+    await expect(page.getByTestId('blog-example-card')).toHaveCount(0)
+    const slot = page.locator('.lp-example-slot')
+    const before = (await slot.boundingBox())!.height
+    await slot.scrollIntoViewIfNeeded()
+    await expect(page.getByTestId('blog-example-card')).toBeVisible()
+    const after = (await slot.boundingBox())!.height
+    expect(Math.abs(after - before)).toBeLessThanOrEqual(2)
+  })
+
   test('nenhuma frase que o produto não cumpre, e "FSRS-6" no máximo uma vez', async ({ page }) => {
     await open(page)
     // The answers of the questions and the hidden panels are in the DOM
@@ -409,6 +463,8 @@ test.describe('landing D', () => {
       await expect(layer('revisao')).toHaveAttribute('data-on', 'true')
       await expect(layer('material')).toHaveAttribute('data-on', 'false')
       await expect(page.locator('.lp-chap[data-step="revisao"]')).toHaveAttribute('data-active', 'true')
+      // P1 (prd-landing-mostrar-produto): the dolphin's line follows the chapter
+      await expect(page.getByTestId('landing-stage-bubble')).toHaveText('Um lote de cada vez. Eu conto o resto.')
     })
   })
 

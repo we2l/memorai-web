@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "id": "01m7n3zq83x669w17efhd053th",
+  "id": "01m7n4qdtkr3ff8tjatfza004j",
   "slug": "tj-sp-2026-oficial-de-justica",
   "group": "tj-sp-2026",
   "area": "concurso",
   "checked_at": "2026-11-17",
-  "exported_at": "2026-11-17T13:05:21-03:00",
+  "exported_at": "2026-11-17T13:17:41-03:00",
   "source_url": "https://www.tjsp.jus.br/atc/dejesp/consultaSimples.do?cdVolume=4542&nuDiario=4542&cdCaderno=10&nuSeqpagina=95",
   "proposal_sha256": "8f8a1c6dc83cd7e875e8e43b68f7086d18b1b97e5b692f5642d81ebd9131d5ff",
   "proposal": {
@@ -318,7 +318,7 @@
     "prova": "2027-03-14",
     "prova_prevista": true,
     "vagas": "132 cargos e formação de cadastro de reserva",
-    "remuneracao": "R$ 9.856,95, valor referente a janeiro/2026, mais auxílios para alimentação, saúde e transporte",
+    "remuneracao": "R$ 9.856,95, valor referente a janeiro/2026, mais auxílios para alimentação, saúde e transporte. O edital escreve outro valor por extenso (R$ 9.157,82); confira se sair retificação",
     "paginas": {
       "orgao": 95,
       "cargo": 95,

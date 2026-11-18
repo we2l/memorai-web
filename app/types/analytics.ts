@@ -48,6 +48,8 @@ export interface FrontEventProps {
   landing_cta_clicked: { position: LandingCtaPosition, message: LandingMessageProp, area?: LandingAreaProp }
   /** First play of the real podcast sample (prd-landing-d RF-D18) */
   landing_sample_played: { message: LandingMessageProp }
+  /** How far down the landing a visit went, 1x per depth per page view (prd-entrada-primeira-dobra RF-0) */
+  landing_scroll_depth: { depth: 25 | 50 | 75 | 100, viewport: 'mobile' | 'desktop' }
   /** First play of the podcast sample on the paywall of the app (Free and trial; PodcastSample) */
   podcast_sample_played: { source: 'generate_sheet' | 'praticar' | 'upgrade_modal' }
   /** Entry of /comecar for who does not know the Baigi yet (prd-entrada-comecar RF-F21) */
@@ -55,7 +57,8 @@ export interface FrontEventProps {
   entry_tour_started: { origin: 'hero' | 'feature' | 'link', step: EntryStepProp }
   entry_step_viewed: { step: EntryStepProp, index: number }
   entry_tour_skipped: { from: EntryStepProp }
-  entry_card_rated: { rating: 'remembered' | 'forgot' }
+  /** `position` since prd-entrada-primeira-dobra RF-0 (older events have none: they are all from the tour) */
+  entry_card_rated: { rating: 'remembered' | 'forgot', position: 'hero' | 'tour' }
   entry_sample_played: Record<string, never>
   entry_cta_clicked: { position: EntryCtaPosition }
   /** Blog and free tools (prd-blog-seo RF-A1): `input` is a bucket, never the exact number (RN-6) */

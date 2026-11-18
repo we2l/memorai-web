@@ -20,6 +20,10 @@
       <UiPublicFooter />
     </div>
     <LandingStickyCta :visible="stickyVisible" />
+    <!-- landing_scroll_depth (prd-entrada-primeira-dobra RF-0): empty markers at 25/50/75/100% of the page, no layout -->
+    <div class="lp-depth" aria-hidden="true">
+      <span v-for="d in [25, 50, 75, 100]" :key="d" ref="depthMarkers" :data-depth="d" />
+    </div>
   </div>
 </template>
 
@@ -60,7 +64,7 @@ useHead({
     { property: 'og:image:type', content: 'image/jpeg' },
     { property: 'og:image:width', content: '1200' },
     { property: 'og:image:height', content: '630' },
-    { property: 'og:image:alt', content: 'Chega de memória de peixe. O golfinho do Baigi ao lado do app no celular.' },
+    { property: 'og:image:alt', content: 'Chega de memória de peixe. O golfinho do Baigi ao lado do Baigi no celular.' },
     { name: 'twitter:card', content: 'summary_large_image' },
     { name: 'twitter:image', content: 'https://baigi.com.br/landing/og-baigi.jpg' },
   ],
@@ -93,6 +97,9 @@ const stickyVisible = computed(() => noCallOnScreen.value && scrolled.value && c
 
 let callsIo: IntersectionObserver | null = null
 let stopMotion: (() => void) | null = null
+let stopDepth: (() => void) | null = null
+let unmounted = false
+const depthMarkers = ref<HTMLElement[]>([])
 
 function onScroll() {
   scrolled.value = window.scrollY > 200
@@ -160,8 +167,18 @@ onMounted(() => {
     utm_campaign: utm(params, 'utm_campaign'),
     utm_content: utm(params, 'utm_content'),
   })
+  // Its own small chunk, out of the page's budget. The viewport is the one when each depth is reached.
+  import('~/utils/scrollDepth').then(({ MOBILE_QUERY, watchScrollDepth }) => {
+    if (unmounted) return
+    stopDepth = watchScrollDepth(depthMarkers.value, depth => track('landing_scroll_depth', {
+      depth,
+      viewport: window.matchMedia(MOBILE_QUERY).matches ? 'mobile' : 'desktop',
+    }))
+  }).catch(() => { /* intencional: sem o chunk (rede), a landing segue sem medir a rolagem */ })
 })
 onBeforeUnmount(() => {
+  unmounted = true
+  stopDepth?.()
   callsIo?.disconnect()
   stopMotion?.()
   window.removeEventListener('scroll', onScroll)

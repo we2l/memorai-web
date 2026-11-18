@@ -28,11 +28,11 @@ export const BLOG_AUTHORS: Record<string, BlogAuthor> = {
     id: 'baigi',
     name: 'Baigi',
     role: 'App de revisão com repetição espaçada',
-    bio: 'O Baigi é um app de revisão para quem estuda para prova. Escrevemos sobre o método que o app usa: tentar lembrar antes de ver a resposta e revisar no dia certo, com a fonte de cada fato para você conferir.',
+    bio: 'O Baigi organiza a revisão de quem estuda para prova. Escrevemos sobre o método que ele usa: tentar lembrar antes de ver a resposta e revisar no dia certo, com a fonte de cada fato para você conferir.',
     experience: [
       'O Baigi agenda as revisões com o FSRS-6, o algoritmo de repetição espaçada de código aberto que o Anki também oferece.',
       'Cada artigo cita as fontes primárias no fim: o edital, o texto da lei no Planalto e os estudos sobre memória.',
-      'Os cadernos de exemplo do app são montados a partir do texto da lei e de livros-texto, com a fonte no verso de cada card.',
+      'Os cadernos de exemplo do Baigi são montados a partir do texto da lei e de livros-texto, com a fonte no verso de cada card.',
     ],
     sameAs: [],
     knowsAbout: ['Repetição espaçada', 'FSRS', 'Prática de recuperação', 'Estudo para concurso', 'Exame de Ordem', 'Anki'],

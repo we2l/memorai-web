@@ -72,7 +72,7 @@
 
     <h2 id="cookies">7. Cookies</h2>
     <ul>
-      <li><strong>Essenciais:</strong> cookie de sessão e proteção CSRF, necessários para você entrar e usar o app, e o cookie <code>baigi_consent</code>, que guarda a sua escolha por 12 meses. Não podem ser desativados.</li>
+      <li><strong>Essenciais:</strong> cookie de sessão e proteção CSRF, necessários para você entrar e usar o Baigi, e o cookie <code>baigi_consent</code>, que guarda a sua escolha por 12 meses. Não podem ser desativados.</li>
       <li><strong>Analytics (opcional):</strong> cookie e armazenamento local do PostHog (<code>ph_*</code>), criados apenas se você consentir no aviso de cookies. Você pode revogar a qualquer momento em <NuxtLink to="/configuracoes#dados">Configurações → Seus dados</NuxtLink>; a coleta para na hora.</li>
     </ul>
 
@@ -90,7 +90,7 @@
 
     <h2 id="alteracoes">10. Alterações e vigência</h2>
     <p>
-      Podemos atualizar esta política. Mudanças relevantes serão avisadas por e-mail ou no app antes de entrarem em vigor.
+      Podemos atualizar esta política. Mudanças relevantes serão avisadas por e-mail ou no Baigi antes de entrarem em vigor.
       Esta versão vale a partir de {{ EFFECTIVE_DATE }}. Veja também os <NuxtLink to="/termos">Termos de Uso</NuxtLink>.
     </p>
   </LegalLayout>

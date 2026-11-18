@@ -46,7 +46,7 @@
       </ul>
       <p>
         O <NuxtLink to="/blog">blog do Baigi</NuxtLink> explica o método, sempre com as fontes. E as duas
-        <NuxtLink to="/ferramentas">ferramentas grátis</NuxtLink> fazem a mesma conta que o app.
+        <NuxtLink to="/ferramentas">ferramentas grátis</NuxtLink> fazem a mesma conta que o Baigi.
       </p>
     </section>
 
@@ -99,7 +99,7 @@ definePageMeta({ layout: 'public', quietHeaderCta: true })
 const firstName = FOUNDER.name.split(' ')[0]
 const contactEmail = useRuntimeConfig().public.contactEmail
 
-const DESCRIPTION = 'O Baigi é feito por um desenvolvedor só, que esquecia o inglês que estudava no Anki. Quem é, por que o app existe, como funciona e como falar comigo.'
+const DESCRIPTION = 'O Baigi é feito por um desenvolvedor só, que esquecia o inglês que estudava no Anki. Quem é, por que o Baigi existe, como funciona e como falar comigo.'
 useBlogSeo({
   title: 'Quem faz o Baigi',
   description: DESCRIPTION,

@@ -15,7 +15,7 @@ export const FOUNDER = {
     'Usei o Anki por muito tempo para estudar inglês, e é dessa experiência que vem boa parte do Baigi.',
     'Implementei no Baigi o FSRS-6, o algoritmo de repetição espaçada de código aberto que o Anki oferece como opção desde 2023.',
     'Li e resumi as pesquisas citadas no blog (prática de recuperação, espaçamento, autoavaliação).',
-    'Montei os cadernos de exemplo do app a partir do texto da lei e de livros-texto, com a fonte no verso de cada card.',
+    'Montei os cadernos de exemplo do Baigi a partir do texto da lei e de livros-texto, com a fonte no verso de cada card.',
   ],
   knowsAbout: ['Desenvolvimento de software', 'Repetição espaçada', 'FSRS', 'Anki', 'Estudo de inglês'],
   sameAs: [] as string[],

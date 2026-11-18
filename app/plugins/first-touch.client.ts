@@ -1,13 +1,28 @@
-import { captureFirstTouch } from '~/utils/firstTouch'
+import { captureFirstTouch, readFirstTouch } from '~/utils/firstTouch'
 
 /**
- * Keeps the campaign of the first visit (utils/firstTouch.ts). Read from the address at boot and, because a
- * prerendered page gets its query back only after hydration (/entrar, /comecar), once more after the first navigation.
+ * Keeps the campaign of the first visit (utils/firstTouch.ts). Read at boot from the address, or from the query that
+ * the <head> script of a prerendered page kept (/ and /comecar: Nuxt takes the query out of the address while it
+ * hydrates), and once more after the first navigation, when the other prerendered pages (/entrar, /blog) have it back.
+ * Only then, with no campaign stored, the referrer of the visit (prd-entrada-primeira-dobra RF-0), from its own chunk.
  */
 export default defineNuxtPlugin(() => {
-  captureFirstTouch(window.location.href)
+  captureFirstTouch(firstHref())
   const stop = useRouter().afterEach(() => {
-    captureFirstTouch(window.location.href)
+    const href = window.location.href
+    captureFirstTouch(href)
     stop()
+    const referrer = document.referrer
+    if (!referrer || readFirstTouch()) return
+    import('~/utils/firstTouchReferrer')
+      .then(m => m.captureReferrerTouch(href, referrer))
+      .catch(() => { /* intencional: sem o chunk (rede), a visita fica sem origem, como antes */ })
   })
 })
+
+function firstHref(): string {
+  const w = window as unknown as { __baigiLandingQuery?: string, __baigiEntryQuery?: string }
+  const kept = w.__baigiEntryQuery || w.__baigiLandingQuery
+  if (!kept || window.location.search) return window.location.href
+  return `${window.location.origin}${window.location.pathname}${kept}`
+}

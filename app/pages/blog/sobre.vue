@@ -19,7 +19,7 @@
       <h2 id="h-o-que">O que é o Baigi</h2>
       <p>{{ author.bio }}</p>
       <p>
-        No app, você manda o seu material (PDF, anotações, as questões que errou ou um baralho do Anki), os cards saem dele e
+        No Baigi, você manda o seu material (PDF, anotações, as questões que errou ou um baralho do Anki), os cards saem dele e
         cada um volta no dia certo. Revisar é grátis. Os artigos explicam esse método com exemplos de prova de verdade.
       </p>
     </section>
@@ -41,7 +41,7 @@
         <li v-for="e in author.experience" :key="e">{{ e }}</li>
       </ul>
       <p>
-        Quer saber quem desenvolve o app? Está em <NuxtLink to="/quem-faz">Quem faz o Baigi</NuxtLink>.
+        Quer saber quem desenvolve o Baigi? Está em <NuxtLink to="/quem-faz">Quem faz o Baigi</NuxtLink>.
       </p>
     </section>
 

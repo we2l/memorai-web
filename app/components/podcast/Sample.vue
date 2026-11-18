@@ -35,9 +35,16 @@
         :class="started && i === current ? 'bg-raised text-fg-strong shadow-1' : line.kind === 'pause' ? 'text-fg-muted' : 'text-fg'"
         :aria-current="started && i === current ? 'true' : undefined"
       >
-        {{ line.text }}
+        <!-- The pause, while it plays: "Responda de cabeça" and the number of the tick (4, 3, 2, 1) -->
+        <span v-if="i === current && countdown !== null" class="flex items-center gap-2 font-semibold" data-testid="podcast-sample-countdown">
+          Responda de cabeça
+          <span class="flex size-7 shrink-0 items-center justify-center rounded-full bg-fg-strong text-body-sm font-semibold tabular-nums text-raised" aria-hidden="true">{{ countdown }}</span>
+        </span>
+        <template v-else>{{ line.text }}</template>
       </li>
     </ol>
+    <!-- Said once when the pause starts; the numbers stay out of the screen reader (one a second would be noise) -->
+    <p class="sr-only" aria-live="polite">{{ countdown !== null ? 'Responda de cabeça' : '' }}</p>
 
     <p v-if="failed" class="flex flex-wrap items-center gap-2 text-meta text-fg" role="alert" data-testid="podcast-sample-error">
       Não deu para tocar o exemplo agora.
@@ -65,9 +72,10 @@
 
 <script setup lang="ts">
 // The podcast paywall (prd-planos-lancamento RF-F3): who is not on the paid plan (Free and the trial) hears what an
-// episode is instead of generating one. `compact` (the Ouvir card of /praticar) shows only the line being spoken.
+// episode is instead of generating one. `compact` (the Ouvir card of /praticar) shows only the line being spoken. The
+// pause counts 4, 3, 2, 1 with the ticks of the file.
 import { Pause, Play } from 'lucide-vue-next'
-import { PODCAST_SAMPLE, sampleClock, sampleLineAt } from '~/utils/podcastSample'
+import { PODCAST_SAMPLE, sampleClock, sampleCountdownAt, sampleLineAt } from '~/utils/podcastSample'
 
 const props = defineProps<{ compact?: boolean, source: 'generate_sheet' | 'praticar' | 'upgrade_modal' }>()
 
@@ -80,6 +88,7 @@ const time = ref(0)
 const duration = ref(PODCAST_SAMPLE.duration)
 
 const current = computed(() => sampleLineAt(time.value))
+const countdown = computed(() => sampleCountdownAt(time.value))
 const shown = computed(() => {
   const all = PODCAST_SAMPLE.lines.map((line, i) => ({ line, i }))
   return props.compact ? all.slice(current.value, current.value + 1) : all

@@ -1,4 +1,5 @@
 import type { CatalogTrial, PlanCatalog } from '~/types'
+import type { SampleLineKind } from '~/utils/podcastSample'
 
 /**
  * Copy and data of the entry of /comecar (prd-entrada-comecar; the prototype approved by the owner on 16/11): the
@@ -71,22 +72,33 @@ export function cardFeedback(rating: EntryRating): { title: string, text: string
  */
 export const ENTRY_SAMPLE = {
   src: '/landing/podcast-amostra.mp3',
-  duration: 19.8,
-  title: 'Seus erros de Seguridade Social',
-  topic: 'Concurso INSS',
+  duration: 50.3,
+  title: 'Seus erros de Português',
+  topic: 'Concurso, ENEM, OAB',
   lines: [
-    { t: 0.1, text: 'Essa aqui te pegou duas vezes no último mês.', kind: 'question' },
-    { t: 2.6, text: 'Qual é a carência do auxílio por incapacidade temporária? Tenta lembrar.', kind: 'question' },
-    { t: 6.3, text: '(pausa pra você responder de cabeça)', kind: 'pause' },
-    { t: 10.6, text: 'Doze contribuições mensais, artigo 25, inciso I, da Lei 8.213.', kind: 'answer' },
-    { t: 18.4, text: 'Doze contribuições: um ano pagando.', kind: 'answer' },
-  ] as { t: number, text: string, kind: 'question' | 'pause' | 'answer' }[],
-  bars: [0.47, 0.38, 0.56, 0.37, 0.04, 0.28, 0.47, 0.42, 0.3, 0.25, 0.31, 0.32, 0.47, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.08, 1, 0.41, 0.31, 0.34, 0.31, 0.27, 0.25, 0.35, 0.37, 0.62, 0.29, 0.3, 0.08, 0.74, 0.35, 0.46, 0.39, 0.05],
+    { t: 0.1, text: 'Hoje você vai revisar cinco cards de Português, e os cinco já te pegaram antes, então aproveite para olhar de novo para cada um e testar o que você lembra.', kind: 'intro' },
+    { t: 8.8, text: 'Eu faço a pergunta, deixo uma pausa com um tique para você responder de cabeça e depois trago a resposta, para você comparar com a sua.', kind: 'intro' },
+    { t: 16.9, text: 'Bora começar pelo primeiro card.', kind: 'intro' },
+    { t: 19.2, text: 'Essa aqui te pegou duas vezes no último mês.', kind: 'question' },
+    { t: 22.6, text: 'Quando há crase antes de nome de lugar? Tenta lembrar.', kind: 'question' },
+    { t: 26.1, text: '(pausa pra você responder de cabeça)', kind: 'pause', tick: 26.9 },
+    { t: 30.5, text: 'Quando o lugar aceita artigo. Troque ir por voltar: quem volta da Bahia vai à Bahia, com crase; quem volta de Curitiba vai a Curitiba, sem crase.', kind: 'answer' },
+    { t: 43.8, text: 'Volto da, crase há; volto de, crase pra quê?', kind: 'answer' },
+    { t: 47.7, text: 'Bahia com crase, Curitiba sem crase.', kind: 'answer' },
+  ] as { t: number, text: string, kind: SampleLineKind, tick?: number }[],
+  bars: [0.89, 0.72, 0.68, 0.78, 0.91, 0.66, 0.66, 0.68, 0.54, 0.53, 0.64, 0.73, 0.62, 0.66, 0.8, 0.54, 0.87, 0.62, 1, 0.62, 0.74, 0.04, 0.04, 0.04, 0.95, 0.72, 0.83, 0.71, 0.84, 0.64, 0.43, 0.87, 0.57, 0.66, 0.58, 0.73, 0.52, 0.72, 0.8, 0.58],
 }
 
 /** The line being spoken at `seconds` (the first one before the voice starts). */
 export function sampleLineAt(seconds: number): number {
   return ENTRY_SAMPLE.lines.reduce((cur, line, i) => (seconds >= line.t ? i : cur), 0)
+}
+
+/** The countdown of the pause (4, 3, 2, 1 on the ticks), the same rule as utils/podcastSample.ts sampleCountdownAt. */
+export function entryCountdownAt(seconds: number): number | null {
+  const line = ENTRY_SAMPLE.lines[sampleLineAt(seconds)]
+  if (!line || line.kind !== 'pause' || seconds < line.t) return null
+  return Math.min(4, Math.max(1, 4 - Math.floor(seconds - (line.tick ?? line.t))))
 }
 
 /** "0:07" */

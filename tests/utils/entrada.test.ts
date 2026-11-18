@@ -103,6 +103,7 @@ describe('planos só do catálogo (RN-4)', () => {
 describe('amostra do podcast', () => {
   it('a fala atual segue o tempo', () => {
     expect(sampleLineAt(0)).toBe(0)
-    expect(sampleLineAt(11)).toBe(3)
+    expect(sampleLineAt(11)).toBe(1)
+    expect(sampleLineAt(31)).toBe(6)
   })
 })

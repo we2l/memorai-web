@@ -1,6 +1,7 @@
 import type { InjectionKey } from 'vue'
 import type { CatalogTrial, PlanCatalog } from '~/types'
 import type { LandingCtaPosition } from '~/types/analytics'
+import type { SampleLineKind } from '~/utils/podcastSample'
 import { trialLimitsText } from '~/utils/trial'
 
 /**
@@ -255,18 +256,34 @@ export function areaStartPath(key: LandingArea): string {
  */
 export const SAMPLE = {
   src: '/landing/podcast-amostra.mp3',
-  duration: 19.8,
-  title: 'Seus erros de Seguridade Social',
-  topic: 'Concurso INSS',
+  duration: 50.3,
+  title: 'Seus erros de Português',
+  topic: 'Concurso, ENEM, OAB',
   lines: [
-    { t: 0.1, text: 'Essa aqui te pegou duas vezes no último mês.', kind: 'question' },
-    { t: 2.6, text: 'Qual é a carência do auxílio por incapacidade temporária? Tenta lembrar.', kind: 'question' },
-    { t: 6.3, text: '(pausa pra você responder de cabeça)', kind: 'pause' },
-    { t: 10.6, text: 'Doze contribuições mensais, artigo 25, inciso I, da Lei 8.213.', kind: 'answer' },
-    { t: 18.4, text: 'Doze contribuições: um ano pagando.', kind: 'answer' },
-  ],
+    { t: 0.1, text: 'Hoje você vai revisar cinco cards de Português, e os cinco já te pegaram antes, então aproveite para olhar de novo para cada um e testar o que você lembra.', kind: 'intro' },
+    { t: 8.8, text: 'Eu faço a pergunta, deixo uma pausa com um tique para você responder de cabeça e depois trago a resposta, para você comparar com a sua.', kind: 'intro' },
+    { t: 16.9, text: 'Bora começar pelo primeiro card.', kind: 'intro' },
+    { t: 19.2, text: 'Essa aqui te pegou duas vezes no último mês.', kind: 'question' },
+    { t: 22.6, text: 'Quando há crase antes de nome de lugar? Tenta lembrar.', kind: 'question' },
+    { t: 26.1, text: '(pausa pra você responder de cabeça)', kind: 'pause', tick: 26.9 },
+    { t: 30.5, text: 'Quando o lugar aceita artigo. Troque ir por voltar: quem volta da Bahia vai à Bahia, com crase; quem volta de Curitiba vai a Curitiba, sem crase.', kind: 'answer' },
+    { t: 43.8, text: 'Volto da, crase há; volto de, crase pra quê?', kind: 'answer' },
+    { t: 47.7, text: 'Bahia com crase, Curitiba sem crase.', kind: 'answer' },
+  ] as { t: number, text: string, kind: SampleLineKind, tick?: number }[],
   /** RMS of the file in 120 slices */
-  peaks: [0.39, 0.25, 0.47, 0.22, 0.2, 0.38, 0.25, 0.56, 0.29, 0.33, 0.37, 0.28, 0.04, 0.04, 0.04, 0.04, 0.25, 0.28, 0.47, 0.41, 0.31, 0.42, 0.26, 0.31, 0.25, 0.3, 0.29, 0.25, 0.22, 0.17, 0.31, 0.04, 0.04, 0.04, 0.04, 0.32, 0.47, 0.27, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.08, 0.78, 1.0, 0.31, 0.31, 0.33, 0.41, 0.25, 0.27, 0.31, 0.34, 0.04, 0.04, 0.13, 0.15, 0.31, 0.26, 0.27, 0.25, 0.25, 0.22, 0.24, 0.21, 0.35, 0.29, 0.23, 0.37, 0.28, 0.04, 0.62, 0.31, 0.29, 0.27, 0.17, 0.3, 0.26, 0.16, 0.04, 0.04, 0.08, 0.74, 0.25, 0.4, 0.35, 0.14, 0.04, 0.04, 0.06, 0.46, 0.39, 0.36, 0.27, 0.05, 0.04, 0.04],
+  peaks: [0.77, 0.89, 0.77, 0.72, 0.62, 0.46, 0.3, 0.62, 0.68, 0.78, 0.22, 0.5, 0.73, 0.64, 0.91, 0.47, 0.66, 0.4, 0.66, 0.53, 0.04, 0.04, 0.68, 0.64, 0.32, 0.52, 0.54, 0.44, 0.53, 0.43, 0.58, 0.64, 0.21, 0.64, 0.73, 0.58, 0.51, 0.62, 0.34, 0.04, 0.63, 0.66, 0.8, 0.35, 0.04, 0.04, 0.04, 0.54, 0.87, 0.77, 0.84, 0.62, 0.21, 0.04, 1, 0.73, 0.57, 0.57, 0.62, 0.04, 0.04, 0.74, 0.13, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.95, 0.75, 0.72, 0.63, 0.12, 0.83, 0.74, 0.46, 0.71, 0.11, 0.47, 0.84, 0.79, 0.45, 0.64, 0.45, 0.56, 0.04, 0.43, 0.09, 0.59, 0.87, 0.72, 0.57, 0.55, 0.34, 0.66, 0.49, 0.41, 0.53, 0.04, 0.58, 0.71, 0.28, 0.73, 0.49, 0.52, 0.43, 0.72, 0.46, 0.14, 0.8, 0.67, 0.35, 0.58, 0.42, 0.04],
+}
+
+/** The line being spoken at `seconds` (the first one before the voice starts). */
+export function landingLineAt(seconds: number): number {
+  return SAMPLE.lines.reduce((cur, line, i) => (seconds >= line.t ? i : cur), 0)
+}
+
+/** The countdown of the pause (4, 3, 2, 1 on the ticks), the same rule as utils/podcastSample.ts sampleCountdownAt. */
+export function landingCountdownAt(seconds: number): number | null {
+  const line = SAMPLE.lines[landingLineAt(seconds)]
+  if (!line || line.kind !== 'pause' || seconds < line.t) return null
+  return Math.min(4, Math.max(1, 4 - Math.floor(seconds - (line.tick ?? line.t))))
 }
 
 // ── The plans, only from the catalog ──
@@ -383,7 +400,7 @@ export function landingPodcastLine(catalog: PlanCatalog | null): string {
 
 /**
  * Under the player: the sample is a cut of an episode. Its length comes from SAMPLE, the episode's cap and the plan's
- * name from the catalog: "Amostra de 29 s de um episódio de até 8 min do Intensivo."
+ * name from the catalog: "Amostra de 50 s de um episódio de até 8 min do Intensivo."
  */
 export function landingSampleLine(catalog: PlanCatalog | null, seconds: number = SAMPLE.duration): string {
   const cut = `Amostra de ${Math.round(seconds)} s de um episódio`

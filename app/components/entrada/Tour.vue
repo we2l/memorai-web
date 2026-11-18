@@ -219,7 +219,7 @@ function flip() {
 
 function rate(rating: EntryRating) {
   rated.value = rating
-  track('entry_card_rated', { rating })
+  track('entry_card_rated', { rating, position: 'tour' })
 }
 
 function next() {

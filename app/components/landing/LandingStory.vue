@@ -3,7 +3,7 @@
     <div class="lp-wrap">
       <h2 id="landing-how" class="lp-h2" data-reveal>Do edital à revisão de hoje.</h2>
       <p class="lp-lead" data-reveal data-testid="landing-story-lead">Não é um banco de cards de outra pessoa. Os cards saem do seu material, do seu edital.</p>
-      <p class="lp-fine lp-demo-note" data-testid="landing-demo-story">Telas e gravações do app numa conta de demonstração, com conteúdo de exemplo.</p>
+      <p class="lp-fine lp-demo-note" data-testid="landing-demo-story">Telas e gravações do Baigi numa conta de demonstração, com conteúdo de exemplo.</p>
     </div>
     <div class="lp-wrap lp-story-in">
       <div>

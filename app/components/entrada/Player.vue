@@ -27,8 +27,16 @@
       </div>
     </div>
     <ol class="ec-said" aria-label="Transcrição do exemplo" data-testid="entry-player-lines">
-      <li v-for="(line, i) in ENTRY_SAMPLE.lines" :key="line.t" :aria-current="started && i === current ? 'true' : undefined">{{ line.text }}</li>
+      <li v-for="(line, i) in ENTRY_SAMPLE.lines" :key="line.t" :aria-current="started && i === current ? 'true' : undefined">
+        <!-- The pause, while it plays: "Responda de cabeça" and the number of the tick (4, 3, 2, 1) -->
+        <span v-if="i === current && countdown !== null" class="ec-count-line" data-testid="entry-player-countdown">
+          Responda de cabeça<span class="ec-count" aria-hidden="true">{{ countdown }}</span>
+        </span>
+        <template v-else>{{ line.text }}</template>
+      </li>
     </ol>
+    <!-- Said once when the pause starts; the numbers stay out of the screen reader (one a second would be noise) -->
+    <p class="ec-sr" aria-live="polite">{{ countdown !== null ? 'Responda de cabeça' : '' }}</p>
     <p v-if="failed" class="ec-err" role="alert" data-testid="entry-player-error">
       Não deu para tocar o áudio agora.
       <button type="button" @click="retry">Tentar de novo</button>
@@ -52,9 +60,10 @@
 
 <script setup lang="ts">
 // The real podcast sample on step 5 (prd-entrada-comecar RF-F16, RN-5): the same file as the landing and the paywall,
-// downloaded only on play (preload none, out of the precache), the line being spoken marked, loading and failure.
+// downloaded only on play (preload none, out of the precache), the line being spoken marked (the pause counts 4, 3, 2, 1
+// with the ticks of the file), loading and failure.
 import { Pause, Play } from 'lucide-vue-next'
-import { ENTRY_SAMPLE, clock, sampleLineAt } from '~/utils/entrada'
+import { ENTRY_SAMPLE, clock, entryCountdownAt, sampleLineAt } from '~/utils/entrada'
 
 // Bound, not a static src (it would become an asset import)
 const LISTENING = '/mascote/ouvindo.svg'
@@ -68,6 +77,7 @@ const duration = ref(ENTRY_SAMPLE.duration)
 let played = false
 
 const current = computed(() => sampleLineAt(time.value))
+const countdown = computed(() => entryCountdownAt(time.value))
 const cursor = computed(() => Math.floor((time.value / duration.value) * ENTRY_SAMPLE.bars.length))
 
 function sync() {

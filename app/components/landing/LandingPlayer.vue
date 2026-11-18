@@ -15,7 +15,7 @@
       </button>
       <div>
         <b>{{ SAMPLE.title }}</b>
-        <small>Concurso INSS · <span class="num" data-testid="landing-player-time">{{ loading ? 'carregando…' : `${fmt(time)} / ${fmt(duration)}` }}</span> · voz sintética</small>
+        <small>{{ SAMPLE.topic }} · <span class="num" data-testid="landing-player-time">{{ loading ? 'carregando…' : `${fmt(time)} / ${fmt(duration)}` }}</span> · voz sintética</small>
       </div>
     </div>
     <!-- The waveform of the file: a click jumps there (the transcript below is the accessible version) -->
@@ -30,9 +30,17 @@
     </div>
     <div class="lp-tx">
       <ol :style="{ transform: `translateY(${-offset}px)` }">
-        <li v-for="(line, i) in SAMPLE.lines" :key="line.t" ref="items" :data-cur="String(i === current)">{{ line.text }}</li>
+        <li v-for="(line, i) in SAMPLE.lines" :key="line.t" ref="items" :data-cur="String(i === current)">
+          <!-- The pause, while it plays: "Responda de cabeça" and the number of the tick (4, 3, 2, 1) -->
+          <span v-if="i === current && countdown !== null" class="lp-count-line" data-testid="landing-player-countdown">
+            Responda de cabeça<span class="lp-count" aria-hidden="true">{{ countdown }}</span>
+          </span>
+          <template v-else>{{ line.text }}</template>
+        </li>
       </ol>
     </div>
+    <!-- Said once when the pause starts; the numbers stay out of the screen reader (one a second would be noise) -->
+    <p class="lp-sr" aria-live="polite">{{ countdown !== null ? 'Responda de cabeça' : '' }}</p>
     <p v-if="failed" class="err" role="alert" data-testid="landing-player-error">
       Não deu para tocar o áudio agora.<button type="button" @click="retry">Tentar de novo</button>
     </p>
@@ -43,11 +51,12 @@
 
 <script setup lang="ts">
 // The player of the podcast section (prd-landing-d RF-D7; the A direction's): the real sample (SAMPLE.duration), downloaded only
-// on play (`preload="none"`), the waveform of the file, the transcript following the voice, and the states the
+// on play (`preload="none"`), the waveform of the file, the transcript following the voice (the pause counts 4, 3, 2, 1
+// with the ticks of the file), and the states the
 // prototype lacked: loading ("carregando…") and failure ("Tentar de novo"). Emits `playing` (the dolphin bobs) and
 // `firstPlay` (landing_sample_played).
 import type { PlanCatalog } from '~/types'
-import { SAMPLE, landingSampleLine } from '~/utils/landing'
+import { SAMPLE, landingCountdownAt, landingLineAt, landingSampleLine } from '~/utils/landing'
 import { motionAllowed } from '~/utils/landingMotion'
 
 defineProps<{ catalog: PlanCatalog | null }>()
@@ -66,7 +75,8 @@ const staggered = ref(false)
 let played = false
 
 const cursor = computed(() => Math.floor((time.value / duration.value) * SAMPLE.peaks.length))
-const current = computed(() => SAMPLE.lines.reduce((cur, line, i) => (time.value >= line.t ? i : cur), 0))
+const current = computed(() => landingLineAt(time.value))
+const countdown = computed(() => landingCountdownAt(time.value))
 const offset = computed(() => items.value[current.value]?.offsetTop ?? 0)
 
 function fmt(s: number): string {

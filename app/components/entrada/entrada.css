@@ -194,6 +194,8 @@
   & .ec-said { display: flex; flex-direction: column; gap: 6px; font-size: 15px; }
   & .ec-said li { color: var(--fg-muted); }
   & .ec-said li[aria-current='true'] { color: var(--fg-strong); font-weight: 600; }
+  & .ec-count-line { display: flex; align-items: center; gap: 10px; }
+  & .ec-count { display: grid; place-items: center; width: 32px; height: 32px; flex: none; border-radius: 50%; background: var(--lp-pod); color: var(--lp-white); font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; }
   & .ec-err { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 15px; color: var(--fg); }
   & .ec-err button { border: 0; background: none; color: var(--action-fg); font: 650 15px var(--font-sans); text-decoration: underline; cursor: pointer; min-height: 44px; }
 

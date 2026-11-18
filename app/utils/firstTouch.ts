@@ -1,6 +1,9 @@
 /**
  * First touch (plano-lancamento-organico §1.4 items 1-2): the utm_* and the landing path of the FIRST visit that
- * carried a campaign, kept on this device until sign-up. It goes to the API with POST /register and the Google
+ * carried a campaign, kept on this device until sign-up. A visit without UTM that came from another site counts too
+ * (prd-entrada-primeira-dobra RF-0): its referrer reduced to the host (`instagram.com`, `google.com.br`) becomes
+ * `utm_source`, with `utm_medium: 'referral'` (utils/firstTouchReferrer.ts, loaded only when a visit has a referrer);
+ * a typed address records nothing. It goes to the API with POST /register and the Google
  * callback (users.signup_*), so sign-ups are counted per post even without the analytics consent; with consent,
  * PostHog also gets it (register_once). Never overwritten: the first post that brought the person wins.
  */
@@ -16,7 +19,7 @@ export interface FirstTouch {
 }
 
 const UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content'] as const
-const SLUG = /^[A-Za-z0-9._-]{1,100}$/
+export const SLUG = /^[A-Za-z0-9._-]{1,100}$/
 
 /** The campaign of a URL (only clean slugs), or null when it has no utm_source. */
 export function touchFromUrl(href: string, now: Date = new Date()): FirstTouch | null {
@@ -47,6 +50,11 @@ export function captureFirstTouch(href: string): void {
   if (readFirstTouch()) return
   const touch = touchFromUrl(href)
   if (!touch) return
+  saveFirstTouch(touch)
+}
+
+/** Stores a touch (the referrer module, utils/firstTouchReferrer.ts, writes through here too). */
+export function saveFirstTouch(touch: FirstTouch): void {
   try { storage()?.setItem(FIRST_TOUCH_KEY, JSON.stringify(touch)) } catch { /* intencional: sem storage, sem origem */ }
 }
 

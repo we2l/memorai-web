@@ -35,6 +35,8 @@
 /* ── Base ── */
 .landing-page {
   overflow-x: clip;
+  /* Containing block of the depth markers (.lp-depth) */
+  position: relative;
 
   & h1, & h2, & .lp-h1, & .lp-display {
     font-family: var(--lp-display);
@@ -376,10 +378,14 @@
   & .lp-wave { display: flex; align-items: center; gap: 1px; height: 52px; margin-top: 14px; cursor: pointer; border: 0; padding: 0; background: none; width: 100%; }
   & .lp-wave i { flex: 1; min-width: 0; height: 100%; border-radius: 2px; background: var(--line-strong); transform-origin: center; transform: scaleY(var(--h)); transition: transform 300ms var(--lp-ease); }
   & .lp-wave i[data-on='true'] { background: var(--lp-pod); }
-  & .lp-tx { position: relative; overflow: hidden; height: 62px; margin-top: 10px; font-size: 15px; line-height: 1.35; }
+  /* 5 linhas no celular (a fala mais longa da amostra cabe a 320 px), 3 a partir de 600 px */
+  & .lp-tx { --lp-tx-h: 102px; position: relative; overflow: hidden; height: var(--lp-tx-h); margin-top: 10px; font-size: 15px; line-height: 1.35; }
   & .lp-tx ol { list-style: none; margin: 0; padding: 0; transition: transform 600ms var(--lp-ease); }
-  & .lp-tx li { min-height: 62px; color: var(--fg-muted); transition: color 300ms; }
+  & .lp-tx li { min-height: var(--lp-tx-h); color: var(--fg-muted); transition: color 300ms; }
   & .lp-tx li[data-cur='true'] { color: var(--fg-strong); }
+  & .lp-count-line { display: flex; align-items: center; gap: 10px; font-weight: 650; }
+  @media (min-width: 600px) { & .lp-tx { --lp-tx-h: 62px; } }
+  & .lp-count { display: grid; place-items: center; width: 36px; height: 36px; flex: none; border-radius: 50%; background: var(--lp-pod); color: var(--lp-white); font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
   & .lp-player .src { font-size: 12px; color: var(--fg-muted); margin-top: 8px; }
   & .lp-player .err { font-size: 14px; color: var(--state-danger); margin-top: 8px; }
   & .lp-player .err button { font: inherit; font-weight: 650; color: var(--action-fg); background: none; border: 0; padding: 0 0 0 6px; min-height: 44px; text-decoration: underline; cursor: pointer; }
@@ -526,3 +532,21 @@ html.lp-motion .landing-page {
 :root[data-m='esqueci'] .landing-page [data-m-variant='esqueci'],
 :root[data-m='faculdade'] .landing-page [data-m-variant='faculdade'],
 :root[data-m='ingles'] .landing-page [data-m-variant='ingles'] { display: revert; }
+
+/* landing_scroll_depth (prd-entrada-primeira-dobra RF-0): empty 1 px markers over the page, out of the flow (no CLS) */
+.landing-page > .lp-depth {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+
+  & > span {
+    position: absolute;
+    left: 0;
+    width: 1px;
+    height: 1px;
+  }
+  & > [data-depth="25"] { top: 25%; }
+  & > [data-depth="50"] { top: 50%; }
+  & > [data-depth="75"] { top: 75%; }
+  & > [data-depth="100"] { bottom: 0; }
+}

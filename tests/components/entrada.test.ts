@@ -18,7 +18,7 @@ describe('entrada do /comecar', () => {
     expect(w.find('[data-testid="entry-answer"]').text()).toContain('12 contribuições mensais')
     await w.find('[data-testid="entry-remembered"]').trigger('click')
     expect(w.find('[data-testid="entry-feedback"]').text()).toContain('daqui a 2 dias')
-    expect(track).toHaveBeenCalledWith('entry_card_rated', { rating: 'remembered' })
+    expect(track).toHaveBeenCalledWith('entry_card_rated', { rating: 'remembered', position: 'tour' })
     expect(w.find('[data-testid="entry-card-areas"]').attributes('href')).toBe('/comecar/areas')
     await w.find('[data-testid="entry-next"]').trigger('click')
     expect(w.emitted('go')).toEqual([[1]])

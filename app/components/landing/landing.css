@@ -35,6 +35,8 @@
 /* ── Base ── */
 .landing-page {
   overflow-x: clip;
+  /* Containing block of the depth markers (.lp-depth) */
+  position: relative;
 
   & h1, & h2, & .lp-h1, & .lp-display {
     font-family: var(--lp-display);
@@ -526,3 +528,21 @@ html.lp-motion .landing-page {
 :root[data-m='esqueci'] .landing-page [data-m-variant='esqueci'],
 :root[data-m='faculdade'] .landing-page [data-m-variant='faculdade'],
 :root[data-m='ingles'] .landing-page [data-m-variant='ingles'] { display: revert; }
+
+/* landing_scroll_depth (prd-entrada-primeira-dobra RF-0): empty 1 px markers over the page, out of the flow (no CLS) */
+.landing-page > .lp-depth {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+
+  & > span {
+    position: absolute;
+    left: 0;
+    width: 1px;
+    height: 1px;
+  }
+  & > [data-depth="25"] { top: 25%; }
+  & > [data-depth="50"] { top: 50%; }
+  & > [data-depth="75"] { top: 75%; }
+  & > [data-depth="100"] { bottom: 0; }
+}

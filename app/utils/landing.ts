@@ -50,9 +50,9 @@ export type ScreenName = keyof typeof SCREENS
 
 /** Real recordings of the app (public/landing/video): muted loops, a poster each; `dark` when there is a dark take. */
 export const CLIPS = {
-  revisao: { dark: true, alt: 'Gravação do app na conta de demonstração: a revisão em lote da apostila de Seguridade Social, com os cards virando.' },
-  material: { dark: false, alt: 'Gravação do app na conta de demonstração: a parte “Benefícios” da apostila de Seguridade Social e os cards dela.' },
-  simulado: { dark: true, alt: 'Gravação do app na conta de demonstração: o resultado de um simulado de Fisiologia, 7 de 10, e os 3 erros virando cards.' },
+  revisao: { dark: true, alt: 'Gravação do Baigi na conta de demonstração: a revisão em lote da apostila de Seguridade Social, com os cards virando.' },
+  material: { dark: false, alt: 'Gravação do Baigi na conta de demonstração: a parte “Benefícios” da apostila de Seguridade Social e os cards dela.' },
+  simulado: { dark: true, alt: 'Gravação do Baigi na conta de demonstração: o resultado de um simulado de Fisiologia, 7 de 10, e os 3 erros virando cards.' },
 } as const
 export type ClipName = keyof typeof CLIPS
 
@@ -150,7 +150,7 @@ export const STORY = [
     key: 'revisao',
     step: '3 · Revisão',
     title: 'Todo dia um número, em lotes curtos.',
-    text: 'Abriu o app e viu 400 cards atrasados? Aqui eles vêm em lotes de 10 a 30 cards, e o atraso se divide em 3, 7 ou 14 dias. Faz um lote, vê quantos faltam e decide se para ou segue.',
+    text: 'Abriu o Anki e viu 400 cards atrasados? Aqui eles vêm em lotes de 10 a 30 cards, e o atraso se divide em 3, 7 ou 14 dias. Faz um lote, vê quantos faltam e decide se para ou segue.',
     ai: false,
     clip: 'revisao',
     cta: 'Fazer meu primeiro lote',
@@ -414,7 +414,7 @@ export function landingFaqs(catalog: PlanCatalog | null): { q: string, a: string
     },
     {
       q: 'Abre no computador?',
-      a: 'Abre. É o mesmo Baigi no navegador do computador e do celular, com tudo sincronizado. No celular, dá para instalar na tela inicial como um app.',
+      a: 'Abre. É o mesmo Baigi no navegador do computador e do celular, com tudo sincronizado. No celular, dá para pôr o Baigi na tela inicial.',
     },
     {
       // prd-revisao-offline (ADR-036): only the review of today's lot; nothing else promised

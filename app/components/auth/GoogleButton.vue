@@ -21,6 +21,14 @@ const props = withDefaults(defineProps<{
 const { $api } = useNuxtApp()
 const loading = ref(false)
 
+// Safari (and Chrome) keep the page in the back-forward cache: Voltar from Google's screen brings it back exactly as it
+// left, "Abrindo o Google…" and inert, and every tap is ignored until a reload (production, iPhone, 18/11/2026).
+function onPageShow(event: PageTransitionEvent) {
+  if (event.persisted) loading.value = false
+}
+onMounted(() => window.addEventListener('pageshow', onPageShow))
+onBeforeUnmount(() => window.removeEventListener('pageshow', onPageShow))
+
 async function go() {
   props.beforeRedirect?.()
   loading.value = true

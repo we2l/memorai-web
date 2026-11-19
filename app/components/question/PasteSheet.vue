@@ -19,7 +19,7 @@
         :rows="10"
         :maxlength="LIMITS.paste"
         hint="Enunciado, alternativas e gabarito; o comentário do professor também. Dá para colar várias, numeradas."
-        placeholder="Cole aqui a questão que você errou no Qconcursos, no TEC ou numa prova antiga…"
+        placeholder="Cole aqui a questão que você errou num site de questões ou numa prova antiga…"
         data-testid="question-text"
         @paste="onPaste"
         @keydown.ctrl.enter="separate"

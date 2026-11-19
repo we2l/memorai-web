@@ -204,6 +204,8 @@ const NEXT: Partial<Record<EntryStep, string>> = {
 const current = computed(() => ENTRY_STEPS[props.step]!)
 const heading = ref<HTMLElement | null>(null)
 const { track } = useAnalytics()
+const apiBase = useRuntimeConfig().public.apiBase as string
+const auth = useAuthStore()
 
 // ── The card of step 1: back to the step = a new try ──
 const flipped = ref(false)
@@ -220,6 +222,9 @@ function flip() {
 function rate(rating: EntryRating) {
   rated.value = rating
   track('entry_card_rated', { rating, position: 'tour' })
+  // The aggregate funnel (no cookie, no id), loaded on demand out of the page's closure
+  import('~/utils/funnelCount').then(m => m.countFunnelStep(apiBase, 'entry_card_rated', !!auth.user))
+    .catch(() => { /* intencional: contagem perdida não afeta a pessoa */ })
 }
 
 function next() {

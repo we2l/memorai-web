@@ -56,6 +56,13 @@ if (loggedIn.value) setPageLayout('auth')
 const { plans: catalog, failed, fetchPlans } = usePlans()
 const { analytics: consent } = useConsent()
 const { track } = useAnalytics()
+const apiBase = useRuntimeConfig().public.apiBase as string
+// The aggregate funnel (no cookie, no id; utils/funnelCount.ts), loaded on demand out of the page's closure
+const funnel = (use: (m: typeof import('~/utils/funnelCount')) => void) => import('~/utils/funnelCount').then(use)
+  .catch(() => { /* intencional: contagem perdida não afeta a pessoa */ })
+let stopViewed: (() => void) | null | undefined
+/** Reaching the last step of the tour (step 7) */
+const countTourDone = (index: number) => index === ENTRY_STEPS.length - 1 && funnel(m => m.countFunnelStep(apiBase, 'entry_tour_done', !!auth.user))
 
 const loginTo = ref('/entrar')
 const step = computed(() => entryStepOf(route.query.passo))
@@ -86,6 +93,7 @@ watch(step, async (now) => {
     track('entry_tour_started', { origin, step: name })
   }
   track('entry_step_viewed', { step: name, index: now + 1 })
+  countTourDone(now)
   window.scrollTo({ top: 0 })
   await nextTick()
   tour.value?.focusHeading()
@@ -107,6 +115,7 @@ onMounted(() => {
   if (pendingGuestProgress()) loginTo.value = '/entrar?redirect=/comecar/pronto'
   const kept = new URLSearchParams((window as unknown as { __baigiEntryQuery?: string }).__baigiEntryQuery ?? window.location.search)
   const utm = (key: string) => kept.get(key)?.slice(0, 100) || null
+  funnel((m) => { if (stopViewed !== null) stopViewed = m.countComecarViewed(apiBase, () => !!auth.user) })
   track('entry_viewed', { utm_source: utm('utm_source'), utm_medium: utm('utm_medium'), utm_campaign: utm('utm_campaign'), utm_content: utm('utm_content') })
   // A step opened straight from the address (a shared link): shown once the route has its query back
   if (step.value !== null) {
@@ -114,8 +123,13 @@ onMounted(() => {
     const name = ENTRY_STEPS[step.value] as EntryStepProp
     track('entry_tour_started', { origin: 'link', step: name })
     track('entry_step_viewed', { step: name, index: step.value + 1 })
+    countTourDone(step.value)
   }
 })
 
-onBeforeUnmount(releaseHold)
+onBeforeUnmount(() => {
+  releaseHold()
+  stopViewed?.()
+  stopViewed = null
+})
 </script>

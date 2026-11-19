@@ -7,9 +7,14 @@ import AreaPicker from '~/components/onboarding/AreaPicker.vue'
 
 const { track } = vi.hoisted(() => ({ track: vi.fn() }))
 mockNuxtImport('useAnalytics', () => () => ({ track, register: vi.fn(), identify: vi.fn(), reset: vi.fn() }))
+const { countFunnelStep } = vi.hoisted(() => ({ countFunnelStep: vi.fn() }))
+vi.mock('~/utils/funnelCount', () => ({ countFunnelStep }))
 
 describe('entrada do /comecar', () => {
-  beforeEach(() => track.mockReset())
+  beforeEach(() => {
+    track.mockReset()
+    countFunnelStep.mockReset()
+  })
 
   it('o card do passo 1: mostra a resposta, Lembrei dá 2 dias e Continuar segue', async () => {
     const w = await mountSuspended(Tour, { props: { step: 0, catalog: null, failed: false, flow: false } })
@@ -19,6 +24,9 @@ describe('entrada do /comecar', () => {
     await w.find('[data-testid="entry-remembered"]').trigger('click')
     expect(w.find('[data-testid="entry-feedback"]').text()).toContain('daqui a 2 dias')
     expect(track).toHaveBeenCalledWith('entry_card_rated', { rating: 'remembered', position: 'tour' })
+    // the aggregate funnel (no cookie, no id) counts the same moment
+    await flushPromises()
+    expect(countFunnelStep).toHaveBeenCalledWith(expect.any(String), 'entry_card_rated', false)
     expect(w.find('[data-testid="entry-card-areas"]').attributes('href')).toBe('/comecar/areas')
     await w.find('[data-testid="entry-next"]').trigger('click')
     expect(w.emitted('go')).toEqual([[1]])

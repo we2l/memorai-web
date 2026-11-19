@@ -143,6 +143,7 @@ definePageMeta({ layout: false, chrome: 'focus' })
 
 const route = useRoute()
 const auth = useAuthStore()
+const apiBase = useRuntimeConfig().public.apiBase as string
 const { $api } = useNuxtApp()
 const { track } = useAnalytics()
 
@@ -267,6 +268,9 @@ function finish() {
   saveGuestProgress(progress.value)
   const s = guestSummary(progress.value.reviews, deck.value.intervals, deck.value.relearned_interval)
   track('guest_batch_done', { area, remembered: s.remembered, total: s.total, repeats: s.repeated })
+  // The aggregate funnel (no cookie, no id), loaded on demand out of the page's closure
+  import('~/utils/funnelCount').then(m => m.countFunnelStep(apiBase, 'guest_batch_done', !!auth.user))
+    .catch(() => { /* intencional: contagem perdida não afeta a pessoa */ })
   showResult()
 }
 

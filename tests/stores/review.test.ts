@@ -196,6 +196,23 @@ describe('useReviewStore — fila otimista (RF-F2.3/F2.4)', () => {
     expect(store.currentCard?.id).toBe('a')
   })
 
+  it('card em aprendizado volta com a matéria, a origem e a conferência da sessão (a resposta do POST não as traz)', async () => {
+    apiMock.mockResolvedValueOnce(answer('a', 'r1', {
+      state: 'learning', is_learning: true, learning_step_index: 1, reps: 1, check: null,
+      due: new Date(Date.now() + 600_000).toISOString(),
+    }))
+    const store = useReviewStore()
+    store.errorDiaryMode = 'never'
+    const origin = { kind: 'question', title: 'Questão colada', excerpt: null }
+    const check = { mode: 'typed', answer: 'errado' }
+    store.cards = [card('a', { state: 'new', topic_name: 'Português', origin, check })]
+    store.rate(3)
+    await vi.waitFor(() => expect(store.learningQueue).toHaveLength(1))
+    const back = store.currentCard as any
+    expect(back.id).toBe('a')
+    expect(back).toMatchObject({ topic_name: 'Português', origin, check, state: 'learning', learning_step_index: 1, reps: 1 })
+  })
+
   it('finished só depois que a fila esvazia', async () => {
     const res = deferred<any>()
     apiMock.mockReturnValueOnce(res.promise)

@@ -20,6 +20,7 @@
       <li><strong>Conteúdo de estudo:</strong> cadernos, notas, flashcards, PDFs, áudios, imagens, provas e simulados que você cria ou envia.</li>
       <li><strong>Uso:</strong> revisões realizadas, avaliações, sequência de dias, preferências e registros técnicos (IP, navegador, data e hora).</li>
       <li><strong>Origem do cadastro:</strong> se você chegou por um link de divulgação do BAIGI (um post, um artigo), guardamos no seu navegador o nome da campanha desse link e a página de entrada, e gravamos isso na sua conta ao se cadastrar. Sem campanha, guardamos só o endereço do site de onde você veio (por exemplo, instagram.com), nunca a página nem o que você fazia lá. Serve para saber quais conteúdos trazem pessoas; não identifica você em outros sites.</li>
+      <li><strong>Funil da entrada:</strong> também contamos, sem cookie e sem identificar ninguém, quantas visitas passam por cada etapa da página de entrada, somadas por dia e por origem. Nada disso fica no seu navegador nem na sua conta.</li>
       <li><strong>Pagamento:</strong> processado pelo Mercado Pago. O número do cartão é digitado num formulário do próprio Mercado Pago e nunca chega ao BAIGI; guardamos apenas o status da assinatura, os 4 últimos dígitos e a bandeira do cartão, e o histórico de cobranças. O CPF informado no pagamento vai direto ao Mercado Pago.</li>
       <li id="ferramentas"><strong>Ferramentas grátis:</strong> para baixar o PDF ou a agenda (.ics) do edital verticalizado e do cronograma, pedimos o seu e-mail. Ele serve para liberar o download e fica guardado junto da leitura do edital, mesmo sem conta; não mandamos e-mail por causa disso. Se você marcar a caixa "Quero receber dicas de estudo e novidades do Baigi por e-mail", que vem desmarcada, gravamos esse consentimento com a data, a versão do texto e o seu IP em hash (um código que não deixa ver o IP), para provar que você aceitou. Todo e-mail de novidades, a começar pelo primeiro, traz o descadastro em 1 clique. Se você criar uma conta com o mesmo e-mail, ligamos o registro a ela. Para apagar o seu e-mail, escreva para <a href="mailto:contato@baigi.com.br">contato@baigi.com.br</a>.</li>
       <li><strong>E-mail transacional:</strong> enviado pela Resend (verificação de conta, redefinição de senha, avisos da assinatura e exportação de dados).</li>
@@ -103,7 +104,7 @@ definePageMeta({ layout: 'public' })
 
 // TODO(jurídico): datas definitivas na publicação do texto revisado
 const EFFECTIVE_DATE = '1º de outubro de 2026'
-const UPDATED_AT = '16 de novembro de 2026'
+const UPDATED_AT = '19 de novembro de 2026'
 
 const sections = [
   { id: 'controlador', title: 'Controlador e encarregado' },

@@ -73,12 +73,14 @@ export function usePhotoCards(topicId: Ref<string | null>, onAccepted: () => Pro
 
   /** Photo of a page → suggested cards (POST /flashcards/from-image, polled). Also "+ Adicionar → Foto". */
   const reading = ref(false)
+  /** Photos read on this screen (each one spent a generation): the usage line follows it. */
+  const generated = ref(0)
   async function processImage(file: File) {
     if (!topicId.value || reading.value) return
     reading.value = true
     try {
       const form = new FormData()
-      form.append('image', file)
+      form.append('image', await photoForUpload(file))
       form.append('topic_id', topicId.value)
       form.append('count', '5')
       const res = await $api<{ data: { id: string } }>('/flashcards/from-image', { method: 'POST', body: form })
@@ -86,6 +88,7 @@ export function usePhotoCards(topicId: Ref<string | null>, onAccepted: () => Pro
         const status = await $api<{ data: { status: string; cards?: { front: string; back: string }[] } }>(`/flashcards/from-image/${res.data.id}/status`, { signal })
         return status.data
       }, { interval: 2000, immediate: false, timeout: 60_000, until: d => d.status === 'done' || d.status === 'failed' })
+      if (data.status === 'done') generated.value++
       if (data.status === 'done' && data.cards?.length) fromOcr(data.cards)
       else toast.show('Não foi possível criar cards desta imagem.', 'error')
     } catch (e) {
@@ -96,5 +99,5 @@ export function usePhotoCards(topicId: Ref<string | null>, onAccepted: () => Pro
     }
   }
 
-  return { cards, reading, fromOcr, accept, acceptAll, discard, saveLocal, processImage }
+  return { cards, reading, generated, fromOcr, accept, acceptAll, discard, saveLocal, processImage }
 }

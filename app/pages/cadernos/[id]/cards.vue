@@ -9,7 +9,7 @@
       </template>
     </UiPageHeader>
     <!-- Foto → cards uses the paid plan's month of generations (prd-uso-justo RF-F3) -->
-    <LazyPlansUsageNotice feature="cards_ai" class="-mt-3" @at-limit="photoSpent = $event" />
+    <LazyPlansUsageNotice feature="cards_ai" class="-mt-3" :refresh-key="photo.generated.value" @at-limit="photoSpent = $event" />
 
     <!-- The AI's suggestions from a photo -->
     <LazyTopicAiGeneratedCards

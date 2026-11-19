@@ -74,7 +74,7 @@ type MenuKind = AddKind | 'edital'
 const OPTIONS: { kind: MenuKind, label: string, meta: string, icon: Component, kbd?: string }[] = [
   { kind: 'pdf', label: 'PDF', meta: 'A IA resume e organiza em partes', icon: FileUp },
   { kind: 'text', label: 'Colar texto', meta: 'Um resumo ou trecho vira uma nota', icon: ClipboardPaste },
-  { kind: 'question', label: 'Questão que errei', meta: 'Cole do Qconcursos, do TEC ou de uma prova: vira card', icon: ClipboardX },
+  { kind: 'question', label: 'Questão que errei', meta: 'Cole a questão do site ou da prova: vira card', icon: ClipboardX },
   { kind: 'photo', label: 'Foto', meta: 'De uma página: a IA sugere os cards', icon: Camera },
   { kind: 'note', label: 'Nota em branco', meta: 'Abre o editor', icon: PenLine, kbd: 'Alt N' },
   { kind: 'anki', label: 'Importar do Anki', meta: 'Arquivo .apkg, com os cards e os intervalos', icon: Download },

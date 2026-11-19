@@ -28,12 +28,15 @@ import { previewNotice } from '~/utils/preview'
 const props = defineProps<{
   feature: string
   usage?: ReturnType<typeof usePaidQuota>
+  /** Bumped by the screen after a use it made (a photo read): the notice reads /usage again (only without `usage`). */
+  refreshKey?: number
 }>()
 const emit = defineEmits<{ 'at-limit': [boolean] }>()
 
 const own = props.usage ? null : usePaidQuota()
 const quota = props.usage ?? own!
 onMounted(() => { if (own) void own.fetchUsageForNotice() })
+watch(() => props.refreshKey, () => { if (own) void own.fetchUsageForNotice() })
 watch(() => quota.atLimit(props.feature), at => emit('at-limit', at), { immediate: true })
 
 const { plans } = usePlans()

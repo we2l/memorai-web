@@ -59,6 +59,26 @@ describe('useAiJob', () => {
     expect(apiMock.mock.calls.every(([, opts]) => opts?.method !== 'POST')).toBe(true)
   })
 
+  it('aba escondida além do tempo: ao voltar consulta o job uma vez e entrega o resultado pronto', async () => {
+    const visibility = vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden')
+    apiMock
+      .mockResolvedValueOnce(job('pending'))
+      .mockResolvedValueOnce(job('done', { result: { ok: true } }))
+    try {
+      const promise = useAiJob().run('/editais')
+      // Hidden: no GET while the job runs (pollUntil pauses), and the deadline passes
+      await vi.advanceTimersByTimeAsync(6 * 60_000)
+      expect(apiMock).toHaveBeenCalledTimes(1)
+
+      visibility.mockReturnValue('visible')
+      document.dispatchEvent(new Event('visibilitychange'))
+      await expect(promise).resolves.toEqual({ ok: true })
+      expect(apiMock).toHaveBeenLastCalledWith('/ai/jobs/j1')
+    } finally {
+      visibility.mockRestore()
+    }
+  })
+
   it('resposta já terminal (fila síncrona) não faz polling', async () => {
     apiMock.mockResolvedValueOnce(job('done', { result: { ok: true } }))
     await expect(useAiJob().run('/ai/generate-cards')).resolves.toEqual({ ok: true })

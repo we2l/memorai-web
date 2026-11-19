@@ -39,8 +39,12 @@ export function useAiJob() {
         until: j => j.status === 'done' || j.status === 'failed',
       })
     } catch (e) {
-      if (e instanceof PollTimeoutError) throw new AiJobError('A geração demorou demais. Tente novamente.', id)
-      throw e
+      if (!(e instanceof PollTimeoutError)) throw e
+      // A hidden tab pauses the polling but not the clock: back after the timeout (Android, another app), the job
+      // may be long done. One last look before giving up, or a finished reading is lost and paid again.
+      const last = await $api<{ data: AiJob<T> }>(`/ai/jobs/${id}`).then(r => r.data, () => null)
+      if (last?.status === 'done' || last?.status === 'failed') return finished(last)
+      throw new AiJobError('A geração demorou demais. Tente novamente.', id)
     }
     return finished(job)
   }

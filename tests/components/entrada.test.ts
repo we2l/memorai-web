@@ -68,7 +68,7 @@ describe('entrada do /comecar', () => {
 })
 
 describe('card no herói (prd-entrada-primeira-dobra RF-1)', () => {
-  beforeEach(() => track.mockReset())
+  beforeEach(() => { track.mockReset(); countFunnelStep.mockReset() })
 
   it('um primário por vez: Mostrar resposta, Lembrei e Continuar para o passo 2', async () => {
     const w = await mountSuspended(Home, { props: { catalog: null, loginTo: '/entrar' } })
@@ -82,6 +82,8 @@ describe('card no herói (prd-entrada-primeira-dobra RF-1)', () => {
     await w.find('[data-testid="entry-hero-remembered"]').trigger('click')
     expect(w.find('[data-testid="entry-feedback"]').text()).toContain('daqui a 2 dias')
     expect(track).toHaveBeenCalledWith('entry_card_rated', { rating: 'remembered', position: 'hero' })
+    await flushPromises()
+    expect(countFunnelStep).toHaveBeenCalledWith(expect.any(String), 'entry_card_rated', false)
     const next = w.find('[data-testid="entry-hero-next"]')
     expect(next.text()).toBe('Continuar: ver o resto em 1 min')
     await next.trigger('click')

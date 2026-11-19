@@ -37,6 +37,8 @@ import { ENTRY_CARD, type EntryRating } from '~/utils/entrada'
 
 const emit = defineEmits<{ continue: [] }>()
 const { track } = useAnalytics()
+const apiBase = useRuntimeConfig().public.apiBase as string
+const auth = useAuthStore()
 
 const live = ref(false)
 const flipped = ref(false)
@@ -61,6 +63,9 @@ function flip() {
 function rate(rating: EntryRating) {
   keepFocus(() => { rated.value = rating })
   track('entry_card_rated', { rating, position: 'hero' })
+  // The aggregate funnel (no cookie, no id), loaded on demand out of the page's closure; once per load, shared with the tour
+  import('~/utils/funnelCount').then(m => m.countFunnelStep(apiBase, 'entry_card_rated', !!auth.user))
+    .catch(() => { /* intencional: contagem perdida não afeta a pessoa */ })
 }
 
 function onKey(e: KeyboardEvent) {

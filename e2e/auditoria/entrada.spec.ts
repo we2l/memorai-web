@@ -41,18 +41,19 @@ test.describe('entrada do /comecar', () => {
         expect(await serious(page)).toEqual([])
         await noSideScroll(page)
 
-        // Hero → step 1, by keyboard
-        await page.getByTestId('entry-start').focus()
-        await page.keyboard.press('Enter')
-        await page.waitForURL(/passo=1/)
-        await expect(page.getByRole('heading', { level: 2, name: 'Tente lembrar antes de virar.' })).toBeFocused()
-        await page.getByTestId('entry-flip').focus()
-        await page.keyboard.press('Enter')
+        // The hero's card (prd-entrada-primeira-dobra RF-1), by keyboard: nothing focused on load, Space on the page
+        // scrolls (no global key), Space on the card turns it, 2 rates, Continuar goes to step 2
+        expect(await page.evaluate(() => document.activeElement === document.body)).toBe(true)
+        await expect(page.getByTestId('entry-hero-card')).toBeVisible()
+        await page.getByTestId('entry-hero-card').focus()
+        await page.keyboard.press('Space')
         await expect(page.getByTestId('entry-answer')).toContainText('12 contribuições mensais')
+        await expect(page.getByTestId('entry-hero-card')).toBeFocused()
         await page.keyboard.press('2')
         await expect(page.getByTestId('entry-feedback')).toContainText('Então este card só volta daqui a 2 dias.')
         expect(await serious(page)).toEqual([])
-        await page.getByTestId('entry-next').click()
+        await page.getByTestId('entry-hero-next').focus()
+        await page.keyboard.press('Enter')
 
         // Steps 2..6 and the browser's Voltar goes one step back
         for (const step of [2, 3, 4, 5, 6]) {
@@ -61,7 +62,7 @@ test.describe('entrada do /comecar', () => {
           await noSideScroll(page)
           expect(await serious(page), `passo ${step}`).toEqual([])
           if (step === 5) {
-            await expect(page.getByTestId('entry-player-time')).toHaveText(/0:00 \/ 0:19/)
+            await expect(page.getByTestId('entry-player-time')).toHaveText(/0:00 \/ 0:50/)
             await expect(page.getByTestId('entry-podcast-plan')).toContainText('episódios por mês')
           }
           if (step < 6) await page.getByTestId('entry-next').click()

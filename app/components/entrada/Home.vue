@@ -5,18 +5,23 @@
         <img :src="LOGO" width="64" height="53" alt="" decoding="async">
         <span aria-hidden="true">Baigi</span>
       </NuxtLink>
+      <!-- RF-1 (prd-entrada-primeira-dobra): the card in the first fold, beside the copy on the desktop and right under
+           the h1 on the phone (the grid's areas, entrada.css) -->
       <div class="ec-hero">
+        <h1 class="ec-hero-title">Você estuda. O Baigi lembra você de revisar antes de <span class="ec-grifo">esquecer.</span></h1>
+        <div class="ec-hero-card">
+          <div class="ec-hero-hi">
+            <img :src="WAVING" width="248" height="365" alt="Golfinho do Baigi acenando" decoding="async" fetchpriority="low">
+            <p class="ec-bubble">Tenta um card comigo?</p>
+          </div>
+          <EntradaHeroCard @continue="next" />
+        </div>
         <div class="ec-hero-copy">
-          <h1>Você estuda. O Baigi lembra você de revisar antes de <span class="ec-grifo">esquecer.</span></h1>
           <p class="ec-lead">Mande o seu material e receba cards prontos. Cada um volta no dia certo, e revisar é grátis para sempre.</p>
           <div class="ec-hero-acts">
-            <button type="button" class="ec-btn ec-btn-primary" data-testid="entry-start" @click="start(0, 'hero')">Ver como funciona · 1 min</button>
+            <button type="button" class="ec-btn ec-btn-link" data-testid="entry-start" @click="start(1, 'hero')">Ver como funciona · 1 min</button>
             <NuxtLink :to="loginTo" class="ec-btn ec-btn-link" data-testid="entry-login" @click="cta('hero_login')">Já tenho conta · Entrar</NuxtLink>
           </div>
-        </div>
-        <div class="ec-mascot">
-          <p class="ec-bubble">Tenta um card comigo?</p>
-          <img :src="WAVING" width="248" height="365" alt="Golfinho do Baigi acenando" decoding="async" fetchpriority="low">
         </div>
       </div>
     </div>
@@ -91,7 +96,7 @@
 
 <script setup lang="ts">
 // The entry of /comecar for who does not know the Baigi yet (prd-entrada-comecar RF-F6 to RF-F9): the hero with the
-// dolphin, the box to send the edital (prd-landing-mostrar-produto P3), the 6 things the Baigi does (each opens its
+// dolphin and the example card (prd-entrada-primeira-dobra RF-1), the box to send the edital (prd-landing-mostrar-produto P3), the 6 things the Baigi does (each opens its
 // step of the tour), the free tools and the final call.
 import { ChevronRight } from 'lucide-vue-next'
 import type { PlanCatalog } from '~/types'
@@ -130,6 +135,12 @@ onMounted(() => {
   io.observe(editalBox.value)
 })
 onBeforeUnmount(() => io?.disconnect())
+
+/** After the hero's card: the tour from the material (step 2), it does not repeat the card */
+function next() {
+  cta('hero_card_next')
+  emit('start', 1, 'hero')
+}
 
 function start(step: number, origin: 'hero' | 'feature') {
   cta(origin === 'hero' ? 'hero_tour' : 'feature')

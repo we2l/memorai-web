@@ -13,13 +13,15 @@
       <img :src="rated === 'remembered' ? '/mascote/comemorando.svg' : '/mascote/pensando.svg'" :width="rated === 'remembered' ? 265 : 280" :height="rated === 'remembered' ? 372 : 377" alt="" decoding="async">
       <p><b>{{ feedback!.title }}</b>{{ feedback!.text }}</p>
     </div>
+    <!-- The hero's buttons (HeroCard); the tour keeps them in its bar -->
+    <slot />
   </div>
 </template>
 
 <script setup lang="ts">
 // The one card of step 1 (prd-entrada-comecar RF-F12): the front, the answer after "Mostrar resposta" and the band
 // with the real interval after Lembrei / Não lembrei (utils/entrada cardFeedback, RN-2). The buttons live in the bar of
-// the tour; nothing is saved.
+// the tour (the hero's, in the slot: entrada/HeroCard); nothing is saved.
 import { ENTRY_CARD, cardFeedback, type EntryRating } from '~/utils/entrada'
 
 const props = defineProps<{ flipped: boolean, rated: EntryRating | null }>()

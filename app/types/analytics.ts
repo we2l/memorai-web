@@ -39,7 +39,7 @@ export type LandingAreaProp = 'concurso' | 'faculdade' | 'oab' | 'enem' | 'idiom
 
 /** The entry of /comecar (prd-entrada-comecar RF-F21): its steps and where a call was clicked */
 export type EntryStepProp = 'card' | 'material' | 'revisar' | 'simulado' | 'podcast' | 'prova' | 'planos'
-export type EntryCtaPosition = 'hero_tour' | 'hero_login' | 'feature' | 'tool_edital' | 'tool_calculadora' | 'final_signup' | 'edital_box'
+export type EntryCtaPosition = 'hero_tour' | 'hero_card_next' | 'hero_login' | 'feature' | 'tool_edital' | 'tool_calculadora' | 'final_signup' | 'edital_box'
   | 'card_areas' | 'plans_signup' | 'plans_areas'
 
 export interface FrontEventProps {

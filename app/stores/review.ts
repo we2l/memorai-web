@@ -643,8 +643,10 @@ export const useReviewStore = defineStore('review', {
       const logged = this.log.find(l => l.client_id === item.client_id)
       if (logged) logged.due = data?.flashcard?.due ?? null
 
-      const updatedCard = { ...data.flashcard, next_intervals: data.next_intervals } as SessionCard
-      // The server answer is the source of truth for scheduling
+      // The server answer is the source of truth for scheduling. POST /review does not bring topic_name, origin (with the
+      // excerpt) nor the typed check of the deck (no relations loaded): a card back in learning keeps the session ones
+      const copy = entry?.cardSnapshot
+      const updatedCard = { ...copy, ...data.flashcard, check: data.flashcard.check ?? copy?.check, next_intervals: data.next_intervals } as SessionCard
       if (updatedCard.is_learning && !this.reviewQueue.some(q => q.flashcard_id === updatedCard.id)) {
         const local = this.learningQueue.find(q => q.card.id === updatedCard.id)
         if (local) {

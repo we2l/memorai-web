@@ -23,6 +23,11 @@ const route = useRoute()
 const error = ref('')
 
 onMounted(async () => {
+  // "Cancelar" on Google's screen comes back with ?error=access_denied and no code: not a broken link
+  if (route.query.error) {
+    error.value = 'O login com o Google foi cancelado. Tente de novo ou entre com e-mail.'
+    return
+  }
   const code = typeof route.query.code === 'string' ? route.query.code : ''
   const state = typeof route.query.state === 'string' ? route.query.state : ''
   if (!code || !state) {

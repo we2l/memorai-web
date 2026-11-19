@@ -1,7 +1,7 @@
 <template>
   <div class="mx-auto flex w-full max-w-xl flex-col items-center gap-6 px-gutter py-10 text-center" data-testid="review-session-end" :data-kind="goalMet ? 'goal' : 'batch'">
     <UiCelebration :kind="goalMet ? 'goal' : 'batch'" :title="title" :subtitle="goalMet ? 'Meta de hoje cumprida' : 'Sessão concluída'" :level="1" />
-    <p class="-mt-2 max-w-md text-body text-fg">{{ lead }}</p>
+    <p class="-mt-2 max-w-md text-body text-fg" data-testid="session-lead">{{ lead }}</p>
 
     <div class="flex flex-wrap justify-center gap-6" data-testid="session-stats">
       <UiStat :value="summary.size" :label="summary.size === 1 ? 'card revisado' : 'cards revisados'" />
@@ -40,6 +40,7 @@
 // session, tomorrow's forecast and the reminder, the retention suggestion when it applies, "Voltar a
 // {escopo}" (the primary) and "Reforçar erros (N)" in the same slice.
 import type { BacklogState } from '~/types'
+import { returnTextAt } from '~/utils/returnAt'
 import type { BatchSummary } from '~/composables/useReviewBatches'
 import type { ForgettingCurve } from '~/utils/guestProgress'
 import type { GoalInfo, StreakInfo } from '~/components/review/ReviewBatchEnd.vue'
@@ -61,9 +62,21 @@ const props = defineProps<{
   backlog?: BacklogState | null
   /** The curve of the receipt of the first own lote (prd-ativacao-material-proprio H8); null = no receipt */
   receipt?: ForgettingCurve | null
+  /**
+   * When each learning card left at the end comes back (ms): only an explicit list ends with them, since it does not
+   * learn ahead (stores/review learnsAhead); empty = none
+   */
+  waiting?: number[]
 }>()
 
 const title = computed(() => (props.scopeLabel ? `${props.scopeLabel} em dia` : 'Revisão de hoje concluída'))
 // Owner's review of 12/11/2026: "0 de 2" alone read as a failure; say what happens to the ones missed.
-const lead = computed(() => `Você lembrou ${props.summary.remembered} de ${props.summary.size}.${props.summary.remembered < props.summary.size ? ' Os erros voltam logo.' : ''}`)
+// An explicit list ends without waiting for a learning step (19/11/2026): say when the card comes back
+const waitingText = computed(() => {
+  const w = props.waiting ?? []
+  if (!w.length) return ''
+  const when = returnTextAt(Math.min(...w))
+  return w.length === 1 ? ` 1 card volta para a revisão ${when}.` : ` ${w.length} cards voltam para a revisão, o primeiro ${when}.`
+})
+const lead = computed(() => `Você lembrou ${props.summary.remembered} de ${props.summary.size}.${waitingText.value || (props.summary.remembered < props.summary.size ? ' Os erros voltam logo.' : '')}`)
 </script>

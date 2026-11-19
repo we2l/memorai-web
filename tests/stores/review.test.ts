@@ -427,3 +427,73 @@ describe('sessão em páginas (prd-performance-caderno RF-F7)', () => {
     expect(store.batchSize).toBe(30)
   })
 })
+
+// Owner's decision of 19/11/2026: an explicit list (scope=cards|quiz:|podcast:) never learns ahead
+describe('lista explícita não adianta o passo de aprendizagem', () => {
+  const inTen = () => new Date(Date.now() + 600_000).toISOString()
+  const learning = () => ({ state: 'learning', is_learning: true, learning_step_index: 1, due: inTen() })
+  const scope = (type: string) => ({ type, id: type === 'cards' ? null : 'x', label: 'Recorte', topic: null }) as any
+
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    apiMock.mockReset()
+  })
+  afterEach(() => vi.restoreAllMocks())
+
+  it.each(['cards', 'quiz', 'podcast'])('scope=%s: o card do passo não volta adiantado e a sessão termina', async (type) => {
+    apiMock.mockResolvedValueOnce(answer('a', 'r1', learning()))
+    const store = useReviewStore()
+    store.errorDiaryMode = 'never'
+    store.scope = scope(type)
+    store.cards = [card('a', { state: 'new' })]
+    store.rate(3)
+    await vi.waitFor(() => expect(store.learningQueue).toHaveLength(1))
+    expect(store.learningQueue[0]!.dueAt).toBeGreaterThan(Date.now() + 590_000)
+    expect(store.currentCard).toBeNull()
+    await vi.waitFor(() => expect(store.finished).toBe(true))
+    expect(store.saving).toBe(false)
+    expect(store.learningQueue[0]!.card.id).toBe('a')
+  })
+
+  it('contêiner (caderno) continua adiantando o card no fim', async () => {
+    apiMock.mockResolvedValueOnce(answer('a', 'r1', learning()))
+    const store = useReviewStore()
+    store.errorDiaryMode = 'never'
+    store.scope = scope('topic')
+    store.cards = [card('a', { state: 'new' })]
+    store.rate(3)
+    await vi.waitFor(() => expect(store.learningQueue).toHaveLength(1))
+    expect(store.currentCard?.id).toBe('a')
+    expect(store.finished).toBe(false)
+  })
+
+  it('na lista, o card que vence enquanto a pessoa ainda revisa entra normalmente', async () => {
+    apiMock.mockResolvedValueOnce(answer('a', 'r1', learning()))
+    const store = useReviewStore()
+    store.errorDiaryMode = 'never'
+    store.scope = scope('cards')
+    store.cards = [card('a', { state: 'new' }), card('b')]
+    store.rate(3)
+    await vi.waitFor(() => expect(store.learningQueue).toHaveLength(1))
+    expect(store.currentCard?.id).toBe('b')
+    const later = Date.now() + 601_000
+    vi.spyOn(Date, 'now').mockReturnValue(later)
+    store._tick++
+    expect(store.currentCard?.id).toBe('a')
+  })
+
+  it('na lista, avaliar o último card principal não adianta quem está esperando', async () => {
+    apiMock.mockResolvedValueOnce(answer('a', 'r1', learning())).mockReturnValueOnce(new Promise(() => {}))
+    const store = useReviewStore()
+    store.errorDiaryMode = 'never'
+    store.scope = scope('cards')
+    store.cards = [card('a', { state: 'new' }), card('b')]
+    store.rate(3)
+    await vi.waitFor(() => expect(store.learningQueue).toHaveLength(1))
+    store.rate(3)
+    expect(store.learningQueue[0]!.dueAt).toBeGreaterThan(Date.now() + 590_000)
+    expect(store.currentCard).toBeNull()
+    // The answer of b is still on its way: "Salvando", never "Volta em 1 min"
+    expect(store.saving).toBe(true)
+  })
+})

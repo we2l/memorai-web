@@ -324,6 +324,9 @@ export default defineNuxtConfig({
       // Offline review kill switch (prd-revisao-offline RF-F10): 0 turns off the saved lot, the saved user and the bar;
       // the persistent queue stays (it protects ratings, offline or not)
       offlineReview: process.env.NUXT_PUBLIC_OFFLINE_REVIEW !== '0',
+      // Visitor page views through Vercel Web Analytics (plugins/visits.client): production deploys only, so previews
+      // and local builds count nothing; NUXT_PUBLIC_VISITS=0 turns it off
+      visits: process.env.NUXT_PUBLIC_VISITS !== '0' && process.env.VERCEL_ENV === 'production',
     },
   },
 

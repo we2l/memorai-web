@@ -131,6 +131,23 @@ export function shouldOpenDiary(mode: ErrorDiaryMode, errorsThisSession: number)
   return errorsThisSession >= 1 && (errorsThisSession - 1) % 3 === 0
 }
 
+/**
+ * Explicit lists (a quiz's errors, an episode, picked cards) never learn ahead: a card sent to a learning step comes
+ * back only when the step is due, or in the next session (owner's decision of 19/11/2026). Containers (caderno,
+ * document, note, Hoje) keep learning ahead at the end, and so does the offline review (prd-revisao-offline D7).
+ */
+const EXPLICIT_LISTS = new Set(['cards', 'quiz', 'podcast'])
+function learnsAhead(scope: SessionScopeInfo | null): boolean {
+  return !scope || !EXPLICIT_LISTS.has(scope.type) || useOfflineStore().offline
+}
+
+/** A learning card the session can still show: any of them when it learns ahead, only the due ones otherwise. */
+function learningToShow(scope: SessionScopeInfo | null, queue: { dueAt: number }[]): boolean {
+  if (learnsAhead(scope)) return queue.length > 0
+  const now = Date.now()
+  return queue.some(q => q.dueAt <= now)
+}
+
 export const useReviewStore = defineStore('review', {
   state: () => ({
     cards: [] as SessionCard[],
@@ -192,6 +209,8 @@ export const useReviewStore = defineStore('review', {
   getters: {
     currentCard(state): SessionCard | null {
       void state._tick // reactive dependency
+      // A learning card that falls due on the end screen of an explicit list does not show up behind it
+      if (state.finished) return null
       const now = Date.now()
       // Show due learning cards first
       const dueLearn = state.learningQueue.find(q => q.dueAt <= now)
@@ -199,8 +218,8 @@ export const useReviewStore = defineStore('review', {
       // Show main cards
       const mainCard = state.cards[state.currentIndex] ?? null
       if (mainCard) return mainCard
-      // No main cards left — show next learning card regardless of timer (learn ahead)
-      return state.learningQueue[0]?.card ?? null
+      // No main cards left — show next learning card regardless of timer (learn ahead), not in an explicit list
+      return learnsAhead(state.scope) ? (state.learningQueue[0]?.card ?? null) : null
     },
     currentIntervals(): { again: string; hard: string; good: string; easy: string } {
       return this.currentCard?.next_intervals ?? { again: '', hard: '', good: '', easy: '' }
@@ -226,12 +245,12 @@ export const useReviewStore = defineStore('review', {
     /** Nothing left to show but answers still on their way to the server. */
     saving(state): boolean {
       // Offline the end does not wait for the queue (prd-revisao-offline RF-F5)
-      return state.currentIndex >= state.cards.length && state.learningQueue.length === 0 && state.reviewQueue.length > 0
+      return state.currentIndex >= state.cards.length && !learningToShow(state.scope, state.learningQueue) && state.reviewQueue.length > 0
         && !useOfflineStore().offline
     },
     /** Nothing left to show while the next page of the session is on its way (never "Tudo em dia"). */
     awaitingPage(state): boolean {
-      return state.currentIndex >= state.cards.length && state.learningQueue.length === 0 && state.hasMore
+      return state.currentIndex >= state.cards.length && !learningToShow(state.scope, state.learningQueue) && state.hasMore
     },
     totalRated: (state) => state.ratingsCount[1] + state.ratingsCount[2] + state.ratingsCount[3] + state.ratingsCount[4],
   },
@@ -465,8 +484,8 @@ export const useReviewStore = defineStore('review', {
           this.currentIndex++
           this.totalReviewed++
         }
-        if (this.currentIndex >= this.cards.length) {
-          // No main cards left: learning cards become available right away (learn ahead)
+        if (this.currentIndex >= this.cards.length && learnsAhead(this.scope)) {
+          // No main cards left: learning cards become available right away (learn ahead; never in an explicit list)
           this.learningQueue = this.learningQueue.map(item => ({ ...item, dueAt: Date.now() }))
         }
         this.flipped = false
@@ -653,7 +672,7 @@ export const useReviewStore = defineStore('review', {
           // Already back in the batch from an offline "Não lembrei" (D7): the server data, the same place, no copy
           local.card = updatedCard
         } else {
-          const noMainLeft = this.currentIndex >= this.cards.length
+          const noMainLeft = this.currentIndex >= this.cards.length && learnsAhead(this.scope)
           const dueAt = noMainLeft ? Date.now() : (updatedCard.due ? new Date(updatedCard.due).getTime() : Date.now() + 60000)
           this.learningQueue.push({ card: updatedCard, dueAt })
         }
@@ -801,7 +820,8 @@ export const useReviewStore = defineStore('review', {
 
     checkFinished() {
       const hasMainCards = this.currentIndex < this.cards.length
-      const hasPendingLearning = this.learningQueue.length > 0
+      // An explicit list does not wait for a learning step: only a due card keeps the session open
+      const hasPendingLearning = learningToShow(this.scope, this.learningQueue)
       // The end screen waits for the queue to drain (RF-F2.4) and for the last page of the session
       // Offline the end shows the local numbers and does not wait for the send (prd-revisao-offline RF-F5)
       const sent = this.reviewQueue.length === 0 || useOfflineStore().offline

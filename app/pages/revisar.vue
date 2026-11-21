@@ -102,6 +102,7 @@
           :retention="!isBlitz && !isErrorsOnly"
           :backlog="statsNow?.backlog ?? null"
           :receipt="ownReceipt"
+          :waiting="review.learningQueue.map(q => q.dueAt)"
         >
           <template v-if="!tomorrowFailed" #tomorrow>
             <LazyReviewSessionTomorrow :forecast="tomorrow" :loading="tomorrowLoading" :enabling="enablingReminder" @enable-reminder="enableReminder" />

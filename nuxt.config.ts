@@ -296,7 +296,7 @@ export default defineNuxtConfig({
     '/documents': { redirect: { to: '/cadernos', statusCode: 301 } },
     '/decks': { redirect: { to: '/cadernos', statusCode: 301 } },
     '/decks/**': { redirect: { to: '/cadernos', statusCode: 301 } },
-    // Short links of the social profiles (/tiktok, /yt, /ig): 302 to /comecar with the channel UTM (utils/shortLinks.ts)
+    // Short links of the social profiles (/tiktok, /yt, /ig: 302 to /comecar with the channel UTM; /edital: the edital tool) (utils/shortLinks.ts)
     ...shortLinkRules(),
   },
 

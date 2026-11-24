@@ -27,6 +27,7 @@ Idioma: português do Brasil. Site: https://baigi.com.br
 - [O que é edital verticalizado](https://baigi.com.br/blog/o-que-e-edital-verticalizado): como montar o seu em planilha, erros comuns e como usar para estudar e revisar
 - [Revisões acumuladas no Anki](https://baigi.com.br/blog/revisoes-acumuladas): o que fazer com cards atrasados, dividindo o atraso em 3 a 14 dias e começando pelo que está mais perto de ser esquecido
 - [Caderno de erros digital: como fazer, com modelo](https://baigi.com.br/blog/caderno-de-erros-digital): cada questão errada vira uma pergunta curta com o motivo do erro, revisada em intervalos
+- [Carência no INSS: tabela da Lei 8.213](https://baigi.com.br/blog/carencias-inss-lei-8213): a carência de cada benefício (12, 180, 24 e 10 contribuições), o que não exige carência e a regra da metade do art. 27-A
 - [Como revisar lei seca para o INSS](https://baigi.com.br/blog/como-revisar-lei-seca-inss)
 - [Alternativa ao Anki](https://baigi.com.br/blog/alternativa-ao-anki)
 - [Todos os artigos](https://baigi.com.br/blog) e o [RSS](https://baigi.com.br/blog/rss.xml)

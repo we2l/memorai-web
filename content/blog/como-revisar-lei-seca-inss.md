@@ -9,7 +9,7 @@ author: baigi
 published: 2026-11-08
 updated: 2026-11-08
 pillar: curva-do-esquecimento
-related: alternativa-ao-anki, caderno-de-erros-digital
+related: carencias-inss-lei-8213, alternativa-ao-anki, caderno-de-erros-digital
 context: INSS · Lei 8.213/1991
 cover: {"value": "50%", "label": "do salário de benefício: o auxílio-acidente"}
 tags: INSS, lei seca, Lei 8.213, concurso, revisão
@@ -33,7 +33,7 @@ Isso não é motivo para esperar. A lei não muda por causa do edital. O último
 
 A Lei 8.213/1991 trata dos benefícios da Previdência. Para revisão, vale começar pelo que tem número, porque é aí que a banca troca as alternativas:
 
-1. **Carências** (arts. 24 a 26): quantas contribuições cada benefício exige e quais não exigem nenhuma.
+1. **Carências** (arts. 24 a 26): quantas contribuições cada benefício exige e quais não exigem nenhuma (montamos a [tabela de carências da Lei 8.213](/blog/carencias-inss-lei-8213) com as exceções).
 2. **Qualidade de segurado** (art. 15): por quanto tempo a pessoa continua segurada depois de parar de contribuir.
 3. **Benefícios com prazo ou percentual**: salário-maternidade (art. 71), auxílio-acidente (art. 86) e outros.
 

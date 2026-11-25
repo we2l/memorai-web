@@ -4,11 +4,15 @@
       <UiSkeleton v-if="loading || !forecast" variant="text" :lines="1" />
       <template v-else-if="forecast.due_count > 0">
         Amanhã: <strong>{{ forecast.due_count }} {{ forecast.due_count === 1 ? 'card' : 'cards' }}</strong> · ≈ {{ forecast.estimated_minutes }} min
+        <!-- The mini-lote said when its own cards come back; the rest are new ones (B4 of the audit, 25/11) -->
+        <span v-if="forecast.new_count > 0 && forecast.review_count > 0" class="block text-meta font-normal text-fg-muted" data-testid="onboarding-tomorrow-split">{{ forecast.review_count }} para revisar e {{ forecast.new_count }} {{ forecast.new_count === 1 ? 'novo' : 'novos' }}</span>
       </template>
       <template v-else>Amanhã: nada pendente. Aproveite para criar cards novos.</template>
     </li>
-    <li v-if="forecast?.reminder?.enabled && !forecast.reminder.suppressed" class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-3 py-3" data-testid="onboarding-reminder">
-      <p class="text-meta text-fg">Lembrete diário por e-mail às <strong class="text-fg-strong">{{ formatReminderHour(hour ?? forecast.reminder.hour) }}</strong></p>
+    <!-- The reminder only goes to a confirmed e-mail with cards to review (ReviewService): nothing to promise without
+         cards tomorrow, and without the confirmation the line says what is missing (auditoria 25/11, B3) -->
+    <li v-if="forecast?.reminder?.enabled && !forecast.reminder.suppressed && forecast.due_count > 0" class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-3 py-3" data-testid="onboarding-reminder">
+      <p class="text-meta text-fg" data-testid="onboarding-reminder-text">{{ verified ? 'Lembrete diário por e-mail às' : 'Confirme o seu e-mail para receber o lembrete às' }} <strong class="text-fg-strong">{{ formatReminderHour(hour ?? forecast.reminder.hour) }}</strong></p>
       <UiSelect
         v-if="changing"
         id="onboarding-reminder-hour"
@@ -33,6 +37,7 @@ import type { TomorrowForecast } from '~/types'
 defineProps<{ forecast: TomorrowForecast | null, loading?: boolean, failed?: boolean }>()
 
 const { $api } = useNuxtApp()
+const verified = computed(() => useAuthStore().isVerified)
 const { run, pending } = useApiAction()
 
 const changing = ref(false)

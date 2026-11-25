@@ -92,7 +92,7 @@
         <LazyUiRadioGroup v-model="goalChoice" label="Quantos lotes por dia?" :hint="`Um lote tem ${REVIEW_BATCH} cards, uns ${cardsMinutes(REVIEW_BATCH)} minutos.`" name="guest-goal" variant="cards" :columns="3" :options="goalOptions" />
 
         <div class="flex flex-col gap-3" data-testid="guest-save">
-          <p class="text-body text-fg">{{ auth.user ? 'Salve no seu caderno para eles voltarem na hora certa.' : 'Crie a conta para salvar. Eu te aviso às 19h quando eles voltarem.' }}</p>
+          <p class="text-body text-fg">{{ auth.user ? 'Salve no seu caderno para eles voltarem na hora certa.' : 'Crie a conta para salvar. Confirmando o e-mail, eu te aviso às 19h quando eles voltarem.' }}</p>
           <template v-if="auth.user">
             <UiButton variant="primary" block data-testid="guest-save-account" @click="commitAndGo('/comecar/pronto')">Salvar no meu caderno</UiButton>
           </template>

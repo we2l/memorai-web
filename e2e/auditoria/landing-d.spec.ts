@@ -447,7 +447,7 @@ test.describe('landing D', () => {
       await expect(page.locator('#como h2')).toBeInViewport()
       await expect(headerCta).toBeVisible()
       await headerCta.click()
-      await page.waitForURL('**/comecar')
+      await page.waitForURL('**/criar-conta')
     })
 
     test('no "Como funciona" a tela do celular fixo troca com o capítulo', async ({ page }) => {

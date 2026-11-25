@@ -239,7 +239,8 @@
     & .ec-hero { grid-template-columns: minmax(0, 1fr) 420px; grid-template-areas: 'title card' 'copy card'; column-gap: 56px; row-gap: 20px; align-items: center; padding-block: 40px 72px; }
     & .ec-hero-title { align-self: end; }
     & .ec-hero-copy { align-self: start; }
-    & .ec-hero-acts { flex-direction: row; align-items: center; gap: 16px; }
+    & .ec-hero-acts { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 4px 16px; }
+    & .ec-hero-acts .ec-btn-link { white-space: nowrap; }
     & .ec-hero-hi img { width: 72px; }
     & .ec-feats { grid-template-columns: repeat(3, 1fr); gap: 16px; }
     & .ec-feat { flex-direction: column; padding: 22px; }

@@ -20,6 +20,8 @@
           <p class="ec-lead">Mande o seu material e receba cards prontos. Cada um volta no dia certo, e revisar é grátis para sempre.</p>
           <div class="ec-hero-acts">
             <button type="button" class="ec-btn ec-btn-link" data-testid="entry-start" @click="start(1, 'hero')">Ver como funciona · 1 min</button>
+            <!-- 25/11: the first fold had no way to the form (a visitor had to go through Entrar) -->
+            <NuxtLink to="/criar-conta" class="ec-btn ec-btn-link" data-testid="entry-signup" @click="cta('hero_signup')">Criar conta grátis</NuxtLink>
             <NuxtLink :to="loginTo" class="ec-btn ec-btn-link" data-testid="entry-login" @click="cta('hero_login')">Já tenho conta · Entrar</NuxtLink>
           </div>
         </div>

@@ -117,6 +117,7 @@ export interface FrontEventProps {
   home_checklist_click: { item: HomeChecklistItem }
   /** variant (prd-ativacao-material-proprio H1): `cards` = "Gere os cards de…", `own_material` = "Agora com o seu material" */
   home_first_action_click: { notes: number; variant?: 'cards' | 'own_material' }
+  home_sample_started: { mode: 'exam' | 'academic' | 'language' | 'general' }
   home_exam_click: Record<string, never>
   scope_open: { depth: number, mode: string | null }
   next_step_click: { kind: 'generate_cards' | 'review_errors' | 'quiz' | 'continue' }

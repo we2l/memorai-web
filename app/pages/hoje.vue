@@ -32,6 +32,8 @@
 
         <!-- Account without cards and without material: the first steps take the place of the plan and carry the primary -->
         <LazyHomeChecklist v-if="!loading && noCards" :stats="stats" :roots="roots" :primary="!firstAction" />
+        <!-- No card and no sample (straight from /criar-conta, or "Começar pelo meu material"): cards to review without AI -->
+        <LazyHomeSampleOffer v-if="!loading && noCards && stats?.own && !stats.own.sample" />
         <!-- A caderno made by the edital has a cronograma before any card: its session stays under the first steps -->
         <HomePlan v-if="!loading && noCards && studyOnly.length" title="Também para hoje" :steps="studyOnly" @act="onStep" @study-mark="onStudyMark" />
         <HomePlan

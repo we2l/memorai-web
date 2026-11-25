@@ -97,7 +97,7 @@ test.describe('Visitante até a conta', () => {
     await result.getByTestId('guest-continue').click()
     const commit = page.getByTestId('guest-commit')
     await expect(commit.getByRole('heading', { level: 1 })).toBeFocused()
-    await expect(commit).toContainText('Eu te aviso às 19h')
+    await expect(commit).toContainText('Confirmando o e-mail, eu te aviso às 19h')
     await commit.getByRole('radio', { name: /Tenho data/ }).check()
     await commit.getByTestId('guest-signup').click()
     await expect(page.getByTestId('guest-exam-date')).toBeVisible()

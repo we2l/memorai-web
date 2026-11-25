@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { FIRST_TOUCH_KEY } from '~/utils/firstTouch'
-import { COMECAR_MIN_VISIBLE_MS, countComecarViewed, countFunnelStep, funnelSource, resetFunnelCount } from '~/utils/funnelCount'
+import { COMECAR_MIN_VISIBLE_MS, countComecarViewed, countFunnelStep, countPageViewed, funnelPiece, funnelSource, resetFunnelCount } from '~/utils/funnelCount'
 
 const API = 'https://api.baigi.test/api'
 
@@ -43,6 +43,30 @@ describe('funnelCount', () => {
     expect(beacon).toHaveBeenCalledTimes(1)
     expect(beacon.mock.calls[0]![0]).toBe(`${API}/public/funnel`)
     expect(sentBodies(beacon)).toEqual([{ step: 'guest_batch_done', source: 'instagram' }])
+  })
+
+  it('manda o vídeo do atalho (v + 3 dígitos) e nada quando o utm_content é outra coisa', () => {
+    localStorage.setItem(FIRST_TOUCH_KEY, JSON.stringify({ utm_source: 'youtube', utm_content: 'v027', landing: '/comecar', at: '2026-11-25T12:00:00Z' }))
+    countFunnelStep(API, 'entry_card_rated', false)
+    expect(sentBodies(beacon)).toEqual([{ step: 'entry_card_rated', source: 'youtube', content: 'v027' }])
+
+    localStorage.setItem(FIRST_TOUCH_KEY, JSON.stringify({ utm_source: 'instagram', utm_content: 'c02-caderno-de-erros', landing: '/comecar', at: '2026-11-25T12:00:00Z' }))
+    expect(funnelPiece()).toBe('')
+    countFunnelStep(API, 'guest_batch_done', false)
+    expect(sentBodies(beacon)[1]).toEqual({ step: 'guest_batch_done', source: 'instagram' })
+  })
+
+  it('edital_viewed segue a regra da chegada (1,5 s visível)', () => {
+    vi.useFakeTimers()
+    localStorage.setItem(FIRST_TOUCH_KEY, JSON.stringify({ utm_source: 'tiktok', utm_content: 'v031', landing: '/ferramentas/edital-verticalizado', at: '2026-11-25T12:00:00Z' }))
+    countPageViewed(API, 'edital_viewed', () => false)
+
+    vi.advanceTimersByTime(COMECAR_MIN_VISIBLE_MS - 100)
+    expect(beacon).not.toHaveBeenCalled()
+    vi.advanceTimersByTime(200)
+
+    const [body] = sentBodies(beacon)
+    expect(body).toMatchObject({ step: 'edital_viewed', source: 'tiktok', content: 'v031' })
   })
 
   it('sem primeiro toque usa o host do referrer e, sem ele, vazio', () => {

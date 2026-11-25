@@ -5,13 +5,17 @@ import { referrerSource } from '~/utils/firstTouchReferrer'
  * The aggregate entry funnel (api POST /public/funnel): one more in the counter of the day, origin and step, with no
  * cookie, no storage and no identifier, so it runs without the analytics consent (Privacidade, "Funil da entrada").
  * The origin is the first touch already kept on the device (utils/firstTouch.ts), or the host of this visit's referrer,
- * or empty (the API reads empty as "direct" and anything off its list as "other"). Nothing leaves for an automated
+ * or empty (the API reads empty as "direct" and anything off its list as "other"); the piece is the utm_content of the
+ * first touch when it is a video id (v027, from the short links /yt27 and /tk27). Nothing leaves for an automated
  * browser or for who has an account (the session hint). Each step counts once per page load. Out of the entry chunk and
- * of the precache: only the /comecar pages import it (ONE_SHOT_SHARED in nuxt.config).
+ * of the precache: only the /comecar pages and the edital tool import it (ONE_SHOT_SHARED in nuxt.config).
  */
-export type FunnelStep = 'comecar_viewed' | 'entry_card_rated' | 'entry_tour_done' | 'guest_batch_done'
+export type FunnelStep = 'comecar_viewed' | 'entry_card_rated' | 'entry_tour_done' | 'guest_batch_done' | 'edital_viewed'
 
-/** A /comecar visible for less than this is a prefetch or a link preview (the API drops it too). */
+/** The steps of arriving on a page: counted once the page has been visible for the minimum time. */
+export type FunnelArrival = 'comecar_viewed' | 'edital_viewed'
+
+/** A page visible for less than this is a prefetch or a link preview (the API drops it too). */
 export const COMECAR_MIN_VISIBLE_MS = 1500
 
 const sent = new Set<FunnelStep>()
@@ -30,6 +34,12 @@ export function funnelSource(): string {
   } catch { return '' }
 }
 
+/** utm_content of the first touch when it is a video id ("v" + 3 digits), else empty. */
+export function funnelPiece(): string {
+  const content = readFirstTouch()?.utm_content?.toLowerCase() ?? ''
+  return /^v\d{3}$/.test(content) ? content : ''
+}
+
 /** False for an automated browser and for who has an account (auth.user or the session hint of the cookie). */
 export function mayCountFunnel(loggedIn: boolean): boolean {
   if (typeof navigator === 'undefined' || navigator.webdriver) return false
@@ -44,6 +54,8 @@ export function countFunnelStep(apiBase: string, step: FunnelStep, loggedIn: boo
   if (sent.has(step) || !mayCountFunnel(loggedIn)) return
   sent.add(step)
   const body = new URLSearchParams({ step, source: funnelSource() })
+  const piece = funnelPiece()
+  if (piece) body.set('content', piece)
   if (ms !== undefined) body.set('ms', String(Math.round(ms)))
   const url = `${apiBase}/public/funnel`
   try {
@@ -54,10 +66,10 @@ export function countFunnelStep(apiBase: string, step: FunnelStep, loggedIn: boo
 }
 
 /**
- * comecar_viewed once the page has been visible for COMECAR_MIN_VISIBLE_MS (time in a hidden tab does not count), with
- * the real visible time; nothing while the page is being prerendered by the browser. Returns the cleanup.
+ * The arrival step once the page has been visible for COMECAR_MIN_VISIBLE_MS (time in a hidden tab does not count),
+ * with the real visible time; nothing while the page is being prerendered by the browser. Returns the cleanup.
  */
-export function countComecarViewed(apiBase: string, loggedIn: () => boolean): () => void {
+export function countPageViewed(apiBase: string, step: FunnelArrival, loggedIn: () => boolean): () => void {
   let visibleMs = 0
   let since: number | null = null
   let timer: ReturnType<typeof setTimeout> | null = null
@@ -76,7 +88,7 @@ export function countComecarViewed(apiBase: string, loggedIn: () => boolean): ()
       return
     }
     cleanup()
-    countFunnelStep(apiBase, 'comecar_viewed', loggedIn(), ms)
+    countFunnelStep(apiBase, step, loggedIn(), ms)
   }
   const sync = () => {
     const visible = !doc.prerendering && doc.visibilityState === 'visible'
@@ -101,4 +113,9 @@ export function countComecarViewed(apiBase: string, loggedIn: () => boolean): ()
   document.addEventListener('prerenderingchange', sync)
   sync()
   return cleanup
+}
+
+/** comecar_viewed (the entry of /comecar). */
+export function countComecarViewed(apiBase: string, loggedIn: () => boolean): () => void {
+  return countPageViewed(apiBase, 'comecar_viewed', loggedIn)
 }

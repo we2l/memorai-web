@@ -71,5 +71,20 @@ useBlogSeo({
   ],
 })
 
+// The aggregate funnel (no cookie, no id; utils/funnelCount.ts): a visitor who stays 1.5 s counts as edital_viewed,
+// with the video of the short link (/edital, /yt31, /tk31) when there is one. Loaded on demand, out of the closure.
+const auth = useAuthStore()
+const apiBase = useRuntimeConfig().public.apiBase as string
+let stopViewed: (() => void) | null | undefined
+onMounted(() => {
+  import('~/utils/funnelCount')
+    .then((m) => { if (stopViewed !== null) stopViewed = m.countPageViewed(apiBase, 'edital_viewed', () => !!auth.user) })
+    .catch(() => { /* intencional: contagem perdida não afeta a pessoa */ })
+})
+onBeforeUnmount(() => {
+  stopViewed?.()
+  stopViewed = null
+})
+
 
 </script>

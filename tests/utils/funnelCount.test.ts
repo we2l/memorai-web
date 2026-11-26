@@ -69,6 +69,16 @@ describe('funnelCount', () => {
     expect(body).toMatchObject({ step: 'edital_viewed', source: 'tiktok', content: 'v031' })
   })
 
+  it('signup_page_viewed: /criar-conta conta com a rede e o vídeo de onde veio', () => {
+    vi.useFakeTimers()
+    localStorage.setItem(FIRST_TOUCH_KEY, JSON.stringify({ utm_source: 'tiktok', utm_content: 'v027', landing: '/comecar', at: '2026-11-26T12:00:00Z' }))
+    countPageViewed(API, 'signup_page_viewed', () => false)
+    vi.advanceTimersByTime(COMECAR_MIN_VISIBLE_MS + 100)
+
+    const [body] = sentBodies(beacon)
+    expect(body).toMatchObject({ step: 'signup_page_viewed', source: 'tiktok', content: 'v027' })
+  })
+
   it('sem primeiro toque usa o host do referrer e, sem ele, vazio', () => {
     expect(funnelSource()).toBe('')
     Object.defineProperty(document, 'referrer', { configurable: true, get: () => 'https://l.instagram.com/?u=x' })

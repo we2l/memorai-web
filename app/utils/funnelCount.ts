@@ -8,12 +8,13 @@ import { referrerSource } from '~/utils/firstTouchReferrer'
  * or empty (the API reads empty as "direct" and anything off its list as "other"); the piece is the utm_content of the
  * first touch when it is a video id (v027, from the short links /yt27 and /tk27). Nothing leaves for an automated
  * browser or for who has an account (the session hint). Each step counts once per page load. Out of the entry chunk and
- * of the precache: only the /comecar pages and the edital tool import it (ONE_SHOT_SHARED in nuxt.config).
+ * of the precache: only the /comecar pages, the edital tool, /criar-conta and the landing's header import it (on demand) (ONE_SHOT_SHARED in nuxt.config).
  */
 export type FunnelStep = 'comecar_viewed' | 'entry_card_rated' | 'entry_tour_done' | 'guest_batch_done' | 'edital_viewed'
+  | 'hero_signup' | 'final_signup' | 'signup_page_viewed'
 
 /** The steps of arriving on a page: counted once the page has been visible for the minimum time. */
-export type FunnelArrival = 'comecar_viewed' | 'edital_viewed'
+export type FunnelArrival = 'comecar_viewed' | 'edital_viewed' | 'signup_page_viewed'
 
 /** A page visible for less than this is a prefetch or a link preview (the API drops it too). */
 export const COMECAR_MIN_VISIBLE_MS = 1500

@@ -56,6 +56,25 @@ describe('entrada do /comecar', () => {
     expect(w.find('[data-testid="entry-plans-signup"]').attributes('href')).toBe('/criar-conta')
   })
 
+  it.each([
+    ['entry-signup', 'hero_signup'],
+    ['entry-final-signup', 'final_signup'],
+  ])('o clique em %s conta no funil agregado como %s', async (testid, step) => {
+    const w = await mountSuspended(Home, { props: { catalog: null, loginTo: '/entrar' } })
+    await w.find(`[data-testid="${testid}"]`).trigger('click')
+    await vi.waitFor(() => expect(countFunnelStep).toHaveBeenCalledWith(expect.any(String), step, false))
+    expect(countFunnelStep).toHaveBeenCalledTimes(1)
+  })
+
+  it('Criar conta grátis do último passo conta como final_signup; Entrar não conta', async () => {
+    const home = await mountSuspended(Home, { props: { catalog: null, loginTo: '/entrar' } })
+    await home.find('[data-testid="entry-login"]').trigger('click')
+    const tour = await mountSuspended(Tour, { props: { step: 6, catalog: null, failed: true, flow: false } })
+    await tour.find('[data-testid="entry-plans-signup"]').trigger('click')
+    await vi.waitFor(() => expect(countFunnelStep).toHaveBeenCalledWith(expect.any(String), 'final_signup', false))
+    expect(countFunnelStep).toHaveBeenCalledTimes(1)
+  })
+
   it('a entrada: cada recurso abre o seu passo; nunca "app"', async () => {
     const w = await mountSuspended(Home, { props: { catalog: null, loginTo: '/entrar' } })
     await w.find('[data-testid="entry-feature-5"]').trigger('click')

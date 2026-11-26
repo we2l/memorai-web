@@ -115,8 +115,15 @@ const emit = defineEmits<{ start: [step: number, origin: 'hero' | 'feature'] }>(
 
 const { track } = useAnalytics()
 
+const apiBase = useRuntimeConfig().public.apiBase as string
+const auth = useAuthStore()
+
 function cta(position: EntryCtaPosition) {
   track('entry_cta_clicked', { position })
+  // The aggregate funnel (no cookie, no id) also counts the clicks that go straight to the form
+  if (position === 'hero_signup' || position === 'final_signup') {
+    import('~/utils/funnelCount').then(m => m.countFunnelStep(apiBase, position, !!auth.user))
+  }
 }
 
 // The form's chunk (once-*) when the box is 400 px from the screen; the box keeps the form's height, so nothing moves

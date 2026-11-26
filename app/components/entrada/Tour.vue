@@ -238,6 +238,8 @@ function skip() {
 
 function cta(position: EntryCtaPosition) {
   track('entry_cta_clicked', { position })
+  // "Criar conta grátis" of the last step counts in the aggregate funnel with the final band of the entry
+  if (position === 'plans_signup') import('~/utils/funnelCount').then(m => m.countFunnelStep(apiBase, 'final_signup', !!auth.user))
 }
 
 /** 1 / 2 rate the card after it is turned (the app's keys); never while typing or with a modifier */

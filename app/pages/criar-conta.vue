@@ -91,7 +91,18 @@ const band = computed(() => guest.value
   ? { headline: `Você lembrou ${guest.value.remembered} de ${guest.value.total}.`, sub: guest.value.returns, mascot: 'feliz' as const }
   : { headline: 'Estude uma vez. O Baigi te chama na hora de revisar.', sub: 'Grátis para começar, sem cartão.', mascot: 'comemorando' as const })
 
+// The aggregate funnel (no cookie, no id; utils/funnelCount.ts): a visitor who stays 1.5 s counts as signup_page_viewed,
+// with the network and the video of the first touch (the short link or the /comecar it came from)
+let stopViewed: (() => void) | null | undefined
+onBeforeUnmount(() => {
+  stopViewed?.()
+  stopViewed = null
+})
+
 onMounted(async () => {
+  import('~/utils/funnelCount')
+    .then((m) => { if (stopViewed !== null) stopViewed = m.countPageViewed(useRuntimeConfig().public.apiBase as string, 'signup_page_viewed', () => !!auth.user) })
+    .catch(() => { /* intencional: contagem perdida não afeta a pessoa */ })
   const p = pendingGuestProgress()
   if (!p) return
   // Remembered = the first rating of each card (guestSummary); the intervals only matter for the agenda below

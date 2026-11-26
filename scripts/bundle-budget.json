@@ -92,8 +92,8 @@
     },
     "/criar-conta": {
       "file": "pages/criar-conta.vue",
-      "gzKb": 3,
-      "closureGzKb": 18.5
+      "gzKb": 3.2,
+      "closureGzKb": 18.7
     },
     "/editais/:slug": {
       "file": "pages/editais/[slug].vue",
